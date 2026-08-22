@@ -1,0 +1,5 @@
+# Ship the runtime Policy Catalog in the first Admin iteration
+
+The first Admin iteration delivers the Policy Catalog as persisted runtime data: a catalog table in `deploy/mysql/schema.sql`, dedicated management APIs, and a registry that loads policies from the database, replacing the code-registered bootstrap policies — changing an exposed table must not require rebuilding Admin. A saved policy takes effect immediately (single process, in-memory cache invalidated on write); draft/activation workflows wait for multi-instance or audit requirements, refining ADR 0001's activation consequence. Saving a policy validates its physical table and column names against `information_schema` of the single deployment-configured MySQL datasource, and policies can never store DSNs or reach other databases; full table/column discovery APIs wait for the Web policy editor.
+
+Because nothing is deployed yet, `schema.sql` may still change freely — adding the catalog table is not an upgrade. After the first real deployment `schema.sql` becomes append-only, and any subsequent schema change introduces Goose before touching tables.
