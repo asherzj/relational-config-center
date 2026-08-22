@@ -1,0 +1,6 @@
+.git
+.codex-cache
+bin
+web/node_modules
+**/*_test.go
+admin/integration

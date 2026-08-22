@@ -2,7 +2,7 @@ GO_MODULES := admin client server shared
 GO_COMMAND_MODULES := admin server
 GO_LIBRARY_MODULES := client shared
 
-.PHONY: fmt test build
+.PHONY: fmt test test-integration build
 
 fmt:
 	@for module in $(GO_MODULES); do \
@@ -13,6 +13,9 @@ test:
 	@for module in $(GO_MODULES); do \
 		(cd $$module && go test ./...); \
 	done
+
+test-integration:
+	cd admin/integration && RCC_INTEGRATION=1 go test -count=1 -v ./...
 
 build:
 	@for module in $(GO_LIBRARY_MODULES); do \
