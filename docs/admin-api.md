@@ -89,9 +89,11 @@ Admin rejects undeclared resources, fields, operators, sort expressions, oversiz
 
 ## Add another managed table
 
-1. Add its DDL to `deploy/mysql/schema.sql` while the project is still in the bootstrap-only phase.
-2. Register a new `domain.Policy` in `admin/internal/bootstrap`.
+Table Policies are persisted runtime data in the `table_policies` catalog table, seeded by `deploy/mysql/schema.sql` and loaded at startup.
+
+1. Add the table's DDL to `deploy/mysql/schema.sql` while no database has been deployed yet.
+2. Insert a policy document row into `table_policies` in the same file; the `configs` seed is the reference example.
 3. Define every public-to-physical field mapping and explicitly allow read, filter, sort, create, update, and delete capabilities.
 4. Add a MySQL integration scenario before exposing it to Web.
 
-Do not accept table names or column names from environment variables or HTTP requests. A table becomes externally reachable only by being compiled into the policy registry.
+Do not accept table names or column names from HTTP requests. A table becomes externally reachable only through a policy row present in the catalog; what is in the catalog is entirely what the database says. Dedicated catalog management APIs arrive with issue #3.

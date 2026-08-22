@@ -17,20 +17,22 @@ const (
 var identifierPattern = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
 
 // FieldPolicy maps a public field to a trusted physical column and its allowed operations.
+// The JSON tags define the persisted policy-document format used by the Policy
+// Catalog; the generic table API never exposes these fields directly.
 type FieldPolicy struct {
-	Column           string
-	Type             ValueType
-	Nullable         bool
-	Readable         bool
-	Creatable        bool
-	Updatable        bool
-	Sortable         bool
-	RequiredOnCreate bool
-	AutoIncrement    bool
-	MinLength        int
-	MaxLength        int
-	AllowedValues    []string
-	FilterOperators  []Operator
+	Column           string     `json:"column"`
+	Type             ValueType  `json:"type"`
+	Nullable         bool       `json:"nullable,omitempty"`
+	Readable         bool       `json:"readable,omitempty"`
+	Creatable        bool       `json:"creatable,omitempty"`
+	Updatable        bool       `json:"updatable,omitempty"`
+	Sortable         bool       `json:"sortable,omitempty"`
+	RequiredOnCreate bool       `json:"required_on_create,omitempty"`
+	AutoIncrement    bool       `json:"auto_increment,omitempty"`
+	MinLength        int        `json:"min_length,omitempty"`
+	MaxLength        int        `json:"max_length,omitempty"`
+	AllowedValues    []string   `json:"allowed_values,omitempty"`
+	FilterOperators  []Operator `json:"filter_operators,omitempty"`
 }
 
 func (f FieldPolicy) permits(operator Operator) bool {
@@ -44,19 +46,19 @@ func (f FieldPolicy) permits(operator Operator) bool {
 
 // Policy defines the complete client-visible surface of one managed table.
 type Policy struct {
-	Resource        string
-	Table           string
-	PrimaryKey      string
-	Fields          map[string]FieldPolicy
-	AllowCreate     bool
-	AllowUpdate     bool
-	AllowDelete     bool
-	DefaultSort     []Sort
-	DefaultPageSize int
-	MaxPageSize     int
-	MaxFilterDepth  int
-	MaxFilterNodes  int
-	MaxInValues     int
+	Resource        string                 `json:"resource"`
+	Table           string                 `json:"table"`
+	PrimaryKey      string                 `json:"primary_key"`
+	Fields          map[string]FieldPolicy `json:"fields"`
+	AllowCreate     bool                   `json:"allow_create,omitempty"`
+	AllowUpdate     bool                   `json:"allow_update,omitempty"`
+	AllowDelete     bool                   `json:"allow_delete,omitempty"`
+	DefaultSort     []Sort                 `json:"default_sort,omitempty"`
+	DefaultPageSize int                    `json:"default_page_size,omitempty"`
+	MaxPageSize     int                    `json:"max_page_size,omitempty"`
+	MaxFilterDepth  int                    `json:"max_filter_depth,omitempty"`
+	MaxFilterNodes  int                    `json:"max_filter_nodes,omitempty"`
+	MaxInValues     int                    `json:"max_in_values,omitempty"`
 }
 
 // WithDefaults returns a copy with safe query limits filled in.

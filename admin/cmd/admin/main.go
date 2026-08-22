@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/asherzj/relational-config-center/admin/internal/application"
-	"github.com/asherzj/relational-config-center/admin/internal/bootstrap"
 	"github.com/asherzj/relational-config-center/admin/internal/config"
+	"github.com/asherzj/relational-config-center/admin/internal/domain"
 	"github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql"
 	httpapi "github.com/asherzj/relational-config-center/admin/internal/interfaces/http"
 )
@@ -44,7 +44,11 @@ func run() error {
 	}
 	defer sqlDB.Close()
 
-	registry, err := bootstrap.Registry()
+	policies, err := mysql.NewPolicyCatalog(db).Load(startupContext)
+	if err != nil {
+		return fmt.Errorf("load table policies: %w", err)
+	}
+	registry, err := domain.NewRegistry(policies...)
 	if err != nil {
 		return fmt.Errorf("build table policy registry: %w", err)
 	}

@@ -96,6 +96,6 @@ The first iteration ships the Policy Catalog as runtime data (ADR 0005) and prov
 - Requests cannot select arbitrary physical tables, columns, operators, sort expressions, or SQL.
 - Query depth, node count, `IN` size, page size, string length, enum values, and JSON types are validated before GORM executes anything.
 
-The original prototype packages (`httpapi`, `managedtable`, `mysqlstore`) were rewritten into the layout above rather than preserved; `bootstrap` remains as the compile-time policy source until the runtime Policy Catalog replaces it (issue #2).
+The original prototype packages (`httpapi`, `managedtable`, `mysqlstore`) were rewritten into the layout above rather than preserved; the compile-time `bootstrap` registry was deleted when the runtime Policy Catalog landed (issue #2).
 
 Relations, authentication, authorization, audit history, publishing workflows, runtime gRPC reads, and in-place schema upgrades belong to later iterations.
