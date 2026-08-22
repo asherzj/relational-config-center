@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+
+# Go
+/bin/
+*.test
+*.out
+
+# Common build and dependency directories
+node_modules/
+dist/
+build/
+.cache/
+coverage/
