@@ -9,21 +9,22 @@ import (
 
 // Service validates table policies and query specifications before persistence.
 type Service struct {
-	registry   *domain.Registry
+	policies   *PolicySource
 	repository domain.Repository
 }
 
 // NewService creates the application service used by HTTP handlers.
-func NewService(registry *domain.Registry, repository domain.Repository) *Service {
-	return &Service{registry: registry, repository: repository}
+func NewService(policies *PolicySource, repository domain.Repository) *Service {
+	return &Service{policies: policies, repository: repository}
 }
 
 // List returns frontend-safe definitions for every registered managed table.
 func (s *Service) List() []domain.Definition {
-	names := s.registry.Names()
+	registry := s.policies.Current()
+	names := registry.Names()
 	definitions := make([]domain.Definition, 0, len(names))
 	for _, name := range names {
-		policy, _ := s.registry.Get(name)
+		policy, _ := registry.Get(name)
 		definitions = append(definitions, domain.DefinitionOf(policy))
 	}
 	return definitions
@@ -31,7 +32,7 @@ func (s *Service) List() []domain.Definition {
 
 // Describe returns the frontend-safe policy for one resource.
 func (s *Service) Describe(resource string) (domain.Definition, error) {
-	policy, ok := s.registry.Get(resource)
+	policy, ok := s.policies.Current().Get(resource)
 	if !ok {
 		return domain.Definition{}, domain.ErrUnknownResource
 	}
@@ -104,7 +105,7 @@ func (s *Service) Delete(ctx context.Context, resource, rawKey string) (domain.M
 }
 
 func (s *Service) policy(resource string) (domain.Policy, error) {
-	policy, ok := s.registry.Get(resource)
+	policy, ok := s.policies.Current().Get(resource)
 	if !ok {
 		return domain.Policy{}, domain.ErrUnknownResource
 	}

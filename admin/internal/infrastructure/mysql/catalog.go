@@ -8,7 +8,10 @@ import (
 
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
+
+var _ domain.PolicyRepository = (*PolicyCatalog)(nil)
 
 // policyRow maps one row of the persisted table_policies catalog table. The
 // policy column stores the complete policy document as defined by the domain
@@ -53,4 +56,37 @@ func (catalog *PolicyCatalog) Load(ctx context.Context) ([]domain.Policy, error)
 		policies = append(policies, policy)
 	}
 	return policies, nil
+}
+
+// Save upserts one canonical policy document under its resource identity.
+// updated_at advances through the column's ON UPDATE clause.
+func (catalog *PolicyCatalog) Save(ctx context.Context, policy domain.Policy) error {
+	encoded, err := json.Marshal(policy)
+	if err != nil {
+		return fmt.Errorf("encode table policy %q: %w", policy.Resource, err)
+	}
+	row := policyRow{Resource: policy.Resource, Policy: encoded}
+	if err := catalog.db.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "resource"}},
+		DoUpdates: clause.AssignmentColumns([]string{"policy"}),
+	}).Create(&row).Error; err != nil {
+		return fmt.Errorf("save table policy %q: %w", policy.Resource, err)
+	}
+	return nil
+}
+
+// Delete removes one policy document and reports ErrPolicyNotFound when the
+// resource is absent.
+func (catalog *PolicyCatalog) Delete(ctx context.Context, resource string) error {
+	deleted := catalog.db.WithContext(ctx).
+		Model(&policyRow{}).
+		Where("resource = ?", resource).
+		Delete(&policyRow{})
+	if deleted.Error != nil {
+		return fmt.Errorf("delete table policy %q: %w", resource, deleted.Error)
+	}
+	if deleted.RowsAffected == 0 {
+		return domain.ErrPolicyNotFound
+	}
+	return nil
 }

@@ -16,6 +16,11 @@ const (
 
 var identifierPattern = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
 
+// CatalogTable is the physical table backing the Policy Catalog. A Table
+// Policy can never target it, so the catalog is not reachable through the
+// generic table API.
+const CatalogTable = "table_policies"
+
 // FieldPolicy maps a public field to a trusted physical column and its allowed operations.
 // The JSON tags define the persisted policy-document format used by the Policy
 // Catalog; the generic table API never exposes these fields directly.
@@ -95,6 +100,12 @@ func (p Policy) Validate() error {
 	}
 	if !identifierPattern.MatchString(p.Table) {
 		return fmt.Errorf("policy %q: physical table %q is not a safe identifier", p.Resource, p.Table)
+	}
+	if p.Table == CatalogTable {
+		return fmt.Errorf("policy %q: the Policy Catalog table %q cannot manage itself", p.Resource, CatalogTable)
+	}
+	if p.Resource == CatalogTable {
+		return fmt.Errorf("policy resource %q is reserved for the Policy Catalog", p.Resource)
 	}
 	if p.PrimaryKey == "" {
 		return fmt.Errorf("policy %q: primary key is required", p.Resource)

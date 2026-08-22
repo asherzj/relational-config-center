@@ -52,10 +52,12 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("build table policy registry: %w", err)
 	}
-	service := application.NewService(registry, mysql.NewRepository(db))
+	source := application.NewPolicySource(registry)
+	service := application.NewService(source, mysql.NewRepository(db))
+	catalog := application.NewCatalogService(mysql.NewPolicyCatalog(db), mysql.NewSchemaVerifier(db), source)
 	server := &http.Server{
 		Addr:              settings.Address,
-		Handler:           httpapi.NewRouter(service, sqlDB),
+		Handler:           httpapi.NewRouter(service, catalog, sqlDB),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      30 * time.Second,

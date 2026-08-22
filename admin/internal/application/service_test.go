@@ -179,7 +179,7 @@ func testService(t *testing.T, repository domain.Repository) *Service {
 	if err != nil {
 		t.Fatalf("NewRegistry() error = %v", err)
 	}
-	return NewService(registry, repository)
+	return NewService(NewPolicySource(registry), repository)
 }
 
 func testPolicy() domain.Policy {

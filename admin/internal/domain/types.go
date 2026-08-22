@@ -12,6 +12,7 @@ var (
 	ErrRowNotFound         = errors.New("row not found")
 	ErrConflict            = errors.New("row conflicts with existing data")
 	ErrOperationNotAllowed = errors.New("operation is not allowed by the table policy")
+	ErrPolicyNotFound      = errors.New("table policy not found")
 )
 
 // ValidationError identifies invalid client input without exposing SQL details.
@@ -135,4 +136,20 @@ type Repository interface {
 	Create(context.Context, Policy, map[string]any) (MutationResult, error)
 	Update(context.Context, Policy, any, map[string]any) (MutationResult, error)
 	Delete(context.Context, Policy, any) (MutationResult, error)
+}
+
+// PolicyRepository persists the Policy Catalog itself. The catalog is managed
+// only through dedicated capabilities, never through the generic Repository.
+type PolicyRepository interface {
+	Load(context.Context) ([]Policy, error)
+	Save(context.Context, Policy) error
+	Delete(ctx context.Context, resource string) error
+}
+
+// SchemaVerifier proves that a policy's physical table and columns exist in
+// the deployment's single configured database before the policy is saved.
+// It carries no datasource fields: a policy can never store a DSN or reach
+// another database.
+type SchemaVerifier interface {
+	VerifyPolicy(context.Context, Policy) error
 }

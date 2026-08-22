@@ -115,3 +115,18 @@ INSERT INTO table_policies (resource, policy) VALUES ('configs', '{
   "max_filter_nodes": 32,
   "max_in_values": 100
 }');
+
+-- A physical table that ships without a policy: it becomes a Managed Table
+-- only after a policy for it is saved through the Policy Catalog API.
+CREATE TABLE IF NOT EXISTS feature_flags (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name VARCHAR(128) NOT NULL,
+    enabled TINYINT(1) NOT NULL DEFAULT 0,
+    rollout_percent INT UNSIGNED NOT NULL DEFAULT 0,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_feature_flags_name (name)
+) ENGINE = InnoDB
+  DEFAULT CHARACTER SET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;

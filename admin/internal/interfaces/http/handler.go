@@ -23,12 +23,13 @@ type pinger interface {
 // Handler serves the managed-table application service.
 type Handler struct {
 	service *application.Service
+	catalog *application.CatalogService
 	db      pinger
 }
 
 // NewRouter builds the complete Admin HTTP router.
-func NewRouter(service *application.Service, db pinger) *gin.Engine {
-	handler := &Handler{service: service, db: db}
+func NewRouter(service *application.Service, catalog *application.CatalogService, db pinger) *gin.Engine {
+	handler := &Handler{service: service, catalog: catalog, db: db}
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
 	_ = router.SetTrustedProxies(nil)
@@ -43,6 +44,11 @@ func NewRouter(service *application.Service, db pinger) *gin.Engine {
 	api.POST("/tables/:resource/rows", handler.createRow)
 	api.PATCH("/tables/:resource/rows/:key", handler.updateRow)
 	api.DELETE("/tables/:resource/rows/:key", handler.deleteRow)
+
+	api.GET("/policies", handler.listPolicies)
+	api.GET("/policies/:resource", handler.describePolicy)
+	api.PUT("/policies/:resource", handler.savePolicy)
+	api.DELETE("/policies/:resource", handler.deletePolicy)
 	return router
 }
 
@@ -126,6 +132,49 @@ func (h *Handler) deleteRow(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": result})
 }
 
+// Policy Catalog endpoints manage the catalog itself through dedicated
+// capabilities; the catalog is not reachable through the generic table API.
+
+func (h *Handler) listPolicies(c *gin.Context) {
+	policies, err := h.catalog.List(c.Request.Context())
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": policies})
+}
+
+func (h *Handler) describePolicy(c *gin.Context) {
+	policy, err := h.catalog.Get(c.Request.Context(), c.Param("resource"))
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": policy})
+}
+
+func (h *Handler) savePolicy(c *gin.Context) {
+	var policy domain.Policy
+	if err := decodeJSON(c, &policy); err != nil {
+		h.writeError(c, err)
+		return
+	}
+	saved, err := h.catalog.Save(c.Request.Context(), c.Param("resource"), policy)
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": saved})
+}
+
+func (h *Handler) deletePolicy(c *gin.Context) {
+	if err := h.catalog.Delete(c.Request.Context(), c.Param("resource")); err != nil {
+		h.writeError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": gin.H{"resource": c.Param("resource"), "deleted": true}})
+}
+
 func decodeJSON(c *gin.Context, destination any) error {
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxRequestBodyBytes)
 	decoder := json.NewDecoder(c.Request.Body)
@@ -153,6 +202,10 @@ func (h *Handler) writeError(c *gin.Context, err error) {
 	case errors.Is(err, domain.ErrUnknownResource):
 		status = http.StatusNotFound
 		code = "TABLE_NOT_FOUND"
+		message = err.Error()
+	case errors.Is(err, domain.ErrPolicyNotFound):
+		status = http.StatusNotFound
+		code = "POLICY_NOT_FOUND"
 		message = err.Error()
 	case errors.Is(err, domain.ErrRowNotFound):
 		status = http.StatusNotFound

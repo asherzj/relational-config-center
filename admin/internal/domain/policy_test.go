@@ -58,3 +58,11 @@ func testPolicy() Policy {
 		},
 	}
 }
+
+func TestPolicyRejectsCatalogSelfManagement(t *testing.T) {
+	policy := testPolicy()
+	policy.Table = CatalogTable
+	if err := policy.Validate(); err == nil {
+		t.Fatal("Validate() error = nil, want catalog self-management error")
+	}
+}
