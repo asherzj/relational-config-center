@@ -1,5 +1,5 @@
-// Package managedtable defines policy-controlled access to relational tables.
-package managedtable
+// Package domain defines managed-table policies, query specifications, and their validation rules.
+package domain
 
 import (
 	"context"

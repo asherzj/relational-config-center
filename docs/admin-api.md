@@ -90,7 +90,7 @@ Admin rejects undeclared resources, fields, operators, sort expressions, oversiz
 ## Add another managed table
 
 1. Add its DDL to `deploy/mysql/schema.sql` while the project is still in the bootstrap-only phase.
-2. Register a new `managedtable.Policy` in `admin/internal/bootstrap`.
+2. Register a new `domain.Policy` in `admin/internal/bootstrap`.
 3. Define every public-to-physical field mapping and explicitly allow read, filter, sort, create, update, and delete capabilities.
 4. Add a MySQL integration scenario before exposing it to Web.
 

@@ -1,4 +1,4 @@
-package mysqlstore
+package mysql
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/asherzj/relational-config-center/admin/internal/managedtable"
+	"github.com/asherzj/relational-config-center/admin/internal/domain"
 	drivermysql "github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -28,32 +28,32 @@ func NewRepository(db *gorm.DB) *Repository {
 }
 
 // Query returns one stable page and the full filtered row count.
-func (r *Repository) Query(ctx context.Context, policy managedtable.Policy, query managedtable.QuerySpec) (managedtable.PageResult, error) {
+func (r *Repository) Query(ctx context.Context, policy domain.Policy, query domain.QuerySpec) (domain.PageResult, error) {
 	countQuery, err := r.compiler.applyFilter(r.db.WithContext(ctx).Table(policy.Table), policy, query.Filter)
 	if err != nil {
-		return managedtable.PageResult{}, err
+		return domain.PageResult{}, err
 	}
 	var total int64
 	if err := countQuery.Count(&total).Error; err != nil {
-		return managedtable.PageResult{}, classify("count rows", err)
+		return domain.PageResult{}, classify("count rows", err)
 	}
 
 	dataQuery, err := r.compiler.applyFilter(r.db.WithContext(ctx).Table(policy.Table), policy, query.Filter)
 	if err != nil {
-		return managedtable.PageResult{}, err
+		return domain.PageResult{}, err
 	}
 	dataQuery = dataQuery.Clauses(readableSelect(policy), orderBy(policy, query.Sort))
 	offset := (query.Page.Number - 1) * query.Page.Size
 	rows := make([]map[string]any, 0, query.Page.Size)
 	if err := dataQuery.Offset(offset).Limit(query.Page.Size).Find(&rows).Error; err != nil {
-		return managedtable.PageResult{}, classify("query rows", err)
+		return domain.PageResult{}, classify("query rows", err)
 	}
 	for _, row := range rows {
 		normalizeRow(policy, row)
 	}
-	return managedtable.PageResult{
+	return domain.PageResult{
 		Rows: rows,
-		Page: managedtable.PageInfo{
+		Page: domain.PageInfo{
 			Number: query.Page.Number,
 			Size:   query.Page.Size,
 			Total:  total,
@@ -62,9 +62,9 @@ func (r *Repository) Query(ctx context.Context, policy managedtable.Policy, quer
 }
 
 // Create inserts one row and returns an auto-increment key when configured.
-func (r *Repository) Create(ctx context.Context, policy managedtable.Policy, values map[string]any) (managedtable.MutationResult, error) {
+func (r *Repository) Create(ctx context.Context, policy domain.Policy, values map[string]any) (domain.MutationResult, error) {
 	physical := physicalValues(policy, values)
-	result := managedtable.MutationResult{}
+	result := domain.MutationResult{}
 	if key, exists := values[policy.PrimaryKey]; exists {
 		result.Key = externalKey(key)
 	}
@@ -85,44 +85,44 @@ func (r *Repository) Create(ctx context.Context, policy managedtable.Policy, val
 		return nil
 	})
 	if err != nil {
-		return managedtable.MutationResult{}, classify("create row", err)
+		return domain.MutationResult{}, classify("create row", err)
 	}
 	return result, nil
 }
 
 // Update changes one primary-key-selected row.
-func (r *Repository) Update(ctx context.Context, policy managedtable.Policy, key any, values map[string]any) (managedtable.MutationResult, error) {
+func (r *Repository) Update(ctx context.Context, policy domain.Policy, key any, values map[string]any) (domain.MutationResult, error) {
 	primary := policy.Fields[policy.PrimaryKey]
 	updated := r.db.WithContext(ctx).
 		Table(policy.Table).
 		Where(clause.Eq{Column: clause.Column{Name: primary.Column}, Value: key}).
 		Updates(physicalValues(policy, values))
 	if updated.Error != nil {
-		return managedtable.MutationResult{}, classify("update row", updated.Error)
+		return domain.MutationResult{}, classify("update row", updated.Error)
 	}
 	if updated.RowsAffected == 0 {
-		return managedtable.MutationResult{}, managedtable.ErrRowNotFound
+		return domain.MutationResult{}, domain.ErrRowNotFound
 	}
-	return managedtable.MutationResult{AffectedRows: updated.RowsAffected, Key: externalKey(key)}, nil
+	return domain.MutationResult{AffectedRows: updated.RowsAffected, Key: externalKey(key)}, nil
 }
 
 // Delete removes one primary-key-selected row.
-func (r *Repository) Delete(ctx context.Context, policy managedtable.Policy, key any) (managedtable.MutationResult, error) {
+func (r *Repository) Delete(ctx context.Context, policy domain.Policy, key any) (domain.MutationResult, error) {
 	primary := policy.Fields[policy.PrimaryKey]
 	deleted := r.db.WithContext(ctx).
 		Table(policy.Table).
 		Where(clause.Eq{Column: clause.Column{Name: primary.Column}, Value: key}).
 		Delete(&map[string]any{})
 	if deleted.Error != nil {
-		return managedtable.MutationResult{}, classify("delete row", deleted.Error)
+		return domain.MutationResult{}, classify("delete row", deleted.Error)
 	}
 	if deleted.RowsAffected == 0 {
-		return managedtable.MutationResult{}, managedtable.ErrRowNotFound
+		return domain.MutationResult{}, domain.ErrRowNotFound
 	}
-	return managedtable.MutationResult{AffectedRows: deleted.RowsAffected, Key: externalKey(key)}, nil
+	return domain.MutationResult{AffectedRows: deleted.RowsAffected, Key: externalKey(key)}, nil
 }
 
-func readableSelect(policy managedtable.Policy) clause.Select {
+func readableSelect(policy domain.Policy) clause.Select {
 	names := make([]string, 0, len(policy.Fields))
 	for name, field := range policy.Fields {
 		if field.Readable {
@@ -142,19 +142,19 @@ func readableSelect(policy managedtable.Policy) clause.Select {
 	return clause.Select{Columns: columns}
 }
 
-func orderBy(policy managedtable.Policy, sorts []managedtable.Sort) clause.OrderBy {
+func orderBy(policy domain.Policy, sorts []domain.Sort) clause.OrderBy {
 	columns := make([]clause.OrderByColumn, 0, len(sorts))
 	for _, item := range sorts {
 		field := policy.Fields[item.Field]
 		columns = append(columns, clause.OrderByColumn{
 			Column: clause.Column{Table: policy.Table, Name: field.Column},
-			Desc:   item.Direction == managedtable.DirectionDescending,
+			Desc:   item.Direction == domain.DirectionDescending,
 		})
 	}
 	return clause.OrderBy{Columns: columns}
 }
 
-func physicalValues(policy managedtable.Policy, values map[string]any) map[string]any {
+func physicalValues(policy domain.Policy, values map[string]any) map[string]any {
 	physical := make(map[string]any, len(values))
 	for publicName, value := range values {
 		physical[policy.Fields[publicName].Column] = value
@@ -162,7 +162,7 @@ func physicalValues(policy managedtable.Policy, values map[string]any) map[strin
 	return physical
 }
 
-func normalizeRow(policy managedtable.Policy, row map[string]any) {
+func normalizeRow(policy domain.Policy, row map[string]any) {
 	for publicName, field := range policy.Fields {
 		if !field.Readable {
 			continue
@@ -175,10 +175,10 @@ func normalizeRow(policy managedtable.Policy, row map[string]any) {
 	}
 }
 
-func normalizeDatabaseValue(valueType managedtable.ValueType, value any) any {
+func normalizeDatabaseValue(valueType domain.ValueType, value any) any {
 	rawBytes, isBytes := value.([]byte)
 	switch valueType {
-	case managedtable.TypeJSON:
+	case domain.TypeJSON:
 		encoded := rawBytes
 		if text, ok := value.(string); ok {
 			encoded = []byte(text)
@@ -193,11 +193,11 @@ func normalizeDatabaseValue(valueType managedtable.ValueType, value any) any {
 		if err := decoder.Decode(&decoded); err == nil {
 			return decoded
 		}
-	case managedtable.TypeString:
+	case domain.TypeString:
 		if isBytes {
 			return string(rawBytes)
 		}
-	case managedtable.TypeBoolean:
+	case domain.TypeBoolean:
 		if isBytes {
 			parsed, err := strconv.ParseBool(string(rawBytes))
 			if err == nil {
@@ -210,7 +210,7 @@ func normalizeDatabaseValue(valueType managedtable.ValueType, value any) any {
 		case uint64:
 			return number != 0
 		}
-	case managedtable.TypeInteger:
+	case domain.TypeInteger:
 		if isBytes {
 			return string(rawBytes)
 		}
@@ -220,7 +220,7 @@ func normalizeDatabaseValue(valueType managedtable.ValueType, value any) any {
 		case int:
 			return strconv.Itoa(number)
 		}
-	case managedtable.TypeUnsigned:
+	case domain.TypeUnsigned:
 		if isBytes {
 			return string(rawBytes)
 		}
@@ -230,7 +230,7 @@ func normalizeDatabaseValue(valueType managedtable.ValueType, value any) any {
 		case uint:
 			return strconv.FormatUint(uint64(number), 10)
 		}
-	case managedtable.TypeTime:
+	case domain.TypeTime:
 		if isBytes {
 			if parsed, ok := parseMySQLTime(string(rawBytes)); ok {
 				return parsed
@@ -269,13 +269,13 @@ func parseMySQLTime(value string) (time.Time, bool) {
 
 func classify(action string, err error) error {
 	if errors.Is(err, gorm.ErrDuplicatedKey) || errors.Is(err, gorm.ErrForeignKeyViolated) {
-		return fmt.Errorf("%s: %w", action, managedtable.ErrConflict)
+		return fmt.Errorf("%s: %w", action, domain.ErrConflict)
 	}
 	var mysqlError *drivermysql.MySQLError
 	if errors.As(err, &mysqlError) {
 		switch mysqlError.Number {
 		case 1062, 1451, 1452:
-			return fmt.Errorf("%s: %w", action, managedtable.ErrConflict)
+			return fmt.Errorf("%s: %w", action, domain.ErrConflict)
 		}
 	}
 	return fmt.Errorf("%s: %w", action, err)

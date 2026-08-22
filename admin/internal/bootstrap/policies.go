@@ -1,48 +1,48 @@
 // Package bootstrap wires the first built-in managed-table policies.
 package bootstrap
 
-import "github.com/asherzj/relational-config-center/admin/internal/managedtable"
+import "github.com/asherzj/relational-config-center/admin/internal/domain"
 
 // Registry returns all tables intentionally exposed by Admin.
-func Registry() (*managedtable.Registry, error) {
-	return managedtable.NewRegistry(configsPolicy())
+func Registry() (*domain.Registry, error) {
+	return domain.NewRegistry(configsPolicy())
 }
 
-func configsPolicy() managedtable.Policy {
-	commonComparison := []managedtable.Operator{
-		managedtable.OperatorEqual,
-		managedtable.OperatorNotEqual,
-		managedtable.OperatorIn,
+func configsPolicy() domain.Policy {
+	commonComparison := []domain.Operator{
+		domain.OperatorEqual,
+		domain.OperatorNotEqual,
+		domain.OperatorIn,
 	}
-	orderedComparison := []managedtable.Operator{
-		managedtable.OperatorEqual,
-		managedtable.OperatorNotEqual,
-		managedtable.OperatorIn,
-		managedtable.OperatorGreaterThan,
-		managedtable.OperatorGreaterThanOrEqual,
-		managedtable.OperatorLessThan,
-		managedtable.OperatorLessThanOrEqual,
+	orderedComparison := []domain.Operator{
+		domain.OperatorEqual,
+		domain.OperatorNotEqual,
+		domain.OperatorIn,
+		domain.OperatorGreaterThan,
+		domain.OperatorGreaterThanOrEqual,
+		domain.OperatorLessThan,
+		domain.OperatorLessThanOrEqual,
 	}
-	return managedtable.Policy{
+	return domain.Policy{
 		Resource:    "configs",
 		Table:       "configs",
 		PrimaryKey:  "id",
 		AllowCreate: true,
 		AllowUpdate: true,
 		AllowDelete: true,
-		DefaultSort: []managedtable.Sort{{
+		DefaultSort: []domain.Sort{{
 			Field:     "id",
-			Direction: managedtable.DirectionDescending,
+			Direction: domain.DirectionDescending,
 		}},
 		DefaultPageSize: 20,
 		MaxPageSize:     100,
 		MaxFilterDepth:  4,
 		MaxFilterNodes:  32,
 		MaxInValues:     100,
-		Fields: map[string]managedtable.FieldPolicy{
+		Fields: map[string]domain.FieldPolicy{
 			"id": {
 				Column:          "id",
-				Type:            managedtable.TypeUnsigned,
+				Type:            domain.TypeUnsigned,
 				Readable:        true,
 				Sortable:        true,
 				AutoIncrement:   true,
@@ -50,7 +50,7 @@ func configsPolicy() managedtable.Policy {
 			},
 			"namespace": {
 				Column:           "namespace",
-				Type:             managedtable.TypeString,
+				Type:             domain.TypeString,
 				Readable:         true,
 				Creatable:        true,
 				Updatable:        true,
@@ -58,11 +58,11 @@ func configsPolicy() managedtable.Policy {
 				RequiredOnCreate: true,
 				MinLength:        1,
 				MaxLength:        128,
-				FilterOperators:  append(append([]managedtable.Operator(nil), commonComparison...), managedtable.OperatorContains),
+				FilterOperators:  append(append([]domain.Operator(nil), commonComparison...), domain.OperatorContains),
 			},
 			"key": {
 				Column:           "config_key",
-				Type:             managedtable.TypeString,
+				Type:             domain.TypeString,
 				Readable:         true,
 				Creatable:        true,
 				Updatable:        true,
@@ -70,11 +70,11 @@ func configsPolicy() managedtable.Policy {
 				RequiredOnCreate: true,
 				MinLength:        1,
 				MaxLength:        255,
-				FilterOperators:  append(append([]managedtable.Operator(nil), commonComparison...), managedtable.OperatorContains),
+				FilterOperators:  append(append([]domain.Operator(nil), commonComparison...), domain.OperatorContains),
 			},
 			"value": {
 				Column:           "config_value",
-				Type:             managedtable.TypeJSON,
+				Type:             domain.TypeJSON,
 				Readable:         true,
 				Creatable:        true,
 				Updatable:        true,
@@ -82,7 +82,7 @@ func configsPolicy() managedtable.Policy {
 			},
 			"status": {
 				Column:          "status",
-				Type:            managedtable.TypeString,
+				Type:            domain.TypeString,
 				Readable:        true,
 				Creatable:       true,
 				Updatable:       true,
@@ -93,21 +93,21 @@ func configsPolicy() managedtable.Policy {
 			},
 			"version": {
 				Column:          "version",
-				Type:            managedtable.TypeUnsigned,
+				Type:            domain.TypeUnsigned,
 				Readable:        true,
 				Sortable:        true,
 				FilterOperators: orderedComparison,
 			},
 			"created_at": {
 				Column:          "created_at",
-				Type:            managedtable.TypeTime,
+				Type:            domain.TypeTime,
 				Readable:        true,
 				Sortable:        true,
 				FilterOperators: orderedComparison,
 			},
 			"updated_at": {
 				Column:          "updated_at",
-				Type:            managedtable.TypeTime,
+				Type:            domain.TypeTime,
 				Readable:        true,
 				Sortable:        true,
 				FilterOperators: orderedComparison,

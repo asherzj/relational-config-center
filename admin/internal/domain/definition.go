@@ -1,4 +1,4 @@
-package managedtable
+package domain
 
 import "sort"
 
@@ -43,7 +43,8 @@ type QueryLimitDefinition struct {
 	MaxInValues     int `json:"max_in_values"`
 }
 
-func definitionOf(policy Policy) Definition {
+// DefinitionOf projects a policy into its frontend-safe form.
+func DefinitionOf(policy Policy) Definition {
 	names := make([]string, 0, len(policy.Fields))
 	for name := range policy.Fields {
 		names = append(names, name)

@@ -9,9 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/asherzj/relational-config-center/admin/internal/application"
 	"github.com/asherzj/relational-config-center/admin/internal/bootstrap"
-	"github.com/asherzj/relational-config-center/admin/internal/managedtable"
-	"github.com/asherzj/relational-config-center/admin/internal/mysqlstore"
+	"github.com/asherzj/relational-config-center/admin/internal/domain"
+	"github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql"
 	"github.com/testcontainers/testcontainers-go"
 	tcmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 )
@@ -41,7 +42,7 @@ func TestManagedTableFlowAgainstMySQL84(t *testing.T) {
 	if err != nil {
 		t.Fatalf("MySQL connection string: %v", err)
 	}
-	db, sqlDB, err := mysqlstore.Open(ctx, mysqlstore.Options{
+	db, sqlDB, err := mysql.Open(ctx, mysql.Options{
 		DSN:             dsn,
 		MaxOpenConns:    5,
 		MaxIdleConns:    2,
@@ -55,7 +56,7 @@ func TestManagedTableFlowAgainstMySQL84(t *testing.T) {
 	if err != nil {
 		t.Fatalf("build policy registry: %v", err)
 	}
-	service := managedtable.NewService(registry, mysqlstore.NewRepository(db))
+	service := application.NewService(registry, mysql.NewRepository(db))
 
 	first, err := service.Create(ctx, "configs", map[string]any{
 		"namespace": "default",
@@ -79,14 +80,14 @@ func TestManagedTableFlowAgainstMySQL84(t *testing.T) {
 		t.Fatalf("create second row: %v", err)
 	}
 
-	page, err := service.Query(ctx, "configs", managedtable.QuerySpec{
-		Filter: &managedtable.Filter{
+	page, err := service.Query(ctx, "configs", domain.QuerySpec{
+		Filter: &domain.Filter{
 			Field:    "key",
-			Operator: managedtable.OperatorContains,
+			Operator: domain.OperatorContains,
 			Value:    "discount_%",
 		},
-		Sort: []managedtable.Sort{{Field: "id", Direction: managedtable.DirectionAscending}},
-		Page: managedtable.Page{Number: 1, Size: 1},
+		Sort: []domain.Sort{{Field: "id", Direction: domain.DirectionAscending}},
+		Page: domain.Page{Number: 1, Size: 1},
 	})
 	if err != nil {
 		t.Fatalf("query escaped contains page: %v", err)
@@ -112,7 +113,7 @@ func TestManagedTableFlowAgainstMySQL84(t *testing.T) {
 	if err != nil || deleted.AffectedRows != 1 {
 		t.Fatalf("delete row = %+v, %v", deleted, err)
 	}
-	remaining, err := service.Query(ctx, "configs", managedtable.QuerySpec{})
+	remaining, err := service.Query(ctx, "configs", domain.QuerySpec{})
 	if err != nil {
 		t.Fatalf("query remaining rows: %v", err)
 	}

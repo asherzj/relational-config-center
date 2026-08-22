@@ -9,7 +9,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/asherzj/relational-config-center/admin/internal/managedtable"
+	"github.com/asherzj/relational-config-center/admin/internal/application"
+	"github.com/asherzj/relational-config-center/admin/internal/domain"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,27 +21,27 @@ type apiRepository struct {
 	deleteCalls int
 }
 
-func (repository *apiRepository) Query(_ context.Context, _ managedtable.Policy, query managedtable.QuerySpec) (managedtable.PageResult, error) {
+func (repository *apiRepository) Query(_ context.Context, _ domain.Policy, query domain.QuerySpec) (domain.PageResult, error) {
 	repository.queryCalls++
-	return managedtable.PageResult{
+	return domain.PageResult{
 		Rows: []map[string]any{{"id": uint64(1), "name": "first"}},
-		Page: managedtable.PageInfo{Number: query.Page.Number, Size: query.Page.Size, Total: 1},
+		Page: domain.PageInfo{Number: query.Page.Number, Size: query.Page.Size, Total: 1},
 	}, nil
 }
 
-func (repository *apiRepository) Create(_ context.Context, _ managedtable.Policy, _ map[string]any) (managedtable.MutationResult, error) {
+func (repository *apiRepository) Create(_ context.Context, _ domain.Policy, _ map[string]any) (domain.MutationResult, error) {
 	repository.createCalls++
-	return managedtable.MutationResult{AffectedRows: 1, Key: "1"}, nil
+	return domain.MutationResult{AffectedRows: 1, Key: "1"}, nil
 }
 
-func (repository *apiRepository) Update(_ context.Context, _ managedtable.Policy, key any, _ map[string]any) (managedtable.MutationResult, error) {
+func (repository *apiRepository) Update(_ context.Context, _ domain.Policy, key any, _ map[string]any) (domain.MutationResult, error) {
 	repository.updateCalls++
-	return managedtable.MutationResult{AffectedRows: 1, Key: fmt.Sprint(key)}, nil
+	return domain.MutationResult{AffectedRows: 1, Key: fmt.Sprint(key)}, nil
 }
 
-func (repository *apiRepository) Delete(_ context.Context, _ managedtable.Policy, key any) (managedtable.MutationResult, error) {
+func (repository *apiRepository) Delete(_ context.Context, _ domain.Policy, key any) (domain.MutationResult, error) {
 	repository.deleteCalls++
-	return managedtable.MutationResult{AffectedRows: 1, Key: fmt.Sprint(key)}, nil
+	return domain.MutationResult{AffectedRows: 1, Key: fmt.Sprint(key)}, nil
 }
 
 type healthyPinger struct{}
@@ -133,37 +134,37 @@ func TestHTTPRejectsUnknownJSONFields(t *testing.T) {
 	}
 }
 
-func testRouter(t *testing.T, repository managedtable.Repository) http.Handler {
+func testRouter(t *testing.T, repository domain.Repository) http.Handler {
 	t.Helper()
-	registry, err := managedtable.NewRegistry(managedtable.Policy{
+	registry, err := domain.NewRegistry(domain.Policy{
 		Resource:    "widgets",
 		Table:       "app_widgets",
 		PrimaryKey:  "id",
 		AllowCreate: true,
 		AllowUpdate: true,
 		AllowDelete: true,
-		Fields: map[string]managedtable.FieldPolicy{
+		Fields: map[string]domain.FieldPolicy{
 			"id": {
 				Column:          "widget_id",
-				Type:            managedtable.TypeUnsigned,
+				Type:            domain.TypeUnsigned,
 				Readable:        true,
 				Sortable:        true,
 				AutoIncrement:   true,
-				FilterOperators: []managedtable.Operator{managedtable.OperatorEqual},
+				FilterOperators: []domain.Operator{domain.OperatorEqual},
 			},
 			"name": {
 				Column:           "widget_name",
-				Type:             managedtable.TypeString,
+				Type:             domain.TypeString,
 				Readable:         true,
 				Creatable:        true,
 				Updatable:        true,
 				RequiredOnCreate: true,
 				Sortable:         true,
-				FilterOperators:  []managedtable.Operator{managedtable.OperatorEqual, managedtable.OperatorContains},
+				FilterOperators:  []domain.Operator{domain.OperatorEqual, domain.OperatorContains},
 			},
 			"data": {
 				Column:           "widget_data",
-				Type:             managedtable.TypeJSON,
+				Type:             domain.TypeJSON,
 				Readable:         true,
 				Creatable:        true,
 				Updatable:        true,
@@ -174,7 +175,7 @@ func testRouter(t *testing.T, repository managedtable.Repository) http.Handler {
 	if err != nil {
 		t.Fatalf("NewRegistry() error = %v", err)
 	}
-	return NewRouter(managedtable.NewService(registry, repository), healthyPinger{})
+	return NewRouter(application.NewService(registry, repository), healthyPinger{})
 }
 
 func performRequest(handler http.Handler, method, path string, body []byte) *httptest.ResponseRecorder {

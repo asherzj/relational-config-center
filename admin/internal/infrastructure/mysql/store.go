@@ -1,5 +1,5 @@
-// Package mysqlstore implements managed-table persistence with GORM and MySQL.
-package mysqlstore
+// Package mysql implements managed-table persistence with GORM and MySQL.
+package mysql
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package mysqlstore
+package mysql
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/asherzj/relational-config-center/admin/internal/managedtable"
+	"github.com/asherzj/relational-config-center/admin/internal/domain"
 	gormmysql "gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -19,9 +19,9 @@ func TestEscapeLike(t *testing.T) {
 
 func TestCompiledFilterBindsValuesAndQuotesPolicyColumn(t *testing.T) {
 	policy := compilerTestPolicy()
-	expression, err := compileFilter(policy, managedtable.Filter{
+	expression, err := compileFilter(policy, domain.Filter{
 		Field:    "key",
-		Operator: managedtable.OperatorEqual,
+		Operator: domain.OperatorEqual,
 		Value:    `x" OR 1=1; DROP TABLE configs`,
 	})
 	if err != nil {
@@ -46,9 +46,9 @@ func TestCompiledFilterBindsValuesAndQuotesPolicyColumn(t *testing.T) {
 
 func TestCompiledContainsEscapesWildcards(t *testing.T) {
 	policy := compilerTestPolicy()
-	expression, err := compileFilter(policy, managedtable.Filter{
+	expression, err := compileFilter(policy, domain.Filter{
 		Field:    "key",
-		Operator: managedtable.OperatorContains,
+		Operator: domain.OperatorContains,
 		Value:    "discount_%!",
 	})
 	if err != nil {
@@ -69,20 +69,20 @@ func TestCompiledContainsEscapesWildcards(t *testing.T) {
 
 func TestCompiledFilterPreservesNestedAndOrTree(t *testing.T) {
 	policy := compilerTestPolicy()
-	policy.Fields["status"] = managedtable.FieldPolicy{
+	policy.Fields["status"] = domain.FieldPolicy{
 		Column:   "status",
-		Type:     managedtable.TypeString,
+		Type:     domain.TypeString,
 		Readable: true,
 	}
-	expression, err := compileFilter(policy, managedtable.Filter{
-		Logic: managedtable.LogicAnd,
-		Items: []managedtable.Filter{
-			{Field: "key", Operator: managedtable.OperatorContains, Value: "checkout"},
+	expression, err := compileFilter(policy, domain.Filter{
+		Logic: domain.LogicAnd,
+		Items: []domain.Filter{
+			{Field: "key", Operator: domain.OperatorContains, Value: "checkout"},
 			{
-				Logic: managedtable.LogicOr,
-				Items: []managedtable.Filter{
-					{Field: "status", Operator: managedtable.OperatorEqual, Value: "draft"},
-					{Field: "status", Operator: managedtable.OperatorEqual, Value: "published"},
+				Logic: domain.LogicOr,
+				Items: []domain.Filter{
+					{Field: "status", Operator: domain.OperatorEqual, Value: "draft"},
+					{Field: "status", Operator: domain.OperatorEqual, Value: "published"},
 				},
 			},
 		},
@@ -110,7 +110,7 @@ func TestSelectAndSortUseOnlyPolicyMappings(t *testing.T) {
 		Table(policy.Table).
 		Clauses(
 			readableSelect(policy),
-			orderBy(policy, []managedtable.Sort{{Field: "key", Direction: managedtable.DirectionDescending}}),
+			orderBy(policy, []domain.Sort{{Field: "key", Direction: domain.DirectionDescending}}),
 		).
 		Limit(20).
 		Find(&[]map[string]any{}).
@@ -160,11 +160,11 @@ func TestGenericMapMutationsBuildScopedSQL(t *testing.T) {
 }
 
 func TestNormalizeRowUsesPublicFieldTypes(t *testing.T) {
-	policy := managedtable.Policy{Fields: map[string]managedtable.FieldPolicy{
-		"id":      {Type: managedtable.TypeUnsigned, Readable: true},
-		"name":    {Type: managedtable.TypeString, Readable: true},
-		"enabled": {Type: managedtable.TypeBoolean, Readable: true},
-		"value":   {Type: managedtable.TypeJSON, Readable: true},
+	policy := domain.Policy{Fields: map[string]domain.FieldPolicy{
+		"id":      {Type: domain.TypeUnsigned, Readable: true},
+		"name":    {Type: domain.TypeString, Readable: true},
+		"enabled": {Type: domain.TypeBoolean, Readable: true},
+		"value":   {Type: domain.TypeJSON, Readable: true},
 	}}
 	row := map[string]any{
 		"id":      []byte("42"),
@@ -197,22 +197,22 @@ func dryRunDB(t *testing.T) *gorm.DB {
 	return db
 }
 
-func compilerTestPolicy() managedtable.Policy {
-	return managedtable.Policy{
+func compilerTestPolicy() domain.Policy {
+	return domain.Policy{
 		Resource:   "configs",
 		Table:      "configs",
 		PrimaryKey: "id",
-		Fields: map[string]managedtable.FieldPolicy{
+		Fields: map[string]domain.FieldPolicy{
 			"id": {
 				Column:        "id",
-				Type:          managedtable.TypeUnsigned,
+				Type:          domain.TypeUnsigned,
 				Readable:      true,
 				Sortable:      true,
 				AutoIncrement: true,
 			},
 			"key": {
 				Column:   "config_key",
-				Type:     managedtable.TypeString,
+				Type:     domain.TypeString,
 				Readable: true,
 				Sortable: true,
 			},

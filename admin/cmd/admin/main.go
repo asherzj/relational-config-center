@@ -11,11 +11,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/asherzj/relational-config-center/admin/internal/application"
 	"github.com/asherzj/relational-config-center/admin/internal/bootstrap"
 	"github.com/asherzj/relational-config-center/admin/internal/config"
-	"github.com/asherzj/relational-config-center/admin/internal/httpapi"
-	"github.com/asherzj/relational-config-center/admin/internal/managedtable"
-	"github.com/asherzj/relational-config-center/admin/internal/mysqlstore"
+	"github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql"
+	httpapi "github.com/asherzj/relational-config-center/admin/internal/interfaces/http"
 )
 
 func main() {
@@ -32,7 +32,7 @@ func run() error {
 	}
 	startupContext, cancelStartup := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelStartup()
-	db, sqlDB, err := mysqlstore.Open(startupContext, mysqlstore.Options{
+	db, sqlDB, err := mysql.Open(startupContext, mysql.Options{
 		DSN:             settings.MySQLDSN,
 		MaxOpenConns:    settings.MaxOpenConns,
 		MaxIdleConns:    settings.MaxIdleConns,
@@ -48,7 +48,7 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("build table policy registry: %w", err)
 	}
-	service := managedtable.NewService(registry, mysqlstore.NewRepository(db))
+	service := application.NewService(registry, mysql.NewRepository(db))
 	server := &http.Server{
 		Addr:              settings.Address,
 		Handler:           httpapi.NewRouter(service, sqlDB),

@@ -1,17 +1,17 @@
-package mysqlstore
+package mysql
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/asherzj/relational-config-center/admin/internal/managedtable"
+	"github.com/asherzj/relational-config-center/admin/internal/domain"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type queryCompiler struct{}
 
-func (queryCompiler) applyFilter(db *gorm.DB, policy managedtable.Policy, filter *managedtable.Filter) (*gorm.DB, error) {
+func (queryCompiler) applyFilter(db *gorm.DB, policy domain.Policy, filter *domain.Filter) (*gorm.DB, error) {
 	if filter == nil {
 		return db, nil
 	}
@@ -22,7 +22,7 @@ func (queryCompiler) applyFilter(db *gorm.DB, policy managedtable.Policy, filter
 	return db.Where(expression), nil
 }
 
-func compileFilter(policy managedtable.Policy, filter managedtable.Filter) (clause.Expression, error) {
+func compileFilter(policy domain.Policy, filter domain.Filter) (clause.Expression, error) {
 	if len(filter.Items) > 0 {
 		expressions := make([]clause.Expression, 0, len(filter.Items))
 		for _, child := range filter.Items {
@@ -32,10 +32,10 @@ func compileFilter(policy managedtable.Policy, filter managedtable.Filter) (clau
 			}
 			expressions = append(expressions, expression)
 		}
-		if filter.Logic == managedtable.LogicAnd {
+		if filter.Logic == domain.LogicAnd {
 			return clause.And(expressions...), nil
 		}
-		if filter.Logic == managedtable.LogicOr {
+		if filter.Logic == domain.LogicOr {
 			return clause.Or(expressions...), nil
 		}
 		return nil, fmt.Errorf("compile filter group: unsupported logic %q", filter.Logic)
@@ -47,31 +47,31 @@ func compileFilter(policy managedtable.Policy, filter managedtable.Filter) (clau
 	}
 	column := clause.Column{Table: policy.Table, Name: field.Column}
 	switch filter.Operator {
-	case managedtable.OperatorEqual:
+	case domain.OperatorEqual:
 		return clause.Eq{Column: column, Value: filter.Value}, nil
-	case managedtable.OperatorNotEqual:
+	case domain.OperatorNotEqual:
 		return clause.Neq{Column: column, Value: filter.Value}, nil
-	case managedtable.OperatorIn:
+	case domain.OperatorIn:
 		values, ok := filter.Value.([]any)
 		if !ok {
 			return nil, fmt.Errorf("compile filter %q: IN value is not an array", filter.Field)
 		}
 		return clause.IN{Column: column, Values: values}, nil
-	case managedtable.OperatorContains:
+	case domain.OperatorContains:
 		value, ok := filter.Value.(string)
 		if !ok {
 			return nil, fmt.Errorf("compile filter %q: contains value is not a string", filter.Field)
 		}
 		return containsExpression{column: column, value: value}, nil
-	case managedtable.OperatorGreaterThan:
+	case domain.OperatorGreaterThan:
 		return clause.Gt{Column: column, Value: filter.Value}, nil
-	case managedtable.OperatorGreaterThanOrEqual:
+	case domain.OperatorGreaterThanOrEqual:
 		return clause.Gte{Column: column, Value: filter.Value}, nil
-	case managedtable.OperatorLessThan:
+	case domain.OperatorLessThan:
 		return clause.Lt{Column: column, Value: filter.Value}, nil
-	case managedtable.OperatorLessThanOrEqual:
+	case domain.OperatorLessThanOrEqual:
 		return clause.Lte{Column: column, Value: filter.Value}, nil
-	case managedtable.OperatorIsNull:
+	case domain.OperatorIsNull:
 		isNull, ok := filter.Value.(bool)
 		if !ok {
 			return nil, fmt.Errorf("compile filter %q: is_null value is not a boolean", filter.Field)

@@ -9,7 +9,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/asherzj/relational-config-center/admin/internal/managedtable"
+	"github.com/asherzj/relational-config-center/admin/internal/application"
+	"github.com/asherzj/relational-config-center/admin/internal/domain"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,12 +22,12 @@ type pinger interface {
 
 // Handler serves the managed-table application service.
 type Handler struct {
-	service *managedtable.Service
+	service *application.Service
 	db      pinger
 }
 
 // NewRouter builds the complete Admin HTTP router.
-func NewRouter(service *managedtable.Service, db pinger) *gin.Engine {
+func NewRouter(service *application.Service, db pinger) *gin.Engine {
 	handler := &Handler{service: service, db: db}
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
@@ -71,7 +72,7 @@ func (h *Handler) describeTable(c *gin.Context) {
 }
 
 func (h *Handler) queryRows(c *gin.Context) {
-	var request managedtable.QuerySpec
+	var request domain.QuerySpec
 	if err := decodeJSON(c, &request); err != nil {
 		h.writeError(c, err)
 		return
@@ -131,10 +132,10 @@ func decodeJSON(c *gin.Context, destination any) error {
 	decoder.UseNumber()
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(destination); err != nil {
-		return managedtable.Invalid("body", "invalid JSON: "+err.Error())
+		return domain.Invalid("body", "invalid JSON: "+err.Error())
 	}
 	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
-		return managedtable.Invalid("body", "must contain exactly one JSON object")
+		return domain.Invalid("body", "must contain exactly one JSON object")
 	}
 	return nil
 }
@@ -143,25 +144,25 @@ func (h *Handler) writeError(c *gin.Context, err error) {
 	status := http.StatusInternalServerError
 	code := "INTERNAL_ERROR"
 	message := "internal server error"
-	var validation *managedtable.ValidationError
+	var validation *domain.ValidationError
 	switch {
 	case errors.As(err, &validation):
 		status = http.StatusBadRequest
 		code = "INVALID_ARGUMENT"
 		message = validation.Error()
-	case errors.Is(err, managedtable.ErrUnknownResource):
+	case errors.Is(err, domain.ErrUnknownResource):
 		status = http.StatusNotFound
 		code = "TABLE_NOT_FOUND"
 		message = err.Error()
-	case errors.Is(err, managedtable.ErrRowNotFound):
+	case errors.Is(err, domain.ErrRowNotFound):
 		status = http.StatusNotFound
 		code = "ROW_NOT_FOUND"
 		message = err.Error()
-	case errors.Is(err, managedtable.ErrConflict):
+	case errors.Is(err, domain.ErrConflict):
 		status = http.StatusConflict
 		code = "CONFLICT"
 		message = err.Error()
-	case errors.Is(err, managedtable.ErrOperationNotAllowed):
+	case errors.Is(err, domain.ErrOperationNotAllowed):
 		status = http.StatusMethodNotAllowed
 		code = "OPERATION_NOT_ALLOWED"
 		message = err.Error()

@@ -1,4 +1,4 @@
-package managedtable
+package domain
 
 import (
 	"fmt"
