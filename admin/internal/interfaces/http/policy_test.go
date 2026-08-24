@@ -28,10 +28,10 @@ func TestOperatorCanCreateAndInspectDisabledTablePolicy(t *testing.T) {
 			"max_page_size":200
 		},
 		"mutation_policy":"mysql_single_table_mutation_v1",
+		"allow_add":true,
+		"allow_modify":true,
+		"allow_delete":false,
 		"mutation_policy_config":{
-			"allow_add":true,
-			"allow_modify":true,
-			"allow_delete":false,
 			"auto_fill":{
 				"add":{"creator":{"source":"operator"}},
 				"modify":{"modifier":{"source":"operator"}}
@@ -98,7 +98,8 @@ func TestCreateTablePolicyRejectsInvalidTargetsAndDefinitionsWithoutPersistence(
 		{name: "unknown Mutation Policy", tableName: "managed_alpha", payload: strings.Replace(validPolicyPayload("managed_alpha"), "mysql_single_table_mutation_v1", "unknown_mutation", 1), wantStatus: http.StatusUnprocessableEntity, wantCode: "unknown_policy_strategy"},
 		{name: "non-object Query config", tableName: "managed_alpha", payload: strings.Replace(validPolicyPayload("managed_alpha"), `"query_policy_config":{}`, `"query_policy_config":[]`, 1), wantStatus: http.StatusUnprocessableEntity, wantCode: "invalid_policy_config"},
 		{name: "unknown typed Query field", tableName: "managed_alpha", payload: strings.Replace(validPolicyPayload("managed_alpha"), `"query_policy_config":{}`, `"query_policy_config":{"sql":"SELECT 1"}`, 1), wantStatus: http.StatusUnprocessableEntity, wantCode: "invalid_policy_config"},
-		{name: "unknown typed Mutation field", tableName: "managed_alpha", payload: strings.Replace(validPolicyPayload("managed_alpha"), `"mutation_policy_config":{"allow_add":false}`, `"mutation_policy_config":{"field_infos":[]}`, 1), wantStatus: http.StatusUnprocessableEntity, wantCode: "invalid_policy_config"},
+		{name: "unknown typed Mutation field", tableName: "managed_alpha", payload: strings.Replace(validPolicyPayload("managed_alpha"), `"mutation_policy_config":{}`, `"mutation_policy_config":{"field_infos":[]}`, 1), wantStatus: http.StatusUnprocessableEntity, wantCode: "invalid_policy_config"},
+		{name: "duplicated first-level Mutation capability", tableName: "managed_alpha", payload: strings.Replace(validPolicyPayload("managed_alpha"), `"mutation_policy_config":{}`, `"mutation_policy_config":{"allow_add":true}`, 1), wantStatus: http.StatusUnprocessableEntity, wantCode: "invalid_policy_config"},
 		{name: "forbidden connection field", tableName: "managed_alpha", payload: strings.TrimSuffix(validPolicyPayload("managed_alpha"), "}") + `,"dsn":"mysql://elsewhere"}`, wantStatus: http.StatusBadRequest, wantCode: "invalid_request"},
 	}
 
@@ -167,7 +168,7 @@ func TestOperatorCanAtomicallyReplacePolicyWithoutChangingEnabledState(t *testin
 		t.Fatalf("enable Policy: HTTP %d %s", enabled.Code, enabled.Body.String())
 	}
 
-	replacement := `{"table_name":"managed_alpha","query_policy":"mysql_page_query_v1","query_policy_config":{"default_order":{"field":"value","direction":"ASC"},"default_page_size":7,"max_page_size":40},"mutation_policy":"mysql_single_table_mutation_v1","mutation_policy_config":{"allow_add":true}}`
+	replacement := `{"table_name":"managed_alpha","query_policy":"mysql_page_query_v1","query_policy_config":{"default_order":{"field":"value","direction":"ASC"},"default_page_size":7,"max_page_size":40},"mutation_policy":"mysql_single_table_mutation_v1","mutation_policy_config":{},"allow_add":true,"allow_modify":false,"allow_delete":false}`
 	replaced := performRequest(handler, http.MethodPut, "/api/v1/table-policies/managed_alpha", replacement)
 	if replaced.Code != http.StatusOK {
 		t.Fatalf("replace Policy: HTTP %d %s", replaced.Code, replaced.Body.String())
@@ -269,8 +270,8 @@ func TestOperatorCanPatchOneRowThroughEnabledMutationPolicy(t *testing.T) {
 	handler := newPolicyHTTPHandler(t)
 	payload := strings.Replace(
 		validPolicyPayload("managed_alpha"),
-		`"mutation_policy_config":{"allow_add":false}`,
-		`"mutation_policy_config":{"allow_modify":true}`,
+		`"allow_modify":false`,
+		`"allow_modify":true`,
 		1,
 	)
 	if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies", payload); response.Code != http.StatusCreated {
@@ -290,8 +291,8 @@ func TestOperatorCanHardDeleteOneRowThroughEnabledMutationPolicy(t *testing.T) {
 	handler := newPolicyHTTPHandler(t)
 	payload := strings.Replace(
 		validPolicyPayload("managed_alpha"),
-		`"mutation_policy_config":{"allow_add":false}`,
-		`"mutation_policy_config":{"allow_delete":true}`,
+		`"allow_delete":false`,
+		`"allow_delete":true`,
 		1,
 	)
 	if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies", payload); response.Code != http.StatusCreated {
@@ -335,8 +336,8 @@ func TestHardDeleteRejectsTypedInvalidIDAndMapsMissingRows(t *testing.T) {
 			handler := newPolicyHTTPHandlerWithMutationExecutor(t, test.executor)
 			payload := strings.Replace(
 				validPolicyPayload("managed_alpha"),
-				`"mutation_policy_config":{"allow_add":false}`,
-				`"mutation_policy_config":{"allow_delete":true}`,
+				`"allow_delete":false`,
+				`"allow_delete":true`,
 				1,
 			)
 			if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies", payload); response.Code != http.StatusCreated {
@@ -356,8 +357,8 @@ func TestPatchRequiresStrictJSONStringContentShape(t *testing.T) {
 	handler := newPolicyHTTPHandler(t)
 	payload := strings.Replace(
 		validPolicyPayload("managed_alpha"),
-		`"mutation_policy_config":{"allow_add":false}`,
-		`"mutation_policy_config":{"allow_modify":true}`,
+		`"allow_modify":false`,
+		`"allow_modify":true`,
 		1,
 	)
 	if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies", payload); response.Code != http.StatusCreated {
@@ -394,8 +395,8 @@ func TestPatchRejectsPrimaryKeyChangesAndMapsMissingRows(t *testing.T) {
 			handler := newPolicyHTTPHandlerWithMutationExecutor(t, test.executor)
 			payload := strings.Replace(
 				validPolicyPayload("managed_alpha"),
-				`"mutation_policy_config":{"allow_add":false}`,
-				`"mutation_policy_config":{"allow_modify":true}`,
+				`"allow_modify":false`,
+				`"allow_modify":true`,
 				1,
 			)
 			if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies", payload); response.Code != http.StatusCreated {
@@ -416,12 +417,12 @@ func TestPatchRejectsPrimaryKeyChangesAndMapsMissingRows(t *testing.T) {
 
 func TestModifyAutoFillCannotTargetThePrimaryKey(t *testing.T) {
 	handler := newPolicyHTTPHandler(t)
-	payload := strings.Replace(
+	payload := strings.Replace(strings.Replace(
 		validPolicyPayload("managed_alpha"),
-		`"mutation_policy_config":{"allow_add":false}`,
-		`"mutation_policy_config":{"allow_modify":true,"auto_fill":{"modify":{"id":{"source":"literal","value":"43"}}}}`,
+		`"allow_modify":false`,
+		`"allow_modify":true`,
 		1,
-	)
+	), `"mutation_policy_config":{}`, `"mutation_policy_config":{"auto_fill":{"modify":{"id":{"source":"literal","value":"43"}}}}`, 1)
 	if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies", payload); response.Code != http.StatusCreated {
 		t.Fatalf("create disabled Policy: HTTP %d %s", response.Code, response.Body.String())
 	}
@@ -460,12 +461,12 @@ func TestAddRejectsGeneratedInputFields(t *testing.T) {
 
 func TestAddAutoFillCanSupplyARequiredField(t *testing.T) {
 	handler := newPolicyHTTPHandler(t)
-	payload := strings.Replace(
+	payload := strings.Replace(strings.Replace(
 		validPolicyPayload("managed_alpha"),
-		`"mutation_policy_config":{"allow_add":false}`,
-		`"mutation_policy_config":{"allow_add":true,"auto_fill":{"add":{"value":{"source":"operator"}}}}`,
+		`"allow_add":false`,
+		`"allow_add":true`,
 		1,
-	)
+	), `"mutation_policy_config":{}`, `"mutation_policy_config":{"auto_fill":{"add":{"value":{"source":"operator"}}}}`, 1)
 	if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies", payload); response.Code != http.StatusCreated {
 		t.Fatalf("create Policy: HTTP %d %s", response.Code, response.Body.String())
 	}
@@ -547,11 +548,11 @@ func TestManagedTableQueryDistinguishesMissingNullAndJSONStringConditionFields(t
 }
 
 func validPolicyPayload(tableName string) string {
-	return `{"table_name":"` + tableName + `","query_policy":"mysql_page_query_v1","query_policy_config":{},"mutation_policy":"mysql_single_table_mutation_v1","mutation_policy_config":{"allow_add":false}}`
+	return `{"table_name":"` + tableName + `","query_policy":"mysql_page_query_v1","query_policy_config":{},"mutation_policy":"mysql_single_table_mutation_v1","mutation_policy_config":{},"allow_add":false,"allow_modify":false,"allow_delete":false}`
 }
 
 func validPolicyResponse(tableName string) string {
-	return `{"table_name":"` + tableName + `","query_policy":"mysql_page_query_v1","query_policy_config":{},"mutation_policy":"mysql_single_table_mutation_v1","mutation_policy_config":{"allow_add":false},"enabled":false}`
+	return `{"table_name":"` + tableName + `","query_policy":"mysql_page_query_v1","query_policy_config":{},"mutation_policy":"mysql_single_table_mutation_v1","mutation_policy_config":{},"allow_add":false,"allow_modify":false,"allow_delete":false,"enabled":false}`
 }
 
 func assertHTTPErrorCode(t *testing.T, response *httptest.ResponseRecorder, status int, code string) {
@@ -577,7 +578,7 @@ func assertPolicyResponse(t *testing.T, policy map[string]any) {
 	if _, exposed := policy["id"]; exposed {
 		t.Fatalf("Policy exposed internal Catalog ID: %#v", policy)
 	}
-	if len(policy) != 6 {
+	if len(policy) != 9 {
 		t.Fatalf("Policy exposed unexpected metadata: %#v", policy)
 	}
 	if policy["table_name"] != "managed_alpha" || policy["query_policy"] != "mysql_page_query_v1" || policy["mutation_policy"] != "mysql_single_table_mutation_v1" {
@@ -591,6 +592,14 @@ func assertPolicyResponse(t *testing.T, policy map[string]any) {
 	}
 	if _, ok := policy["mutation_policy_config"].(map[string]any); !ok {
 		t.Fatalf("mutation Policy config is not an object: %#v", policy)
+	}
+	for _, capability := range []string{"allow_add", "allow_modify", "allow_delete"} {
+		if _, ok := policy[capability].(bool); !ok {
+			t.Fatalf("Policy capability %s is not boolean: %#v", capability, policy)
+		}
+	}
+	if policy["allow_add"] != true || policy["allow_modify"] != true || policy["allow_delete"] != false {
+		t.Fatalf("unexpected Mutation capabilities: %#v", policy)
 	}
 }
 

@@ -3,12 +3,50 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 )
+
+func TestMutationCapabilityMigrationPromotesLegacyJSONWithoutDualWrite(t *testing.T) {
+	ctx, driverConfig := startIntegrationMySQL(t,
+		"testdata/001-legacy-policy-schema.sql",
+		"../../../deploy/mysql/migrations/001-promote-mutation-capabilities.sql",
+	)
+	database, err := sql.Open("mysql", driverConfig.FormatDSN())
+	if err != nil {
+		t.Fatalf("open migrated Catalog: %v", err)
+	}
+	t.Cleanup(func() { _ = database.Close() })
+
+	var allowAdd, allowModify, allowDelete bool
+	var mutationConfig []byte
+	if err := database.QueryRowContext(ctx, `
+		SELECT allow_add, allow_modify, allow_delete, mutation_policy_config
+		FROM rcc_table_policies
+		WHERE table_name = 'legacy_policy'
+	`).Scan(&allowAdd, &allowModify, &allowDelete, &mutationConfig); err != nil {
+		t.Fatalf("read migrated Policy: %v", err)
+	}
+	if !allowAdd || allowModify || !allowDelete {
+		t.Fatalf("legacy Mutation capabilities were not preserved: add=%t modify=%t delete=%t", allowAdd, allowModify, allowDelete)
+	}
+	var config map[string]json.RawMessage
+	if err := json.Unmarshal(mutationConfig, &config); err != nil {
+		t.Fatalf("decode migrated Mutation config: %v", err)
+	}
+	for _, removed := range []string{"allow_add", "allow_modify", "allow_delete"} {
+		if _, found := config[removed]; found {
+			t.Fatalf("migration left duplicate capability %s in Mutation JSON: %s", removed, mutationConfig)
+		}
+	}
+	if _, found := config["auto_fill"]; !found {
+		t.Fatalf("migration removed strategy-specific Auto Fill config: %s", mutationConfig)
+	}
+}
 
 func TestTablePolicyCreationPersistsDisabledObjectConfigsForHTTPInspection(t *testing.T) {
 	app := startIntegrationApplication(t,
@@ -21,13 +59,16 @@ func TestTablePolicyCreationPersistsDisabledObjectConfigsForHTTPInspection(t *te
 		"query_policy":"mysql_page_query_v1",
 		"query_policy_config":{},
 		"mutation_policy":"mysql_single_table_mutation_v1",
-		"mutation_policy_config":{}
+		"mutation_policy_config":{},
+		"allow_add":false,
+		"allow_modify":false,
+		"allow_delete":false
 	}`
 	created := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", requestBody)
 	if created.Code != http.StatusCreated {
 		t.Fatalf("expected HTTP 201, got %d: %s", created.Code, created.Body.String())
 	}
-	const expected = `{"table_name":"policy_alpha","query_policy":"mysql_page_query_v1","query_policy_config":{},"mutation_policy":"mysql_single_table_mutation_v1","mutation_policy_config":{},"enabled":false}`
+	const expected = `{"table_name":"policy_alpha","query_policy":"mysql_page_query_v1","query_policy_config":{},"mutation_policy":"mysql_single_table_mutation_v1","mutation_policy_config":{},"allow_add":false,"allow_modify":false,"allow_delete":false,"enabled":false}`
 	if strings.TrimSpace(created.Body.String()) != expected {
 		t.Fatalf("unexpected create response: %s", created.Body.String())
 	}
@@ -97,7 +138,36 @@ func TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence(t 
 }
 
 func integrationPolicyPayload(tableName, queryPolicy, queryConfig, mutationPolicy, mutationConfig string) string {
-	return `{"table_name":"` + tableName + `","query_policy":"` + queryPolicy + `","query_policy_config":` + queryConfig + `,"mutation_policy":"` + mutationPolicy + `","mutation_policy_config":` + mutationConfig + `}`
+	// Mutation scenarios keep their capability switches next to Auto Fill in a
+	// compact test definition; the helper emits the real wire contract with
+	// allow_* at Table Policy level and removes them from strategy JSON.
+	var config map[string]json.RawMessage
+	allowAdd, allowModify, allowDelete := false, false, false
+	if json.Unmarshal([]byte(mutationConfig), &config) == nil {
+		if raw, found := config["allow_add"]; found {
+			_ = json.Unmarshal(raw, &allowAdd)
+			delete(config, "allow_add")
+		}
+		if raw, found := config["allow_modify"]; found {
+			_ = json.Unmarshal(raw, &allowModify)
+			delete(config, "allow_modify")
+		}
+		if raw, found := config["allow_delete"]; found {
+			_ = json.Unmarshal(raw, &allowDelete)
+			delete(config, "allow_delete")
+		}
+		if normalized, err := json.Marshal(config); err == nil {
+			mutationConfig = string(normalized)
+		}
+	}
+	return `{"table_name":"` + tableName + `","query_policy":"` + queryPolicy + `","query_policy_config":` + queryConfig + `,"mutation_policy":"` + mutationPolicy + `","mutation_policy_config":` + mutationConfig + `,"allow_add":` + booleanJSON(allowAdd) + `,"allow_modify":` + booleanJSON(allowModify) + `,"allow_delete":` + booleanJSON(allowDelete) + `}`
+}
+
+func booleanJSON(value bool) string {
+	if value {
+		return "true"
+	}
+	return "false"
 }
 
 func assertIntegrationErrorCode(t *testing.T, response *httptest.ResponseRecorder, status int, code string) {

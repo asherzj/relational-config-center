@@ -2,7 +2,6 @@ go 1.27.0
 
 use (
 	./admin
-	./admin/integration
 	./client
 	./server
 	./shared

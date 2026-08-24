@@ -12,4 +12,4 @@ Table Policy 通过稳定的 `query_policy` 和 `mutation_policy` 标识选择�
 - 第一迭代不缓存 Table Policy，每次请求直接读取 Catalog，使原子替换和启停在提交后的下一个请求生效。
 - `ChangeMatchFields` 和 `field_infos` 不进入新模型；表结构与字段类型来自实时 MySQL 元数据。
 
-第一迭代只注册 `mysql_page_query_v1` 和 `mysql_single_table_mutation_v1`。前者配置默认排序及默认、最大页大小；后者配置 ADD、MODIFY、DELETE 开关和结构化 Auto Fill 规则。
+第一迭代只注册 `mysql_page_query_v1` 和 `mysql_single_table_mutation_v1`。前者配置默认排序及默认、最大页大小；后者只配置结构化 Auto Fill 规则。ADD、MODIFY、DELETE 是 Table Policy 的一级能力，由 Managed Table Mutation 依据当前 Policy Snapshot 统一授权，不属于 Mutation Strategy JSON。

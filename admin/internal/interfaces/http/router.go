@@ -83,6 +83,9 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 			QueryPolicyConfig:    request.QueryPolicyConfig,
 			MutationPolicy:       request.MutationPolicy,
 			MutationPolicyConfig: request.MutationPolicyConfig,
+			AllowAdd:             request.AllowAdd,
+			AllowModify:          request.AllowModify,
+			AllowDelete:          request.AllowDelete,
 		})
 		if writePolicyError(context, err) {
 			return
@@ -122,6 +125,9 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 			QueryPolicyConfig:    request.QueryPolicyConfig,
 			MutationPolicy:       request.MutationPolicy,
 			MutationPolicyConfig: request.MutationPolicyConfig,
+			AllowAdd:             request.AllowAdd,
+			AllowModify:          request.AllowModify,
+			AllowDelete:          request.AllowDelete,
 		})
 		if writePolicyError(context, err) {
 			return
@@ -205,6 +211,9 @@ type createTablePolicyRequest struct {
 	QueryPolicyConfig    json.RawMessage `json:"query_policy_config"`
 	MutationPolicy       string          `json:"mutation_policy"`
 	MutationPolicyConfig json.RawMessage `json:"mutation_policy_config"`
+	AllowAdd             bool            `json:"allow_add"`
+	AllowModify          bool            `json:"allow_modify"`
+	AllowDelete          bool            `json:"allow_delete"`
 }
 
 type tablePolicyResponse struct {
@@ -213,6 +222,9 @@ type tablePolicyResponse struct {
 	QueryPolicyConfig    json.RawMessage `json:"query_policy_config"`
 	MutationPolicy       string          `json:"mutation_policy"`
 	MutationPolicyConfig json.RawMessage `json:"mutation_policy_config"`
+	AllowAdd             bool            `json:"allow_add"`
+	AllowModify          bool            `json:"allow_modify"`
+	AllowDelete          bool            `json:"allow_delete"`
 	Enabled              bool            `json:"enabled"`
 }
 
@@ -389,6 +401,9 @@ func policyResponse(policy domain.TablePolicy) tablePolicyResponse {
 		QueryPolicyConfig:    json.RawMessage(policy.QueryPolicyConfig),
 		MutationPolicy:       policy.MutationPolicy,
 		MutationPolicyConfig: json.RawMessage(policy.MutationPolicyConfig),
+		AllowAdd:             policy.AllowAdd,
+		AllowModify:          policy.AllowModify,
+		AllowDelete:          policy.AllowDelete,
 		Enabled:              policy.Enabled,
 	}
 }

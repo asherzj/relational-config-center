@@ -56,7 +56,7 @@ Current DAL choices:
 | Connection pool | `database/sql` |
 | Dynamic queries | Query Specification → policy validation → GORM Clauses |
 | Static and exceptional SQL | GORM repository methods and parameterized `Raw` only when needed |
-| Initial schema | `deploy/mysql/schema.sql` |
+| Initial schema | `deploy/mysql/init/001-schema.sql` |
 | Integration tests | Testcontainers with a real MySQL 8.4 container |
 | PostgreSQL | A later independent adapter and query compiler |
 
@@ -89,13 +89,13 @@ Dependencies point `interfaces → application → domain` and `infrastructure �
 
 The first iteration ships the Policy Catalog as runtime data (ADR 0005) and proves the generic seam through it:
 
-- The catalog table ships in `deploy/mysql/schema.sql`; dedicated APIs manage it, and the registry loads policies from the database instead of Go code.
+- The catalog table ships in `deploy/mysql/init/001-schema.sql`; dedicated APIs manage it, and each data request loads its current Policy Snapshot from the database.
 - A saved policy takes effect immediately; draft/activation workflows wait for multi-instance or audit needs.
 - Saving a policy validates its physical table and columns against `information_schema` of the single deployment-configured datasource. Policies cannot store DSNs or reach other databases.
-- Web can discover the public table policy, submit policy-limited AND/OR filters, sorting, and one-based pagination, and create, update, and delete rows using public field names.
+- Web can discover database tables and their policy state, submit policy-limited AND filters, sorting, and one-based pagination, and create, update, and delete rows using live column names.
 - Requests cannot select arbitrary physical tables, columns, operators, sort expressions, or SQL.
 - Query depth, node count, `IN` size, page size, string length, enum values, and JSON types are validated before GORM executes anything.
 
 The original prototype packages (`httpapi`, `managedtable`, `mysqlstore`) were rewritten into the layout above rather than preserved; the compile-time `bootstrap` registry was deleted when the runtime Policy Catalog landed (issue #2).
 
-Relations, authentication, authorization, audit history, publishing workflows, runtime gRPC reads, and in-place schema upgrades belong to later iterations.
+Relations, end-user identity and authorization, audit history, publishing workflows, runtime gRPC reads, and in-place schema upgrades belong to later iterations.

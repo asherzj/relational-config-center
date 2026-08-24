@@ -246,6 +246,9 @@ type policyRecord struct {
 	QueryPolicyConfig    string `gorm:"column:query_policy_config"`
 	MutationPolicy       string `gorm:"column:mutation_policy"`
 	MutationPolicyConfig string `gorm:"column:mutation_policy_config"`
+	AllowAdd             bool   `gorm:"column:allow_add"`
+	AllowModify          bool   `gorm:"column:allow_modify"`
+	AllowDelete          bool   `gorm:"column:allow_delete"`
 	Enabled              bool   `gorm:"column:enabled"`
 	Creator              string `gorm:"column:creator"`
 	Modifier             string `gorm:"column:modifier"`
@@ -262,6 +265,9 @@ func (adapter *Adapter) Create(ctx context.Context, policy domain.TablePolicy, o
 		QueryPolicyConfig:    string(policy.QueryPolicyConfig),
 		MutationPolicy:       policy.MutationPolicy,
 		MutationPolicyConfig: string(policy.MutationPolicyConfig),
+		AllowAdd:             policy.AllowAdd,
+		AllowModify:          policy.AllowModify,
+		AllowDelete:          policy.AllowDelete,
 		Enabled:              false,
 		Creator:              operator,
 		Modifier:             operator,
@@ -308,6 +314,9 @@ func (adapter *Adapter) Replace(ctx context.Context, policy domain.TablePolicy, 
 			"query_policy_config":    string(policy.QueryPolicyConfig),
 			"mutation_policy":        policy.MutationPolicy,
 			"mutation_policy_config": string(policy.MutationPolicyConfig),
+			"allow_add":              policy.AllowAdd,
+			"allow_modify":           policy.AllowModify,
+			"allow_delete":           policy.AllowDelete,
 			"modifier":               operator,
 		})
 	if result.Error != nil {
@@ -339,6 +348,9 @@ func (record policyRecord) policy() domain.TablePolicy {
 		QueryPolicyConfig:    domain.JSONConfig(record.QueryPolicyConfig),
 		MutationPolicy:       record.MutationPolicy,
 		MutationPolicyConfig: domain.JSONConfig(record.MutationPolicyConfig),
+		AllowAdd:             record.AllowAdd,
+		AllowModify:          record.AllowModify,
+		AllowDelete:          record.AllowDelete,
 		Enabled:              record.Enabled,
 	}
 }

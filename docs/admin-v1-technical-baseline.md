@@ -78,7 +78,7 @@ infrastructure/mysql ────┘
 
 ### Table Policy
 
-每个物理表至多一条 Policy，以 `table_name` 为领域和 HTTP 标识。Policy 只包含 Query/Mutation 策略绑定和 `enabled|disabled` 状态，不包含 `code`、`name`、字段列表、Allowlist、Schema Fingerprint、发布信息、revision 或连接信息。
+每个物理表至多一条 Policy，以 `table_name` 为领域和 HTTP 标识。Policy 包含 Query/Mutation 策略绑定、ADD/MODIFY/DELETE 一级能力和 `enabled|disabled` 状态，不包含 `code`、`name`、字段列表、Allowlist、Schema Fingerprint、发布信息、revision 或连接信息。
 
 新 Policy 创建为 disabled；完整替换保持当前状态；enable 重新验证表与策略；disable 立即停止数据授权。没有 delete、draft、回滚或历史版本。Policy 变更采用 last-write-wins。
 
@@ -94,6 +94,9 @@ CREATE TABLE `rcc_table_policies` (
   `query_policy_config` json NOT NULL,
   `mutation_policy` varchar(100) NOT NULL,
   `mutation_policy_config` json NOT NULL,
+  `allow_add` tinyint(1) NOT NULL DEFAULT 0,
+  `allow_modify` tinyint(1) NOT NULL DEFAULT 0,
+  `allow_delete` tinyint(1) NOT NULL DEFAULT 0,
   `enabled` tinyint(1) NOT NULL DEFAULT 0,
   `creator` varchar(64) NOT NULL,
   `modifier` varchar(64) NOT NULL,
@@ -105,7 +108,11 @@ CREATE TABLE `rcc_table_policies` (
 );
 ```
 
-JSON 配置必须是 object；空配置使用 `{}`，不能使用 SQL NULL。每个策略使用强类型配置并拒绝未知字段。创建、替换、启用和执行复用相同的 Constructor 校验路径。
+JSON 配置必须是 object；空配置使用 `{}`，不能使用 SQL NULL。每个策略使用强类型配置并拒绝未知字段。`allow_add`、`allow_modify` 和 `allow_delete` 是 Table Policy 一级字段，不能同时出现在 `mutation_policy_config`。创建、替换、启用和执行复用相同的 Constructor 校验路径。
+
+保留 JSON 是针对完整 Policy Snapshot 访问和策略级原子替换作出的刻意取舍，并非未考虑关系型数据库范式。可扁平化字段、策略专属配置表、Auto Fill 规则子表及重新评估条件记录在 [ADR-0010](./adr/0010-freeze-the-first-policy-catalog-schema.md)。
+
+新部署直接使用上述结构；已有第一迭代 Catalog 使用 [`deploy/mysql/migrations/001-promote-mutation-capabilities.sql`](../deploy/mysql/migrations/001-promote-mutation-capabilities.sql) 一次性回填一级能力并从 Mutation JSON 删除同名字段。
 
 ## 6. 策略注册与执行
 
@@ -207,23 +214,25 @@ Query Spec：
 
 ## 9. 单表变更策略
 
-配置：
+Table Policy 一级能力与 Mutation Policy 配置：
 
 ```json
 {
   "allow_add": true,
   "allow_modify": true,
   "allow_delete": false,
-  "auto_fill": {
-    "add": {
-      "creator": {"source": "operator"},
-      "modifier": {"source": "operator"},
-      "gmt_created": {"source": "now"},
-      "gmt_modified": {"source": "now"}
-    },
-    "modify": {
-      "modifier": {"source": "operator"},
-      "gmt_modified": {"source": "now"}
+  "mutation_policy_config": {
+    "auto_fill": {
+      "add": {
+        "creator": {"source": "operator"},
+        "modifier": {"source": "operator"},
+        "gmt_created": {"source": "now"},
+        "gmt_modified": {"source": "now"}
+      },
+      "modify": {
+        "modifier": {"source": "operator"},
+        "gmt_modified": {"source": "now"}
+      }
     }
   }
 }

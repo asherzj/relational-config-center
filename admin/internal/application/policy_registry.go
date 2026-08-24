@@ -320,9 +320,6 @@ func (strategy *singleTableMutationStrategy) validateSchema(schema domain.TableS
 }
 
 func (strategy *singleTableMutationStrategy) add(ctx context.Context, schema domain.TableSchema, content domain.MutationContent, operator OperatorProvider, executor MutationExecutor) (string, error) {
-	if !strategy.config.AllowAdd {
-		return "", ErrMutationNotAllowed
-	}
 	effective := make(domain.MutationContent, len(content))
 	for field, value := range content {
 		effective[field] = value
@@ -369,9 +366,6 @@ func (strategy *singleTableMutationStrategy) add(ctx context.Context, schema dom
 }
 
 func (strategy *singleTableMutationStrategy) modify(ctx context.Context, schema domain.TableSchema, id domain.JSONString, content domain.MutationContent, operator OperatorProvider, executor MutationExecutor) (int64, error) {
-	if !strategy.config.AllowModify {
-		return 0, ErrMutationNotAllowed
-	}
 	if _, supplied := content["id"]; supplied {
 		return 0, ErrInvalidMutation
 	}
@@ -434,9 +428,6 @@ func (strategy *singleTableMutationStrategy) modify(ctx context.Context, schema 
 }
 
 func (strategy *singleTableMutationStrategy) delete(ctx context.Context, schema domain.TableSchema, id domain.JSONString, executor MutationExecutor) (int64, error) {
-	if !strategy.config.AllowDelete {
-		return 0, ErrMutationNotAllowed
-	}
 	idColumn, found := schema.Column("id")
 	if !found || idColumn.Type == domain.ColumnTypeUnsupported {
 		return 0, ErrIncompatibleTable
@@ -490,10 +481,7 @@ func formatAutoFillTime(value time.Time, layout, suffix string) string {
 }
 
 type singleTableMutationConfig struct {
-	AllowAdd    bool            `json:"allow_add,omitempty"`
-	AllowModify bool            `json:"allow_modify,omitempty"`
-	AllowDelete bool            `json:"allow_delete,omitempty"`
-	AutoFill    *autoFillConfig `json:"auto_fill,omitempty"`
+	AutoFill *autoFillConfig `json:"auto_fill,omitempty"`
 }
 
 type autoFillConfig struct {

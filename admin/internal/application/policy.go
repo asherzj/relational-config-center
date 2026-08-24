@@ -22,6 +22,9 @@ type CreateTablePolicy struct {
 	QueryPolicyConfig    json.RawMessage
 	MutationPolicy       string
 	MutationPolicyConfig json.RawMessage
+	AllowAdd             bool
+	AllowModify          bool
+	AllowDelete          bool
 }
 
 // TablePolicyManagement coordinates Catalog access, live table validation,
@@ -63,6 +66,9 @@ func (management *TablePolicyManagement) Create(ctx context.Context, candidate C
 		QueryPolicyConfig:    append(domain.JSONConfig(nil), candidate.QueryPolicyConfig...),
 		MutationPolicy:       candidate.MutationPolicy,
 		MutationPolicyConfig: append(domain.JSONConfig(nil), candidate.MutationPolicyConfig...),
+		AllowAdd:             candidate.AllowAdd,
+		AllowModify:          candidate.AllowModify,
+		AllowDelete:          candidate.AllowDelete,
 		Enabled:              false,
 	}
 	if err := management.catalog.Create(ctx, policy, management.operator); err != nil {
@@ -110,6 +116,9 @@ func (management *TablePolicyManagement) Replace(ctx context.Context, tableName 
 		QueryPolicyConfig:    append(domain.JSONConfig(nil), candidate.QueryPolicyConfig...),
 		MutationPolicy:       candidate.MutationPolicy,
 		MutationPolicyConfig: append(domain.JSONConfig(nil), candidate.MutationPolicyConfig...),
+		AllowAdd:             candidate.AllowAdd,
+		AllowModify:          candidate.AllowModify,
+		AllowDelete:          candidate.AllowDelete,
 	}, management.operator)
 }
 

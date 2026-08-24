@@ -62,25 +62,34 @@ func NewManagedTableMutation(metadata TableMetadataReader, catalog domain.TableP
 }
 
 func (mutation *ManagedTableMutation) Add(ctx context.Context, tableName string, content domain.MutationContent) (string, error) {
-	schema, strategy, err := mutation.currentStrategy(ctx, tableName)
+	schema, policy, strategy, err := mutation.currentStrategy(ctx, tableName)
 	if err != nil {
 		return "", err
+	}
+	if !policy.AllowAdd {
+		return "", ErrMutationNotAllowed
 	}
 	return strategy.add(ctx, schema, content, mutation.operator, mutation.executor)
 }
 
 func (mutation *ManagedTableMutation) Modify(ctx context.Context, tableName string, id domain.JSONString, content domain.MutationContent) (int64, error) {
-	schema, strategy, err := mutation.currentStrategy(ctx, tableName)
+	schema, policy, strategy, err := mutation.currentStrategy(ctx, tableName)
 	if err != nil {
 		return 0, err
+	}
+	if !policy.AllowModify {
+		return 0, ErrMutationNotAllowed
 	}
 	return strategy.modify(ctx, schema, id, content, mutation.operator, mutation.executor)
 }
 
 func (mutation *ManagedTableMutation) Delete(ctx context.Context, tableName string, id domain.JSONString) (int64, error) {
-	schema, strategy, err := mutation.currentDeleteStrategy(ctx, tableName)
+	schema, policy, strategy, err := mutation.currentDeleteStrategy(ctx, tableName)
 	if err != nil {
 		return 0, err
+	}
+	if !policy.AllowDelete {
+		return 0, ErrMutationNotAllowed
 	}
 	return strategy.delete(ctx, schema, id, mutation.executor)
 }
@@ -89,41 +98,41 @@ func (mutation *ManagedTableMutation) Delete(ctx context.Context, tableName stri
 // validation. DELETE depends only on the current Managed Table invariant and
 // its id type, so unrelated unsupported columns and Auto Fill fields cannot
 // disable an otherwise safe hard delete.
-func (mutation *ManagedTableMutation) currentDeleteStrategy(ctx context.Context, tableName string) (domain.TableSchema, MutationStrategy, error) {
+func (mutation *ManagedTableMutation) currentDeleteStrategy(ctx context.Context, tableName string) (domain.TableSchema, domain.TablePolicy, MutationStrategy, error) {
 	schema, policy, err := mutation.currentSnapshot(ctx, tableName)
 	if err != nil {
-		return domain.TableSchema{}, nil, err
+		return domain.TableSchema{}, domain.TablePolicy{}, nil, err
 	}
 
 	// Construct both configured policies to reject unknown or malformed current
 	// snapshots, but do not apply full-row Schema validation for DELETE.
 	if _, err := mutation.registry.Query(policy.QueryPolicy, json.RawMessage(policy.QueryPolicyConfig)); err != nil {
-		return domain.TableSchema{}, nil, err
+		return domain.TableSchema{}, domain.TablePolicy{}, nil, err
 	}
 	strategy, err := mutation.registry.Mutation(policy.MutationPolicy, json.RawMessage(policy.MutationPolicyConfig))
 	if err != nil {
-		return domain.TableSchema{}, nil, err
+		return domain.TableSchema{}, domain.TablePolicy{}, nil, err
 	}
-	return schema, strategy, nil
+	return schema, policy, strategy, nil
 }
 
-func (mutation *ManagedTableMutation) currentStrategy(ctx context.Context, tableName string) (domain.TableSchema, MutationStrategy, error) {
+func (mutation *ManagedTableMutation) currentStrategy(ctx context.Context, tableName string) (domain.TableSchema, domain.TablePolicy, MutationStrategy, error) {
 	schema, policy, err := mutation.currentSnapshot(ctx, tableName)
 	if err != nil {
-		return domain.TableSchema{}, nil, err
+		return domain.TableSchema{}, domain.TablePolicy{}, nil, err
 	}
 
 	if _, err := mutation.registry.Query(policy.QueryPolicy, json.RawMessage(policy.QueryPolicyConfig)); err != nil {
-		return domain.TableSchema{}, nil, err
+		return domain.TableSchema{}, domain.TablePolicy{}, nil, err
 	}
 	strategy, err := mutation.registry.Mutation(policy.MutationPolicy, json.RawMessage(policy.MutationPolicyConfig))
 	if err != nil {
-		return domain.TableSchema{}, nil, err
+		return domain.TableSchema{}, domain.TablePolicy{}, nil, err
 	}
 	if err := strategy.validateSchema(schema); err != nil {
-		return domain.TableSchema{}, nil, err
+		return domain.TableSchema{}, domain.TablePolicy{}, nil, err
 	}
-	return schema, strategy, nil
+	return schema, policy, strategy, nil
 }
 
 func (mutation *ManagedTableMutation) currentSnapshot(ctx context.Context, tableName string) (domain.TableSchema, domain.TablePolicy, error) {

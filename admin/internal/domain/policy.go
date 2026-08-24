@@ -13,7 +13,8 @@ var (
 // JSONConfig is an object-valued, strategy-specific Policy configuration.
 type JSONConfig []byte
 
-// TablePolicy assigns one Query Policy and one Mutation Policy to a table.
+// TablePolicy assigns one Query Policy and one Mutation Policy to a table and
+// declares the stable mutation capabilities authorized for its Managed Table.
 // Catalog storage identity and audit columns are deliberately not part of the
 // Aggregate's external representation.
 type TablePolicy struct {
@@ -22,6 +23,9 @@ type TablePolicy struct {
 	QueryPolicyConfig    JSONConfig
 	MutationPolicy       string
 	MutationPolicyConfig JSONConfig
+	AllowAdd             bool
+	AllowModify          bool
+	AllowDelete          bool
 	Enabled              bool
 }
 

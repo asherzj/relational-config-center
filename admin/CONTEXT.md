@@ -13,7 +13,7 @@ An existing base table governed by an enabled Table Policy. Its sole primary-key
 _Avoid_: View, system table, remote table, arbitrary table
 
 **Table Policy**:
-A runtime-configured rule that assigns one Query Policy and one Mutation Policy to an existing base table. Enabling the policy makes that table a Managed Table; the policy does not duplicate database field metadata or contain connection information.
+A runtime-configured rule that assigns one Query Policy and one Mutation Policy to an existing base table and declares whether ADD, MODIFY, and DELETE are allowed. Enabling the policy makes that table a Managed Table; the policy does not duplicate database field metadata or contain connection information.
 _Avoid_: Table configuration, database configuration, schema migration
 
 **Query Policy**:
