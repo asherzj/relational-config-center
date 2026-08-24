@@ -1,0 +1,43 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-rcc}
+      MYSQL_USER: ${MYSQL_USER:-rcc_admin}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  admin:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.admin
+    environment:
+      ADMIN_HTTP_ADDR: 0.0.0.0:8080
+      ADMIN_API_TOKEN: ${ADMIN_API_TOKEN}
+      ADMIN_AUTH_DISABLED: "false"
+      ADMIN_OPERATOR: ${ADMIN_OPERATOR:-local-admin}
+      ADMIN_CORS_ORIGINS: ${ADMIN_CORS_ORIGINS:-}
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-rcc}
+      MYSQL_USER: ${MYSQL_USER:-rcc_admin}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_TLS_MODE: "false"
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql-data:

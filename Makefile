@@ -15,7 +15,7 @@ test:
 	done
 
 test-integration:
-	cd admin/integration && RCC_INTEGRATION=1 go test -count=1 -v ./...
+	@cd admin && go test -tags=integration ./...
 
 build:
 	@for module in $(GO_LIBRARY_MODULES); do \

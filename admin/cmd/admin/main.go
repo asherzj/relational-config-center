@@ -4,87 +4,36 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
-	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
-	"github.com/asherzj/relational-config-center/admin/internal/application"
-	"github.com/asherzj/relational-config-center/admin/internal/config"
-	"github.com/asherzj/relational-config-center/admin/internal/domain"
-	"github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql"
-	httpapi "github.com/asherzj/relational-config-center/admin/internal/interfaces/http"
+	"github.com/asherzj/relational-config-center/admin/internal/platform/config"
 )
 
 func main() {
-	if err := run(); err != nil {
-		slog.Error("admin stopped", "error", err)
-		os.Exit(1)
-	}
+	os.Exit(runMain(os.Stderr))
 }
 
-func run() error {
+func runMain(standardError *os.File) int {
 	settings, err := config.Load()
 	if err != nil {
-		return err
-	}
-	startupContext, cancelStartup := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancelStartup()
-	db, sqlDB, err := mysql.Open(startupContext, mysql.Options{
-		DSN:             settings.MySQLDSN,
-		MaxOpenConns:    settings.MaxOpenConns,
-		MaxIdleConns:    settings.MaxIdleConns,
-		ConnMaxLifetime: settings.ConnMaxLifetime,
-		ConnMaxIdleTime: settings.ConnMaxIdleTime,
-	})
-	if err != nil {
-		return err
-	}
-	defer sqlDB.Close()
-
-	policies, err := mysql.NewPolicyCatalog(db).Load(startupContext)
-	if err != nil {
-		return fmt.Errorf("load table policies: %w", err)
-	}
-	registry, err := domain.NewRegistry(policies...)
-	if err != nil {
-		return fmt.Errorf("build table policy registry: %w", err)
-	}
-	source := application.NewPolicySource(registry)
-	service := application.NewService(source, mysql.NewRepository(db))
-	catalog := application.NewCatalogService(mysql.NewPolicyCatalog(db), mysql.NewSchemaVerifier(db), source)
-	server := &http.Server{
-		Addr:              settings.Address,
-		Handler:           httpapi.NewRouter(service, catalog, sqlDB),
-		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout:       15 * time.Second,
-		WriteTimeout:      30 * time.Second,
-		IdleTimeout:       60 * time.Second,
+		fmt.Fprintf(standardError, "configuration error: %v\n", err)
+		return 1
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-	serverErrors := make(chan error, 1)
-	go func() {
-		slog.Info("admin listening", "address", settings.Address)
-		serverErrors <- server.ListenAndServe()
-	}()
+	application, err := newApplication(context.Background(), settings)
+	if err != nil {
+		fmt.Fprintln(standardError, "startup error: Managed Data Source is unavailable")
+		return 1
+	}
 
-	select {
-	case <-ctx.Done():
-	case serveErr := <-serverErrors:
-		if !errors.Is(serveErr, http.ErrServerClosed) {
-			return fmt.Errorf("serve Admin HTTP: %w", serveErr)
+	if err := serveAdmin(application, settings.HTTPAddr, productionShutdownTimeout); err != nil {
+		switch {
+		case errors.Is(err, errApplicationClose):
+			fmt.Fprintln(standardError, "shutdown error: failed to close Managed Data Source")
+		default:
+			fmt.Fprintln(standardError, "server error: Admin HTTP server failed")
 		}
-		return nil
+		return 1
 	}
-
-	shutdownContext, cancelShutdown := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancelShutdown()
-	if err := server.Shutdown(shutdownContext); err != nil {
-		return fmt.Errorf("shutdown Admin HTTP: %w", err)
-	}
-	return nil
+	return 0
 }

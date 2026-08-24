@@ -1,17 +1,13 @@
-# Relational Configuration Center
+## 智能体技能
 
-Agent instructions for this repo.
+### Issue 跟踪器
 
-## Agent skills
+Issue 在本仓库的 GitHub Issues 中跟踪。详见 `docs/agents/issue-tracker.md`。
 
-### Issue tracker
+### Triage 标签
 
-Issues and specs live in GitHub Issues (`asherzj/relational-config-center`), managed via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+使用五个默认的规范 Triage 标签。详见 `docs/agents/triage-labels.md`。
 
-### Triage labels
+### 领域文档
 
-The five canonical triage labels, used as-is (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
-
-### Domain docs
-
-Single-context: root `CONTEXT.md` plus `docs/adr/`. See `docs/agents/domain.md`.
+本仓库采用多上下文布局。详见 `docs/agents/domain.md`。
