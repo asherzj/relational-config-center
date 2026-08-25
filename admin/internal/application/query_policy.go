@@ -62,9 +62,6 @@ func (registry *QueryPolicyTypeRegistry) Validate(policy domain.QueryPolicy) err
 	if _, found := registry.builders[policy.TypeCode]; !found {
 		return fmt.Errorf("%w: %s", ErrUnknownQueryPolicyType, policy.TypeCode)
 	}
-	if !fieldNamePattern.MatchString(policy.DefaultOrderField) {
-		return fmt.Errorf("%w: unsafe default order field", ErrInvalidQueryPolicyRules)
-	}
 	return registry.validatePersistentScalars(policy)
 }
 
@@ -98,6 +95,9 @@ func (registry *QueryPolicyTypeRegistry) ValidateForTable(policy domain.QueryPol
 }
 
 func (*QueryPolicyTypeRegistry) validatePersistentScalars(policy domain.QueryPolicy) error {
+	if !fieldNamePattern.MatchString(policy.DefaultOrderField) {
+		return fmt.Errorf("%w: unsafe default order field", ErrInvalidQueryPolicyRules)
+	}
 	if policy.DefaultOrderDirection != "ASC" && policy.DefaultOrderDirection != "DESC" {
 		return fmt.Errorf("%w: order direction must be ASC or DESC", ErrInvalidQueryPolicyRules)
 	}

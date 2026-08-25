@@ -1167,6 +1167,8 @@ func classifyMutationError(err error, contextErr error) error {
 }
 
 func applyPageQuery(database *gorm.DB, query domain.PageQuery) *gorm.DB {
+	database = database.Session(&gorm.Session{})
+	database.Statement.Table = query.TableName
 	database = database.Clauses(clause.From{Tables: []clause.Table{{Name: query.TableName}}})
 	for _, condition := range query.Conditions {
 		column, _ := pageQueryColumn(query.Columns, condition.Field)

@@ -49,3 +49,11 @@ INSERT INTO `query_type_values` (
   '2024-02-29 23:59:58.123456',
   '{"nested":{"n":9007199254740993},"ok":true}', NULL
 );
+
+CREATE TABLE `query policy items` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `value` varchar(64) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB COMMENT='Identifier quoting fixture';
+
+INSERT INTO `query policy items` (`id`, `value`) VALUES (1, 'quoted');

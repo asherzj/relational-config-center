@@ -95,17 +95,49 @@ func TestMutationPolicyActivationValidatesTypeAutoFillAndAuthorization(t *testin
 	}
 }
 
-func TestMutationPolicyDraftCanBeCompletedBeforeActivation(t *testing.T) {
+func TestMutationPolicyDraftWithUnknownTypeCanBeCompletedBeforeActivation(t *testing.T) {
 	catalog := &memoryMutationPolicyCatalog{policies: make(map[string]domain.MutationPolicy)}
 	management := NewMutationPolicyManagement(catalog, NewMutationPolicyTypeRegistry(), "operator")
 	candidate := validPutMutationPolicy("draft_mutation_v1")
 	candidate.TypeCode = "unknown_type"
-	candidate.CreateOperatorField = stringPointer("unsafe target")
 	if _, err := management.Create(context.Background(), candidate); err != nil {
-		t.Fatalf("Draft should preserve incomplete execution rules: %v", err)
+		t.Fatalf("Draft should preserve an unknown Type for later completion: %v", err)
 	}
 	if _, err := management.Activate(context.Background(), candidate.Code); !errors.Is(err, ErrUnknownMutationPolicyType) {
 		t.Fatalf("activation should fail closed on unknown Type, got %v", err)
+	}
+}
+
+func TestMutationPolicyDraftRejectsValuesBlockedByCatalogConstraints(t *testing.T) {
+	tests := []struct {
+		name   string
+		change func(*PutMutationPolicy)
+	}{
+		{name: "unsafe target", change: func(policy *PutMutationPolicy) { policy.CreateOperatorField = stringPointer("creator;drop") }},
+		{name: "case-insensitive primary-key target", change: func(policy *PutMutationPolicy) { policy.CreateOperatorField = stringPointer("ID") }},
+		{name: "duplicated target", change: func(policy *PutMutationPolicy) { policy.ModifyOperatorField = stringPointer("creator") }},
+		{name: "case-insensitive duplicated target", change: func(policy *PutMutationPolicy) { policy.ModifyOperatorField = stringPointer("Creator") }},
+		{name: "Create target without ADD", change: func(policy *PutMutationPolicy) { policy.AllowAdd = false }},
+		{name: "Modify target without ADD or MODIFY", change: func(policy *PutMutationPolicy) {
+			policy.AllowAdd = false
+			policy.AllowModify = false
+			policy.CreateOperatorField = nil
+			policy.CreateTimeField = nil
+		}},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			catalog := &memoryMutationPolicyCatalog{policies: make(map[string]domain.MutationPolicy)}
+			management := NewMutationPolicyManagement(catalog, NewMutationPolicyTypeRegistry(), "operator")
+			candidate := validPutMutationPolicy("constrained_mutation_v1")
+			test.change(&candidate)
+			if _, err := management.Create(context.Background(), candidate); !errors.Is(err, ErrInvalidMutationPolicyRules) {
+				t.Fatalf("expected stable persistent-rule validation error, got %v", err)
+			}
+			if len(catalog.policies) != 0 {
+				t.Fatalf("invalid Draft reached the Catalog: %#v", catalog.policies)
+			}
+		})
 	}
 }
 

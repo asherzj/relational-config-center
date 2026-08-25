@@ -7,7 +7,7 @@ services:
       MYSQL_USER: ${MYSQL_USER:-rcc_admin}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "127.0.0.1:3306:3306"
+      - "127.0.0.1:${MYSQL_PUBLISHED_PORT:-3306}:3306"
     volumes:
       - mysql-data:/var/lib/mysql
       - ./mysql/init:/docker-entrypoint-initdb.d:ro
@@ -16,6 +16,24 @@ services:
       interval: 2s
       timeout: 2s
       retries: 30
+
+  mysql-local-fixture:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-rcc}
+      MYSQL_USER: ${MYSQL_USER:-rcc_admin}
+      MYSQL_PWD: ${MYSQL_PASSWORD}
+    volumes:
+      - ./mysql/local-fixture:/local-fixture:ro
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - >-
+        exec mysql --protocol=tcp --host=mysql --user="$${MYSQL_USER}"
+        "$${MYSQL_DATABASE}" < /local-fixture/002-notification-templates.sql
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: "no"
 
   admin:
     build:
@@ -34,10 +52,12 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_TLS_MODE: "false"
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:${ADMIN_PUBLISHED_PORT:-8080}:8080"
     depends_on:
       mysql:
         condition: service_healthy
+      mysql-local-fixture:
+        condition: service_completed_successfully
 
 volumes:
   mysql-data:

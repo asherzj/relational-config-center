@@ -60,7 +60,10 @@ func (registry *MutationPolicyTypeRegistry) Validate(policy domain.MutationPolic
 	if !implementsAllMutationOperations(registered.Operations) {
 		return fmt.Errorf("%w: registered Type does not implement ADD, MODIFY, and DELETE", ErrUnknownMutationPolicyType)
 	}
+	return registry.validatePersistentRules(policy)
+}
 
+func (*MutationPolicyTypeRegistry) validatePersistentRules(policy domain.MutationPolicy) error {
 	targets := []*string{
 		policy.CreateOperatorField,
 		policy.CreateTimeField,
@@ -72,16 +75,17 @@ func (registry *MutationPolicyTypeRegistry) Validate(policy domain.MutationPolic
 		if target == nil {
 			continue
 		}
-		if *target == "id" {
+		if strings.EqualFold(*target, "id") {
 			return fmt.Errorf("%w: Auto Fill target id is the primary key", ErrInvalidMutationPolicyRules)
 		}
 		if !fieldNamePattern.MatchString(*target) {
 			return fmt.Errorf("%w: unsafe Auto Fill target", ErrInvalidMutationPolicyRules)
 		}
-		if _, duplicated := seen[*target]; duplicated {
+		normalizedTarget := strings.ToLower(*target)
+		if _, duplicated := seen[normalizedTarget]; duplicated {
 			return fmt.Errorf("%w: duplicated Auto Fill target", ErrInvalidMutationPolicyRules)
 		}
-		seen[*target] = struct{}{}
+		seen[normalizedTarget] = struct{}{}
 	}
 	if !policy.AllowAdd && (policy.CreateOperatorField != nil || policy.CreateTimeField != nil) {
 		return fmt.Errorf("%w: Create Auto Fill requires ADD", ErrInvalidMutationPolicyRules)
@@ -172,6 +176,9 @@ func (management *MutationPolicyManagement) Create(ctx context.Context, candidat
 	if err != nil {
 		return domain.MutationPolicy{}, err
 	}
+	if err := management.registry.validatePersistentRules(policy); err != nil {
+		return domain.MutationPolicy{}, err
+	}
 	return management.catalog.CreateMutationPolicy(ctx, policy, management.operator)
 }
 
@@ -206,6 +213,9 @@ func (management *MutationPolicyManagement) ReplaceDraft(ctx context.Context, co
 	}
 	policy, err := draftMutationPolicy(candidate)
 	if err != nil {
+		return domain.MutationPolicy{}, err
+	}
+	if err := management.registry.validatePersistentRules(policy); err != nil {
 		return domain.MutationPolicy{}, err
 	}
 	return management.catalog.ReplaceDraftMutationPolicy(ctx, policy, management.operator)

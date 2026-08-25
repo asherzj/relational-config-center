@@ -27,7 +27,14 @@ cp deploy/.env.example deploy/.env
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml up --build
 ```
 
-请先修改 `deploy/.env` 中的密码和 `ADMIN_API_TOKEN`。该文件不应提交到仓库。Compose 会在全新 MySQL 数据卷中自动执行 `deploy/mysql/init/001-schema.sql` 初始化 Policy Catalog。
+请先修改 `deploy/.env` 中的密码和 `ADMIN_API_TOKEN`。该文件不应提交到仓库。Compose 会在全新 MySQL 数据卷中自动执行 `deploy/mysql/init/001-schema.sql` 初始化 Policy Catalog，并在每次启动时幂等应用仅供本地开发使用的 `deploy/mysql/local-fixture/002-notification-templates.sql`。fresh volume，以及尚未包含同名资源或已包含完全相同 fixture 的已有 volume，会获得：
+
+- 带 3 条可辨识样例数据的 `notification_templates`；
+- Active 的 `notification_page_query_v1` Query Policy；
+- 允许 ADD、MODIFY、DELETE 并配置标准审计 Auto Fill 的 Active `notification_full_mutation_v1` Mutation Policy；
+- enabled `notification_templates` Table Policy。
+
+fixture 位于独立的 `mysql/local-fixture` 路径，只由本地 Compose 的一次性 `mysql-local-fixture` 服务加载，不属于生产初始化脚本，也不会改变 Admin 只治理既有业务表的生产职责。缺失资源会被补齐，完全相同的资源会原样保留，重复启动不会重复插入样例行或 Policy；若已有 `notification_templates` Schema 不兼容，或同 Code Policy、同表分配与 fixture 的生命周期、执行规则或引用冲突，一次性服务会失败并保留既有资源，不会通过 SQL 接管表、覆盖或复活 Policy、重新启用分配。需要并行启动隔离环境时，可通过 `MYSQL_PUBLISHED_PORT` 和 `ADMIN_PUBLISHED_PORT` 覆盖默认的 3306 和 8080。
 
 直接运行 Admin 时至少需要配置以下变量：
 
