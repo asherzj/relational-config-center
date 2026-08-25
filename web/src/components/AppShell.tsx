@@ -30,7 +30,7 @@ export function AppShell() {
           <section className="nav-group">
             <div className="nav-group-title"><span><Box size={18} />平台管理</span><ChevronDown size={16} /></div>
             <NavLink to="/platform/query-policies" onClick={() => setMobileNavOpen(false)}>查询策略定义</NavLink>
-            <span className="nav-disabled">变更策略定义</span>
+            <NavLink to="/platform/mutation-policies" onClick={() => setMobileNavOpen(false)}>变更策略定义</NavLink>
             <span className="nav-disabled">表策略分配</span>
           </section>
           <section className="nav-group nav-group-collapsed">

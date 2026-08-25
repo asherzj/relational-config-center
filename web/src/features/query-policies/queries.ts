@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { shouldRetryQuery } from "../../api/client";
 import {
   activateQueryPolicy,
@@ -12,6 +12,7 @@ import {
   updateQueryPolicyMetadata,
 } from "../../api/query-policies";
 import type { QueryPolicy, QueryPolicyDraft, QueryPolicyMetadata } from "./model";
+import { useDeletePolicyCommand, usePolicyCommand } from "../policies/queries";
 
 export const queryPolicyKeys = {
   all: ["query-policies"] as const,
@@ -37,50 +38,34 @@ export function useQueryPolicy(code?: string) {
   });
 }
 
-function usePolicyCommand<TVariables>(command: (variables: TVariables) => Promise<QueryPolicy>) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: command,
-    retry: false,
-    onSuccess(policy) {
-      client.setQueryData(queryPolicyKeys.detail(policy.code), policy);
-      void client.invalidateQueries({ queryKey: queryPolicyKeys.list });
-    },
-  });
+function useQueryPolicyCommand<TVariables>(command: (variables: TVariables) => Promise<QueryPolicy>) {
+  return usePolicyCommand(command, queryPolicyKeys.detail, queryPolicyKeys.list);
 }
 
 export function useCreateQueryPolicy() {
-  return usePolicyCommand(createQueryPolicy);
+  return useQueryPolicyCommand(createQueryPolicy);
 }
 
 export function useReplaceQueryPolicy() {
-  return usePolicyCommand(({ code, draft }: { code: string; draft: QueryPolicyDraft }) =>
+  return useQueryPolicyCommand(({ code, draft }: { code: string; draft: QueryPolicyDraft }) =>
     replaceQueryPolicy(code, draft),
   );
 }
 
 export function useActivateQueryPolicy() {
-  return usePolicyCommand(activateQueryPolicy);
+  return useQueryPolicyCommand(activateQueryPolicy);
 }
 
 export function useDeprecateQueryPolicy() {
-  return usePolicyCommand(deprecateQueryPolicy);
+  return useQueryPolicyCommand(deprecateQueryPolicy);
 }
 
 export function useUpdateQueryPolicyMetadata() {
-  return usePolicyCommand(({ code, metadata }: { code: string; metadata: QueryPolicyMetadata }) =>
+  return useQueryPolicyCommand(({ code, metadata }: { code: string; metadata: QueryPolicyMetadata }) =>
     updateQueryPolicyMetadata(code, metadata),
   );
 }
 
 export function useDeleteQueryPolicy() {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: deleteQueryPolicy,
-    retry: false,
-    onSuccess(_, code) {
-      client.removeQueries({ queryKey: queryPolicyKeys.detail(code) });
-      void client.invalidateQueries({ queryKey: queryPolicyKeys.list });
-    },
-  });
+  return useDeletePolicyCommand(deleteQueryPolicy, queryPolicyKeys.detail, queryPolicyKeys.list);
 }

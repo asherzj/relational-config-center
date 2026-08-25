@@ -26,6 +26,41 @@ export const queryPolicyTypeListDtoSchema = z.object({
   types: z.array(z.object({ code: z.string() })),
 });
 
+export const mutationOperationSchema = z.enum(["ADD", "MODIFY", "DELETE"]);
+
+export const mutationPolicyTypeListDtoSchema = z.object({
+  types: z.array(z.object({
+    code: z.string(),
+    operations: z.array(mutationOperationSchema).length(3).refine(
+      (operations) => new Set(operations).size === operations.length,
+      { message: "Mutation Policy Type operations must be unique" },
+    ),
+  })),
+});
+
+export const mutationPolicyDtoSchema = z.object({
+  code: z.string(),
+  name: z.string(),
+  description: z.string(),
+  type_code: z.string(),
+  allow_add: z.boolean(),
+  allow_modify: z.boolean(),
+  allow_delete: z.boolean(),
+  create_operator_field: z.string().nullable(),
+  create_time_field: z.string().nullable(),
+  modify_operator_field: z.string().nullable(),
+  modify_time_field: z.string().nullable(),
+  status: policyStatusSchema,
+  creator: z.string(),
+  modifier: z.string(),
+  gmt_created: z.string(),
+  gmt_modified: z.string(),
+});
+
+export const mutationPolicyListDtoSchema = z.object({
+  policies: z.array(mutationPolicyDtoSchema),
+});
+
 export const adminErrorDtoSchema = z.object({
   error: z.object({
     code: z.string(),
@@ -36,6 +71,8 @@ export const adminErrorDtoSchema = z.object({
 
 export type QueryPolicyDto = z.infer<typeof queryPolicyDtoSchema>;
 export type PolicyStatusDto = z.infer<typeof policyStatusSchema>;
+export type MutationPolicyDto = z.infer<typeof mutationPolicyDtoSchema>;
+export type MutationPolicyTypeDto = z.infer<typeof mutationPolicyTypeListDtoSchema>["types"][number];
 
 export type PutQueryPolicyDto = {
   code: string;
@@ -49,3 +86,17 @@ export type PutQueryPolicyDto = {
 };
 
 export type UpdateQueryPolicyMetadataDto = Pick<PutQueryPolicyDto, "name" | "description">;
+
+export type PutMutationPolicyDto = {
+  code: string;
+  name: string;
+  description: string;
+  type_code: string;
+  allow_add: boolean;
+  allow_modify: boolean;
+  allow_delete: boolean;
+  create_operator_field: string | null;
+  create_time_field: string | null;
+  modify_operator_field: string | null;
+  modify_time_field: string | null;
+};
