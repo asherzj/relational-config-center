@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -64,7 +63,10 @@ func TestAdminExternalProcessServesHealthAndEnforcesAuthDefault(t *testing.T) {
 	assertProcessHTTP(t, address+"/api/v1/database-tables", "", http.StatusUnauthorized)
 	assertProcessHTTP(t, address+"/api/v1/database-tables", "Bearer process-token", http.StatusOK)
 
-	stopProcessAndAssertClose(t, process, os.Interrupt, 5*time.Second)
+	// The helper still has the production-shaped 10 second shutdown bound.
+	// Match the harness wait to that bound so multi-package integration runs do
+	// not kill a correctly shutting-down process when the host is contended.
+	stopProcessAndAssertClose(t, process, os.Interrupt, 10*time.Second)
 }
 
 func TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully(t *testing.T) {
@@ -243,18 +245,7 @@ func (application *processTestApplication) Close() error {
 func processTestRouter(t *testing.T) http.Handler {
 	t.Helper()
 	metadata := processMetadata{}
-	catalog := processCatalog{}
-	registry, err := application.NewStrategyRegistry(
-		[]application.QueryRegistration{{ID: application.MySQLPageQueryV1, Constructor: application.NewMySQLPageQueryStrategy}},
-		[]application.MutationRegistration{{ID: application.MySQLSingleTableMutationV1, Constructor: application.NewMySQLSingleTableMutationStrategy}},
-	)
-	if err != nil {
-		t.Fatalf("create process registry: %v", err)
-	}
-	policies := application.NewTablePolicyManagement(metadata, catalog, registry, "process-operator")
-	queries := application.NewManagedTableQuery(metadata, catalog, registry, processQueryExecutor{})
-	mutations := application.NewManagedTableMutation(metadata, catalog, registry, application.NewFixedOperatorProvider("process-operator"), processMutationExecutor{})
-	return httpinterface.NewRouter(application.NewDatabaseTableDiscovery(metadata), processReadiness{}, policies, queries, mutations, httpinterface.RouterOptions{
+	return httpinterface.NewRouter(application.NewDatabaseTableDiscovery(metadata), processReadiness{}, nil, nil, nil, nil, nil, httpinterface.RouterOptions{
 		APIToken:  "process-token",
 		AccessLog: io.Discard,
 	})
@@ -272,48 +263,13 @@ func (processMetadata) GetTableSchema(context.Context, string) (domain.TableSche
 	return domain.TableSchema{}, application.ErrDatabaseTableNotFound
 }
 
-type processCatalog struct{}
-
-func (processCatalog) Create(context.Context, domain.TablePolicy, string) error { return nil }
-func (processCatalog) List(context.Context) ([]domain.TablePolicy, error)       { return nil, nil }
-func (processCatalog) Get(context.Context, string) (domain.TablePolicy, error) {
-	return domain.TablePolicy{}, domain.ErrTablePolicyNotFound
-}
-func (processCatalog) Replace(context.Context, domain.TablePolicy, string) (domain.TablePolicy, error) {
-	return domain.TablePolicy{}, domain.ErrTablePolicyNotFound
-}
-func (processCatalog) SetEnabled(context.Context, string, bool, string) (domain.TablePolicy, error) {
-	return domain.TablePolicy{}, domain.ErrTablePolicyNotFound
-}
-
 type processReadiness struct{}
 
 func (processReadiness) Ready(context.Context) error { return nil }
 
-type processQueryExecutor struct{}
-
-func (processQueryExecutor) ExecutePageQuery(context.Context, domain.PageQuery) (domain.QueryResult, error) {
-	return domain.QueryResult{}, errors.New("not used")
-}
-
-type processMutationExecutor struct{}
-
-func (processMutationExecutor) InsertRow(context.Context, domain.RowInsert) (string, error) {
-	return "", errors.New("not used")
-}
-func (processMutationExecutor) UpdateRow(context.Context, domain.RowUpdate) (int64, error) {
-	return 0, errors.New("not used")
-}
-func (processMutationExecutor) DeleteRow(context.Context, domain.RowDelete) (int64, error) {
-	return 0, errors.New("not used")
-}
-
 var _ runtimeApplication = (*processTestApplication)(nil)
 var _ application.TableMetadataReader = processMetadata{}
-var _ domain.TablePolicyCatalog = processCatalog{}
 var _ application.Readiness = processReadiness{}
-var _ application.QueryExecutor = processQueryExecutor{}
-var _ application.MutationExecutor = processMutationExecutor{}
 
 func decodeProcessError(body io.Reader) string {
 	var envelope struct {

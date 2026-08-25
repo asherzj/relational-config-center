@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -17,64 +16,62 @@ var (
 )
 
 type CreateTablePolicy struct {
-	TableName            string
-	QueryPolicy          string
-	QueryPolicyConfig    json.RawMessage
-	MutationPolicy       string
-	MutationPolicyConfig json.RawMessage
-	AllowAdd             bool
-	AllowModify          bool
-	AllowDelete          bool
+	TableName          string
+	QueryPolicyCode    string
+	MutationPolicyCode string
 }
 
-// TablePolicyManagement coordinates Catalog access, live table validation,
-// and strategy construction without exposing storage details to HTTP callers.
+// TablePolicyManagement owns only the final Code-based assignment contract.
+// Definitions and execution semantics remain in their dedicated modules.
 type TablePolicyManagement struct {
-	metadata TableMetadataReader
-	catalog  domain.TablePolicyCatalog
-	registry *StrategyRegistry
-	operator string
+	metadata         TableMetadataReader
+	catalog          domain.TablePolicyCatalog
+	queryPolicies    *QueryPolicyManagement
+	mutationPolicies *MutationPolicyManagement
+	operator         string
 }
 
-func NewTablePolicyManagement(metadata TableMetadataReader, catalog domain.TablePolicyCatalog, registry *StrategyRegistry, operator string) *TablePolicyManagement {
-	return &TablePolicyManagement{metadata: metadata, catalog: catalog, registry: registry, operator: operator}
+type activePolicyAssignmentCatalog interface {
+	CreateWithActivePolicyCodes(context.Context, domain.TablePolicy, string) error
+	ReplaceWithActivePolicyCodes(context.Context, domain.TablePolicy, string) (domain.TablePolicy, error)
+}
+
+func NewTablePolicyManagement(metadata TableMetadataReader, catalog domain.TablePolicyCatalog, queryPolicies *QueryPolicyManagement, mutationPolicies *MutationPolicyManagement, operator string) *TablePolicyManagement {
+	return &TablePolicyManagement{
+		metadata: metadata, catalog: catalog, queryPolicies: queryPolicies,
+		mutationPolicies: mutationPolicies, operator: operator,
+	}
 }
 
 func (management *TablePolicyManagement) Create(ctx context.Context, candidate CreateTablePolicy) (domain.TablePolicy, error) {
-	if strings.TrimSpace(candidate.TableName) == "" ||
-		strings.TrimSpace(candidate.QueryPolicy) == "" || len(candidate.QueryPolicyConfig) == 0 ||
-		strings.TrimSpace(candidate.MutationPolicy) == "" || len(candidate.MutationPolicyConfig) == 0 {
+	candidate.TableName = strings.TrimSpace(candidate.TableName)
+	candidate.QueryPolicyCode = strings.TrimSpace(candidate.QueryPolicyCode)
+	candidate.MutationPolicyCode = strings.TrimSpace(candidate.MutationPolicyCode)
+	if candidate.TableName == "" || candidate.QueryPolicyCode == "" || candidate.MutationPolicyCode == "" {
 		return domain.TablePolicy{}, ErrInvalidPolicyDefinition
 	}
 	if protectedTable(candidate.TableName) {
 		return domain.TablePolicy{}, ErrProtectedTable
 	}
-	table, err := management.metadata.GetDatabaseTable(ctx, candidate.TableName)
+	schema, err := management.metadata.GetTableSchema(ctx, candidate.TableName)
 	if err != nil {
 		return domain.TablePolicy{}, err
 	}
-	if !table.Compatible {
-		return domain.TablePolicy{}, fmt.Errorf("%w: %s", ErrIncompatibleTable, *table.IncompatibilityReason)
+	if !schema.Compatible {
+		return domain.TablePolicy{}, fmt.Errorf("%w: %s", ErrIncompatibleTable, *schema.IncompatibilityReason)
 	}
-	if err := management.registry.Validate(candidate.QueryPolicy, candidate.QueryPolicyConfig, candidate.MutationPolicy, candidate.MutationPolicyConfig); err != nil {
+	policy, err := management.assignmentFromActiveDefinitions(ctx, candidate.TableName, candidate.QueryPolicyCode, candidate.MutationPolicyCode, schema)
+	if err != nil {
 		return domain.TablePolicy{}, err
 	}
-
-	policy := domain.TablePolicy{
-		TableName:            candidate.TableName,
-		QueryPolicy:          candidate.QueryPolicy,
-		QueryPolicyConfig:    append(domain.JSONConfig(nil), candidate.QueryPolicyConfig...),
-		MutationPolicy:       candidate.MutationPolicy,
-		MutationPolicyConfig: append(domain.JSONConfig(nil), candidate.MutationPolicyConfig...),
-		AllowAdd:             candidate.AllowAdd,
-		AllowModify:          candidate.AllowModify,
-		AllowDelete:          candidate.AllowDelete,
-		Enabled:              false,
-	}
-	if err := management.catalog.Create(ctx, policy, management.operator); err != nil {
+	if catalog, ok := management.catalog.(activePolicyAssignmentCatalog); ok {
+		if err := catalog.CreateWithActivePolicyCodes(ctx, policy, management.operator); err != nil {
+			return domain.TablePolicy{}, err
+		}
+	} else if err := management.catalog.Create(ctx, policy, management.operator); err != nil {
 		return domain.TablePolicy{}, err
 	}
-	return policy, nil
+	return management.catalog.Get(ctx, policy.TableName)
 }
 
 func (management *TablePolicyManagement) List(ctx context.Context) ([]domain.TablePolicy, error) {
@@ -89,16 +86,16 @@ func (management *TablePolicyManagement) Get(ctx context.Context, tableName stri
 }
 
 func (management *TablePolicyManagement) Replace(ctx context.Context, tableName string, candidate CreateTablePolicy) (domain.TablePolicy, error) {
-	if candidate.TableName != tableName {
-		return domain.TablePolicy{}, ErrInvalidPolicyDefinition
-	}
-	if strings.TrimSpace(candidate.TableName) == "" ||
-		strings.TrimSpace(candidate.QueryPolicy) == "" || len(candidate.QueryPolicyConfig) == 0 ||
-		strings.TrimSpace(candidate.MutationPolicy) == "" || len(candidate.MutationPolicyConfig) == 0 {
-		return domain.TablePolicy{}, ErrInvalidPolicyDefinition
-	}
 	if protectedTable(tableName) {
 		return domain.TablePolicy{}, ErrProtectedTable
+	}
+	if strings.TrimSpace(candidate.TableName) != tableName {
+		return domain.TablePolicy{}, ErrInvalidPolicyDefinition
+	}
+	queryCode := strings.TrimSpace(candidate.QueryPolicyCode)
+	mutationCode := strings.TrimSpace(candidate.MutationPolicyCode)
+	if queryCode == "" || mutationCode == "" {
+		return domain.TablePolicy{}, ErrInvalidPolicyDefinition
 	}
 	schema, err := management.metadata.GetTableSchema(ctx, tableName)
 	if err != nil {
@@ -107,19 +104,14 @@ func (management *TablePolicyManagement) Replace(ctx context.Context, tableName 
 	if !schema.Compatible {
 		return domain.TablePolicy{}, fmt.Errorf("%w: %s", ErrIncompatibleTable, *schema.IncompatibilityReason)
 	}
-	if err := management.registry.ValidateForSchema(candidate.QueryPolicy, candidate.QueryPolicyConfig, candidate.MutationPolicy, candidate.MutationPolicyConfig, schema); err != nil {
+	policy, err := management.assignmentFromActiveDefinitions(ctx, tableName, queryCode, mutationCode, schema)
+	if err != nil {
 		return domain.TablePolicy{}, err
 	}
-	return management.catalog.Replace(ctx, domain.TablePolicy{
-		TableName:            tableName,
-		QueryPolicy:          candidate.QueryPolicy,
-		QueryPolicyConfig:    append(domain.JSONConfig(nil), candidate.QueryPolicyConfig...),
-		MutationPolicy:       candidate.MutationPolicy,
-		MutationPolicyConfig: append(domain.JSONConfig(nil), candidate.MutationPolicyConfig...),
-		AllowAdd:             candidate.AllowAdd,
-		AllowModify:          candidate.AllowModify,
-		AllowDelete:          candidate.AllowDelete,
-	}, management.operator)
+	if catalog, ok := management.catalog.(activePolicyAssignmentCatalog); ok {
+		return catalog.ReplaceWithActivePolicyCodes(ctx, policy, management.operator)
+	}
+	return management.catalog.Replace(ctx, policy, management.operator)
 }
 
 func (management *TablePolicyManagement) Enable(ctx context.Context, tableName string) (domain.TablePolicy, error) {
@@ -137,13 +129,7 @@ func (management *TablePolicyManagement) Enable(ctx context.Context, tableName s
 	if !schema.Compatible {
 		return domain.TablePolicy{}, fmt.Errorf("%w: %s", ErrIncompatibleTable, *schema.IncompatibilityReason)
 	}
-	if err := management.registry.ValidateForSchema(
-		policy.QueryPolicy,
-		json.RawMessage(policy.QueryPolicyConfig),
-		policy.MutationPolicy,
-		json.RawMessage(policy.MutationPolicyConfig),
-		schema,
-	); err != nil {
+	if err := management.validateExistingAssignment(ctx, policy, schema); err != nil {
 		return domain.TablePolicy{}, err
 	}
 	return management.catalog.SetEnabled(ctx, tableName, true, management.operator)
@@ -154,6 +140,45 @@ func (management *TablePolicyManagement) Disable(ctx context.Context, tableName 
 		return domain.TablePolicy{}, ErrProtectedTable
 	}
 	return management.catalog.SetEnabled(ctx, tableName, false, management.operator)
+}
+
+func (management *TablePolicyManagement) assignmentFromActiveDefinitions(ctx context.Context, tableName, queryCode, mutationCode string, schema domain.TableSchema) (domain.TablePolicy, error) {
+	queryPolicy, err := management.queryPolicies.GetForNewAssignment(ctx, queryCode)
+	if err != nil {
+		return domain.TablePolicy{}, err
+	}
+	mutationPolicy, err := management.mutationPolicies.GetForNewAssignment(ctx, mutationCode)
+	if err != nil {
+		return domain.TablePolicy{}, err
+	}
+	if err := management.queryPolicies.ValidateForTable(queryPolicy, schema); err != nil {
+		return domain.TablePolicy{}, err
+	}
+	if err := management.mutationPolicies.ValidateForTable(mutationPolicy, schema); err != nil {
+		return domain.TablePolicy{}, err
+	}
+	return domain.TablePolicy{TableName: tableName, QueryPolicyCode: queryCode, MutationPolicyCode: mutationCode}, nil
+}
+
+func (management *TablePolicyManagement) validateExistingAssignment(ctx context.Context, policy domain.TablePolicy, schema domain.TableSchema) error {
+	queryPolicy, err := management.queryPolicies.Get(ctx, policy.QueryPolicyCode)
+	if err != nil {
+		return err
+	}
+	mutationPolicy, err := management.mutationPolicies.Get(ctx, policy.MutationPolicyCode)
+	if err != nil {
+		return err
+	}
+	if !runtimePolicyStatus(queryPolicy.Status) {
+		return ErrQueryPolicyNotAssignable
+	}
+	if !runtimePolicyStatus(mutationPolicy.Status) {
+		return ErrMutationPolicyNotAssignable
+	}
+	if err := management.queryPolicies.ValidateForTable(queryPolicy, schema); err != nil {
+		return err
+	}
+	return management.mutationPolicies.ValidateForTable(mutationPolicy, schema)
 }
 
 func protectedTable(tableName string) bool {

@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	driver "github.com/go-sql-driver/mysql"
@@ -86,11 +87,16 @@ func (adapter *Adapter) Ready(ctx context.Context) error {
 	if err := adapter.pool.PingContext(ctx); err != nil {
 		return fmt.Errorf("ping MySQL: %w", err)
 	}
-	rows, err := adapter.gorm.WithContext(ctx).Raw("SELECT 1 FROM `rcc_table_policies` LIMIT 0").Rows()
-	if err != nil {
-		return fmt.Errorf("Policy Catalog unavailable: %w", err)
+	for _, table := range []string{"rcc_table_policies", "rcc_query_policies", "rcc_mutation_policies"} {
+		rows, err := adapter.gorm.WithContext(ctx).Raw("SELECT 1 FROM `" + table + "` LIMIT 0").Rows()
+		if err != nil {
+			return fmt.Errorf("Policy Catalog unavailable: %w", err)
+		}
+		if err := rows.Close(); err != nil {
+			return fmt.Errorf("Policy Catalog unavailable: %w", err)
+		}
 	}
-	return rows.Close()
+	return nil
 }
 
 func (adapter *Adapter) ListDatabaseTables(ctx context.Context) ([]domain.DatabaseTable, error) {
@@ -144,11 +150,15 @@ type schemaColumnRow struct {
 }
 
 func (adapter *Adapter) GetTableSchema(ctx context.Context, tableName string) (domain.TableSchema, error) {
+	return adapter.getTableSchema(ctx, adapter.gorm, tableName)
+}
+
+func (adapter *Adapter) getTableSchema(ctx context.Context, database *gorm.DB, tableName string) (domain.TableSchema, error) {
 	if protectedTable(tableName) {
 		return domain.TableSchema{}, application.ErrProtectedTable
 	}
 	var table schemaTableRow
-	result := adapter.gorm.WithContext(ctx).Raw(`
+	result := database.WithContext(ctx).Raw(`
 SELECT TABLE_TYPE AS table_type
 FROM information_schema.TABLES
 WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?`, adapter.database, tableName).Scan(&table)
@@ -160,7 +170,7 @@ WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?`, adapter.database, tableName).Scan(&t
 	}
 
 	var rows []schemaColumnRow
-	if err := adapter.gorm.WithContext(ctx).Raw(`
+	if err := database.WithContext(ctx).Raw(`
 SELECT
   COLUMN_NAME AS column_name,
   DATA_TYPE AS data_type,
@@ -240,18 +250,15 @@ func liveColumnType(dataType, columnType string) domain.ColumnType {
 }
 
 type policyRecord struct {
-	ID                   uint64 `gorm:"column:id;primaryKey"`
-	Table                string `gorm:"column:table_name"`
-	QueryPolicy          string `gorm:"column:query_policy"`
-	QueryPolicyConfig    string `gorm:"column:query_policy_config"`
-	MutationPolicy       string `gorm:"column:mutation_policy"`
-	MutationPolicyConfig string `gorm:"column:mutation_policy_config"`
-	AllowAdd             bool   `gorm:"column:allow_add"`
-	AllowModify          bool   `gorm:"column:allow_modify"`
-	AllowDelete          bool   `gorm:"column:allow_delete"`
-	Enabled              bool   `gorm:"column:enabled"`
-	Creator              string `gorm:"column:creator"`
-	Modifier             string `gorm:"column:modifier"`
+	ID                 uint64    `gorm:"column:id;primaryKey"`
+	Table              string    `gorm:"column:table_name"`
+	QueryPolicyCode    string    `gorm:"column:query_policy_code"`
+	MutationPolicyCode string    `gorm:"column:mutation_policy_code"`
+	Enabled            bool      `gorm:"column:enabled"`
+	Creator            string    `gorm:"column:creator"`
+	Modifier           string    `gorm:"column:modifier"`
+	CreatedAt          time.Time `gorm:"column:gmt_created"`
+	UpdatedAt          time.Time `gorm:"column:gmt_modified"`
 }
 
 func (policyRecord) TableName() string {
@@ -260,17 +267,9 @@ func (policyRecord) TableName() string {
 
 func (adapter *Adapter) Create(ctx context.Context, policy domain.TablePolicy, operator string) error {
 	record := policyRecord{
-		Table:                policy.TableName,
-		QueryPolicy:          policy.QueryPolicy,
-		QueryPolicyConfig:    string(policy.QueryPolicyConfig),
-		MutationPolicy:       policy.MutationPolicy,
-		MutationPolicyConfig: string(policy.MutationPolicyConfig),
-		AllowAdd:             policy.AllowAdd,
-		AllowModify:          policy.AllowModify,
-		AllowDelete:          policy.AllowDelete,
-		Enabled:              false,
-		Creator:              operator,
-		Modifier:             operator,
+		Table: policy.TableName, QueryPolicyCode: policy.QueryPolicyCode,
+		MutationPolicyCode: policy.MutationPolicyCode, Enabled: false,
+		Creator: operator, Modifier: operator,
 	}
 	if err := adapter.gorm.WithContext(ctx).Create(&record).Error; err != nil {
 		var mysqlError *driver.MySQLError
@@ -280,6 +279,30 @@ func (adapter *Adapter) Create(ctx context.Context, policy domain.TablePolicy, o
 		return fmt.Errorf("create Table Policy: %w", err)
 	}
 	return nil
+}
+
+// CreateWithActivePolicyCodes locks both selected definitions and rechecks
+// lifecycle state in the same transaction as the assignment write. This closes
+// the race between application validation and concurrent deprecation.
+func (adapter *Adapter) CreateWithActivePolicyCodes(ctx context.Context, policy domain.TablePolicy, operator string) error {
+	return adapter.gorm.WithContext(ctx).Transaction(func(transaction *gorm.DB) error {
+		if err := activeAssignmentDefinitions(transaction, policy.QueryPolicyCode, policy.MutationPolicyCode); err != nil {
+			return err
+		}
+		record := policyRecord{
+			Table: policy.TableName, QueryPolicyCode: policy.QueryPolicyCode,
+			MutationPolicyCode: policy.MutationPolicyCode, Enabled: false,
+			Creator: operator, Modifier: operator,
+		}
+		if err := transaction.Create(&record).Error; err != nil {
+			var mysqlError *driver.MySQLError
+			if errors.As(err, &mysqlError) && mysqlError.Number == 1062 {
+				return domain.ErrTablePolicyExists
+			}
+			return fmt.Errorf("create Table Policy: %w", err)
+		}
+		return nil
+	})
 }
 
 func (adapter *Adapter) List(ctx context.Context) ([]domain.TablePolicy, error) {
@@ -295,8 +318,12 @@ func (adapter *Adapter) List(ctx context.Context) ([]domain.TablePolicy, error) 
 }
 
 func (adapter *Adapter) Get(ctx context.Context, tableName string) (domain.TablePolicy, error) {
+	return adapter.getTablePolicy(ctx, adapter.gorm, tableName)
+}
+
+func (adapter *Adapter) getTablePolicy(ctx context.Context, database *gorm.DB, tableName string) (domain.TablePolicy, error) {
 	var record policyRecord
-	err := adapter.gorm.WithContext(ctx).Where("table_name = ?", tableName).First(&record).Error
+	err := database.WithContext(ctx).Where("table_name = ?", tableName).First(&record).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return domain.TablePolicy{}, domain.ErrTablePolicyNotFound
 	}
@@ -310,14 +337,9 @@ func (adapter *Adapter) Replace(ctx context.Context, policy domain.TablePolicy, 
 	result := adapter.gorm.WithContext(ctx).Model(&policyRecord{}).
 		Where("table_name = ?", policy.TableName).
 		Updates(map[string]any{
-			"query_policy":           policy.QueryPolicy,
-			"query_policy_config":    string(policy.QueryPolicyConfig),
-			"mutation_policy":        policy.MutationPolicy,
-			"mutation_policy_config": string(policy.MutationPolicyConfig),
-			"allow_add":              policy.AllowAdd,
-			"allow_modify":           policy.AllowModify,
-			"allow_delete":           policy.AllowDelete,
-			"modifier":               operator,
+			"query_policy_code":    policy.QueryPolicyCode,
+			"mutation_policy_code": policy.MutationPolicyCode,
+			"modifier":             operator,
 		})
 	if result.Error != nil {
 		return domain.TablePolicy{}, fmt.Errorf("replace Table Policy: %w", result.Error)
@@ -326,6 +348,51 @@ func (adapter *Adapter) Replace(ctx context.Context, policy domain.TablePolicy, 
 		return domain.TablePolicy{}, domain.ErrTablePolicyNotFound
 	}
 	return adapter.Get(ctx, policy.TableName)
+}
+
+func (adapter *Adapter) ReplaceWithActivePolicyCodes(ctx context.Context, policy domain.TablePolicy, operator string) (domain.TablePolicy, error) {
+	err := adapter.gorm.WithContext(ctx).Transaction(func(transaction *gorm.DB) error {
+		if err := activeAssignmentDefinitions(transaction, policy.QueryPolicyCode, policy.MutationPolicyCode); err != nil {
+			return err
+		}
+		result := transaction.Model(&policyRecord{}).Where("table_name = ?", policy.TableName).Updates(map[string]any{
+			"query_policy_code": policy.QueryPolicyCode, "mutation_policy_code": policy.MutationPolicyCode,
+			"modifier": operator,
+		})
+		if result.Error != nil {
+			return fmt.Errorf("replace Table Policy: %w", result.Error)
+		}
+		if result.RowsAffected == 0 {
+			return domain.ErrTablePolicyNotFound
+		}
+		return nil
+	})
+	if err != nil {
+		return domain.TablePolicy{}, err
+	}
+	return adapter.Get(ctx, policy.TableName)
+}
+
+func activeAssignmentDefinitions(transaction *gorm.DB, queryCode, mutationCode string) error {
+	var query queryPolicyRecord
+	if err := transaction.Clauses(clause.Locking{Strength: "UPDATE"}).Where("code = ?", queryCode).First(&query).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+		return application.ErrQueryPolicyNotAssignable
+	} else if err != nil {
+		return fmt.Errorf("validate Query Policy assignment: %w", err)
+	}
+	if query.Status != domain.PolicyStatusActive {
+		return application.ErrQueryPolicyNotAssignable
+	}
+	var mutation mutationPolicyRecord
+	if err := transaction.Clauses(clause.Locking{Strength: "UPDATE"}).Where("code = ?", mutationCode).First(&mutation).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+		return application.ErrMutationPolicyNotAssignable
+	} else if err != nil {
+		return fmt.Errorf("validate Mutation Policy assignment: %w", err)
+	}
+	if mutation.Status != domain.PolicyStatusActive {
+		return application.ErrMutationPolicyNotAssignable
+	}
+	return nil
 }
 
 func (adapter *Adapter) SetEnabled(ctx context.Context, tableName string, enabled bool, operator string) (domain.TablePolicy, error) {
@@ -343,15 +410,286 @@ func (adapter *Adapter) SetEnabled(ctx context.Context, tableName string, enable
 
 func (record policyRecord) policy() domain.TablePolicy {
 	return domain.TablePolicy{
-		TableName:            record.Table,
-		QueryPolicy:          record.QueryPolicy,
-		QueryPolicyConfig:    domain.JSONConfig(record.QueryPolicyConfig),
-		MutationPolicy:       record.MutationPolicy,
-		MutationPolicyConfig: domain.JSONConfig(record.MutationPolicyConfig),
-		AllowAdd:             record.AllowAdd,
-		AllowModify:          record.AllowModify,
-		AllowDelete:          record.AllowDelete,
-		Enabled:              record.Enabled,
+		QueryPolicyCode: record.QueryPolicyCode, MutationPolicyCode: record.MutationPolicyCode,
+		TableName: record.Table, Enabled: record.Enabled, Creator: record.Creator,
+		Modifier: record.Modifier, CreatedAt: record.CreatedAt, UpdatedAt: record.UpdatedAt,
+	}
+}
+
+type queryPolicyRecord struct {
+	ID                    uint64              `gorm:"column:id;primaryKey"`
+	Code                  string              `gorm:"column:code"`
+	Name                  string              `gorm:"column:name"`
+	Description           string              `gorm:"column:description"`
+	TypeCode              string              `gorm:"column:type_code"`
+	DefaultOrderField     string              `gorm:"column:default_order_field"`
+	DefaultOrderDirection string              `gorm:"column:default_order_direction"`
+	DefaultPageSize       int                 `gorm:"column:default_page_size"`
+	MaxPageSize           int                 `gorm:"column:max_page_size"`
+	Status                domain.PolicyStatus `gorm:"column:status"`
+	Creator               string              `gorm:"column:creator"`
+	Modifier              string              `gorm:"column:modifier"`
+	CreatedAt             time.Time           `gorm:"column:gmt_created"`
+	UpdatedAt             time.Time           `gorm:"column:gmt_modified"`
+}
+
+func (queryPolicyRecord) TableName() string { return "rcc_query_policies" }
+
+func (adapter *Adapter) CreateQueryPolicy(ctx context.Context, policy domain.QueryPolicy, operator string) (domain.QueryPolicy, error) {
+	record := queryPolicyRecord{
+		Code: policy.Code, Name: policy.Name, Description: policy.Description,
+		TypeCode: policy.TypeCode, DefaultOrderField: policy.DefaultOrderField,
+		DefaultOrderDirection: policy.DefaultOrderDirection, DefaultPageSize: policy.DefaultPageSize,
+		MaxPageSize: policy.MaxPageSize, Status: domain.PolicyStatusDraft,
+		Creator: operator, Modifier: operator,
+	}
+	if err := adapter.gorm.WithContext(ctx).Create(&record).Error; err != nil {
+		var mysqlError *driver.MySQLError
+		if errors.As(err, &mysqlError) && mysqlError.Number == 1062 {
+			return domain.QueryPolicy{}, domain.ErrQueryPolicyExists
+		}
+		return domain.QueryPolicy{}, fmt.Errorf("create Query Policy: %w", err)
+	}
+	return record.policy(), nil
+}
+
+func (adapter *Adapter) ListQueryPolicies(ctx context.Context) ([]domain.QueryPolicy, error) {
+	var records []queryPolicyRecord
+	if err := adapter.gorm.WithContext(ctx).Order("code ASC").Find(&records).Error; err != nil {
+		return nil, fmt.Errorf("list Query Policies: %w", err)
+	}
+	policies := make([]domain.QueryPolicy, 0, len(records))
+	for _, record := range records {
+		policies = append(policies, record.policy())
+	}
+	return policies, nil
+}
+
+func (adapter *Adapter) GetQueryPolicy(ctx context.Context, code string) (domain.QueryPolicy, error) {
+	return adapter.getQueryPolicy(ctx, adapter.gorm, code)
+}
+
+func (adapter *Adapter) getQueryPolicy(ctx context.Context, database *gorm.DB, code string) (domain.QueryPolicy, error) {
+	var record queryPolicyRecord
+	err := database.WithContext(ctx).Where("code = ?", code).First(&record).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return domain.QueryPolicy{}, domain.ErrQueryPolicyNotFound
+	}
+	if err != nil {
+		return domain.QueryPolicy{}, fmt.Errorf("get Query Policy: %w", err)
+	}
+	return record.policy(), nil
+}
+
+func (adapter *Adapter) ReplaceDraftQueryPolicy(ctx context.Context, policy domain.QueryPolicy, operator string) (domain.QueryPolicy, error) {
+	result := adapter.gorm.WithContext(ctx).Model(&queryPolicyRecord{}).
+		Where("code = ? AND status = ?", policy.Code, domain.PolicyStatusDraft).
+		Updates(map[string]any{
+			"name": policy.Name, "description": policy.Description, "type_code": policy.TypeCode,
+			"default_order_field": policy.DefaultOrderField, "default_order_direction": policy.DefaultOrderDirection,
+			"default_page_size": policy.DefaultPageSize, "max_page_size": policy.MaxPageSize, "modifier": operator,
+		})
+	if result.Error != nil {
+		return domain.QueryPolicy{}, fmt.Errorf("replace Draft Query Policy: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return domain.QueryPolicy{}, adapter.queryPolicyWriteConflict(ctx, policy.Code)
+	}
+	return adapter.GetQueryPolicy(ctx, policy.Code)
+}
+
+func (adapter *Adapter) SetQueryPolicyStatus(ctx context.Context, code string, from, to domain.PolicyStatus, operator string) (domain.QueryPolicy, error) {
+	result := adapter.gorm.WithContext(ctx).Model(&queryPolicyRecord{}).
+		Where("code = ? AND status = ?", code, from).
+		Updates(map[string]any{"status": to, "modifier": operator})
+	if result.Error != nil {
+		return domain.QueryPolicy{}, fmt.Errorf("transition Query Policy: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return domain.QueryPolicy{}, adapter.queryPolicyWriteConflict(ctx, code)
+	}
+	return adapter.GetQueryPolicy(ctx, code)
+}
+
+func (adapter *Adapter) UpdateQueryPolicyMetadata(ctx context.Context, code, name, description, operator string) (domain.QueryPolicy, error) {
+	result := adapter.gorm.WithContext(ctx).Model(&queryPolicyRecord{}).
+		Where("code = ? AND status IN ?", code, []domain.PolicyStatus{domain.PolicyStatusActive, domain.PolicyStatusDeprecated}).
+		Updates(map[string]any{"name": name, "description": description, "modifier": operator})
+	if result.Error != nil {
+		return domain.QueryPolicy{}, fmt.Errorf("update Query Policy metadata: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return domain.QueryPolicy{}, adapter.queryPolicyWriteConflict(ctx, code)
+	}
+	return adapter.GetQueryPolicy(ctx, code)
+}
+
+func (adapter *Adapter) DeleteDraftQueryPolicy(ctx context.Context, code string) error {
+	result := adapter.gorm.WithContext(ctx).Where("code = ? AND status = ?", code, domain.PolicyStatusDraft).Delete(&queryPolicyRecord{})
+	if result.Error != nil {
+		return fmt.Errorf("delete Draft Query Policy: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return adapter.queryPolicyWriteConflict(ctx, code)
+	}
+	return nil
+}
+
+func (adapter *Adapter) queryPolicyWriteConflict(ctx context.Context, code string) error {
+	if _, err := adapter.GetQueryPolicy(ctx, code); err != nil {
+		return err
+	}
+	return domain.ErrQueryPolicyStateConflict
+}
+
+func (record queryPolicyRecord) policy() domain.QueryPolicy {
+	return domain.QueryPolicy{
+		Code: record.Code, Name: record.Name, Description: record.Description, TypeCode: record.TypeCode,
+		DefaultOrderField: record.DefaultOrderField, DefaultOrderDirection: record.DefaultOrderDirection,
+		DefaultPageSize: record.DefaultPageSize, MaxPageSize: record.MaxPageSize, Status: record.Status,
+		Creator: record.Creator, Modifier: record.Modifier, CreatedAt: record.CreatedAt, UpdatedAt: record.UpdatedAt,
+	}
+}
+
+type mutationPolicyRecord struct {
+	ID                  uint64              `gorm:"column:id;primaryKey"`
+	Code                string              `gorm:"column:code"`
+	Name                string              `gorm:"column:name"`
+	Description         string              `gorm:"column:description"`
+	TypeCode            string              `gorm:"column:type_code"`
+	AllowAdd            bool                `gorm:"column:allow_add"`
+	AllowModify         bool                `gorm:"column:allow_modify"`
+	AllowDelete         bool                `gorm:"column:allow_delete"`
+	CreateOperatorField *string             `gorm:"column:create_operator_field"`
+	CreateTimeField     *string             `gorm:"column:create_time_field"`
+	ModifyOperatorField *string             `gorm:"column:modify_operator_field"`
+	ModifyTimeField     *string             `gorm:"column:modify_time_field"`
+	Status              domain.PolicyStatus `gorm:"column:status"`
+	Creator             string              `gorm:"column:creator"`
+	Modifier            string              `gorm:"column:modifier"`
+	CreatedAt           time.Time           `gorm:"column:gmt_created"`
+	UpdatedAt           time.Time           `gorm:"column:gmt_modified"`
+}
+
+func (mutationPolicyRecord) TableName() string { return "rcc_mutation_policies" }
+
+func (adapter *Adapter) CreateMutationPolicy(ctx context.Context, policy domain.MutationPolicy, operator string) (domain.MutationPolicy, error) {
+	record := mutationPolicyRecord{
+		Code: policy.Code, Name: policy.Name, Description: policy.Description, TypeCode: policy.TypeCode,
+		AllowAdd: policy.AllowAdd, AllowModify: policy.AllowModify, AllowDelete: policy.AllowDelete,
+		CreateOperatorField: policy.CreateOperatorField, CreateTimeField: policy.CreateTimeField,
+		ModifyOperatorField: policy.ModifyOperatorField, ModifyTimeField: policy.ModifyTimeField,
+		Status: domain.PolicyStatusDraft, Creator: operator, Modifier: operator,
+	}
+	if err := adapter.gorm.WithContext(ctx).Create(&record).Error; err != nil {
+		var mysqlError *driver.MySQLError
+		if errors.As(err, &mysqlError) && mysqlError.Number == 1062 {
+			return domain.MutationPolicy{}, domain.ErrMutationPolicyExists
+		}
+		return domain.MutationPolicy{}, fmt.Errorf("create Mutation Policy: %w", err)
+	}
+	return record.policy(), nil
+}
+
+func (adapter *Adapter) ListMutationPolicies(ctx context.Context) ([]domain.MutationPolicy, error) {
+	var records []mutationPolicyRecord
+	if err := adapter.gorm.WithContext(ctx).Order("code ASC").Find(&records).Error; err != nil {
+		return nil, fmt.Errorf("list Mutation Policies: %w", err)
+	}
+	policies := make([]domain.MutationPolicy, 0, len(records))
+	for _, record := range records {
+		policies = append(policies, record.policy())
+	}
+	return policies, nil
+}
+
+func (adapter *Adapter) GetMutationPolicy(ctx context.Context, code string) (domain.MutationPolicy, error) {
+	return adapter.getMutationPolicy(ctx, adapter.gorm, code)
+}
+
+func (adapter *Adapter) getMutationPolicy(ctx context.Context, database *gorm.DB, code string) (domain.MutationPolicy, error) {
+	var record mutationPolicyRecord
+	err := database.WithContext(ctx).Where("code = ?", code).First(&record).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return domain.MutationPolicy{}, domain.ErrMutationPolicyNotFound
+	}
+	if err != nil {
+		return domain.MutationPolicy{}, fmt.Errorf("get Mutation Policy: %w", err)
+	}
+	return record.policy(), nil
+}
+
+func (adapter *Adapter) ReplaceDraftMutationPolicy(ctx context.Context, policy domain.MutationPolicy, operator string) (domain.MutationPolicy, error) {
+	result := adapter.gorm.WithContext(ctx).Model(&mutationPolicyRecord{}).
+		Where("code = ? AND status = ?", policy.Code, domain.PolicyStatusDraft).
+		Updates(map[string]any{
+			"name": policy.Name, "description": policy.Description, "type_code": policy.TypeCode,
+			"allow_add": policy.AllowAdd, "allow_modify": policy.AllowModify, "allow_delete": policy.AllowDelete,
+			"create_operator_field": policy.CreateOperatorField, "create_time_field": policy.CreateTimeField,
+			"modify_operator_field": policy.ModifyOperatorField, "modify_time_field": policy.ModifyTimeField,
+			"modifier": operator,
+		})
+	if result.Error != nil {
+		return domain.MutationPolicy{}, fmt.Errorf("replace Draft Mutation Policy: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return domain.MutationPolicy{}, adapter.mutationPolicyWriteConflict(ctx, policy.Code)
+	}
+	return adapter.GetMutationPolicy(ctx, policy.Code)
+}
+
+func (adapter *Adapter) SetMutationPolicyStatus(ctx context.Context, code string, from, to domain.PolicyStatus, operator string) (domain.MutationPolicy, error) {
+	result := adapter.gorm.WithContext(ctx).Model(&mutationPolicyRecord{}).
+		Where("code = ? AND status = ?", code, from).
+		Updates(map[string]any{"status": to, "modifier": operator})
+	if result.Error != nil {
+		return domain.MutationPolicy{}, fmt.Errorf("transition Mutation Policy: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return domain.MutationPolicy{}, adapter.mutationPolicyWriteConflict(ctx, code)
+	}
+	return adapter.GetMutationPolicy(ctx, code)
+}
+
+func (adapter *Adapter) UpdateMutationPolicyMetadata(ctx context.Context, code, name, description, operator string) (domain.MutationPolicy, error) {
+	result := adapter.gorm.WithContext(ctx).Model(&mutationPolicyRecord{}).
+		Where("code = ? AND status IN ?", code, []domain.PolicyStatus{domain.PolicyStatusActive, domain.PolicyStatusDeprecated}).
+		Updates(map[string]any{"name": name, "description": description, "modifier": operator})
+	if result.Error != nil {
+		return domain.MutationPolicy{}, fmt.Errorf("update Mutation Policy metadata: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return domain.MutationPolicy{}, adapter.mutationPolicyWriteConflict(ctx, code)
+	}
+	return adapter.GetMutationPolicy(ctx, code)
+}
+
+func (adapter *Adapter) DeleteDraftMutationPolicy(ctx context.Context, code string) error {
+	result := adapter.gorm.WithContext(ctx).Where("code = ? AND status = ?", code, domain.PolicyStatusDraft).Delete(&mutationPolicyRecord{})
+	if result.Error != nil {
+		return fmt.Errorf("delete Draft Mutation Policy: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return adapter.mutationPolicyWriteConflict(ctx, code)
+	}
+	return nil
+}
+
+func (adapter *Adapter) mutationPolicyWriteConflict(ctx context.Context, code string) error {
+	if _, err := adapter.GetMutationPolicy(ctx, code); err != nil {
+		return err
+	}
+	return domain.ErrMutationPolicyStateConflict
+}
+
+func (record mutationPolicyRecord) policy() domain.MutationPolicy {
+	return domain.MutationPolicy{
+		Code: record.Code, Name: record.Name, Description: record.Description, TypeCode: record.TypeCode,
+		AllowAdd: record.AllowAdd, AllowModify: record.AllowModify, AllowDelete: record.AllowDelete,
+		CreateOperatorField: record.CreateOperatorField, CreateTimeField: record.CreateTimeField,
+		ModifyOperatorField: record.ModifyOperatorField, ModifyTimeField: record.ModifyTimeField,
+		Status: record.Status, Creator: record.Creator, Modifier: record.Modifier,
+		CreatedAt: record.CreatedAt, UpdatedAt: record.UpdatedAt,
 	}
 }
 
@@ -369,9 +707,275 @@ func (adapter *Adapter) ExecutePageQuery(ctx context.Context, query domain.PageQ
 		}
 	}()
 
+	result, returnErr = executePageQuery(ctx, transaction, query)
+	if returnErr != nil {
+		return domain.QueryResult{}, returnErr
+	}
+	if err := transaction.Commit().Error; err != nil {
+		return domain.QueryResult{}, classifyQueryError(err, ctx.Err(), "commit consistent read")
+	}
+	return result, nil
+}
+
+// ExecuteQuerySnapshot owns the only transaction used by the relational
+// Managed Table query path. All Policy reads, live Schema inspection, Count,
+// and Scan performed through the callback share this read-only RR session.
+func (adapter *Adapter) ExecuteQuerySnapshot(ctx context.Context, execute func(application.QuerySnapshotSession) (domain.QueryResult, error)) (result domain.QueryResult, returnErr error) {
+	transaction := adapter.gorm.WithContext(ctx).Begin(&sql.TxOptions{
+		Isolation: sql.LevelRepeatableRead,
+		ReadOnly:  true,
+	})
+	if transaction.Error != nil {
+		return domain.QueryResult{}, classifyQueryError(transaction.Error, ctx.Err(), "begin Policy Snapshot")
+	}
+
+	session := &querySnapshotSession{adapter: adapter, database: transaction}
+	session.active.Store(true)
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			session.active.Store(false)
+			_ = transaction.Rollback().Error
+			panic(recovered)
+		}
+	}()
+	result, returnErr = execute(session)
+	session.active.Store(false)
+	if returnErr != nil {
+		if rollbackErr := transaction.Rollback().Error; rollbackErr != nil {
+			return domain.QueryResult{}, classifyQueryError(rollbackErr, ctx.Err(), "rollback Policy Snapshot")
+		}
+		return domain.QueryResult{}, returnErr
+	}
+	if err := transaction.Commit().Error; err != nil {
+		return domain.QueryResult{}, classifyQueryError(err, ctx.Err(), "commit Policy Snapshot")
+	}
+	return result, nil
+}
+
+type querySnapshotSession struct {
+	adapter  *Adapter
+	database *gorm.DB
+	active   atomic.Bool
+}
+
+func (session *querySnapshotSession) available() error {
+	if !session.active.Load() {
+		return application.ErrQueryUnavailable
+	}
+	return nil
+}
+
+func (session *querySnapshotSession) GetTablePolicy(ctx context.Context, tableName string) (domain.TablePolicy, error) {
+	if err := session.available(); err != nil {
+		return domain.TablePolicy{}, err
+	}
+	policy, err := session.adapter.getTablePolicy(ctx, session.database, tableName)
+	if err != nil {
+		if errors.Is(err, domain.ErrTablePolicyNotFound) {
+			return domain.TablePolicy{}, err
+		}
+		return domain.TablePolicy{}, classifyCatalogSnapshotError(err, ctx.Err(), "read Table Policy")
+	}
+	return policy, nil
+}
+
+func (session *querySnapshotSession) GetQueryPolicy(ctx context.Context, code string) (domain.QueryPolicy, error) {
+	if err := session.available(); err != nil {
+		return domain.QueryPolicy{}, err
+	}
+	policy, err := session.adapter.getQueryPolicy(ctx, session.database, code)
+	if err != nil {
+		return domain.QueryPolicy{}, classifyCatalogSnapshotError(err, ctx.Err(), "read Query Policy")
+	}
+	return policy, nil
+}
+
+func (session *querySnapshotSession) GetMutationPolicy(ctx context.Context, code string) (domain.MutationPolicy, error) {
+	if err := session.available(); err != nil {
+		return domain.MutationPolicy{}, err
+	}
+	policy, err := session.adapter.getMutationPolicy(ctx, session.database, code)
+	if err != nil {
+		return domain.MutationPolicy{}, classifyCatalogSnapshotError(err, ctx.Err(), "read Mutation Policy")
+	}
+	return policy, nil
+}
+
+func (session *querySnapshotSession) GetTableSchema(ctx context.Context, tableName string) (domain.TableSchema, error) {
+	if err := session.available(); err != nil {
+		return domain.TableSchema{}, err
+	}
+	schema, err := session.adapter.getTableSchema(ctx, session.database, tableName)
+	if err != nil {
+		if errors.Is(err, application.ErrDatabaseTableNotFound) || errors.Is(err, application.ErrProtectedTable) {
+			return domain.TableSchema{}, err
+		}
+		return domain.TableSchema{}, classifyQueryError(err, ctx.Err(), "read live Schema")
+	}
+	return schema, nil
+}
+
+func (session *querySnapshotSession) ExecutePageQuery(ctx context.Context, query domain.PageQuery) (domain.QueryResult, error) {
+	if err := session.available(); err != nil {
+		return domain.QueryResult{}, err
+	}
+	return executePageQuery(ctx, session.database, query)
+}
+
+func classifyCatalogSnapshotError(err, contextErr error, operation string) error {
+	if errors.Is(err, context.DeadlineExceeded) || errors.Is(contextErr, context.DeadlineExceeded) {
+		return fmt.Errorf("%w: %s", application.ErrQueryTimeout, operation)
+	}
+	return fmt.Errorf("%w: %s", application.ErrPolicyCatalogUnavailable, operation)
+}
+
+// ExecuteMutationSnapshot owns the only transaction used by the relational
+// Managed Table mutation path. Catalog reads, live Schema inspection,
+// database-time production, and the row write all use this read-write RR
+// session, so the adapter's row helpers must not begin nested transactions.
+func (adapter *Adapter) ExecuteMutationSnapshot(ctx context.Context, execute func(application.MutationSnapshotSession) error) (returnErr error) {
+	transaction := adapter.gorm.WithContext(ctx).Begin(&sql.TxOptions{
+		Isolation: sql.LevelRepeatableRead,
+		ReadOnly:  false,
+	})
+	if transaction.Error != nil {
+		return classifyMutationError(transaction.Error, ctx.Err())
+	}
+
+	session := &mutationSnapshotSession{adapter: adapter, database: transaction}
+	session.active.Store(true)
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			session.active.Store(false)
+			_ = transaction.Rollback().Error
+			panic(recovered)
+		}
+	}()
+	returnErr = execute(session)
+	session.active.Store(false)
+	if returnErr != nil {
+		if rollbackErr := transaction.Rollback().Error; rollbackErr != nil {
+			return classifyMutationError(rollbackErr, ctx.Err())
+		}
+		return returnErr
+	}
+	if err := transaction.Commit().Error; err != nil {
+		return classifyMutationError(err, ctx.Err())
+	}
+	return nil
+}
+
+type mutationSnapshotSession struct {
+	adapter  *Adapter
+	database *gorm.DB
+	active   atomic.Bool
+}
+
+func (session *mutationSnapshotSession) available() error {
+	if !session.active.Load() {
+		return application.ErrMutationUnavailable
+	}
+	return nil
+}
+
+func (session *mutationSnapshotSession) GetTablePolicy(ctx context.Context, tableName string) (domain.TablePolicy, error) {
+	if err := session.available(); err != nil {
+		return domain.TablePolicy{}, err
+	}
+	policy, err := session.adapter.getTablePolicy(ctx, session.database, tableName)
+	if err != nil {
+		if errors.Is(err, domain.ErrTablePolicyNotFound) {
+			return domain.TablePolicy{}, err
+		}
+		return domain.TablePolicy{}, classifyMutationSnapshotRead(err, ctx.Err(), "read Table Policy")
+	}
+	return policy, nil
+}
+
+func (session *mutationSnapshotSession) GetQueryPolicy(ctx context.Context, code string) (domain.QueryPolicy, error) {
+	if err := session.available(); err != nil {
+		return domain.QueryPolicy{}, err
+	}
+	policy, err := session.adapter.getQueryPolicy(ctx, session.database, code)
+	if err != nil {
+		return domain.QueryPolicy{}, classifyMutationSnapshotRead(err, ctx.Err(), "read Query Policy")
+	}
+	return policy, nil
+}
+
+func (session *mutationSnapshotSession) GetMutationPolicy(ctx context.Context, code string) (domain.MutationPolicy, error) {
+	if err := session.available(); err != nil {
+		return domain.MutationPolicy{}, err
+	}
+	policy, err := session.adapter.getMutationPolicy(ctx, session.database, code)
+	if err != nil {
+		return domain.MutationPolicy{}, classifyMutationSnapshotRead(err, ctx.Err(), "read Mutation Policy")
+	}
+	return policy, nil
+}
+
+func (session *mutationSnapshotSession) GetTableSchema(ctx context.Context, tableName string) (domain.TableSchema, error) {
+	if err := session.available(); err != nil {
+		return domain.TableSchema{}, err
+	}
+	schema, err := session.adapter.getTableSchema(ctx, session.database, tableName)
+	if err != nil {
+		if errors.Is(err, application.ErrDatabaseTableNotFound) || errors.Is(err, application.ErrProtectedTable) {
+			return domain.TableSchema{}, err
+		}
+		return domain.TableSchema{}, classifyMutationSnapshotRead(err, ctx.Err(), "read live Schema")
+	}
+	return schema, nil
+}
+
+func (session *mutationSnapshotSession) DatabaseTime(ctx context.Context) (time.Time, error) {
+	if err := session.available(); err != nil {
+		return time.Time{}, err
+	}
+	var row struct {
+		Now time.Time `gorm:"column:database_time"`
+	}
+	if err := session.database.WithContext(ctx).Raw("SELECT UTC_TIMESTAMP(6) AS database_time").Scan(&row).Error; err != nil {
+		return time.Time{}, classifyMutationSnapshotRead(err, ctx.Err(), "read database time")
+	}
+	if row.Now.IsZero() {
+		return time.Time{}, application.ErrMutationUnavailable
+	}
+	return row.Now.UTC(), nil
+}
+
+func (session *mutationSnapshotSession) InsertRow(ctx context.Context, insert domain.RowInsert) (string, error) {
+	if err := session.available(); err != nil {
+		return "", err
+	}
+	return insertRow(ctx, session.database, insert)
+}
+
+func (session *mutationSnapshotSession) UpdateRow(ctx context.Context, update domain.RowUpdate) (int64, error) {
+	if err := session.available(); err != nil {
+		return 0, err
+	}
+	return updateRow(ctx, session.database, update)
+}
+
+func (session *mutationSnapshotSession) DeleteRow(ctx context.Context, deletion domain.RowDelete) (int64, error) {
+	if err := session.available(); err != nil {
+		return 0, err
+	}
+	return deleteRow(ctx, session.database, deletion)
+}
+
+func classifyMutationSnapshotRead(err, contextErr error, operation string) error {
+	if errors.Is(err, context.DeadlineExceeded) || errors.Is(contextErr, context.DeadlineExceeded) {
+		return fmt.Errorf("%w: %s", application.ErrMutationTimeout, operation)
+	}
+	return fmt.Errorf("%w: %s", application.ErrMutationUnavailable, operation)
+}
+
+func executePageQuery(ctx context.Context, database *gorm.DB, query domain.PageQuery) (domain.QueryResult, error) {
 	countContext, cancelCount := context.WithTimeout(ctx, 3*time.Second)
 	var totalCount int64
-	countErr := applyPageQuery(transaction.WithContext(countContext), query).Count(&totalCount).Error
+	countErr := applyPageQuery(database.WithContext(countContext), query).Count(&totalCount).Error
 	countContextErr := countContext.Err()
 	cancelCount()
 	if countErr != nil {
@@ -379,7 +983,7 @@ func (adapter *Adapter) ExecutePageQuery(ctx context.Context, query domain.PageQ
 	}
 
 	scanContext, cancelScan := context.WithTimeout(ctx, 3*time.Second)
-	rows, err := applyPageQuery(transaction.WithContext(scanContext), query).
+	rows, err := applyPageQuery(database.WithContext(scanContext), query).
 		Clauses(selectColumns(query.Columns)).
 		Order(clause.OrderByColumn{
 			Column: clause.Column{Name: query.Order.Field},
@@ -402,10 +1006,6 @@ func (adapter *Adapter) ExecutePageQuery(ctx context.Context, query domain.PageQ
 	}
 	if closeErr != nil {
 		return domain.QueryResult{}, classifyQueryError(closeErr, scanContextErr, "close row stream")
-	}
-
-	if err := transaction.Commit().Error; err != nil {
-		return domain.QueryResult{}, fmt.Errorf("%w: commit consistent read", application.ErrQueryUnavailable)
 	}
 
 	totalPages := int64(0)
@@ -435,12 +1035,23 @@ func (adapter *Adapter) InsertRow(ctx context.Context, insert domain.RowInsert) 
 		}
 	}()
 
+	resultID, err := insertRow(ctx, transaction, insert)
+	if err != nil {
+		return "", err
+	}
+	if err := transaction.Commit().Error; err != nil {
+		return "", classifyMutationError(err, ctx.Err())
+	}
+	return resultID, nil
+}
+
+func insertRow(ctx context.Context, database *gorm.DB, insert domain.RowInsert) (string, error) {
 	values := make(map[string]any, len(insert.Values))
 	for _, value := range insert.Values {
 		values[value.Column.Name] = value.Value
 	}
 	result := gorm.WithResult()
-	session := transaction.Session(&gorm.Session{SkipDefaultTransaction: true}).Clauses(result)
+	session := database.WithContext(ctx).Session(&gorm.Session{SkipDefaultTransaction: true}).Clauses(result)
 	var created *gorm.DB
 	if len(values) == 0 {
 		quotedTable := session.Statement.Quote(insert.TableName)
@@ -451,23 +1062,17 @@ func (adapter *Adapter) InsertRow(ctx context.Context, insert domain.RowInsert) 
 	if created.Error != nil {
 		return "", classifyMutationError(created.Error, ctx.Err())
 	}
-	var resultID string
 	if insert.ProvidedID != nil {
-		resultID = string(*insert.ProvidedID)
-	} else {
-		if result.Result == nil {
-			return "", application.ErrMutationUnavailable
-		}
-		insertID, err := result.Result.LastInsertId()
-		if err != nil || insertID < 0 {
-			return "", application.ErrMutationUnavailable
-		}
-		resultID = strconv.FormatInt(insertID, 10)
+		return string(*insert.ProvidedID), nil
 	}
-	if err := transaction.Commit().Error; err != nil {
-		return "", classifyMutationError(err, ctx.Err())
+	if result.Result == nil {
+		return "", application.ErrMutationUnavailable
 	}
-	return resultID, nil
+	insertID, err := result.Result.LastInsertId()
+	if err != nil || insertID < 0 {
+		return "", application.ErrMutationUnavailable
+	}
+	return strconv.FormatInt(insertID, 10), nil
 }
 
 func (adapter *Adapter) UpdateRow(ctx context.Context, update domain.RowUpdate) (affected int64, returnErr error) {
@@ -481,11 +1086,22 @@ func (adapter *Adapter) UpdateRow(ctx context.Context, update domain.RowUpdate) 
 		}
 	}()
 
+	affected, err := updateRow(ctx, transaction, update)
+	if err != nil {
+		return 0, err
+	}
+	if err := transaction.Commit().Error; err != nil {
+		return 0, classifyMutationError(err, ctx.Err())
+	}
+	return affected, nil
+}
+
+func updateRow(ctx context.Context, database *gorm.DB, update domain.RowUpdate) (int64, error) {
 	values := make(map[string]any, len(update.Values))
 	for _, value := range update.Values {
 		values[value.Column.Name] = value.Value
 	}
-	updated := transaction.Session(&gorm.Session{SkipDefaultTransaction: true}).
+	updated := database.WithContext(ctx).Session(&gorm.Session{SkipDefaultTransaction: true}).
 		Table(update.TableName).
 		Where(clause.Eq{Column: clause.Column{Name: update.IDColumn.Name}, Value: update.ID}).
 		Updates(values)
@@ -497,9 +1113,6 @@ func (adapter *Adapter) UpdateRow(ctx context.Context, update domain.RowUpdate) 
 	}
 	if updated.RowsAffected != 1 {
 		return 0, application.ErrMutationUnavailable
-	}
-	if err := transaction.Commit().Error; err != nil {
-		return 0, classifyMutationError(err, ctx.Err())
 	}
 	return updated.RowsAffected, nil
 }
@@ -515,7 +1128,18 @@ func (adapter *Adapter) DeleteRow(ctx context.Context, deletion domain.RowDelete
 		}
 	}()
 
-	deleted := transaction.Session(&gorm.Session{SkipDefaultTransaction: true}).
+	affected, err := deleteRow(ctx, transaction, deletion)
+	if err != nil {
+		return 0, err
+	}
+	if err := transaction.Commit().Error; err != nil {
+		return 0, classifyMutationError(err, ctx.Err())
+	}
+	return affected, nil
+}
+
+func deleteRow(ctx context.Context, database *gorm.DB, deletion domain.RowDelete) (int64, error) {
+	deleted := database.WithContext(ctx).Session(&gorm.Session{SkipDefaultTransaction: true}).
 		Table(deletion.TableName).
 		Where(clause.Eq{Column: clause.Column{Name: deletion.IDColumn.Name}, Value: deletion.ID}).
 		Delete(&map[string]any{})
@@ -527,9 +1151,6 @@ func (adapter *Adapter) DeleteRow(ctx context.Context, deletion domain.RowDelete
 	}
 	if deleted.RowsAffected != 1 {
 		return 0, application.ErrMutationUnavailable
-	}
-	if err := transaction.Commit().Error; err != nil {
-		return 0, classifyMutationError(err, ctx.Err())
 	}
 	return deleted.RowsAffected, nil
 }
@@ -790,5 +1411,8 @@ var sqlUTC = time.UTC
 var _ application.TableMetadataReader = (*Adapter)(nil)
 var _ application.Readiness = (*Adapter)(nil)
 var _ application.QueryExecutor = (*Adapter)(nil)
+var _ application.QuerySnapshotExecutor = (*Adapter)(nil)
 var _ application.MutationExecutor = (*Adapter)(nil)
 var _ domain.TablePolicyCatalog = (*Adapter)(nil)
+var _ domain.QueryPolicyCatalog = (*Adapter)(nil)
+var _ domain.MutationPolicyCatalog = (*Adapter)(nil)

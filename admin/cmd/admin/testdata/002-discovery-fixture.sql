@@ -31,22 +31,27 @@ CREATE TABLE `RCC_shadow_control` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB COMMENT='Protected control table';
 
-INSERT INTO `rcc_table_policies` (
-  `table_name`,
-  `query_policy`,
-  `query_policy_config`,
-  `mutation_policy`,
-  `mutation_policy_config`,
-  `enabled`,
-  `creator`,
-  `modifier`
+INSERT INTO `rcc_query_policies` (
+  `code`, `name`, `type_code`, `default_order_field`,
+  `default_order_direction`, `default_page_size`, `max_page_size`,
+  `status`, `creator`, `modifier`
 ) VALUES (
-  'managed_alpha',
-  'mysql_page_query_v1',
-  JSON_OBJECT(),
-  'mysql_single_table_mutation_v1',
-  JSON_OBJECT(),
-  1,
-  'integration-test',
-  'integration-test'
+  'discovery_query_v1', 'Discovery query', 'page_query', 'id',
+  'DESC', 20, 200, 'ACTIVE', 'integration-test', 'integration-test'
+);
+
+INSERT INTO `rcc_mutation_policies` (
+  `code`, `name`, `type_code`, `allow_add`, `allow_modify`, `allow_delete`,
+  `status`, `creator`, `modifier`
+) VALUES (
+  'discovery_mutation_v1', 'Discovery mutation', 'single_table_mutation',
+  0, 0, 0, 'ACTIVE', 'integration-test', 'integration-test'
+);
+
+INSERT INTO `rcc_table_policies` (
+  `table_name`, `query_policy_code`, `mutation_policy_code`, `enabled`,
+  `creator`, `modifier`
+) VALUES (
+  'managed_alpha', 'discovery_query_v1', 'discovery_mutation_v1', 1,
+  'integration-test', 'integration-test'
 );

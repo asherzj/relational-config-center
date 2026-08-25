@@ -1,4 +1,13 @@
+---
+status: superseded by ADR-0016
+---
+
 # Freeze the first Policy Catalog schema
+
+> 本文仅记录已被替代的第一版内联 JSON 取舍。当前实现与验收以
+> [ADR-0016](./0016-separate-policy-definitions-from-table-assignments.md) 为准：
+> Query/Mutation 定义已关系化，Table Policy 只保存两个 Policy Code，
+> 不再保存 JSON 或每表 `allow_*`。
 
 第一迭代使用受保护的 `rcc_table_policies` 表保存每个物理表唯一的一份 Table Policy，只包含自增内部 ID、`table_name`、两个策略标识及 MySQL JSON 配置、`allow_add`、`allow_modify`、`allow_delete`、`enabled`、创建修改人和时间。新 Policy 的三个 Mutation 能力和状态都默认 disabled，`table_name` 创建后不可修改；Catalog 不包含 `code`、`name`、Allowlist、字段信息、Schema Fingerprint、发布信息或 revision。
 

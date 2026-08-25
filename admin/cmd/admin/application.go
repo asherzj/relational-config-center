@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 
@@ -18,29 +17,19 @@ type adminApplication struct {
 }
 
 func newApplication(ctx context.Context, settings config.Config) (*adminApplication, error) {
-	registry, err := application.NewStrategyRegistry(
-		[]application.QueryRegistration{
-			{ID: application.MySQLPageQueryV1, Constructor: application.NewMySQLPageQueryStrategy},
-		},
-		[]application.MutationRegistration{
-			{ID: application.MySQLSingleTableMutationV1, Constructor: application.NewMySQLSingleTableMutationStrategy},
-		},
-	)
-	if err != nil {
-		return nil, fmt.Errorf("strategy registration: %w", err)
-	}
-
 	mysql, err := mysqladapter.Open(ctx, settings.MySQL)
 	if err != nil {
 		return nil, err
 	}
 
 	discovery := application.NewDatabaseTableDiscovery(mysql)
-	policies := application.NewTablePolicyManagement(mysql, mysql, registry, settings.Operator)
-	queries := application.NewManagedTableQuery(mysql, mysql, registry, mysql)
-	mutations := application.NewManagedTableMutation(mysql, mysql, registry, application.NewFixedOperatorProvider(settings.Operator), mysql)
+	queryPolicies := application.NewQueryPolicyManagement(mysql, application.NewQueryPolicyTypeRegistry(), settings.Operator)
+	mutationPolicies := application.NewMutationPolicyManagement(mysql, application.NewMutationPolicyTypeRegistry(), settings.Operator)
+	policies := application.NewTablePolicyManagement(mysql, mysql, queryPolicies, mutationPolicies, settings.Operator)
+	queries := application.NewManagedTableQuery(mysql, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
+	mutations := application.NewManagedTableMutation(mysql, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry(), application.NewFixedOperatorProvider(settings.Operator))
 	return &adminApplication{
-		handler: httpinterface.NewRouter(discovery, mysql, policies, queries, mutations, httpinterface.RouterOptions{
+		handler: httpinterface.NewRouter(discovery, mysql, queryPolicies, mutationPolicies, policies, queries, mutations, httpinterface.RouterOptions{
 			APIToken:     settings.APIToken,
 			AuthDisabled: settings.AuthDisabled,
 			CORSOrigins:  settings.CORSOrigins,

@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 var (
@@ -10,23 +11,18 @@ var (
 	ErrTablePolicyNotFound = errors.New("table Policy not found")
 )
 
-// JSONConfig is an object-valued, strategy-specific Policy configuration.
-type JSONConfig []byte
-
-// TablePolicy assigns one Query Policy and one Mutation Policy to a table and
-// declares the stable mutation capabilities authorized for its Managed Table.
-// Catalog storage identity and audit columns are deliberately not part of the
-// Aggregate's external representation.
+// TablePolicy assigns one Query Policy and one Mutation Policy to a table.
+// Storage identity stays internal; audit metadata is part of the management
+// projection exposed with the accepted gmt_created/gmt_modified names.
 type TablePolicy struct {
-	TableName            string
-	QueryPolicy          string
-	QueryPolicyConfig    JSONConfig
-	MutationPolicy       string
-	MutationPolicyConfig JSONConfig
-	AllowAdd             bool
-	AllowModify          bool
-	AllowDelete          bool
-	Enabled              bool
+	QueryPolicyCode    string
+	MutationPolicyCode string
+	TableName          string
+	Enabled            bool
+	Creator            string
+	Modifier           string
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
 }
 
 // TablePolicyCatalog persists the current Policy Aggregate for each table.

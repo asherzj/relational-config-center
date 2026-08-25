@@ -30,7 +30,7 @@ Admin 是 Web 的管理端后端，治理部署配置指定的一个 MySQL datab
 | 普通 CRUD | GORM Repository |
 | 特殊 SQL | 仅 Repository 内使用参数化 Raw SQL |
 | 初始化 | `deploy/mysql/init/001-schema.sql` + Docker Compose |
-| Migration | 暂不引入；出现已部署实例升级需求后再引入 Goose |
+| Migration | 显式 SQL expand/backfill/contract；暂不引入迁移框架 |
 | 测试 | Go `testing`、`httptest`、Testcontainers、真实 MySQL 8.4 |
 
 不采用 Hertz、Kitex、sqlc、GORM AutoMigrate、自研 Gateway、Redis、消息队列或 PostgreSQL 兼容分支。
@@ -57,7 +57,7 @@ infrastructure/mysql ────┘
 ```
 
 - Domain 不依赖 Gin、GORM、`database/sql`、HTTP DTO 或 MySQL 类型。
-- `domain/policy.Repository` 持久化 Table Policy Aggregate。
+- Domain Catalog ports 持久化 Query、Mutation 与 Table Policy。
 - Application 定义 `TableMetadataReader`、`QueryExecutor`、`MutationExecutor` 端口。
 - Infrastructure 实现端口并隐藏 GORM Session 与事务。
 - Admin 不依赖 `shared`、Server、Client、grpc-go 或 Protobuf。
@@ -78,7 +78,7 @@ infrastructure/mysql ────┘
 
 ### Table Policy
 
-每个物理表至多一条 Policy，以 `table_name` 为领域和 HTTP 标识。Policy 包含 Query/Mutation 策略绑定、ADD/MODIFY/DELETE 一级能力和 `enabled|disabled` 状态，不包含 `code`、`name`、字段列表、Allowlist、Schema Fingerprint、发布信息、revision 或连接信息。
+每个物理表至多一条 Table Policy，以不可修改的 `table_name` 为领域和 HTTP 标识。它只保存 `query_policy_code`、`mutation_policy_code`、`enabled` 与审计信息；ADD/MODIFY/DELETE 授权和标准 Auto Fill 都属于被引用的 Mutation Policy，不能按表覆盖。
 
 新 Policy 创建为 disabled；完整替换保持当前状态；enable 重新验证表与策略；disable 立即停止数据授权。没有 delete、draft、回滚或历史版本。Policy 变更采用 last-write-wins。
 
@@ -90,13 +90,8 @@ infrastructure/mysql ────┘
 CREATE TABLE `rcc_table_policies` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `table_name` varchar(64) NOT NULL,
-  `query_policy` varchar(100) NOT NULL,
-  `query_policy_config` json NOT NULL,
-  `mutation_policy` varchar(100) NOT NULL,
-  `mutation_policy_config` json NOT NULL,
-  `allow_add` tinyint(1) NOT NULL DEFAULT 0,
-  `allow_modify` tinyint(1) NOT NULL DEFAULT 0,
-  `allow_delete` tinyint(1) NOT NULL DEFAULT 0,
+  `query_policy_code` varchar(100) NOT NULL,
+  `mutation_policy_code` varchar(100) NOT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT 0,
   `creator` varchar(64) NOT NULL,
   `modifier` varchar(64) NOT NULL,
@@ -104,33 +99,35 @@ CREATE TABLE `rcc_table_policies` (
   `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
       ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_table_name` (`table_name`)
+  UNIQUE KEY `uk_table_name` (`table_name`),
+  KEY `idx_table_policy_query_code` (`query_policy_code`),
+  KEY `idx_table_policy_mutation_code` (`mutation_policy_code`)
 );
 ```
 
-JSON 配置必须是 object；空配置使用 `{}`，不能使用 SQL NULL。每个策略使用强类型配置并拒绝未知字段。`allow_add`、`allow_modify` 和 `allow_delete` 是 Table Policy 一级字段，不能同时出现在 `mutation_policy_config`。创建、替换、启用和执行复用相同的 Constructor 校验路径。
+完整定义见 [`001-schema.sql`](../deploy/mysql/init/001-schema.sql)。`rcc_query_policies` 关系化保存 `page_query` 的默认排序和分页标量；`rcc_mutation_policies` 关系化保存操作授权及四个可空审计目标槽。三个表都使用 `gmt_created` / `gmt_modified`，具有唯一、查询索引和标量 CHECK，不使用外键或乐观锁。
 
-保留 JSON 是针对完整 Policy Snapshot 访问和策略级原子替换作出的刻意取舍，并非未考虑关系型数据库范式。可扁平化字段、策略专属配置表、Auto Fill 规则子表及重新评估条件记录在 [ADR-0010](./adr/0010-freeze-the-first-policy-catalog-schema.md)。
+该关系化取舍由 [ADR-0016](./adr/0016-separate-policy-definitions-from-table-assignments.md) 冻结，并取代 ADR-0010 的内联 JSON 模型。Policy Code 是不可修改、版本化、技术无关的业务标识；定义遵循 `DRAFT -> ACTIVE -> DEPRECATED`，新绑定只能选择 Active，现有 Deprecated 绑定仍可执行。
 
-新部署直接使用上述结构；已有第一迭代 Catalog 使用 [`deploy/mysql/migrations/001-promote-mutation-capabilities.sql`](../deploy/mysql/migrations/001-promote-mutation-capabilities.sql) 一次性回填一级能力并从 Mutation JSON 删除同名字段。
+新部署直接使用最终结构。旧 Catalog 按 [`migrations/README.md`](../deploy/mysql/migrations/README.md) 执行 expand/backfill/contract：Go 命令先对全表做可表示性与引用预检，006 SQL 自身也会在任何 destructive ALTER 前 fail closed。升级完成后 fresh 与 upgrade 的列顺序、类型、NULL/default/collation、索引顺序和 CHECK 等价。
 
 ## 6. 策略注册与执行
 
-Application 持有两个启动后只读的 Constructor map：
+Application 持有两个启动后只读的 Policy Type registry：
 
 ```go
-type QueryRegistry map[string]QueryConstructor
-type MutationRegistry map[string]MutationConstructor
+type QueryPolicyTypeRegistry map[string]QueryTypeBuilder
+type MutationPolicyTypeRegistry map[string]MutationTypeContract
 ```
 
-- Composition Root 显式注册策略；不使用 `init`、反射、动态插件或运行时注册。
-- 重复策略名阻止启动，未知策略名 fail closed。
-- 每次请求调用 Constructor 创建独立 Strategy 实例。
+- Registry 由代码显式固定；不使用 `init`、反射、动态插件或运行时注册。
+- 数据库定义引用未知 Type 时 fail closed。
+- 每次请求从关系化定义创建独立执行器实例。
 - `context.Context` 和请求仅传给 `Execute`，不使用会保存请求状态的 `Build`。
 - Strategy 依赖 Application ports，不直接导入 MySQL Infrastructure。
-- Table Policy 每次请求从 Catalog 读取，不使用进程缓存或 Redis。
+- 每个请求在一个 `REPEATABLE READ` 事务内分别读取 Table、Query、Mutation Policy，不 JOIN、不使用进程缓存或 Redis。
 
-第一迭代只注册 `mysql_page_query_v1` 和 `mysql_single_table_mutation_v1`。
+第一迭代只注册技术无关的 `page_query` 和 `single_table_mutation` Type。
 
 ## 7. 实时 Schema 与动态值
 
@@ -157,14 +154,13 @@ MySQL Session 使用 UTC。
 
 ## 8. 分页查询策略
 
-配置：
+Query Policy 关系字段：
 
-```json
-{
-  "default_order": {"field": "id", "direction": "DESC"},
-  "default_page_size": 20,
-  "max_page_size": 200
-}
+```text
+default_order_field = "id"
+default_order_direction = "DESC"
+default_page_size = 20
+max_page_size = 200
 ```
 
 Query Spec：
@@ -214,28 +210,16 @@ Query Spec：
 
 ## 9. 单表变更策略
 
-Table Policy 一级能力与 Mutation Policy 配置：
+Mutation Policy 的关系化授权与标准 Auto Fill：
 
-```json
-{
-  "allow_add": true,
-  "allow_modify": true,
-  "allow_delete": false,
-  "mutation_policy_config": {
-    "auto_fill": {
-      "add": {
-        "creator": {"source": "operator"},
-        "modifier": {"source": "operator"},
-        "gmt_created": {"source": "now"},
-        "gmt_modified": {"source": "now"}
-      },
-      "modify": {
-        "modifier": {"source": "operator"},
-        "gmt_modified": {"source": "now"}
-      }
-    }
-  }
-}
+```text
+allow_add = true
+allow_modify = true
+allow_delete = false
+create_operator_field = "creator"
+create_time_field = "created_at"
+modify_operator_field = "modifier"
+modify_time_field = "updated_at"
 ```
 
 - ADD 可写非生成列；自增 `id` 可省略，返回 `{"id":"42"}`。
@@ -246,7 +230,7 @@ Table Policy 一级能力与 Mutation Policy 配置：
 - Driver 启用 ClientFoundRows；写入原值仍返回匹配行，零行表示 `id` 不存在。
 - 每次 Mutation 在 MySQL Adapter 内的独立事务中执行。
 
-Auto Fill 使用结构化规则，只支持 `operator`、`now` 和 `literal`。服务端值覆盖客户端值；任何解析、字段或类型错误都使操作失败。OperatorProvider 第一迭代从 `ADMIN_OPERATOR` 返回固定值，不代表已认证用户。
+Auto Fill 只支持上述四个固定槽：ADD 填 Create 与 Modify 槽，MODIFY 只填 Modify 槽，DELETE 不填。Operator 槽取 `ADMIN_OPERATOR`，Time 槽取同一事务的数据库时间。客户端提交任一服务端管理字段会被拒绝，而不是覆盖；literal 与任意规则不在最终模型中。
 
 ## 10. HTTP API
 
@@ -262,6 +246,26 @@ GET /api/v1/database-tables/{table_name}
 ### Policy Catalog
 
 ```text
+GET    /api/v1/query-policy-types
+GET    /api/v1/query-policies
+POST   /api/v1/query-policies
+GET    /api/v1/query-policies/{code}
+PUT    /api/v1/query-policies/{code}
+PATCH  /api/v1/query-policies/{code}/metadata
+POST   /api/v1/query-policies/{code}/activate
+POST   /api/v1/query-policies/{code}/deprecate
+DELETE /api/v1/query-policies/{code}
+
+GET    /api/v1/mutation-policy-types
+GET    /api/v1/mutation-policies
+POST   /api/v1/mutation-policies
+GET    /api/v1/mutation-policies/{code}
+PUT    /api/v1/mutation-policies/{code}
+PATCH  /api/v1/mutation-policies/{code}/metadata
+POST   /api/v1/mutation-policies/{code}/activate
+POST   /api/v1/mutation-policies/{code}/deprecate
+DELETE /api/v1/mutation-policies/{code}
+
 GET  /api/v1/table-policies
 POST /api/v1/table-policies
 GET  /api/v1/table-policies/{table_name}
@@ -270,7 +274,7 @@ POST /api/v1/table-policies/{table_name}/enable
 POST /api/v1/table-policies/{table_name}/disable
 ```
 
-POST 创建 disabled Policy；PUT 完整替换并保持状态。没有 DELETE、PATCH、批量或历史 API。
+Query/Mutation Draft 可完整替换或删除，Active/Deprecated 仅允许更新显示元数据。Table Policy POST 创建 disabled assignment；PUT 完整替换并保持状态。Table Policy 没有 DELETE、PATCH、批量或历史 API。
 
 ### Managed Data
 

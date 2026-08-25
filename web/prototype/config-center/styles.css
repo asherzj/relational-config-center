@@ -36,6 +36,8 @@ body {
   background: var(--canvas);
 }
 
+body.layer-open { overflow: hidden; }
+
 button, input, select, textarea { font: inherit; }
 button { color: inherit; cursor: pointer; }
 button:disabled { cursor: not-allowed; }
@@ -195,12 +197,22 @@ code, .mono, .json-editor { font-family: "SFMono-Regular", Consolas, "Liberation
 .policy-filter-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 28px; padding-top: 14px; border-top: 1px solid #edf1f0; }
 .policy-filter-actions .button { min-width: 76px; }
 .policy-list-toolbar { display: flex; align-items: center; gap: 8px; padding: 12px 0; }
+.catalog-summary { display: flex; min-height: 52px; align-items: center; gap: 10px; margin-bottom: 14px; padding: 0 15px; border: 1px solid #cfe1dd; border-radius: 7px; background: #f3faf8; color: #4b615c; font-size: 11px; }
+.catalog-summary > span { display: inline-flex; align-items: center; gap: 7px; font-weight: 720; }
+.catalog-summary > span .icon { color: var(--teal); }
+.catalog-summary code { padding: 4px 7px; border-radius: 5px; background: #dff1ed; color: var(--teal-dark); font-size: 10px; font-weight: 760; }
+.catalog-summary small { margin-left: auto; color: var(--subtle); }
 
 .table-surface { overflow: hidden; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); }
 .table-scroll { overflow-x: auto; scrollbar-color: #b9c5c2 transparent; scrollbar-width: thin; }
 .data-table { width: 100%; border-collapse: collapse; color: #354743; font-size: 11px; }
 .policy-table { min-width: 1200px; table-layout: fixed; }
 .content-table { min-width: 760px; }
+.query-policy-table { min-width: 1060px; }
+.query-policy-table td { height: 70px; }
+.query-policy-table strong, .cell-description { display: block; }
+.query-policy-table strong { font-size: 11px; }
+.cell-description { max-width: 210px; overflow: hidden; margin-top: 4px; color: var(--subtle); font-size: 9px; text-overflow: ellipsis; }
 .data-table th { height: 48px; padding: 0 13px; border-bottom: 1px solid var(--line); background: #fbfcfc; color: #556662; font-size: 10px; font-weight: 760; text-align: left; white-space: nowrap; }
 .data-table td { height: 64px; padding: 10px 13px; border-bottom: 1px solid #e9eeee; vertical-align: middle; white-space: nowrap; }
 .data-table tbody tr { transition: background 120ms ease; }
@@ -231,6 +243,10 @@ code, .mono, .json-editor { font-family: "SFMono-Regular", Consolas, "Liberation
 .status-text { display: inline-flex; align-items: center; font-size: 10px; font-weight: 780; }
 .status-text.enabled { color: var(--green); }
 .status-text.disabled { color: var(--red); }
+.policy-status { display: inline-flex; padding: 4px 7px; border-radius: 999px; font-size: 9px; font-weight: 800; letter-spacing: .04em; }
+.policy-status.draft { background: #fff5dc; color: var(--amber); }
+.policy-status.active { background: var(--green-soft); color: var(--green); }
+.policy-status.deprecated { background: #eef1f1; color: #687572; }
 .table-footer { display: flex; min-height: 42px; align-items: center; justify-content: space-between; padding: 0 14px; border-top: 1px solid var(--line); background: #fbfcfc; color: var(--subtle); font-size: 10px; }
 .policy-loading, .policy-empty { min-height: 150px; }
 
@@ -247,6 +263,41 @@ code, .mono, .json-editor { font-family: "SFMono-Regular", Consolas, "Liberation
   background: #fff;
   box-shadow: -8px 0 24px rgba(19, 48, 43, 0.05);
   animation: drawer-in 180ms ease-out;
+}
+
+.drawer-layer {
+  position: fixed;
+  z-index: 90;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(10, 28, 24, 0.34);
+  cursor: default;
+  backdrop-filter: blur(1px);
+  animation: backdrop-in 180ms ease-out;
+}
+
+.policy-detail-drawer {
+  z-index: 1;
+  top: 0;
+  width: min(560px, calc(100vw - 32px));
+  border-left-color: rgba(203, 214, 212, 0.9);
+  box-shadow: -22px 0 60px rgba(9, 37, 32, 0.2);
+}
+
+.drawer-eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--teal);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
 }
 
 .drawer-head { display: flex; min-height: 60px; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); }
@@ -271,6 +322,18 @@ code, .mono, .json-editor { font-family: "SFMono-Regular", Consolas, "Liberation
 .form-field input, .form-field select { height: 35px; padding: 0 10px; }
 .form-field textarea { min-height: 142px; resize: vertical; padding: 10px 12px; line-height: 1.55; tab-size: 2; }
 .form-field textarea.tall { min-height: 220px; }
+.typed-policy-form .description-input { min-height: 82px; }
+.typed-policy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; padding: 14px 14px 0; border: 1px solid #dbe7e4; border-radius: 7px; background: #f9fbfb; }
+.typed-policy-grid .form-field:first-child { grid-column: 1 / -1; }
+.typed-policy-section { margin: 14px 0 0; padding: 14px; border: 1px solid #dbe7e4; border-radius: 7px; background: #f9fbfb; }
+.typed-policy-section h3 { margin: 0 0 10px; color: #29433e; font-size: 11px; }
+.typed-policy-section .capability-grid { margin-bottom: 0; }
+.typed-policy-section .typed-policy-grid { padding: 0; border: 0; background: transparent; }
+.section-help { margin: -4px 0 12px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.muted { color: var(--muted); }
+.policy-audit { margin-top: 18px; padding-top: 17px; border-top: 1px solid var(--line); }
+.query-policy-actions { flex-wrap: wrap; }
+.danger-link { border-color: #efc8cc !important; color: var(--red) !important; }
 .form-field input:focus, .form-field select:focus, .form-field textarea:focus, .condition-row input:focus, .condition-row select:focus, .query-actions select:focus { border-color: var(--teal); outline: 3px solid rgba(0, 127, 112, 0.1); }
 .form-field input:disabled, .form-field select:disabled, .form-field textarea:disabled { border-color: #dfe6e4; background: #f5f7f7; color: #51615e; opacity: 1; }
 .json-editor { color: #173f37 !important; font-size: 10px !important; }
@@ -359,6 +422,8 @@ code, .mono, .json-editor { font-family: "SFMono-Regular", Consolas, "Liberation
 .form-switch > span { width: 100%; }
 .form-note { display: flex; gap: 7px; padding: 10px; border: 1px solid #d8e5e2; border-radius: 6px; background: #f5faf9; color: #58706a; font-size: 10px; line-height: 1.5; }
 .form-note .icon { width: 15px; height: 15px; }
+.copy-note { align-items: flex-start; margin-bottom: 14px; }
+.copy-note code { color: var(--teal-dark); font-weight: 700; }
 
 .modal-backdrop { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(15, 31, 28, 0.32); backdrop-filter: blur(2px); }
 .confirm-dialog { width: min(390px, 100%); padding: 24px; border-radius: 10px; background: #fff; box-shadow: var(--shadow-popover); text-align: center; }
@@ -376,6 +441,7 @@ code, .mono, .json-editor { font-family: "SFMono-Regular", Consolas, "Liberation
 
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes drawer-in { from { opacity: 0; transform: translateX(12px); } }
+@keyframes backdrop-in { from { opacity: 0; } }
 
 @media (max-width: 1280px) {
   :root { --drawer-width: 390px; --sidebar-width: 216px; }
@@ -426,6 +492,7 @@ code, .mono, .json-editor { font-family: "SFMono-Regular", Consolas, "Liberation
   .table-surface, .content-controls { border-radius: 6px; }
   .table-footer { gap: 12px; }
   .detail-drawer { top: var(--header-height); width: 100%; }
+  .policy-detail-drawer { top: 0; width: min(100%, 560px); }
   .content-drawer { top: auto; max-height: 78vh; border-top: 1px solid var(--line); border-left: 0; border-radius: 16px 16px 0 0; box-shadow: 0 -12px 36px rgba(19,48,43,.12); animation: sheet-in 180ms ease-out; }
   .content-drawer .drawer-head::before { position: absolute; top: 7px; left: 50%; width: 42px; height: 4px; border-radius: 3px; background: #b9c4c2; content: ""; transform: translateX(-50%); }
   .content-drawer .drawer-head { position: relative; padding-top: 22px; }

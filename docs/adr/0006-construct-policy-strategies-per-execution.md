@@ -1,6 +1,12 @@
+---
+status: accepted
+---
+
 # Construct policy strategies from explicit registries per execution
 
-Table Policy 通过稳定的 `query_policy` 和 `mutation_policy` 标识选择执行策略，并分别携带策略配置。Admin 使用两个显式 `map` 将策略标识映射到构造函数；每次数据操作都调用构造函数创建新的策略实例后执行，实例不跨请求复用，从而保留策略扩展点，同时隔离请求级可变状态。
+> ADR-0016 supersedes this ADR's persistence boundary in which each Table Policy directly carries strategy identifiers and JSON configuration. This ADR remains authoritative for fresh per-execution construction, explicit code-owned Type registries, and application-level execution ports.
+
+最终模型由 Query/Mutation Policy 的稳定 `type_code` 选择代码内显式注册的执行契约，具体规则来自关系化 Policy 定义。每次数据操作都从事务内读取的完整 Policy Snapshot 创建新执行器，实例不跨请求复用。
 
 ## Consequences
 
@@ -8,8 +14,8 @@ Table Policy 通过稳定的 `query_policy` 和 `mutation_policy` 标识选择�
 - 第一迭代不使用反射、动态插件或运行时注册；未知标识一律拒绝执行。
 - 构造函数接收依赖和策略配置，返回新实例；请求与 `context.Context` 只传给 `Execute`，不通过可变 `Build` 方法保存在对象中。
 - 策略依赖 application 定义的 Repository port，不能直接依赖 `infrastructure/mysql`。
-- 每个策略使用强类型配置并拒绝未知 JSON 字段；创建、替换、启用和执行都复用同一条构造校验路径。
+- 每个 Type 使用关系化强类型字段并复用同一条激活、绑定和执行校验路径。
 - 第一迭代不缓存 Table Policy，每次请求直接读取 Catalog，使原子替换和启停在提交后的下一个请求生效。
 - `ChangeMatchFields` 和 `field_infos` 不进入新模型；表结构与字段类型来自实时 MySQL 元数据。
 
-第一迭代只注册 `mysql_page_query_v1` 和 `mysql_single_table_mutation_v1`。前者配置默认排序及默认、最大页大小；后者只配置结构化 Auto Fill 规则。ADD、MODIFY、DELETE 是 Table Policy 的一级能力，由 Managed Table Mutation 依据当前 Policy Snapshot 统一授权，不属于 Mutation Strategy JSON。
+第一迭代只注册 `page_query` 和 `single_table_mutation`。前者使用 Query Policy 的默认排序与页大小，后者使用 Mutation Policy 的三个授权值与四个标准 Auto Fill 槽；Table Policy 不包含执行覆盖。

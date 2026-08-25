@@ -6,11 +6,18 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
+
+	"github.com/asherzj/relational-config-center/admin/internal/application"
+	"github.com/asherzj/relational-config-center/admin/internal/domain"
+	httpinterface "github.com/asherzj/relational-config-center/admin/internal/interfaces/http"
 )
 
 func TestQueryPolicyContainsTreatsWildcardsAndEscapeCharacterLiterally(t *testing.T) {
@@ -18,7 +25,7 @@ func TestQueryPolicyContainsTreatsWildcardsAndEscapeCharacterLiterally(t *testin
 		"../../../deploy/mysql/init/001-schema.sql",
 		"testdata/005-query-policy-fixture.sql",
 	)
-	enableQueryPolicy(t, app, "query_policy_items", `{}`)
+	enableQueryPolicy(t, app, "query_policy_items", queryPolicyFixture{})
 
 	response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{
 		"conditions":[{"field":"name","operator":"contains","value":"%_!"}],
@@ -34,7 +41,7 @@ func TestQueryPolicyAppliesOpenAndClosedRanges(t *testing.T) {
 		"../../../deploy/mysql/init/001-schema.sql",
 		"testdata/005-query-policy-fixture.sql",
 	)
-	enableQueryPolicy(t, app, "query_policy_items", `{}`)
+	enableQueryPolicy(t, app, "query_policy_items", queryPolicyFixture{})
 
 	tests := []struct {
 		name     string
@@ -72,7 +79,7 @@ func TestQueryPolicyAppliesMembershipNullAndEmptyStringSemantics(t *testing.T) {
 		"../../../deploy/mysql/init/001-schema.sql",
 		"testdata/005-query-policy-fixture.sql",
 	)
-	enableQueryPolicy(t, app, "query_policy_items", `{}`)
+	enableQueryPolicy(t, app, "query_policy_items", queryPolicyFixture{})
 
 	tests := []struct {
 		name     string
@@ -111,7 +118,7 @@ func TestQueryPolicyEnforcesLimitsAndRequestSortWithoutCorrection(t *testing.T) 
 		"../../../deploy/mysql/init/001-schema.sql",
 		"testdata/005-query-policy-fixture.sql",
 	)
-	enableQueryPolicy(t, app, "query_policy_items", `{"default_order":{"field":"id","direction":"DESC"}}`)
+	enableQueryPolicy(t, app, "query_policy_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "DESC"})
 
 	condition := `{"field":"score","operator":"closed_range","from":"10"}`
 	twentyConditions := `{"conditions":[` + strings.Join(repeated(condition, 20), ",") + `],"page_size":200}`
@@ -154,7 +161,7 @@ func TestQueryPolicyReturnsEverySupportedLiveTypeAsLosslessJSONString(t *testing
 		"../../../deploy/mysql/init/001-schema.sql",
 		"testdata/005-query-policy-fixture.sql",
 	)
-	enableQueryPolicy(t, app, "query_type_values", `{}`)
+	enableQueryPolicy(t, app, "query_type_values", queryPolicyFixture{})
 
 	response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_type_values/query", `{"page_size":1}`)
 	if response.Code != http.StatusOK {
@@ -222,7 +229,7 @@ func TestQueryPolicyParsesConditionValuesByLiveType(t *testing.T) {
 		"../../../deploy/mysql/init/001-schema.sql",
 		"testdata/005-query-policy-fixture.sql",
 	)
-	enableQueryPolicy(t, app, "query_type_values", `{}`)
+	enableQueryPolicy(t, app, "query_type_values", queryPolicyFixture{})
 
 	valid := []struct {
 		field string
@@ -297,7 +304,7 @@ func TestQueryPolicyRejectsEveryUnsupportedFullRowType(t *testing.T) {
 		t.Fatalf("start Admin: %v", err)
 	}
 	t.Cleanup(func() { _ = app.Close() })
-	enableQueryPolicy(t, app, "query_policy_items", `{}`)
+	enableQueryPolicy(t, app, "query_policy_items", queryPolicyFixture{})
 
 	database, err := sql.Open("mysql", driverConfig.FormatDSN())
 	if err != nil {
@@ -340,7 +347,7 @@ func TestQueryPolicyMapsDatabaseTimeoutToSafeGatewayTimeout(t *testing.T) {
 		t.Fatalf("start Admin: %v", err)
 	}
 	t.Cleanup(func() { _ = app.Close() })
-	enableQueryPolicy(t, app, "query_policy_items", `{}`)
+	enableQueryPolicy(t, app, "query_policy_items", queryPolicyFixture{})
 
 	database, err := sql.Open("mysql", driverConfig.FormatDSN())
 	if err != nil {
@@ -366,6 +373,10 @@ func TestQueryPolicyMapsDatabaseTimeoutToSafeGatewayTimeout(t *testing.T) {
 	if strings.Contains(response.Body.String(), "query_policy_items") || strings.Contains(response.Body.String(), "SELECT") {
 		t.Fatalf("timeout response exposed storage details: %s", response.Body.String())
 	}
+	if _, err := connection.ExecContext(ctx, "UNLOCK TABLES"); err != nil {
+		t.Fatalf("unlock Managed Table after timeout: %v", err)
+	}
+	assertQueryIDs(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{}`), "4", "3", "2", "1")
 }
 
 func repeated(value string, count int) []string {
@@ -382,21 +393,7 @@ func TestEnabledTablePolicyQueriesExactRowsWithPolicyDefaults(t *testing.T) {
 		"testdata/004-query-fixture.sql",
 	)
 
-	policy := integrationPolicyPayload(
-		"query_items",
-		"mysql_page_query_v1",
-		`{"default_order":{"field":"id","direction":"DESC"},"default_page_size":2,"max_page_size":5}`,
-		"mysql_single_table_mutation_v1",
-		`{}`,
-	)
-	created := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", policy)
-	if created.Code != http.StatusCreated {
-		t.Fatalf("create Policy: HTTP %d %s", created.Code, created.Body.String())
-	}
-	enabled := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies/query_items/enable", "")
-	if enabled.Code != http.StatusOK {
-		t.Fatalf("enable Policy: HTTP %d %s", enabled.Code, enabled.Body.String())
-	}
+	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "DESC", DefaultPageSize: 2, MaxPageSize: 5})
 
 	queried := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{"conditions":[{"field":"category","operator":"exact","value":"alpha"}],"page_number":1}`)
 	if queried.Code != http.StatusOK {
@@ -437,43 +434,10 @@ func TestPolicyReplacementAndDisableAffectTheNextQuery(t *testing.T) {
 		"testdata/004-query-fixture.sql",
 	)
 
-	policy := integrationPolicyPayload(
-		"query_items",
-		"mysql_page_query_v1",
-		`{"default_order":{"field":"id","direction":"DESC"},"default_page_size":1,"max_page_size":5}`,
-		"mysql_single_table_mutation_v1",
-		`{}`,
-	)
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", policy); response.Code != http.StatusCreated {
-		t.Fatalf("create Policy: HTTP %d %s", response.Code, response.Body.String())
-	}
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies/query_items/enable", ""); response.Code != http.StatusOK {
-		t.Fatalf("enable Policy: HTTP %d %s", response.Code, response.Body.String())
-	}
+	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "DESC", DefaultPageSize: 1, MaxPageSize: 5})
 	assertFirstQueryID(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`), "4")
 
-	replacement := integrationPolicyPayload(
-		"query_items",
-		"mysql_page_query_v1",
-		`{"default_order":{"field":"id","direction":"ASC"},"default_page_size":1,"max_page_size":5}`,
-		"mysql_single_table_mutation_v1",
-		`{}`,
-	)
-	replaced := policyIntegrationRequest(app, http.MethodPut, "/api/v1/table-policies/query_items", replacement)
-	if replaced.Code != http.StatusOK {
-		t.Fatalf("replace Policy: HTTP %d %s", replaced.Code, replaced.Body.String())
-	}
-	assertFirstQueryID(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`), "1")
-
-	invalid := integrationPolicyPayload(
-		"query_items",
-		"mysql_page_query_v1",
-		`{"default_order":{"field":"missing_column","direction":"DESC"},"default_page_size":1,"max_page_size":5}`,
-		"mysql_single_table_mutation_v1",
-		`{}`,
-	)
-	rejected := policyIntegrationRequest(app, http.MethodPut, "/api/v1/table-policies/query_items", invalid)
-	assertIntegrationErrorCode(t, rejected, http.StatusUnprocessableEntity, "invalid_policy_config")
+	replacePolicyAssignment(t, app, "query_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "ASC", DefaultPageSize: 1, MaxPageSize: 5}, mutationPolicyFixture{})
 	assertFirstQueryID(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`), "1")
 
 	disabled := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies/query_items/disable", "")
@@ -489,13 +453,7 @@ func TestExactQueryUsesANDValidatedSortAndPreservesAnEmptyRequestedPage(t *testi
 		"../../../deploy/mysql/init/001-schema.sql",
 		"testdata/004-query-fixture.sql",
 	)
-	policy := integrationPolicyPayload("query_items", "mysql_page_query_v1", `{}`, "mysql_single_table_mutation_v1", `{}`)
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", policy); response.Code != http.StatusCreated {
-		t.Fatalf("create Policy: HTTP %d %s", response.Code, response.Body.String())
-	}
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies/query_items/enable", ""); response.Code != http.StatusOK {
-		t.Fatalf("enable Policy: HTTP %d %s", response.Code, response.Body.String())
-	}
+	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{})
 
 	andQuery := `{"conditions":[{"field":"category","operator":"exact","value":"alpha"},{"field":"label","operator":"exact","value":"third"}],"order":{"field":"id","direction":"ASC"},"page_number":1,"page_size":10}`
 	andResult := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", andQuery)
@@ -578,13 +536,7 @@ func TestQueryFailsClosedWhenLiveSchemaBecomesInvalid(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = app.Close() })
 
-	policy := integrationPolicyPayload("query_items", "mysql_page_query_v1", `{}`, "mysql_single_table_mutation_v1", `{}`)
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", policy); response.Code != http.StatusCreated {
-		t.Fatalf("create Policy: HTTP %d %s", response.Code, response.Body.String())
-	}
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies/query_items/enable", ""); response.Code != http.StatusOK {
-		t.Fatalf("enable Policy: HTTP %d %s", response.Code, response.Body.String())
-	}
+	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{})
 
 	database, err := sql.Open("mysql", driverConfig.FormatDSN())
 	if err != nil {
@@ -623,6 +575,309 @@ func TestQueryFailsClosedWhenPolicyCatalogIsUnavailable(t *testing.T) {
 	assertIntegrationErrorCode(t, rejected, http.StatusServiceUnavailable, "policy_catalog_unavailable")
 }
 
+func TestAssignedDeprecatedPolicyDefinitionsRemainQueryable(t *testing.T) {
+	app := startIntegrationApplication(t,
+		"../../../deploy/mysql/init/001-schema.sql",
+		"testdata/004-query-fixture.sql",
+	)
+	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "ASC", DefaultPageSize: 1, MaxPageSize: 5})
+	assignment, err := app.mysql.Get(t.Context(), "query_items")
+	if err != nil {
+		t.Fatalf("read assigned Policy Codes: %v", err)
+	}
+	if _, err := app.mysql.SetQueryPolicyStatus(t.Context(), assignment.QueryPolicyCode, domain.PolicyStatusActive, domain.PolicyStatusDeprecated, "integration-test"); err != nil {
+		t.Fatalf("deprecate assigned Query Policy: %v", err)
+	}
+	if _, err := app.mysql.SetMutationPolicyStatus(t.Context(), assignment.MutationPolicyCode, domain.PolicyStatusActive, domain.PolicyStatusDeprecated, "integration-test"); err != nil {
+		t.Fatalf("deprecate assigned Mutation Policy: %v", err)
+	}
+	assertFirstQueryID(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`), "1")
+}
+
+func TestQueryPolicySnapshotCorruptionFailsClosed(t *testing.T) {
+	tests := []struct {
+		name      string
+		corrupt   func(context.Context, *sql.DB, domain.TablePolicy) error
+		status    int
+		errorCode string
+		request   string
+	}{
+		{
+			name: "missing Query Policy", status: http.StatusServiceUnavailable, errorCode: "policy_catalog_unavailable", request: `{}`,
+			corrupt: func(ctx context.Context, database *sql.DB, policy domain.TablePolicy) error {
+				_, err := database.ExecContext(ctx, "DELETE FROM rcc_query_policies WHERE code = ?", policy.QueryPolicyCode)
+				return err
+			},
+		},
+		{
+			name: "missing Mutation Policy", status: http.StatusServiceUnavailable, errorCode: "policy_catalog_unavailable", request: `{}`,
+			corrupt: func(ctx context.Context, database *sql.DB, policy domain.TablePolicy) error {
+				_, err := database.ExecContext(ctx, "DELETE FROM rcc_mutation_policies WHERE code = ?", policy.MutationPolicyCode)
+				return err
+			},
+		},
+		{
+			name: "Draft Query Policy", status: http.StatusUnprocessableEntity, errorCode: "invalid_policy_snapshot", request: `{}`,
+			corrupt: func(ctx context.Context, database *sql.DB, policy domain.TablePolicy) error {
+				_, err := database.ExecContext(ctx, "UPDATE rcc_query_policies SET status = 'DRAFT' WHERE code = ?", policy.QueryPolicyCode)
+				return err
+			},
+		},
+		{
+			name: "Draft Mutation Policy", status: http.StatusUnprocessableEntity, errorCode: "invalid_policy_snapshot", request: `{}`,
+			corrupt: func(ctx context.Context, database *sql.DB, policy domain.TablePolicy) error {
+				_, err := database.ExecContext(ctx, "UPDATE rcc_mutation_policies SET status = 'DRAFT' WHERE code = ?", policy.MutationPolicyCode)
+				return err
+			},
+		},
+		{
+			name: "unknown Query Type", status: http.StatusUnprocessableEntity, errorCode: "unknown_policy_type", request: `{}`,
+			corrupt: func(ctx context.Context, database *sql.DB, policy domain.TablePolicy) error {
+				_, err := database.ExecContext(ctx, "UPDATE rcc_query_policies SET type_code = 'unknown_query' WHERE code = ?", policy.QueryPolicyCode)
+				return err
+			},
+		},
+		{
+			name: "unknown Mutation Type", status: http.StatusUnprocessableEntity, errorCode: "unknown_policy_type", request: `{}`,
+			corrupt: func(ctx context.Context, database *sql.DB, policy domain.TablePolicy) error {
+				_, err := database.ExecContext(ctx, "UPDATE rcc_mutation_policies SET type_code = 'unknown_mutation' WHERE code = ?", policy.MutationPolicyCode)
+				return err
+			},
+		},
+		{
+			name: "missing default order column", status: http.StatusUnprocessableEntity, errorCode: "invalid_policy_snapshot", request: `{}`,
+			corrupt: func(ctx context.Context, database *sql.DB, policy domain.TablePolicy) error {
+				_, err := database.ExecContext(ctx, "UPDATE rcc_query_policies SET default_order_field = 'missing_column' WHERE code = ?", policy.QueryPolicyCode)
+				return err
+			},
+		},
+		{
+			name: "Policy cannot relax platform page limit", status: http.StatusUnprocessableEntity, errorCode: "invalid_policy_snapshot", request: `{"page_size":300}`,
+			corrupt: func(ctx context.Context, database *sql.DB, policy domain.TablePolicy) error {
+				if _, err := database.ExecContext(ctx, "ALTER TABLE rcc_query_policies DROP CHECK chk_query_policy_max_page_size"); err != nil {
+					return err
+				}
+				_, err := database.ExecContext(ctx, "UPDATE rcc_query_policies SET max_page_size = 500 WHERE code = ?", policy.QueryPolicyCode)
+				return err
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctx, driverConfig := startIntegrationMySQL(t,
+				"../../../deploy/mysql/init/001-schema.sql",
+				"testdata/004-query-fixture.sql",
+			)
+			app, err := newApplication(ctx, integrationConfig(driverConfig))
+			if err != nil {
+				t.Fatalf("start Admin: %v", err)
+			}
+			t.Cleanup(func() { _ = app.Close() })
+			enableQueryPolicy(t, app, "query_items", queryPolicyFixture{})
+			assignment, err := app.mysql.Get(ctx, "query_items")
+			if err != nil {
+				t.Fatalf("read assignment: %v", err)
+			}
+			database, err := sql.Open("mysql", driverConfig.FormatDSN())
+			if err != nil {
+				t.Fatalf("open corruption connection: %v", err)
+			}
+			t.Cleanup(func() { _ = database.Close() })
+			if err := test.corrupt(ctx, database, assignment); err != nil {
+				t.Fatalf("corrupt Policy Snapshot: %v", err)
+			}
+			response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", test.request)
+			assertIntegrationErrorCode(t, response, test.status, test.errorCode)
+			if strings.Contains(response.Body.String(), "SELECT") || strings.Contains(response.Body.String(), "rcc_") || strings.Contains(response.Body.String(), "missing_column") {
+				t.Fatalf("corruption response exposed storage details: %s", response.Body.String())
+			}
+		})
+	}
+}
+
+func TestInFlightQueryKeepsOnePolicySnapshotWhileReplacementAffectsNextRequest(t *testing.T) {
+	app := startIntegrationApplication(t,
+		"../../../deploy/mysql/init/001-schema.sql",
+		"testdata/004-query-fixture.sql",
+	)
+	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "DESC", DefaultPageSize: 1, MaxPageSize: 5})
+
+	tableRead := make(chan struct{})
+	resume := make(chan struct{})
+	barrier := &querySnapshotBarrier{delegate: app.mysql, tableRead: tableRead, resumeTable: resume}
+	installQuerySnapshotExecutor(t, app, barrier)
+
+	responseChannel := make(chan *httptest.ResponseRecorder, 1)
+	go func() {
+		responseChannel <- policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`)
+	}()
+	waitForSnapshotBarrier(t, tableRead, "Table Policy read")
+	replacePolicyAssignment(t, app, "query_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "ASC", DefaultPageSize: 1, MaxPageSize: 5}, mutationPolicyFixture{})
+	close(resume)
+
+	select {
+	case response := <-responseChannel:
+		assertFirstQueryID(t, response, "4")
+	case <-time.After(10 * time.Second):
+		t.Fatal("in-flight query did not finish after Policy replacement")
+	}
+	assertFirstQueryID(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`), "1")
+}
+
+func TestExternalDDLRaceFailsSafelyWithoutStorageDetails(t *testing.T) {
+	ctx, driverConfig := startIntegrationMySQL(t,
+		"../../../deploy/mysql/init/001-schema.sql",
+		"testdata/004-query-fixture.sql",
+	)
+	app, err := newApplication(ctx, integrationConfig(driverConfig))
+	if err != nil {
+		t.Fatalf("start Admin: %v", err)
+	}
+	t.Cleanup(func() { _ = app.Close() })
+	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{})
+
+	schemaRead := make(chan struct{})
+	resume := make(chan struct{})
+	barrier := &querySnapshotBarrier{delegate: app.mysql, schemaRead: schemaRead, resumeSchema: resume}
+	installQuerySnapshotExecutor(t, app, barrier)
+	responseChannel := make(chan *httptest.ResponseRecorder, 1)
+	go func() {
+		responseChannel <- policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`)
+	}()
+	waitForSnapshotBarrier(t, schemaRead, "live Schema read")
+
+	database, err := sql.Open("mysql", driverConfig.FormatDSN())
+	if err != nil {
+		t.Fatalf("open DDL connection: %v", err)
+	}
+	t.Cleanup(func() { _ = database.Close() })
+	ddlResult := make(chan error, 1)
+	go func() {
+		_, ddlErr := database.ExecContext(ctx, "ALTER TABLE query_items DROP COLUMN category")
+		ddlResult <- ddlErr
+	}()
+	close(resume)
+
+	select {
+	case response := <-responseChannel:
+		// MySQL may serialize DDL behind a metadata lock, in which case this
+		// request safely completes against its original Schema. If DDL wins
+		// before Count/Scan, execution must fail with the stable safe error.
+		if response.Code == http.StatusOK {
+			assertFirstQueryID(t, response, "4")
+		} else {
+			assertIntegrationErrorCode(t, response, http.StatusServiceUnavailable, "query_unavailable")
+		}
+		if strings.Contains(response.Body.String(), "SELECT") || strings.Contains(response.Body.String(), "Unknown column") {
+			t.Fatalf("DDL-race response exposed storage details: %s", response.Body.String())
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatal("DDL-raced query did not fail safely")
+	}
+	select {
+	case err := <-ddlResult:
+		if err != nil {
+			t.Fatalf("race external Schema change: %v", err)
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatal("external DDL did not complete after the query transaction ended")
+	}
+}
+
+type querySnapshotBarrier struct {
+	delegate     application.QuerySnapshotExecutor
+	tableRead    chan struct{}
+	resumeTable  <-chan struct{}
+	schemaRead   chan struct{}
+	resumeSchema <-chan struct{}
+	tableOnce    sync.Once
+	schemaOnce   sync.Once
+}
+
+func (barrier *querySnapshotBarrier) ExecuteQuerySnapshot(ctx context.Context, execute func(application.QuerySnapshotSession) (domain.QueryResult, error)) (domain.QueryResult, error) {
+	return barrier.delegate.ExecuteQuerySnapshot(ctx, func(session application.QuerySnapshotSession) (domain.QueryResult, error) {
+		return execute(&querySnapshotBarrierSession{QuerySnapshotSession: session, barrier: barrier})
+	})
+}
+
+type querySnapshotBarrierSession struct {
+	application.QuerySnapshotSession
+	barrier *querySnapshotBarrier
+}
+
+func (session *querySnapshotBarrierSession) GetTablePolicy(ctx context.Context, tableName string) (domain.TablePolicy, error) {
+	policy, err := session.QuerySnapshotSession.GetTablePolicy(ctx, tableName)
+	if err == nil && session.barrier.tableRead != nil {
+		session.barrier.tableOnce.Do(func() {
+			close(session.barrier.tableRead)
+			select {
+			case <-session.barrier.resumeTable:
+			case <-ctx.Done():
+			}
+		})
+	}
+	return policy, err
+}
+
+func (session *querySnapshotBarrierSession) GetTableSchema(ctx context.Context, tableName string) (domain.TableSchema, error) {
+	schema, err := session.QuerySnapshotSession.GetTableSchema(ctx, tableName)
+	if err == nil && session.barrier.schemaRead != nil {
+		session.barrier.schemaOnce.Do(func() {
+			close(session.barrier.schemaRead)
+			select {
+			case <-session.barrier.resumeSchema:
+			case <-ctx.Done():
+			}
+		})
+	}
+	return schema, err
+}
+
+func installQuerySnapshotExecutor(t *testing.T, app *adminApplication, executor application.QuerySnapshotExecutor) {
+	t.Helper()
+	discovery := application.NewDatabaseTableDiscovery(app.mysql)
+	queryPolicies := application.NewQueryPolicyManagement(app.mysql, application.NewQueryPolicyTypeRegistry(), "integration-test")
+	mutationPolicies := application.NewMutationPolicyManagement(app.mysql, application.NewMutationPolicyTypeRegistry(), "integration-test")
+	policies := application.NewTablePolicyManagement(app.mysql, app.mysql, queryPolicies, mutationPolicies, "integration-test")
+	queries := application.NewManagedTableQuery(executor, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
+	mutations := application.NewManagedTableMutation(app.mysql, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry(), application.NewFixedOperatorProvider("integration-test"))
+	app.handler = httpinterface.NewRouter(discovery, app.mysql, queryPolicies, mutationPolicies, policies, queries, mutations, httpinterface.RouterOptions{
+		AuthDisabled: true,
+		AccessLog:    io.Discard,
+	})
+}
+
+func waitForSnapshotBarrier(t *testing.T, barrier <-chan struct{}, description string) {
+	t.Helper()
+	select {
+	case <-barrier:
+	case <-time.After(10 * time.Second):
+		t.Fatalf("query did not reach %s", description)
+	}
+}
+
+var _ application.QuerySnapshotExecutor = (*querySnapshotBarrier)(nil)
+
+func TestQuerySnapshotSessionCannotBeReusedAfterTransaction(t *testing.T) {
+	app := startIntegrationApplication(t,
+		"../../../deploy/mysql/init/001-schema.sql",
+		"testdata/004-query-fixture.sql",
+	)
+	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{})
+	var captured application.QuerySnapshotSession
+	_, err := app.mysql.ExecuteQuerySnapshot(t.Context(), func(session application.QuerySnapshotSession) (domain.QueryResult, error) {
+		captured = session
+		return domain.QueryResult{}, errors.New("force rollback")
+	})
+	if err == nil {
+		t.Fatal("expected callback error to roll back Policy Snapshot")
+	}
+	if _, err := captured.GetTablePolicy(t.Context(), "query_items"); !errors.Is(err, application.ErrQueryUnavailable) {
+		t.Fatalf("transaction session remained reusable after callback: %v", err)
+	}
+}
+
 func assertFirstQueryID(t *testing.T, response *httptest.ResponseRecorder, expected string) {
 	t.Helper()
 	if response.Code != http.StatusOK {
@@ -646,15 +901,9 @@ func value(cell *string) string {
 	return *cell
 }
 
-func enableQueryPolicy(t *testing.T, app *adminApplication, tableName, queryConfig string) {
+func enableQueryPolicy(t *testing.T, app *adminApplication, tableName string, query queryPolicyFixture) {
 	t.Helper()
-	policy := integrationPolicyPayload(tableName, "mysql_page_query_v1", queryConfig, "mysql_single_table_mutation_v1", `{}`)
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", policy); response.Code != http.StatusCreated {
-		t.Fatalf("create Table Policy: HTTP %d %s", response.Code, response.Body.String())
-	}
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies/"+tableName+"/enable", ""); response.Code != http.StatusOK {
-		t.Fatalf("enable Table Policy: HTTP %d %s", response.Code, response.Body.String())
-	}
+	enablePolicyAssignment(t, app, tableName, query, mutationPolicyFixture{})
 }
 
 func assertQueryIDs(t *testing.T, response *httptest.ResponseRecorder, expected ...string) {

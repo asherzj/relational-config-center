@@ -13,27 +13,39 @@ An existing base table governed by an enabled Table Policy. Its sole primary-key
 _Avoid_: View, system table, remote table, arbitrary table
 
 **Table Policy**:
-A runtime-configured rule that assigns one Query Policy and one Mutation Policy to an existing base table and declares whether ADD, MODIFY, and DELETE are allowed. Enabling the policy makes that table a Managed Table; the policy does not duplicate database field metadata or contain connection information.
+A runtime-configured assignment of one predefined Query Policy and one predefined Mutation Policy to an existing base table by stable code. Enabling the assignment makes that table a Managed Table; the Table Policy does not override either assigned Policy, duplicate database field metadata, or contain connection information.
 _Avoid_: Table configuration, database configuration, schema migration
 
 **Query Policy**:
-The named strategy and its configuration that govern single-table queries against a Managed Table. A fresh strategy instance executes each request.
+A predefined, versioned rule set governing single-table queries against a Managed Table. A Table Policy references it by stable code and cannot override it per table.
 _Avoid_: Query Spec, SQL template
 
 **Mutation Policy**:
-The named strategy and its configuration that govern changes to rows in a Managed Table. A fresh strategy instance executes each request.
+A predefined, versioned rule set governing changes to rows in a Managed Table, including whether ADD, MODIFY, and DELETE are allowed and which standard audit fields are server-managed. A Table Policy references it by stable code and cannot override it per table.
 _Avoid_: Repository, database trigger
+
+**Policy Code**:
+The immutable, versioned business identifier of one Query Policy or Mutation Policy. It remains stable for the lifetime of the Policy and does not expose the storage technology used to execute it.
+_Avoid_: Database ID, Go type name, Strategy Code
+
+**Policy Type**:
+The stable category that defines the shape and execution contract shared by one or more Query Policies or Mutation Policies. A Policy supplies the rules for its Type; a Table Policy never selects a Type directly.
+_Avoid_: Policy Code, runtime plugin
+
+**Policy Status**:
+The lifecycle state of a Query Policy or Mutation Policy. A Draft may be edited but not assigned, an Active Policy is immutable and assignable, and a Deprecated Policy remains valid for existing assignments but cannot receive new ones.
+_Avoid_: Table Policy enabled state, deletion flag
 
 **Operator**:
 The value attributed to server-managed audit fields during a mutation. In the first iteration it comes from deployment configuration and is not an authenticated end-user identity.
 _Avoid_: User, auditor
 
 **Policy Catalog**:
-The authoritative collection of enabled or disabled Table Policies. It is governed independently from managed tables, cannot manage itself through the generic table-management capability, and denies generic access when no enabled valid policy can be obtained.
+The authoritative collection of Query Policies, Mutation Policies, and enabled or disabled Table Policies. It is governed independently from managed tables, cannot manage itself through the generic table-management capability, and denies generic access when no complete valid Policy assignment can be obtained.
 _Avoid_: Managed table, policy table
 
 **Policy Snapshot**:
-The complete Table Policy definition loaded at the start of one data request and used for that request's validation and execution.
+A Table Policy assignment together with the complete Query Policy and Mutation Policy it references, read consistently for one data request and used for that request's validation and execution.
 _Avoid_: Live policy lookup
 
 **Query Spec**:

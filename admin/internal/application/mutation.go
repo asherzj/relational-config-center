@@ -2,9 +2,10 @@ package application
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
 )
@@ -26,6 +27,26 @@ type MutationExecutor interface {
 	InsertRow(context.Context, domain.RowInsert) (string, error)
 	UpdateRow(context.Context, domain.RowUpdate) (int64, error)
 	DeleteRow(context.Context, domain.RowDelete) (int64, error)
+}
+
+// MutationSnapshotSession is the request-scoped, read-write view of the
+// Managed Data Source. Catalog aggregates remain separate operations and the
+// governed row write uses this same session; implementations must reject use
+// after ExecuteMutationSnapshot returns.
+type MutationSnapshotSession interface {
+	MutationExecutor
+	GetTablePolicy(context.Context, string) (domain.TablePolicy, error)
+	GetQueryPolicy(context.Context, string) (domain.QueryPolicy, error)
+	GetMutationPolicy(context.Context, string) (domain.MutationPolicy, error)
+	GetTableSchema(context.Context, string) (domain.TableSchema, error)
+	DatabaseTime(context.Context) (time.Time, error)
+}
+
+// MutationSnapshotExecutor owns the single read-write REPEATABLE READ
+// transaction containing Policy Snapshot resolution, live Schema validation,
+// authorization, Auto Fill production, and the Managed Table row change.
+type MutationSnapshotExecutor interface {
+	ExecuteMutationSnapshot(context.Context, func(MutationSnapshotSession) error) error
 }
 
 // OperatorProvider supplies the deployment-attributed Operator used by
@@ -50,116 +71,301 @@ func (provider fixedOperatorProvider) Operator(context.Context) (domain.JSONStri
 // ManagedTableMutation owns Policy Snapshot loading, live Schema validation,
 // and fresh Mutation Policy construction for every request.
 type ManagedTableMutation struct {
-	metadata TableMetadataReader
-	catalog  domain.TablePolicyCatalog
-	registry *StrategyRegistry
-	operator OperatorProvider
-	executor MutationExecutor
+	operator         OperatorProvider
+	snapshotExecutor MutationSnapshotExecutor
+	queryTypes       *QueryPolicyTypeRegistry
+	mutationTypes    *MutationPolicyTypeRegistry
 }
 
-func NewManagedTableMutation(metadata TableMetadataReader, catalog domain.TablePolicyCatalog, registry *StrategyRegistry, operator OperatorProvider, executor MutationExecutor) *ManagedTableMutation {
-	return &ManagedTableMutation{metadata: metadata, catalog: catalog, registry: registry, operator: operator, executor: executor}
+func NewManagedTableMutation(executor MutationSnapshotExecutor, queryTypes *QueryPolicyTypeRegistry, mutationTypes *MutationPolicyTypeRegistry, operator OperatorProvider) *ManagedTableMutation {
+	return &ManagedTableMutation{snapshotExecutor: executor, queryTypes: queryTypes, mutationTypes: mutationTypes, operator: operator}
 }
 
 func (mutation *ManagedTableMutation) Add(ctx context.Context, tableName string, content domain.MutationContent) (string, error) {
-	schema, policy, strategy, err := mutation.currentStrategy(ctx, tableName)
-	if err != nil {
-		return "", err
+	if protectedTable(tableName) {
+		return "", ErrProtectedTable
 	}
-	if !policy.AllowAdd {
-		return "", ErrMutationNotAllowed
-	}
-	return strategy.add(ctx, schema, content, mutation.operator, mutation.executor)
+	var id string
+	err := mutation.snapshotExecutor.ExecuteMutationSnapshot(ctx, func(session MutationSnapshotSession) error {
+		schema, policy, err := mutation.relationalSnapshot(ctx, session, tableName)
+		if err != nil {
+			return err
+		}
+		if !policy.AllowAdd {
+			return ErrMutationNotAllowed
+		}
+		id, err = mutation.relationalAdd(ctx, session, schema, policy, content)
+		return err
+	})
+	return id, err
 }
 
 func (mutation *ManagedTableMutation) Modify(ctx context.Context, tableName string, id domain.JSONString, content domain.MutationContent) (int64, error) {
-	schema, policy, strategy, err := mutation.currentStrategy(ctx, tableName)
-	if err != nil {
-		return 0, err
+	if protectedTable(tableName) {
+		return 0, ErrProtectedTable
 	}
-	if !policy.AllowModify {
-		return 0, ErrMutationNotAllowed
-	}
-	return strategy.modify(ctx, schema, id, content, mutation.operator, mutation.executor)
+	var affected int64
+	err := mutation.snapshotExecutor.ExecuteMutationSnapshot(ctx, func(session MutationSnapshotSession) error {
+		schema, policy, err := mutation.relationalSnapshot(ctx, session, tableName)
+		if err != nil {
+			return err
+		}
+		if !policy.AllowModify {
+			return ErrMutationNotAllowed
+		}
+		affected, err = mutation.relationalModify(ctx, session, schema, policy, id, content)
+		return err
+	})
+	return affected, err
 }
 
 func (mutation *ManagedTableMutation) Delete(ctx context.Context, tableName string, id domain.JSONString) (int64, error) {
-	schema, policy, strategy, err := mutation.currentDeleteStrategy(ctx, tableName)
+	if protectedTable(tableName) {
+		return 0, ErrProtectedTable
+	}
+	var affected int64
+	err := mutation.snapshotExecutor.ExecuteMutationSnapshot(ctx, func(session MutationSnapshotSession) error {
+		schema, policy, err := mutation.relationalSnapshot(ctx, session, tableName)
+		if err != nil {
+			return err
+		}
+		if !policy.AllowDelete {
+			return ErrMutationNotAllowed
+		}
+		affected, err = relationalDelete(ctx, session, schema, id)
+		return err
+	})
+	return affected, err
+}
+
+func (mutation *ManagedTableMutation) relationalSnapshot(ctx context.Context, session MutationSnapshotSession, tableName string) (domain.TableSchema, domain.MutationPolicy, error) {
+	tablePolicy, err := session.GetTablePolicy(ctx, tableName)
+	if err != nil {
+		if errors.Is(err, domain.ErrTablePolicyNotFound) {
+			return domain.TableSchema{}, domain.MutationPolicy{}, err
+		}
+		return domain.TableSchema{}, domain.MutationPolicy{}, mutationSnapshotCatalogError(err, "Table Policy")
+	}
+
+	// These remain deliberately separate reads. Even a disabled assignment is
+	// resolved completely so a request never constructs a partial Snapshot.
+	queryPolicy, err := session.GetQueryPolicy(ctx, tablePolicy.QueryPolicyCode)
+	if err != nil {
+		return domain.TableSchema{}, domain.MutationPolicy{}, mutationSnapshotCatalogError(err, "Query Policy")
+	}
+	mutationPolicy, err := session.GetMutationPolicy(ctx, tablePolicy.MutationPolicyCode)
+	if err != nil {
+		return domain.TableSchema{}, domain.MutationPolicy{}, mutationSnapshotCatalogError(err, "Mutation Policy")
+	}
+	if !tablePolicy.Enabled {
+		return domain.TableSchema{}, domain.MutationPolicy{}, ErrTablePolicyDisabled
+	}
+	if !runtimePolicyStatus(queryPolicy.Status) || !runtimePolicyStatus(mutationPolicy.Status) {
+		return domain.TableSchema{}, domain.MutationPolicy{}, fmt.Errorf("%w: referenced Policy is not executable", ErrInvalidPolicySnapshot)
+	}
+	if _, err := mutation.queryTypes.Build(queryPolicy); err != nil {
+		return domain.TableSchema{}, domain.MutationPolicy{}, err
+	}
+	if err := mutation.mutationTypes.Validate(mutationPolicy); err != nil {
+		return domain.TableSchema{}, domain.MutationPolicy{}, err
+	}
+
+	schema, err := session.GetTableSchema(ctx, tableName)
+	if err != nil {
+		if errors.Is(err, ErrDatabaseTableNotFound) || errors.Is(err, ErrProtectedTable) || errors.Is(err, ErrMutationTimeout) {
+			return domain.TableSchema{}, domain.MutationPolicy{}, err
+		}
+		return domain.TableSchema{}, domain.MutationPolicy{}, fmt.Errorf("%w: read live Schema", ErrMutationUnavailable)
+	}
+	if !schema.Compatible {
+		return domain.TableSchema{}, domain.MutationPolicy{}, fmt.Errorf("%w: %s", ErrIncompatibleTable, *schema.IncompatibilityReason)
+	}
+	if err := mutation.queryTypes.ValidateForTable(queryPolicy, schema); err != nil {
+		return domain.TableSchema{}, domain.MutationPolicy{}, err
+	}
+	if err := mutation.mutationTypes.ValidateForTable(mutationPolicy, schema); err != nil {
+		return domain.TableSchema{}, domain.MutationPolicy{}, err
+	}
+	return schema, mutationPolicy, nil
+}
+
+func mutationSnapshotCatalogError(err error, aggregate string) error {
+	if errors.Is(err, ErrMutationTimeout) || errors.Is(err, context.DeadlineExceeded) {
+		return fmt.Errorf("%w: read %s", ErrMutationTimeout, aggregate)
+	}
+	return fmt.Errorf("%w: read %s", ErrPolicyCatalogUnavailable, aggregate)
+}
+
+func (mutation *ManagedTableMutation) relationalAdd(ctx context.Context, session MutationSnapshotSession, schema domain.TableSchema, policy domain.MutationPolicy, content domain.MutationContent) (string, error) {
+	effective, err := mutation.effectiveRelationalContent(ctx, session, schema, policy, MutationOperationAdd, content)
+	if err != nil {
+		return "", err
+	}
+	values, err := mutationValues(schema, effective, true)
+	if err != nil {
+		return "", err
+	}
+	for _, column := range schema.Columns {
+		if _, supplied := effective[column.Name]; column.RequiredForInsert() && !supplied {
+			return "", ErrMissingRequiredField
+		}
+	}
+	return session.InsertRow(ctx, domain.RowInsert{TableName: schema.Name, Values: values, ProvidedID: effective["id"]})
+}
+
+func (mutation *ManagedTableMutation) relationalModify(ctx context.Context, session MutationSnapshotSession, schema domain.TableSchema, policy domain.MutationPolicy, id domain.JSONString, content domain.MutationContent) (int64, error) {
+	if _, supplied := content["id"]; supplied {
+		return 0, ErrInvalidMutation
+	}
+	idColumn, found := schema.Column("id")
+	if !found || idColumn.Type == domain.ColumnTypeUnsupported {
+		return 0, ErrIncompatibleTable
+	}
+	parsedID, err := domain.ParseColumnValue(idColumn, id)
+	if err != nil {
+		return 0, ErrInvalidMutation
+	}
+	effective, err := mutation.effectiveRelationalContent(ctx, session, schema, policy, MutationOperationModify, content)
 	if err != nil {
 		return 0, err
 	}
-	if !policy.AllowDelete {
-		return 0, ErrMutationNotAllowed
+	if len(effective) == 0 {
+		return 0, ErrInvalidMutation
 	}
-	return strategy.delete(ctx, schema, id, mutation.executor)
+	values, err := mutationValues(schema, effective, false)
+	if err != nil {
+		return 0, err
+	}
+	return session.UpdateRow(ctx, domain.RowUpdate{TableName: schema.Name, IDColumn: idColumn, ID: parsedID, Values: values})
 }
 
-// currentDeleteStrategy deliberately avoids full query and mutation Schema
-// validation. DELETE depends only on the current Managed Table invariant and
-// its id type, so unrelated unsupported columns and Auto Fill fields cannot
-// disable an otherwise safe hard delete.
-func (mutation *ManagedTableMutation) currentDeleteStrategy(ctx context.Context, tableName string) (domain.TableSchema, domain.TablePolicy, MutationStrategy, error) {
-	schema, policy, err := mutation.currentSnapshot(ctx, tableName)
+func relationalDelete(ctx context.Context, session MutationSnapshotSession, schema domain.TableSchema, id domain.JSONString) (int64, error) {
+	idColumn, found := schema.Column("id")
+	if !found || idColumn.Type == domain.ColumnTypeUnsupported {
+		return 0, ErrIncompatibleTable
+	}
+	parsedID, err := domain.ParseColumnValue(idColumn, id)
 	if err != nil {
-		return domain.TableSchema{}, domain.TablePolicy{}, nil, err
+		return 0, ErrInvalidMutation
 	}
-
-	// Construct both configured policies to reject unknown or malformed current
-	// snapshots, but do not apply full-row Schema validation for DELETE.
-	if _, err := mutation.registry.Query(policy.QueryPolicy, json.RawMessage(policy.QueryPolicyConfig)); err != nil {
-		return domain.TableSchema{}, domain.TablePolicy{}, nil, err
-	}
-	strategy, err := mutation.registry.Mutation(policy.MutationPolicy, json.RawMessage(policy.MutationPolicyConfig))
-	if err != nil {
-		return domain.TableSchema{}, domain.TablePolicy{}, nil, err
-	}
-	return schema, policy, strategy, nil
+	return session.DeleteRow(ctx, domain.RowDelete{TableName: schema.Name, IDColumn: idColumn, ID: parsedID})
 }
 
-func (mutation *ManagedTableMutation) currentStrategy(ctx context.Context, tableName string) (domain.TableSchema, domain.TablePolicy, MutationStrategy, error) {
-	schema, policy, err := mutation.currentSnapshot(ctx, tableName)
-	if err != nil {
-		return domain.TableSchema{}, domain.TablePolicy{}, nil, err
-	}
-
-	if _, err := mutation.registry.Query(policy.QueryPolicy, json.RawMessage(policy.QueryPolicyConfig)); err != nil {
-		return domain.TableSchema{}, domain.TablePolicy{}, nil, err
-	}
-	strategy, err := mutation.registry.Mutation(policy.MutationPolicy, json.RawMessage(policy.MutationPolicyConfig))
-	if err != nil {
-		return domain.TableSchema{}, domain.TablePolicy{}, nil, err
-	}
-	if err := strategy.validateSchema(schema); err != nil {
-		return domain.TableSchema{}, domain.TablePolicy{}, nil, err
-	}
-	return schema, policy, strategy, nil
-}
-
-func (mutation *ManagedTableMutation) currentSnapshot(ctx context.Context, tableName string) (domain.TableSchema, domain.TablePolicy, error) {
-	if protectedTable(tableName) {
-		return domain.TableSchema{}, domain.TablePolicy{}, ErrProtectedTable
-	}
-
-	policy, err := mutation.catalog.Get(ctx, tableName)
-	if err != nil {
-		if !errors.Is(err, domain.ErrTablePolicyNotFound) {
-			return domain.TableSchema{}, domain.TablePolicy{}, ErrPolicyCatalogUnavailable
+func (mutation *ManagedTableMutation) effectiveRelationalContent(ctx context.Context, session MutationSnapshotSession, schema domain.TableSchema, policy domain.MutationPolicy, operation MutationOperation, content domain.MutationContent) (domain.MutationContent, error) {
+	for _, field := range []*string{policy.CreateOperatorField, policy.CreateTimeField, policy.ModifyOperatorField, policy.ModifyTimeField} {
+		if field != nil {
+			if _, supplied := content[*field]; supplied {
+				return nil, ErrInvalidMutation
+			}
 		}
-		return domain.TableSchema{}, domain.TablePolicy{}, err
 	}
-	if !policy.Enabled {
-		return domain.TableSchema{}, domain.TablePolicy{}, ErrTablePolicyDisabled
+	effective := make(domain.MutationContent, len(content)+4)
+	for field, value := range content {
+		effective[field] = value
 	}
 
-	schema, err := mutation.metadata.GetTableSchema(ctx, tableName)
-	if err != nil {
-		if !errors.Is(err, ErrDatabaseTableNotFound) && !errors.Is(err, ErrProtectedTable) {
-			return domain.TableSchema{}, domain.TablePolicy{}, ErrMutationUnavailable
+	operatorFields := make([]*string, 0, 2)
+	timeFields := make([]*string, 0, 2)
+	if operation == MutationOperationAdd {
+		operatorFields = append(operatorFields, policy.CreateOperatorField)
+		timeFields = append(timeFields, policy.CreateTimeField)
+	}
+	if operation == MutationOperationAdd || operation == MutationOperationModify {
+		operatorFields = append(operatorFields, policy.ModifyOperatorField)
+		timeFields = append(timeFields, policy.ModifyTimeField)
+	}
+
+	if nonNilFieldCount(operatorFields) > 0 {
+		operator, err := mutation.operator.Operator(ctx)
+		if err != nil {
+			return nil, ErrMutationUnavailable
 		}
-		return domain.TableSchema{}, domain.TablePolicy{}, err
+		for _, field := range operatorFields {
+			if field != nil {
+				value := operator
+				effective[*field] = &value
+			}
+		}
 	}
-	if !schema.Compatible {
-		return domain.TableSchema{}, domain.TablePolicy{}, fmt.Errorf("%w: %s", ErrIncompatibleTable, *schema.IncompatibilityReason)
+	if nonNilFieldCount(timeFields) > 0 {
+		now, err := session.DatabaseTime(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, field := range timeFields {
+			if field == nil {
+				continue
+			}
+			column, found := schema.Column(*field)
+			if !found {
+				return nil, ErrInvalidMutationPolicyRules
+			}
+			value, err := currentTimeValue(column, now)
+			if err != nil {
+				return nil, ErrInvalidMutationPolicyRules
+			}
+			effective[*field] = &value
+		}
 	}
-	return schema, policy, nil
+	return effective, nil
+}
+
+func nonNilFieldCount(fields []*string) int {
+	count := 0
+	for _, field := range fields {
+		if field != nil {
+			count++
+		}
+	}
+	return count
+}
+
+func currentTimeValue(column domain.Column, now time.Time) (domain.JSONString, error) {
+	now = now.Truncate(time.Microsecond)
+	switch column.Type {
+	case domain.ColumnTypeDate:
+		return domain.JSONString(now.Format("2006-01-02")), nil
+	case domain.ColumnTypeTime:
+		return domain.JSONString(formatAutoFillTime(now, "15:04:05", "")), nil
+	case domain.ColumnTypeDateTime:
+		return domain.JSONString(formatAutoFillTime(now, "2006-01-02 15:04:05", "")), nil
+	case domain.ColumnTypeTimestamp:
+		return domain.JSONString(formatAutoFillTime(now, "2006-01-02T15:04:05", "Z")), nil
+	default:
+		return "", ErrInvalidMutation
+	}
+}
+
+func formatAutoFillTime(value time.Time, layout, suffix string) string {
+	formatted := value.Format(layout)
+	if microseconds := value.Nanosecond() / 1000; microseconds != 0 {
+		formatted += "." + strings.TrimRight(fmt.Sprintf("%06d", microseconds), "0")
+	}
+	return formatted + suffix
+}
+
+func mutationValues(schema domain.TableSchema, content domain.MutationContent, allowID bool) ([]domain.MutationValue, error) {
+	values := make([]domain.MutationValue, 0, len(content))
+	for field, value := range content {
+		if field == "id" && !allowID {
+			return nil, ErrInvalidMutation
+		}
+		column, found := schema.Column(field)
+		if !found || !column.Writable() || column.Type == domain.ColumnTypeUnsupported {
+			return nil, ErrInvalidMutation
+		}
+		if value == nil {
+			if !column.Nullable {
+				return nil, ErrInvalidMutation
+			}
+			values = append(values, domain.MutationValue{Column: column})
+			continue
+		}
+		parsed, err := domain.ParseColumnValue(column, *value)
+		if err != nil {
+			return nil, ErrInvalidMutation
+		}
+		values = append(values, domain.MutationValue{Column: column, Value: parsed})
+	}
+	return values, nil
 }
