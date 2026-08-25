@@ -9,6 +9,9 @@
 - Zod 运行时响应校验与稳定错误码映射。
 - 查询策略的列表、详情、创建草稿、替换草稿、激活、弃用、更新元数据和删除草稿。
 - 变更策略的 Type Registry、完整目录、草稿编辑、生命周期操作、元数据更新和四个固定 Auto Fill 槽位。
+- Database Table Discovery 的真实表状态、稳定不兼容原因和 Table Policy 完整目录。
+- 仅从兼容未分配表和 Active Policy 创建未启用分配，并支持详情、原子替换、启用、停用与客户端筛选。
+- 替换 enabled Table Policy 前明确提示下一次请求立即生效；实时 Schema 与引用错误保留稳定错误码和 Request ID。
 - 未知 Policy Type 或不完整的 Mutation Type 能力失败关闭，只允许安全查看或元数据更新。
 - GET 仅对网络错误、503、504 自动重试一次；写命令不自动重试。
 
@@ -35,5 +38,4 @@ pnpm build
 
 ## 后续边界
 
-- 表策略列表在首版拉取完整 Catalog 后进行客户端筛选；Admin 当前不提供筛选或分页参数。
 - 配置内容管理等待 Admin 提供完整 Schema 契约后再实现，不会硬编码动态表字段。

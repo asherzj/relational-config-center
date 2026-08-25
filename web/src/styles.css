@@ -28,6 +28,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 button:disabled { cursor: not-allowed; opacity: .55; }
 code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 .app-shell { min-height: 100vh; }
 .app-header {
@@ -94,7 +95,25 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 .mutation-type { display: inline-flex; align-items: center; gap: 8px; }
 .registry-note { margin-left: auto; }
 
+.discovery-panel { margin-bottom: 28px; overflow: hidden; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); }
+.discovery-panel > header { min-height: 58px; padding: 13px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); background: #fbfcfc; }
+.discovery-panel > header > span { display: flex; align-items: center; gap: 9px; font-size: 13px; font-weight: 800; }
+.discovery-panel > header svg { color: var(--accent); }
+.discovery-panel > header small { color: var(--muted); font-size: 11px; }
+.discovery-grid { padding: 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.discovery-grid article { min-width: 0; padding: 14px; display: grid; gap: 8px; border: 1px solid #d6e2de; border-radius: 7px; background: #fbfdfc; }
+.discovery-grid article.discovery-incompatible { border-color: #edd6c2; background: #fffaf5; }
+.discovery-grid article > strong { min-width: 0; overflow-wrap: anywhere; }
+.discovery-grid article > span { min-height: 18px; color: var(--muted); font-size: 12px; }
+.discovery-grid article > div { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.compatibility { padding: 3px 7px; border-radius: 5px; font-size: 11px; font-weight: 700; }
+.compatibility-ok { color: var(--accent-strong); background: var(--accent-soft); }
+.compatibility-bad { color: #a14d00; background: #fff0df; }
+
 .catalog { overflow: hidden; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); }
+.catalog-toolbar { min-height: 58px; padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid var(--line); background: #fbfcfc; }
+.search-field { width: min(420px, 100%); min-height: 38px; padding: 0 11px; display: flex; align-items: center; gap: 8px; border: 1px solid #cfd8d5; border-radius: 6px; background: #fff; color: var(--muted); }
+.search-field input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 13px; }
 .table-scroll { overflow-x: auto; }
 .policy-table { width: 100%; border-collapse: collapse; min-width: 1080px; font-size: 14px; }
 .policy-table th { padding: 19px 16px; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--line); background: #fbfcfc; color: #303a37; font-size: 13px; font-weight: 800; }
@@ -106,6 +125,7 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 .policy-table td > small { display: block; max-width: 240px; color: #7a8582; font-size: 12px; line-height: 1.45; }
 .policy-table .unsupported-copy { margin-top: 4px; color: var(--warning); }
 .mutation-policy-table { min-width: 1280px; }
+.table-policy-table { min-width: 1180px; }
 .capability { display: inline-flex; min-width: 38px; justify-content: center; padding: 3px 7px; border-radius: 5px; font-size: 11px; font-weight: 800; }
 .capability-allowed { color: #24813a; background: #eaf8ed; }
 .capability-denied { color: #7a8582; background: #edf0ef; }
@@ -209,6 +229,7 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
   .page-heading { align-items: center; }
   .page-heading h1 { font-size: 24px; }
   .registry-note { display: none; }
+  .discovery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 620px) {
@@ -224,6 +245,7 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
   .drawer-body { padding-inline: 18px; }
   .drawer-footer { overflow-x: auto; }
   .form-grid, .audit-grid, .capability-grid { grid-template-columns: 1fr; }
+  .discovery-grid { grid-template-columns: 1fr; }
   .toast { right: 16px; bottom: 16px; }
 }
 

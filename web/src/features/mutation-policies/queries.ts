@@ -20,12 +20,12 @@ export const mutationPolicyKeys = {
   detail: (code: string) => ["mutation-policies", "detail", code] as const,
 };
 
-export function useMutationPolicies() {
-  return useQuery({ queryKey: mutationPolicyKeys.list, queryFn: listMutationPolicies, retry: shouldRetryQuery });
+export function useMutationPolicies(enabled = true) {
+  return useQuery({ queryKey: mutationPolicyKeys.list, queryFn: listMutationPolicies, retry: shouldRetryQuery, enabled });
 }
 
-export function useMutationPolicyTypes() {
-  return useQuery({ queryKey: mutationPolicyKeys.types, queryFn: listMutationPolicyTypes, retry: shouldRetryQuery });
+export function useMutationPolicyTypes(enabled = true) {
+  return useQuery({ queryKey: mutationPolicyKeys.types, queryFn: listMutationPolicyTypes, retry: shouldRetryQuery, enabled });
 }
 
 export function useMutationPolicy(code?: string) {

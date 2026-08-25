@@ -21,12 +21,12 @@ export const queryPolicyKeys = {
   detail: (code: string) => ["query-policies", "detail", code] as const,
 };
 
-export function useQueryPolicies() {
-  return useQuery({ queryKey: queryPolicyKeys.list, queryFn: listQueryPolicies, retry: shouldRetryQuery });
+export function useQueryPolicies(enabled = true) {
+  return useQuery({ queryKey: queryPolicyKeys.list, queryFn: listQueryPolicies, retry: shouldRetryQuery, enabled });
 }
 
-export function useQueryPolicyTypes() {
-  return useQuery({ queryKey: queryPolicyKeys.types, queryFn: listQueryPolicyTypes, retry: shouldRetryQuery });
+export function useQueryPolicyTypes(enabled = true) {
+  return useQuery({ queryKey: queryPolicyKeys.types, queryFn: listQueryPolicyTypes, retry: shouldRetryQuery, enabled });
 }
 
 export function useQueryPolicy(code?: string) {

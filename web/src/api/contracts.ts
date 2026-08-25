@@ -61,6 +61,41 @@ export const mutationPolicyListDtoSchema = z.object({
   policies: z.array(mutationPolicyDtoSchema),
 });
 
+export const databaseTableDtoSchema = z.object({
+  table_name: z.string(),
+  table_comment: z.string(),
+  policy_exists: z.boolean(),
+  policy_enabled: z.boolean(),
+  compatible: z.boolean(),
+  incompatibility_reason: z.enum([
+    "missing_primary_key",
+    "composite_primary_key",
+    "primary_key_must_be_id",
+  ]).nullable(),
+}).refine(
+  (table) => table.compatible === (table.incompatibility_reason === null),
+  { message: "compatible tables must not have an incompatibility reason" },
+);
+
+export const databaseTableListDtoSchema = z.object({
+  tables: z.array(databaseTableDtoSchema),
+});
+
+export const tablePolicyDtoSchema = z.object({
+  table_name: z.string(),
+  query_policy_code: z.string(),
+  mutation_policy_code: z.string(),
+  enabled: z.boolean(),
+  creator: z.string(),
+  modifier: z.string(),
+  gmt_created: z.string(),
+  gmt_modified: z.string(),
+});
+
+export const tablePolicyListDtoSchema = z.object({
+  policies: z.array(tablePolicyDtoSchema),
+});
+
 export const adminErrorDtoSchema = z.object({
   error: z.object({
     code: z.string(),
@@ -73,6 +108,8 @@ export type QueryPolicyDto = z.infer<typeof queryPolicyDtoSchema>;
 export type PolicyStatusDto = z.infer<typeof policyStatusSchema>;
 export type MutationPolicyDto = z.infer<typeof mutationPolicyDtoSchema>;
 export type MutationPolicyTypeDto = z.infer<typeof mutationPolicyTypeListDtoSchema>["types"][number];
+export type DatabaseTableDto = z.infer<typeof databaseTableDtoSchema>;
+export type TablePolicyDto = z.infer<typeof tablePolicyDtoSchema>;
 
 export type PutQueryPolicyDto = {
   code: string;
