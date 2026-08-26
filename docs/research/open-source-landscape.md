@@ -1,6 +1,6 @@
 # 关系型配置中心开源项目调研
 
-> 核查日期：2026-08-24（Asia/Shanghai）  
+> 核查日期：2026-08-24（Asia/Shanghai）；Bean Searcher 补充核查：2026-08-25
 > 来源范围：仅使用项目官方 GitHub 仓库、官方文档和官网。  
 > 结论性质：项目选型与边界研究，不构成许可证法律意见。
 
@@ -19,6 +19,7 @@
 因此，本项目并非在重做一个已经完整存在的开源产品。最接近的组合式参照是：
 
 - **Admin 管理面参照**：Mathesar（既有数据库和数据库原生权限）、Hasura（关系 API 与声明式权限）、Teable/Grist（关系数据编辑体验和历史）；
+- **Query Policy 能力增强参照**：Bean Searcher（动态条件、多表查询、字段选择、聚合以及可扩展的参数解析与 SQL 生成）；
 - **Server/Client 参照**：Apollo（发布与客户端可靠更新）、Nacos（监听、灰度、历史和多语言 SDK）；
 - **最接近的单体产品参照**：Directus，但其当前许可证已经带有竞争用途限制，只能作为 source-available 参照，不能按无用途限制的开源替代品处理。[Directus 当前许可证](https://github.com/directus/directus/blob/main/directus/license)
 
@@ -46,6 +47,7 @@
 |---|---|---:|---:|---:|---:|---:|---|
 | Mathesar | ✅ PostgreSQL FK、引用列、关系模式、Exploration | ✅ PostgreSQL | — | ✅ PostgreSQL role/privilege | — | ◐ 不稳定 JSON-RPC API | Admin 的既有关系表管理 |
 | Hasura GraphQL Engine v2 | ✅ 数据库关系、嵌套 GraphQL 查询 | ✅ live database | ◐ Metadata/migration 可版本控制，不是配置数据发布 | ✅ 行/列/操作级规则 | ◐ 事件调用日志，不是行版本审计 | ✅ GraphQL/REST、订阅、Event Trigger | Server 关系查询、授权和实时 API |
+| Bean Searcher | ✅ 多表映射、动态过滤/排序、子查询、分组聚合 | ✅ 复用 Java 应用 DataSource | — | — 由宿主应用负责 | — | ◐ Java 嵌入式查询库，不是独立运行时服务 | Admin Query Policy 的查询执行能力 |
 | Teable CE | ✅ Link、Lookup、Rollup、关系记录 API | ◐ 自己拥有 PostgreSQL Schema；不是无侵入接管任意既有表 | — | ◐ 基础角色；细粒度 Authority Matrix 为 Pro+ | ✅ 记录历史；集中 Audit Log 版本边界需单独核实 | ◐ REST API，无 Apollo 式配置监听 SDK | 关系型配置编辑 Web/Admin 体验 |
 | Grist Community | ✅ Reference/Reference List、公式和关联布局 | — 自有 document 模型 | ◐ 文档快照可恢复，不是发布流 | ✅ 条件式 Access Rules | ✅ Activity、Snapshots；集中 Audit Logs 属 Full Edition | ◐ REST API、Webhooks，无配置客户端缓存协议 | 关系编辑、历史与权限 UX |
 | Apollo | — key/value 或文件型 namespace | — | ✅ 发布版本、回滚、灰度 | ✅ 管理权限、OpenAPI 授权 | ✅ 发布历史、操作 Trace | ✅ Java/.NET、HTTP、第三方 SDK；热更新、本地缓存 | Server/Client 的发布与可靠动态更新 |
@@ -143,7 +145,29 @@ Grist 数据保存在其 document 抽象中，并不治理部署者已有的 MyS
 
 `grist-core` Community Edition 使用 Apache-2.0；官方同时提供包含未激活 source-available Full Edition 代码的默认镜像，也提供只含自由开源代码的 `grist-oss` 镜像。[官方仓库许可证与镜像说明](https://github.com/gristlabs/grist-core) GitHub Releases 在核查时显示最新版本为 **v1.7.16，发布于 2026-06-30**。[Releases](https://github.com/gristlabs/grist-core/releases)
 
-## 第二组：动态配置发布与分发
+## 第二组：Query Policy 能力增强候选组件
+
+### Bean Searcher
+
+**定位与查询能力**
+
+Bean Searcher 是面向 Java 的只读动态查询库：由实体或 `SearchBean` 声明查询边界，以 HTTP 参数或参数 Map 表达过滤、排序、分页和统计。它支持单表零注解、多表映射与 Join、动态字段操作符、字段选择/排除、分组聚合、Select/Where/From 子查询，以及 Bean/Map 两种动态结果形态；可嵌入 Spring Boot、Solon 或直接绑定通用 `DataSource`。[官方 README](https://github.com/troyzhxu/bean-searcher/blob/dev/README.zh-CN.md)
+
+项目还把 `FieldOp`、`FieldConvertor`、`DbMapping`、`ParamResolver`、`Dialect` 和 SQL 拦截器作为扩展点。这些扩展边界与本项目未来增加 Query Policy Type、关系查询、字段转换和独立数据库 Adapter 时需要解决的问题直接相关。
+
+**与本项目的重合和候选定位**
+
+它与当前 Admin 的重合集中在 `Query Spec -> 参数与字段校验 -> 动态 SQL -> Count/Scan -> 动态结果` 执行链，不覆盖 Table Policy、Policy 生命周期、实时 Schema 治理、Mutation Policy、认证、管理 API 或后续配置发布与分发。因此将它记录为 **Query Policy 能力增强的选型与行为基准**，而不是 Admin 的整体替代方案。
+
+当前 Admin 使用 Go + GORM，并已冻结“单一主要 DAL、封闭 Query Spec、单表查询和受控 GORM Clauses”的边界。[ADR-0004](../adr/0004-mysql-gorm-and-validated-dynamic-queries.md) 所以近期优先级应是借鉴其能力分解和扩展点，而非直接引入依赖。只有未来出现 Java 查询 Adapter 或独立 JVM 查询服务的明确需求时，才评估直接集成；引入 JVM sidecar 本身不能仅由减少动态查询代码量来证明合理。
+
+后续评估必须继续满足本项目现有安全与一致性门槛：表只能来自 enabled Table Policy，字段必须经实时 Schema 与 Policy 校验，操作符和排序保持封闭枚举，值使用参数绑定，并保留复杂度上限与一次请求内一致的 Policy Snapshot。Bean Searcher 更自由的客户端查询能力不能未经收敛直接暴露。
+
+**许可证与活跃度**
+
+Bean Searcher 使用 Apache-2.0；官方 Releases 在补充核查时显示最新版本为 **v4.8.12，发布于 2026-07-27**，并同时提供 JDK 8 构建。[官方仓库](https://github.com/troyzhxu/bean-searcher) [Releases](https://github.com/troyzhxu/bean-searcher/releases)
+
+## 第三组：动态配置发布与分发
 
 ### 5. Apollo
 
@@ -250,6 +274,7 @@ Hasura 展示了行/列/操作级授权，Apollo 展示了 namespace lock、rele
 3. 参考 Apollo/Nacos 验证 Go Client 的启动全量快照、revision 增量、长轮询/流式通知、定时补拉、本地缓存和历史缺口恢复；
 4. 分别对照 Hasura、Apollo、Nacos 设计管理授权、发布授权和运行时读取授权；
 5. 若考虑直接集成第三方，先做许可证和 Edition 能力核对，特别是 Teable 的附加品牌条款、Grist Full Edition、Directus MSCL 和 NocoDB Sustainable Use License。
+6. 当 Query Policy 准备增加动态字段选择、关系查询或聚合时，以 Bean Searcher v4.8.x 作为行为基准，用同一组 MySQL fixture 比较操作符语义、字段边界、SQL 安全、Count 一致性和复杂度限制，并评估 Go 原生实现与 JVM sidecar 的全生命周期成本。
 
 ## 活跃度核查表
 
@@ -259,6 +284,7 @@ Hasura 展示了行/列/操作级授权，Apollo 展示了 namespace lock、rele
 |---|---|---|
 | Mathesar | 0.12.0 — 2026-07-02 | 官方仍标 public beta；GPL-3.0 |
 | Hasura GraphQL Engine v2 | v2.49.5 — 2026-07-21 | v2 core Apache-2.0；仓库 2026-08 仍更新 |
+| Bean Searcher | v4.8.12 — 2026-07-27 | Apache-2.0；Java 查询库，同时提供 JDK 8 构建 |
 | Teable | release.2026-08-09T14-50-08Z.2564 — 2026-08-09 | 官方组织页显示 2026-08 仍更新 |
 | Grist Core | v1.7.16 — 2026-06-30 | Community Apache-2.0；Full Edition 另有许可证边界 |
 | Apollo | v2.5.2 — 2026-07-12 | Apache-2.0 |

@@ -1,8 +1,12 @@
 # Relational Configuration Center
 
-Relational Configuration Center manages configuration as relational data with explicit schemas, constraints, references, and query rules.
+Relational Configuration Center is a platform for publishing and distributing relational business configuration. It treats configuration as relational data with explicit schemas, constraints, references, and query rules rather than as independent key-value pairs or opaque documents.
 
 ## Language
+
+**Relational Business Configuration**:
+Configuration whose meaning and validity are modeled through entities, fields, constraints, references, and relations.
+_Avoid_: key-value configuration, configuration file, arbitrary business data
 
 **Managed Table**:
 A relational table exposed through Admin because it has an active Table Policy.
