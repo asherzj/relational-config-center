@@ -96,6 +96,48 @@ export const tablePolicyListDtoSchema = z.object({
   policies: z.array(tablePolicyDtoSchema),
 });
 
+export const managedDataColumnTypeSchema = z.enum([
+  "uint64",
+  "int64",
+  "decimal",
+  "float64",
+  "string",
+  "boolean",
+  "date",
+  "time",
+  "datetime",
+  "timestamp",
+  "json",
+]);
+
+export const managedDataQueryResponseDtoSchema = z.object({
+  columns: z.array(z.object({
+    name: z.string().min(1),
+    type: managedDataColumnTypeSchema,
+    nullable: z.boolean(),
+  })),
+  rows: z.array(z.record(z.string(), z.string().nullable())),
+  page: z.object({
+    page_number: z.number().int().positive().refine(Number.isSafeInteger, "page_number must be a safe integer"),
+    page_size: z.number().int().positive().refine(Number.isSafeInteger, "page_size must be a safe integer"),
+    total_count: z.number().int().nonnegative().refine(Number.isSafeInteger, "total_count exceeds Web's lossless range"),
+    total_pages: z.number().int().nonnegative().refine(Number.isSafeInteger, "total_pages exceeds Web's lossless range"),
+  }),
+}).superRefine((result, context) => {
+  const names = result.columns.map((column) => column.name);
+  if (new Set(names).size !== names.length) {
+    context.addIssue({ code: "custom", message: "Managed Data columns must be unique", path: ["columns"] });
+    return;
+  }
+  const expected = new Set(names);
+  result.rows.forEach((row, index) => {
+    const actual = Object.keys(row);
+    if (actual.length !== expected.size || actual.some((name) => !expected.has(name))) {
+      context.addIssue({ code: "custom", message: "Managed Data row does not match columns", path: ["rows", index] });
+    }
+  });
+});
+
 export const adminErrorDtoSchema = z.object({
   error: z.object({
     code: z.string(),
@@ -110,6 +152,7 @@ export type MutationPolicyDto = z.infer<typeof mutationPolicyDtoSchema>;
 export type MutationPolicyTypeDto = z.infer<typeof mutationPolicyTypeListDtoSchema>["types"][number];
 export type DatabaseTableDto = z.infer<typeof databaseTableDtoSchema>;
 export type TablePolicyDto = z.infer<typeof tablePolicyDtoSchema>;
+export type ManagedDataQueryResponseDto = z.infer<typeof managedDataQueryResponseDtoSchema>;
 
 export type PutQueryPolicyDto = {
   code: string;

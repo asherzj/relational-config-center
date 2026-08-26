@@ -1,4 +1,4 @@
-import { Box, ChevronDown, ChevronRight, Database, Menu, Settings, X } from "lucide-react";
+import { Box, ChevronDown, Database, Menu, Settings, X } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
@@ -33,9 +33,9 @@ export function AppShell() {
             <NavLink to="/platform/mutation-policies" onClick={() => setMobileNavOpen(false)}>变更策略定义</NavLink>
             <NavLink to="/platform/table-policies" onClick={() => setMobileNavOpen(false)}>表策略分配</NavLink>
           </section>
-          <section className="nav-group nav-group-collapsed">
-            <div className="nav-group-title"><span><Settings size={18} />配置管理</span><ChevronRight size={16} /></div>
-            <span className="nav-disabled">配置内容管理</span>
+          <section className="nav-group">
+            <div className="nav-group-title"><span><Settings size={18} />配置管理</span><ChevronDown size={16} /></div>
+            <NavLink to="/configuration/managed-data" onClick={() => setMobileNavOpen(false)}>配置内容管理</NavLink>
           </section>
         </nav>
         <div className="operator">

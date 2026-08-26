@@ -12,6 +12,8 @@
 - Database Table Discovery 的真实表状态、稳定不兼容原因和 Table Policy 完整目录。
 - 仅从兼容未分配表和 Active Policy 创建未启用分配，并支持详情、原子替换、启用、停用与客户端筛选。
 - 替换 enabled Table Policy 前明确提示下一次请求立即生效；实时 Schema 与引用错误保留稳定错误码和 Request ID。
+- 配置内容管理只列出 enabled Managed Table，以实时动态列构造全部八种 Query Spec 操作符、单字段排序和服务端分页。
+- Managed Data 值保持 JSON String 语义，并在结果中明确区分 SQL NULL 与空字符串；当前页面为只读查询，写入与 Change Set 留给后续工单。
 - 未知 Policy Type 或不完整的 Mutation Type 能力失败关闭，只允许安全查看或元数据更新。
 - GET 仅对网络错误、503、504 自动重试一次；写命令不自动重试。
 
@@ -38,4 +40,4 @@ pnpm build
 
 ## 后续边界
 
-- 配置内容管理等待 Admin 提供完整 Schema 契约后再实现，不会硬编码动态表字段。
+- Managed Data 的 ADD、MODIFY、DELETE 与统一 Change Set 确认体验尚未实现；查询页不会硬编码业务字段或提前暴露写入口。
