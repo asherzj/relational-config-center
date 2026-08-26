@@ -1,8 +1,10 @@
-import { ChevronLeft, ChevronRight, Database, Plus, RefreshCw, RotateCcw, Search, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Database, Pencil, Plus, RefreshCw, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../../components/ui/Button";
 import { ErrorState, LoadingState } from "../../components/ui/Feedback";
 import { useTablePolicies } from "../table-policies/queries";
+import { supportsMutationPolicyType } from "../mutation-policies/model";
+import { useMutationPolicy, useMutationPolicyTypes } from "../mutation-policies/queries";
 import {
   allowedOperators,
   conditionFromDraft,
@@ -10,13 +12,41 @@ import {
   queryOperatorLabels,
   validateQueryDraft,
   type ManagedDataColumn,
+  buildChangeSet,
+  type ChangeSetOperation,
+  type MutationContent,
   type QuerySpec,
   type QueryConditionDraft,
   type QueryOperator,
 } from "./model";
-import { useManagedDataQuery } from "./queries";
+import { useManagedDataMutation, useManagedDataQuery, useManagedDataRowRefetch, type ManagedDataMutationOutcome } from "./queries";
+import { ManagedRowEditor } from "./ManagedRowEditor";
+import { ChangeSetDialog } from "./ChangeSetDialog";
+import { MutationSuccessDialog } from "./MutationSuccessDialog";
 
 const initialQuerySpec: QuerySpec = { conditions: [], pageNumber: 1 };
+
+type ManagedDataEditorState = {
+  operation: "ADD" | "MODIFY";
+  tableName: string;
+  columns: ManagedDataColumn[];
+  row?: Record<string, string | null>;
+  allAutoFillFields: string[];
+  changeSetAutoFillFields: string[];
+  sequence: number;
+};
+
+type PendingManagedDataChange = {
+  operation: ChangeSetOperation;
+  tableName: string;
+  columns: ManagedDataColumn[];
+  row?: Record<string, string | null>;
+  id?: string;
+  content: MutationContent;
+  changeSetAutoFillFields: string[];
+};
+
+type AutoFillTarget = readonly [field: string | null | undefined, kind: "operator" | "time"];
 
 function isInitialQuerySpec(querySpec: QuerySpec) {
   return querySpec.conditions.length === 0
@@ -99,11 +129,87 @@ export function ManagedDataPage() {
   const [orderDirection, setOrderDirection] = useState<"ASC" | "DESC">("DESC");
   const [pageSize, setPageSize] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [editorSequence, setEditorSequence] = useState(0);
+  const [editor, setEditor] = useState<ManagedDataEditorState | null>(null);
+  const [pendingChange, setPendingChange] = useState<PendingManagedDataChange | null>(null);
+  const [outcome, setOutcome] = useState<ManagedDataMutationOutcome | null>(null);
   const enabledPolicies = (policies.data ?? []).filter((policy) => policy.enabled);
   const selectedTable = enabledPolicies.some((policy) => policy.tableName === requestedTable)
     ? requestedTable
     : enabledPolicies[0]?.tableName ?? "";
   const result = useManagedDataQuery(selectedTable, querySpec);
+  const mutation = useManagedDataMutation();
+  const rowRefetch = useManagedDataRowRefetch();
+  const selectedPolicy = enabledPolicies.find((policy) => policy.tableName === selectedTable);
+  const mutationPolicy = useMutationPolicy(selectedPolicy?.mutationPolicyCode);
+  const mutationTypes = useMutationPolicyTypes(Boolean(selectedPolicy));
+  const executableMutationPolicy = mutationPolicy.data
+    && mutationPolicy.data.code === selectedPolicy?.mutationPolicyCode
+    && mutationPolicy.data.status !== "DRAFT"
+    && supportsMutationPolicyType(mutationTypes.data, mutationPolicy.data.typeCode)
+    ? mutationPolicy.data
+    : undefined;
+  const autoFillTargets = (operation: ChangeSetOperation): readonly AutoFillTarget[] => operation === "ADD" ? [
+    [executableMutationPolicy?.createOperatorField, "operator"],
+    [executableMutationPolicy?.createTimeField, "time"],
+    [executableMutationPolicy?.modifyOperatorField, "operator"],
+    [executableMutationPolicy?.modifyTimeField, "time"],
+  ] : operation === "MODIFY" ? [
+    [executableMutationPolicy?.modifyOperatorField, "operator"],
+    [executableMutationPolicy?.modifyTimeField, "time"],
+  ] : [];
+  const fieldsFromTargets = (targets: readonly AutoFillTarget[]) => targets.flatMap(([field]) => field ? [field] : []);
+  const autoFillFields = new Set([...fieldsFromTargets(autoFillTargets("ADD")), ...fieldsFromTargets(autoFillTargets("MODIFY"))]);
+  const changeSetAutoFillFields = (operation: ChangeSetOperation) => new Set(fieldsFromTargets(autoFillTargets(operation)));
+  const capabilityReason = (operation: "ADD" | "MODIFY" | "DELETE") => {
+    if (!executableMutationPolicy) return "当前 Policy Snapshot 的 Mutation 能力尚不可执行";
+    const allowed = operation === "ADD" ? executableMutationPolicy.allowAdd : operation === "MODIFY" ? executableMutationPolicy.allowModify : executableMutationPolicy.allowDelete;
+    if (!allowed) return `${operation} 未由当前 Mutation Policy 授权`;
+    if (!result.data || operation === "DELETE") return undefined;
+    for (const [field, kind] of autoFillTargets(operation)) {
+      if (!field) continue;
+      const column = result.data.columns.find((candidate) => candidate.name === field);
+      if (!column) return `${operation} Auto Fill 字段 ${field} 不存在于实时 Schema`;
+      const valid = kind === "operator" ? column.type === "string" : ["date", "time", "datetime", "timestamp"].includes(column.type);
+      if (!valid) return `${operation} Auto Fill 字段 ${field} 的实时类型不兼容`;
+    }
+    return undefined;
+  };
+  const startEditor = (operation: "ADD" | "MODIFY", row?: Record<string, string | null>) => {
+    if (!result.data) return;
+    const sequence = editorSequence + 1;
+    setEditorSequence(sequence);
+    mutation.reset();
+    setPendingChange(null);
+    setEditor({
+      operation,
+      tableName: selectedTable,
+      columns: [...result.data.columns],
+      ...(row ? { row: { ...row } } : {}),
+      allAutoFillFields: [...autoFillFields],
+      changeSetAutoFillFields: [...changeSetAutoFillFields(operation)],
+      sequence,
+    });
+  };
+  const reviewDelete = (row: Record<string, string | null>) => {
+    if (!result.data || typeof row.id !== "string") return;
+    mutation.reset();
+    setEditor(null);
+    setPendingChange({ operation: "DELETE", tableName: selectedTable, columns: [...result.data.columns], row: { ...row }, id: row.id, content: {}, changeSetAutoFillFields: [] });
+  };
+  const changeSet = pendingChange
+    ? buildChangeSet(pendingChange.operation, pendingChange.columns, pendingChange.row, pendingChange.content, new Set(pendingChange.changeSetAutoFillFields))
+    : null;
+  const executePendingChange = () => {
+    if (!pendingChange) return;
+    mutation.mutate({ operation: pendingChange.operation, tableName: pendingChange.tableName, ...(pendingChange.id !== undefined ? { id: pendingChange.id } : {}), content: pendingChange.content }, {
+      onSuccess(nextOutcome) {
+        setOutcome(nextOutcome);
+        setPendingChange(null);
+        setEditor(null);
+      },
+    });
+  };
   const submitQuerySpec = () => {
     if (!result.data) return;
     const error = validateQueryDraft(result.data.columns, conditions, pageSize);
@@ -124,14 +230,10 @@ export function ManagedDataPage() {
           <h1>配置内容管理</h1>
           <p>依据 enabled Table Policy 查询 Managed Table；字段与类型来自实时 Schema。</p>
         </div>
-        <Button
-          variant="secondary"
-          icon={<RefreshCw size={16} />}
-          disabled={!selectedTable || result.isFetching}
-          onClick={() => void result.refetch()}
-        >
-          重新查询
-        </Button>
+        <div className="page-heading-actions">
+          <Button variant="secondary" icon={<RefreshCw size={16} />} disabled={!selectedTable || result.isFetching} onClick={() => void result.refetch()}>重新查询</Button>
+          <Button variant="primary" icon={<Plus size={16} />} disabled={!result.data || Boolean(capabilityReason("ADD"))} title={capabilityReason("ADD")} aria-describedby={capabilityReason("ADD") ? "mutation-add-reason" : undefined} onClick={() => startEditor("ADD")}>新增记录</Button>
+        </div>
       </div>
 
       {policies.isPending ? <LoadingState label="正在读取 Managed Table…" /> : policies.isError ? (
@@ -271,13 +373,16 @@ export function ManagedDataPage() {
                         <strong>{column.name}</strong>
                         <small>{column.type} · {column.nullable ? "可为 NULL" : "非 NULL"}</small>
                       </th>
-                    ))}</tr></thead>
+                    ))}<th scope="col">操作</th></tr></thead>
                     <tbody>{result.data.rows.length === 0 ? (
-                      <tr><td className="managed-data-no-rows" colSpan={result.data.columns.length}>没有符合条件的配置内容</td></tr>
+                      <tr><td className="managed-data-no-rows" colSpan={result.data.columns.length + 1}>没有符合条件的配置内容</td></tr>
                     ) : result.data.rows.map((row, rowIndex) => (
                       <tr key={String(row.id ?? rowIndex)}>{result.data.columns.map((column) => (
                         <td key={column.name}><CellValue value={row[column.name] ?? null} /></td>
-                      ))}</tr>
+                      ))}<td className="managed-data-actions">
+                        <Button variant="ghost" icon={<Pencil size={14} />} aria-label={`修改记录 ${row.id ?? "未知"}`} disabled={typeof row.id !== "string" || Boolean(capabilityReason("MODIFY"))} title={typeof row.id !== "string" ? "记录缺少可用的 id" : capabilityReason("MODIFY")} aria-describedby={capabilityReason("MODIFY") ? "mutation-modify-reason" : undefined} onClick={() => startEditor("MODIFY", row)}>修改</Button>
+                        <Button variant="ghost" icon={<Trash2 size={14} />} aria-label={`删除记录 ${row.id ?? "未知"}`} disabled={typeof row.id !== "string" || Boolean(capabilityReason("DELETE"))} title={typeof row.id !== "string" ? "记录缺少可用的 id" : capabilityReason("DELETE")} aria-describedby={capabilityReason("DELETE") ? "mutation-delete-reason" : undefined} onClick={() => reviewDelete(row)}>删除</Button>
+                      </td></tr>
                     ))}</tbody>
                   </table>
                 </div>
@@ -300,6 +405,56 @@ export function ManagedDataPage() {
               </>
             )}
           </section>
+          <section className="mutation-capability-notes" aria-label="Mutation Policy 权限">
+            {(["ADD", "MODIFY", "DELETE"] as const).map((operation) => capabilityReason(operation) && <span id={`mutation-${operation.toLowerCase()}-reason`} key={operation}>{capabilityReason(operation)}</span>)}
+          </section>
+          {editor && <ManagedRowEditor
+            key={editor?.sequence}
+            open={Boolean(editor) && !pendingChange}
+            tableName={editor.tableName}
+            operation={editor.operation}
+            columns={editor.columns}
+            original={editor.row}
+            autoFillFields={new Set(editor.allAutoFillFields)}
+            onClose={() => setEditor(null)}
+            onReview={(content) => {
+              setPendingChange({
+                operation: editor.operation,
+                tableName: editor.tableName,
+                columns: editor.columns,
+                ...(editor.row ? { row: editor.row } : {}),
+                ...(typeof editor.row?.id === "string" ? { id: editor.row.id } : {}),
+                content,
+                changeSetAutoFillFields: editor.changeSetAutoFillFields,
+              });
+            }}
+          />}
+          <ChangeSetDialog
+            changeSet={changeSet}
+            error={mutation.error}
+            pending={mutation.isPending}
+            onEdit={() => {
+              mutation.reset();
+              setPendingChange(null);
+            }}
+            onCancel={() => { mutation.reset(); setPendingChange(null); setEditor(null); }}
+            onConfirm={executePendingChange}
+          />
+          <MutationSuccessDialog
+            outcome={outcome}
+            retryPending={rowRefetch.isPending}
+            onRetry={() => {
+              if (!outcome || outcome.operation === "DELETE") return;
+              rowRefetch.mutate(
+                { operation: outcome.operation, tableName: outcome.tableName, id: outcome.id },
+                {
+                  onSuccess: setOutcome,
+                  onError: (retrievalError) => setOutcome((current) => current ? { ...current, retrievalError } : current),
+                },
+              );
+            }}
+            onClose={() => { rowRefetch.reset(); setOutcome(null); }}
+          />
         </>
       )}
     </main>

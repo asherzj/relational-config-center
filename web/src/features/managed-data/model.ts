@@ -53,6 +53,70 @@ export type ManagedDataResult = {
   };
 };
 
+export type MutationContent = Record<string, string | null>;
+
+export type ChangeSetOperation = "ADD" | "MODIFY" | "DELETE";
+export type ChangeSetCell =
+  | { state: "value"; value: string }
+  | { state: "null" | "empty" | "unsubmitted" | "missing" };
+
+export type ChangeSetRow = {
+  field: string;
+  original: ChangeSetCell;
+  next: ChangeSetCell;
+  changed: boolean;
+  autoFill: boolean;
+};
+
+export type ChangeSet = {
+  operation: ChangeSetOperation;
+  rows: ChangeSetRow[];
+};
+
+function cellForValue(value: string | null): ChangeSetCell {
+  if (value === null) return { state: "null" };
+  if (value === "") return { state: "empty" };
+  return { state: "value", value };
+}
+
+function cellsEqual(left: ChangeSetCell, right: ChangeSetCell) {
+  return left.state === right.state
+    && (left.state !== "value" || (right.state === "value" && left.value === right.value));
+}
+
+export function buildChangeSet(
+  operation: ChangeSetOperation,
+  columns: readonly ManagedDataColumn[],
+  original: Record<string, string | null> | undefined,
+  content: MutationContent,
+  autoFillFields: ReadonlySet<string>,
+): ChangeSet {
+  return {
+    operation,
+    rows: columns.map((column) => {
+      const autoFill = autoFillFields.has(column.name);
+      if (operation === "ADD") {
+        const next = Object.hasOwn(content, column.name)
+          ? cellForValue(content[column.name]!)
+          : { state: "unsubmitted" as const };
+        return { field: column.name, original: { state: "missing" }, next, changed: true, autoFill };
+      }
+
+      const originalCell = cellForValue(original?.[column.name] ?? null);
+      if (operation === "DELETE") {
+        return { field: column.name, original: originalCell, next: { state: "missing" }, changed: true, autoFill: false };
+      }
+
+      const next = autoFill
+        ? { state: "unsubmitted" as const }
+        : Object.hasOwn(content, column.name)
+          ? cellForValue(content[column.name]!)
+          : originalCell;
+      return { field: column.name, original: originalCell, next, changed: !cellsEqual(originalCell, next), autoFill };
+    }),
+  };
+}
+
 export const queryOperatorLabels: Record<QueryOperator, string> = {
   exact: "exact",
   contains: "contains",

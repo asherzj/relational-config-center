@@ -1,9 +1,11 @@
 import {
+  managedDataAddResponseDtoSchema,
+  managedDataMutationResponseDtoSchema,
   managedDataQueryResponseDtoSchema,
   type ManagedDataQueryResponseDto,
 } from "./contracts";
 import { request } from "./client";
-import type { ManagedDataResult, QuerySpec } from "../features/managed-data/model";
+import type { ManagedDataResult, MutationContent, QuerySpec } from "../features/managed-data/model";
 
 function fromDto(dto: ManagedDataQueryResponseDto): ManagedDataResult {
   return {
@@ -30,4 +32,27 @@ export async function queryManagedTable(tableName: string, querySpec: QuerySpec)
     body: JSON.stringify(payload),
     schema: managedDataQueryResponseDtoSchema,
   }));
+}
+
+export function addManagedRow(tableName: string, content: MutationContent) {
+  return request(`/api/v1/tables/${encodeURIComponent(tableName)}/rows`, {
+    method: "POST",
+    body: JSON.stringify({ content }),
+    schema: managedDataAddResponseDtoSchema,
+  });
+}
+
+export function modifyManagedRow(tableName: string, id: string, content: MutationContent) {
+  return request(`/api/v1/tables/${encodeURIComponent(tableName)}/rows/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ content }),
+    schema: managedDataMutationResponseDtoSchema,
+  });
+}
+
+export function deleteManagedRow(tableName: string, id: string) {
+  return request(`/api/v1/tables/${encodeURIComponent(tableName)}/rows/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    schema: managedDataMutationResponseDtoSchema,
+  });
 }

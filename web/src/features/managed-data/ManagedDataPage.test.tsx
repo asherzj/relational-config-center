@@ -270,7 +270,6 @@ describe("配置内容管理页面", () => {
     await user.click(screen.getByRole("button", { name: "清空" }));
     await vi.waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/query"))).toHaveLength(4));
     expect(JSON.parse(String(fetchMock.mock.calls.at(-1)?.[1]?.body))).toEqual({ conditions: [], page_number: 1 });
-    expect(screen.queryByRole("button", { name: /新增|修改|删除/ })).not.toBeInTheDocument();
   });
 
   it("即使 Query Spec 已经为空，清空也会重新查询", async () => {
