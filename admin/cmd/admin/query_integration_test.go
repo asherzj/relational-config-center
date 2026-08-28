@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"sync"
 	"testing"
@@ -19,6 +20,24 @@ import (
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
 	httpinterface "github.com/asherzj/relational-config-center/admin/internal/interfaces/http"
 )
+
+func TestQueryPolicyQuotesManagedTableNameAsIdentifier(t *testing.T) {
+	app := startIntegrationApplication(t,
+		"../../../deploy/mysql/init/001-schema.sql",
+		"testdata/005-query-policy-fixture.sql",
+	)
+	tableName := "query policy items"
+	queryCode, mutationCode := createPolicyDefinitions(t, app, "quoted_table", queryPolicyFixture{}, mutationPolicyFixture{}, 1)
+	if err := app.mysql.Create(t.Context(), domain.TablePolicy{TableName: tableName, QueryPolicyCode: queryCode, MutationPolicyCode: mutationCode}, "integration-test"); err != nil {
+		t.Fatalf("seed quoted Table Policy assignment: %v", err)
+	}
+	setPolicyAssignmentEnabled(t, app, tableName, true)
+
+	response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/"+url.PathEscape(tableName)+"/query", `{
+		"order":{"field":"id","direction":"ASC"}
+	}`)
+	assertQueryIDs(t, response, "1")
+}
 
 func TestQueryPolicyContainsTreatsWildcardsAndEscapeCharacterLiterally(t *testing.T) {
 	app := startIntegrationApplication(t,

@@ -11,11 +11,11 @@ export function LoadingState({ label = "正在加载…" }: { label?: string }) 
   );
 }
 
-export function EmptyState() {
+export function EmptyState({ entity = "查询策略" }: { entity?: string }) {
   return (
     <div className="feedback-state">
       <Search aria-hidden="true" />
-      <strong>还没有查询策略</strong>
+      <strong>还没有{entity}</strong>
       <span>创建第一份草稿后，它会出现在这里。</span>
     </div>
   );

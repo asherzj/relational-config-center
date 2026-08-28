@@ -662,9 +662,14 @@ func TestMutationPolicyPatchAutoFillUsesModifySlotsAndRejectsManagedInput(t *tes
 		ModifyOperatorField: stringPointer("creator"), ModifyTimeField: stringPointer("occurred_at"),
 	})
 	added := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/mutation_auto_fill_items/rows", `{
-		"content":{"code":"patch-auto-fill","creator":"initial","occurred_at":"2000-01-01 00:00:00","status":"initial","quantity":"1"}
+		"content":{"code":"patch-auto-fill","status":"initial","quantity":"1"}
 	}`)
 	id := mutationResponseID(t, added)
+	created := queryMutationTableRow(t, app, "mutation_auto_fill_items", "patch-auto-fill")
+	assertMutationString(t, created, "creator", "integration-test")
+	if created["occurred_at"] == nil {
+		t.Fatalf("ADD did not apply configured Modify Auto Fill slots: %#v", created)
+	}
 
 	before := time.Now().UTC().Add(-time.Second)
 	modified := policyIntegrationRequest(app, http.MethodPatch, "/api/v1/tables/mutation_auto_fill_items/rows/"+id, `{

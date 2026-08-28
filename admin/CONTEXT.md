@@ -51,3 +51,7 @@ _Avoid_: Live policy lookup
 **Query Spec**:
 A domain-level declaration of a requested single-table query against one Managed Table, before storage-specific validation and compilation.
 _Avoid_: SQL, GORM query
+
+**Change Set**:
+A complete field-by-field comparison of one pending ADD, MODIFY, or DELETE against a Managed Table row, used for final confirmation before the change is executed.
+_Avoid_: Release, revision, audit record

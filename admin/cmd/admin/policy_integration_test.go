@@ -292,10 +292,8 @@ func TestQueryPolicyHTTPLifecyclePersistsAndFailsClosed(t *testing.T) {
 	assertIntegrationErrorCode(t, unknownType, http.StatusUnprocessableEntity, "unknown_policy_type")
 
 	unsafeOrder := `{"code":"unsafe_order_v1","name":"Unsafe order","description":"","type_code":"page_query","default_order_field":"id;drop","default_order_direction":"DESC","default_page_size":20,"max_page_size":200}`
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies", unsafeOrder); response.Code != http.StatusCreated {
-		t.Fatalf("create unsafe-order Draft: HTTP %d %s", response.Code, response.Body.String())
-	}
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies/unsafe_order_v1/activate", ""), http.StatusUnprocessableEntity, "invalid_query_policy_rules")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies", unsafeOrder), http.StatusUnprocessableEntity, "invalid_query_policy_rules")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodGet, "/api/v1/query-policies/unsafe_order_v1", ""), http.StatusNotFound, "query_policy_not_found")
 
 	invalidPersistentScalars := []struct {
 		code      string
@@ -535,20 +533,17 @@ func TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed(t *tes
 	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies", unknownType), http.StatusConflict, "mutation_policy_exists")
 
 	invalidRules := []struct {
-		code      string
-		body      string
-		wantField string
+		code string
+		body string
 	}{
-		{code: "unsafe_auto_fill_v1", body: mutationPolicyPayload("unsafe_auto_fill_v1", "single_table_mutation", true, true, false, `"creator;drop"`, `"created_at"`, `"modifier"`, `"updated_at"`), wantField: "unsafe"},
-		{code: "duplicate_auto_fill_v1", body: mutationPolicyPayload("duplicate_auto_fill_v1", "single_table_mutation", true, true, false, `"creator"`, `"created_at"`, `"creator"`, `"updated_at"`), wantField: "duplicate"},
-		{code: "create_without_add_v1", body: mutationPolicyPayload("create_without_add_v1", "single_table_mutation", false, true, false, `"creator"`, `null`, `"modifier"`, `"updated_at"`), wantField: "create"},
-		{code: "modify_without_operation_v1", body: mutationPolicyPayload("modify_without_operation_v1", "single_table_mutation", false, false, false, `null`, `null`, `"modifier"`, `"updated_at"`), wantField: "modify"},
+		{code: "unsafe_auto_fill_v1", body: mutationPolicyPayload("unsafe_auto_fill_v1", "single_table_mutation", true, true, false, `"creator;drop"`, `"created_at"`, `"modifier"`, `"updated_at"`)},
+		{code: "duplicate_auto_fill_v1", body: mutationPolicyPayload("duplicate_auto_fill_v1", "single_table_mutation", true, true, false, `"creator"`, `"created_at"`, `"creator"`, `"updated_at"`)},
+		{code: "create_without_add_v1", body: mutationPolicyPayload("create_without_add_v1", "single_table_mutation", false, true, false, `"creator"`, `null`, `"modifier"`, `"updated_at"`)},
+		{code: "modify_without_operation_v1", body: mutationPolicyPayload("modify_without_operation_v1", "single_table_mutation", false, false, false, `null`, `null`, `"modifier"`, `"updated_at"`)},
 	}
 	for _, test := range invalidRules {
-		if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies", test.body); response.Code != http.StatusCreated {
-			t.Fatalf("create %s Draft: HTTP %d %s", test.wantField, response.Code, response.Body.String())
-		}
-		assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies/"+test.code+"/activate", ""), http.StatusUnprocessableEntity, "invalid_mutation_policy_rules")
+		assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies", test.body), http.StatusUnprocessableEntity, "invalid_mutation_policy_rules")
+		assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodGet, "/api/v1/mutation-policies/"+test.code, ""), http.StatusNotFound, "mutation_policy_not_found")
 	}
 
 	validDraft := mutationPolicyPayload("standard_mutation_v1", "single_table_mutation", true, true, false, `"creator"`, `"created_at"`, `"modifier"`, `"updated_at"`)

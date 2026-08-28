@@ -86,6 +86,7 @@ func TestQueryPolicyDraftRejectsValuesBlockedByCatalogScalarConstraints(t *testi
 		name   string
 		change func(*PutQueryPolicy)
 	}{
+		{name: "unsafe order field", change: func(policy *PutQueryPolicy) { policy.DefaultOrderField = "id;drop" }},
 		{name: "invalid direction", change: func(policy *PutQueryPolicy) { policy.DefaultOrderDirection = "desc" }},
 		{name: "zero default size", change: func(policy *PutQueryPolicy) { policy.DefaultPageSize = 0 }},
 		{name: "zero max size", change: func(policy *PutQueryPolicy) { policy.MaxPageSize = 0 }},
