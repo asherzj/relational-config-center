@@ -11,7 +11,7 @@ fmt:
 
 test:
 	@for module in $(GO_MODULES); do \
-		(cd $$module && go test ./...); \
+		(cd $$module && go test ./...) || exit $$?; \
 	done
 
 test-integration:
