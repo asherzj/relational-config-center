@@ -14,6 +14,7 @@ Relational Configuration Center 是一个面向实体、字段和关系建模的
 ## 环境要求
 
 - Go 1.27 或更高版本
+- Node.js 24.19.0 与 pnpm 10.28.2（Web）
 - MySQL 8.4 LTS，或可运行 Docker Compose 的 Docker 环境
 
 ## 本地运行
@@ -53,12 +54,25 @@ go run ./admin/cmd/admin
 ## 测试
 
 ```bash
+cd web
+pnpm install --frozen-lockfile
+pnpm test:run
+pnpm typecheck
+pnpm build
+
+cd ..
 make test
 make build
 make test-integration
 ```
 
-集成测试使用 Testcontainers 和真实 MySQL 8.4；本机没有可用 Docker provider 时会明确跳过，不会以数据库 mock 替代。
+集成测试使用 Testcontainers 和真实 MySQL 8.4；`make test-integration` 禁用 Go 测试缓存。本机没有可用 Docker provider 时测试会明确跳过，不会以数据库 mock 替代；持续集成会先执行 Docker 健康检查，因此 Docker 不可用时整个检查失败，不会跳过后假绿。
+
+## 持续集成
+
+GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行三个稳定检查：`Web`、`Go unit and build`、`MySQL 8.4 integration`。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
+
+当前私有仓库套餐不支持 branch protection 或 rulesets，因此这些检查会可靠地报告红绿状态，但尚不能阻止维护者绕过检查直接写入 `main`。升级套餐或调整仓库可见性并配置 required checks 后，三个稳定检查名可直接作为不可绕过的合并门禁。
 
 ## 项目结构
 

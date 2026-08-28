@@ -22,6 +22,8 @@
 
 ## 本地开发
 
+Web 固定使用 Node.js 24.19.0 与 pnpm 10.28.2；`package.json` 同时声明两者，确保本地开发与持续集成使用相同工具链。
+
 Admin 默认运行在 `http://127.0.0.1:8080`。复制环境变量示例并填入部署级 Token：
 
 ```bash
@@ -36,6 +38,7 @@ pnpm dev
 ## 验证
 
 ```bash
+pnpm install --frozen-lockfile
 pnpm typecheck
 pnpm test:run
 pnpm build

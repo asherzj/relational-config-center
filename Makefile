@@ -15,13 +15,13 @@ test:
 	done
 
 test-integration:
-	@cd admin && go test -tags=integration ./...
+	@cd admin && go test -count=1 -tags=integration ./...
 
 build:
 	@for module in $(GO_LIBRARY_MODULES); do \
-		(cd $$module && go build ./...); \
+		(cd $$module && go build ./...) || exit $$?; \
 	done
 	@for module in $(GO_COMMAND_MODULES); do \
-		mkdir -p bin/$$module; \
-		(cd $$module && go build -o ../bin/$$module/$$module ./cmd/$$module); \
+		mkdir -p bin/$$module || exit $$?; \
+		(cd $$module && go build -o ../bin/$$module/$$module ./cmd/$$module) || exit $$?; \
 	done
