@@ -43,33 +43,33 @@ export function QueryPolicyDrawer({ code, onRequestCommand }: Props) {
   const serverError = create.error || replace.error || metadata.error;
 
   const title = useMemo(() => {
-    if (mode === "create") return "新建查询策略草稿";
-    if (mode === "replace") return "编辑查询策略草稿";
-    if (mode === "metadata") return "更新查询策略信息";
-    return "查询策略详情";
+    if (mode === "create") return "新建查询规则草稿";
+    if (mode === "replace") return "编辑查询规则草稿";
+    if (mode === "metadata") return "更新查询规则信息";
+    return "查询规则详情";
   }, [mode]);
 
   const submit = (value: QueryPolicyDraft | QueryPolicyMetadata) => {
     if (mode === "create") {
       create.mutate(value as QueryPolicyDraft, {
         onSuccess(created) {
-          showToast("查询策略草稿已创建");
+          showToast("查询规则草稿已创建");
           navigate(`/platform/query-policies/${encodeURIComponent(created.code)}`);
         },
       });
     } else if (mode === "replace" && code) {
       replace.mutate({ code, draft: value as QueryPolicyDraft }, {
-        onSuccess() { showToast("查询策略草稿已更新"); navigate(`/platform/query-policies/${encodeURIComponent(code)}`); },
+        onSuccess() { showToast("查询规则草稿已更新"); navigate(`/platform/query-policies/${encodeURIComponent(code)}`); },
       });
     } else if (mode === "metadata" && code) {
       metadata.mutate({ code, metadata: value as QueryPolicyMetadata }, {
-        onSuccess() { showToast("查询策略显示信息已更新"); navigate(`/platform/query-policies/${encodeURIComponent(code)}`); },
+        onSuccess() { showToast("查询规则显示信息已更新"); navigate(`/platform/query-policies/${encodeURIComponent(code)}`); },
       });
     }
   };
 
   let content: ReactNode;
-  if (!creating && detail.isPending) content = <LoadingState label="正在读取查询策略…" />;
+  if (!creating && detail.isPending) content = <LoadingState label="正在读取查询规则…" />;
   else if (!creating && detail.isError) content = <ErrorState error={detail.error} onRetry={() => void detail.refetch()} />;
   else content = (
     <>
@@ -109,5 +109,5 @@ export function QueryPolicyDrawer({ code, onRequestCommand }: Props) {
     );
   }
 
-  return <Drawer open={Boolean(code)} title={title} eyebrow="查询策略" onClose={close} footer={footer}>{content}</Drawer>;
+  return <Drawer open={Boolean(code)} title={title} eyebrow="查询规则" onClose={close} footer={footer}>{content}</Drawer>;
 }

@@ -100,8 +100,8 @@ describe("Managed Data mutation capability", () => {
     await vi.waitFor(() => expect(add).toBeEnabled());
     expect(screen.getByRole("button", { name: "修改记录 41" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "删除记录 41" })).toBeDisabled();
-    expect(screen.getByText("MODIFY 未由当前 Mutation Policy 授权")).toBeVisible();
-    expect(screen.getByText("DELETE 未由当前 Mutation Policy 授权")).toBeVisible();
+    expect(screen.getByText("MODIFY 未由当前变更规则授权")).toBeVisible();
+    expect(screen.getByText("DELETE 未由当前变更规则授权")).toBeVisible();
 
     await user.click(add);
     const editor = screen.getByRole("dialog", { name: "新增 notification_templates 记录" });

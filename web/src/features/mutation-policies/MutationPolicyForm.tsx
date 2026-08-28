@@ -104,12 +104,12 @@ export function MutationPolicyForm({ mode, policy, typeCodes, serverError, onSub
       {presentedError && <div className="inline-alert" role="alert"><strong>{presentedError.message}</strong>{presentedError.requestId && <span>请求编号：{presentedError.requestId}</span>}</div>}
       {policy && <span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span>}
 
-      <label className="field field-wide"><span>策略编码 · 创建后不可变</span><input value={draft.code} onChange={(event) => update("code", event.target.value)} disabled={mode !== "create"} placeholder="standard_mutation_v2" {...inputProps("code")} />{errors.code && <small id="code-error" className="field-error">{errors.code}</small>}</label>
+      <label className="field field-wide"><span>规则编码 · 创建后不可变</span><input value={draft.code} onChange={(event) => update("code", event.target.value)} disabled={mode !== "create"} placeholder="standard_mutation_v2" {...inputProps("code")} />{errors.code && <small id="code-error" className="field-error">{errors.code}</small>}</label>
       <label className="field field-wide"><span>显示名称</span><input value={draft.name} onChange={(event) => update("name", event.target.value)} disabled={fullyLocked} {...inputProps("name")} />{errors.name && <small id="name-error" className="field-error">{errors.name}</small>}</label>
       <label className="field field-wide"><span>描述</span><textarea value={draft.description} onChange={(event) => update("description", event.target.value)} disabled={fullyLocked} rows={4} {...inputProps("description")} />{errors.description && <small id="description-error" className="field-error">{errors.description}</small>}</label>
 
       <div className="form-panel">
-        <label className="field field-wide"><span>策略类型</span><select value={draft.typeCode} onChange={(event) => update("typeCode", event.target.value)} disabled={executionLocked} {...inputProps("typeCode")}>{options.map((type) => <option key={type} value={type}>{type}</option>)}</select>{errors.typeCode && <small id="typeCode-error" className="field-error">{errors.typeCode}</small>}</label>
+        <label className="field field-wide"><span>规则类型</span><select value={draft.typeCode} onChange={(event) => update("typeCode", event.target.value)} disabled={executionLocked} {...inputProps("typeCode")}>{options.map((type) => <option key={type} value={type}>{type}</option>)}</select>{errors.typeCode && <small id="typeCode-error" className="field-error">{errors.typeCode}</small>}</label>
         <section className="mutation-form-section" aria-labelledby="operation-heading">
           <h3 id="operation-heading">操作授权</h3>
           <div className="capability-grid">
@@ -134,7 +134,7 @@ export function MutationPolicyForm({ mode, policy, typeCodes, serverError, onSub
         </section>
       </div>
 
-      {policy && policy.status !== "DRAFT" && <div className="form-note"><Info size={17} /><span>已激活或已弃用策略的授权与 Auto Fill 字段已锁定；只能更新名称和描述。</span></div>}
+      {policy && policy.status !== "DRAFT" && <div className="form-note"><Info size={17} /><span>已激活或已弃用规则的授权与 Auto Fill 字段已锁定；只能更新名称和描述。</span></div>}
       {policy && <dl className="audit-grid"><div><dt>创建人</dt><dd>{policy.creator}</dd></div><div><dt>创建时间</dt><dd>{formatTimestamp(policy.createdAt)}</dd></div><div><dt>修改人</dt><dd>{policy.modifier}</dd></div><div><dt>修改时间</dt><dd>{formatTimestamp(policy.modifiedAt)}</dd></div></dl>}
     </form>
   );

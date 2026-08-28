@@ -33,7 +33,7 @@ export const mutationPolicyTypeListDtoSchema = z.object({
     code: z.string(),
     operations: z.array(mutationOperationSchema).length(3).refine(
       (operations) => new Set(operations).size === operations.length,
-      { message: "Mutation Policy Type operations must be unique" },
+      { message: "变更规则类型的操作不得重复" },
     ),
   })),
 });

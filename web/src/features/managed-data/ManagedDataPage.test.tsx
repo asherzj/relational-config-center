@@ -38,7 +38,7 @@ function renderPage(queryRetry: boolean | number = false) {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("配置内容管理页面", () => {
-  it("没有 enabled Table Policy 时显示明确空状态且不调用 Managed Data API", async () => {
+  it("没有已启用表规则时显示明确空状态且不调用 Managed Data API", async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/table-policies")) return json({ policies: [{ ...enabledPolicy, enabled: false }] });
@@ -49,7 +49,7 @@ describe("配置内容管理页面", () => {
     renderPage();
 
     expect(await screen.findByText("没有可用的 Managed Table")).toBeVisible();
-    expect(screen.getByText("请先为真实数据库表创建并启用完整的 Table Policy。")).toBeVisible();
+    expect(screen.getByText("请先为真实数据库表创建并启用完整的表规则。")).toBeVisible();
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/tables/"))).toBe(false);
   });
 
@@ -311,7 +311,7 @@ describe("配置内容管理页面", () => {
   });
 
   it.each([
-    ["invalid_policy_snapshot", "当前 Policy Snapshot 无法执行", "req-policy-27"],
+    ["invalid_policy_snapshot", "当前规则快照无法执行", "req-policy-27"],
     ["incompatible_table", "表结构不符合 Managed Table 要求", "req-schema-27"],
   ])("呈现 %s 稳定错误和 Request ID", async (code, expectedMessage, requestId) => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {

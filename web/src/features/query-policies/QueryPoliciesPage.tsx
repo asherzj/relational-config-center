@@ -27,19 +27,19 @@ type PendingCommand = { command: Command; code: string } | null;
 
 const commandContent: Record<Command, { title: string; description: string; label: string; destructive?: boolean }> = {
   activate: {
-    title: "激活查询策略？",
-    description: "激活后执行规则将不可修改，并可以分配给新的表策略。",
+    title: "激活查询规则？",
+    description: "激活后执行约束将不可修改，并可以分配给新的表规则。",
     label: "确认激活",
   },
   deprecate: {
-    title: "弃用查询策略？",
-    description: "既有表策略仍可继续使用，但新的表策略不能再选择它。",
+    title: "弃用查询规则？",
+    description: "既有表规则仍可继续使用，但新的表规则不能再选择它。",
     label: "确认弃用",
     destructive: true,
   },
   delete: {
-    title: "删除查询策略草稿？",
-    description: "删除后无法恢复。只有草稿状态的查询策略可以删除。",
+    title: "删除查询规则草稿？",
+    description: "删除后无法恢复。只有草稿状态的查询规则可以删除。",
     label: "确认删除",
     destructive: true,
   },
@@ -78,7 +78,7 @@ export function QueryPoliciesPage() {
     if (!pendingCommand) return;
     const { command, code: targetCode } = pendingCommand;
     const onSuccess = () => {
-      showToast(command === "activate" ? "查询策略已激活" : command === "deprecate" ? "查询策略已弃用" : "查询策略草稿已删除");
+      showToast(command === "activate" ? "查询规则已激活" : command === "deprecate" ? "查询规则已弃用" : "查询规则草稿已删除");
       setPendingCommand(null);
       if (command === "delete" && code === targetCode) navigate("/platform/query-policies");
     };
@@ -99,7 +99,7 @@ export function QueryPoliciesPage() {
     <main className="workspace">
       <div className="page-heading">
         <div>
-          <h1>查询策略定义</h1>
+          <h1>查询规则定义</h1>
           <p>创建可复用、版本化的查询规则；草稿验证通过后才能激活并分配。</p>
         </div>
         <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/query-policies/new")} disabled={types.isPending || types.isError || !supportedTypes.length}>
@@ -107,8 +107,8 @@ export function QueryPoliciesPage() {
         </Button>
       </div>
 
-      <section className="type-registry" aria-label="查询策略类型注册表">
-        <span><FileCode2 size={18} />已注册策略类型</span>
+      <section className="type-registry" aria-label="查询规则类型注册表">
+        <span><FileCode2 size={18} />已注册规则类型</span>
         {types.isPending && <small>正在读取…</small>}
         {types.isError && <small className="danger-color">类型注册表不可用</small>}
         {types.data?.map((type) => (
@@ -117,13 +117,13 @@ export function QueryPoliciesPage() {
         <small className="registry-note">显式、代码所有 · 无运行时插件</small>
       </section>
 
-      <section className="catalog" aria-label="查询策略目录">
-        {policies.isPending ? <LoadingState label="正在读取查询策略目录…" /> : policies.isError ? (
+      <section className="catalog" aria-label="查询规则目录">
+        {policies.isPending ? <LoadingState label="正在读取查询规则目录…" /> : policies.isError ? (
           <ErrorState error={policies.error} onRetry={() => void policies.refetch()} />
         ) : !policies.data.length ? <EmptyState /> : (
           <div className="table-scroll">
             <table className="policy-table">
-              <thead><tr><th>策略编码</th><th>名称</th><th>类型</th><th>默认排序</th><th>默认 / 最大页</th><th>状态</th><th>修改人</th><th>修改时间</th><th>操作</th></tr></thead>
+              <thead><tr><th>规则编码</th><th>名称</th><th>类型</th><th>默认排序</th><th>默认 / 最大页</th><th>状态</th><th>修改人</th><th>修改时间</th><th>操作</th></tr></thead>
               <tbody>
                 {policies.data.map((policy) => (
                   <tr key={policy.code} className={code === policy.code ? "selected-row" : ""}>
@@ -143,8 +143,8 @@ export function QueryPoliciesPage() {
           </div>
         )}
         <footer className="catalog-footer">
-          <span>共 {policies.data?.length ?? 0} 个查询策略</span>
-          <span>策略目录 · 生命周期受保护</span>
+          <span>共 {policies.data?.length ?? 0} 个查询规则</span>
+          <span>规则目录 · 生命周期受保护</span>
           <Button className="catalog-refresh" variant="ghost" icon={<RefreshCw size={15} />} onClick={() => void policies.refetch()} disabled={policies.isFetching}>刷新</Button>
         </footer>
       </section>

@@ -55,8 +55,8 @@ function renderPage(initialEntry = "/platform/mutation-policies") {
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe("变更策略页面", () => {
-  it("在空目录中使用 Mutation Policy 的领域文案", async () => {
+describe("变更规则页面", () => {
+  it("在空目录中使用变更规则的领域文案", async () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/mutation-policy-types")) {
@@ -67,8 +67,8 @@ describe("变更策略页面", () => {
     }));
 
     renderPage();
-    expect(await screen.findByText("还没有变更策略")).toBeVisible();
-    expect(screen.queryByText("还没有查询策略")).not.toBeInTheDocument();
+    expect(await screen.findByText("还没有变更规则")).toBeVisible();
+    expect(screen.queryByText("还没有查询规则")).not.toBeInTheDocument();
   });
 
   it("is a formal route that renders Type operations and the real catalog", async () => {
@@ -82,8 +82,8 @@ describe("变更策略页面", () => {
     }));
 
     renderPage();
-    expect(await screen.findByRole("heading", { name: "变更策略定义" })).toBeVisible();
-    expect(await screen.findByRole("link", { name: "变更策略定义" })).toHaveClass("active");
+    expect(await screen.findByRole("heading", { name: "变更规则定义" })).toBeVisible();
+    expect(await screen.findByRole("link", { name: "变更规则定义" })).toHaveClass("active");
     expect(screen.getAllByText("single_table_mutation")).toHaveLength(2);
     expect(screen.getByText("ADD · MODIFY · DELETE")).toBeVisible();
     expect(await screen.findByText("standard_mutation_v1")).toBeVisible();
@@ -101,7 +101,7 @@ describe("变更策略页面", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     renderPage("/platform/mutation-policies/standard_mutation_v1");
-    expect(await screen.findByRole("heading", { name: "变更策略详情" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "变更规则详情" })).toBeVisible();
     expect(await screen.findByDisplayValue("标准单表变更")).toBeDisabled();
     expect(screen.getByDisplayValue("creator")).toBeDisabled();
     expect(screen.getByDisplayValue("updated_at")).toBeDisabled();
@@ -122,15 +122,15 @@ describe("变更策略页面", () => {
     const user = userEvent.setup();
 
     renderPage("/platform/mutation-policies/new");
-    expect(await screen.findByRole("heading", { name: "新建变更策略草稿" })).toBeVisible();
-    await user.type(screen.getByLabelText(/策略编码/), "audit_mutation_v2");
+    expect(await screen.findByRole("heading", { name: "新建变更规则草稿" })).toBeVisible();
+    const createButton = screen.getByRole("button", { name: "创建草稿" });
+    await waitFor(() => expect(createButton).toBeEnabled());
+    await user.type(screen.getByLabelText(/规则编码/), "audit_mutation_v2");
     await user.type(screen.getByLabelText("显示名称"), "审计字段变更");
     await user.click(screen.getByRole("checkbox", { name: /ADD/ }));
     await user.click(screen.getByRole("checkbox", { name: /MODIFY/ }));
     await user.type(screen.getByLabelText("Create Operator Field"), "creator");
     await user.type(screen.getByLabelText("Modify Time Field"), "updated_at");
-    const createButton = screen.getByRole("button", { name: "创建草稿" });
-    await waitFor(() => expect(createButton).toBeEnabled());
     await user.click(createButton);
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
@@ -164,7 +164,7 @@ describe("变更策略页面", () => {
     const user = userEvent.setup();
 
     renderPage("/platform/mutation-policies/new");
-    await user.type(await screen.findByLabelText(/策略编码/), "invalid_mutation_v1");
+    await user.type(await screen.findByLabelText(/规则编码/), "invalid_mutation_v1");
     await user.type(screen.getByLabelText("显示名称"), "非法草稿");
     await user.type(screen.getByLabelText("Create Operator Field"), "id");
     await user.type(screen.getByLabelText("Create Time Field"), "unsafe;field");
@@ -227,7 +227,7 @@ describe("变更策略页面", () => {
 
     renderPage("/platform/mutation-policies/editable_mutation_v2");
     await user.click((await screen.findAllByRole("button", { name: "激活" })).at(-1)!);
-    expect(screen.getByRole("alertdialog", { name: "激活变更策略？" })).toBeVisible();
+    expect(screen.getByRole("alertdialog", { name: "激活变更规则？" })).toBeVisible();
     expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/activate"))).toBe(false);
     await user.click(screen.getByRole("button", { name: "确认激活" }));
 
@@ -235,7 +235,7 @@ describe("变更策略页面", () => {
       "/api/v1/mutation-policies/editable_mutation_v2/activate",
       expect.objectContaining({ method: "POST" }),
     ));
-    expect(await screen.findByText("变更策略已激活")).toBeVisible();
+    expect(await screen.findByText("变更规则已激活")).toBeVisible();
   });
 
   it("replaces a Draft with the complete execution DTO", async () => {
@@ -296,8 +296,8 @@ describe("变更策略页面", () => {
   });
 
   it.each([
-    ["弃用", "弃用变更策略？", "确认弃用", "deprecate", activePolicy],
-    ["删除", "删除变更策略草稿？", "确认删除", "", draftPolicy],
+    ["弃用", "弃用变更规则？", "确认弃用", "deprecate", activePolicy],
+    ["删除", "删除变更规则草稿？", "确认删除", "", draftPolicy],
   ])("confirms %s before issuing its lifecycle command", async (action, dialogTitle, confirmLabel, suffix, policy) => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
@@ -319,7 +319,7 @@ describe("变更策略页面", () => {
       const endpoint = suffix ? `/mutation-policies/${policy.code}/${suffix}` : `/mutation-policies/${policy.code}`;
       return String(url).endsWith(endpoint) && init?.method === (suffix ? "POST" : "DELETE");
     })).toBe(true));
-    expect(await screen.findByText(action === "弃用" ? "变更策略已弃用" : "变更策略草稿已删除")).toBeVisible();
+    expect(await screen.findByText(action === "弃用" ? "变更规则已弃用" : "变更规则草稿已删除")).toBeVisible();
     await waitFor(() => expect(fetchMock.mock.calls.filter(([url, init]) => String(url).endsWith("/mutation-policies") && !init?.method).length).toBeGreaterThanOrEqual(2));
   });
 

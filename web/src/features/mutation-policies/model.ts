@@ -66,12 +66,12 @@ export function validateDraft(draft: MutationPolicyDraft): DraftErrors {
   if (!/^[a-z][a-z0-9_]*_v[1-9][0-9]*$/.test(draft.code)) {
     errors.code = "使用小写字母、数字和下划线，并以 _v1 这类版本号结尾。";
   } else if (/^(mysql|mariadb|postgres|postgresql|sqlite|oracle|sqlserver|mongodb|gorm|sql)_/.test(draft.code)) {
-    errors.code = "策略编码不能包含技术实现名称。";
+    errors.code = "规则编码不能包含技术实现名称。";
   }
   if (!draft.name.trim()) errors.name = "请输入显示名称。";
   else if ([...draft.name.trim()].length > 100) errors.name = "显示名称不能超过 100 个字符。";
   if ([...draft.description.trim()].length > 500) errors.description = "描述不能超过 500 个字符。";
-  if (!supportedMutationPolicyTypes.has(draft.typeCode)) errors.typeCode = "Web 尚不支持编辑该策略类型。";
+  if (!supportedMutationPolicyTypes.has(draft.typeCode)) errors.typeCode = "Web 尚不支持编辑该规则类型。";
 
   const targetKeys = ["createOperatorField", "createTimeField", "modifyOperatorField", "modifyTimeField"] as const;
   const seen = new Map<string, typeof targetKeys[number]>();

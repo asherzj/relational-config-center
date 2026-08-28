@@ -12,13 +12,13 @@ _Avoid_: key-value configuration, configuration file, arbitrary business data
 A relational table exposed through Admin because it has an active Table Policy.
 _Avoid_: arbitrary table, raw table
 
-**Table Policy**:
+**Table Policy（表规则）**:
 Runtime configuration maintained by a user after deployment that defines how a Managed Table may be queried or changed, including visible fields, permitted operators, sorting, and mutations. Changing a Table Policy does not require rebuilding or restarting Admin.
-_Avoid_: table config, database permission
+_Avoid_: table config, database permission, 表策略
 
-**Policy Catalog**:
+**Policy Catalog（规则目录）**:
 The built-in collection of Table Policies managed through dedicated Admin capabilities. It is not a Managed Table and cannot be queried or changed through the generic table API.
-_Avoid_: policy table resource, self-managed table
+_Avoid_: policy table resource, self-managed table, 策略目录
 
 **Query Specification**:
 A client-supplied, database-independent description of filters, sorting, and pagination that must be accepted by a Table Policy before execution.

@@ -56,13 +56,13 @@ let policies = [
 let queryPolicies = [
   { code: "standard_page_query_v1", name: "标准分页查询", description: "适用于多数配置表的默认分页规则", type_code: "page_query", default_order_field: "id", default_order_direction: "DESC", default_page_size: 20, max_page_size: 200, status: "ACTIVE", creator: "admin", modifier: "admin", gmt_created: "2026-08-22 09:12:08", gmt_modified: "2026-08-23 14:26:11" },
   { code: "compact_page_query_v1", name: "紧凑分页查询", description: "小页读取，用于高频浏览", type_code: "page_query", default_order_field: "id", default_order_direction: "DESC", default_page_size: 10, max_page_size: 50, status: "DRAFT", creator: "local-admin", modifier: "local-admin", gmt_created: "2026-08-24 10:08:31", gmt_modified: "2026-08-24 10:08:31" },
-  { code: "legacy_page_query_v1", name: "旧版分页查询", description: "仅供既有 Table Policy 继续执行", type_code: "page_query", default_order_field: "id", default_order_direction: "ASC", default_page_size: 20, max_page_size: 100, status: "DEPRECATED", creator: "admin", modifier: "admin", gmt_created: "2026-08-18 11:44:19", gmt_modified: "2026-08-24 09:01:26" },
+  { code: "legacy_page_query_v1", name: "旧版分页查询", description: "仅供既有表规则继续执行", type_code: "page_query", default_order_field: "id", default_order_direction: "ASC", default_page_size: 20, max_page_size: 100, status: "DEPRECATED", creator: "admin", modifier: "admin", gmt_created: "2026-08-18 11:44:19", gmt_modified: "2026-08-24 09:01:26" },
 ];
 
 let mutationPolicies = [
   { code: "standard_mutation_v1", name: "标准单表变更", description: "允许新增和修改，并维护标准审计字段", type_code: "single_table_mutation", allow_add: true, allow_modify: true, allow_delete: false, create_operator_field: "creator", create_time_field: "created_at", modify_operator_field: "modifier", modify_time_field: "updated_at", status: "ACTIVE", creator: "admin", modifier: "admin", gmt_created: "2026-08-22 09:18:08", gmt_modified: "2026-08-23 14:31:11" },
   { code: "readonly_mutation_v1", name: "只读变更规则", description: "显式禁止 ADD / MODIFY / DELETE", type_code: "single_table_mutation", allow_add: false, allow_modify: false, allow_delete: false, create_operator_field: null, create_time_field: null, modify_operator_field: null, modify_time_field: null, status: "DRAFT", creator: "local-admin", modifier: "local-admin", gmt_created: "2026-08-24 10:18:31", gmt_modified: "2026-08-24 10:18:31" },
-  { code: "legacy_mutation_v1", name: "旧版单表变更", description: "仅供既有 Table Policy 继续执行", type_code: "single_table_mutation", allow_add: true, allow_modify: true, allow_delete: true, create_operator_field: "creator", create_time_field: "created_at", modify_operator_field: "modifier", modify_time_field: "updated_at", status: "DEPRECATED", creator: "admin", modifier: "admin", gmt_created: "2026-08-18 11:48:19", gmt_modified: "2026-08-24 09:06:26" },
+  { code: "legacy_mutation_v1", name: "旧版单表变更", description: "仅供既有表规则继续执行", type_code: "single_table_mutation", allow_add: true, allow_modify: true, allow_delete: true, create_operator_field: "creator", create_time_field: "created_at", modify_operator_field: "modifier", modify_time_field: "updated_at", status: "DEPRECATED", creator: "admin", modifier: "admin", gmt_created: "2026-08-18 11:48:19", gmt_modified: "2026-08-24 09:06:26" },
 ];
 
 const emptyPolicyFilters = () => ({
@@ -169,9 +169,9 @@ function navigationMarkup() {
       <nav class="nav-groups">
         <section class="nav-group ${platformActive ? "expanded" : ""}">
           <button class="nav-primary" data-nav="query-policies" aria-expanded="${platformActive}"><span>${icon("layers")}平台管理</span>${icon("chevronDown", "nav-chevron")}</button>
-          <button class="nav-secondary ${state.page === "query-policies" ? "active" : ""}" data-page="query-policies">Query Policy 定义</button>
-          <button class="nav-secondary ${state.page === "mutation-policies" ? "active" : ""}" data-page="mutation-policies">Mutation Policy 定义</button>
-          <button class="nav-secondary ${state.page === "policies" ? "active" : ""}" data-page="policies">Table Policy 分配</button>
+          <button class="nav-secondary ${state.page === "query-policies" ? "active" : ""}" data-page="query-policies">查询规则定义</button>
+          <button class="nav-secondary ${state.page === "mutation-policies" ? "active" : ""}" data-page="mutation-policies">变更规则定义</button>
+          <button class="nav-secondary ${state.page === "policies" ? "active" : ""}" data-page="policies">表规则分配</button>
         </section>
         <section class="nav-group ${configActive ? "expanded" : ""}">
           <button class="nav-primary" data-nav="content" aria-expanded="${configActive}"><span>${icon("settings")}配置管理</span>${icon("chevronDown", "nav-chevron")}</button>
@@ -203,8 +203,8 @@ function capabilityMarkup(allowed) {
 }
 
 function policyRowsMarkup(visiblePolicies) {
-	if (state.policyQueryLoading) return `<tr><td colspan="9"><div class="loading-state policy-loading"><i></i><span>正在查询 Table Policy…</span></div></td></tr>`;
-	if (!visiblePolicies.length) return `<tr><td colspan="9"><div class="empty-state policy-empty">${icon("search")}<strong>没有匹配的 Table Policy</strong><span>调整查询条件后重试</span></div></td></tr>`;
+	if (state.policyQueryLoading) return `<tr><td colspan="9"><div class="loading-state policy-loading"><i></i><span>正在查询表规则…</span></div></td></tr>`;
+	if (!visiblePolicies.length) return `<tr><td colspan="9"><div class="empty-state policy-empty">${icon("search")}<strong>没有匹配的表规则</strong><span>调整查询条件后重试</span></div></td></tr>`;
   return visiblePolicies.map((policy) => {
     const selected = state.policyDrawer.open && state.policyDrawer.tableName === policy.table_name;
     return `
@@ -245,7 +245,7 @@ function policySelectOptions(values, currentValue) {
 function policyFilterMarkup() {
   const draft = state.policyFilterDraft;
   return `
-    <form class="policy-filter-surface" id="policy-filter-form" aria-label="配置策略查询条件">
+    <form class="policy-filter-surface" id="policy-filter-form" aria-label="表规则查询条件">
       <div class="policy-filter-grid">
         <label class="policy-filter-field"><span>表名</span><input data-policy-filter name="tableName" class="mono" value="${escapeHTML(draft.tableName)}" placeholder="请输入 table_name"></label>
         <label class="policy-filter-field range-field"><span>创建时间</span><span class="date-range"><input data-policy-filter name="createdFrom" type="date" value="${escapeHTML(draft.createdFrom)}" aria-label="创建开始日期"><i>—</i><input data-policy-filter name="createdTo" type="date" value="${escapeHTML(draft.createdTo)}" aria-label="创建结束日期"></span></label>
@@ -253,8 +253,8 @@ function policyFilterMarkup() {
         <label class="policy-filter-field"><span>创建人</span><select data-policy-filter name="creator"><option value="">全部</option>${policySelectOptions(policies.map((policy) => policy.creator), draft.creator)}</select></label>
         <label class="policy-filter-field"><span>修改人</span><select data-policy-filter name="modifier"><option value="">全部</option>${policySelectOptions(policies.map((policy) => policy.modifier), draft.modifier)}</select></label>
         <label class="policy-filter-field"><span>启用状态</span><select data-policy-filter name="enabled"><option value="">全部</option><option value="true" ${draft.enabled === "true" ? "selected" : ""}>启用</option><option value="false" ${draft.enabled === "false" ? "selected" : ""}>停用</option></select></label>
-		<label class="policy-filter-field"><span>Query Policy Code</span><select data-policy-filter name="queryPolicy"><option value="">全部</option>${policySelectOptions(policies.map((policy) => policy.query_policy_code), draft.queryPolicy)}</select></label>
-		<label class="policy-filter-field"><span>Mutation Policy Code</span><select data-policy-filter name="mutationPolicy"><option value="">全部</option>${policySelectOptions(policies.map((policy) => policy.mutation_policy_code), draft.mutationPolicy)}</select></label>
+		<label class="policy-filter-field"><span>查询规则编码</span><select data-policy-filter name="queryPolicy"><option value="">全部</option>${policySelectOptions(policies.map((policy) => policy.query_policy_code), draft.queryPolicy)}</select></label>
+		<label class="policy-filter-field"><span>变更规则编码</span><select data-policy-filter name="mutationPolicy"><option value="">全部</option>${policySelectOptions(policies.map((policy) => policy.mutation_policy_code), draft.mutationPolicy)}</select></label>
       </div>
       <footer class="policy-filter-actions"><button class="button primary" type="submit" ${state.policyQueryLoading ? "disabled" : ""}>${icon("search")}${state.policyQueryLoading ? "查询中…" : "查询"}</button><button class="button secondary" type="button" data-reset-policy-filters>${icon("refresh")}重置</button></footer>
     </form>`;
@@ -264,12 +264,12 @@ function policyPageMarkup() {
   const visiblePolicies = filteredPolicies();
   return `
     <main class="workspace">
-      <div class="page-head"><div><h1>Table Policy 分配</h1><p>为现有数据库表选择可复用的 Query Policy 与 Mutation Policy。</p></div></div>
+      <div class="page-head"><div><h1>表规则分配</h1><p>为现有数据库表选择可复用的查询规则与变更规则。</p></div></div>
       ${policyFilterMarkup()}
-      <div class="policy-list-toolbar"><button class="button primary" data-new-policy>${icon("plus")}新建策略</button><button class="button secondary" data-refresh>${icon("refresh")}刷新</button></div>
-      <section class="table-surface" aria-label="Table Policy Catalog">
+      <div class="policy-list-toolbar"><button class="button primary" data-new-policy>${icon("plus")}新建表规则</button><button class="button secondary" data-refresh>${icon("refresh")}刷新</button></div>
+      <section class="table-surface" aria-label="表规则目录">
 		<div class="table-scroll"><table class="data-table policy-table"><thead><tr><th>table_name</th><th>query_policy_code</th><th>mutation_policy_code</th><th>enabled</th><th>creator</th><th>modifier</th><th>gmt_created</th><th>gmt_modified</th><th>操作</th></tr></thead><tbody>${policyRowsMarkup(visiblePolicies)}</tbody></table></div>
-        <footer class="table-footer"><span>共 ${visiblePolicies.length} 条策略${visiblePolicies.length !== policies.length ? ` · 总计 ${policies.length} 条` : ""}</span><span>Policy Catalog · 实时读取</span></footer>
+        <footer class="table-footer"><span>共 ${visiblePolicies.length} 条表规则${visiblePolicies.length !== policies.length ? ` · 总计 ${policies.length} 条` : ""}</span><span>规则目录 · 实时读取</span></footer>
       </section>
     </main>${policyDrawerMarkup()}`;
 }
@@ -284,8 +284,8 @@ function policyDrawerMarkup() {
   const creating = state.policyDrawer.mode === "create";
   const policy = state.policyDrawer.mode === "create" ? null : policyFor(state.policyDrawer.tableName);
   const editing = state.policyDrawer.mode !== "view";
-  const title = state.policyDrawer.mode === "create" ? "新建 Table Policy" : state.policyDrawer.mode === "edit" ? "替换 Table Policy" : "Table Policy 详情";
-  const submitLabel = state.policyDrawer.mode === "create" ? "创建 Table Policy" : "保存替换";
+  const title = state.policyDrawer.mode === "create" ? "新建表规则" : state.policyDrawer.mode === "edit" ? "替换表规则" : "表规则详情";
+  const submitLabel = state.policyDrawer.mode === "create" ? "创建表规则" : "保存替换";
   const tableName = policy?.table_name || "";
   const enabled = creating ? false : policy?.enabled;
   const queryChoices = editing ? queryPolicies.filter((item) => item.status === "ACTIVE") : queryPolicies.filter((item) => item.code === policy?.query_policy_code);
@@ -299,12 +299,12 @@ function policyDrawerMarkup() {
         <label class="form-field"><span>table_name</span><input name="table_name" class="mono" value="${escapeHTML(tableName)}" ${creating ? "" : "readonly"} ${editing ? "" : "disabled"} placeholder="notification_templates" required></label>
         <label class="form-field"><span>query_policy_code</span><select name="query_policy_code" class="mono" ${editing ? "" : "disabled"}>${queryChoices.map((item) => `<option value="${item.code}" ${item.code === policy?.query_policy_code ? "selected" : ""}>${item.code} · ${escapeHTML(item.name)}</option>`).join("")}</select><small>${editing ? "仅显示 Active Query Policies" : policyStatusMarkup(queryPolicyFor(policy?.query_policy_code)?.status || "ACTIVE")}</small></label>
         <label class="form-field"><span>mutation_policy_code</span><select name="mutation_policy_code" class="mono" ${editing ? "" : "disabled"}>${mutationChoices.map((item) => `<option value="${item.code}" ${item.code === policy?.mutation_policy_code ? "selected" : ""}>${item.code} · ${escapeHTML(item.name)}</option>`).join("")}</select><small>${editing ? "仅显示 Active Mutation Policies" : policyStatusMarkup(mutationPolicyFor(policy?.mutation_policy_code)?.status || "ACTIVE")}</small></label>
-        <div class="form-note">${icon("info")}Query 参数、Mutation 权限与 Auto Fill 均来自所选 Policy 定义；Table Policy 不提供 JSON 或每表覆盖。</div>
+        <div class="form-note">${icon("info")}Query 参数、Mutation 权限与 Auto Fill 均来自所选规则定义；表规则不提供 JSON 或每表覆盖。</div>
         <div class="switch-field"><span>enabled</span><label class="switch"><input type="checkbox" name="enabled" ${enabled ? "checked" : ""} disabled><i></i></label><strong>${enabled ? "启用" : "停用"}</strong></div>
         ${policy && !creating ? `<div class="audit-grid"><label class="form-field"><span>creator</span><input value="${policy.creator}" disabled></label><label class="form-field"><span>gmt_created</span><input value="${policy.gmt_created}" disabled></label><label class="form-field"><span>modifier</span><input value="${policy.modifier}" disabled></label><label class="form-field"><span>gmt_modified</span><input value="${policy.gmt_modified}" disabled></label></div>` : ""}
         ${state.policyError ? `<p class="form-error">${icon("info")}${escapeHTML(state.policyError)}</p>` : ""}
       </div>${lifecycleMarkup(creating ? null : policy)}</div></form>
-      <footer class="drawer-foot">${editing ? `<button class="button primary" type="submit" form="policy-form">${submitLabel}</button><button class="button secondary" data-close-policy>取消</button>` : `<button class="button primary" data-edit-policy>修改策略</button><button class="button secondary" data-close-policy>关闭</button>`}</footer>
+      <footer class="drawer-foot">${editing ? `<button class="button primary" type="submit" form="policy-form">${submitLabel}</button><button class="button secondary" data-close-policy>取消</button>` : `<button class="button primary" data-edit-policy>修改规则</button><button class="button secondary" data-close-policy>关闭</button>`}</footer>
       </aside>
     </div>`;
 }
@@ -320,12 +320,12 @@ function policyStatusMarkup(status) {
 function queryPolicyPageMarkup() {
   return `
     <main class="workspace">
-      <div class="page-head"><div><h1>Query Policy 定义</h1><p>创建可复用、版本化的查询规则；Draft 验证通过后才能激活并分配。</p></div><button class="button primary" data-new-query-policy>${icon("plus")}新建 Draft</button></div>
-      <section class="catalog-summary" aria-label="Query Policy Type registry"><span>${icon("layers")}已注册 Policy Type</span><code>page_query</code><small>显式、代码所有 · 无运行时插件</small></section>
-      <section class="table-surface" aria-label="Query Policy Catalog">
-        <div class="table-scroll"><table class="data-table query-policy-table"><thead><tr><th>Policy Code</th><th>名称</th><th>Type</th><th>默认排序</th><th>默认 / 最大页</th><th>状态</th><th>修改人</th><th>gmt_modified</th><th>操作</th></tr></thead><tbody>
+      <div class="page-head"><div><h1>查询规则定义</h1><p>创建可复用、版本化的查询规则；Draft 验证通过后才能激活并分配。</p></div><button class="button primary" data-new-query-policy>${icon("plus")}新建 Draft</button></div>
+      <section class="catalog-summary" aria-label="查询规则类型注册表"><span>${icon("layers")}已注册规则类型</span><code>page_query</code><small>显式、代码所有 · 无运行时插件</small></section>
+      <section class="table-surface" aria-label="查询规则目录">
+        <div class="table-scroll"><table class="data-table query-policy-table"><thead><tr><th>规则编码</th><th>名称</th><th>类型</th><th>默认排序</th><th>默认 / 最大页</th><th>状态</th><th>修改人</th><th>gmt_modified</th><th>操作</th></tr></thead><tbody>
           ${queryPolicies.map((policy) => `<tr data-query-policy-row="${policy.code}"><td><code>${policy.code}</code></td><td><strong>${escapeHTML(policy.name)}</strong><small class="cell-description">${escapeHTML(policy.description)}</small></td><td><code>${policy.type_code}</code></td><td><code>${policy.default_order_field} ${policy.default_order_direction}</code></td><td>${policy.default_page_size} / ${policy.max_page_size}</td><td>${policyStatusMarkup(policy.status)}</td><td>${policy.modifier}</td><td class="date-cell">${policy.gmt_modified}</td><td class="action-cell"><button class="link-button" data-query-policy-action="view" data-code="${policy.code}">查看</button>${policy.status === "DRAFT" ? `<button class="link-button" data-query-policy-action="replace" data-code="${policy.code}">编辑</button><button class="link-button" data-query-policy-action="activate" data-code="${policy.code}">激活</button><button class="link-button danger" data-query-policy-action="delete" data-code="${policy.code}">删除</button>` : `<button class="link-button" data-query-policy-action="metadata" data-code="${policy.code}">元数据</button>${policy.status === "ACTIVE" ? `<button class="link-button danger" data-query-policy-action="deprecate" data-code="${policy.code}">弃用</button>` : ""}`}</td></tr>`).join("")}
-        </tbody></table></div><footer class="table-footer"><span>共 ${queryPolicies.length} 个 Query Policy</span><span>Policy Catalog · 生命周期受保护</span></footer>
+        </tbody></table></div><footer class="table-footer"><span>共 ${queryPolicies.length} 个查询规则</span><span>规则目录 · 生命周期受保护</span></footer>
       </section>
     </main>${queryPolicyDrawerMarkup()}`;
 }
@@ -337,7 +337,7 @@ function queryPolicyDrawerMarkup() {
   const policy = creating ? null : queryPolicyFor(state.queryPolicyDrawer.code);
   const editing = ["create", "replace", "metadata"].includes(mode);
   const executionEditable = ["create", "replace"].includes(mode);
-  const title = creating ? "新建 Query Policy Draft" : mode === "replace" ? "替换 Draft 定义" : mode === "metadata" ? "更新显示元数据" : "Query Policy 详情";
+  const title = creating ? "新建查询规则 Draft" : mode === "replace" ? "替换 Draft 定义" : mode === "metadata" ? "更新显示元数据" : "查询规则详情";
   const defaults = policy || { code: "", name: "", description: "", type_code: "page_query", default_order_field: "id", default_order_direction: "DESC", default_page_size: 20, max_page_size: 200, status: "DRAFT" };
   const footer = editing
     ? `<button class="button primary" type="submit" form="query-policy-form">${creating ? "创建 Draft" : mode === "replace" ? "保存完整替换" : "保存元数据"}</button><button class="button secondary" data-close-query-policy>取消</button>`
@@ -345,11 +345,11 @@ function queryPolicyDrawerMarkup() {
   return `<div class="drawer-layer"><button class="drawer-backdrop" data-close-query-policy aria-label="关闭"></button><aside class="detail-drawer policy-detail-drawer" role="dialog" aria-modal="true" aria-label="${title}">
     <header class="drawer-head"><div><span class="drawer-eyebrow">QUERY POLICY</span><h2>${title}</h2>${policy ? `<p>${policyStatusMarkup(policy.status)}</p>` : ""}</div><button class="icon-button" data-close-query-policy aria-label="关闭">${icon("close")}</button></header>
     <form id="query-policy-form" class="drawer-body typed-policy-form">
-      <label class="form-field"><span>Policy Code · 创建后不可变</span><input class="mono" name="code" value="${escapeHTML(defaults.code)}" ${creating ? "" : "readonly"} ${editing ? "" : "disabled"} placeholder="standard_page_query_v2" required></label>
+      <label class="form-field"><span>规则编码 · 创建后不可变</span><input class="mono" name="code" value="${escapeHTML(defaults.code)}" ${creating ? "" : "readonly"} ${editing ? "" : "disabled"} placeholder="standard_page_query_v2" required></label>
       <label class="form-field"><span>显示名称</span><input name="name" value="${escapeHTML(defaults.name)}" ${editing ? "" : "disabled"} required></label>
       <label class="form-field"><span>描述</span><textarea class="description-input" name="description" ${editing ? "" : "disabled"}>${escapeHTML(defaults.description)}</textarea></label>
       <div class="typed-policy-grid">
-        <label class="form-field"><span>Policy Type</span><select class="mono" name="type_code" ${executionEditable ? "" : "disabled"}><option value="page_query">page_query</option></select></label>
+        <label class="form-field"><span>规则类型</span><select class="mono" name="type_code" ${executionEditable ? "" : "disabled"}><option value="page_query">page_query</option></select></label>
         <label class="form-field"><span>默认排序字段</span><input class="mono" name="default_order_field" value="${escapeHTML(defaults.default_order_field)}" ${executionEditable ? "" : "disabled"} required></label>
         <label class="form-field"><span>默认排序方向</span><select class="mono" name="default_order_direction" ${executionEditable ? "" : "disabled"}><option ${defaults.default_order_direction === "ASC" ? "selected" : ""}>ASC</option><option ${defaults.default_order_direction === "DESC" ? "selected" : ""}>DESC</option></select></label>
         <label class="form-field"><span>默认页大小</span><input type="number" min="1" max="200" name="default_page_size" value="${defaults.default_page_size}" ${executionEditable ? "" : "disabled"} required></label>
@@ -373,12 +373,12 @@ function autoFillSummary(policy) {
 function mutationPolicyPageMarkup() {
   return `
     <main class="workspace">
-      <div class="page-head"><div><h1>Mutation Policy 定义</h1><p>以关系字段定义操作授权和四个固定 Auto Fill 槽位；不使用配置 JSON。</p></div><button class="button primary" data-new-mutation-policy>${icon("plus")}新建 Draft</button></div>
-      <section class="catalog-summary" aria-label="Mutation Policy Type registry"><span>${icon("layers")}已注册 Policy Type</span><code>single_table_mutation</code><small>实现 ADD · MODIFY · DELETE</small></section>
-      <section class="table-surface" aria-label="Mutation Policy Catalog">
-        <div class="table-scroll"><table class="data-table query-policy-table"><thead><tr><th>Policy Code</th><th>名称</th><th>Type</th><th>ADD</th><th>MODIFY</th><th>DELETE</th><th>Auto Fill 目标</th><th>状态</th><th>gmt_modified</th><th>操作</th></tr></thead><tbody>
+      <div class="page-head"><div><h1>变更规则定义</h1><p>以关系字段定义操作授权和四个固定 Auto Fill 槽位；不使用配置 JSON。</p></div><button class="button primary" data-new-mutation-policy>${icon("plus")}新建 Draft</button></div>
+      <section class="catalog-summary" aria-label="变更规则类型注册表"><span>${icon("layers")}已注册规则类型</span><code>single_table_mutation</code><small>实现 ADD · MODIFY · DELETE</small></section>
+      <section class="table-surface" aria-label="变更规则目录">
+        <div class="table-scroll"><table class="data-table query-policy-table"><thead><tr><th>规则编码</th><th>名称</th><th>类型</th><th>ADD</th><th>MODIFY</th><th>DELETE</th><th>Auto Fill 目标</th><th>状态</th><th>gmt_modified</th><th>操作</th></tr></thead><tbody>
           ${mutationPolicies.map((policy) => `<tr data-mutation-policy-row="${policy.code}"><td><code>${policy.code}</code></td><td><strong>${escapeHTML(policy.name)}</strong><small class="cell-description">${escapeHTML(policy.description)}</small></td><td><code>${policy.type_code}</code></td><td>${capabilityMarkup(policy.allow_add)}</td><td>${capabilityMarkup(policy.allow_modify)}</td><td>${capabilityMarkup(policy.allow_delete)}</td><td>${autoFillSummary(policy)}</td><td>${policyStatusMarkup(policy.status)}</td><td class="date-cell">${policy.gmt_modified}</td><td class="action-cell"><button class="link-button" data-mutation-policy-action="view" data-code="${policy.code}">查看</button>${policy.status === "DRAFT" ? `<button class="link-button" data-mutation-policy-action="replace" data-code="${policy.code}">编辑</button><button class="link-button" data-mutation-policy-action="activate" data-code="${policy.code}">激活</button><button class="link-button danger" data-mutation-policy-action="delete" data-code="${policy.code}">删除</button>` : `<button class="link-button" data-mutation-policy-action="metadata" data-code="${policy.code}">元数据</button>${policy.status === "ACTIVE" ? `<button class="link-button danger" data-mutation-policy-action="deprecate" data-code="${policy.code}">弃用</button>` : ""}`}</td></tr>`).join("")}
-        </tbody></table></div><footer class="table-footer"><span>共 ${mutationPolicies.length} 个 Mutation Policy</span><span>固定字段 · 生命周期受保护</span></footer>
+        </tbody></table></div><footer class="table-footer"><span>共 ${mutationPolicies.length} 个变更规则</span><span>固定字段 · 生命周期受保护</span></footer>
       </section>
     </main>${mutationPolicyDrawerMarkup()}`;
 }
@@ -390,7 +390,7 @@ function mutationPolicyDrawerMarkup() {
   const policy = creating ? null : mutationPolicyFor(state.mutationPolicyDrawer.code);
   const editing = ["create", "replace", "metadata"].includes(mode);
   const executionEditable = ["create", "replace"].includes(mode);
-  const title = creating ? "新建 Mutation Policy Draft" : mode === "replace" ? "替换 Draft 定义" : mode === "metadata" ? "更新显示元数据" : "Mutation Policy 详情";
+  const title = creating ? "新建变更规则 Draft" : mode === "replace" ? "替换 Draft 定义" : mode === "metadata" ? "更新显示元数据" : "变更规则详情";
   const defaults = policy || { code: "", name: "", description: "", type_code: "single_table_mutation", allow_add: false, allow_modify: false, allow_delete: false, create_operator_field: null, create_time_field: null, modify_operator_field: null, modify_time_field: null, status: "DRAFT" };
   const footer = editing
     ? `<button class="button primary" type="submit" form="mutation-policy-form">${creating ? "创建 Draft" : mode === "replace" ? "保存完整替换" : "保存元数据"}</button><button class="button secondary" data-close-mutation-policy>取消</button>`
@@ -398,10 +398,10 @@ function mutationPolicyDrawerMarkup() {
   return `<div class="drawer-layer"><button class="drawer-backdrop" data-close-mutation-policy aria-label="关闭"></button><aside class="detail-drawer policy-detail-drawer" role="dialog" aria-modal="true" aria-label="${title}">
     <header class="drawer-head"><div><span class="drawer-eyebrow">MUTATION POLICY</span><h2>${title}</h2>${policy ? `<p>${policyStatusMarkup(policy.status)}</p>` : ""}</div><button class="icon-button" data-close-mutation-policy aria-label="关闭">${icon("close")}</button></header>
     <form id="mutation-policy-form" class="drawer-body typed-policy-form">
-      <label class="form-field"><span>Policy Code · 创建后不可变</span><input class="mono" name="code" value="${escapeHTML(defaults.code)}" ${creating ? "" : "readonly"} ${editing ? "" : "disabled"} placeholder="standard_mutation_v2" required></label>
+      <label class="form-field"><span>规则编码 · 创建后不可变</span><input class="mono" name="code" value="${escapeHTML(defaults.code)}" ${creating ? "" : "readonly"} ${editing ? "" : "disabled"} placeholder="standard_mutation_v2" required></label>
       <label class="form-field"><span>显示名称</span><input name="name" value="${escapeHTML(defaults.name)}" ${editing ? "" : "disabled"} required></label>
       <label class="form-field"><span>描述</span><textarea class="description-input" name="description" ${editing ? "" : "disabled"}>${escapeHTML(defaults.description)}</textarea></label>
-      <label class="form-field"><span>Policy Type</span><select class="mono" name="type_code" ${executionEditable ? "" : "disabled"}><option value="single_table_mutation">single_table_mutation</option></select></label>
+      <label class="form-field"><span>规则类型</span><select class="mono" name="type_code" ${executionEditable ? "" : "disabled"}><option value="single_table_mutation">single_table_mutation</option></select></label>
       <section class="typed-policy-section"><h3>操作授权</h3><div class="capability-grid">
         <label class="switch-field"><span>allow_add</span><label class="switch"><input type="checkbox" name="allow_add" ${defaults.allow_add ? "checked" : ""} ${executionEditable ? "" : "disabled"}><i></i></label><strong>${defaults.allow_add ? "允许" : "禁止"}</strong></label>
         <label class="switch-field"><span>allow_modify</span><label class="switch"><input type="checkbox" name="allow_modify" ${defaults.allow_modify ? "checked" : ""} ${executionEditable ? "" : "disabled"}><i></i></label><strong>${defaults.allow_modify ? "允许" : "禁止"}</strong></label>
@@ -445,9 +445,9 @@ function cellMarkup(column, value) {
 function contentRowsMarkup(table, policy) {
   const rows = visibleRows();
 	const mutationPolicy = mutationPolicyForAssignment(policy);
-  if (state.queryLoading) return `<tr><td colspan="${table.columns.length + 1}"><div class="loading-state"><i></i><span>正在执行 Query Policy…</span></div></td></tr>`;
+  if (state.queryLoading) return `<tr><td colspan="${table.columns.length + 1}"><div class="loading-state"><i></i><span>正在执行查询规则…</span></div></td></tr>`;
   if (!rows.length) return `<tr><td colspan="${table.columns.length + 1}"><div class="empty-state">${icon("search")}<strong>没有匹配的配置内容</strong><span>调整查询条件后重试</span></div></td></tr>`;
-	return rows.map((row) => `<tr>${table.columns.map((column) => `<td>${cellMarkup(column, row[column])}</td>`).join("")}<td class="action-cell"><button class="link-button" data-edit-row="${row.id}" ${mutationPolicy.allow_modify ? "" : 'disabled title="Mutation Policy 禁止修改"'}>编辑</button><button class="link-button danger" data-delete-row="${row.id}" ${mutationPolicy.allow_delete ? "" : 'disabled title="Mutation Policy 禁止删除"'}>删除</button></td></tr>`).join("");
+	return rows.map((row) => `<tr>${table.columns.map((column) => `<td>${cellMarkup(column, row[column])}</td>`).join("")}<td class="action-cell"><button class="link-button" data-edit-row="${row.id}" ${mutationPolicy.allow_modify ? "" : 'disabled title="变更规则禁止修改"'}>编辑</button><button class="link-button danger" data-delete-row="${row.id}" ${mutationPolicy.allow_delete ? "" : 'disabled title="变更规则禁止删除"'}>删除</button></td></tr>`).join("");
 }
 
 function contentPageMarkup() {
@@ -456,8 +456,8 @@ function contentPageMarkup() {
 	const mutationPolicy = mutationPolicyForAssignment(policy);
   return `
     <main class="workspace content-workspace ${state.contentDrawer.open ? "with-drawer" : ""}">
-      <div class="page-head compact"><div><h1>配置内容管理</h1><p>选择 enabled Managed Table，并按当前 Policy Snapshot 查询或变更内容。</p></div></div>
-	  <section class="content-controls">${tablePickerMarkup()}<div class="policy-summary"><i class="ready-dot"></i><span>Policy <strong>已启用</strong></span><b>·</b><code>${policy.query_policy_code}</code><button data-view-current-policy>查看策略</button></div>
+      <div class="page-head compact"><div><h1>配置内容管理</h1><p>选择 enabled Managed Table，并按当前规则快照查询或变更内容。</p></div></div>
+      <section class="content-controls">${tablePickerMarkup()}<div class="policy-summary"><i class="ready-dot"></i><span>表规则 <strong>已启用</strong></span><b>·</b><code>${policy.query_policy_code}</code><button data-view-current-policy>查看规则</button></div>
         <div class="query-builder"><div class="query-head"><strong>${icon("filter")}查询条件</strong><span>最多 20 个条件，使用 AND 连接</span></div><div class="condition-list">${conditionsMarkup(table)}</div><div class="query-actions"><button class="button dashed" data-add-condition>${icon("plus")}添加条件</button><label><span>排序</span><select id="order-field">${table.columns.map((column) => `<option ${column === "id" ? "selected" : ""}>${column}</option>`).join("")}</select></label><label><span>方向</span><select id="order-direction"><option>DESC</option><option>ASC</option></select></label><button class="button primary" data-query>${icon("search")}查询</button></div></div>
       </section>
 	  <section class="table-surface content-table-surface"><div class="table-toolbar"><div><strong>${table.label}</strong><code>${state.selectedTable}</code></div><button class="button primary" data-add-row ${mutationPolicy.allow_add ? "" : "disabled"}>${icon("plus")}新增内容</button></div><div class="table-scroll"><table class="data-table content-table"><thead><tr>${table.columns.map((column) => `<th>${column}</th>`).join("")}<th>操作</th></tr></thead><tbody>${contentRowsMarkup(table, policy)}</tbody></table></div><footer class="table-footer"><span>共 ${visibleRows().length} 条记录</span><span>实时 Schema · JSON String</span></footer></section>
@@ -543,15 +543,15 @@ function saveQueryPolicy(event) {
       const policy = queryPolicyFor(state.queryPolicyDrawer.code);
       policy.name = name; policy.description = String(data.get("description")).trim(); policy.modifier = "local-admin"; policy.gmt_modified = nowText(); state.queryPolicyDrawer.mode = "view"; showToast("显示元数据已更新"); render(); return;
     }
-    if (!/^[a-z][a-z0-9_]*_v[1-9][0-9]*$/.test(code) || /^(mysql|mariadb|postgres|postgresql|sqlite|oracle|sqlserver|mongodb|gorm|sql)_/.test(code)) throw new Error("Policy Code 必须小写、带版本且技术中立");
+    if (!/^[a-z][a-z0-9_]*_v[1-9][0-9]*$/.test(code) || /^(mysql|mariadb|postgres|postgresql|sqlite|oracle|sqlserver|mongodb|gorm|sql)_/.test(code)) throw new Error("规则编码必须小写、带版本且技术中立");
     const candidate = { code, name, description: String(data.get("description")).trim(), type_code: String(data.get("type_code")), default_order_field: String(data.get("default_order_field")).trim(), default_order_direction: String(data.get("default_order_direction")), default_page_size: Number(data.get("default_page_size")), max_page_size: Number(data.get("max_page_size")), status: "DRAFT", creator: "local-admin", modifier: "local-admin", gmt_created: nowText(), gmt_modified: nowText() };
     if (candidate.default_page_size < 1 || candidate.max_page_size < 1 || candidate.default_page_size > candidate.max_page_size || candidate.max_page_size > 200) throw new Error("分页大小必须为正数、默认值不能大于最大值，且最大值不能超过 200");
     if (mode === "create") {
-      if (queryPolicyFor(code)) throw new Error("Query namespace 中已存在该 Policy Code");
+      if (queryPolicyFor(code)) throw new Error("Query namespace 中已存在该规则编码");
       queryPolicies.push(candidate); showToast(`${code} Draft 已创建`);
     } else {
       const current = queryPolicyFor(state.queryPolicyDrawer.code);
-      if (current.status !== "DRAFT" || current.code !== code) throw new Error("只能完整替换 Draft，且 Policy Code 不可修改");
+      if (current.status !== "DRAFT" || current.code !== code) throw new Error("只能完整替换 Draft，且规则编码不可修改");
       Object.assign(current, candidate, { creator: current.creator, gmt_created: current.gmt_created }); showToast(`${code} Draft 已完整替换`);
     }
     state.queryPolicyDrawer = { open: true, mode: "view", code }; state.queryPolicyError = ""; render();
@@ -568,7 +568,7 @@ function bindMutationPolicyEvents() {
 }
 
 function validateMutationPolicy(policy) {
-  if (policy.type_code !== "single_table_mutation") throw new Error("未知 Mutation Policy Type");
+  if (policy.type_code !== "single_table_mutation") throw new Error("未知变更规则类型");
   const targets = [policy.create_operator_field, policy.create_time_field, policy.modify_operator_field, policy.modify_time_field].filter(Boolean);
   if (targets.some((target) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(target))) throw new Error("Auto Fill 目标必须是安全字段名");
   if (new Set(targets).size !== targets.length) throw new Error("四个 Auto Fill 目标不能重复");
@@ -604,15 +604,15 @@ function saveMutationPolicy(event) {
       const policy = mutationPolicyFor(state.mutationPolicyDrawer.code);
       policy.name = name; policy.description = String(data.get("description")).trim(); policy.modifier = "local-admin"; policy.gmt_modified = nowText(); state.mutationPolicyDrawer.mode = "view"; showToast("显示元数据已更新"); render(); return;
     }
-    if (!/^[a-z][a-z0-9_]*_v[1-9][0-9]*$/.test(code) || /^(mysql|mariadb|postgres|postgresql|sqlite|oracle|sqlserver|mongodb|gorm|sql)_/.test(code)) throw new Error("Policy Code 必须小写、带版本且技术中立");
+    if (!/^[a-z][a-z0-9_]*_v[1-9][0-9]*$/.test(code) || /^(mysql|mariadb|postgres|postgresql|sqlite|oracle|sqlserver|mongodb|gorm|sql)_/.test(code)) throw new Error("规则编码必须小写、带版本且技术中立");
     const optionalField = (field) => String(data.get(field) || "").trim() || null;
     const candidate = { code, name, description: String(data.get("description")).trim(), type_code: String(data.get("type_code")), allow_add: data.has("allow_add"), allow_modify: data.has("allow_modify"), allow_delete: data.has("allow_delete"), create_operator_field: optionalField("create_operator_field"), create_time_field: optionalField("create_time_field"), modify_operator_field: optionalField("modify_operator_field"), modify_time_field: optionalField("modify_time_field"), status: "DRAFT", creator: "local-admin", modifier: "local-admin", gmt_created: nowText(), gmt_modified: nowText() };
     if (mode === "create") {
-      if (mutationPolicyFor(code)) throw new Error("Mutation namespace 中已存在该 Policy Code");
+      if (mutationPolicyFor(code)) throw new Error("Mutation namespace 中已存在该规则编码");
       mutationPolicies.push(candidate); showToast(`${code} Draft 已创建`);
     } else {
       const current = mutationPolicyFor(state.mutationPolicyDrawer.code);
-      if (current.status !== "DRAFT" || current.code !== code) throw new Error("只能完整替换 Draft，且 Policy Code 不可修改");
+      if (current.status !== "DRAFT" || current.code !== code) throw new Error("只能完整替换 Draft，且规则编码不可修改");
       Object.assign(current, candidate, { creator: current.creator, gmt_created: current.gmt_created }); showToast(`${code} Draft 已完整替换`);
     }
     state.mutationPolicyDrawer = { open: true, mode: "view", code }; state.mutationPolicyError = ""; render();
@@ -644,7 +644,7 @@ function bindPolicyEvents() {
       state.policyFilters = submittedFilters;
       state.policyQueryLoading = false;
       const count = filteredPolicies().length;
-      showToast(`查询完成，共 ${count} 条策略`);
+      showToast(`查询完成，共 ${count} 条表规则`);
       render();
     }, 360);
   });
@@ -656,7 +656,7 @@ function bindPolicyEvents() {
     render();
   });
   document.querySelector("[data-new-policy]")?.addEventListener("click", () => { state.policyDrawer = { open: true, mode: "create", tableName: "" }; state.policyError = ""; render(); });
-  document.querySelector("[data-refresh]")?.addEventListener("click", (event) => { event.currentTarget.classList.add("spinning"); setTimeout(() => showToast("Policy Catalog 已刷新"), 350); });
+  document.querySelector("[data-refresh]")?.addEventListener("click", (event) => { event.currentTarget.classList.add("spinning"); setTimeout(() => showToast("规则目录已刷新"), 350); });
   document.querySelectorAll("[data-policy-row]").forEach((row) => row.addEventListener("click", (event) => { if (event.target.closest("button")) return; state.policyDrawer = { open: true, mode: "view", tableName: row.dataset.policyRow }; render(); }));
   document.querySelectorAll("[data-policy-action]").forEach((button) => button.addEventListener("click", () => {
     const policy = policyFor(button.dataset.table);
@@ -677,15 +677,15 @@ function savePolicy(event) {
     if (!/^[a-zA-Z0-9_]+$/.test(tableName) || tableName.startsWith("rcc_")) throw new Error("table_name 必须是安全标识符，且不能使用 rcc_ 前缀");
 	const queryPolicyCode = String(data.get("query_policy_code"));
 	const mutationPolicyCode = String(data.get("mutation_policy_code"));
-	if (queryPolicyFor(queryPolicyCode)?.status !== "ACTIVE" || mutationPolicyFor(mutationPolicyCode)?.status !== "ACTIVE") throw new Error("新建或替换只能选择 Active Policy");
+	if (queryPolicyFor(queryPolicyCode)?.status !== "ACTIVE" || mutationPolicyFor(mutationPolicyCode)?.status !== "ACTIVE") throw new Error("新建或替换只能选择 Active 规则");
     if (state.policyDrawer.mode === "create") {
-      if (policyFor(tableName)) throw new Error("该 table_name 已存在 Table Policy");
+      if (policyFor(tableName)) throw new Error("该 table_name 已存在表规则");
 	  policies.push({ table_name: tableName, query_policy_code: queryPolicyCode, mutation_policy_code: mutationPolicyCode, enabled: false, creator: "local-admin", modifier: "local-admin", gmt_created: nowText(), gmt_modified: nowText() });
       managedTables[tableName] = { label: tableName, columns: ["id", "value", "updated_at"], rows: [] };
-	  state.policyDrawer = { open: true, mode: "view", tableName }; showToast(`${tableName} Table Policy 已创建，当前为停用状态`);
+	  state.policyDrawer = { open: true, mode: "view", tableName }; showToast(`${tableName} 表规则已创建，当前为停用状态`);
     } else {
       const policy = policyFor(state.policyDrawer.tableName);
-	  policy.query_policy_code = queryPolicyCode; policy.mutation_policy_code = mutationPolicyCode; policy.modifier = "local-admin"; policy.gmt_modified = nowText(); state.policyDrawer.mode = "view"; showToast(`${policy.table_name} Policy 分配已原子替换`);
+	  policy.query_policy_code = queryPolicyCode; policy.mutation_policy_code = mutationPolicyCode; policy.modifier = "local-admin"; policy.gmt_modified = nowText(); state.policyDrawer.mode = "view"; showToast(`${policy.table_name} 表规则分配已原子替换`);
     }
     state.policyError = ""; render();
   } catch (error) { state.policyError = error.message; render(); }

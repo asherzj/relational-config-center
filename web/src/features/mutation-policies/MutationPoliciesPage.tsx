@@ -35,9 +35,9 @@ type Command = "activate" | "deprecate" | "delete";
 type PendingCommand = { command: Command; code: string } | null;
 
 const commandContent: Record<Command, { title: string; description: string; label: string; destructive?: boolean }> = {
-  activate: { title: "激活变更策略？", description: "激活后授权和 Auto Fill 规则将不可修改，并可以分配给新的表策略。", label: "确认激活" },
-  deprecate: { title: "弃用变更策略？", description: "既有表策略仍可继续使用，但新的表策略不能再选择它。", label: "确认弃用", destructive: true },
-  delete: { title: "删除变更策略草稿？", description: "删除后无法恢复。只有草稿状态的变更策略可以删除。", label: "确认删除", destructive: true },
+  activate: { title: "激活变更规则？", description: "激活后授权和 Auto Fill 规则将不可修改，并可以分配给新的表规则。", label: "确认激活" },
+  deprecate: { title: "弃用变更规则？", description: "既有表规则仍可继续使用，但新的表规则不能再选择它。", label: "确认弃用", destructive: true },
+  delete: { title: "删除变更规则草稿？", description: "删除后无法恢复。只有草稿状态的变更规则可以删除。", label: "确认删除", destructive: true },
 };
 
 function PolicyActions({ policy, supported, onCommand }: { policy: MutationPolicy; supported: boolean; onCommand: (command: Command, code: string) => void }) {
@@ -72,7 +72,7 @@ export function MutationPoliciesPage() {
     if (!pendingCommand) return;
     const { command, code: targetCode } = pendingCommand;
     const onSuccess = () => {
-      showToast(command === "activate" ? "变更策略已激活" : command === "deprecate" ? "变更策略已弃用" : "变更策略草稿已删除");
+      showToast(command === "activate" ? "变更规则已激活" : command === "deprecate" ? "变更规则已弃用" : "变更规则草稿已删除");
       setPendingCommand(null);
       if (command === "delete" && code === targetCode) navigate("/platform/mutation-policies");
     };
@@ -90,14 +90,14 @@ export function MutationPoliciesPage() {
     <main className="workspace">
       <div className="page-heading">
         <div>
-          <h1>变更策略定义</h1>
+          <h1>变更规则定义</h1>
           <p>以关系字段定义操作授权和四个固定 Auto Fill 槽位；不使用配置 JSON。</p>
         </div>
         <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/mutation-policies/new")} disabled={types.isPending || types.isError || !supportedTypes.length}>新建草稿</Button>
       </div>
 
-      <section className="type-registry" aria-label="变更策略类型注册表">
-        <span><FileCode2 size={18} />已注册策略类型</span>
+      <section className="type-registry" aria-label="变更规则类型注册表">
+        <span><FileCode2 size={18} />已注册规则类型</span>
         {types.isPending && <small>正在读取…</small>}
         {types.isError && <small className="danger-color">类型注册表不可用</small>}
         {types.data?.map((type) => (
@@ -109,13 +109,13 @@ export function MutationPoliciesPage() {
         <small className="registry-note">显式、代码所有 · 无运行时插件</small>
       </section>
 
-      <section className="catalog" aria-label="变更策略目录">
-        {policies.isPending ? <LoadingState label="正在读取变更策略目录…" /> : policies.isError ? (
+      <section className="catalog" aria-label="变更规则目录">
+        {policies.isPending ? <LoadingState label="正在读取变更规则目录…" /> : policies.isError ? (
           <ErrorState error={policies.error} onRetry={() => void policies.refetch()} />
-        ) : !policies.data.length ? <EmptyState entity="变更策略" /> : (
+        ) : !policies.data.length ? <EmptyState entity="变更规则" /> : (
           <div className="table-scroll">
             <table className="policy-table mutation-policy-table">
-              <thead><tr><th>策略编码</th><th>名称</th><th>类型</th><th>ADD</th><th>MODIFY</th><th>DELETE</th><th>Auto Fill 目标</th><th>状态</th><th>修改时间</th><th>操作</th></tr></thead>
+              <thead><tr><th>规则编码</th><th>名称</th><th>类型</th><th>ADD</th><th>MODIFY</th><th>DELETE</th><th>Auto Fill 目标</th><th>状态</th><th>修改时间</th><th>操作</th></tr></thead>
               <tbody>{policies.data.map((policy) => (
                 <tr key={policy.code} className={code === policy.code ? "selected-row" : ""}>
                   <td><code>{policy.code}</code></td>
@@ -134,7 +134,7 @@ export function MutationPoliciesPage() {
           </div>
         )}
         <footer className="catalog-footer">
-          <span>共 {policies.data?.length ?? 0} 个变更策略</span>
+          <span>共 {policies.data?.length ?? 0} 个变更规则</span>
           <span>固定字段 · 生命周期受保护</span>
           <Button className="catalog-refresh" variant="ghost" icon={<RefreshCw size={15} />} onClick={() => void policies.refetch()} disabled={policies.isFetching}>刷新</Button>
         </footer>

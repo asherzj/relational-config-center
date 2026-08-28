@@ -29,9 +29,9 @@ export function AppShell() {
         <nav>
           <section className="nav-group">
             <div className="nav-group-title"><span><Box size={18} />平台管理</span><ChevronDown size={16} /></div>
-            <NavLink to="/platform/query-policies" onClick={() => setMobileNavOpen(false)}>查询策略定义</NavLink>
-            <NavLink to="/platform/mutation-policies" onClick={() => setMobileNavOpen(false)}>变更策略定义</NavLink>
-            <NavLink to="/platform/table-policies" onClick={() => setMobileNavOpen(false)}>表策略分配</NavLink>
+            <NavLink to="/platform/query-policies" onClick={() => setMobileNavOpen(false)}>查询规则定义</NavLink>
+            <NavLink to="/platform/mutation-policies" onClick={() => setMobileNavOpen(false)}>变更规则定义</NavLink>
+            <NavLink to="/platform/table-policies" onClick={() => setMobileNavOpen(false)}>表规则分配</NavLink>
           </section>
           <section className="nav-group">
             <div className="nav-group-title"><span><Settings size={18} />配置管理</span><ChevronDown size={16} /></div>

@@ -25,13 +25,13 @@ it("keeps form input and presents stable Admin errors with Request ID", async ()
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   render(<QueryClientProvider client={client}><MemoryRouter initialEntries={["/platform/mutation-policies/new"]}><ToastProvider><AppRoutes /></ToastProvider></MemoryRouter></QueryClientProvider>);
 
-  await user.type(await screen.findByLabelText(/策略编码/), "duplicate_mutation_v1");
-  await user.type(screen.getByLabelText("显示名称"), "重复策略");
+  await user.type(await screen.findByLabelText(/规则编码/), "duplicate_mutation_v1");
+  await user.type(screen.getByLabelText("显示名称"), "重复规则");
   const createButton = screen.getByRole("button", { name: "创建草稿" });
   await waitFor(() => expect(createButton).toBeEnabled());
   await user.click(createButton);
 
-  expect(await screen.findByRole("alert")).toHaveTextContent("变更策略编码已存在");
+  expect(await screen.findByRole("alert")).toHaveTextContent("变更规则编码已存在");
   expect(screen.getByRole("alert")).toHaveTextContent("req-mutation-42");
-  expect(screen.getByLabelText(/策略编码/)).toHaveValue("duplicate_mutation_v1");
+  expect(screen.getByLabelText(/规则编码/)).toHaveValue("duplicate_mutation_v1");
 });

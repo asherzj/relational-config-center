@@ -41,10 +41,10 @@ export function validateDraft(draft: QueryPolicyDraft): Partial<Record<keyof Que
   if (!/^[a-z][a-z0-9_]*_v[1-9][0-9]*$/.test(draft.code)) {
     errors.code = "使用小写字母、数字和下划线，并以 _v1 这类版本号结尾。";
   } else if (/^(mysql|mariadb|postgres|postgresql|sqlite|oracle|sqlserver|mongodb|gorm|sql)_/.test(draft.code)) {
-    errors.code = "策略编码不能包含技术实现名称。";
+    errors.code = "规则编码不能包含技术实现名称。";
   }
   if (!draft.name.trim()) errors.name = "请输入显示名称。";
-  if (!supportedQueryPolicyTypes.has(draft.typeCode)) errors.typeCode = "Web 尚不支持编辑该策略类型。";
+  if (!supportedQueryPolicyTypes.has(draft.typeCode)) errors.typeCode = "Web 尚不支持编辑该规则类型。";
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(draft.defaultOrderField)) {
     errors.defaultOrderField = "请输入安全的字段名。";
   }

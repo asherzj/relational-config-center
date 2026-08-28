@@ -103,7 +103,7 @@ export function QueryPolicyForm({ mode, policy, typeCodes, serverError, onSubmit
       {policy && <span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span>}
 
       <label className="field field-wide">
-        <span>策略编码 · 创建后不可变</span>
+        <span>规则编码 · 创建后不可变</span>
         <input
           value={draft.code}
           onChange={(event) => update("code", event.target.value)}
@@ -127,7 +127,7 @@ export function QueryPolicyForm({ mode, policy, typeCodes, serverError, onSubmit
 
       <div className="form-panel">
         <label className="field field-wide">
-          <span>策略类型</span>
+          <span>规则类型</span>
           <select value={draft.typeCode} onChange={(event) => update("typeCode", event.target.value)} disabled={executionLocked} {...inputProps("typeCode")}>
             {options.map((code) => <option key={code} value={code}>{code}</option>)}
           </select>
@@ -160,7 +160,7 @@ export function QueryPolicyForm({ mode, policy, typeCodes, serverError, onSubmit
       </div>
 
       {policy && policy.status !== "DRAFT" && (
-        <div className="form-note"><Info size={17} /><span>已激活或已弃用策略的执行字段已锁定；只能更新名称和描述。</span></div>
+        <div className="form-note"><Info size={17} /><span>已激活或已弃用规则的执行字段已锁定；只能更新名称和描述。</span></div>
       )}
 
       {policy && (

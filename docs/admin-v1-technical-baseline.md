@@ -80,7 +80,7 @@ infrastructure/mysql ────┘
 
 每个物理表至多一条 Table Policy，以不可修改的 `table_name` 为领域和 HTTP 标识。它只保存 `query_policy_code`、`mutation_policy_code`、`enabled` 与审计信息；ADD/MODIFY/DELETE 授权和标准 Auto Fill 都属于被引用的 Mutation Policy，不能按表覆盖。
 
-新 Policy 创建为 disabled；完整替换保持当前状态；enable 重新验证表与策略；disable 立即停止数据授权。没有 delete、draft、回滚或历史版本。Policy 变更采用 last-write-wins。
+新规则创建为 disabled；完整替换保持当前状态；enable 重新验证表与规则；disable 立即停止数据授权。没有 delete、draft、回滚或历史版本。规则变更采用 last-write-wins。
 
 ## 5. Policy Catalog
 
@@ -306,7 +306,7 @@ DELETE /api/v1/tables/{table_name}/rows/{id}
 | 403 | `rcc_*` 或禁止目标 |
 | 404 | Policy、物理表或目标行不存在 |
 | 409 | Policy 已存在、唯一键冲突 |
-| 422 | 策略或实时 Schema 不兼容 |
+| 422 | 规则或实时 Schema 不兼容 |
 | 500 | 未分类内部错误 |
 | 503 | 数据库或 Catalog 不可用 |
 | 504 | 查询超时 |
@@ -398,4 +398,4 @@ Admin V1 的 Definition of Done：
 - PostgreSQL：新增独立 Adapter 与 Compiler。
 - 已部署 Schema 升级：引入 Goose。
 - 多租户、公网访问或真实用户审计：重新设计身份、授权与隔离。
-- Policy/Data 并发控制、缓存、发布、审批、关系查询和 Secret 管理：作为独立能力设计，不隐式扩展当前策略。
+- 规则/Data 并发控制、缓存、发布、审批、关系查询和 Secret 管理：作为独立能力设计，不隐式扩展当前规则。

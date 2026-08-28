@@ -114,8 +114,8 @@ function renderPage(initialEntry = "/platform/table-policies") {
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe("表策略分配页面", () => {
-  it("通过正式路由展示真实表发现状态、Table Policy 目录并在客户端筛选", async () => {
+describe("表规则分配页面", () => {
+  it("通过正式路由展示真实表发现状态、表规则目录并在客户端筛选", async () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: discoveryTables });
@@ -126,8 +126,8 @@ describe("表策略分配页面", () => {
 
     renderPage();
 
-    expect(await screen.findByRole("heading", { name: "表策略分配" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "表策略分配" })).toHaveClass("active");
+    expect(await screen.findByRole("heading", { name: "表规则分配" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "表规则分配" })).toHaveClass("active");
     expect((await screen.findAllByText("notification_templates")).length).toBeGreaterThan(0);
     expect(screen.getByText("通知模板")).toBeVisible();
     expect(screen.getByText("audit_events")).toBeVisible();
@@ -136,9 +136,9 @@ describe("表策略分配页面", () => {
     expect(screen.getByText("standard_mutation_v1")).toBeVisible();
     expect(screen.getAllByText("已启用").length).toBeGreaterThan(0);
 
-    await user.type(screen.getByRole("searchbox", { name: "筛选表策略" }), "missing_table");
+    await user.type(screen.getByRole("searchbox", { name: "筛选表规则" }), "missing_table");
     expect(screen.queryByText("standard_page_query_v1")).not.toBeInTheDocument();
-    expect(screen.getByText("没有匹配的表策略")).toBeVisible();
+    expect(screen.getByText("没有匹配的表规则")).toBeVisible();
   });
 
   it("只从兼容未分配表和 Active Policy 创建 disabled 分配", async () => {
@@ -160,7 +160,7 @@ describe("表策略分配页面", () => {
 
     renderPage("/platform/table-policies?mode=create");
 
-    expect(await screen.findByRole("heading", { name: "新建 Table Policy 分配" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "新建表规则分配" })).toBeVisible();
     const tableSelect = await screen.findByRole("combobox", { name: "真实数据库表" });
     expect(screen.getByRole("option", { name: /message_templates/ })).toBeVisible();
     expect(screen.queryByRole("option", { name: /notification_templates/ })).not.toBeInTheDocument();
@@ -173,8 +173,8 @@ describe("表策略分配页面", () => {
     expect(screen.queryByRole("option", { name: /future_mutation_v1/ })).not.toBeInTheDocument();
 
     await user.selectOptions(tableSelect, "message_templates");
-    await user.selectOptions(screen.getByRole("combobox", { name: "Active Query Policy" }), "standard_page_query_v1");
-    await user.selectOptions(screen.getByRole("combobox", { name: "Active Mutation Policy" }), "standard_mutation_v1");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Active 查询规则" }), "standard_page_query_v1");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "standard_mutation_v1");
     await user.click(screen.getByRole("button", { name: "创建未启用分配" }));
 
     const createCall = fetchMock.mock.calls.find(([url, init]) => String(url).endsWith("/table-policies") && init?.method === "POST");
@@ -183,7 +183,7 @@ describe("表策略分配页面", () => {
       query_policy_code: "standard_page_query_v1",
       mutation_policy_code: "standard_mutation_v1",
     });
-    expect(await screen.findByText("Table Policy 已创建并保持未启用")).toBeVisible();
+    expect(await screen.findByText("表规则已创建并保持未启用")).toBeVisible();
   });
 
   it("从可复制详情 URL 原子替换两个 Code，并警告 enabled 分配下一次请求立即生效", async () => {
@@ -206,15 +206,15 @@ describe("表策略分配页面", () => {
 
     renderPage("/platform/table-policies/notification_templates");
 
-    expect(await screen.findByRole("heading", { name: "Table Policy 详情" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "表规则详情" })).toBeVisible();
     expect(fetchMock).toHaveBeenCalledWith("/api/v1/table-policies/notification_templates", expect.any(Object));
     expect(await screen.findByDisplayValue("notification_templates")).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "原子替换" }));
-    await user.selectOptions(await screen.findByRole("combobox", { name: "Active Query Policy" }), "strict_page_query_v2");
-    await user.selectOptions(screen.getByRole("combobox", { name: "Active Mutation Policy" }), "readonly_mutation_v2");
+    await user.selectOptions(await screen.findByRole("combobox", { name: "Active 查询规则" }), "strict_page_query_v2");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "readonly_mutation_v2");
     await user.click(screen.getByRole("button", { name: "检查并替换" }));
 
-    const dialog = await screen.findByRole("alertdialog", { name: "替换已启用的 Table Policy？" });
+    const dialog = await screen.findByRole("alertdialog", { name: "替换已启用的表规则？" });
     expect(dialog).toHaveTextContent("下一次请求立即生效");
     expect(fetchMock.mock.calls.some(([url, init]) => String(url).endsWith("/notification_templates") && init?.method === "PUT")).toBe(false);
     await user.click(screen.getByRole("button", { name: "确认原子替换" }));
@@ -225,7 +225,7 @@ describe("表策略分配页面", () => {
       query_policy_code: "strict_page_query_v2",
       mutation_policy_code: "readonly_mutation_v2",
     });
-    expect(await screen.findByText("Table Policy 已原子替换")).toBeVisible();
+    expect(await screen.findByText("表规则已原子替换")).toBeVisible();
   });
 
   it("已启用分配原子替换失败后呈现稳定错误和 Request ID", async () => {
@@ -246,14 +246,14 @@ describe("表策略分配页面", () => {
     const user = userEvent.setup();
 
     renderPage("/platform/table-policies/notification_templates?mode=replace");
-    await user.selectOptions(await screen.findByRole("combobox", { name: "Active Query Policy" }), "strict_page_query_v2");
-    await user.selectOptions(screen.getByRole("combobox", { name: "Active Mutation Policy" }), "readonly_mutation_v2");
+    await user.selectOptions(await screen.findByRole("combobox", { name: "Active 查询规则" }), "strict_page_query_v2");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "readonly_mutation_v2");
     await user.click(screen.getByRole("button", { name: "检查并替换" }));
     await user.click(await screen.findByRole("button", { name: "确认原子替换" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("请选择 Active 且可分配的 Mutation Policy");
+    expect(await screen.findByRole("alert")).toHaveTextContent("请选择 Active 且可分配的变更规则");
     expect(screen.getByRole("alert")).toHaveTextContent("req-replace-24");
-    expect(screen.queryByRole("alertdialog", { name: "替换已启用的 Table Policy？" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("alertdialog", { name: "替换已启用的表规则？" })).not.toBeInTheDocument();
   });
 
   it("详情只依赖专用详情端点，不因 Policy 候选目录不可用而阻塞查看", async () => {
@@ -290,7 +290,7 @@ describe("表策略分配页面", () => {
 
     renderPage("/platform/table-policies/notification_templates");
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Table Policy 不存在或已被移除");
+    expect(await screen.findByRole("alert")).toHaveTextContent("表规则不存在或已被移除");
     expect(screen.getByRole("alert")).toHaveTextContent("req-detail-24");
     await user.click(screen.getByRole("button", { name: "重试" }));
     expect(await screen.findByDisplayValue("notification_templates")).toBeVisible();
@@ -309,9 +309,9 @@ describe("表策略分配页面", () => {
 
     renderPage("/platform/table-policies/new");
 
-    expect(await screen.findByRole("heading", { name: "Table Policy 详情" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "表规则详情" })).toBeVisible();
     expect(await screen.findByDisplayValue("new")).toBeVisible();
-    expect(screen.queryByRole("heading", { name: "新建 Table Policy 分配" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "新建表规则分配" })).not.toBeInTheDocument();
   });
 
   it("Discovery 成功但没有真实表时展示明确空态", async () => {
@@ -350,7 +350,7 @@ describe("表策略分配页面", () => {
     expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeDisabled();
   });
 
-  it("确认后启用和停用 Table Policy", async () => {
+  it("确认后启用和停用表规则", async () => {
     let currentPolicy = { ...tablePolicy, enabled: false };
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
@@ -374,14 +374,14 @@ describe("表策略分配页面", () => {
 
     renderPage("/platform/table-policies/notification_templates");
     await user.click(await screen.findByRole("button", { name: "启用" }));
-    expect(await screen.findByRole("alertdialog", { name: "启用 Table Policy？" })).toHaveTextContent("实时 Schema");
+    expect(await screen.findByRole("alertdialog", { name: "启用表规则？" })).toHaveTextContent("实时 Schema");
     await user.click(screen.getByRole("button", { name: "确认启用" }));
-    expect(await screen.findByText("Table Policy 已启用")).toBeVisible();
+    expect(await screen.findByText("表规则已启用")).toBeVisible();
 
     await user.click(await screen.findByRole("button", { name: "停用" }));
-    expect(await screen.findByRole("alertdialog", { name: "停用 Table Policy？" })).toHaveTextContent("Managed Table");
+    expect(await screen.findByRole("alertdialog", { name: "停用表规则？" })).toHaveTextContent("Managed Table");
     await user.click(screen.getByRole("button", { name: "确认停用" }));
-    expect(await screen.findByText("Table Policy 已停用")).toBeVisible();
+    expect(await screen.findByText("表规则已停用")).toBeVisible();
   });
 
   it("清晰呈现 Admin 的实时 Schema 稳定错误和 Request ID", async () => {

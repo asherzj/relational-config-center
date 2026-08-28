@@ -11,7 +11,7 @@ export function LoadingState({ label = "正在加载…" }: { label?: string }) 
   );
 }
 
-export function EmptyState({ entity = "查询策略" }: { entity?: string }) {
+export function EmptyState({ entity = "查询规则" }: { entity?: string }) {
   return (
     <div className="feedback-state">
       <Search aria-hidden="true" />

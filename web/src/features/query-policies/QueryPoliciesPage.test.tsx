@@ -60,7 +60,7 @@ function renderPage(initialEntry = "/platform/query-policies") {
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe("查询策略页面", () => {
+describe("查询规则页面", () => {
   it("renders localized policies from the real Admin contract shape", async () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -70,7 +70,7 @@ describe("查询策略页面", () => {
     }));
 
     renderPage();
-    expect(await screen.findByRole("heading", { name: "查询策略定义" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "查询规则定义" })).toBeVisible();
     expect(await screen.findByText("standard_page_query_v1")).toBeVisible();
     expect(screen.getByText("已激活")).toBeVisible();
     expect(screen.queryByText("Query Policy 定义")).not.toBeInTheDocument();
@@ -87,7 +87,7 @@ describe("查询策略页面", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     renderPage("/platform/query-policies/standard_page_query_v1");
-    expect(await screen.findByRole("heading", { name: "查询策略详情" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "查询规则详情" })).toBeVisible();
     expect(await screen.findByDisplayValue("标准分页查询")).toBeDisabled();
     expect(fetchMock).toHaveBeenCalledWith("/api/v1/query-policies/standard_page_query_v1", expect.any(Object));
   });
@@ -125,7 +125,7 @@ describe("查询策略页面", () => {
     }));
 
     renderPage(`/platform/query-policies/${policy.code}?mode=${requestedMode}`);
-    expect(await screen.findByRole("heading", { name: "查询策略详情" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "查询规则详情" })).toBeVisible();
     expect(await screen.findByDisplayValue(policy.name)).toBeDisabled();
     expect(screen.queryByRole("button", { name: "保存" })).not.toBeInTheDocument();
   });
@@ -147,14 +147,14 @@ describe("查询策略页面", () => {
     renderPage("/platform/query-policies/compact_page_query_v1");
     const activateButtons = await screen.findAllByRole("button", { name: "激活" });
     await user.click(activateButtons.at(-1)!);
-    expect(screen.getByRole("alertdialog", { name: "激活查询策略？" })).toBeVisible();
+    expect(screen.getByRole("alertdialog", { name: "激活查询规则？" })).toBeVisible();
     await user.click(screen.getByRole("button", { name: "确认激活" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
       "/api/v1/query-policies/compact_page_query_v1/activate",
       expect.objectContaining({ method: "POST" }),
     ));
-    expect(await screen.findByText("查询策略已激活")).toBeVisible();
+    expect(await screen.findByText("查询规则已激活")).toBeVisible();
   });
 
   it("deprecates an active Policy only after confirmation", async () => {
@@ -171,7 +171,7 @@ describe("查询策略页面", () => {
 
     renderPage("/platform/query-policies/standard_page_query_v1");
     await user.click((await screen.findAllByRole("button", { name: "弃用" })).at(-1)!);
-    expect(screen.getByRole("alertdialog", { name: "弃用查询策略？" })).toBeVisible();
+    expect(screen.getByRole("alertdialog", { name: "弃用查询规则？" })).toBeVisible();
     await user.click(screen.getByRole("button", { name: "确认弃用" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
@@ -194,7 +194,7 @@ describe("查询策略页面", () => {
 
     renderPage("/platform/query-policies/compact_page_query_v1");
     await user.click((await screen.findAllByRole("button", { name: "删除" })).at(-1)!);
-    expect(screen.getByRole("alertdialog", { name: "删除查询策略草稿？" })).toBeVisible();
+    expect(screen.getByRole("alertdialog", { name: "删除查询规则草稿？" })).toBeVisible();
     await user.click(screen.getByRole("button", { name: "取消" }));
     expect(fetchMock.mock.calls.some(([url, init]) => String(url).endsWith("compact_page_query_v1") && (init as RequestInit | undefined)?.method === "DELETE")).toBe(false);
 

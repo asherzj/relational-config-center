@@ -162,9 +162,9 @@ export function ManagedDataPage() {
   const autoFillFields = new Set([...fieldsFromTargets(autoFillTargets("ADD")), ...fieldsFromTargets(autoFillTargets("MODIFY"))]);
   const changeSetAutoFillFields = (operation: ChangeSetOperation) => new Set(fieldsFromTargets(autoFillTargets(operation)));
   const capabilityReason = (operation: "ADD" | "MODIFY" | "DELETE") => {
-    if (!executableMutationPolicy) return "当前 Policy Snapshot 的 Mutation 能力尚不可执行";
+    if (!executableMutationPolicy) return "当前规则快照的变更能力尚不可执行";
     const allowed = operation === "ADD" ? executableMutationPolicy.allowAdd : operation === "MODIFY" ? executableMutationPolicy.allowModify : executableMutationPolicy.allowDelete;
-    if (!allowed) return `${operation} 未由当前 Mutation Policy 授权`;
+    if (!allowed) return `${operation} 未由当前变更规则授权`;
     if (!result.data || operation === "DELETE") return undefined;
     for (const [field, kind] of autoFillTargets(operation)) {
       if (!field) continue;
@@ -228,7 +228,7 @@ export function ManagedDataPage() {
       <div className="page-heading">
         <div>
           <h1>配置内容管理</h1>
-          <p>依据 enabled Table Policy 查询 Managed Table；字段与类型来自实时 Schema。</p>
+          <p>依据已启用的表规则查询 Managed Table；字段与类型来自实时 Schema。</p>
         </div>
         <div className="page-heading-actions">
           <Button variant="secondary" icon={<RefreshCw size={16} />} disabled={!selectedTable || result.isFetching} onClick={() => void result.refetch()}>重新查询</Button>
@@ -242,7 +242,7 @@ export function ManagedDataPage() {
         <section className="feedback-state managed-data-empty">
           <Database aria-hidden="true" />
           <strong>没有可用的 Managed Table</strong>
-          <span>请先为真实数据库表创建并启用完整的 Table Policy。</span>
+          <span>请先为真实数据库表创建并启用完整的表规则。</span>
         </section>
       ) : (
         <>
@@ -265,7 +265,7 @@ export function ManagedDataPage() {
                 {enabledPolicies.map((policy) => <option key={policy.tableName} value={policy.tableName}>{policy.tableName}</option>)}
               </select>
             </label>
-            <span className="managed-table-status"><i className="ready-dot" />enabled Table Policy</span>
+            <span className="managed-table-status"><i className="ready-dot" />已启用表规则</span>
           </section>
 
           {result.data && (
@@ -320,7 +320,7 @@ export function ManagedDataPage() {
                 <label className="field">
                   <span>排序字段</span>
                   <select aria-label="排序字段" value={orderField} onChange={(event) => setOrderField(event.target.value)}>
-                    <option value="">使用 Query Policy 默认排序</option>
+                    <option value="">使用查询规则默认排序</option>
                     {result.data.columns.map((column) => <option key={column.name} value={column.name}>{column.name}</option>)}
                   </select>
                 </label>
@@ -333,7 +333,7 @@ export function ManagedDataPage() {
                 </label>
                 <label className="field">
                   <span>每页数量</span>
-                  <input aria-label="每页数量" type="number" min="1" max="200" placeholder={`策略默认（当前 ${result.data.page.pageSize}）`} value={pageSize} onChange={(event) => setPageSize(event.target.value)} />
+                  <input aria-label="每页数量" type="number" min="1" max="200" placeholder={`规则默认（当前 ${result.data.page.pageSize}）`} value={pageSize} onChange={(event) => setPageSize(event.target.value)} />
                 </label>
               </div>
               {validationError && <div className="inline-alert query-validation" role="alert">{validationError}</div>}
@@ -405,7 +405,7 @@ export function ManagedDataPage() {
               </>
             )}
           </section>
-          <section className="mutation-capability-notes" aria-label="Mutation Policy 权限">
+          <section className="mutation-capability-notes" aria-label="变更规则权限">
             {(["ADD", "MODIFY", "DELETE"] as const).map((operation) => capabilityReason(operation) && <span id={`mutation-${operation.toLowerCase()}-reason`} key={operation}>{capabilityReason(operation)}</span>)}
           </section>
           {editor && <ManagedRowEditor

@@ -4,6 +4,6 @@
 
 Policy 生命周期只有 `enabled` 和 `disabled` 两种状态，不引入 draft、发布、回滚或历史 revision。创建和原子替换仍由专用 Catalog API 完成。
 
-新 Policy 创建为 disabled；原子替换保持当前状态。启用前重新校验目标表、实时 Schema 和两种策略配置，禁用立即停止数据 API 授权。运行时校验失败只拒绝当前请求，不自动改变 Policy 状态。
+新规则创建为 disabled；原子替换保持当前状态。启用前重新校验目标表、实时 Schema 和两类规则定义，禁用立即停止数据 API 授权。运行时校验失败只拒绝当前请求，不自动改变规则状态。
 
 Policy 不绑定 Schema Fingerprint。每次执行都读取当前 MySQL 元数据；表结构变化自动进入后续请求，只有目标不再满足 Managed Table 的基本条件时才拒绝执行。
