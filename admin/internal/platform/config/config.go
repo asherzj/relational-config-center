@@ -12,12 +12,18 @@ import (
 
 // Config contains deployment-owned Admin settings.
 type Config struct {
-	HTTPAddr     string
-	APIToken     string
-	AuthDisabled bool
-	CORSOrigins  []string
-	Operator     string
-	MySQL        MySQL
+	AccountRegisterLimit     int
+	AccountLoginIPLimit      int
+	AccountLoginFailureLimit int
+	AccountPublicOrigin      string
+	AccountInsecureHTTP      bool
+	AccountTrustedProxies    []string
+	HTTPAddr                 string
+	APIToken                 string
+	AuthDisabled             bool
+	CORSOrigins              []string
+	Operator                 string
+	MySQL                    MySQL
 }
 
 // MySQL contains the one deployment-owned Managed Data Source configuration.
@@ -117,7 +123,25 @@ func Load() (Config, error) {
 		return Config{}, err
 	}
 
+	registrationLimit, err := positiveInteger("ADMIN_REGISTER_LIMIT", 10)
+	if err != nil {
+		return Config{}, err
+	}
+	loginIPLimit, err := positiveInteger("ADMIN_LOGIN_IP_LIMIT", 60)
+	if err != nil {
+		return Config{}, err
+	}
+	loginFailureLimit, err := positiveInteger("ADMIN_LOGIN_FAILURE_LIMIT", 10)
+	if err != nil {
+		return Config{}, err
+	}
+	origin, insecure, proxies, err := accountHTTPEnvironment()
+	if err != nil {
+		return Config{}, err
+	}
 	return Config{
+		AccountRegisterLimit: registrationLimit, AccountLoginIPLimit: loginIPLimit, AccountLoginFailureLimit: loginFailureLimit,
+		AccountPublicOrigin: origin, AccountInsecureHTTP: insecure, AccountTrustedProxies: proxies,
 		HTTPAddr:     httpAddr,
 		APIToken:     apiToken,
 		AuthDisabled: authDisabled,
@@ -254,4 +278,36 @@ func validTLSMode(value string) bool {
 	default:
 		return false
 	}
+}
+
+func accountHTTPEnvironment() (string, bool, []string, error) {
+	origin, err := required("ADMIN_PUBLIC_ORIGIN")
+	if err != nil {
+		return "", false, nil, err
+	}
+	insecure, err := strictBoolean("ADMIN_ALLOW_LOCAL_HTTP", false)
+	if err != nil {
+		return "", false, nil, err
+	}
+	parsed, err := url.Parse(origin)
+	if err != nil || parsed.Host == "" || parsed.User != nil || parsed.Path != "" || parsed.RawQuery != "" || parsed.Fragment != "" || parsed.String() != origin {
+		return "", false, nil, fmt.Errorf("ADMIN_PUBLIC_ORIGIN must be an exact origin")
+	}
+	if parsed.Scheme != "https" && !(insecure && parsed.Scheme == "http" && net.ParseIP(parsed.Hostname()) != nil && net.ParseIP(parsed.Hostname()).IsLoopback()) {
+		return "", false, nil, fmt.Errorf("ADMIN_PUBLIC_ORIGIN requires HTTPS or explicitly allowed loopback HTTP")
+	}
+	if insecure && parsed.Scheme != "http" {
+		return "", false, nil, fmt.Errorf("ADMIN_ALLOW_LOCAL_HTTP requires a loopback HTTP origin")
+	}
+	var proxies []string
+	if raw := strings.TrimSpace(os.Getenv("ADMIN_TRUSTED_PROXIES")); raw != "" {
+		for _, item := range strings.Split(raw, ",") {
+			cidr := strings.TrimSpace(item)
+			if _, _, err := net.ParseCIDR(cidr); err != nil {
+				return "", false, nil, fmt.Errorf("ADMIN_TRUSTED_PROXIES must contain CIDRs")
+			}
+			proxies = append(proxies, cidr)
+		}
+	}
+	return origin, insecure, proxies, nil
 }

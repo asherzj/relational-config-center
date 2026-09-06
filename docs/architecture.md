@@ -99,3 +99,25 @@ The first iteration ships the Policy Catalog as runtime data (ADR 0005) and prov
 The original prototype packages (`httpapi`, `managedtable`, `mysqlstore`) were rewritten into the layout above rather than preserved; the compile-time `bootstrap` registry was deleted when the runtime Policy Catalog landed (issue #2).
 
 Relations, end-user identity and authorization, audit history, publishing workflows, runtime gRPC reads, and in-place schema upgrades belong to later iterations.
+
+## Local Account entry (T1)
+
+The account entry uses `interfaces/http/authentication.go` →
+`application/Authentication` → Domain-owned account and rate-state contracts.
+The MySQL adapter commits account creation and its initial Login Session in one
+transaction. The password adapter owns Argon2id computation and its concurrency
+bound. HTTP maps the current account into a safe identity response; the Web
+account page consumes that response through its account API client.
+
+Account IDs, normalized unique account fields, opaque session digests, pre-login
+CSRF digests and rate windows live in protected `rcc_` control tables. Authenticated
+reads check enabled status and both stored security versions in the same query;
+session issuance rechecks the verified account under a database lock. Password
+computation happens outside database transactions. Control-table admission uses
+one MySQL lock row so capacity and rate decisions work across Admin processes.
+
+TMP-01 is an explicit development exception to ADR-0017/0018 until #37: existing
+business routes still use deployment authentication and fixed Operator while
+`/api/v1/auth/*` exclusively uses Local Account credentials. The account slice
+must not be released as full business authentication. #37 removes this exception;
+#36 adds profile/session lifecycle, and #40 verifies the final deployment.

@@ -57,3 +57,17 @@ more precise, but direct execution of 006 is independently fail closed.
 The final `rcc_table_policies` columns are exactly `id`, `table_name`, both
 Policy Codes, `enabled`, `creator`, `modifier`, `gmt_created`, and
 `gmt_modified`. No foreign keys or optimistic-lock columns are added.
+
+## Local Account control tables
+
+After completing the existing Policy Catalog migration, apply
+[`007-local-accounts.sql`](./007-local-accounts.sql) once with database maintenance
+permissions. Fresh installations already include the same tables in
+`init/001-schema.sql`; do not replay 007 there. These are explicit InnoDB tables,
+not GORM AutoMigrate output. Never expose any `rcc_` table through generic policies.
+
+This is the T1 development slice of #35. TMP-01 still exists: the old business
+workspace uses deployment authentication until #37 removes it. Do not release
+this intermediate combination as the complete account feature. The final
+maintenance-window upgrade and required-schema startup checks belong to #40.
+See [the account interface and development setup](../../../docs/admin-local-accounts.md).

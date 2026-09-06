@@ -38,6 +38,7 @@ export function AppShell() {
             <NavLink to="/configuration/managed-data" onClick={() => setMobileNavOpen(false)}>配置内容管理</NavLink>
           </section>
         </nav>
+        <NavLink to="/account">本地账号入口</NavLink>
         <div className="operator">
           <span className="operator-avatar">OP</span>
           <span><strong>Admin Operator</strong><small>由服务端配置</small></span>

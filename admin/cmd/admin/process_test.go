@@ -33,6 +33,7 @@ func TestAdminProcessRejectsUnavailableRequiredDatabase(t *testing.T) {
 		"PATH=" + os.Getenv("PATH"),
 		"ADMIN_HTTP_ADDR=127.0.0.1:0",
 		"ADMIN_API_TOKEN=process-token",
+		"ADMIN_PUBLIC_ORIGIN=https://config.example.test",
 		"MYSQL_HOST=127.0.0.1",
 		"MYSQL_PORT=1",
 		"MYSQL_DATABASE=rcc_test",

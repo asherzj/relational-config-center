@@ -20,6 +20,9 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 	router := gin.New()
 	router.HandleMethodNotAllowed = true
 	router.Use(requestIdentity(), structuredAccessLog(options.AccessLog), safeRecovery(), limitRequestBody(), exactCORS(options), bearerAuthentication(options))
+	if options.Authentication != nil {
+		registerAccountRoutes(router, options.Authentication, options.AccountHTTP)
+	}
 	router.NoRoute(func(context *gin.Context) {
 		if isAPIRequest(context.Request.URL.Path) {
 			writeError(context, stdhttp.StatusNotFound, "route_not_found", "route not found")

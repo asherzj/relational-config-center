@@ -1,5 +1,7 @@
 # 关系型配置中心
 
+本地账号的 T1 开发切片提供 `/register`、`/login` 和 `/account`，使用真实 MySQL Cookie 会话。启动需显式配置 `ADMIN_PUBLIC_ORIGIN`；本机 HTTP 还需 `ADMIN_ALLOW_LOCAL_HTTP=true`。参见[账号入口与 HTTP 契约](docs/admin-local-accounts.md)。TMP-01 暂保留旧业务工作区认证，#37 负责删除；当前切片不代表完整账号功能已交付。
+
 Relational Configuration Center 是一个面向实体、字段和关系建模的配置管理系统。
 它旨在为具有 Schema、约束、引用和关联查询需求的配置数据提供统一管理能力，区别于以独立键值或配置文件为主要管理单元的传统配置中心。
 

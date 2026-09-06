@@ -117,10 +117,49 @@ func setRequiredMySQL(t *testing.T) {
 	} {
 		t.Setenv(name, "")
 	}
+	t.Setenv("ADMIN_PUBLIC_ORIGIN", "https://admin.example.test")
+	t.Setenv("ADMIN_ALLOW_LOCAL_HTTP", "")
+	t.Setenv("ADMIN_TRUSTED_PROXIES", "")
+	t.Setenv("ADMIN_REGISTER_LIMIT", "")
+	t.Setenv("ADMIN_LOGIN_IP_LIMIT", "")
+	t.Setenv("ADMIN_LOGIN_FAILURE_LIMIT", "")
 	t.Setenv("MYSQL_HOST", "127.0.0.1")
 	t.Setenv("MYSQL_PORT", "3306")
 	t.Setenv("MYSQL_DATABASE", "rcc_test")
 	t.Setenv("MYSQL_USER", "rcc_admin")
 	t.Setenv("MYSQL_PASSWORD", "database-secret")
 	t.Setenv("MYSQL_TLS_MODE", "false")
+}
+
+func TestLocalAccountOriginAndLimitsConfiguration(t *testing.T) {
+	for _, test := range []struct {
+		name, origin, insecure, proxies string
+		wantError                       bool
+	}{
+		{name: "explicit HTTPS", origin: "https://config.example.test"},
+		{name: "explicit local HTTP", origin: "http://127.0.0.1:5173", insecure: "true"},
+		{name: "IPv6 local HTTP", origin: "http://[::1]:5173", insecure: "true"},
+		{name: "missing origin", wantError: true},
+		{name: "HTTP without exception", origin: "http://127.0.0.1:5173", wantError: true},
+		{name: "remote HTTP", origin: "http://config.example.test", insecure: "true", wantError: true},
+		{name: "origin with path", origin: "https://config.example.test/path", wantError: true},
+		{name: "credentials in origin", origin: "https://user@config.example.test", wantError: true},
+		{name: "proxy CIDR", origin: "https://config.example.test", proxies: "127.0.0.1/32,10.0.0.0/8"},
+		{name: "invalid proxy", origin: "https://config.example.test", proxies: "*", wantError: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			setRequiredMySQL(t)
+			t.Setenv("ADMIN_API_TOKEN", "deployment-secret")
+			t.Setenv("ADMIN_PUBLIC_ORIGIN", test.origin)
+			t.Setenv("ADMIN_ALLOW_LOCAL_HTTP", test.insecure)
+			t.Setenv("ADMIN_TRUSTED_PROXIES", test.proxies)
+			settings, err := config.Load()
+			if (err != nil) != test.wantError {
+				t.Fatalf("error=%v wanted error=%v", err, test.wantError)
+			}
+			if err == nil && (settings.AccountRegisterLimit != 10 || settings.AccountLoginIPLimit != 60 || settings.AccountLoginFailureLimit != 10) {
+				t.Fatal("rate defaults")
+			}
+		})
+	}
 }

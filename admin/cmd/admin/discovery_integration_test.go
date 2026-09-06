@@ -253,9 +253,11 @@ func startIntegrationMySQL(t *testing.T, scripts ...string) (context.Context, *m
 
 func integrationConfig(driverConfig *mysqldriver.Config) config.Config {
 	return config.Config{
-		HTTPAddr:     "127.0.0.1:0",
-		AuthDisabled: true,
-		Operator:     "integration-test",
+		AccountPublicOrigin: "http://127.0.0.1:5173",
+		AccountInsecureHTTP: true,
+		HTTPAddr:            "127.0.0.1:0",
+		AuthDisabled:        true,
+		Operator:            "integration-test",
 		MySQL: config.MySQL{
 			Network:            driverConfig.Net,
 			Address:            driverConfig.Addr,
@@ -279,6 +281,8 @@ func integrationEnvironment(driverConfig *mysqldriver.Config, httpAddress string
 	return []string{
 		"ADMIN_HTTP_ADDR=" + httpAddress,
 		"ADMIN_API_TOKEN=integration-token",
+		"ADMIN_PUBLIC_ORIGIN=http://127.0.0.1:5173",
+		"ADMIN_ALLOW_LOCAL_HTTP=true",
 		"ADMIN_OPERATOR=integration-test",
 		"MYSQL_HOST=" + host,
 		"MYSQL_PORT=" + port,

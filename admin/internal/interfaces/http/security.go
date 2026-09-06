@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/asherzj/relational-config-center/admin/internal/application"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,10 +32,12 @@ var (
 // RouterOptions is the deployment-owned interface of the HTTP safety module.
 // Request-scoped safety behavior remains behind NewRouter.
 type RouterOptions struct {
-	APIToken     string
-	AuthDisabled bool
-	CORSOrigins  []string
-	AccessLog    io.Writer
+	Authentication *application.Authentication
+	AccountHTTP    AccountHTTPOptions
+	APIToken       string
+	AuthDisabled   bool
+	CORSOrigins    []string
+	AccessLog      io.Writer
 }
 
 func limitRequestBody() gin.HandlerFunc {
@@ -126,6 +129,10 @@ func exactCORS(options RouterOptions) gin.HandlerFunc {
 			context.Next()
 			return
 		}
+		if isAccountRequest(context.Request.URL.Path) {
+			context.Next()
+			return
+		}
 		origin := context.GetHeader("Origin")
 		if origin == "" {
 			context.Next()
@@ -192,7 +199,7 @@ func requestIdentity() gin.HandlerFunc {
 func bearerAuthentication(options RouterOptions) gin.HandlerFunc {
 	expected := sha256.Sum256([]byte(options.APIToken))
 	return func(context *gin.Context) {
-		if !isAPIRequest(context.Request.URL.Path) || options.AuthDisabled {
+		if !isAPIRequest(context.Request.URL.Path) || isAccountRequest(context.Request.URL.Path) || options.AuthDisabled {
 			context.Next()
 			return
 		}
