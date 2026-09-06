@@ -370,3 +370,7 @@ input::placeholder, textarea::placeholder { color: #6d7884; opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* A discard confirmation must remain above drawers and Change Set dialogs. */
+.leave-protection-layer { z-index: 80; }
+.form-controls { display: contents; border: 0; padding: 0; margin: 0; min-width: 0; }

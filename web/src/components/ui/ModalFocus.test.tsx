@@ -70,4 +70,16 @@ describe("modal focus management", () => {
     expect(cancelConfirm).toHaveBeenCalledOnce();
     expect(closeDrawer).not.toHaveBeenCalled();
   });
+  it("skips controls disabled by a pending fieldset when trapping Tab", async () => {
+    const user = userEvent.setup();
+    render(<Drawer open title="正在保存" eyebrow="规则" onClose={() => undefined}>
+      <fieldset disabled><input aria-label="正在提交的输入" /><button>禁用操作</button></fieldset>
+    </Drawer>);
+    const close = screen.getByRole("button", { name: "关闭" });
+    await user.tab({ shift: true });
+    expect(close).toHaveFocus();
+    await user.tab();
+    expect(close).toHaveFocus();
+  });
+
 });

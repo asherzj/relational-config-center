@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { TestRouter } from "../../test/TestRouter";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
@@ -69,9 +69,9 @@ function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={["/configuration/managed-data"]}>
+      <TestRouter initialEntries={["/configuration/managed-data"]}>
         <ToastProvider><AppRoutes /></ToastProvider>
-      </MemoryRouter>
+      </TestRouter>
     </QueryClientProvider>,
   );
 }
@@ -387,6 +387,8 @@ describe("Managed Data mutation capability", () => {
     await user.type(screen.getByRole("textbox", { name: "template_key 值" }), "readback");
     await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
     await user.selectOptions(screen.getByRole("combobox", { name: "Managed Table" }), "audit_events");
+    await user.click(screen.getByRole("button", { name: "继续编辑" }));
+    expect(screen.getByRole("combobox", { name: "Managed Table" })).toHaveValue("notification_templates");
     await user.click(screen.getByRole("button", { name: "确认并执行" }));
 
     expect(await screen.findByRole("heading", { name: "ADD 已执行，回查未完成" })).toBeVisible();

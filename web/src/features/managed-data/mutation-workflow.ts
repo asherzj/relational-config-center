@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { supportsMutationPolicyType } from "../mutation-policies/model";
 import { useMutationPolicy, useMutationPolicyTypes } from "../mutation-policies/queries";
 import {
@@ -52,6 +52,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
   const mutationPolicy = useMutationPolicy(mutationPolicyCode);
   const mutationTypes = useMutationPolicyTypes(Boolean(mutationPolicyCode));
   const mutation = useManagedDataMutation();
+  const inFlight = useRef(false);
   const rowRefetch = useManagedDataRowRefetch();
   const [editorSequence, setEditorSequence] = useState(0);
   const [editor, setEditor] = useState<ManagedDataEditorState | null>(null);
@@ -103,6 +104,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
     : null;
 
   const send = (intent: ManagedDataMutationIntent) => {
+    if (inFlight.current || mutation.isPending) return;
     switch (intent.type) {
       case "open-editor": {
         if (!columns) return;
@@ -143,7 +145,6 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
         });
         return;
       case "edit-pending":
-        mutation.reset();
         setPendingChange(null);
         return;
       case "cancel-pending":
@@ -153,6 +154,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
         return;
       case "confirm-pending":
         if (!pendingChange) return;
+        inFlight.current = true;
         mutation.mutate({
           operation: pendingChange.operation,
           tableName: pendingChange.tableName,
@@ -164,6 +166,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
             setPendingChange(null);
             setEditor(null);
           },
+          onSettled() { inFlight.current = false; },
         });
         return;
       case "retry-readback":

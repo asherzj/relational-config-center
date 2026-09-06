@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { presentError } from "../../api/error-messages";
+import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { useToast } from "../../components/ui/Toast";
 import { allowedActions, type PolicyAction, type PolicyStatus } from "./model";
 
@@ -111,32 +112,40 @@ export function usePolicyFormSubmission<TDraft, TMetadata>({
   code?: string;
   collectionPath: string;
   copy: { created: string; replaced: string; metadataUpdated: string };
-  create: (value: TDraft, onSuccess: (code: string) => void) => void;
-  replace: (code: string, value: TDraft, onSuccess: () => void) => void;
-  updateMetadata: (code: string, value: TMetadata, onSuccess: () => void) => void;
+  create: (value: TDraft, onSuccess: (code: string) => void, onError: () => void) => void;
+  replace: (code: string, value: TDraft, onSuccess: () => void, onError: () => void) => void;
+  updateMetadata: (code: string, value: TMetadata, onSuccess: () => void, onError: () => void) => void;
   pending: boolean;
   error: unknown;
 }) {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const openDetail = (targetCode: string) => navigate(`${collectionPath}/${encodeURIComponent(targetCode)}`);
+  const inFlight = useRef(false);
+  const protection = useDraftProtection(false, pending);
+  const unlock = () => { inFlight.current = false; };
+  const openDetail = (targetCode: string) => {
+    unlock();
+    protection.afterSave(() => navigate(`${collectionPath}/${encodeURIComponent(targetCode)}`));
+  };
 
   const submit = (value: TDraft | TMetadata) => {
+    if (inFlight.current || pending || mode === "view") return;
+    inFlight.current = true;
     if (mode === "create") {
       create(value as TDraft, (createdCode) => {
         showToast(copy.created);
         openDetail(createdCode);
-      });
+      }, unlock);
     } else if (mode === "replace" && code) {
       replace(code, value as TDraft, () => {
         showToast(copy.replaced);
         openDetail(code);
-      });
+      }, unlock);
     } else if (mode === "metadata" && code) {
       updateMetadata(code, value as TMetadata, () => {
         showToast(copy.metadataUpdated);
         openDetail(code);
-      });
+      }, unlock);
     }
   };
 

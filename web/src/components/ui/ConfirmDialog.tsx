@@ -30,7 +30,7 @@ export function ConfirmDialog({
   if (!open) return null;
   return (
     <div className="modal-layer">
-      <button className="drawer-scrim" aria-label="取消操作" onClick={onCancel} />
+      <button className="drawer-scrim" aria-label="取消操作" disabled={pending} onClick={onCancel} />
       <div ref={dialogRef} tabIndex={-1} className="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-description" data-modal-surface="true">
         <AlertTriangle className={destructive ? "danger-color" : "accent-color"} aria-hidden="true" />
         <h2 id="confirm-title">{title}</h2>

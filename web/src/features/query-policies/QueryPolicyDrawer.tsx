@@ -1,5 +1,5 @@
 import { AlertCircle } from "lucide-react";
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useRef, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { Drawer } from "../../components/ui/Drawer";
@@ -26,7 +26,12 @@ type Props = {
   onRequestCommand: (command: PolicyLifecycleCommand, code: string) => void;
 };
 
-export function QueryPolicyDrawer({ code, onRequestCommand }: Props) {
+export function QueryPolicyDrawer(props: Props) {
+  const [searchParams] = useSearchParams();
+  return <QueryPolicySession key={`${props.code}:${searchParams.get("mode")}`} {...props} />;
+}
+
+function QueryPolicySession({ code, onRequestCommand }: Props) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const creating = code === "new";
@@ -38,7 +43,9 @@ export function QueryPolicyDrawer({ code, onRequestCommand }: Props) {
 
   const requestedFormMode = requestedPolicyFormMode(creating, searchParams.get("mode"));
   const close = () => navigate("/platform/query-policies");
-  const policy = detail.data;
+  const editingPolicy = useRef(detail.data);
+  if (!editingPolicy.current && detail.data) editingPolicy.current = detail.data;
+  const policy = requestedFormMode === "view" ? detail.data : editingPolicy.current;
   const supported = policy ? supportedQueryPolicyTypes.has(policy.typeCode) : true;
   const mode = resolvePolicyFormMode(requestedFormMode, policy?.status, supported);
   const actions = policy ? policyActionAvailability(policy.status, supported) : null;
@@ -47,9 +54,9 @@ export function QueryPolicyDrawer({ code, onRequestCommand }: Props) {
     code,
     collectionPath: "/platform/query-policies",
     copy: { created: "查询规则草稿已创建", replaced: "查询规则草稿已更新", metadataUpdated: "查询规则显示信息已更新" },
-    create: (value, onSuccess) => create.mutate(value, { onSuccess: (created) => onSuccess(created.code) }),
-    replace: (target, value, onSuccess) => replace.mutate({ code: target, draft: value }, { onSuccess }),
-    updateMetadata: (target, value, onSuccess) => metadata.mutate({ code: target, metadata: value }, { onSuccess }),
+    create: (value, onSuccess, onError) => create.mutate(value, { onSuccess: (created) => onSuccess(created.code), onError }),
+    replace: (target, value, onSuccess, onError) => replace.mutate({ code: target, draft: value }, { onSuccess, onError }),
+    updateMetadata: (target, value, onSuccess, onError) => metadata.mutate({ code: target, metadata: value }, { onSuccess, onError }),
     pending: create.isPending || replace.isPending || metadata.isPending,
     error: create.error || replace.error || metadata.error,
   });
@@ -63,13 +70,15 @@ export function QueryPolicyDrawer({ code, onRequestCommand }: Props) {
 
   let content: ReactNode;
   if (!creating && detail.isPending) content = <LoadingState label="正在读取查询规则…" />;
-  else if (!creating && detail.isError) content = <ErrorState error={detail.error} onRetry={() => void detail.refetch()} />;
+  else if (!creating && detail.isError && !detail.data) content = <ErrorState error={detail.error} onRetry={() => void detail.refetch()} />;
   else content = (
     <>
       {!supported && (
         <div className="inline-alert"><AlertCircle size={18} /><strong>Web 尚不支持类型 {policy?.typeCode} 的执行内容；不能编辑或执行，但仍可更新名称和描述。</strong></div>
       )}
       <QueryPolicyForm
+        key={`${code}:${mode}`}
+        pending={form.pending}
         mode={mode}
         policy={policy}
         typeCodes={types.data ?? []}

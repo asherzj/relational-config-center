@@ -1,5 +1,6 @@
 import { Info } from "lucide-react";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { presentError } from "../../api/error-messages";
 import type { PolicyFormMode } from "../policies/lifecycle";
 import {
@@ -39,19 +40,27 @@ type Props = {
   policy?: MutationPolicy;
   typeCodes: string[];
   serverError?: unknown;
+  pending?: boolean;
   onSubmit: (value: MutationPolicyDraft | MutationPolicyMetadata) => void;
 };
 
-export function MutationPolicyForm({ mode, policy, typeCodes, serverError, onSubmit }: Props) {
-  const [draft, setDraft] = useState<MutationPolicyDraft>(() => draftFor(policy));
+export function MutationPolicyForm({ mode, policy, typeCodes, serverError, pending = false, onSubmit }: Props) {
+  const [baseline] = useState(() => draftFor(policy));
+  const [editableDraft, setDraft] = useState<MutationPolicyDraft>(baseline);
+  const draft = mode === "view" ? draftFor(policy) : editableDraft;
   const [errors, setErrors] = useState<Partial<Record<keyof MutationPolicyDraft, string>>>({});
   const executionLocked = mode === "view" || mode === "metadata";
   const fullyLocked = mode === "view";
 
-  useEffect(() => {
-    setDraft(draftFor(policy));
-    setErrors({});
-  }, [policy, mode]);
+  // Keyed by resource and mode: refreshes cannot reset an editing session.
+  const comparable = (value: typeof draft) => ({
+    ...value, name: value.name.trim(), description: value.description.trim(),
+    createOperatorField: value.createOperatorField?.trim() || null,
+    createTimeField: value.createTimeField?.trim() || null,
+    modifyOperatorField: value.modifyOperatorField?.trim() || null,
+    modifyTimeField: value.modifyTimeField?.trim() || null,
+  });
+  useDraftProtection(mode !== "view" && JSON.stringify(comparable(draft)) !== JSON.stringify(comparable(baseline)), pending);
 
   const update = <K extends keyof MutationPolicyDraft>(key: K, value: MutationPolicyDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -60,6 +69,7 @@ export function MutationPolicyForm({ mode, policy, typeCodes, serverError, onSub
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    if (pending || mode === "view") return;
     if (mode === "metadata") {
       const next = { name: draft.name.trim(), description: draft.description.trim() };
       const nextErrors: typeof errors = {};
@@ -103,6 +113,7 @@ export function MutationPolicyForm({ mode, policy, typeCodes, serverError, onSub
   return (
     <form id="mutation-policy-form" className="policy-form" onSubmit={submit} noValidate>
       {presentedError && <div className="inline-alert" role="alert"><strong>{presentedError.message}</strong>{presentedError.requestId && <span>请求编号：{presentedError.requestId}</span>}</div>}
+      <fieldset className="form-controls" disabled={pending}>
       {policy && <span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span>}
 
       <label className="field field-wide"><span>规则编码 · 创建后不可变</span><input value={draft.code} onChange={(event) => update("code", event.target.value)} disabled={mode !== "create"} placeholder="standard_mutation_v2" {...inputProps("code")} />{errors.code && <small id="code-error" className="field-error">{errors.code}</small>}</label>
@@ -137,6 +148,7 @@ export function MutationPolicyForm({ mode, policy, typeCodes, serverError, onSub
 
       {policy && policy.status !== "DRAFT" && <div className="form-note"><Info size={17} /><span>已激活或已弃用规则的授权与 Auto Fill 字段已锁定；只能更新名称和描述。</span></div>}
       {policy && <dl className="audit-grid"><div><dt>创建人</dt><dd>{policy.creator}</dd></div><div><dt>创建时间</dt><dd>{formatTimestamp(policy.createdAt)}</dd></div><div><dt>修改人</dt><dd>{policy.modifier}</dd></div><div><dt>修改时间</dt><dd>{formatTimestamp(policy.modifiedAt)}</dd></div></dl>}
+      </fieldset>
     </form>
   );
 }

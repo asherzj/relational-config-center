@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, Database, Pencil, Plus, RefreshCw, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { Button } from "../../components/ui/Button";
 import { ErrorState, LoadingState } from "../../components/ui/Feedback";
 import { useTablePolicies } from "../table-policies/queries";
@@ -16,7 +17,7 @@ import {
   type QueryOperator,
 } from "./model";
 import { useManagedDataQuery } from "./queries";
-import { useManagedDataMutationWorkflow } from "./mutation-workflow";
+import { useManagedDataMutationWorkflow, type ManagedDataMutationIntent } from "./mutation-workflow";
 import { ManagedRowEditor } from "./ManagedRowEditor";
 import { ChangeSetDialog } from "./ChangeSetDialog";
 import { MutationSuccessDialog } from "./MutationSuccessDialog";
@@ -116,6 +117,12 @@ export function ManagedDataPage() {
     columns: result.data?.columns,
   });
   const { editor, changeSet, outcome, capabilityReasons } = changes.view;
+  const protection = useDraftProtection(false, changes.view.executionPending);
+  const send = (intent: ManagedDataMutationIntent) => {
+    if (["open-editor", "review-delete", "cancel-pending"].includes(intent.type)) {
+      protection.requestLeave(() => changes.send(intent));
+    } else changes.send(intent);
+  };
   const submitQuerySpec = () => {
     if (!result.data) return;
     const error = validateQueryDraft(result.data.columns, conditions, pageSize);
@@ -138,7 +145,7 @@ export function ManagedDataPage() {
         </div>
         <div className="page-heading-actions">
           <Button variant="secondary" icon={<RefreshCw size={16} />} disabled={!selectedTable || result.isFetching} onClick={() => void result.refetch()}>重新查询</Button>
-          <Button variant="primary" icon={<Plus size={16} />} disabled={!result.data || Boolean(capabilityReasons.ADD)} title={capabilityReasons.ADD} aria-describedby={capabilityReasons.ADD ? "mutation-add-reason" : undefined} onClick={() => changes.send({ type: "open-editor", operation: "ADD" })}>新增记录</Button>
+          <Button variant="primary" icon={<Plus size={16} />} disabled={!result.data || Boolean(capabilityReasons.ADD)} title={capabilityReasons.ADD} aria-describedby={capabilityReasons.ADD ? "mutation-add-reason" : undefined} onClick={() => send({ type: "open-editor", operation: "ADD" })}>新增记录</Button>
         </div>
       </div>
 
@@ -160,13 +167,18 @@ export function ManagedDataPage() {
                 aria-label="Managed Table"
                 value={selectedTable}
                 onChange={(event) => {
-                  setRequestedTable(event.target.value);
+                  const target = event.target.value;
+                  if (target === selectedTable) return;
+                  protection.requestLeave(() => {
+                  changes.send({ type: "cancel-pending" });
+                  setRequestedTable(target);
                   setQuerySpec(initialQuerySpec);
                   setConditions([]);
                   setOrderField("");
                   setOrderDirection("DESC");
                   setPageSize("");
                   setValidationError(null);
+                  });
                 }}
               >
                 {enabledPolicies.map((policy) => <option key={policy.tableName} value={policy.tableName}>{policy.tableName}</option>)}
@@ -287,8 +299,8 @@ export function ManagedDataPage() {
                       <tr key={String(row.id ?? rowIndex)}>{result.data.columns.map((column) => (
                         <td key={column.name}><CellValue value={row[column.name] ?? null} /></td>
                       ))}<td className="managed-data-actions">
-                        <Button variant="ghost" icon={<Pencil size={14} />} aria-label={`修改记录 ${row.id ?? "未知"}`} disabled={typeof row.id !== "string" || Boolean(capabilityReasons.MODIFY)} title={typeof row.id !== "string" ? "记录缺少可用的 id" : capabilityReasons.MODIFY} aria-describedby={capabilityReasons.MODIFY ? "mutation-modify-reason" : undefined} onClick={() => changes.send({ type: "open-editor", operation: "MODIFY", row })}>修改</Button>
-                        <Button variant="ghost" icon={<Trash2 size={14} />} aria-label={`删除记录 ${row.id ?? "未知"}`} disabled={typeof row.id !== "string" || Boolean(capabilityReasons.DELETE)} title={typeof row.id !== "string" ? "记录缺少可用的 id" : capabilityReasons.DELETE} aria-describedby={capabilityReasons.DELETE ? "mutation-delete-reason" : undefined} onClick={() => changes.send({ type: "review-delete", row })}>删除</Button>
+                        <Button variant="ghost" icon={<Pencil size={14} />} aria-label={`修改记录 ${row.id ?? "未知"}`} disabled={typeof row.id !== "string" || Boolean(capabilityReasons.MODIFY)} title={typeof row.id !== "string" ? "记录缺少可用的 id" : capabilityReasons.MODIFY} aria-describedby={capabilityReasons.MODIFY ? "mutation-modify-reason" : undefined} onClick={() => send({ type: "open-editor", operation: "MODIFY", row })}>修改</Button>
+                        <Button variant="ghost" icon={<Trash2 size={14} />} aria-label={`删除记录 ${row.id ?? "未知"}`} disabled={typeof row.id !== "string" || Boolean(capabilityReasons.DELETE)} title={typeof row.id !== "string" ? "记录缺少可用的 id" : capabilityReasons.DELETE} aria-describedby={capabilityReasons.DELETE ? "mutation-delete-reason" : undefined} onClick={() => send({ type: "review-delete", row })}>删除</Button>
                       </td></tr>
                     ))}</tbody>
                   </table>
@@ -315,15 +327,19 @@ export function ManagedDataPage() {
           <section className="mutation-capability-notes" aria-label="变更规则权限">
             {(["ADD", "MODIFY", "DELETE"] as const).map((operation) => capabilityReasons[operation] && <span id={`mutation-${operation.toLowerCase()}-reason`} key={operation}>{capabilityReasons[operation]}</span>)}
           </section>
+
+        </>
+      )}
           {editor && <ManagedRowEditor
             key={editor?.sequence}
             open={Boolean(editor) && !changeSet}
+            error={changes.view.executionError}
             tableName={editor.tableName}
             operation={editor.operation}
             columns={editor.columns}
             original={editor.row}
             autoFillFields={new Set(editor.allAutoFillFields)}
-            onClose={() => changes.send({ type: "cancel-pending" })}
+            onClose={() => send({ type: "cancel-pending" })}
             onReview={(content) => changes.send({ type: "review-content", content })}
           />}
           <ChangeSetDialog
@@ -331,17 +347,15 @@ export function ManagedDataPage() {
             error={changes.view.executionError}
             pending={changes.view.executionPending}
             onEdit={() => changes.send({ type: "edit-pending" })}
-            onCancel={() => changes.send({ type: "cancel-pending" })}
+            onCancel={() => send({ type: "cancel-pending" })}
             onConfirm={() => changes.send({ type: "confirm-pending" })}
           />
           <MutationSuccessDialog
             outcome={outcome}
             retryPending={changes.view.retryPending}
             onRetry={() => changes.send({ type: "retry-readback" })}
-            onClose={() => changes.send({ type: "close-outcome" })}
+            onClose={() => send({ type: "close-outcome" })}
           />
-        </>
-      )}
     </main>
   );
 }

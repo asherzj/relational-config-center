@@ -1,6 +1,7 @@
 import { AlertCircle } from "lucide-react";
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { Button } from "../../components/ui/Button";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Drawer } from "../../components/ui/Drawer";
@@ -17,6 +18,11 @@ type Props = { tableName?: string };
 const emptyAssignment: TablePolicyAssignment = { tableName: "", queryPolicyCode: "", mutationPolicyCode: "" };
 
 export function TablePolicyDrawer({ tableName }: Props) {
+  const [searchParams] = useSearchParams();
+  return <TablePolicySession key={`${tableName}:${searchParams.get("mode")}`} tableName={tableName} />;
+}
+
+function TablePolicySession({ tableName }: Props) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { showToast } = useToast();
@@ -34,19 +40,21 @@ export function TablePolicyDrawer({ tableName }: Props) {
   const disable = useDisableTablePolicy();
   const detail = useTablePolicy(creating ? undefined : tableName);
   const [assignment, setAssignment] = useState<TablePolicyAssignment>(emptyAssignment);
+  const [baseline, setBaseline] = useState<TablePolicyAssignment | null>(creating ? emptyAssignment : null);
+  const inFlight = useRef(false);
+  const pending = create.isPending || replace.isPending || enable.isPending || disable.isPending;
+  const protection = useDraftProtection(selectingAssignment && baseline !== null && JSON.stringify(assignment) !== JSON.stringify(baseline), pending);
   const [confirmReplace, setConfirmReplace] = useState(false);
   const [pendingStateCommand, setPendingStateCommand] = useState<"enable" | "disable" | null>(null);
   const close = () => navigate("/platform/table-policies");
 
   useEffect(() => {
-    if (creating) setAssignment(emptyAssignment);
-  }, [creating]);
-
-  useEffect(() => {
-    if (detail.data && (!replacing || assignment.tableName !== detail.data.tableName)) {
-      setAssignment({ tableName: detail.data.tableName, queryPolicyCode: detail.data.queryPolicyCode, mutationPolicyCode: detail.data.mutationPolicyCode });
+    if (!baseline && detail.data) {
+      const initial = { tableName: detail.data.tableName, queryPolicyCode: detail.data.queryPolicyCode, mutationPolicyCode: detail.data.mutationPolicyCode };
+      setAssignment(initial);
+      setBaseline(initial);
     }
-  }, [assignment.tableName, detail.data, replacing]);
+  }, [baseline, detail.data]);
 
   if (!tableName && !creating) return null;
 
@@ -54,23 +62,26 @@ export function TablePolicyDrawer({ tableName }: Props) {
   const activeQueryPolicies = (queryPolicies.data ?? []).filter((policy) => policy.status === "ACTIVE" && supportedQueryPolicyTypes.has(policy.typeCode) && queryPolicyTypes.data?.includes(policy.typeCode));
   const activeMutationPolicies = (mutationPolicies.data ?? []).filter((policy) => policy.status === "ACTIVE" && supportsMutationPolicyType(mutationPolicyTypes.data, policy.typeCode));
   const loading = (selectingAssignment && (discovery.isPending || queryPolicies.isPending || queryPolicyTypes.isPending || mutationPolicies.isPending || mutationPolicyTypes.isPending)) || (!creating && detail.isPending);
-  const loadError = (selectingAssignment && (discovery.error || queryPolicies.error || queryPolicyTypes.error || mutationPolicies.error || mutationPolicyTypes.error)) || detail.error;
+  const loadError = (selectingAssignment && (discovery.error || queryPolicies.error || queryPolicyTypes.error || mutationPolicies.error || mutationPolicyTypes.error)) || (!detail.data && detail.error);
   const valid = Boolean(assignment.tableName && assignment.queryPolicyCode && assignment.mutationPolicyCode);
 
   const executeReplace = () => {
-    if (!tableName || !valid) return;
+    if (!tableName || !valid || inFlight.current || pending) return;
+    inFlight.current = true;
     replace.mutate({ tableName, assignment }, {
       onSuccess() {
         setConfirmReplace(false);
         showToast("表规则已原子替换");
-        navigate(`/platform/table-policies/${encodeURIComponent(tableName)}`);
+        protection.afterSave(() => navigate(`/platform/table-policies/${encodeURIComponent(tableName)}`));
       },
       onError() { setConfirmReplace(false); },
+      onSettled() { inFlight.current = false; },
     });
   };
 
   const executeStateCommand = () => {
-    if (!tableName || !pendingStateCommand) return;
+    if (!tableName || !pendingStateCommand || inFlight.current || pending) return;
+    inFlight.current = true;
     const command = pendingStateCommand;
     const mutation = command === "enable" ? enable : disable;
     mutation.mutate(tableName, {
@@ -79,19 +90,23 @@ export function TablePolicyDrawer({ tableName }: Props) {
         setPendingStateCommand(null);
       },
       onError() { setPendingStateCommand(null); },
+      onSettled() { inFlight.current = false; },
     });
   };
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (!valid) return;
-    if (creating) create.mutate(assignment, {
-      onSuccess(policy) {
-        showToast("表规则已创建并保持未启用");
-        navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}`);
-      },
-    });
-    else if (detail.data?.enabled) setConfirmReplace(true);
+    if (!valid || inFlight.current || pending) return;
+    if (creating) {
+      inFlight.current = true;
+      create.mutate(assignment, {
+        onSuccess(policy) {
+          showToast("表规则已创建并保持未启用");
+          protection.afterSave(() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}`));
+        },
+        onSettled() { inFlight.current = false; },
+      });
+    } else if (detail.data?.enabled) setConfirmReplace(true);
     else executeReplace();
   };
 
@@ -119,21 +134,26 @@ export function TablePolicyDrawer({ tableName }: Props) {
   );
   else content = (
     <form id="table-policy-form" className="policy-form" onSubmit={submit}>
+      <fieldset className="form-controls" disabled={pending}>
       <div className="form-note"><AlertCircle size={17} /><span>{creating ? "新分配始终创建为未启用；启用前 Admin 会再次校验实时 Schema 与两条规则引用。" : "两个规则编码将作为一个候选整体校验并原子替换；失败时当前分配保持不变。"}</span></div>
       {creating ? <label className="field"><span>真实数据库表</span><select aria-label="真实数据库表" value={assignment.tableName} onChange={(event) => setAssignment((current) => ({ ...current, tableName: event.target.value }))}>
           <option value="">请选择兼容且未分配的表</option>
+          {assignment.tableName && !candidates.some((table) => table.tableName === assignment.tableName) && <option value={assignment.tableName} disabled>{assignment.tableName} · 当前选择已不可新分配</option>}
           {candidates.map((table) => <option key={table.tableName} value={table.tableName}>{table.tableName}{table.tableComment ? ` · ${table.tableComment}` : ""}</option>)}
         </select></label> : <label className="field"><span>真实数据库表</span><input value={assignment.tableName} disabled readOnly /></label>}
       <label className="field"><span>Active 查询规则</span><select aria-label="Active 查询规则" value={assignment.queryPolicyCode} onChange={(event) => setAssignment((current) => ({ ...current, queryPolicyCode: event.target.value }))}>
         <option value="">请选择 Active 查询规则</option>
+        {assignment.queryPolicyCode && !activeQueryPolicies.some((policy) => policy.code === assignment.queryPolicyCode) && <option value={assignment.queryPolicyCode} disabled>{assignment.queryPolicyCode} · 当前引用或选择</option>}
         {activeQueryPolicies.map((policy) => <option key={policy.code} value={policy.code}>{policy.code} · {policy.name}</option>)}
       </select></label>
       <label className="field"><span>Active 变更规则</span><select aria-label="Active 变更规则" value={assignment.mutationPolicyCode} onChange={(event) => setAssignment((current) => ({ ...current, mutationPolicyCode: event.target.value }))}>
         <option value="">请选择 Active 变更规则</option>
+        {assignment.mutationPolicyCode && !activeMutationPolicies.some((policy) => policy.code === assignment.mutationPolicyCode) && <option value={assignment.mutationPolicyCode} disabled>{assignment.mutationPolicyCode} · 当前引用或选择</option>}
         {activeMutationPolicies.map((policy) => <option key={policy.code} value={policy.code}>{policy.code} · {policy.name}</option>)}
       </select></label>
       {creating && !candidates.length && <div className="inline-alert"><AlertCircle size={17} /><span>没有兼容且未分配的真实数据库表。</span></div>}
       {(create.error || replace.error) && <ErrorState error={create.error || replace.error} />}
+      </fieldset>
     </form>
   );
 

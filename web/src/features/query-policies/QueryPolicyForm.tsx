@@ -1,5 +1,6 @@
 import { Info } from "lucide-react";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { presentError } from "../../api/error-messages";
 import type { PolicyFormMode } from "../policies/lifecycle";
 import {
@@ -44,19 +45,23 @@ type Props = {
   policy?: QueryPolicy;
   typeCodes: string[];
   serverError?: unknown;
+  pending?: boolean;
   onSubmit: (value: QueryPolicyDraft | QueryPolicyMetadata) => void;
 };
 
-export function QueryPolicyForm({ mode, policy, typeCodes, serverError, onSubmit }: Props) {
-  const [draft, setDraft] = useState<QueryPolicyDraft>(() => draftFor(policy));
+export function QueryPolicyForm({ mode, policy, typeCodes, serverError, pending = false, onSubmit }: Props) {
+  const [baseline] = useState(() => draftFor(policy));
+  const [editableDraft, setDraft] = useState<QueryPolicyDraft>(baseline);
+  const draft = mode === "view" ? draftFor(policy) : editableDraft;
   const [errors, setErrors] = useState<Partial<Record<keyof QueryPolicyDraft, string>>>({});
   const executionLocked = mode === "view" || mode === "metadata";
   const fullyLocked = mode === "view";
 
-  useEffect(() => {
-    setDraft(draftFor(policy));
-    setErrors({});
-  }, [policy, mode]);
+  // Keyed by resource and mode: refreshes cannot reset an editing session.
+  const comparable = (value: typeof draft) => ({
+    ...value, name: value.name.trim(), description: value.description.trim(), defaultOrderField: value.defaultOrderField.trim(),
+  });
+  useDraftProtection(mode !== "view" && JSON.stringify(comparable(draft)) !== JSON.stringify(comparable(baseline)), pending);
 
   const update = <K extends keyof QueryPolicyDraft>(key: K, value: QueryPolicyDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -65,6 +70,7 @@ export function QueryPolicyForm({ mode, policy, typeCodes, serverError, onSubmit
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    if (pending || mode === "view") return;
     if (mode === "metadata") {
       const next: QueryPolicyMetadata = { name: draft.name.trim(), description: draft.description.trim() };
       if (!next.name) {
@@ -101,6 +107,7 @@ export function QueryPolicyForm({ mode, policy, typeCodes, serverError, onSubmit
         </div>
       )}
 
+      <fieldset className="form-controls" disabled={pending}>
       {policy && <span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span>}
 
       <label className="field field-wide">
@@ -172,6 +179,7 @@ export function QueryPolicyForm({ mode, policy, typeCodes, serverError, onSubmit
           <div><dt>修改时间</dt><dd>{formatTimestamp(policy.modifiedAt)}</dd></div>
         </dl>
       )}
+      </fieldset>
     </form>
   );
 }
