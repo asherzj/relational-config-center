@@ -2,6 +2,8 @@
 
 本文是 Admin 第一迭代的冻结设计。它汇总可直接指导实现和验收的边界；取舍理由见 [ADR](./adr/)，领域语言见 [Admin Context](../admin/CONTEXT.md)。
 
+当前实现说明：本文冻结的是 Admin 后端第一迭代的历史范围。正式 Web 管理台已经在 [`web/README.md`](../web/README.md) 和 [`web/DESIGN.md`](../web/DESIGN.md) 所述入口交付；Server、Client 仍未提供运行时配置服务或账户功能。
+
 ## 1. 目标与范围
 
 Admin 是 Web 的管理端后端，治理部署配置指定的一个 MySQL database 中的既有配置表。Admin 不创建、修改、删除或迁移业务表结构，只通过实时元数据验证并管理表中的行数据。
@@ -366,7 +368,7 @@ deploy/
 
 `001-schema.sql` 只创建控制面表；`002-dev-users.sh` 使用环境变量创建本地 Admin 读写账号和预留 Server 只读账号。生产账号由部署系统或 DBA 创建。Testcontainers 复用同一 Schema。
 
-Docker 初始化脚本只在空数据目录执行。第一迭代没有 Migration；出现已部署实例升级需求时引入 Goose，禁止用 AutoMigrate 修改 Schema。
+Docker 初始化脚本只在空数据目录执行。初始设计未把 Migration 框架纳入第一迭代。当前仓库提供显式 SQL expand/backfill/contract 脚本，使用前应阅读 [`deploy/mysql/migrations/README.md`](../deploy/mysql/migrations/README.md)；仍禁止用 AutoMigrate 修改 Schema。
 
 ## 15. 测试与验收
 
@@ -393,9 +395,9 @@ Admin V1 的 Definition of Done：
 
 ## 16. 后续触发条件
 
-- Web UI：另行选择框架并按本文 HTTP 契约接入。
+- Web UI：历史范围曾留待另行选择框架；当前正式实现位于 `web/`，按本文 HTTP 契约接入并由 [`web/README.md`](../web/README.md) 说明运行与验收边界。
 - Server/Client：另行设计各自领域模型和 gRPC/Protobuf 契约。
 - PostgreSQL：新增独立 Adapter 与 Compiler。
-- 已部署 Schema 升级：引入 Goose。
+- 已部署 Schema 升级：原历史建议是引入迁移框架；当前实现按 [`deploy/mysql/migrations/README.md`](../deploy/mysql/migrations/README.md) 使用显式 SQL migration，未引入 Goose。
 - 多租户、公网访问或真实用户审计：重新设计身份、授权与隔离。
 - 规则/Data 并发控制、缓存、发布、审批、关系查询和 Secret 管理：作为独立能力设计，不隐式扩展当前规则。

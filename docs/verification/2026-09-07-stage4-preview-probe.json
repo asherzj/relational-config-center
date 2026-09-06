@@ -1,0 +1,9 @@
+{
+  "command": "pnpm preview --host 127.0.0.1 --port 15175 --strictPort",
+  "source": "Vite preview defaults proxy to server.proxy",
+  "status": 200,
+  "requestPath": "/api/stage4-probe",
+  "bearerInjected": true,
+  "upstream": "temporary local HTTP probe",
+  "productionDeploymentTested": false
+}
