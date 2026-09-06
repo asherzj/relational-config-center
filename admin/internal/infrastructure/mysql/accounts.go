@@ -40,7 +40,7 @@ func authError(err error) error {
 	if errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &timeout) && timeout.Timeout()) {
 		return domain.ErrAuthTimeout
 	}
-	for _, known := range []error{domain.ErrAccountConflict, domain.ErrCredentials, domain.ErrSession, domain.ErrCSRF, domain.ErrAuthUnavailable, domain.ErrAuthTimeout} {
+	for _, known := range []error{domain.ErrAccountConflict, domain.ErrCredentials, domain.ErrCurrentPassword, domain.ErrSession, domain.ErrCSRF, domain.ErrAuthUnavailable, domain.ErrAuthTimeout} {
 		if errors.Is(err, known) {
 			return known
 		}
@@ -152,7 +152,7 @@ func (a *Adapter) IssueSession(ctx context.Context, verified domain.LocalAccount
 		return saveSession(tx, session, admission.PreviousSessionHash)
 	})
 }
-func (a *Adapter) CurrentSession(ctx context.Context, token string, now time.Time) (domain.LocalAccount, domain.LoginSession, error) {
+func currentSession(db *gorm.DB, token string, now time.Time) (domain.LocalAccount, domain.LoginSession, error) {
 	var row struct {
 		domain.LocalAccount `gorm:"embedded"`
 		TokenHash           string
@@ -162,11 +162,106 @@ func (a *Adapter) CurrentSession(ctx context.Context, token string, now time.Tim
 		ExpiresAt           time.Time
 	}
 	// One statement observes account status and session versions consistently.
-	err := a.gorm.WithContext(ctx).Table(sessionTable+" AS s").Select("a.*, s.token_hash, s.csrf_hash, s.created_at, s.last_active_at, s.expires_at").Joins("JOIN "+accountTable+" AS a ON a.id = s.account_id AND a.password_version = s.password_version AND a.session_version = s.session_version").Where("s.token_hash = ? AND a.enabled = TRUE AND s.expires_at > ? AND s.last_active_at > ?", token, now, now.Add(-30*time.Minute)).Take(&row).Error
+	err := db.Table(sessionTable+" AS s").Select("a.*, s.token_hash, s.csrf_hash, s.created_at, s.last_active_at, s.expires_at").Joins("JOIN "+accountTable+" AS a ON a.id = s.account_id AND a.password_version = s.password_version AND a.session_version = s.session_version").Where("s.token_hash = ? AND a.enabled = TRUE AND s.expires_at > ? AND s.last_active_at > ?", token, now, now.Add(-30*time.Minute)).Take(&row).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return domain.LocalAccount{}, domain.LoginSession{}, domain.ErrSession
 	}
 	return row.LocalAccount, domain.LoginSession{TokenHash: row.TokenHash, AccountID: row.ID, CSRFHash: row.CSRFHash, CreatedAt: row.CreatedAt, LastActiveAt: row.LastActiveAt, ExpiresAt: row.ExpiresAt}, authError(err)
+}
+func (a *Adapter) CurrentSession(ctx context.Context, token string, now time.Time) (domain.LocalAccount, domain.LoginSession, error) {
+	return currentSession(a.gorm.WithContext(ctx), token, now)
+}
+func authenticatedSession(db *gorm.DB, proof domain.CredentialProof, now time.Time) (domain.LocalAccount, domain.LoginSession, error) {
+	account, session, err := currentSession(db, proof.TokenHash, now)
+	if err != nil {
+		return domain.LocalAccount{}, domain.LoginSession{}, err
+	}
+	if session.CSRFHash != proof.CSRFHash {
+		return domain.LocalAccount{}, domain.LoginSession{}, domain.ErrCSRF
+	}
+	return account, session, nil
+}
+func (a *Adapter) AuthenticatedSession(ctx context.Context, proof domain.CredentialProof, now time.Time) (domain.LocalAccount, domain.LoginSession, error) {
+	return authenticatedSession(a.gorm.WithContext(ctx), proof, now)
+}
+func (a *Adapter) TouchSession(ctx context.Context, proof domain.CredentialProof, now time.Time) (domain.LocalAccount, domain.LoginSession, error) {
+	var account domain.LocalAccount
+	var session domain.LoginSession
+	err := a.authTransaction(ctx, now, func(tx *gorm.DB) error {
+		var err error
+		account, session, err = authenticatedSession(tx, proof, now)
+		if err != nil {
+			return err
+		}
+		result := tx.Table(sessionTable).
+			Where("token_hash = ? AND expires_at > ? AND last_active_at > ?", proof.TokenHash, now, now.Add(-30*time.Minute)).
+			Update("last_active_at", now)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected != 1 {
+			return domain.ErrSession
+		}
+		session.LastActiveAt = now
+		return nil
+	})
+	return account, session, err
+}
+func (a *Adapter) UpdateDisplayName(ctx context.Context, proof domain.CredentialProof, displayName string, now time.Time) (domain.LocalAccount, domain.LoginSession, error) {
+	var account domain.LocalAccount
+	var session domain.LoginSession
+	err := a.authTransaction(ctx, now, func(tx *gorm.DB) error {
+		var err error
+		account, session, err = authenticatedSession(tx, proof, now)
+		if err != nil {
+			return err
+		}
+		if err := tx.Table(accountTable).Where("id = ?", account.ID).Update("display_name", displayName).Error; err != nil {
+			return err
+		}
+		account.DisplayName = displayName
+		return nil
+	})
+	return account, session, err
+}
+func (a *Adapter) UpdateEmail(ctx context.Context, verified domain.LocalAccount, proof domain.CredentialProof, email string, now time.Time) (domain.LocalAccount, domain.LoginSession, error) {
+	var account domain.LocalAccount
+	var session domain.LoginSession
+	err := a.authTransaction(ctx, now, func(tx *gorm.DB) error {
+		var err error
+		account, session, err = authenticatedSession(tx, proof, now)
+		if err != nil {
+			return err
+		}
+		if account.ID != verified.ID || account.PasswordHash != verified.PasswordHash || account.PasswordVersion != verified.PasswordVersion || account.SessionVersion != verified.SessionVersion {
+			return domain.ErrCurrentPassword
+		}
+		if err := tx.Table(accountTable).Where("id = ?", account.ID).Update("email", email).Error; err != nil {
+			return err
+		}
+		account.Email = email
+		return nil
+	})
+	return account, session, err
+}
+func (a *Adapter) ChangePassword(ctx context.Context, verified domain.LocalAccount, proof domain.CredentialProof, passwordHash string, now time.Time) error {
+	return a.authTransaction(ctx, now, func(tx *gorm.DB) error {
+		account, _, err := authenticatedSession(tx, proof, now)
+		if err != nil {
+			return err
+		}
+		if account.ID != verified.ID || account.PasswordHash != verified.PasswordHash || account.PasswordVersion != verified.PasswordVersion || account.SessionVersion != verified.SessionVersion {
+			return domain.ErrCurrentPassword
+		}
+		if err := tx.Table(accountTable).Where("id = ?", account.ID).Updates(map[string]any{
+			"password_hash":    passwordHash,
+			"password_version": gorm.Expr("password_version + 1"),
+			"session_version":  gorm.Expr("session_version + 1"),
+		}).Error; err != nil {
+			return err
+		}
+		return tx.Table(sessionTable).Where("account_id = ?", account.ID).Delete(&domain.LoginSession{}).Error
+	})
 }
 func (a *Adapter) RevokeSession(ctx context.Context, proof domain.CredentialProof, now time.Time) error {
 	_, session, err := a.CurrentSession(ctx, proof.TokenHash, now)
@@ -177,6 +272,18 @@ func (a *Adapter) RevokeSession(ctx context.Context, proof domain.CredentialProo
 		return domain.ErrCSRF
 	}
 	return authError(a.gorm.WithContext(ctx).Table(sessionTable).Where("token_hash = ?", proof.TokenHash).Delete(&domain.LoginSession{}).Error)
+}
+func (a *Adapter) RevokeAccountSessions(ctx context.Context, proof domain.CredentialProof, now time.Time) error {
+	return a.authTransaction(ctx, now, func(tx *gorm.DB) error {
+		account, _, err := authenticatedSession(tx, proof, now)
+		if err != nil {
+			return err
+		}
+		if err := tx.Table(accountTable).Where("id = ?", account.ID).Update("session_version", gorm.Expr("session_version + 1")).Error; err != nil {
+			return err
+		}
+		return tx.Table(sessionTable).Where("account_id = ?", account.ID).Delete(&domain.LoginSession{}).Error
+	})
 }
 
 type rateBucket struct {

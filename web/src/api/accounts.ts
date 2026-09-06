@@ -34,4 +34,15 @@ export const accounts = {
     method: "POST", credentials: "same-origin", headers: { "X-CSRF-Token": csrf }, body: JSON.stringify(input), schema: currentIdentitySchema,
   }),
   logout: (csrf: string) => request<void>("/api/v1/auth/logout", { method: "POST", credentials: "same-origin", headers: { "X-CSRF-Token": csrf } }),
+  activity: (csrf: string) => request("/api/v1/auth/activity", { method: "POST", credentials: "same-origin", headers: { "X-CSRF-Token": csrf }, schema: currentIdentitySchema }),
+  updateDisplayName: (displayName: string, csrf: string) => request("/api/v1/auth/profile", {
+    method: "PATCH", credentials: "same-origin", headers: { "X-CSRF-Token": csrf }, body: JSON.stringify({ display_name: displayName }), schema: currentIdentitySchema,
+  }),
+  updateEmail: (email: string, currentPassword: string, csrf: string) => request("/api/v1/auth/email", {
+    method: "PATCH", credentials: "same-origin", headers: { "X-CSRF-Token": csrf }, body: JSON.stringify({ email, current_password: currentPassword }), schema: currentIdentitySchema,
+  }),
+  changePassword: (currentPassword: string, newPassword: string, csrf: string) => request<void>("/api/v1/auth/password", {
+    method: "POST", credentials: "same-origin", headers: { "X-CSRF-Token": csrf }, body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  }),
+  logoutAll: (csrf: string) => request<void>("/api/v1/auth/logout-all", { method: "POST", credentials: "same-origin", headers: { "X-CSRF-Token": csrf } }),
 };

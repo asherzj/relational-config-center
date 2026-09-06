@@ -8,8 +8,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/asherzj/relational-config-center/admin/internal/domain"
+	"strings"
 	"time"
+
+	"github.com/asherzj/relational-config-center/admin/internal/domain"
 )
 
 type PasswordHasher interface {
@@ -76,6 +78,7 @@ var (
 	ErrAccountFields   = domain.ErrAccountFields
 	ErrAccountConflict = domain.ErrAccountConflict
 	ErrCredentials     = domain.ErrCredentials
+	ErrCurrentPassword = domain.ErrCurrentPassword
 	ErrSession         = domain.ErrSession
 	ErrCSRF            = domain.ErrCSRF
 	ErrAuthTimeout     = domain.ErrAuthTimeout
@@ -161,6 +164,85 @@ func (a *Authentication) Logout(ctx context.Context, token, csrf string) error {
 		return domain.ErrSession
 	}
 	return a.accounts.RevokeSession(ctx, domain.CredentialProof{TokenHash: TokenDigest(token), CSRFHash: TokenDigest(csrf)}, a.now())
+}
+func (a *Authentication) LogoutAll(ctx context.Context, token, csrf string) error {
+	if token == "" {
+		return domain.ErrSession
+	}
+	return a.accounts.RevokeAccountSessions(ctx, domain.CredentialProof{TokenHash: TokenDigest(token), CSRFHash: TokenDigest(csrf)}, a.now())
+}
+func (a *Authentication) Activity(ctx context.Context, token, csrf string) (AuthenticationResult, error) {
+	if token == "" {
+		return AuthenticationResult{}, domain.ErrSession
+	}
+	account, session, err := a.accounts.TouchSession(ctx, domain.CredentialProof{TokenHash: TokenDigest(token), CSRFHash: TokenDigest(csrf)}, a.now())
+	return currentIdentity(account, session, token), err
+}
+func (a *Authentication) authorizeChange(ctx context.Context, token, csrf string) (domain.LocalAccount, error) {
+	if token == "" {
+		return domain.LocalAccount{}, domain.ErrSession
+	}
+	account, _, err := a.accounts.AuthenticatedSession(ctx, domain.CredentialProof{TokenHash: TokenDigest(token), CSRFHash: TokenDigest(csrf)}, a.now())
+	return account, err
+}
+
+// AuthorizeChange lets an interface reject unauthenticated state-changing
+// requests before it parses or validates account input. Each operation still
+// rechecks the same proof at its atomic repository transition.
+func (a *Authentication) AuthorizeChange(ctx context.Context, token, csrf string) error {
+	_, err := a.authorizeChange(ctx, token, csrf)
+	return err
+}
+func (a *Authentication) UpdateDisplayName(ctx context.Context, token, csrf, displayName string) (AuthenticationResult, error) {
+	if _, err := a.authorizeChange(ctx, token, csrf); err != nil {
+		return AuthenticationResult{}, err
+	}
+	displayName = strings.TrimSpace(displayName)
+	if !domain.ValidDisplayName(displayName) {
+		return AuthenticationResult{}, domain.ErrAccountFields
+	}
+	account, session, err := a.accounts.UpdateDisplayName(ctx, domain.CredentialProof{TokenHash: TokenDigest(token), CSRFHash: TokenDigest(csrf)}, displayName, a.now())
+	return currentIdentity(account, session, token), err
+}
+func (a *Authentication) UpdateEmail(ctx context.Context, token, csrf, email, currentPassword string) (AuthenticationResult, error) {
+	account, err := a.authorizeChange(ctx, token, csrf)
+	if err != nil {
+		return AuthenticationResult{}, err
+	}
+	email = domain.NormalizeEmail(email)
+	if !domain.ValidEmail(email) {
+		return AuthenticationResult{}, domain.ErrAccountFields
+	}
+	valid, err := a.passwords.Verify(ctx, currentPassword, account.PasswordHash)
+	if err != nil {
+		return AuthenticationResult{}, err
+	}
+	if !valid {
+		return AuthenticationResult{}, domain.ErrCurrentPassword
+	}
+	account, session, err := a.accounts.UpdateEmail(ctx, account, domain.CredentialProof{TokenHash: TokenDigest(token), CSRFHash: TokenDigest(csrf)}, email, a.now())
+	return currentIdentity(account, session, token), err
+}
+func (a *Authentication) ChangePassword(ctx context.Context, token, csrf, currentPassword, newPassword string) error {
+	account, err := a.authorizeChange(ctx, token, csrf)
+	if err != nil {
+		return err
+	}
+	if !domain.ValidPassword(newPassword) {
+		return domain.ErrAccountFields
+	}
+	valid, err := a.passwords.Verify(ctx, currentPassword, account.PasswordHash)
+	if err != nil {
+		return err
+	}
+	if !valid {
+		return domain.ErrCurrentPassword
+	}
+	passwordHash, err := a.passwords.Hash(ctx, newPassword)
+	if err != nil {
+		return err
+	}
+	return a.accounts.ChangePassword(ctx, account, domain.CredentialProof{TokenHash: TokenDigest(token), CSRFHash: TokenDigest(csrf)}, passwordHash, a.now())
 }
 func (a *Authentication) AdmitRegistration(ctx context.Context, ip string) error {
 	return a.rates.Admit(ctx, "register:"+TokenDigest(ip), a.limits.Registration, time.Hour, a.now())

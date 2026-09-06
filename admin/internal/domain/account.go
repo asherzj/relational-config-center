@@ -15,6 +15,7 @@ var (
 	ErrAccountFields   = errors.New("invalid account fields")
 	ErrAccountConflict = errors.New("username or email already occupied")
 	ErrCredentials     = errors.New("invalid credentials")
+	ErrCurrentPassword = errors.New("current password invalid")
 	ErrSession         = errors.New("invalid session")
 	ErrCSRF            = errors.New("invalid csrf credentials")
 	ErrAuthUnavailable = errors.New("authentication unavailable")
@@ -70,9 +71,10 @@ func NormalizeUsername(value string) string {
 		return c
 	}, strings.TrimSpace(value))
 }
+func NormalizeEmail(value string) string { return NormalizeUsername(value) }
 func NormalizeRegistration(input AccountRegistration) (LocalAccount, error) {
 	username := NormalizeUsername(input.Username)
-	email := NormalizeUsername(input.Email)
+	email := NormalizeEmail(input.Email)
 	if !usernamePattern.MatchString(username) || !ValidEmail(email) || !ValidPassword(input.Password) {
 		return LocalAccount{}, ErrAccountFields
 	}
@@ -123,7 +125,13 @@ type AccountRepository interface {
 	AccountByUsername(context.Context, string) (LocalAccount, error)
 	IssueSession(context.Context, LocalAccount, LoginSession, SessionAdmission, LoginReservation, time.Time) error
 	CurrentSession(context.Context, string, time.Time) (LocalAccount, LoginSession, error)
+	AuthenticatedSession(context.Context, CredentialProof, time.Time) (LocalAccount, LoginSession, error)
+	TouchSession(context.Context, CredentialProof, time.Time) (LocalAccount, LoginSession, error)
+	UpdateDisplayName(context.Context, CredentialProof, string, time.Time) (LocalAccount, LoginSession, error)
+	UpdateEmail(context.Context, LocalAccount, CredentialProof, string, time.Time) (LocalAccount, LoginSession, error)
+	ChangePassword(context.Context, LocalAccount, CredentialProof, string, time.Time) error
 	RevokeSession(context.Context, CredentialProof, time.Time) error
+	RevokeAccountSessions(context.Context, CredentialProof, time.Time) error
 }
 
 // Rate counters are persistent authentication control state, never account status.

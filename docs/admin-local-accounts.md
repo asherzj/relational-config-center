@@ -1,18 +1,22 @@
-# Local Account entry: T1
+# Local Account entry and sessions: T1–T2
 
 [#35](https://github.com/asherzj/relational-config-center/issues/35) implements the
-account-entry slice of [#34](https://github.com/asherzj/relational-config-center/issues/34).
+account-entry slice and [#36](https://github.com/asherzj/relational-config-center/issues/36)
+implements profile and session lifecycle from
+[#34](https://github.com/asherzj/relational-config-center/issues/34).
 Open `/register`, `/login` or `/account` in Web. Registration immediately enables
 the account and logs it in. Current identity shows the real display name,
 username and unverified email. Login uses username, never email. No mail service
 or mail operation exists.
 
-**TMP-01:** only the account entry is authenticated by these sessions during T1.
+**TMP-01:** only the account entry is authenticated by these sessions during T1–T2.
 The existing business workspace still uses its previous deployment Token and
 fixed Operator. #37 owns connecting the protected workspace, migrating its tests
 and removing those old paths. T1/T2 are development slices, not a complete release
-of local-account protection. Profile changes/activity reporting belong to #36;
-the final upgrade, required-schema startup checks and real browser path belong to #40.
+of local-account protection. The account entry now has final profile forms,
+foreground activity reporting and session cleanup. #37 connects the protected
+workspace to this identity and removes TMP-01. The final upgrade, required-schema
+startup checks and real browser path belong to #40.
 
 ## Start the development entry
 
@@ -50,14 +54,31 @@ All responses use `Cache-Control: no-store`. Error responses use the existing
 | `POST /api/v1/auth/register` | `username`, `email`, `password`, optional `display_name` | `201` current identity and a new session Cookie |
 | `POST /api/v1/auth/login` | `username`, `password` | `200` current identity and a new session Cookie |
 | `GET /api/v1/auth/session` | Session Cookie | `200` current identity; never extends idle time |
+| `POST /api/v1/auth/activity` | Session Cookie; no body | `200` current identity after recording server activity time |
+| `PATCH /api/v1/auth/profile` | `display_name` | `200` updated current identity |
+| `PATCH /api/v1/auth/email` | `email`, `current_password` | `200` updated current identity; email remains unverified |
+| `POST /api/v1/auth/password` | `current_password`, `new_password` | `204`; changes password and revokes every session |
 | `POST /api/v1/auth/logout` | Session Cookie | `204`; revokes that session and clears its Cookie |
+| `POST /api/v1/auth/logout-all` | Session Cookie | `204`; advances the account session version and revokes every session |
 
-Every POST requires `X-CSRF-Token` and the configured `Origin`, or a verifiable
+Every state-changing request requires `X-CSRF-Token` and the configured `Origin`, or a verifiable
 same-origin `Referer` if Origin is absent. Registration/login use the preparation
-Cookie and CSRF pair. Successful registration/login consumes that preparation
+Cookie and CSRF pair. Web obtains a fresh pair immediately before each submitted
+registration/login and holds one browser-wide entry lock through the matching
+request, so another tab cannot overwrite the shared preparation Cookie between
+those two calls. Background session checks never mint preparation credentials.
+Successful registration/login consumes that preparation
 credential, replaces any current session in the same browser, and returns a new
 session CSRF token. A pre-login Cookie can never read current identity. Missing,
 forged, expired or revoked sessions return `401 session_invalid`.
+
+Profile routes can affect only the account identified by the current session.
+Display-name and email changes preserve the Account ID, username and session
+deadlines. Email and password changes verify the current password. A wrong current
+password returns `400 current_password_invalid` and leaves both profile and session
+unchanged. Email conflicts return `409 account_conflict`. Password changes succeed
+even when the replacement equals the old password and still revoke all sessions.
+There is no account-list or other-account management route.
 
 The current identity shape is:
 
@@ -90,6 +111,7 @@ are 15–128 Unicode code points, preserving all spaces and case without truncat
 | --- | --- | --- |
 | `invalid_account_fields` | 400 | Required account field format/length failed |
 | `invalid_credentials` | 401 | Identical message for unknown username, wrong password or disabled account |
+| `current_password_invalid` | 400 | A profile/password form supplied the wrong current password; the session remains valid |
 | `csrf_invalid` | 403 | CSRF pair or origin failed; no account/session transition |
 | `account_conflict` | 409 | Normalized username or email is occupied |
 | `auth_rate_limited` | 429 | Wait the integer seconds in `Retry-After` |
@@ -118,6 +140,20 @@ account's password/session versions. No query extends idle time. Ordinary logout
 deletes the current session. HTTPS uses `__Host-rcc-session` and
 `__Host-rcc-preauth`, Secure, HttpOnly, SameSite=Lax, Path=/ and no Domain. Explicit
 loopback HTTP uses `rcc-session-dev` and `rcc-preauth-dev` without Secure.
+
+Only `POST /activity` changes `last_active_at`. It accepts no activity payload and
+uses server time. Identity reads and other background queries never extend idle
+time. At exactly 30 minutes idle or eight hours after creation, a session is invalid
+and cannot be revived. Web reports only visible `pointerdown`, `keydown`, or
+`touchstart` interaction and reserves at most one report per 60 seconds across
+tabs. The browser-wide activity lock serializes the shared timestamp check,
+reservation and request; a failed report removes the reservation so a later
+interaction can retry.
+Logout, logout-all, password change and browser-session replacement publish a
+credential-free storage event so other tabs clear or recheck their in-memory view.
+The only persistent Web values added here are an activity timestamp and an event
+kind/time/nonce; account data, email, session/CSRF credentials and passwords remain
+out of browser storage.
 
 | Setting | Default window and limit |
 | --- | --- |

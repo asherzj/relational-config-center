@@ -152,8 +152,86 @@ func registerAccountRoutes(router *gin.Engine, auth *application.Authentication,
 		}
 		c.JSON(200, identityResponse(result))
 	})
+	group.POST("/activity", func(c *gin.Context) {
+		result, err := auth.Activity(c.Request.Context(), h.cookie(c, false), c.GetHeader("X-CSRF-Token"))
+		if err != nil {
+			writeAuthError(c, err)
+			return
+		}
+		c.JSON(200, identityResponse(result))
+	})
+	group.PATCH("/profile", func(c *gin.Context) {
+		token, csrf := h.cookie(c, false), c.GetHeader("X-CSRF-Token")
+		if err := auth.AuthorizeChange(c.Request.Context(), token, csrf); err != nil {
+			writeAuthError(c, err)
+			return
+		}
+		var body struct {
+			DisplayName string `json:"display_name"`
+		}
+		if err := decodeRequest(c, &body); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		result, err := auth.UpdateDisplayName(c.Request.Context(), token, csrf, body.DisplayName)
+		if err != nil {
+			writeAuthError(c, err)
+			return
+		}
+		c.JSON(200, identityResponse(result))
+	})
+	group.PATCH("/email", func(c *gin.Context) {
+		token, csrf := h.cookie(c, false), c.GetHeader("X-CSRF-Token")
+		if err := auth.AuthorizeChange(c.Request.Context(), token, csrf); err != nil {
+			writeAuthError(c, err)
+			return
+		}
+		var body struct {
+			Email           string `json:"email"`
+			CurrentPassword string `json:"current_password"`
+		}
+		if err := decodeRequest(c, &body); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		result, err := auth.UpdateEmail(c.Request.Context(), token, csrf, body.Email, body.CurrentPassword)
+		if err != nil {
+			writeAuthError(c, err)
+			return
+		}
+		c.JSON(200, identityResponse(result))
+	})
+	group.POST("/password", func(c *gin.Context) {
+		token, csrf := h.cookie(c, false), c.GetHeader("X-CSRF-Token")
+		if err := auth.AuthorizeChange(c.Request.Context(), token, csrf); err != nil {
+			writeAuthError(c, err)
+			return
+		}
+		var body struct {
+			CurrentPassword string `json:"current_password"`
+			NewPassword     string `json:"new_password"`
+		}
+		if err := decodeRequest(c, &body); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		if err := auth.ChangePassword(c.Request.Context(), token, csrf, body.CurrentPassword, body.NewPassword); err != nil {
+			writeAuthError(c, err)
+			return
+		}
+		h.setCookie(c, false, "", -1)
+		c.Status(204)
+	})
 	group.POST("/logout", func(c *gin.Context) {
 		if err := auth.Logout(c.Request.Context(), h.cookie(c, false), c.GetHeader("X-CSRF-Token")); err != nil {
+			writeAuthError(c, err)
+			return
+		}
+		h.setCookie(c, false, "", -1)
+		c.Status(204)
+	})
+	group.POST("/logout-all", func(c *gin.Context) {
+		if err := auth.LogoutAll(c.Request.Context(), h.cookie(c, false), c.GetHeader("X-CSRF-Token")); err != nil {
 			writeAuthError(c, err)
 			return
 		}
@@ -182,6 +260,8 @@ func writeAuthError(c *gin.Context, err error) {
 		writeError(c, 409, "account_conflict", "username or email is already in use")
 	case errors.Is(err, application.ErrCredentials):
 		writeError(c, 401, "invalid_credentials", "username or password is incorrect")
+	case errors.Is(err, application.ErrCurrentPassword):
+		writeError(c, 400, "current_password_invalid", "current password is incorrect")
 	case errors.Is(err, application.ErrSession):
 		writeError(c, 401, "session_invalid", "a valid login session is required")
 	case errors.Is(err, application.ErrCSRF):

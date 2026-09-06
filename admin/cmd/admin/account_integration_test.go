@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,6 +14,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"golang.org/x/crypto/argon2"
 )
 
 func TestLocalAccountRegistrationCreatesCurrentIdentity(t *testing.T) {
@@ -82,6 +85,235 @@ func registerAccount(t *testing.T, app *adminApplication, username, email, passw
 		t.Fatalf("register: %d %s", result.Code, result.Body.String())
 	}
 	return result
+}
+
+func loginAccount(t *testing.T, app *adminApplication, username, password string) *httptest.ResponseRecorder {
+	t.Helper()
+	cookies, csrf := prepareAccount(t, app)
+	body, _ := json.Marshal(map[string]string{"username": username, "password": password})
+	result := accountRequest(app, "POST", "/api/v1/auth/login", string(body), cookies, csrf)
+	if result.Code != 200 {
+		t.Fatalf("login: %d %s", result.Code, result.Body.String())
+	}
+	return result
+}
+
+func sessionCSRF(t *testing.T, response *httptest.ResponseRecorder) string {
+	t.Helper()
+	var identity struct {
+		CSRF string `json:"csrf_token"`
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &identity); err != nil {
+		t.Fatal(err)
+	}
+	return identity.CSRF
+}
+
+func encodedTestPassword(password string, memory, iterations uint32) string {
+	salt := []byte("0123456789abcdef")
+	digest := argon2.IDKey([]byte(password), salt, iterations, memory, 1, 32)
+	return fmt.Sprintf("$argon2id$v=19$m=%d,t=%d,p=1$%s$%s", memory, iterations,
+		base64.RawStdEncoding.EncodeToString(salt), base64.RawStdEncoding.EncodeToString(digest))
+}
+
+func TestLocalAccountConcurrentSessionsActivityAndExpiry(t *testing.T) {
+	now := time.Date(2026, 9, 7, 0, 0, 0, 0, time.UTC)
+	app, _ := accountFixture(t, func() time.Time { return now })
+	first := registerAccount(t, app, "sessions.user", "sessions@example.com", "correct horse battery staple")
+	second := loginAccount(t, app, "sessions.user", "correct horse battery staple")
+	for index, session := range []*httptest.ResponseRecorder{first, second} {
+		if current := accountRequest(app, "GET", "/api/v1/auth/session", "", session.Result().Cookies(), ""); current.Code != 200 {
+			t.Fatalf("concurrent session %d: %d %s", index, current.Code, current.Body.String())
+		}
+	}
+
+	// Reading identity is background work and must not renew idle time.
+	now = now.Add(29 * time.Minute)
+	if current := accountRequest(app, "GET", "/api/v1/auth/session", "", second.Result().Cookies(), ""); current.Code != 200 {
+		t.Fatalf("background read before idle boundary: %d", current.Code)
+	}
+	// A real foreground activity signal renews only the idle deadline, using server time.
+	activity := accountRequest(app, "POST", "/api/v1/auth/activity", "", first.Result().Cookies(), sessionCSRF(t, first))
+	if activity.Code != 200 || !strings.Contains(activity.Body.String(), `"idle_expires_at":"2026-09-07T00:59:00Z"`) {
+		t.Fatalf("activity: %d %s", activity.Code, activity.Body.String())
+	}
+	now = now.Add(time.Minute)
+	if current := accountRequest(app, "GET", "/api/v1/auth/session", "", second.Result().Cookies(), ""); current.Code != 401 {
+		t.Fatalf("background read renewed session: %d", current.Code)
+	}
+	now = time.Date(2026, 9, 7, 0, 59, 0, 0, time.UTC)
+	if current := accountRequest(app, "GET", "/api/v1/auth/session", "", first.Result().Cookies(), ""); current.Code != 401 {
+		t.Fatalf("idle boundary after activity: %d", current.Code)
+	}
+
+	// Repeated foreground activity cannot move the fixed eight-hour boundary.
+	long := loginAccount(t, app, "sessions.user", "correct horse battery staple")
+	created := now
+	for step := 1; step <= 16; step++ {
+		now = created.Add(time.Duration(step) * 29 * time.Minute)
+		if response := accountRequest(app, "POST", "/api/v1/auth/activity", "", long.Result().Cookies(), sessionCSRF(t, long)); response.Code != 200 {
+			t.Fatalf("activity step %d: %d %s", step, response.Code, response.Body.String())
+		}
+	}
+	now = created.Add(8 * time.Hour)
+	if response := accountRequest(app, "POST", "/api/v1/auth/activity", "", long.Result().Cookies(), sessionCSRF(t, long)); response.Code != 401 {
+		t.Fatalf("activity renewed absolute expiry: %d", response.Code)
+	}
+}
+
+func TestLocalAccountProfileChangesAffectOnlyCurrentAccount(t *testing.T) {
+	now := time.Date(2026, 9, 7, 0, 0, 0, 0, time.UTC)
+	app, _ := accountFixture(t, func() time.Time { return now })
+	first := registerAccount(t, app, "profile.user", "profile@example.com", "current password long enough")
+	otherDevice := loginAccount(t, app, "profile.user", "current password long enough")
+	registerAccount(t, app, "occupied.user", "occupied@example.com", "another password long enough")
+	csrf := sessionCSRF(t, first)
+
+	display := accountRequest(app, "PATCH", "/api/v1/auth/profile", `{"display_name":" 新名称 "}`, first.Result().Cookies(), csrf)
+	if display.Code != 200 || !strings.Contains(display.Body.String(), `"display_name":"新名称"`) {
+		t.Fatalf("display name: %d %s", display.Code, display.Body.String())
+	}
+	wrong := accountRequest(app, "PATCH", "/api/v1/auth/email", `{"email":"new@example.com","current_password":"wrong password long enough"}`, first.Result().Cookies(), csrf)
+	if wrong.Code != 400 || !strings.Contains(wrong.Body.String(), `"current_password_invalid"`) {
+		t.Fatalf("wrong current password: %d %s", wrong.Code, wrong.Body.String())
+	}
+	if current := accountRequest(app, "GET", "/api/v1/auth/session", "", first.Result().Cookies(), ""); current.Code != 200 || !strings.Contains(current.Body.String(), `"email":"profile@example.com"`) {
+		t.Fatalf("wrong password changed profile or invalidated session: %d %s", current.Code, current.Body.String())
+	}
+	occupied := accountRequest(app, "PATCH", "/api/v1/auth/email", `{"email":" OCCUPIED@EXAMPLE.COM ","current_password":"current password long enough"}`, first.Result().Cookies(), csrf)
+	if occupied.Code != 409 {
+		t.Fatalf("occupied email: %d %s", occupied.Code, occupied.Body.String())
+	}
+	changed := accountRequest(app, "PATCH", "/api/v1/auth/email", `{"email":" New+tag@Example.com ","current_password":"current password long enough"}`, first.Result().Cookies(), csrf)
+	if changed.Code != 200 || !strings.Contains(changed.Body.String(), `"username":"profile.user"`) || !strings.Contains(changed.Body.String(), `"email":"new+tag@example.com"`) || !strings.Contains(changed.Body.String(), `"email_verified":false`) {
+		t.Fatalf("email update: %d %s", changed.Code, changed.Body.String())
+	}
+	if current := accountRequest(app, "GET", "/api/v1/auth/session", "", otherDevice.Result().Cookies(), ""); current.Code != 200 || !strings.Contains(current.Body.String(), `"display_name":"新名称"`) || !strings.Contains(current.Body.String(), `"email":"new+tag@example.com"`) {
+		t.Fatalf("other device profile visibility: %d %s", current.Code, current.Body.String())
+	}
+}
+
+func TestLocalAccountMaintenanceAuthorizesBeforeInputs(t *testing.T) {
+	app, _ := accountFixture(t, nil)
+	current := registerAccount(t, app, "authorize.user", "authorize@example.com", "current password long enough")
+	cases := []struct {
+		name   string
+		method string
+		path   string
+		body   string
+	}{
+		{"profile", "PATCH", "/api/v1/auth/profile", `{"display_name":""}`},
+		{"email", "PATCH", "/api/v1/auth/email", `{"email":"invalid","current_password":"wrong password long enough"}`},
+		{"password", "POST", "/api/v1/auth/password", `{"current_password":"wrong password long enough","new_password":"short"}`},
+	}
+	for _, test := range cases {
+		for bodyName, body := range map[string]string{"invalid fields": test.body, "malformed json": "{"} {
+			t.Run(test.name+" requires session before "+bodyName, func(t *testing.T) {
+				response := accountRequest(app, test.method, test.path, body, nil, "forged")
+				if response.Code != 401 || !strings.Contains(response.Body.String(), `"session_invalid"`) {
+					t.Fatalf("authorization order: %d %s", response.Code, response.Body.String())
+				}
+			})
+			t.Run(test.name+" requires csrf before "+bodyName, func(t *testing.T) {
+				response := accountRequest(app, test.method, test.path, body, current.Result().Cookies(), "forged")
+				if response.Code != 403 || !strings.Contains(response.Body.String(), `"csrf_invalid"`) {
+					t.Fatalf("csrf order: %d %s", response.Code, response.Body.String())
+				}
+			})
+		}
+	}
+}
+
+func TestLocalAccountCurrentAndAllSessionRevocation(t *testing.T) {
+	app, _ := accountFixture(t, nil)
+	first := registerAccount(t, app, "revoke.user", "revoke@example.com", "current password long enough")
+	second := loginAccount(t, app, "revoke.user", "current password long enough")
+	logout := accountRequest(app, "POST", "/api/v1/auth/logout", "", first.Result().Cookies(), sessionCSRF(t, first))
+	if logout.Code != 204 {
+		t.Fatalf("current logout: %d %s", logout.Code, logout.Body.String())
+	}
+	if current := accountRequest(app, "GET", "/api/v1/auth/session", "", second.Result().Cookies(), ""); current.Code != 200 {
+		t.Fatalf("current logout revoked other device: %d", current.Code)
+	}
+
+	third := loginAccount(t, app, "revoke.user", "current password long enough")
+	all := accountRequest(app, "POST", "/api/v1/auth/logout-all", "", second.Result().Cookies(), sessionCSRF(t, second))
+	if all.Code != 204 {
+		t.Fatalf("logout all: %d %s", all.Code, all.Body.String())
+	}
+	for index, session := range []*httptest.ResponseRecorder{second, third} {
+		if current := accountRequest(app, "GET", "/api/v1/auth/session", "", session.Result().Cookies(), ""); current.Code != 401 {
+			t.Fatalf("logout all retained session %d: %d", index, current.Code)
+		}
+	}
+}
+
+func TestLocalAccountPasswordChangeRevokesAllSessions(t *testing.T) {
+	app, _ := accountFixture(t, nil)
+	first := registerAccount(t, app, "password.user", "password@example.com", "current password long enough")
+	second := loginAccount(t, app, "password.user", "current password long enough")
+	wrong := accountRequest(app, "POST", "/api/v1/auth/password", `{"current_password":"wrong password long enough","new_password":"replacement password long enough"}`, first.Result().Cookies(), sessionCSRF(t, first))
+	if wrong.Code != 400 || !strings.Contains(wrong.Body.String(), `"current_password_invalid"`) {
+		t.Fatalf("wrong password change: %d %s", wrong.Code, wrong.Body.String())
+	}
+	if current := accountRequest(app, "GET", "/api/v1/auth/session", "", first.Result().Cookies(), ""); current.Code != 200 {
+		t.Fatalf("wrong password invalidated session: %d", current.Code)
+	}
+	changed := accountRequest(app, "POST", "/api/v1/auth/password", `{"current_password":"current password long enough","new_password":"replacement password long enough"}`, first.Result().Cookies(), sessionCSRF(t, first))
+	if changed.Code != 204 {
+		t.Fatalf("password change: %d %s", changed.Code, changed.Body.String())
+	}
+	for index, session := range []*httptest.ResponseRecorder{first, second} {
+		if current := accountRequest(app, "GET", "/api/v1/auth/session", "", session.Result().Cookies(), ""); current.Code != 401 {
+			t.Fatalf("password change retained session %d: %d", index, current.Code)
+		}
+	}
+	oldCookies, oldCSRF := prepareAccount(t, app)
+	oldLogin := accountRequest(app, "POST", "/api/v1/auth/login", `{"username":"password.user","password":"current password long enough"}`, oldCookies, oldCSRF)
+	if oldLogin.Code != 401 {
+		t.Fatalf("old password login: %d", oldLogin.Code)
+	}
+	loginAccount(t, app, "password.user", "replacement password long enough")
+	if response := accountRequest(app, "GET", "/api/v1/auth/accounts", "", nil, ""); response.Code != 404 {
+		t.Fatalf("account list exposed: %d", response.Code)
+	}
+}
+
+func TestLocalAccountLogoutAllWinsAgainstLoginUsingOldSecurityState(t *testing.T) {
+	app, db := accountFixture(t, nil)
+	current := registerAccount(t, app, "race.user", "race@example.com", "current password long enough")
+	if _, err := db.Exec("UPDATE rcc_accounts SET password_hash = ? WHERE username = 'race.user'", encodedTestPassword("current password long enough", 65536, 5)); err != nil {
+		t.Fatal(err)
+	}
+	// Positive control: the deliberately expensive replacement hash is valid
+	// before any security version changes.
+	loginAccount(t, app, "race.user", "current password long enough")
+	cookies, csrf := prepareAccount(t, app)
+	result := make(chan *httptest.ResponseRecorder, 1)
+	go func() {
+		result <- accountRequest(app, "POST", "/api/v1/auth/login", `{"username":"race.user","password":"current password long enough"}`, cookies, csrf)
+	}()
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		var inFlight int
+		if err := db.QueryRow("SELECT COALESCE(SUM(in_flight),0) FROM rcc_auth_rate_limits WHERE bucket_key LIKE 'login-user:%'").Scan(&inFlight); err != nil {
+			t.Fatal(err)
+		}
+		if inFlight == 1 {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("login did not reach reserved password verification")
+		}
+		time.Sleep(time.Millisecond)
+	}
+	if revoked := accountRequest(app, "POST", "/api/v1/auth/logout-all", "", current.Result().Cookies(), sessionCSRF(t, current)); revoked.Code != 204 {
+		t.Fatalf("logout all during login: %d %s", revoked.Code, revoked.Body.String())
+	}
+	login := <-result
+	if login.Code != 401 || len(login.Result().Cookies()) != 0 {
+		t.Fatalf("old security state issued a session: %d %s", login.Code, login.Body.String())
+	}
 }
 func TestLocalAccountLoginAfterLogout(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
