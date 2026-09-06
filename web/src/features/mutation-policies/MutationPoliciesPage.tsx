@@ -5,6 +5,7 @@ import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { EmptyState, ErrorState, LoadingState } from "../../components/ui/Feedback";
 import {
   policyActionAvailability,
+  policyTypeAvailabilityHint,
   usePolicyLifecycleCommands,
   type PolicyCommandCopy,
   type PolicyLifecycleCommand,
@@ -51,6 +52,11 @@ function PolicyActions({ policy, supported, onCommand }: { policy: MutationPolic
     {actions.deprecate && <button className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</button>}
     {actions.delete && <button className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</button>}
   </div>;
+}
+
+function PolicyTypeAvailability({ policy, supported }: { policy: MutationPolicy; supported: boolean }) {
+  const hint = policyTypeAvailabilityHint(policy.status, supported);
+  return hint ? <small className="unsupported-copy">{hint}</small> : null;
 }
 
 export function MutationPoliciesPage() {
@@ -103,18 +109,19 @@ export function MutationPoliciesPage() {
           <div className="table-scroll">
             <table className="policy-table mutation-policy-table">
               <thead><tr><th>变更规则</th><th>新增</th><th>修改</th><th>删除</th><th>自动填写字段</th><th>状态</th><th>最近更新</th><th>操作</th></tr></thead>
-              <tbody>{policies.data.map((policy) => (
-                <tr key={policy.code} className={code === policy.code ? "selected-row" : ""}>
-                  <td className="rule-identity"><strong title={policy.description}>{policy.name}</strong><code>{policy.code}</code><small>{policy.typeCode}</small>{!supportsMutationPolicyType(types.data, policy.typeCode) && <small className="unsupported-copy">仅可查看</small>}</td>
+              <tbody>{policies.data.map((policy) => {
+                const supported = supportsMutationPolicyType(types.data, policy.typeCode);
+                return <tr key={policy.code} className={code === policy.code ? "selected-row" : ""}>
+                  <td className="rule-identity"><strong title={policy.description}>{policy.name}</strong><code>{policy.code}</code><small>{policy.typeCode}</small><PolicyTypeAvailability policy={policy} supported={supported} /></td>
                   <td><Capability allowed={policy.allowAdd} /></td>
                   <td><Capability allowed={policy.allowModify} /></td>
                   <td><Capability allowed={policy.allowDelete} /></td>
                   <td><div className="auto-fill-targets">{autoFillTargets(policy).length ? autoFillTargets(policy).map((target) => <code key={target}>{target}</code>) : <span>无</span>}</div></td>
                   <td><span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span></td>
                   <td className="timestamp">{formatTimestamp(policy.modifiedAt)}</td>
-                  <td><PolicyActions policy={policy} supported={supportsMutationPolicyType(types.data, policy.typeCode)} onCommand={lifecycle.request} /></td>
-                </tr>
-              ))}</tbody>
+                  <td><PolicyActions policy={policy} supported={supported} onCommand={lifecycle.request} /></td>
+                </tr>;
+              })}</tbody>
             </table>
           </div>
         )}

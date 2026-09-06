@@ -106,6 +106,8 @@ describe("查询规则页面", () => {
     }));
 
     renderPage("/platform/query-policies/future_query_v1?mode=edit");
+    expect(await screen.findByText("仅可修改名称和描述")).toBeVisible();
+    expect(screen.queryByText("仅可查看")).not.toBeInTheDocument();
     expect(await screen.findByText(/无法确认执行规则，仍可安全查看或修改名称和描述/)).toBeVisible();
     expect(await screen.findByDisplayValue("标准分页查询")).toBeDisabled();
     expect(screen.queryByRole("button", { name: "保存执行规则" })).not.toBeInTheDocument();
@@ -113,6 +115,20 @@ describe("查询规则页面", () => {
     expect(screen.queryByRole("button", { name: "弃用" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "激活" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "删除" })).not.toBeInTheDocument();
+  });
+
+  it("keeps a known Active row's hint consistent when the Type registry is unavailable", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ error: { code: "unavailable", message: "down" } }, 503);
+      if (url.endsWith("/query-policies")) return json({ policies: [activePolicy] });
+      throw new Error(`unexpected request ${url}`);
+    }));
+
+    renderPage();
+    expect(await screen.findByText("仅可修改名称和描述")).toBeVisible();
+    expect(screen.getByRole("button", { name: "名称和描述" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "弃用" })).not.toBeInTheDocument();
   });
 
   it("allows an unknown active Type to update only its name and description", async () => {

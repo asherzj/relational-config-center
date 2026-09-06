@@ -197,6 +197,8 @@ describe("变更规则页面", () => {
     }));
 
     renderPage("/platform/mutation-policies/future_mutation_v1?mode=metadata");
+    expect(await screen.findByText("仅可修改名称和描述")).toBeVisible();
+    expect(screen.queryByText("仅可查看")).not.toBeInTheDocument();
     expect(await screen.findByText(/无法确认执行规则/)).toBeVisible();
     expect(screen.getByRole("region", { name: "规则效果无法确认" })).not.toHaveTextContent("规则允许");
     expect(await screen.findByDisplayValue("标准单表变更")).toBeEnabled();

@@ -39,6 +39,13 @@ export function policyActionAvailability(status: PolicyStatus, executionSupporte
   };
 }
 
+export function policyTypeAvailabilityHint(status: PolicyStatus, executionSupported: boolean): string | null {
+  if (executionSupported) return null;
+  return policyActionAvailability(status, executionSupported).metadata
+    ? "仅可修改名称和描述"
+    : "仅可查看";
+}
+
 export function requestedPolicyFormMode(creating: boolean, requestedMode: string | null): PolicyFormMode {
   if (creating) return "create";
   if (requestedMode === "edit") return "replace";

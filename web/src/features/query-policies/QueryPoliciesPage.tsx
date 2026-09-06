@@ -5,6 +5,7 @@ import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { EmptyState, ErrorState, LoadingState } from "../../components/ui/Feedback";
 import {
   policyActionAvailability,
+  policyTypeAvailabilityHint,
   usePolicyLifecycleCommands,
   type PolicyCommandCopy,
   type PolicyLifecycleCommand,
@@ -63,6 +64,11 @@ function PolicyActions({ policy, supported, onCommand }: { policy: QueryPolicy; 
   );
 }
 
+function PolicyTypeAvailability({ policy, supported }: { policy: QueryPolicy; supported: boolean }) {
+  const hint = policyTypeAvailabilityHint(policy.status, supported);
+  return hint ? <small className="unsupported-copy">{hint}</small> : null;
+}
+
 export function QueryPoliciesPage() {
   const navigate = useNavigate();
   const { code } = useParams<{ code?: string }>();
@@ -114,16 +120,17 @@ export function QueryPoliciesPage() {
             <table className="policy-table">
               <thead><tr><th>查询规则</th><th>默认排序</th><th>每页条数</th><th>状态</th><th>最近更新</th><th>操作</th></tr></thead>
               <tbody>
-                {policies.data.map((policy) => (
-                  <tr key={policy.code} className={code === policy.code ? "selected-row" : ""}>
-                    <td className="rule-identity"><strong title={policy.description}>{policy.name}</strong><code>{policy.code}</code><small>{policy.typeCode}</small>{!supportedQueryPolicyTypes.has(policy.typeCode) && <small className="unsupported-copy">仅可查看</small>}</td>
+                {policies.data.map((policy) => {
+                  const supported = supportedQueryPolicyTypes.has(policy.typeCode) && Boolean(types.data?.includes(policy.typeCode));
+                  return <tr key={policy.code} className={code === policy.code ? "selected-row" : ""}>
+                    <td className="rule-identity"><strong title={policy.description}>{policy.name}</strong><code>{policy.code}</code><small>{policy.typeCode}</small><PolicyTypeAvailability policy={policy} supported={supported} /></td>
                     <td><code>{policy.defaultOrderField} {policy.defaultOrderDirection}</code></td>
                     <td>{policy.defaultPageSize}<small>最多 {policy.maxPageSize} 条</small></td>
                     <td><span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span></td>
                     <td className="timestamp">{formatTimestamp(policy.modifiedAt)}<small>{policy.modifier}</small></td>
-                    <td><PolicyActions policy={policy} supported={supportedQueryPolicyTypes.has(policy.typeCode) && Boolean(types.data?.includes(policy.typeCode))} onCommand={lifecycle.request} /></td>
-                  </tr>
-                ))}
+                    <td><PolicyActions policy={policy} supported={supported} onCommand={lifecycle.request} /></td>
+                  </tr>;
+                })}
               </tbody>
             </table>
           </div>

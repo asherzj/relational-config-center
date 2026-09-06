@@ -1,0 +1,61 @@
+{
+  "date": "2026-09-07",
+  "source_head": "89ea077553ceea8534169687fc51bd7a4e073864",
+  "product_tree_equivalent_merge_head": "f9eb752a52c50ff7c0f7d7bbb0e48b4833bbc988",
+  "product_tree_equivalence_scope": ["web", "admin", "client", "server", "shared"],
+  "environment": {
+    "admin_live_status": 200,
+    "admin_ready_status": 200,
+    "web_status": 200,
+    "chromium": "151.0.7922.34"
+  },
+  "unsaved_changes": {
+    "checks": 14,
+    "passed": [
+      "untouched Query create closes without a warning",
+      "actual browser POP back cancel retains input and route",
+      "actual browser POP back confirm and forward restore the intended route",
+      "native beforeunload reload cancellation preserves input",
+      "native tab-close cancellation preserves the editing document",
+      "discard confirmation owns keyboard focus and fits a 390px viewport",
+      "restored original Query values clear protection",
+      "actual browser forward navigation is canceled or confirmed at its original target",
+      "real duplicate Policy Code rejection preserves Query form input",
+      "real completed write with delayed response blocks POP, then shows success once",
+      "disposable Query draft cleaned up through the Admin API",
+      "Change Set cancel and return retain values, NULL and omitted fields",
+      "real Admin/MySQL validation rejection retains the row draft and request error",
+      "confirmed discard closes the editor with no browser storage draft"
+    ],
+    "page_errors": []
+  },
+  "rule_clarity": {
+    "checks": 6,
+    "passed": [
+      "query detail explains default order and pagination",
+      "metadata editing is separate from execution rules",
+      "deprecated mutation remains effective for its existing assignment",
+      "table detail and replacement preview show selected effects",
+      "managed data explains live schema and current capabilities",
+      "390px layout has no page overflow and remains readable"
+    ],
+    "page_errors": []
+  },
+  "post_conditions": {
+    "temporary_query_drafts": 0,
+    "stage1_acceptance_items": {
+      "row_count": 5,
+      "total_count": 5,
+      "ids": ["5", "4", "3", "2", "1"]
+    }
+  },
+  "stage5_fix_checks": {
+    "targeted_test_files": 2,
+    "targeted_tests": 23,
+    "full_test_files": 17,
+    "full_tests": 132,
+    "typecheck": "passed",
+    "production_build": "passed",
+    "production_build_modules": 1976
+  }
+}

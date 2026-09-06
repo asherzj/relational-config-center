@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { policyActionAvailability, requestedPolicyFormMode, resolvePolicyFormMode } from "./lifecycle";
+import { policyActionAvailability, policyTypeAvailabilityHint, requestedPolicyFormMode, resolvePolicyFormMode } from "./lifecycle";
 
 describe("policy lifecycle rules", () => {
   it("keeps safe display metadata editable when execution support is unknown", () => {
@@ -19,5 +19,12 @@ describe("policy lifecycle rules", () => {
     expect(resolvePolicyFormMode("replace", "ACTIVE", true)).toBe("view");
     expect(resolvePolicyFormMode("metadata", "DRAFT", true)).toBe("view");
     expect(resolvePolicyFormMode("metadata", "DEPRECATED", true)).toBe("metadata");
+  });
+
+  it("describes the same safe fallback that the row actions expose", () => {
+    expect(policyTypeAvailabilityHint("DRAFT", false)).toBe("仅可查看");
+    expect(policyTypeAvailabilityHint("ACTIVE", false)).toBe("仅可修改名称和描述");
+    expect(policyTypeAvailabilityHint("DEPRECATED", false)).toBe("仅可修改名称和描述");
+    expect(policyTypeAvailabilityHint("ACTIVE", true)).toBeNull();
   });
 });
