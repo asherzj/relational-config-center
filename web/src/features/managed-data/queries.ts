@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "../../api/client";
 import { addManagedRow, deleteManagedRow, modifyManagedRow, queryManagedTable } from "../../api/managed-data";
-import type { ChangeSetOperation, ManagedDataColumn, MutationContent, QuerySpec } from "./model";
+import type { ChangeSetOperation, ManagedDataMutationOutcome, MutationContent, QuerySpec } from "./model";
 
 export const managedDataKeys = {
   root: ["managed-data"] as const,
@@ -22,15 +22,6 @@ export type ManagedDataMutationCommand = {
   tableName: string;
   id?: string;
   content: MutationContent;
-};
-
-export type ManagedDataMutationOutcome = {
-  operation: ChangeSetOperation;
-  tableName: string;
-  id: string;
-  row?: Record<string, string | null>;
-  columns?: ManagedDataColumn[];
-  retrievalError?: unknown;
 };
 
 async function readManagedRow(tableName: string, id: string) {

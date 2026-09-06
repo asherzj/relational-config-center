@@ -1,7 +1,8 @@
 import { ErrorState } from "../../components/ui/Feedback";
 import { Button } from "../../components/ui/Button";
 import type { ChangeSet, ChangeSetCell } from "./model";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
+import { useModalFocus } from "../../components/ui/useModalFocus";
 
 function Cell({ cell, autoFill }: { cell: ChangeSetCell; autoFill?: boolean }) {
   const content = cell.state === "value" ? cell.value
@@ -23,24 +24,13 @@ type Props = {
 
 export function ChangeSetDialog({ changeSet, error, pending, onEdit, onCancel, onConfirm }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
-  const pendingRef = useRef(pending);
-  const cancelRef = useRef(onCancel);
-  pendingRef.current = pending;
-  cancelRef.current = onCancel;
   const operation = changeSet?.operation;
-  useEffect(() => {
-    if (!operation) return;
-    const previous = document.activeElement as HTMLElement | null;
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape" && !pendingRef.current) cancelRef.current(); };
-    window.addEventListener("keydown", onKeyDown);
-    requestAnimationFrame(() => dialogRef.current?.focus());
-    return () => { window.removeEventListener("keydown", onKeyDown); previous?.focus(); };
-  }, [operation]);
+  useModalFocus({ open: Boolean(operation), dialogRef, onEscape: pending ? undefined : onCancel });
   if (!changeSet) return null;
   return (
     <div className="modal-layer change-set-layer">
       <button className="drawer-scrim" aria-label="取消 Change Set" disabled={pending} onClick={onCancel} />
-      <div ref={dialogRef} tabIndex={-1} className={`change-set-dialog change-set-${changeSet.operation.toLowerCase()}`} role="dialog" aria-modal="true" aria-label={`${changeSet.operation} Change Set`}>
+      <div ref={dialogRef} tabIndex={-1} className={`change-set-dialog change-set-${changeSet.operation.toLowerCase()}`} role="dialog" aria-modal="true" aria-label={`${changeSet.operation} Change Set`} data-modal-surface="true">
         <header><span>请确认以下变更内容：</span><h2>{changeSet.operation} Change Set</h2></header>
         <div className="change-set-scroll">
           <table className="change-set-table">

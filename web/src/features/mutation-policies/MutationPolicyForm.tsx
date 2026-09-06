@@ -1,6 +1,7 @@
 import { Info } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { presentError } from "../../api/error-messages";
+import type { PolicyFormMode } from "../policies/lifecycle";
 import {
   formatTimestamp,
   policyStatusLabels,
@@ -11,7 +12,7 @@ import {
   type MutationPolicyMetadata,
 } from "./model";
 
-export type FormMode = "create" | "replace" | "metadata" | "view";
+export type FormMode = PolicyFormMode;
 
 const emptyDraft: MutationPolicyDraft = {
   code: "",

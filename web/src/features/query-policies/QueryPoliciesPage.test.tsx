@@ -92,7 +92,7 @@ describe("查询规则页面", () => {
     expect(fetchMock).toHaveBeenCalledWith("/api/v1/query-policies/standard_page_query_v1", expect.any(Object));
   });
 
-  it("keeps an unknown Policy Type read-only even through a direct edit URL", async () => {
+  it("blocks execution editing for an unknown Type but still offers safe metadata editing", async () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
@@ -102,13 +102,28 @@ describe("查询规则页面", () => {
     }));
 
     renderPage("/platform/query-policies/future_query_v1?mode=edit");
-    expect(await screen.findByText(/Web 尚不支持类型 future_page_query，当前仅可查看/)).toBeVisible();
+    expect(await screen.findByText(/不能编辑或执行，但仍可更新名称和描述/)).toBeVisible();
     expect(await screen.findByDisplayValue("标准分页查询")).toBeDisabled();
     expect(screen.queryByRole("button", { name: "保存" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "更新元数据" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "更新元数据" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "弃用" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "激活" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "删除" })).not.toBeInTheDocument();
+  });
+
+  it("allows an unknown active Type to update only its name and description", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/future_query_v1")) return json(unknownPolicy);
+      if (url.endsWith("/query-policies")) return json({ policies: [unknownPolicy] });
+      throw new Error(`unexpected request ${url}`);
+    }));
+
+    renderPage("/platform/query-policies/future_query_v1?mode=metadata");
+    expect(await screen.findByDisplayValue("标准分页查询")).toBeEnabled();
+    expect(screen.getByDisplayValue("id")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "保存" })).toBeVisible();
   });
 
   it.each([

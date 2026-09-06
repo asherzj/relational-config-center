@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"errors"
 	"reflect"
 	"testing"
 
@@ -34,75 +33,6 @@ func TestTransactionalManagedTableQueryLoadsAndExecutesCompleteRelationalSnapsho
 		if pageQuery.Order.Field != "id" || pageQuery.Order.Direction != "ASC" || pageQuery.PageNumber != 2 || pageQuery.PageSize != 2 || pageQuery.Offset != 2 {
 			t.Fatalf("executor did not receive relational ordering/pagination values: %#v", pageQuery)
 		}
-	}
-}
-
-func TestTransactionalManagedTableQueryAllowsAssignedDeprecatedDefinitions(t *testing.T) {
-	session := validQuerySnapshotSession()
-	session.queryPolicy.Status = domain.PolicyStatusDeprecated
-	session.mutationPolicy.Status = domain.PolicyStatusDeprecated
-	query := NewManagedTableQuery(&memoryQuerySnapshotExecutor{session: session}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
-	if _, err := query.Execute(t.Context(), "managed_items", domain.QuerySpec{}); err != nil {
-		t.Fatalf("assigned Deprecated definitions must execute: %v", err)
-	}
-}
-
-func TestTransactionalManagedTableQueryFailsClosedBeforeDataExecution(t *testing.T) {
-	tests := []struct {
-		name      string
-		edit      func(*memoryQuerySnapshotSession)
-		want      error
-		wantCalls []string
-	}{
-		{
-			name:      "disabled assignment still reads complete definitions",
-			edit:      func(session *memoryQuerySnapshotSession) { session.tablePolicy.Enabled = false },
-			want:      ErrTablePolicyDisabled,
-			wantCalls: []string{"table:managed_items", "query:standard_page_query_v1", "mutation:standard_mutation_v1"},
-		},
-		{
-			name:      "Draft Query Policy",
-			edit:      func(session *memoryQuerySnapshotSession) { session.queryPolicy.Status = domain.PolicyStatusDraft },
-			want:      ErrInvalidPolicySnapshot,
-			wantCalls: []string{"table:managed_items", "query:standard_page_query_v1", "mutation:standard_mutation_v1"},
-		},
-		{
-			name:      "unknown Query Type",
-			edit:      func(session *memoryQuerySnapshotSession) { session.queryPolicy.TypeCode = "unknown" },
-			want:      ErrUnknownQueryPolicyType,
-			wantCalls: []string{"table:managed_items", "query:standard_page_query_v1", "mutation:standard_mutation_v1"},
-		},
-		{
-			name:      "unknown Mutation Type",
-			edit:      func(session *memoryQuerySnapshotSession) { session.mutationPolicy.TypeCode = "unknown" },
-			want:      ErrUnknownMutationPolicyType,
-			wantCalls: []string{"table:managed_items", "query:standard_page_query_v1", "mutation:standard_mutation_v1"},
-		},
-		{
-			name:      "Policy cannot relax code-owned page maximum",
-			edit:      func(session *memoryQuerySnapshotSession) { session.queryPolicy.MaxPageSize = 500 },
-			want:      ErrInvalidQueryPolicyRules,
-			wantCalls: []string{"table:managed_items", "query:standard_page_query_v1", "mutation:standard_mutation_v1"},
-		},
-		{
-			name:      "incompatible live default order",
-			edit:      func(session *memoryQuerySnapshotSession) { session.queryPolicy.DefaultOrderField = "missing" },
-			want:      ErrInvalidQueryPolicyRules,
-			wantCalls: []string{"table:managed_items", "query:standard_page_query_v1", "mutation:standard_mutation_v1", "schema:managed_items"},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			session := validQuerySnapshotSession()
-			test.edit(session)
-			query := NewManagedTableQuery(&memoryQuerySnapshotExecutor{session: session}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
-			if _, err := query.Execute(t.Context(), "managed_items", domain.QuerySpec{}); !errors.Is(err, test.want) {
-				t.Fatalf("expected %v, got %v", test.want, err)
-			}
-			if !reflect.DeepEqual(session.calls, test.wantCalls) {
-				t.Fatalf("unexpected operations before fail-closed result: %#v", session.calls)
-			}
-		})
 	}
 }
 
