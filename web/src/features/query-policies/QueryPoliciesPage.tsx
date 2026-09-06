@@ -100,7 +100,7 @@ export function QueryPoliciesPage() {
       <div className="page-heading">
         <div>
           <h1>查询规则定义</h1>
-          <p>创建可复用、版本化的查询规则；草稿验证通过后才能激活并分配。</p>
+          <p>统一配置表的排序与分页方式。规则从草稿开始，激活后即可分配使用。</p>
         </div>
         <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/query-policies/new")} disabled={types.isPending || types.isError || !supportedTypes.length}>
           新建草稿
@@ -114,7 +114,6 @@ export function QueryPoliciesPage() {
         {types.data?.map((type) => (
           <code className={supportedQueryPolicyTypes.has(type) ? "type-supported" : "type-unsupported"} key={type}>{type}</code>
         ))}
-        <small className="registry-note">显式、代码所有 · 无运行时插件</small>
       </section>
 
       <section className="catalog" aria-label="查询规则目录">
@@ -123,18 +122,15 @@ export function QueryPoliciesPage() {
         ) : !policies.data.length ? <EmptyState /> : (
           <div className="table-scroll">
             <table className="policy-table">
-              <thead><tr><th>规则编码</th><th>名称</th><th>类型</th><th>默认排序</th><th>默认 / 最大页</th><th>状态</th><th>修改人</th><th>修改时间</th><th>操作</th></tr></thead>
+              <thead><tr><th>查询规则</th><th>默认排序</th><th>每页条数</th><th>状态</th><th>最近更新</th><th>操作</th></tr></thead>
               <tbody>
                 {policies.data.map((policy) => (
                   <tr key={policy.code} className={code === policy.code ? "selected-row" : ""}>
-                    <td><code>{policy.code}</code></td>
-                    <td><strong>{policy.name}</strong><small>{policy.description || "暂无描述"}</small></td>
-                    <td><code>{policy.typeCode}</code>{!supportedQueryPolicyTypes.has(policy.typeCode) && <small className="unsupported-copy">仅可查看</small>}</td>
+                    <td className="rule-identity"><strong title={policy.description}>{policy.name}</strong><code>{policy.code}</code><small>{policy.typeCode}</small>{!supportedQueryPolicyTypes.has(policy.typeCode) && <small className="unsupported-copy">仅可查看</small>}</td>
                     <td><code>{policy.defaultOrderField} {policy.defaultOrderDirection}</code></td>
-                    <td>{policy.defaultPageSize} / {policy.maxPageSize}</td>
+                    <td>{policy.defaultPageSize}<small>最多 {policy.maxPageSize} 条</small></td>
                     <td><span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span></td>
-                    <td>{policy.modifier}</td>
-                    <td className="timestamp">{formatTimestamp(policy.modifiedAt)}</td>
+                    <td className="timestamp">{formatTimestamp(policy.modifiedAt)}<small>{policy.modifier}</small></td>
                     <td><PolicyActions policy={policy} onCommand={(command, targetCode) => setPendingCommand({ command, code: targetCode })} /></td>
                   </tr>
                 ))}

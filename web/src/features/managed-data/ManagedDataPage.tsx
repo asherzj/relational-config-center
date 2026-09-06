@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Database, Pencil, Plus, RefreshCw, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { ErrorState, LoadingState } from "../../components/ui/Feedback";
 import { useTablePolicies } from "../table-policies/queries";
@@ -228,7 +229,7 @@ export function ManagedDataPage() {
       <div className="page-heading">
         <div>
           <h1>配置内容管理</h1>
-          <p>依据已启用的表规则查询 Managed Table；字段与类型来自实时 Schema。</p>
+          <p>查找和维护配置记录，按当前表规则核对每一次变更。</p>
         </div>
         <div className="page-heading-actions">
           <Button variant="secondary" icon={<RefreshCw size={16} />} disabled={!selectedTable || result.isFetching} onClick={() => void result.refetch()}>重新查询</Button>
@@ -243,6 +244,7 @@ export function ManagedDataPage() {
           <Database aria-hidden="true" />
           <strong>没有可用的 Managed Table</strong>
           <span>请先为真实数据库表创建并启用完整的表规则。</span>
+          <Link className="button button-primary" to="/platform/table-policies">前往表规则分配</Link>
         </section>
       ) : (
         <>

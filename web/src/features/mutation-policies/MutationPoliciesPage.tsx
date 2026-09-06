@@ -91,7 +91,7 @@ export function MutationPoliciesPage() {
       <div className="page-heading">
         <div>
           <h1>变更规则定义</h1>
-          <p>以关系字段定义操作授权和四个固定 Auto Fill 槽位；不使用配置 JSON。</p>
+          <p>定义配置记录的新增、修改与删除权限，以及操作人和时间的自动填写方式。</p>
         </div>
         <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/mutation-policies/new")} disabled={types.isPending || types.isError || !supportedTypes.length}>新建草稿</Button>
       </div>
@@ -106,7 +106,6 @@ export function MutationPoliciesPage() {
             <small>{type.operations.join(" · ")}</small>
           </span>
         ))}
-        <small className="registry-note">显式、代码所有 · 无运行时插件</small>
       </section>
 
       <section className="catalog" aria-label="变更规则目录">
@@ -115,12 +114,10 @@ export function MutationPoliciesPage() {
         ) : !policies.data.length ? <EmptyState entity="变更规则" /> : (
           <div className="table-scroll">
             <table className="policy-table mutation-policy-table">
-              <thead><tr><th>规则编码</th><th>名称</th><th>类型</th><th>ADD</th><th>MODIFY</th><th>DELETE</th><th>Auto Fill 目标</th><th>状态</th><th>修改时间</th><th>操作</th></tr></thead>
+              <thead><tr><th>变更规则</th><th>新增</th><th>修改</th><th>删除</th><th>自动填写字段</th><th>状态</th><th>最近更新</th><th>操作</th></tr></thead>
               <tbody>{policies.data.map((policy) => (
                 <tr key={policy.code} className={code === policy.code ? "selected-row" : ""}>
-                  <td><code>{policy.code}</code></td>
-                  <td><strong>{policy.name}</strong><small>{policy.description || "暂无描述"}</small></td>
-                  <td><code>{policy.typeCode}</code>{!supportsMutationPolicyType(types.data, policy.typeCode) && <small className="unsupported-copy">仅可查看</small>}</td>
+                  <td className="rule-identity"><strong title={policy.description}>{policy.name}</strong><code>{policy.code}</code><small>{policy.typeCode}</small>{!supportsMutationPolicyType(types.data, policy.typeCode) && <small className="unsupported-copy">仅可查看</small>}</td>
                   <td><Capability allowed={policy.allowAdd} /></td>
                   <td><Capability allowed={policy.allowModify} /></td>
                   <td><Capability allowed={policy.allowDelete} /></td>
