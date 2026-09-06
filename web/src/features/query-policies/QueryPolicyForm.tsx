@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { presentError } from "../../api/error-messages";
 import type { PolicyFormMode } from "../policies/lifecycle";
+import { QueryPolicyEffect, type RegistryState } from "../policies/PolicyEffect";
 import {
   formatTimestamp,
   policyStatusLabels,
@@ -44,12 +45,13 @@ type Props = {
   mode: FormMode;
   policy?: QueryPolicy;
   typeCodes: string[];
+  registryState: RegistryState;
   serverError?: unknown;
   pending?: boolean;
   onSubmit: (value: QueryPolicyDraft | QueryPolicyMetadata) => void;
 };
 
-export function QueryPolicyForm({ mode, policy, typeCodes, serverError, pending = false, onSubmit }: Props) {
+export function QueryPolicyForm({ mode, policy, typeCodes, registryState, serverError, pending = false, onSubmit }: Props) {
   const [baseline] = useState(() => draftFor(policy));
   const [editableDraft, setDraft] = useState<QueryPolicyDraft>(baseline);
   const draft = mode === "view" ? draftFor(policy) : editableDraft;
@@ -110,6 +112,12 @@ export function QueryPolicyForm({ mode, policy, typeCodes, serverError, pending 
       <fieldset className="form-controls" disabled={pending}>
       {policy && <span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span>}
 
+      <section className="form-section" aria-labelledby="query-display-heading">
+        <div className="form-section-heading">
+          <h3 id="query-display-heading">名称和描述</h3>
+          <p>用于在规则目录中识别这条规则，不改变查询的执行内容。</p>
+        </div>
+
       <label className="field field-wide">
         <span>规则编码 · 创建后不可变</span>
         <input
@@ -132,8 +140,13 @@ export function QueryPolicyForm({ mode, policy, typeCodes, serverError, pending 
         <span>描述</span>
         <textarea value={draft.description} onChange={(event) => update("description", event.target.value)} disabled={fullyLocked} rows={4} />
       </label>
+      </section>
 
-      <div className="form-panel">
+      <section className="form-panel" aria-labelledby="query-execution-heading">
+        <div className="form-section-heading">
+          <h3 id="query-execution-heading">执行规则</h3>
+          <p>{mode === "metadata" ? "当前状态不能修改执行规则。" : "草稿激活后，这些内容将锁定。"}</p>
+        </div>
         <label className="field field-wide">
           <span>规则类型</span>
           <select value={draft.typeCode} onChange={(event) => update("typeCode", event.target.value)} disabled={executionLocked} {...inputProps("typeCode")}>
@@ -165,10 +178,11 @@ export function QueryPolicyForm({ mode, policy, typeCodes, serverError, pending 
             {errors.maxPageSize && <small id="maxPageSize-error" className="field-error">{errors.maxPageSize}</small>}
           </label>
         </div>
-      </div>
+        <QueryPolicyEffect policy={draft} registeredTypes={typeCodes} registryState={registryState} heading={mode === "create" || mode === "replace" || policy?.status === "DRAFT" ? "执行效果预览" : "实际查询效果"} />
+      </section>
 
       {policy && policy.status !== "DRAFT" && (
-        <div className="form-note"><Info size={17} /><span>已激活或已弃用规则的执行字段已锁定；只能更新名称和描述。</span></div>
+        <div className="form-note"><Info size={17} /><span>当前状态只能修改名称和描述，执行内容不会改变。若要改变执行规则，请新建使用新版本编码的草稿，激活后再替换表分配。{policy.status === "DEPRECATED" ? "这条已弃用规则对已有分配仍然有效，但不能用于新分配。" : ""}</span></div>
       )}
 
       {policy && (

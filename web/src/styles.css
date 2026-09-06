@@ -209,6 +209,10 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 
 .policy-form { display: grid; gap: 22px; }
 .policy-form > .status-badge { justify-self: start; }
+.form-section { display: grid; gap: 18px; }
+.form-section-heading { display: grid; gap: 4px; }
+.form-section-heading h2, .form-section-heading h3 { margin: 0; color: var(--ink); font-size: 14px; font-weight: 600; }
+.form-section-heading p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
 .field { display: grid; gap: 7px; min-width: 0; }
 .field > span { color: #465563; font-size: 12px; font-weight: 500; }
 .field input, .field textarea, .field select { width: 100%; border: 1px solid #dce3e9; border-radius: var(--radius-control); padding: 10px 12px; background: var(--surface); color: var(--ink); font-size: 13px; caret-color: var(--accent); transition: border-color .15s, box-shadow .15s; }
@@ -219,6 +223,24 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 .field [aria-invalid="true"] { border-color: var(--danger); }
 .field-error { color: var(--danger); font-size: 11px; line-height: 1.45; }
 .form-panel { padding: 22px 0 0; display: grid; gap: 20px; border-top: 1px solid var(--line); }
+.policy-effect { padding: 14px 16px; display: grid; gap: 9px; border-radius: var(--radius-control); background: #edf5f1; color: #405d55; }
+.policy-effect > header { display: flex; align-items: center; gap: 8px; color: #285f51; }
+.policy-effect > header svg { flex: 0 0 auto; }
+.policy-effect > p { margin: 0; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.policy-effect code { color: #31564c; font-size: 11px; }
+.policy-effect-unconfirmed { background: #fff7eb; color: #795922; }
+.policy-effect-unconfirmed > header { color: #805817; }
+.policy-effect-unconfirmed > strong { color: #805817; font-size: 12px; }
+.policy-effect-operations { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.policy-effect-operations > div { min-width: 0; padding: 10px; display: grid; grid-template-columns: auto 1fr; align-content: start; gap: 4px 6px; border-radius: 6px; background: rgb(255 255 255 / 66%); }
+.policy-effect-operations svg { margin-top: 2px; color: var(--accent); }
+.policy-effect-operations strong { font-size: 11px; }
+.policy-effect-operations span { grid-column: 1 / -1; color: #546b65; font-size: 10px; line-height: 1.55; overflow-wrap: anywhere; }
+.assignment-effects, .managed-policy-effects { display: grid; gap: 12px; }
+.assignment-effects { padding-top: 20px; border-top: 1px solid var(--line); }
+.managed-policy-effects { margin: -4px 0 24px; padding: 18px 20px; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--surface); }
+.managed-policy-effects > .form-section-heading, .managed-policy-effects > .schema-effect { grid-column: 1 / -1; }
+.schema-effect { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.65; overflow-wrap: anywhere; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .form-note { min-height: 44px; padding: 12px 14px; border-radius: var(--radius-control); display: flex; align-items: flex-start; gap: 9px; background: #edf5f1; color: #4d6f64; font-size: 12px; line-height: 1.7; }
 .form-note svg { flex: 0 0 auto; color: var(--accent); }
@@ -351,7 +373,8 @@ input::placeholder, textarea::placeholder { color: #6d7884; opacity: 1; }
   .drawer-header { padding-inline: 20px; }
   .drawer-body { padding-inline: 18px; }
   .drawer-footer { flex-wrap: wrap; gap: 8px; padding-inline: 18px; }
-  .form-grid, .audit-grid, .capability-grid { grid-template-columns: 1fr; }
+  .form-grid, .audit-grid, .capability-grid, .policy-effect-operations, .managed-policy-effects { grid-template-columns: 1fr; }
+  .managed-policy-effects > .form-section-heading, .managed-policy-effects > .schema-effect { grid-column: 1; }
   .discovery-grid { padding-inline: 16px; }
   .discovery-grid article { grid-template-columns: 1fr; }
   .discovery-grid article > div { grid-column: 1; grid-row: auto; }

@@ -24,7 +24,7 @@ function backend({ active = false, write }: { active?: boolean; write?: (url: st
     }
     if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
     if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
-    if (url.endsWith("/query-policies")) return json({ policies: [{ ...query, status: "ACTIVE" }, { ...query, code: "query_v2", status: "ACTIVE" }] });
+    if (url.endsWith("/query-policies")) return json({ policies: [{ ...query, status: "ACTIVE" }, { ...query, code: "query_v2", default_page_size: 12, max_page_size: 50, status: "ACTIVE" }] });
     if (url.endsWith("/mutation-policies")) return json({ policies: [{ ...mutation, status: "ACTIVE" }] });
     if (url.includes("/query-policies/")) return json({ ...query, ...(active ? { status: "ACTIVE" } : {}) });
     if (url.includes("/mutation-policies/")) return json({ ...mutation, ...(active ? { status: "ACTIVE" } : {}) });
@@ -66,7 +66,7 @@ describe("rule drafts and navigation protection", () => {
     await user.clear(name);
     if (baseline) await user.type(name, baseline);
     if (kind === "mutation" && mode !== "metadata") {
-      const optional = screen.getByRole("textbox", { name: "Create Operator Field" });
+      const optional = screen.getByRole("textbox", { name: "新增时填写 Operator 的列" });
       await user.type(optional, "operator");
       expect(unloadPrevented()).toBe(true);
       await user.clear(optional);
@@ -185,6 +185,15 @@ describe("rule drafts and navigation protection", () => {
 });
 
 describe("table assignments and managed row drafts", () => {
+  it("table read-only effects follow refreshed references", async () => {
+    backend({ active: true });
+    const { client } = mount("/platform/table-policies/items");
+    const effects = await screen.findByRole("region", { name: "当前已选规则效果" });
+    expect(effects).toHaveTextContent("默认每页数量为 20");
+    act(() => client.setQueryData(["table-policies", "detail", "items"], (data: Record<string, unknown>) => ({ ...data, queryPolicyCode: "query_v2" })));
+    await waitFor(() => expect(effects).toHaveTextContent("默认每页数量为 12"));
+  });
+
   it.each(["query", "mutation"] as const)("%s read-only detail reflects refreshed values", async (kind) => {
     backend();
     const { client } = mount(`/platform/${kind}-policies/${kind}_v1`);
@@ -207,6 +216,7 @@ describe("table assignments and managed row drafts", () => {
       await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "mutation_v1");
     }
     await user.selectOptions(querySelect, "query_v2");
+    expect(screen.getByRole("region", { name: "所选规则效果预览" })).toHaveTextContent("默认每页数量为 12");
     await user.keyboard("{Escape}");
     expect(confirmLeave()).toBeVisible();
     await user.click(screen.getByRole("button", { name: "继续编辑" }));
@@ -214,13 +224,14 @@ describe("table assignments and managed row drafts", () => {
     if (mode === "replace") {
       act(() => client.setQueryData(["table-policies", "detail", "items"], (data: Record<string, unknown>) => ({ ...data, queryPolicyCode: "query_v2" })));
       expect(querySelect).toHaveValue("query_v2");
+      expect(screen.getByRole("region", { name: "所选规则效果预览" })).toHaveTextContent("默认每页数量为 12");
       await user.selectOptions(querySelect, "query_v1");
       expect(unloadPrevented()).toBe(false);
       await user.selectOptions(querySelect, "query_v2");
     }
     const submit = async () => {
       fireEvent.submit(querySelect.closest("form")!);
-      if (mode === "replace") await user.click(await screen.findByRole("button", { name: "确认原子替换" }));
+      if (mode === "replace") await user.click(await screen.findByRole("button", { name: "确认替换" }));
       await waitFor(() => expect(querySelect).toBeDisabled());
     };
     await submit();

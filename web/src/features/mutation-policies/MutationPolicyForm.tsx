@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { presentError } from "../../api/error-messages";
 import type { PolicyFormMode } from "../policies/lifecycle";
+import { MutationPolicyEffect, type RegistryState } from "../policies/PolicyEffect";
 import {
   formatTimestamp,
   policyStatusLabels,
@@ -39,12 +40,14 @@ type Props = {
   mode: FormMode;
   policy?: MutationPolicy;
   typeCodes: string[];
+  registryTypes: import("./model").MutationPolicyType[] | undefined;
+  registryState: RegistryState;
   serverError?: unknown;
   pending?: boolean;
   onSubmit: (value: MutationPolicyDraft | MutationPolicyMetadata) => void;
 };
 
-export function MutationPolicyForm({ mode, policy, typeCodes, serverError, pending = false, onSubmit }: Props) {
+export function MutationPolicyForm({ mode, policy, typeCodes, registryTypes, registryState, serverError, pending = false, onSubmit }: Props) {
   const [baseline] = useState(() => draftFor(policy));
   const [editableDraft, setDraft] = useState<MutationPolicyDraft>(baseline);
   const draft = mode === "view" ? draftFor(policy) : editableDraft;
@@ -116,11 +119,21 @@ export function MutationPolicyForm({ mode, policy, typeCodes, serverError, pendi
       <fieldset className="form-controls" disabled={pending}>
       {policy && <span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span>}
 
+      <section className="form-section" aria-labelledby="mutation-display-heading">
+        <div className="form-section-heading">
+          <h3 id="mutation-display-heading">名称和描述</h3>
+          <p>用于在规则目录中识别这条规则，不改变新增、修改、删除或自动填写行为。</p>
+        </div>
       <label className="field field-wide"><span>规则编码 · 创建后不可变</span><input value={draft.code} onChange={(event) => update("code", event.target.value)} disabled={mode !== "create"} placeholder="standard_mutation_v2" {...inputProps("code")} />{errors.code && <small id="code-error" className="field-error">{errors.code}</small>}</label>
       <label className="field field-wide"><span>显示名称</span><input value={draft.name} onChange={(event) => update("name", event.target.value)} disabled={fullyLocked} {...inputProps("name")} />{errors.name && <small id="name-error" className="field-error">{errors.name}</small>}</label>
       <label className="field field-wide"><span>描述</span><textarea value={draft.description} onChange={(event) => update("description", event.target.value)} disabled={fullyLocked} rows={4} {...inputProps("description")} />{errors.description && <small id="description-error" className="field-error">{errors.description}</small>}</label>
+      </section>
 
-      <div className="form-panel">
+      <section className="form-panel" aria-labelledby="mutation-execution-heading">
+        <div className="form-section-heading">
+          <h3 id="mutation-execution-heading">执行规则</h3>
+          <p>{mode === "metadata" ? "当前状态不能修改执行规则。" : "草稿激活后，这些内容将锁定。"}</p>
+        </div>
         <label className="field field-wide"><span>规则类型</span><select value={draft.typeCode} onChange={(event) => update("typeCode", event.target.value)} disabled={executionLocked} {...inputProps("typeCode")}>{options.map((type) => <option key={type} value={type}>{type}</option>)}</select>{errors.typeCode && <small id="typeCode-error" className="field-error">{errors.typeCode}</small>}</label>
         <section className="mutation-form-section" aria-labelledby="operation-heading">
           <h3 id="operation-heading">操作授权</h3>
@@ -135,18 +148,19 @@ export function MutationPolicyForm({ mode, policy, typeCodes, serverError, pendi
           </div>
         </section>
         <section className="mutation-form-section" aria-labelledby="auto-fill-heading">
-          <h3 id="auto-fill-heading">标准 Auto Fill 目标字段</h3>
-          <p>Operator 使用当前 Operator；Time 使用数据库时间。留空表示不填充。</p>
+          <h3 id="auto-fill-heading">服务器自动填写的列</h3>
+          <p>新增会填写已配置的创建列和修改列；修改只填写修改列；删除不自动填写。Operator 来自部署配置，Time 使用数据库时间，留空表示不填写。</p>
           <div className="form-grid">
-            {field("createOperatorField", "Create Operator Field", "creator")}
-            {field("createTimeField", "Create Time Field", "created_at")}
-            {field("modifyOperatorField", "Modify Operator Field", "modifier")}
-            {field("modifyTimeField", "Modify Time Field", "updated_at")}
+            {field("createOperatorField", "新增时填写 Operator 的列", "creator")}
+            {field("createTimeField", "新增时填写创建时间的列", "created_at")}
+            {field("modifyOperatorField", "新增和修改时填写 Operator 的列", "modifier")}
+            {field("modifyTimeField", "新增和修改时填写更新时间的列", "updated_at")}
           </div>
         </section>
-      </div>
+        <MutationPolicyEffect policy={draft} registeredTypes={registryTypes} registryState={registryState} heading={mode === "create" || mode === "replace" || policy?.status === "DRAFT" ? "执行效果预览" : "实际变更效果"} />
+      </section>
 
-      {policy && policy.status !== "DRAFT" && <div className="form-note"><Info size={17} /><span>已激活或已弃用规则的授权与 Auto Fill 字段已锁定；只能更新名称和描述。</span></div>}
+      {policy && policy.status !== "DRAFT" && <div className="form-note"><Info size={17} /><span>当前状态只能修改名称和描述，执行内容不会改变。若要改变执行规则，请新建使用新版本编码的草稿，激活后再替换表分配。{policy.status === "DEPRECATED" ? "这条已弃用规则对已有分配仍然有效，但不能用于新分配。" : ""}</span></div>}
       {policy && <dl className="audit-grid"><div><dt>创建人</dt><dd>{policy.creator}</dd></div><div><dt>创建时间</dt><dd>{formatTimestamp(policy.createdAt)}</dd></div><div><dt>修改人</dt><dd>{policy.modifier}</dd></div><div><dt>修改时间</dt><dd>{formatTimestamp(policy.modifiedAt)}</dd></div></dl>}
       </fieldset>
     </form>

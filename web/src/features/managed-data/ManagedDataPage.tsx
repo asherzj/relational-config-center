@@ -5,6 +5,8 @@ import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { Button } from "../../components/ui/Button";
 import { ErrorState, LoadingState } from "../../components/ui/Feedback";
 import { useTablePolicies } from "../table-policies/queries";
+import { useQueryPolicy, useQueryPolicyTypes } from "../query-policies/queries";
+import { MutationPolicyEffect, QueryPolicyEffect } from "../policies/PolicyEffect";
 import {
   allowedOperators,
   conditionFromDraft,
@@ -111,12 +113,15 @@ export function ManagedDataPage() {
     : enabledPolicies[0]?.tableName ?? "";
   const result = useManagedDataQuery(selectedTable, querySpec);
   const selectedPolicy = enabledPolicies.find((policy) => policy.tableName === selectedTable);
+  const queryPolicy = useQueryPolicy(selectedPolicy?.queryPolicyCode);
+  const queryPolicyTypes = useQueryPolicyTypes(Boolean(selectedPolicy));
   const changes = useManagedDataMutationWorkflow({
     tableName: selectedTable,
     mutationPolicyCode: selectedPolicy?.mutationPolicyCode,
     columns: result.data?.columns,
   });
-  const { editor, changeSet, outcome, capabilityReasons } = changes.view;
+  const { editor, changeSet, outcome, capabilityReasons, mutationPolicy, mutationRegistry, mutationRegistryState } = changes.view;
+  const queryRegistryState = queryPolicyTypes.isPending ? "loading" : queryPolicyTypes.isError ? "error" : "ready";
   const protection = useDraftProtection(false, changes.view.executionPending);
   const send = (intent: ManagedDataMutationIntent) => {
     if (["open-editor", "review-delete", "cancel-pending"].includes(intent.type)) {
@@ -187,6 +192,18 @@ export function ManagedDataPage() {
             <span className="managed-table-status"><i className="ready-dot" />已启用表规则</span>
           </section>
 
+          {selectedPolicy && (
+            <section className="managed-policy-effects" aria-label="当前表规则能力">
+              <div className="form-section-heading">
+                <h2>当前表规则能力</h2>
+                <p>查询与变更都按每次请求读取到的规则和实时表结构执行。</p>
+              </div>
+              {queryPolicy.data ? <QueryPolicyEffect policy={queryPolicy.data} registeredTypes={queryPolicyTypes.data} registryState={queryRegistryState} heading="查询" /> : <div className="policy-effect policy-effect-unconfirmed"><strong>无法确认查询能力</strong><p>{queryPolicy.isError ? "查询规则详情加载失败。" : "正在读取查询规则详情。"} 当前界面不会猜测规则效果。</p></div>}
+              {mutationPolicy ? <MutationPolicyEffect policy={mutationPolicy} registeredTypes={mutationRegistry} registryState={mutationRegistryState} heading="变更" /> : <div className="policy-effect policy-effect-unconfirmed"><strong>无法确认变更能力</strong><p>正在读取或未能读取变更规则详情，当前界面不会猜测规则效果。</p></div>}
+              {result.data && <p className="schema-effect">本次实时表结构确认了 {result.data.columns.length} 列：{result.data.columns.map((column) => column.name).join("、")}。</p>}
+            </section>
+          )}
+
           {result.data && (
             <section className="query-builder" aria-label="查询条件">
               <header>
@@ -252,7 +269,7 @@ export function ManagedDataPage() {
                 </label>
                 <label className="field">
                   <span>每页数量</span>
-                  <input aria-label="每页数量" type="number" min="1" max="200" placeholder={`规则默认（当前 ${result.data.page.pageSize}）`} value={pageSize} onChange={(event) => setPageSize(event.target.value)} />
+                  <input aria-label="每页数量" type="number" min="1" max={queryPolicy.data?.maxPageSize ?? 200} placeholder={queryPolicy.data ? `规则默认 ${queryPolicy.data.defaultPageSize}，最多 ${queryPolicy.data.maxPageSize}` : `规则默认（当前 ${result.data.page.pageSize}）`} value={pageSize} onChange={(event) => setPageSize(event.target.value)} />
                 </label>
               </div>
               {validationError && <div className="inline-alert query-validation" role="alert">{validationError}</div>}

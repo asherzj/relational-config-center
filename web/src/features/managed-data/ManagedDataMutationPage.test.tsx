@@ -36,6 +36,22 @@ const mutationPolicy = {
   gmt_modified: "2026-08-25T09:00:00Z",
 };
 
+const queryPolicy = {
+  code: "notification_page_query_v1",
+  name: "Notification query",
+  description: "",
+  type_code: "page_query",
+  default_order_field: "id",
+  default_order_direction: "DESC",
+  default_page_size: 20,
+  max_page_size: 100,
+  status: "ACTIVE",
+  creator: "fixture",
+  modifier: "fixture",
+  gmt_created: "2026-08-25T09:00:00Z",
+  gmt_modified: "2026-08-25T09:00:00Z",
+};
+
 const columns = [
   { name: "id", type: "uint64", nullable: false },
   { name: "template_key", type: "string", nullable: false },
@@ -79,6 +95,8 @@ function renderPage() {
 function readFetch(input: RequestInfo | URL, init: RequestInit | undefined, policy = mutationPolicy) {
   const url = String(input);
   if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
+  if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+  if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
   if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
   if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(policy);
   if (url.endsWith("/tables/notification_templates/query") && init?.method === "POST") {
@@ -102,6 +120,12 @@ describe("Managed Data mutation capability", () => {
     expect(screen.getByRole("button", { name: "删除记录 41" })).toBeDisabled();
     expect(screen.getByText("MODIFY 未由当前变更规则授权")).toBeVisible();
     expect(screen.getByText("DELETE 未由当前变更规则授权")).toBeVisible();
+    const currentAbility = screen.getByRole("region", { name: "当前表规则能力" });
+    expect(currentAbility).toHaveTextContent("按 id 降序排列");
+    expect(currentAbility).toHaveTextContent("默认每页数量为 20");
+    expect(currentAbility).toHaveTextContent("新增：规则允许");
+    expect(currentAbility).toHaveTextContent("修改：规则禁止");
+    expect(currentAbility).toHaveTextContent("本次实时表结构确认了 8 列");
 
     await user.click(add);
     const editor = screen.getByRole("dialog", { name: "新增 notification_templates 记录" });

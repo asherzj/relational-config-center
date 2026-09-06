@@ -46,7 +46,10 @@ function QueryPolicySession({ code, onRequestCommand }: Props) {
   const editingPolicy = useRef(detail.data);
   if (!editingPolicy.current && detail.data) editingPolicy.current = detail.data;
   const policy = requestedFormMode === "view" ? detail.data : editingPolicy.current;
-  const supported = policy ? supportedQueryPolicyTypes.has(policy.typeCode) : true;
+  const currentSupport = policy ? supportedQueryPolicyTypes.has(policy.typeCode) && Boolean(types.data?.includes(policy.typeCode)) : true;
+  const editingSupport = useRef<boolean | undefined>(undefined);
+  if (editingSupport.current === undefined && policy && types.data) editingSupport.current = currentSupport;
+  const supported = requestedFormMode === "view" ? currentSupport : editingSupport.current ?? currentSupport;
   const mode = resolvePolicyFormMode(requestedFormMode, policy?.status, supported);
   const actions = policy ? policyActionAvailability(policy.status, supported) : null;
   const form = usePolicyFormSubmission<QueryPolicyDraft, QueryPolicyMetadata>({
@@ -64,7 +67,7 @@ function QueryPolicySession({ code, onRequestCommand }: Props) {
   const title = useMemo(() => {
     if (mode === "create") return "新建查询规则草稿";
     if (mode === "replace") return "编辑查询规则草稿";
-    if (mode === "metadata") return "更新查询规则信息";
+    if (mode === "metadata") return "修改查询规则名称和描述";
     return "查询规则详情";
   }, [mode]);
 
@@ -74,7 +77,7 @@ function QueryPolicySession({ code, onRequestCommand }: Props) {
   else content = (
     <>
       {!supported && (
-        <div className="inline-alert"><AlertCircle size={18} /><strong>Web 尚不支持类型 {policy?.typeCode} 的执行内容；不能编辑或执行，但仍可更新名称和描述。</strong></div>
+        <div className="inline-alert"><AlertCircle size={18} /><strong>规则类型目录未确认 {policy?.typeCode} 的查询能力；无法确认执行规则，{actions?.metadata ? "仍可安全查看或修改名称和描述。" : "当前只能安全查看。"}</strong></div>
       )}
       <QueryPolicyForm
         key={`${code}:${mode}`}
@@ -82,6 +85,7 @@ function QueryPolicySession({ code, onRequestCommand }: Props) {
         mode={mode}
         policy={policy}
         typeCodes={types.data ?? []}
+        registryState={types.isPending ? "loading" : types.isError ? "error" : "ready"}
         serverError={form.error}
         onSubmit={form.submit}
       />
@@ -93,7 +97,7 @@ function QueryPolicySession({ code, onRequestCommand }: Props) {
     footer = (
       <>
         <Button variant="primary" type="submit" form="query-policy-form" disabled={form.pending || (mode === "create" && !types.data?.some((type) => supportedQueryPolicyTypes.has(type)))}>
-          {form.pending ? "正在保存…" : mode === "create" ? "创建草稿" : "保存"}
+          {form.pending ? "正在保存…" : mode === "create" ? "创建草稿" : mode === "metadata" ? "保存名称和描述" : "保存执行规则"}
         </Button>
         <Button onClick={close} disabled={form.pending}>取消</Button>
       </>
@@ -101,9 +105,9 @@ function QueryPolicySession({ code, onRequestCommand }: Props) {
   } else if (policy && actions) {
     footer = (
       <>
-        {actions.replace && <Button variant="primary" onClick={() => navigate(`?mode=edit`)}>编辑草稿</Button>}
+        {actions.replace && <Button variant="primary" onClick={() => navigate(`?mode=edit`)}>修改执行规则</Button>}
         {actions.activate && <Button variant="primary" onClick={() => onRequestCommand("activate", policy.code)}>激活</Button>}
-        {actions.metadata && <Button onClick={() => navigate(`?mode=metadata`)}>更新元数据</Button>}
+        {actions.metadata && <Button onClick={() => navigate(`?mode=metadata`)}>修改名称和描述</Button>}
         {actions.deprecate && <Button variant="danger" onClick={() => onRequestCommand("deprecate", policy.code)}>弃用</Button>}
         {actions.delete && <Button variant="danger" onClick={() => onRequestCommand("delete", policy.code)}>删除</Button>}
         <Button className="drawer-close-action" onClick={close}>关闭</Button>

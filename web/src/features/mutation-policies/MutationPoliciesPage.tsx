@@ -45,8 +45,8 @@ function PolicyActions({ policy, supported, onCommand }: { policy: MutationPolic
   const open = (suffix = "") => navigate(`/platform/mutation-policies/${encodeURIComponent(policy.code)}${suffix}`);
   return <div className="row-actions">
     <button onClick={() => open()}>查看</button>
-    {actions.replace && <button onClick={() => open("?mode=edit")}>编辑</button>}
-    {actions.metadata && <button onClick={() => open("?mode=metadata")}>元数据</button>}
+    {actions.replace && <button onClick={() => open("?mode=edit")}>修改执行规则</button>}
+    {actions.metadata && <button onClick={() => open("?mode=metadata")}>名称和描述</button>}
     {actions.activate && <button onClick={() => onCommand("activate", policy.code)}>激活</button>}
     {actions.deprecate && <button className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</button>}
     {actions.delete && <button className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</button>}

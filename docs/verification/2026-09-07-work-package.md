@@ -17,7 +17,7 @@
 | --- | --- | --- | --- | --- |
 | 1 | 完整流程验收与修复 | GPT-5.6-Sol / high | 已通过验收 | `2026-09-07-stage1-acceptance.md` |
 | 2 | 防止编辑内容意外丢失 | GPT-6-Astra / high | 已通过验收 | `2026-09-07-stage2-unsaved-changes.md` |
-| 3 | 让规则更容易理解 | GPT-5.6-Sol / medium | 待开始 | 待生成 |
+| 3 | 让规则更容易理解 | GPT-5.6-Sol / medium | 已通过验收 | `2026-09-07-stage3-rule-clarity.md` |
 | 4 | 同步运行和验收文档（PM-006） | GPT-5.6-Luna / medium | 待开始 | 待生成 |
 | 5 | 最终回归与交付记录 | GPT-5.6-Sol / high | 待开始 | 待生成 |
 

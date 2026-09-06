@@ -47,16 +47,15 @@ const commandContent: PolicyCommandCopy = {
   },
 };
 
-function PolicyActions({ policy, onCommand }: { policy: QueryPolicy; onCommand: (command: PolicyLifecycleCommand, code: string) => void }) {
+function PolicyActions({ policy, supported, onCommand }: { policy: QueryPolicy; supported: boolean; onCommand: (command: PolicyLifecycleCommand, code: string) => void }) {
   const navigate = useNavigate();
-  const supported = supportedQueryPolicyTypes.has(policy.typeCode);
   const actions = policyActionAvailability(policy.status, supported);
   const open = (suffix = "") => navigate(`/platform/query-policies/${encodeURIComponent(policy.code)}${suffix}`);
   return (
     <div className="row-actions">
       <button onClick={() => open()}>查看</button>
-      {actions.replace && <button onClick={() => open("?mode=edit")}>编辑</button>}
-      {actions.metadata && <button onClick={() => open("?mode=metadata")}>元数据</button>}
+      {actions.replace && <button onClick={() => open("?mode=edit")}>修改执行规则</button>}
+      {actions.metadata && <button onClick={() => open("?mode=metadata")}>名称和描述</button>}
       {actions.activate && <button onClick={() => onCommand("activate", policy.code)}>激活</button>}
       {actions.deprecate && <button className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</button>}
       {actions.delete && <button className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</button>}
@@ -122,7 +121,7 @@ export function QueryPoliciesPage() {
                     <td>{policy.defaultPageSize}<small>最多 {policy.maxPageSize} 条</small></td>
                     <td><span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span></td>
                     <td className="timestamp">{formatTimestamp(policy.modifiedAt)}<small>{policy.modifier}</small></td>
-                    <td><PolicyActions policy={policy} onCommand={lifecycle.request} /></td>
+                    <td><PolicyActions policy={policy} supported={supportedQueryPolicyTypes.has(policy.typeCode) && Boolean(types.data?.includes(policy.typeCode))} onCommand={lifecycle.request} /></td>
                   </tr>
                 ))}
               </tbody>
