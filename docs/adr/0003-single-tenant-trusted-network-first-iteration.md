@@ -1,5 +1,7 @@
 # Keep the first iteration single-tenant and inside a trusted network
 
+后续本地账号迭代对终端用户、共享 Token、免认证及固定 Operator 的设计调整见 [ADR-0017](./0017-introduce-local-accounts-in-the-trusted-network.md) 和 [ADR-0018](./0018-attribute-authored-changes-to-stable-account-ids.md)。下面保留第一迭代的原始决策；单组织、可信网络及其余未被替代的约束继续适用。
+
 第一迭代的一个部署只服务一个组织或信任域，并仅运行在本机或可信内网；不在领域模型或 Query Spec 中隐式加入租户条件。功能范围保持克制，但运行形态仍包含超时、查询限制、连接池配置、结构化日志、健康检查、优雅停机和写操作日志，为后续扩大暴露面保留清晰边界。
 
 ## Consequences

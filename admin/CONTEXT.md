@@ -4,6 +4,26 @@ Admin governs access to rows in existing relational configuration tables without
 
 ## Language
 
+**Local Account（本地账号）**:
+An end-user account belonging to the organization served by one Admin deployment, whose credentials are managed by this system. Its permanent identity is independent of its login name and profile details.
+_Avoid_: Database user, deployment token, Operator
+
+**Account ID（账号标识）**:
+The permanent identifier of one Local Account, unchanged by updates to the account's displayed name or other profile details. It identifies the author of changes attributed to that account.
+_Avoid_: Username, email address, display name
+
+**Account Email（账号邮箱）**:
+The required, unique email address declared by a Local Account. It is unverified account information, not proof of mailbox ownership or a login or recovery credential.
+_Avoid_: Verified email, login name, identity proof
+
+**Account Status（账号状态）**:
+Whether a Local Account is enabled or disabled for authenticated access to Admin.
+_Avoid_: Policy Status, email verification status, user role
+
+**Login Session（登录会话）**:
+A time-bounded authenticated period of access to Admin associated with one Local Account. One account may have several concurrent Login Sessions, which can be ended individually or together.
+_Avoid_: Database session, Policy Snapshot, deployment token
+
 **Managed Data Source**:
 The single MySQL database selected by deployment configuration and available to one deployment for management. It cannot be selected or changed by runtime policy.
 _Avoid_: MySQL instance, arbitrary database, external DSN
@@ -37,8 +57,8 @@ The lifecycle state of a Query Policy or Mutation Policy. A Draft may be edited 
 _Avoid_: Table Policy enabled state, deletion flag, 策略状态
 
 **Operator**:
-The value attributed to server-managed audit fields during a mutation. In the first iteration it comes from deployment configuration and is not an authenticated end-user identity.
-_Avoid_: User, auditor
+The identity attributed to the author of a configuration or policy change. For a change made under a Local Account, it is that account's permanent Account ID rather than its login name or display name.
+_Avoid_: Display name, deployment identity, auditor
 
 **Policy Catalog（规则目录）**:
 The authoritative collection of Query Policies, Mutation Policies, and enabled or disabled Table Policies. It is governed independently from managed tables, cannot manage itself through the generic table-management capability, and denies generic access when no complete valid Policy assignment can be obtained.
