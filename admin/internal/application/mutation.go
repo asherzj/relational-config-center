@@ -144,7 +144,7 @@ func (mutation *ManagedTableMutation) relationalAdd(ctx context.Context, session
 		return "", err
 	}
 	for _, column := range schema.Columns {
-		if _, supplied := effective[column.Name]; column.RequiredForInsert() && !supplied {
+		if _, supplied := effective[column.Name]; (column.RequiredForInsert() || (column.Name == "id" && !column.AutoIncrement)) && !supplied {
 			return "", ErrMissingRequiredField
 		}
 	}

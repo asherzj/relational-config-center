@@ -214,3 +214,21 @@ func containsCall(calls []string, wanted string) bool {
 
 var _ MutationSnapshotExecutor = (*memoryMutationSnapshotExecutor)(nil)
 var _ MutationSnapshotSession = (*memoryMutationSnapshotSession)(nil)
+
+func TestNonAutoIncrementIDIsRequiredEvenWhenSchemaHasADefault(t *testing.T) {
+	session := validMutationSnapshotSession()
+	session.schema.Columns[0].AutoIncrement = false
+	session.schema.Columns[0].HasDefault = true
+	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: session}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry(), NewFixedOperatorProvider("test-operator"))
+	_, err := mutation.Add(t.Context(), "managed_items", domain.MutationContent{"name": jsonStringPointer("created")})
+	if !errors.Is(err, ErrMissingRequiredField) {
+		t.Fatalf("missing non-auto id must fail before insert even with a default: %v", err)
+	}
+	if containsCall(session.calls, "insert:managed_items") {
+		t.Fatalf("unknown default identity reached row execution: %#v", session.calls)
+	}
+	_, err = mutation.Add(t.Context(), "managed_items", domain.MutationContent{"id": jsonStringPointer("42"), "name": jsonStringPointer("created")})
+	if err != nil || session.insert.ProvidedID == nil || *session.insert.ProvidedID != "42" {
+		t.Fatalf("explicit non-auto id must remain supported: id=%v error=%v", session.insert.ProvidedID, err)
+	}
+}

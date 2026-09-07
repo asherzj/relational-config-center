@@ -14,12 +14,13 @@ admin_port=""
 web_port=""
 docker_resources_started=false
 active_pid=""
+run_completed=false
 
 if [[ -d "$artifact_root" && -n $(ls -A "$artifact_root" 2>/dev/null) ]]; then
   printf 'artifact directory must be new or empty: %s\n' "$artifact_root" >&2
   exit 2
 fi
-mkdir -p "$artifact_root/unsaved-changes" "$artifact_root/rule-clarity" "$artifact_root/write-recovery" "$artifact_root/operation-coverage"
+mkdir -p "$artifact_root/unsaved-changes" "$artifact_root/rule-clarity" "$artifact_root/write-recovery" "$artifact_root/operation-coverage" "$artifact_root/complex-fields"
 umask 077
 
 for command in docker node pnpm go curl od tr grep sort cmp; do
@@ -30,7 +31,7 @@ for command in docker node pnpm go curl od tr grep sort cmp; do
 done
 
 case ${RCC_E2E_SUITE:-all} in
-  all|write-recovery|operation-coverage) ;;
+  all|write-recovery|operation-coverage|complex-fields) ;;
   *) printf 'unknown browser suite: %s\n' "$RCC_E2E_SUITE" >&2; exit 2 ;;
 esac
 
@@ -118,6 +119,9 @@ stop_service() {
 cleanup() {
   local status=$?
   local cleanup_ok=true
+  # Some older Bash expansion errors enter EXIT with status 0. Success also
+  # requires every selected suite and the final fixture checks to complete.
+  if [[ $run_completed != true && $status == 0 ]]; then status=1; fi
   trap - EXIT INT TERM
   if [[ -n "$active_pid" ]]; then stop_service "$active_pid"; active_pid=""; fi
   if [[ -n "$web_pid" ]]; then stop_service "$web_pid"; fi
@@ -269,12 +273,16 @@ docker_resources_started=true
 run_timeout 60 docker volume create --label rcc.browser-acceptance="$run_id" "$mysql_volume" \
   > "$artifact_root/mysql-volume.txt"
 mysql_bind_port=$(free_port)
+mysql_server_arguments=(mysql:8.4)
+if [[ -n ${RCC_E2E_MYSQL_SQL_MODE:-} ]]; then
+  mysql_server_arguments+=("--sql-mode=$RCC_E2E_MYSQL_SQL_MODE")
+fi
 run_timeout 300 docker run --detach --name "$mysql_container" \
   --label rcc.browser-acceptance="$run_id" \
   --env-file "$mysql_env" \
   --publish "127.0.0.1:$mysql_bind_port:3306" \
   --mount "type=volume,source=$mysql_volume,target=/var/lib/mysql" \
-  mysql:8.4 > "$artifact_root/mysql-container-id.txt" 2> "$artifact_root/mysql-start.log"
+  "${mysql_server_arguments[@]}" > "$artifact_root/mysql-container-id.txt" 2> "$artifact_root/mysql-start.log"
 wait_for_mysql
 
 mysql_endpoint=$(run_timeout 5 docker port "$mysql_container" 3306/tcp)
@@ -406,6 +414,10 @@ if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == operation-coverag
 run_browser_suite operation-coverage "$repo_root/web/e2e/operation-coverage.cjs" "$artifact_root/operation-coverage" 420
 fi
 
+if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == complex-fields ]]; then
+run_browser_suite complex-fields "$repo_root/web/e2e/complex-fields.cjs" "$artifact_root/complex-fields" 420
+fi
+
 expected='5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED'
 capture_mysql_state "$artifact_root/database-postcheck.txt"
 actual=$(tail -n 1 "$artifact_root/database-postcheck.txt")
@@ -419,4 +431,5 @@ if ! cmp -s "$artifact_root/fixture-before.tsv" "$artifact_root/fixture-after.ts
   exit 1
 fi
 
+run_completed=true
 printf 'Browser acceptance passed; database post-check: %s\n' "$actual"

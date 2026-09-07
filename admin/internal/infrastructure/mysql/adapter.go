@@ -189,12 +189,13 @@ ORDER BY ORDINAL_POSITION`, adapter.database, tableName).Scan(&rows).Error; err 
 	columns := make([]domain.Column, 0, len(rows))
 	primaryKey := make([]string, 0, 1)
 	for _, row := range rows {
+		// DEFAULT_GENERATED marks an expression default, not a computed column.
 		extra := strings.ToLower(row.Extra)
 		columns = append(columns, domain.Column{
 			Name:          row.Name,
 			Type:          liveColumnType(row.DataType, row.ColumnType),
 			Nullable:      row.Nullable == "YES",
-			Generated:     row.GenerationExpression != "" || strings.Contains(extra, "generated"),
+			Generated:     row.GenerationExpression != "" || strings.Contains(extra, "stored generated") || strings.Contains(extra, "virtual generated"),
 			AutoIncrement: strings.Contains(extra, "auto_increment"),
 			HasDefault:    row.DefaultValue.Valid || strings.Contains(extra, "default_generated"),
 		})
@@ -1047,8 +1048,12 @@ func (adapter *Adapter) InsertRow(ctx context.Context, insert domain.RowInsert) 
 
 func insertRow(ctx context.Context, database *gorm.DB, insert domain.RowInsert) (string, error) {
 	values := make(map[string]any, len(insert.Values))
+	providedAutoZero := false
 	for _, value := range insert.Values {
 		values[value.Column.Name] = value.Value
+		if value.Column.Name == "id" && value.Column.AutoIncrement {
+			providedAutoZero = value.Value == uint64(0) || value.Value == int64(0)
+		}
 	}
 	result := gorm.WithResult()
 	session := database.WithContext(ctx).Session(&gorm.Session{SkipDefaultTransaction: true}).Clauses(result)
@@ -1062,17 +1067,32 @@ func insertRow(ctx context.Context, database *gorm.DB, insert domain.RowInsert) 
 	if created.Error != nil {
 		return "", classifyMutationError(created.Error, ctx.Err())
 	}
-	if insert.ProvidedID != nil {
+	if insert.ProvidedID != nil && !providedAutoZero {
 		return string(*insert.ProvidedID), nil
 	}
 	if result.Result == nil {
 		return "", application.ErrMutationUnavailable
 	}
-	insertID, err := result.Result.LastInsertId()
-	if err != nil || insertID < 0 {
-		return "", application.ErrMutationUnavailable
+	if providedAutoZero {
+		// Normally explicit zero generates an identity. NO_AUTO_VALUE_ON_ZERO
+		// instead stores zero; the INSERT result distinguishes these cases without
+		// consulting a possibly stale LAST_INSERT_ID session value.
+		resultID, err := result.Result.LastInsertId()
+		if err != nil {
+			return "", application.ErrMutationUnavailable
+		}
+		if resultID == 0 {
+			return "0", nil
+		}
 	}
-	return strconv.FormatInt(insertID, 10), nil
+	// database/sql exposes LastInsertId as int64, which cannot represent all
+	// BIGINT UNSIGNED values. Read the server's value as a string on this same
+	// transaction connection, before returning it through the string HTTP contract.
+	var insertID string
+	if err := session.Raw("SELECT CAST(LAST_INSERT_ID() AS CHAR)").Scan(&insertID).Error; err != nil {
+		return "", classifyMutationError(err, ctx.Err())
+	}
+	return insertID, nil
 }
 
 func (adapter *Adapter) UpdateRow(ctx context.Context, update domain.RowUpdate) (affected int64, returnErr error) {
@@ -1164,10 +1184,10 @@ func classifyMutationError(err error, contextErr error) error {
 		switch mysqlError.Number {
 		case 1062:
 			return application.ErrDuplicateKey
-		case 1265:
-			// MySQL reports an invalid ENUM member as data truncation. The
-			// submitted value caused the rejection, so expose it as editable
-			// Mutation Content instead of an infrastructure outage.
+		case 1264, 1265, 1406:
+			// Numeric overflow, invalid ENUM members and overlong strings are
+			// rejected storage values. Keep these known input errors editable;
+			// other database failures remain unavailable.
 			return application.ErrInvalidMutation
 		}
 	}

@@ -108,7 +108,7 @@ function readFetch(input: RequestInfo | URL, init: RequestInit | undefined, poli
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Managed Data mutation capability", () => {
-  it("fails closed by capability and excludes id plus every server-managed Auto Fill field from ADD", async () => {
+  it("fails closed by capability, offers optional id and excludes every server-managed Auto Fill field from ADD", async () => {
     vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => Promise.resolve(readFetch(input, init))));
     const user = userEvent.setup();
 
@@ -131,7 +131,7 @@ describe("Managed Data mutation capability", () => {
     const editor = screen.getByRole("dialog", { name: "新增 notification_templates 记录" });
     expect(within(editor).getByRole("checkbox", { name: "包含 template_key" })).toBeVisible();
     expect(within(editor).getByRole("checkbox", { name: "包含 subject" })).toBeVisible();
-    expect(within(editor).queryByRole("checkbox", { name: "包含 id" })).not.toBeInTheDocument();
+    expect(within(editor).getByRole("checkbox", { name: "包含 id" })).not.toBeChecked();
     expect(within(editor).queryByRole("checkbox", { name: "包含 creator" })).not.toBeInTheDocument();
     expect(within(editor).queryByRole("checkbox", { name: "包含 gmt_created" })).not.toBeInTheDocument();
     expect(within(editor).queryByRole("checkbox", { name: "包含 modifier" })).not.toBeInTheDocument();

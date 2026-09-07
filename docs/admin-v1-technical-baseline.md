@@ -224,7 +224,7 @@ modify_operator_field = "modifier"
 modify_time_field = "updated_at"
 ```
 
-- ADD 可写非生成列；自增 `id` 可省略，返回 `{"id":"42"}`。
+- ADD 可写非生成列；仅自增 `id` 可省略，非自增 `id` 即使有数据库默认值也须显式提交，否则写入前返回 `missing_required_field`。返回 `{"id":"42"}`，完整保留 uint64 主键；显式自增零值按当前 MySQL SQL 模式返回实际保存或生成的 ID。
 - MODIFY 按 `id` 更新一行、使用 PATCH 语义、禁止修改 `id`，返回 `{"affected":1}`。
 - DELETE 默认禁止；显式允许后按 `id` 硬删除，返回 `{"affected":1}`。
 - MySQL 唯一索引是唯一性的最终裁决，重复键映射为 409。

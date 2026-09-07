@@ -1,3 +1,4 @@
+import { ManagedTextInput } from "./ManagedTextInput";
 import { ChevronLeft, ChevronRight, Database, Pencil, Plus, RefreshCw, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -47,6 +48,9 @@ function ScalarInput({ column, label, value, onChange }: { column: ManagedDataCo
         <option value="1">1（true）</option>
       </select>
     );
+  }
+  if (column.type === "string" || column.type === "json") {
+    return <ManagedTextInput label={label} rows={2} value={value} onChange={onChange} />;
   }
   const inputType = column.type === "date" ? "date" : column.type === "time" ? "time" : "text";
   const inputMode = ["uint64", "int64", "decimal", "float64"].includes(column.type) ? "decimal" : undefined;
