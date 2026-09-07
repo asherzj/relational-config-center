@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
 )
@@ -31,11 +30,8 @@ type QueryExecutor interface {
 // a Policy Snapshot is three aggregate reads, never a JOIN or a cache lookup.
 // Implementations must reject use after ExecuteQuerySnapshot returns.
 type QuerySnapshotSession interface {
+	PolicySnapshotReader
 	QueryExecutor
-	GetTablePolicy(context.Context, string) (domain.TablePolicy, error)
-	GetQueryPolicy(context.Context, string) (domain.QueryPolicy, error)
-	GetMutationPolicy(context.Context, string) (domain.MutationPolicy, error)
-	GetTableSchema(context.Context, string) (domain.TableSchema, error)
 }
 
 // QuerySnapshotExecutor owns the read-only REPEATABLE READ transaction used
@@ -51,12 +47,11 @@ type QuerySnapshotExecutor interface {
 // fresh strategy construction for every request.
 type ManagedTableQuery struct {
 	snapshotExecutor QuerySnapshotExecutor
-	queryTypes       *QueryPolicyTypeRegistry
-	mutationTypes    *MutationPolicyTypeRegistry
+	snapshots        *policySnapshotResolver
 }
 
 func NewManagedTableQuery(executor QuerySnapshotExecutor, queryTypes *QueryPolicyTypeRegistry, mutationTypes *MutationPolicyTypeRegistry) *ManagedTableQuery {
-	return &ManagedTableQuery{snapshotExecutor: executor, queryTypes: queryTypes, mutationTypes: mutationTypes}
+	return &ManagedTableQuery{snapshotExecutor: executor, snapshots: newPolicySnapshotResolver(queryTypes, mutationTypes)}
 }
 
 func (query *ManagedTableQuery) Execute(ctx context.Context, tableName string, spec domain.QuerySpec) (domain.QueryResult, error) {
@@ -68,70 +63,10 @@ func (query *ManagedTableQuery) Execute(ctx context.Context, tableName string, s
 
 func (query *ManagedTableQuery) executePolicySnapshot(ctx context.Context, tableName string, spec domain.QuerySpec) (domain.QueryResult, error) {
 	return query.snapshotExecutor.ExecuteQuerySnapshot(ctx, func(session QuerySnapshotSession) (domain.QueryResult, error) {
-		tablePolicy, err := session.GetTablePolicy(ctx, tableName)
-		if err != nil {
-			if errors.Is(err, domain.ErrTablePolicyNotFound) {
-				return domain.QueryResult{}, err
-			}
-			return domain.QueryResult{}, snapshotCatalogError(err, "Table Policy")
-		}
-
-		// Keep the aggregate reads visibly separate. In particular, do not
-		// short-circuit a disabled assignment into a partial Policy Snapshot.
-		queryPolicy, err := session.GetQueryPolicy(ctx, tablePolicy.QueryPolicyCode)
-		if err != nil {
-			return domain.QueryResult{}, snapshotCatalogError(err, "Query Policy")
-		}
-		mutationPolicy, err := session.GetMutationPolicy(ctx, tablePolicy.MutationPolicyCode)
-		if err != nil {
-			return domain.QueryResult{}, snapshotCatalogError(err, "Mutation Policy")
-		}
-		if !tablePolicy.Enabled {
-			return domain.QueryResult{}, ErrTablePolicyDisabled
-		}
-		if !runtimePolicyStatus(queryPolicy.Status) || !runtimePolicyStatus(mutationPolicy.Status) {
-			return domain.QueryResult{}, fmt.Errorf("%w: referenced Policy is not executable", ErrInvalidPolicySnapshot)
-		}
-
-		strategy, err := query.queryTypes.Build(queryPolicy)
+		snapshot, err := query.snapshots.resolve(ctx, session, tableName, queryPolicySnapshot)
 		if err != nil {
 			return domain.QueryResult{}, err
 		}
-		if err := query.mutationTypes.Validate(mutationPolicy); err != nil {
-			return domain.QueryResult{}, err
-		}
-
-		schema, err := session.GetTableSchema(ctx, tableName)
-		if err != nil {
-			if errors.Is(err, ErrDatabaseTableNotFound) || errors.Is(err, ErrProtectedTable) {
-				return domain.QueryResult{}, err
-			}
-			if errors.Is(err, ErrQueryTimeout) {
-				return domain.QueryResult{}, err
-			}
-			return domain.QueryResult{}, fmt.Errorf("%w: read live Schema", ErrQueryUnavailable)
-		}
-		if !schema.Compatible {
-			return domain.QueryResult{}, fmt.Errorf("%w: %s", ErrIncompatibleTable, *schema.IncompatibilityReason)
-		}
-		if err := query.queryTypes.ValidateForTable(queryPolicy, schema); err != nil {
-			return domain.QueryResult{}, err
-		}
-		if err := query.mutationTypes.ValidateForTable(mutationPolicy, schema); err != nil {
-			return domain.QueryResult{}, err
-		}
-
-		return strategy.execute(ctx, schema, spec, session)
+		return snapshot.queryStrategy.execute(ctx, snapshot.schema, spec, session)
 	})
-}
-
-func snapshotCatalogError(err error, aggregate string) error {
-	if errors.Is(err, ErrQueryTimeout) {
-		return err
-	}
-	return fmt.Errorf("%w: read %s", ErrPolicyCatalogUnavailable, aggregate)
-}
-
-func runtimePolicyStatus(status domain.PolicyStatus) bool {
-	return status == domain.PolicyStatusActive || status == domain.PolicyStatusDeprecated
 }

@@ -2,7 +2,7 @@ import { testIdentity, withAccountSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { TestRouter } from "../../test/TestRouter";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
@@ -48,9 +48,9 @@ function renderPage(initialEntry = "/platform/mutation-policies") {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 }, mutations: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[initialEntry]}>
+      <TestRouter initialEntries={[initialEntry]}>
         <ToastProvider><AppRoutes /></ToastProvider>
-      </MemoryRouter>
+      </TestRouter>
     </QueryClientProvider>,
   );
 }
@@ -107,6 +107,12 @@ describe("变更规则页面", () => {
     expect(await screen.findByDisplayValue("标准单表变更")).toBeDisabled();
     expect(screen.getByDisplayValue("creator")).toBeDisabled();
     expect(screen.getByDisplayValue("updated_at")).toBeDisabled();
+    const effect = screen.getByRole("region", { name: "实际变更效果" });
+    expect(effect).toHaveTextContent("新增：规则允许");
+    expect(effect).toHaveTextContent("creator（当前账号的永久 Account ID）");
+    expect(effect).toHaveTextContent("修改：规则允许");
+    expect(effect).toHaveTextContent("删除：规则禁止");
+    expect(effect).toHaveTextContent("操作人字段填写当前登录账号的永久 Account ID；历史值保持原样。");
     expect(fetchMock).toHaveBeenCalledWith("/api/v1/mutation-policies/standard_mutation_v1", expect.any(Object));
   });
 
@@ -127,12 +133,13 @@ describe("变更规则页面", () => {
     expect(await screen.findByRole("heading", { name: "新建变更规则草稿" })).toBeVisible();
     const createButton = screen.getByRole("button", { name: "创建草稿" });
     await waitFor(() => expect(createButton).toBeEnabled());
+    expect(screen.getByRole("region", { name: "执行效果预览" })).toBeVisible();
     await user.type(screen.getByLabelText(/规则编码/), "audit_mutation_v2");
     await user.type(screen.getByLabelText("显示名称"), "审计字段变更");
     await user.click(screen.getByRole("checkbox", { name: /ADD/ }));
     await user.click(screen.getByRole("checkbox", { name: /MODIFY/ }));
-    await user.type(screen.getByLabelText("Create Operator Field"), "creator");
-    await user.type(screen.getByLabelText("Modify Time Field"), "updated_at");
+    await user.type(screen.getByLabelText("新增时填写 Operator 的列"), "creator");
+    await user.type(screen.getByLabelText("新增和修改时填写更新时间的列"), "updated_at");
     await user.click(createButton);
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
@@ -168,10 +175,10 @@ describe("变更规则页面", () => {
     renderPage("/platform/mutation-policies/new");
     await user.type(await screen.findByLabelText(/规则编码/), "invalid_mutation_v1");
     await user.type(screen.getByLabelText("显示名称"), "非法草稿");
-    await user.type(screen.getByLabelText("Create Operator Field"), "id");
-    await user.type(screen.getByLabelText("Create Time Field"), "unsafe;field");
-    await user.type(screen.getByLabelText("Modify Operator Field"), "duplicate_target");
-    await user.type(screen.getByLabelText("Modify Time Field"), "duplicate_target");
+    await user.type(screen.getByLabelText("新增时填写 Operator 的列"), "id");
+    await user.type(screen.getByLabelText("新增时填写创建时间的列"), "unsafe;field");
+    await user.type(screen.getByLabelText("新增和修改时填写 Operator 的列"), "duplicate_target");
+    await user.type(screen.getByLabelText("新增和修改时填写更新时间的列"), "duplicate_target");
     const createButton = screen.getByRole("button", { name: "创建草稿" });
     await waitFor(() => expect(createButton).toBeEnabled());
     await user.click(createButton);
@@ -212,9 +219,9 @@ describe("变更规则页面", () => {
     renderPage("/platform/mutation-policies/editable_mutation_v2?mode=edit");
     await user.clear(await screen.findByLabelText("显示名称"));
     await user.type(screen.getByLabelText("显示名称"), "可能已提交");
-    await user.click(screen.getByRole("button", { name: "保存" }));
+    await user.click(screen.getByRole("button", { name: "保存执行规则" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
-    expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "保存执行规则" })).toBeDisabled();
     expect(writes).toBe(1);
     for (const status of [503, 504]) {
       failedCheckStatus = status;
@@ -225,9 +232,17 @@ describe("变更规则页面", () => {
       await act(async () => { finishCheck!(json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, status)); });
       await waitFor(() => expect(failedReads).toBe(2));
       expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
-      expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "保存执行规则" })).toBeDisabled();
       expect(writes).toBe(1);
     }
+    // Closing requires explicit discard, but reopening must retain the write
+    // outcome block even though the editing session itself is newly keyed.
+    await user.click(screen.getByRole("button", { name: "关闭抽屉" }));
+    await user.click(screen.getByRole("button", { name: "放弃修改并离开" }));
+    await user.click(screen.getByRole("button", { name: "修改执行规则" }));
+    expect(await screen.findByRole("button", { name: "保存执行规则" })).toBeDisabled();
+    expect(screen.getByRole("alert")).toHaveTextContent("提交结果尚未确认");
+    expect(writes).toBe(1);
     failedCheckStatus = 0;
     const readsBeforeCheck = reads;
     await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
@@ -349,10 +364,13 @@ describe("变更规则页面", () => {
     })));
 
     renderPage("/platform/mutation-policies/future_mutation_v1?mode=metadata");
-    expect(await screen.findByText(/执行规则失败关闭/)).toBeVisible();
+    expect(await screen.findByText("仅可修改名称和描述")).toBeVisible();
+    expect(screen.queryByText("仅可查看")).not.toBeInTheDocument();
+    expect(await screen.findByText(/无法确认执行规则/)).toBeVisible();
+    expect(screen.getByRole("region", { name: "规则效果无法确认" })).not.toHaveTextContent("规则允许");
     expect(await screen.findByDisplayValue("标准单表变更")).toBeEnabled();
     expect(screen.getByDisplayValue("creator")).toBeDisabled();
-    expect(screen.getByRole("button", { name: "保存" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "保存名称和描述" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "弃用" })).not.toBeInTheDocument();
   });
 
@@ -366,8 +384,9 @@ describe("变更规则页面", () => {
     })));
 
     renderPage("/platform/mutation-policies/editable_mutation_v2");
-    expect(await screen.findByText("执行规则失败关闭", { exact: false })).toBeVisible();
-    expect(screen.queryByRole("button", { name: "编辑草稿" })).not.toBeInTheDocument();
+    expect(await screen.findByText("无法确认执行规则", { exact: false })).toBeVisible();
+    expect(screen.getByText("当前只能安全查看。", { exact: false })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "修改执行规则" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "激活" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "删除" })).not.toBeInTheDocument();
   });
@@ -410,8 +429,9 @@ describe("变更规则页面", () => {
     const user = userEvent.setup();
 
     renderPage("/platform/mutation-policies/editable_mutation_v2?mode=edit");
-    await user.click(await screen.findByRole("checkbox", { name: /DELETE/ }));
-    await user.click(screen.getByRole("button", { name: "保存" }));
+    expect(await screen.findByRole("region", { name: "执行效果预览" })).toBeVisible();
+    await user.click(screen.getByRole("checkbox", { name: /DELETE/ }));
+    await user.click(screen.getByRole("button", { name: "保存执行规则" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
       "/api/v1/mutation-policies/editable_mutation_v2",
@@ -446,7 +466,7 @@ describe("变更规则页面", () => {
     const name = await screen.findByLabelText("显示名称");
     await user.clear(name);
     await user.type(name, "新显示名称");
-    await user.click(screen.getByRole("button", { name: "保存" }));
+    await user.click(screen.getByRole("button", { name: "保存名称和描述" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
       "/api/v1/mutation-policies/standard_mutation_v1/metadata",

@@ -17,7 +17,7 @@ import (
 // This intentionally separate system target requires installed Web dependencies
 // and Chromium. It fails (never skips) if that browser environment is unavailable.
 func TestAccountBrowserSystemPath(t *testing.T) {
-	_, driver := startIntegrationMySQLWithRequirement(t, true, "../../../deploy/mysql/init/001-schema.sql", localManagedTableFixture)
+	_, driver := startIntegrationMySQLWithRequirement(t, true, "../../../deploy/mysql/init/001-schema.sql", localManagedTableFixture, "../../../docs/verification/fixtures/stage1_acceptance.sql")
 	db := deliveryDB(t, driver)
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -81,6 +81,26 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 	if len(evidence.AccountID) != 36 || creator != evidence.AccountID || modifier != evidence.AccountID || body != "browser system configuration" {
 		t.Fatal("real database Operator/content did not match browser account")
 	}
+	prepareManagementBrowserPolicies(t, admin)
+	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs"} {
+		t.Run(script, func(t *testing.T) {
+			command := exec.Command("node", filepath.Join(web, "e2e", script))
+			command.Dir = web
+			command.Env = append(os.Environ(), "RCC_WEB_URL="+origin, "RCC_E2E_OUTPUT="+t.TempDir())
+			result, err := command.CombinedOutput()
+			if err != nil {
+				t.Fatalf("authenticated management acceptance %s: %v %s", script, err, result)
+			}
+			t.Logf("%s: %s", script, result)
+		})
+	}
+	var remainingDrafts, fixtureRows int
+	if err := db.QueryRow("SELECT COUNT(*) FROM rcc_query_policies WHERE code LIKE 'stage2_unsaved_query_%'").Scan(&remainingDrafts); err != nil || remainingDrafts != 0 {
+		t.Fatalf("management acceptance left disposable rule drafts: count=%d err=%v", remainingDrafts, err)
+	}
+	if err := db.QueryRow("SELECT COUNT(*) FROM stage1_acceptance_items").Scan(&fixtureRows); err != nil || fixtureRows != 5 {
+		t.Fatalf("invalid management write changed the fixture: count=%d err=%v", fixtureRows, err)
+	}
 	admin.stop(t)
 	for _, secret := range []string{"browser.secret@example.com", "browser password long enough", "browser system configuration"} {
 		if strings.Contains(admin.output.String(), secret) || strings.Contains(output.String(), secret) {
@@ -88,4 +108,25 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 		}
 	}
 	t.Logf("browser → Vite same-origin proxy → Admin → MySQL: %s; creator/modifier match current Account ID", strings.Join(evidence.Checks, ", "))
+}
+
+func prepareManagementBrowserPolicies(t *testing.T, admin *accountProcess) {
+	t.Helper()
+	cookies, csrf, _ := processCredentials(t, admin, "/api/v1/auth/register", `{"username":"browser.setup","email":"browser.setup@example.invalid","password":"browser setup password long enough"}`)
+	for _, request := range []struct {
+		path string
+		body string
+		want int
+	}{
+		{"/api/v1/mutation-policies", `{"code":"stage1_mutation_v1","name":"Browser acceptance mutation","description":"Isolated fixture","type_code":"single_table_mutation","allow_add":true,"allow_modify":true,"allow_delete":true,"create_operator_field":"created_by","create_time_field":"created_at","modify_operator_field":"updated_by","modify_time_field":"updated_at"}`, http.StatusCreated},
+		{"/api/v1/mutation-policies/stage1_mutation_v1/activate", "", http.StatusOK},
+		{"/api/v1/table-policies", `{"table_name":"stage1_acceptance_items","query_policy_code":"notification_page_query_v1","mutation_policy_code":"stage1_mutation_v1"}`, http.StatusCreated},
+		{"/api/v1/table-policies/stage1_acceptance_items/enable", "", http.StatusOK},
+		{"/api/v1/mutation-policies/stage1_mutation_v1/deprecate", "", http.StatusOK},
+	} {
+		status, _, _ := admin.request(t, http.MethodPost, request.path, request.body, cookies, csrf)
+		if status != request.want {
+			t.Fatalf("prepare management acceptance %s: status=%d want=%d", request.path, status, request.want)
+		}
+	}
 }

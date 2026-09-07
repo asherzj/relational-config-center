@@ -1,0 +1,103 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { useState } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { Drawer } from "./Drawer";
+
+describe("modal focus management", () => {
+  beforeEach(() => {
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      callback(0);
+      return 1;
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("does not steal focus from a drawer field when its parent rerenders", () => {
+    function Example() {
+      const [value, setValue] = useState("");
+      return (
+        <Drawer open title="编辑记录" eyebrow="记录" onClose={() => undefined}>
+          <label>名称<input aria-label="名称" value={value} onChange={(event) => setValue(event.target.value)} /></label>
+        </Drawer>
+      );
+    }
+
+    render(<Example />);
+    const input = screen.getByRole("textbox", { name: "名称" });
+    input.focus();
+    fireEvent.change(input, { target: { value: "alpha" } });
+
+    expect(input).toHaveFocus();
+  });
+
+  it("keeps keyboard interaction in the top confirmation dialog", async () => {
+    const user = userEvent.setup();
+    const closeDrawer = vi.fn();
+    const cancelConfirm = vi.fn();
+    render(
+      <>
+        <Drawer open title="规则详情" eyebrow="规则" onClose={closeDrawer} footer={<button>抽屉操作</button>}>
+          <button>下层操作</button>
+        </Drawer>
+        <ConfirmDialog
+          open
+          title="激活规则？"
+          description="激活后不可修改。"
+          confirmLabel="确认激活"
+          onCancel={cancelConfirm}
+          onConfirm={() => undefined}
+        />
+      </>,
+    );
+
+    const cancel = screen.getByRole("button", { name: "取消" });
+    const confirm = screen.getByRole("button", { name: "确认激活" });
+    expect(cancel).toHaveFocus();
+
+    confirm.focus();
+    await user.tab();
+    expect(cancel).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(confirm).toHaveFocus();
+
+    await user.keyboard("{Escape}");
+    expect(cancelConfirm).toHaveBeenCalledOnce();
+    expect(closeDrawer).not.toHaveBeenCalled();
+  });
+  it("skips controls disabled by a pending fieldset when trapping Tab", async () => {
+    const user = userEvent.setup();
+    render(<Drawer open title="正在保存" eyebrow="规则" onClose={() => undefined}>
+      <fieldset disabled><input aria-label="正在提交的输入" /><button>禁用操作</button></fieldset>
+    </Drawer>);
+    const close = screen.getByRole("button", { name: "关闭" });
+    await user.tab({ shift: true });
+    expect(close).toHaveFocus();
+    await user.tab();
+    expect(close).toHaveFocus();
+  });
+
+  it("does not trap login keyboard input in a workspace drawer hidden by session expiry", async () => {
+    const user = userEvent.setup();
+    const closeDrawer = vi.fn();
+    const contents = (hidden: boolean) => <>
+      <div hidden={hidden} aria-hidden={hidden}>
+        <Drawer open title="未提交的规则" eyebrow="规则" onClose={closeDrawer}><input aria-label="规则名称" /></Drawer>
+      </div>
+      {hidden && <form><input aria-label="登录用户名" /><input aria-label="登录密码" /></form>}
+    </>;
+    const view = render(contents(false));
+    view.rerender(contents(true));
+    screen.getByLabelText("登录用户名").focus();
+    await user.tab();
+    expect(screen.getByLabelText("登录密码")).toHaveFocus();
+    await user.keyboard("{Escape}");
+    expect(closeDrawer).not.toHaveBeenCalled();
+  });
+
+});

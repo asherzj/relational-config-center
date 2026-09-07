@@ -2,7 +2,7 @@ import { testIdentity, withAccountSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { TestRouter } from "../../test/TestRouter";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
@@ -31,6 +31,22 @@ const mutationPolicy = {
   create_time_field: "gmt_created",
   modify_operator_field: "modifier",
   modify_time_field: "gmt_modified",
+  status: "ACTIVE",
+  creator: "fixture",
+  modifier: "fixture",
+  gmt_created: "2026-08-25T09:00:00Z",
+  gmt_modified: "2026-08-25T09:00:00Z",
+};
+
+const queryPolicy = {
+  code: "notification_page_query_v1",
+  name: "Notification query",
+  description: "",
+  type_code: "page_query",
+  default_order_field: "id",
+  default_order_direction: "DESC",
+  default_page_size: 20,
+  max_page_size: 100,
   status: "ACTIVE",
   creator: "fixture",
   modifier: "fixture",
@@ -71,15 +87,17 @@ function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={["/configuration/managed-data"]}>
+      <TestRouter initialEntries={["/configuration/managed-data"]}>
         <ToastProvider><AppRoutes /></ToastProvider>
-      </MemoryRouter>
+      </TestRouter>
     </QueryClientProvider>,
   );
 }
 
 function readFetch(input: RequestInfo | URL, init: RequestInit | undefined, policy = mutationPolicy) {
   const url = String(input);
+  if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+  if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
   if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
   if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
   if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(policy);
@@ -104,6 +122,12 @@ describe("Managed Data mutation capability", () => {
     expect(screen.getByRole("button", { name: "删除记录 41" })).toBeDisabled();
     expect(screen.getByText("MODIFY 未由当前变更规则授权")).toBeVisible();
     expect(screen.getByText("DELETE 未由当前变更规则授权")).toBeVisible();
+    const currentAbility = screen.getByRole("region", { name: "当前表规则能力" });
+    expect(currentAbility).toHaveTextContent("按 id 降序排列");
+    expect(currentAbility).toHaveTextContent("默认每页数量为 20");
+    expect(currentAbility).toHaveTextContent("新增：规则允许");
+    expect(currentAbility).toHaveTextContent("修改：规则禁止");
+    expect(currentAbility).toHaveTextContent("本次实时表结构确认了 8 列");
 
     await user.click(add);
     const editor = screen.getByRole("dialog", { name: "新增 notification_templates 记录" });
@@ -144,6 +168,8 @@ describe("Managed Data mutation capability", () => {
     };
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
@@ -209,6 +235,8 @@ describe("Managed Data mutation capability", () => {
     const modified = { ...richRow, body: "changed", modifier: "server-operator" };
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
@@ -259,6 +287,8 @@ describe("Managed Data mutation capability", () => {
     let deleted = false;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
@@ -297,6 +327,8 @@ describe("Managed Data mutation capability", () => {
     const emptyIDRow = { ...row, id: "" };
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
@@ -323,6 +355,8 @@ describe("Managed Data mutation capability", () => {
     const fullPolicy = { ...mutationPolicy, allow_modify: true, allow_delete: true };
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
@@ -361,6 +395,8 @@ describe("Managed Data mutation capability", () => {
     let reads = 0;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
@@ -387,6 +423,7 @@ describe("Managed Data mutation capability", () => {
     expect(writes).toBe(1);
     const readsBeforeCheck = reads;
     await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+    await user.click(screen.getByRole("button", { name: "放弃修改并离开" }));
     await vi.waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
     expect(writes).toBe(1);
   });
@@ -398,6 +435,8 @@ describe("Managed Data mutation capability", () => {
     let writes = 0;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
       if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
       if (url.endsWith("/auth/login")) { signedIn = true; return json(testIdentity); }
@@ -432,6 +471,52 @@ describe("Managed Data mutation capability", () => {
     expect(writes).toBe(0);
   });
 
+  it.each([false, true])("keeps an unresolved write read-only after same-account recovery (delayed response: %s)", async (delayed) => {
+    let signedIn = true;
+    let writes = 0;
+    let settleWrite: (() => void) | undefined;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
+      if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired" } }, 401);
+      if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
+      if (url.endsWith("/auth/login")) { signedIn = true; return json(testIdentity); }
+      if (url.endsWith("/tables/notification_templates/rows") && init?.method === "POST") {
+        writes++;
+        if (delayed) return new Promise<Response>((resolve) => { settleWrite = () => resolve(json({ id: "42" }, 201)); });
+        throw new TypeError("response lost after commit");
+      }
+      return readFetch(input, init);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("button", { name: "新增记录" }));
+    await user.click(screen.getByRole("checkbox", { name: "包含 template_key" }));
+    await user.type(screen.getByRole("textbox", { name: "template_key 值" }), "unresolved-intent");
+    await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
+    await user.click(screen.getByRole("button", { name: "确认并执行" }));
+    if (!delayed) expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+    signedIn = false;
+    act(() => window.dispatchEvent(new CustomEvent(businessSessionInvalid, { detail: { code: "session_invalid" } })));
+    await user.type(await screen.findByLabelText("用户名"), "test.user");
+    await user.type(screen.getByLabelText("密码"), "correct horse battery staple");
+    await user.click(screen.getByRole("button", { name: "登录" }));
+    await waitFor(() => expect(document.querySelector(".protected-workspace")).toHaveAttribute("data-session-status", "ready"));
+    const changeSet = screen.getByRole("dialog", { name: "ADD Change Set" });
+    if (delayed) {
+      expect(within(changeSet).getByRole("button", { name: "正在执行…" })).toBeDisabled();
+      await act(async () => settleWrite!());
+      expect(await within(changeSet).findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+    }
+    expect(within(changeSet).getByText("unresolved-intent")).toBeVisible();
+    expect(within(changeSet).getByRole("alert")).toHaveTextContent("提交结果尚未确认");
+    expect(within(changeSet).queryByRole("button", { name: "确认并执行" })).not.toBeInTheDocument();
+    expect(within(changeSet).getByRole("button", { name: "只读查询当前状态" })).toBeEnabled();
+    expect(writes).toBe(1);
+  });
+
   it("keeps MODIFY input but rechecks the exact current target before rebuilding its Change Set", async () => {
     const fullPolicy = { ...mutationPolicy, allow_modify: true, allow_delete: true };
     const currentRow = { ...row, body: "concurrent-update" };
@@ -441,6 +526,8 @@ describe("Managed Data mutation capability", () => {
     let writes = 0;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
       if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
       if (url.endsWith("/auth/login")) { signedIn = true; recovered = true; return json(testIdentity); }
@@ -481,6 +568,8 @@ describe("Managed Data mutation capability", () => {
     let signedIn = true;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
       if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
       if (url.endsWith("/auth/login")) { signedIn = true; return json(testIdentity); }
@@ -512,6 +601,8 @@ describe("Managed Data mutation capability", () => {
     let writes = 0;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
       if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
       if (url.endsWith("/auth/login")) { signedIn = true; recovered = true; return json(testIdentity); }
@@ -562,6 +653,8 @@ describe("Managed Data mutation capability", () => {
     let exactAttempts = 0;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy, secondPolicy] });
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
@@ -590,6 +683,8 @@ describe("Managed Data mutation capability", () => {
     await user.type(screen.getByRole("textbox", { name: "template_key 值" }), "readback");
     await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
     await user.selectOptions(screen.getByRole("combobox", { name: "Managed Table" }), "audit_events");
+    await user.click(screen.getByRole("button", { name: "继续编辑" }));
+    expect(screen.getByRole("combobox", { name: "Managed Table" })).toHaveValue("notification_templates");
     await user.click(screen.getByRole("button", { name: "确认并执行" }));
 
     expect(await screen.findByRole("heading", { name: "ADD 已执行，回查未完成" })).toBeVisible();

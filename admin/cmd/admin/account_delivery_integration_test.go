@@ -95,13 +95,15 @@ func (p *accountProcess) stop(t *testing.T) {
 	if err := p.cmd.Process.Signal(syscall.SIGTERM); err != nil {
 		t.Fatal(err)
 	}
+	// Match serveAdmin's production drain window, plus bounded process-exit
+	// overhead. Pending HTTP headers can legitimately outlive a five-second wait.
 	select {
 	case <-p.done:
 		err := p.waitErr
 		if err != nil {
 			t.Fatal(err)
 		}
-	case <-time.After(5 * time.Second):
+	case <-time.After(productionShutdownTimeout + 2*time.Second):
 		t.Fatal("Admin did not stop gracefully")
 	}
 }

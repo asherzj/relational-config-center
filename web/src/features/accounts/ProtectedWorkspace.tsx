@@ -5,6 +5,7 @@ import { accounts, type CurrentIdentity } from "../../api/accounts";
 import { ApiError } from "../../api/client";
 import { businessSessionInvalid, setBusinessSession } from "../../api/business-session";
 import { Button } from "../../components/ui/Button";
+import { LeaveProtectionProvider } from "../../components/ui/LeaveProtection";
 import { AccountPage } from "./AccountPage";
 import { useForegroundActivity } from "./useForegroundActivity";
 import { subscribeSessionEvents } from "./sessionCoordination";
@@ -149,7 +150,9 @@ export function ProtectedWorkspace() {
 
   const hidden = status !== "ready";
   return <WorkspaceIdentity value={identity}><WorkspaceRecovery value={recoveryVersion}>
-    <div key={workspaceEpoch} className="protected-workspace" data-session-status={status} hidden={hidden} aria-hidden={hidden}><Outlet /></div>
+    <LeaveProtectionProvider key={workspaceEpoch} enabled={!hidden}>
+      <div className="protected-workspace" data-session-status={status} hidden={hidden} aria-hidden={hidden}><Outlet /></div>
+    </LeaveProtectionProvider>
     {status === "interrupted" && <div className="session-interruption" role="dialog" aria-modal="true" aria-label="登录会话已中断"><section className="session-interruption-copy"><h2>登录会话已中断</h2><p>工作区已遮住。使用同一账号重新登录后会重新读取当前规则和目标数据，并保留本页内存中的未提交内容；系统不会自动执行写入。</p></section><AccountPage mode="login" onSignedIn={(current) => void resume(current)} onSessionInvalid={(code) => { if (code === "account_disabled") { discard(); transition("anonymous"); } }} /></div>}
     {status === "checking" && <div className="session-interruption"><main className="account-page"><section className="account-card"><p role="status">正在重新确认当前账号并检查工作区数据…</p></section></main></div>}
     {status === "unavailable" && <div className="session-interruption"><main className="account-page"><section className="account-card"><p role="alert">账号服务暂时不可用，工作区已遮住，原登录凭据和同账号内存编辑意图已保留。</p><Button onClick={() => { suspend("checking"); void inspect(); }}>重新检查登录状态</Button></section></main></div>}

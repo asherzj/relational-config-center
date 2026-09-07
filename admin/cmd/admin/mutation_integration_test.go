@@ -429,6 +429,7 @@ func TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields(t 
 		{name: "unknown field", body: `{"content":{"code":"unknown","label":"bad","not_a_column":"x"}}`, code: "invalid_mutation_content"},
 		{name: "generated field", body: `{"content":{"code":"generated","label":"bad","generated_value":"override"}}`, code: "invalid_mutation_content"},
 		{name: "invalid integer", body: `{"content":{"code":"integer","label":"bad","quantity":"seven"}}`, code: "invalid_mutation_content"},
+		{name: "invalid enum member", body: `{"content":{"code":"enum","label":"bad","lifecycle":"retired"}}`, code: "invalid_mutation_content"},
 		{name: "invalid JSON", body: `{"content":{"code":"json","label":"bad","metadata":"not-json"}}`, code: "invalid_mutation_content"},
 		{name: "null in non-null column", body: `{"content":{"code":"null","label":null}}`, code: "invalid_mutation_content"},
 		{name: "non-string dynamic value", body: `{"content":{"code":"number","label":7}}`, code: "invalid_request"},

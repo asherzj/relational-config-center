@@ -41,6 +41,24 @@ try {
     await page.getByLabel(`包含 ${field}`, { exact: true }).check();
     await page.getByLabel(`${field} 值`, { exact: true }).fill(value);
   }
+  // Both branches meet here: a dirty drawer must protect ordinary navigation,
+  // while session loss must suspend its prompt and keyboard trap for re-login.
+  await page.getByRole('button', { name: '关闭', exact: true }).click();
+  await page.getByRole('alertdialog', { name: '放弃未保存的修改？' }).waitFor();
+  await context.clearCookies();
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await page.getByRole('heading', { name: '登录本地账号' }).waitFor();
+  assert.equal(await page.getByRole('alertdialog').count(), 0);
+  await page.getByLabel('用户名', { exact: true }).fill('browser.user');
+  await page.keyboard.press('Tab');
+  assert.equal(await page.getByLabel('密码', { exact: true }).evaluate(element => element === document.activeElement), true);
+  await page.getByLabel('密码', { exact: true }).fill('browser password long enough');
+  await page.getByRole('button', { name: '登录', exact: true }).click();
+  await page.getByRole('heading', { name: '登录本地账号' }).waitFor({ state: 'hidden' });
+  assert.equal(await page.getByLabel('body 值', { exact: true }).inputValue(), 'browser system configuration');
+  await page.getByRole('button', { name: '关闭', exact: true }).click();
+  await page.getByRole('alertdialog', { name: '放弃未保存的修改？' }).waitFor();
+  await page.getByRole('button', { name: '继续编辑', exact: true }).click();
   await page.getByRole('button', { name: '查看 Change Set' }).click();
   await page.getByRole('button', { name: '确认并执行' }).click();
   await page.getByRole('heading', { name: 'ADD 已完成' }).waitFor();
@@ -60,7 +78,7 @@ try {
   assert.equal(await page.evaluate(async () => (await fetch('/api/v1/table-policies')).status),401);
   await page.goto(`${origin}/configuration/managed-data`);
   await page.getByRole('heading', { name: '登录本地账号' }).waitFor();
-  process.stdout.write(JSON.stringify({account_id:identity.account.id,template_key:'browser_system',checks:['registration','refresh','reopen','business write','HTTP Cookie','storage/URL secrecy','logout rejection']}));
+  process.stdout.write(JSON.stringify({account_id:identity.account.id,template_key:'browser_system',checks:['registration','refresh','reopen','dirty navigation protection','same-account draft recovery after session loss','hidden drawer keyboard isolation','business write','HTTP Cookie','storage/URL secrecy','logout rejection']}));
 } finally {
   await context?.close();
   await rm(profile, { recursive: true, force: true });

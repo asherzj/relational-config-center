@@ -5,6 +5,7 @@
 ## 当前能力
 
 - 中文化应用壳和正式 URL 路由。
+- 四个正式页面：Query Policies、Mutation Policies、Table Policies 和 Managed Data，默认入口重定向到 Query Policies。
 - 类型化 Admin API Client，HTTP DTO 只停留在 `src/api` 边界。
 - Zod 运行时响应校验与稳定错误码映射。
 - 查询规则的列表、详情、创建草稿、替换草稿、激活、弃用、更新元数据和删除草稿。
@@ -17,8 +18,10 @@
 - 变更规则驱动的 ADD、MODIFY、DELETE 始终显示能力状态；未授权、未知类型、无效 Auto Fill 或不可执行规则快照均失败关闭。
 - 通用写入编辑器以字段开关表达省略，并区分 NULL、空字符串和普通 JSON String；`id` 与全部 Auto Fill 字段不会进入写请求。
 - ADD、MODIFY、DELETE 共用完整字段 Change Set；执行后 ADD/MODIFY 以 exact id 回查数据库最终值，DELETE 显示删除摘要，失败保留输入并展示稳定错误与 Request ID。
-- 未知规则类型或不完整的变更类型能力失败关闭，只允许安全查看或元数据更新。
+- 规则详情把名称和描述与执行规则分开；执行规则区块解释查询排序/分页、变更授权和 Auto Fill 的实际效果，修改名称和描述不会改变执行内容。
+- 未知规则类型或不完整的变更类型能力失败关闭：未知 Draft 只能安全查看，Active 或 Deprecated 只能更新名称和描述等元数据。
 - GET 仅对网络错误、503、504 自动重试一次；写命令不自动重试。
+- 规则和数据编辑均有未保存退出保护；提交失败保留内存草稿，提交成功才清除草稿。草稿不写入 `localStorage`、`sessionStorage` 或 URL。
 
 ## 本地开发
 
@@ -28,14 +31,16 @@ Admin 默认运行在 `http://127.0.0.1:8080`。复制环境变量示例并确�
 
 ```bash
 cd web
-cp .env.example .env.local
+test -e .env.local || cp .env.example .env.local
 pnpm install
 pnpm dev
 ```
 
 浏览器只请求同源 `/api/v1`，使用 HttpOnly 会话 Cookie 和仅存于内存的 CSRF 凭据。Vite 仅读取 `RCC_ADMIN_URL`，转发原请求；旧 `RCC_ADMIN_TOKEN` 会明确报错。Admin 的 `ADMIN_PUBLIC_ORIGIN` 必须与浏览器地址一致，本机 HTTP 显式启用 `ADMIN_ALLOW_LOCAL_HTTP=true`。生产部署使用同源 HTTPS 反向代理，不能继续注入共享 Token。
 
-工作区先检查真实当前身份；未登录时转到登录页并保留安全的站内目标，注册或登录成功后返回。规则或 CSRF 拒绝的 403 不跳登录；会话失效的 401 转登录，服务故障保留凭据并提供重新检查。工作区与账号页复用同一浏览器 Web Lock 活动协调，业务写入不自动重放。草稿中断恢复由 #38 继续实现。
+工作区先检查真实当前身份；未登录时转到登录页并保留安全的站内目标，注册或登录成功后返回。规则或 CSRF 拒绝的 403 不跳登录；会话失效的 401 转登录，服务故障保留凭据并提供重新检查。工作区与账号页复用同一浏览器 Web Lock 活动协调，业务写入不自动重放。同账号重新登录后会重新读取当前规则和目标数据，再恢复内存中的编辑内容并要求重新确认；退出或切换账号时清除草稿。
+
+`pnpm dev` 的代理用于本地开发；`pnpm build` 生成生产静态资源，`pnpm preview` 用于本地预览并复用当前 Vite proxy 配置。preview 不能代替生产环境的同源 HTTPS 反向代理。
 
 ## 验证
 
@@ -50,3 +55,26 @@ pnpm build
 
 - Web 不推断 generated、auto_increment、默认值或新增必填字段，Admin 仍以实时 Schema 做最终裁决。
 - Change Set 不做提交前并发刷新；当前管理语义保持 last-write-wins。
+- Managed Data 的编辑值只保存在当前页面内存中；取消离开提醒可继续编辑，明确允许刷新、关闭标签页或放弃后不会恢复，也没有自动保存、自动重放写入或并发版本控制。
+- `web/prototype/` 继续用于视觉参考，正式应用由 Vite/React 入口运行。
+
+## 真实验收
+
+当前组合验收可从仓库根目录运行 `make test-browser`：它创建独立 MySQL、Admin、同源 Vite 和浏览器环境，依次验证账号注册与会话恢复、未保存编辑保护、规则效果说明，再销毁测试资源。需要已安装 Web 依赖、可用的 Docker 和 Chrome；也可通过 `RCC_BROWSER_EXECUTABLE` 指定 Chromium。该入口使用公开账号会话与 CSRF 流程，不依赖已移除的免认证模式。
+
+完整流程、真实 MySQL 8.4 和浏览器验收见 [`docs/verification/2026-09-07-stage1-acceptance.md`](../docs/verification/2026-09-07-stage1-acceptance.md)。未保存保护见 [`docs/verification/2026-09-07-stage2-unsaved-changes.md`](../docs/verification/2026-09-07-stage2-unsaved-changes.md)，规则效果说明见 [`docs/verification/2026-09-07-stage3-rule-clarity.md`](../docs/verification/2026-09-07-stage3-rule-clarity.md)。浏览器脚本使用隔离 fixture，运行前先启动隔离 Admin、Web 和 MySQL；不要对生产环境运行脚本：
+
+从仓库根目录运行脚本，并为输出指定新的临时目录，避免覆盖历史报告：
+
+```sh
+RCC_PLAYWRIGHT_MODULE=/absolute/path/to/node_modules/playwright \
+RCC_E2E_OUTPUT=/tmp/rcc-stage4-unsaved \
+  node web/e2e/unsaved-changes.cjs
+RCC_PLAYWRIGHT_MODULE=/absolute/path/to/node_modules/playwright \
+RCC_E2E_OUTPUT=/tmp/rcc-stage4-rule-clarity \
+  node web/e2e/rule-clarity.cjs
+```
+
+两个脚本都支持 `RCC_WEB_URL` 和 `RCC_E2E_OUTPUT`；只有 `unsaved-changes.cjs` 支持 `RCC_E2E_TABLE`。阶段 1 的完整重建和 fixture 加载方式见其报告。正常停止自建 Compose 环境时，从仓库根目录执行 `docker compose --env-file <env-file> -f deploy/docker-compose.yml -p <isolated-project> down`，将环境文件路径和项目名替换为启动时使用的值。原生 Admin 与 Web 在各自启动终端用 Ctrl+C 停止。
+
+手动运行这些脚本前，须按[本地账号运行手册](../docs/admin-local-accounts.md)配置当前认证与数据库结构；历史阶段报告中的 Token 或免认证启动方式不适用于当前版本。每个脚本通过公开 API 注册随机测试账号，邮箱使用 `@example.invalid` 且不执行邮件操作，清理规则草稿时携带当前会话的 CSRF。测试账号随隔离数据库销毁，不应在共享数据库运行这些脚本。

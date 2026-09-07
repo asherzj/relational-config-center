@@ -2,7 +2,7 @@ import { testIdentity, withAccountSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { TestRouter } from "../../test/TestRouter";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
@@ -53,9 +53,9 @@ function renderPage(initialEntry = "/platform/query-policies") {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 }, mutations: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[initialEntry]}>
+      <TestRouter initialEntries={[initialEntry]}>
         <ToastProvider><AppRoutes /></ToastProvider>
-      </MemoryRouter>
+      </TestRouter>
     </QueryClientProvider>,
   );
 }
@@ -91,10 +91,14 @@ describe("查询规则页面", () => {
     renderPage("/platform/query-policies/standard_page_query_v1");
     expect(await screen.findByRole("heading", { name: "查询规则详情" })).toBeVisible();
     expect(await screen.findByDisplayValue("标准分页查询")).toBeDisabled();
+    expect(screen.getByRole("region", { name: "实际查询效果" })).toHaveTextContent("按 id 降序排列");
+    expect(screen.getByRole("region", { name: "实际查询效果" })).toHaveTextContent("默认每页数量为 20");
+    expect(screen.getByRole("region", { name: "实际查询效果" })).toHaveTextContent("不能超过 200");
+    expect(screen.getByRole("region", { name: "实际查询效果" })).toHaveTextContent("没有配置字段白名单");
     expect(fetchMock).toHaveBeenCalledWith("/api/v1/query-policies/standard_page_query_v1", expect.any(Object));
   });
 
-  it("keeps an unknown Policy Type read-only even through a direct edit URL", async () => {
+  it("blocks execution editing for an unknown Type but still offers safe metadata editing", async () => {
     vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
@@ -104,13 +108,44 @@ describe("查询规则页面", () => {
     })));
 
     renderPage("/platform/query-policies/future_query_v1?mode=edit");
-    expect(await screen.findByText(/Web 尚不支持类型 future_page_query，当前仅可查看/)).toBeVisible();
+    expect(await screen.findByText("仅可修改名称和描述")).toBeVisible();
+    expect(screen.queryByText("仅可查看")).not.toBeInTheDocument();
+    expect(await screen.findByText(/无法确认执行规则，仍可安全查看或修改名称和描述/)).toBeVisible();
     expect(await screen.findByDisplayValue("标准分页查询")).toBeDisabled();
-    expect(screen.queryByRole("button", { name: "保存" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "更新元数据" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "保存执行规则" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "修改名称和描述" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "弃用" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "激活" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "删除" })).not.toBeInTheDocument();
+  });
+
+  it("keeps a known Active row's hint consistent when the Type registry is unavailable", async () => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ error: { code: "unavailable", message: "down" } }, 503);
+      if (url.endsWith("/query-policies")) return json({ policies: [activePolicy] });
+      throw new Error(`unexpected request ${url}`);
+    })));
+
+    renderPage();
+    expect(await screen.findByText("仅可修改名称和描述")).toBeVisible();
+    expect(screen.getByRole("button", { name: "名称和描述" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "弃用" })).not.toBeInTheDocument();
+  });
+
+  it("allows an unknown active Type to update only its name and description", async () => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/future_query_v1")) return json(unknownPolicy);
+      if (url.endsWith("/query-policies")) return json({ policies: [unknownPolicy] });
+      throw new Error(`unexpected request ${url}`);
+    })));
+
+    renderPage("/platform/query-policies/future_query_v1?mode=metadata");
+    expect(await screen.findByDisplayValue("标准分页查询")).toBeEnabled();
+    expect(screen.getByDisplayValue("id")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "保存名称和描述" })).toBeVisible();
   });
 
   it.each([
@@ -129,7 +164,7 @@ describe("查询规则页面", () => {
     renderPage(`/platform/query-policies/${policy.code}?mode=${requestedMode}`);
     expect(await screen.findByRole("heading", { name: "查询规则详情" })).toBeVisible();
     expect(await screen.findByDisplayValue(policy.name)).toBeDisabled();
-    expect(screen.queryByRole("button", { name: "保存" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /保存/ })).not.toBeInTheDocument();
   });
 
   it("executes lifecycle commands only after confirmation", async () => {
@@ -238,9 +273,16 @@ describe("查询规则页面", () => {
     renderPage("/platform/query-policies/compact_page_query_v1?mode=edit");
     await user.clear(await screen.findByLabelText("显示名称"));
     await user.type(screen.getByLabelText("显示名称"), "可能已提交");
-    await user.click(screen.getByRole("button", { name: "保存" }));
+    await user.click(screen.getByRole("button", { name: "保存执行规则" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
-    expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "保存执行规则" })).toBeDisabled();
+    expect(writes).toBe(1);
+    await user.click(screen.getByRole("button", { name: "取消" }));
+    await user.click(await screen.findByRole("button", { name: "放弃修改并离开" }));
+    await user.click(screen.getByRole("button", { name: "修改执行规则" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+    expect(screen.getByRole("button", { name: "保存执行规则" })).toBeDisabled();
+    await user.type(screen.getByLabelText("显示名称"), "仍需核对");
     expect(writes).toBe(1);
     for (const status of [503, 504]) {
       failedCheckStatus = status;
@@ -251,13 +293,15 @@ describe("查询规则页面", () => {
       await act(async () => { finishCheck!(json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, status)); });
       await waitFor(() => expect(failedReads).toBe(2));
       expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
-      expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "保存执行规则" })).toBeDisabled();
       expect(writes).toBe(1);
     }
     failedCheckStatus = 0;
     const readsBeforeCheck = reads;
     await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
     await waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "编辑查询规则草稿" })).not.toBeInTheDocument());
+    expect(screen.queryByRole("alertdialog", { name: "放弃未保存的修改？" })).not.toBeInTheDocument();
     expect(writes).toBe(1);
   });
 
@@ -332,12 +376,15 @@ describe("查询规则页面", () => {
     expect(writes).toBe(2);
   });
 
-  it("keeps the mounted rule draft hidden when recovery refetch fails and reveals it after retry", async () => {
+  it("retains the dirty rule draft and its leave protection across expiry and recovery refetch failures", async () => {
     let signedIn = true;
     let detailUnavailable = false;
-    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+    let writes = 0;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      if (url.includes("/query-policies") && init?.method && init.method !== "GET") writes += 1;
       if (url.endsWith("/auth/session")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
+      if (url.endsWith("/auth/activity")) return json(testIdentity);
       if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
       if (url.endsWith("/auth/login")) { signedIn = true; detailUnavailable = true; return json(testIdentity); }
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
@@ -358,10 +405,19 @@ describe("查询规则页面", () => {
     await user.type(screen.getByLabelText("密码"), "correct horse battery staple");
     await user.click(screen.getByRole("button", { name: "登录" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("账号服务暂时不可用");
+    expect(screen.queryByRole("alertdialog", { name: "放弃未保存的修改？" })).not.toBeInTheDocument();
     expect(screen.getByLabelText("显示名称")).toHaveValue("重读失败仍保留");
+    expect(screen.getByLabelText("显示名称")).not.toBeVisible();
     detailUnavailable = false;
     await user.click(screen.getByRole("button", { name: "重新检查登录状态" }));
     await waitFor(() => expect(screen.queryByText("账号服务暂时不可用")).not.toBeInTheDocument());
     expect(screen.getByLabelText("显示名称")).toHaveValue("重读失败仍保留");
+    expect(screen.getByLabelText("显示名称")).toBeVisible();
+    expect(writes).toBe(0);
+    await user.click(screen.getByRole("button", { name: "取消" }));
+    expect(await screen.findByRole("alertdialog", { name: "放弃未保存的修改？" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "继续编辑" }));
+    expect(screen.getByLabelText("显示名称")).toHaveValue("重读失败仍保留");
+    expect(writes).toBe(0);
   });
 });

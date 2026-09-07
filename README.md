@@ -7,9 +7,10 @@ Relational Configuration Center 是一个面向实体、字段和关系建模的
 
 ## 当前状态
 
-项目已完成 Admin 第一迭代后端基线：通过运行时 Table Policy 管理一个部署配置的 MySQL 数据源，并提供受控的单表查询与变更 HTTP 接口。Server、Client 与 Web 的后续能力仍在迭代中。
+项目已完成 Admin 第一迭代后端基线和正式 Web 管理台。Admin 通过运行时 Table Policy 治理一个部署配置的 MySQL 数据源中的既有表，Web 提供规则目录、表规则分配、受控的单表查询与变更操作。Server 与 Client 仍是后续迭代；`web/prototype/` 只作视觉参考，正式入口是 Vite/React 应用。
 
 - [Admin V1 技术基线](./docs/admin-v1-technical-baseline.md)
+- [Web 管理台运行与验收](./web/README.md)
 - [上下文地图](./CONTEXT-MAP.md)
 - [Admin 领域术语](./admin/CONTEXT.md)
 
@@ -21,16 +22,17 @@ Relational Configuration Center 是一个面向实体、字段和关系建模的
 
 ## 本地运行
 
-Admin 默认监听 `127.0.0.1:8080`。业务 `/api/v1/**` 请求必须携带有效会话，非 GET/HEAD 请求还需 CSRF 及同源来源；登录前准备、注册和登录入口公开；`/health/live` 和 `/health/ready` 不需要认证。
+Admin 是提供 HTTP API 的管理端后端，默认监听 `127.0.0.1:8080`；业务 `/api/v1/**` 请求必须携带有效会话，非 GET/HEAD 请求还需 CSRF 及同源来源；登录前准备、注册和登录入口公开。Web 管理台通过 Admin 的 API 和 Table Policy 治理表数据，Web 本身不直接连接 MySQL。`/health/live` 和 `/health/ready` 不需要认证。
 
 使用 Docker Compose 启动 MySQL 8.4 和 Admin：
 
 ```bash
-cp deploy/.env.example deploy/.env
+test -e deploy/.env || cp deploy/.env.example deploy/.env
+# 编辑 deploy/.env，至少替换 MYSQL_ROOT_PASSWORD 和 MYSQL_PASSWORD
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml up --build
 ```
 
-请先修改 `deploy/.env` 中的数据库密码。该文件不应提交到仓库。Compose 会在全新 MySQL 数据卷中自动执行 `deploy/mysql/init/001-schema.sql` 初始化 Policy Catalog，并在每次启动时幂等应用仅供本地开发使用的 `deploy/mysql/local-fixture/002-notification-templates.sql`。fresh volume，以及尚未包含同名资源或已包含完全相同 fixture 的已有 volume，会获得：
+请在启动前修改 `deploy/.env` 中的数据库密码。该文件不应提交到仓库；不要把上面的复制命令当作覆盖已有 `.env` 的更新方式。Compose 会在全新 MySQL 数据卷中自动执行 `deploy/mysql/init/001-schema.sql` 初始化 Policy Catalog，并在每次启动时幂等应用仅供本地开发使用的 `deploy/mysql/local-fixture/002-notification-templates.sql`。fresh volume，以及尚未包含同名资源或已包含完全相同 fixture 的已有 volume，会获得：
 
 - 带 3 条可辨识样例数据的 `notification_templates`；
 - Active 的 `notification_page_query_v1` Query Policy；
@@ -75,7 +77,7 @@ make test-integration
 
 GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行三个稳定检查：`Web`、`Go unit and build`、`MySQL 8.4 integration`。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
 
-当前私有仓库套餐不支持 branch protection 或 rulesets，因此这些检查会可靠地报告红绿状态，但尚不能阻止维护者绕过检查直接写入 `main`。升级套餐或调整仓库可见性并配置 required checks 后，三个稳定检查名可直接作为不可绕过的合并门禁。
+工作流当前只在推送到 `main` 和目标为 `main` 的 Pull Request 上运行三个检查；推送到其他分支不会自动触发这套 CI。是否配置 branch protection、rulesets 或 required checks 由仓库设置决定，不能从本地文档推断为合并保证。
 
 ## 项目结构
 

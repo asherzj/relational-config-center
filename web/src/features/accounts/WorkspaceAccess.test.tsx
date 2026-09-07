@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { TestRouter } from "../../test/TestRouter";
 import { afterEach, expect, it, vi } from "vitest";
 import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
@@ -12,7 +13,7 @@ const failure = (code: string, status: number) => json({ error: { code, message:
 function Location() { const location = useLocation(); return <output aria-label="current path">{location.pathname}{location.search}{location.hash}</output>; }
 function renderWorkspace(path: string) {
  const client = new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}});
- return render(<QueryClientProvider client={client}><MemoryRouter initialEntries={[path]}><ToastProvider><AppRoutes /><Location /></ToastProvider></MemoryRouter></QueryClientProvider>);
+ return render(<QueryClientProvider client={client}><TestRouter initialEntries={[path]}><ToastProvider><AppRoutes /><Location /></ToastProvider></TestRouter></QueryClientProvider>);
 }
 afterEach(()=>{vi.unstubAllGlobals();localStorage.clear();});
 
@@ -43,6 +44,7 @@ it.each([
  vi.stubGlobal("fetch",vi.fn(async(input:RequestInfo|URL)=>{
   const path=String(input);
   if(path.endsWith("/session"))return signedIn?json(identity):failure("session_invalid",401);
+  if(path.endsWith("/activity"))return signedIn?json(identity):failure("session_invalid",401);
   if(path.endsWith("/csrf"))return json({csrf_token:"preauth-csrf"});
   if(path.endsWith("/login")||path.endsWith("/register")){signedIn=true;return json(identity,path.endsWith("/register")?201:200);}
   if(path.endsWith("-types"))return json({types:[]});
@@ -96,7 +98,7 @@ it("handles a business session 401 by hiding the workspace behind reauthenticati
   expect(screen.getByLabelText("current path")).toHaveTextContent("/platform/query-policies");
 });
 
-it("keeps a query-rule edit in memory across same-account reauthentication and rechecks server state", async () => {
+it("cancels pending dirty navigation on expiry and restores the guarded draft after same-account reauthentication", async () => {
  const draftPolicy = {
   code:"editable_query_v1",name:"原名称",description:"",type_code:"page_query",default_order_field:"id",
   default_order_direction:"DESC",default_page_size:20,max_page_size:200,status:"DRAFT",
@@ -110,6 +112,7 @@ it("keeps a query-rule edit in memory across same-account reauthentication and r
  vi.stubGlobal("fetch",vi.fn(async(input:RequestInfo|URL,init?:RequestInit)=>{
   const path=String(input);
   if(path.endsWith("/session"))return expired?failure("session_invalid",401):json(identity);
+  if(path.endsWith("/activity"))return expired?failure("session_invalid",401):json(identity);
   if(path.endsWith("/csrf"))return json({csrf_token:"preauth-csrf"});
   if(path.endsWith("/login")){expired=false;return json(identity);}
   if(expired)return failure("session_invalid",401);
@@ -126,17 +129,28 @@ it("keeps a query-rule edit in memory across same-account reauthentication and r
  const name=await screen.findByLabelText("显示名称");
  await user.clear(name);
  await user.type(name,"会话中断编辑意图");
+ await user.click(screen.getByRole("link",{name:"变更规则定义"}));
+ expect(screen.getByRole("alertdialog",{name:"放弃未保存的修改？"})).toBeVisible();
  expired=true;
- await user.click(screen.getByRole("button",{name:"刷新"}));
+ act(()=>window.dispatchEvent(new CustomEvent("rcc:business-session-invalid",{detail:{code:"session_invalid"}})));
  expect(await screen.findByRole("heading",{name:"登录本地账号"})).toBeVisible();
+ expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+ const nativeLeave = new Event("beforeunload", { cancelable: true });
+ window.dispatchEvent(nativeLeave);
+ expect(nativeLeave.defaultPrevented).toBe(true);
  expect(screen.getByLabelText("主导航")).not.toBeVisible();
  await user.type(screen.getByLabelText("用户名"),"alice");
+ await user.tab();
+ expect(screen.getByLabelText("密码")).toHaveFocus();
  await user.type(screen.getByLabelText("密码"),"correct horse battery staple");
  await user.click(screen.getByRole("button",{name:"登录"}));
  await waitFor(()=>expect(screen.queryByRole("heading",{name:"登录本地账号"})).not.toBeInTheDocument());
  expect(screen.getByLabelText("显示名称")).toHaveValue("会话中断编辑意图");
  expect(detailReads).toBeGreaterThanOrEqual(2);
  expect(writes).toBe(0);
+ expect(screen.getByLabelText("current path")).toHaveTextContent("/platform/query-policies/editable_query_v1?mode=edit");
+ await user.click(screen.getByRole("button",{name:"关闭抽屉"}));
+ expect(screen.getByRole("alertdialog",{name:"放弃未保存的修改？"})).toBeVisible();
 });
 
 it("clears an in-memory rule draft when focus reveals a different Cookie account", async () => {
@@ -168,6 +182,7 @@ it("clears an in-memory rule draft when another tab ends the session", async () 
  vi.stubGlobal("fetch",vi.fn(async(input:RequestInfo|URL)=>{
   const path=String(input);
   if(path.endsWith("/session"))return signedIn?json(identity):failure("session_invalid",401);
+  if(path.endsWith("/activity"))return signedIn?json(identity):failure("session_invalid",401);
   if(path.endsWith("/csrf"))return json({csrf_token:"preauth-csrf"});
   if(path.endsWith("/login")){signedIn=true;return json(identity);}
   if(path.endsWith("/query-policy-types"))return json({types:[{code:"page_query"}]});
@@ -177,9 +192,12 @@ it("clears an in-memory rule draft when another tab ends the session", async () 
  renderWorkspace("/platform/query-policies/new");
  const user=userEvent.setup();
  await user.type(await screen.findByLabelText("显示名称"),"跨标签退出后必须销毁");
+ await user.click(screen.getByRole("link",{name:"变更规则定义"}));
+ expect(screen.getByRole("alertdialog",{name:"放弃未保存的修改？"})).toBeVisible();
  signedIn=false;
  act(()=>window.dispatchEvent(new StorageEvent("storage",{key:"rcc:session-event",newValue:JSON.stringify({type:"ended",at:Date.now()})})));
  expect(await screen.findByRole("heading",{name:"登录本地账号"})).toBeVisible();
+ expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
  await user.type(screen.getByLabelText("用户名"),"alice");
  await user.type(screen.getByLabelText("密码"),"correct horse battery staple");
  await user.click(screen.getByRole("button",{name:"登录"}));

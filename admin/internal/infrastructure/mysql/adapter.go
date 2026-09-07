@@ -1177,8 +1177,16 @@ func classifyMutationError(err error, contextErr error) error {
 		return application.ErrMutationTimeout
 	}
 	var mysqlError *driver.MySQLError
-	if errors.As(err, &mysqlError) && mysqlError.Number == 1062 {
-		return application.ErrDuplicateKey
+	if errors.As(err, &mysqlError) {
+		switch mysqlError.Number {
+		case 1062:
+			return application.ErrDuplicateKey
+		case 1265:
+			// MySQL reports an invalid ENUM member as data truncation. The
+			// submitted value caused the rejection, so expose it as editable
+			// Mutation Content instead of an infrastructure outage.
+			return application.ErrInvalidMutation
+		}
 	}
 	return application.ErrMutationUnavailable
 }
