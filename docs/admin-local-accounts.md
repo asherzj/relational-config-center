@@ -248,7 +248,7 @@ pnpm --dir web build
 # For this development host's Colima context:
 DOCKER_HOST=unix:///Users/asher/.colima/default/docker.sock \
 TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
-go test -v -count=1 -timeout=20m -tags=integration ./admin/...
+go test -v -count=1 -timeout=25m -tags=integration ./admin/...
 ```
 
 On other hosts use that host's Docker provider settings. Confirm integration tests
