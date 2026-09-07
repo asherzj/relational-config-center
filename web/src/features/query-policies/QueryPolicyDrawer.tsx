@@ -1,5 +1,8 @@
 import { AlertCircle } from "lucide-react";
 import { useMemo, useRef, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { isUncertainWriteError, prioritizeUncertainWriteError } from "../../api/client";
+import { useLeaveProtection } from "../../components/ui/LeaveProtection";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { Drawer } from "../../components/ui/Drawer";
@@ -13,6 +16,7 @@ import {
 } from "../policies/lifecycle";
 import { supportedQueryPolicyTypes, type QueryPolicyDraft, type QueryPolicyMetadata } from "./model";
 import {
+  queryPolicyKeys,
   useCreateQueryPolicy,
   useQueryPolicy,
   useQueryPolicyTypes,
@@ -23,23 +27,33 @@ import { QueryPolicyForm } from "./QueryPolicyForm";
 
 type Props = {
   code?: string;
+  commandsBlocked: boolean;
   onRequestCommand: (command: PolicyLifecycleCommand, code: string) => void;
 };
 
 export function QueryPolicyDrawer(props: Props) {
   const [searchParams] = useSearchParams();
-  return <QueryPolicySession key={`${props.code}:${searchParams.get("mode")}`} {...props} />;
-}
-
-function QueryPolicySession({ code, onRequestCommand }: Props) {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const creating = code === "new";
-  const detail = useQueryPolicy(creating ? undefined : code);
-  const types = useQueryPolicyTypes();
+  // Keep write outcomes across keyed editing sessions, including close/reopen.
   const create = useCreateQueryPolicy();
   const replace = useReplaceQueryPolicy();
   const metadata = useUpdateQueryPolicyMetadata();
+  return <QueryPolicySession key={`${props.code}:${searchParams.get("mode")}`} {...props} create={create} replace={replace} metadata={metadata} />;
+}
+
+type SessionProps = Props & {
+  create: ReturnType<typeof useCreateQueryPolicy>;
+  replace: ReturnType<typeof useReplaceQueryPolicy>;
+  metadata: ReturnType<typeof useUpdateQueryPolicyMetadata>;
+};
+
+function QueryPolicySession({ code, commandsBlocked, onRequestCommand, create, replace, metadata }: SessionProps) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
+  const protection = useLeaveProtection();
+  const creating = code === "new";
+  const detail = useQueryPolicy(creating ? undefined : code);
+  const types = useQueryPolicyTypes();
 
   const requestedFormMode = requestedPolicyFormMode(creating, searchParams.get("mode"));
   const close = () => navigate("/platform/query-policies");
@@ -52,16 +66,29 @@ function QueryPolicySession({ code, onRequestCommand }: Props) {
   const supported = requestedFormMode === "view" ? currentSupport : editingSupport.current ?? currentSupport;
   const mode = resolvePolicyFormMode(requestedFormMode, policy?.status, supported);
   const actions = policy ? policyActionAvailability(policy.status, supported) : null;
+  const serverError = prioritizeUncertainWriteError([create.error, replace.error, metadata.error]);
+  const uncertain = isUncertainWriteError(serverError);
+  const verifyCurrentState = async () => {
+    try {
+      await queryClient.refetchQueries({ queryKey: queryPolicyKeys.all }, { throwOnError: true });
+    } catch {
+      // Keep the uncertain write blocked until its current state can be read.
+      return;
+    }
+    create.reset(); replace.reset(); metadata.reset();
+    protection.afterSave(close);
+  };
   const form = usePolicyFormSubmission<QueryPolicyDraft, QueryPolicyMetadata>({
     mode,
     code,
+    blocked: uncertain || commandsBlocked,
     collectionPath: "/platform/query-policies",
     copy: { created: "查询规则草稿已创建", replaced: "查询规则草稿已更新", metadataUpdated: "查询规则显示信息已更新" },
     create: (value, onSuccess, onError) => create.mutate(value, { onSuccess: (created) => onSuccess(created.code), onError }),
     replace: (target, value, onSuccess, onError) => replace.mutate({ code: target, draft: value }, { onSuccess, onError }),
     updateMetadata: (target, value, onSuccess, onError) => metadata.mutate({ code: target, metadata: value }, { onSuccess, onError }),
     pending: create.isPending || replace.isPending || metadata.isPending,
-    error: create.error || replace.error || metadata.error,
+    error: serverError,
   });
 
   const title = useMemo(() => {
@@ -87,6 +114,7 @@ function QueryPolicySession({ code, onRequestCommand }: Props) {
         typeCodes={types.data ?? []}
         registryState={types.isPending ? "loading" : types.isError ? "error" : "ready"}
         serverError={form.error}
+        onVerify={verifyCurrentState}
         onSubmit={form.submit}
       />
     </>
@@ -96,13 +124,13 @@ function QueryPolicySession({ code, onRequestCommand }: Props) {
   if (mode === "create" || mode === "replace" || mode === "metadata") {
     footer = (
       <>
-        <Button variant="primary" type="submit" form="query-policy-form" disabled={form.pending || (mode === "create" && !types.data?.some((type) => supportedQueryPolicyTypes.has(type)))}>
+        <Button variant="primary" type="submit" form="query-policy-form" disabled={form.pending || uncertain || commandsBlocked || (mode === "create" && !types.data?.some((type) => supportedQueryPolicyTypes.has(type)))}>
           {form.pending ? "正在保存…" : mode === "create" ? "创建草稿" : mode === "metadata" ? "保存名称和描述" : "保存执行规则"}
         </Button>
         <Button onClick={close} disabled={form.pending}>取消</Button>
       </>
     );
-  } else if (policy && actions) {
+  } else if (policy && actions && !uncertain && !commandsBlocked) {
     footer = (
       <>
         {actions.replace && <Button variant="primary" onClick={() => navigate(`?mode=edit`)}>修改执行规则</Button>}

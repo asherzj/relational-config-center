@@ -60,8 +60,8 @@ export function MutationPolicyEffect({ policy, registeredTypes, registryState, h
   }
 
   const operations = [
-    { name: "新增", allowed: policy.allowAdd, detail: targets([[policy.createOperatorField, "部署配置中的 Operator"], [policy.createTimeField, "数据库时间"], [policy.modifyOperatorField, "部署配置中的 Operator"], [policy.modifyTimeField, "数据库时间"]]) },
-    { name: "修改", allowed: policy.allowModify, detail: targets([[policy.modifyOperatorField, "部署配置中的 Operator"], [policy.modifyTimeField, "数据库时间"]]) },
+    { name: "新增", allowed: policy.allowAdd, detail: targets([[policy.createOperatorField, "当前账号的永久 Account ID"], [policy.createTimeField, "数据库时间"], [policy.modifyOperatorField, "当前账号的永久 Account ID"], [policy.modifyTimeField, "数据库时间"]]) },
+    { name: "修改", allowed: policy.allowModify, detail: targets([[policy.modifyOperatorField, "当前账号的永久 Account ID"], [policy.modifyTimeField, "数据库时间"]]) },
     { name: "删除", allowed: policy.allowDelete, detail: "不自动填写字段" },
   ];
   const hasOperatorField = Boolean(policy.createOperatorField || policy.modifyOperatorField);
@@ -80,7 +80,7 @@ export function MutationPolicyEffect({ policy, registeredTypes, registryState, h
         ))}
       </div>
       <p>可编辑列以实时表结构和现有值转换能力为准；主键 id 与服务器自动填写的列不会交给客户端填写。</p>
-      {hasOperatorField && <p>Operator 来自部署配置，不代表当前登录用户。</p>}
+      {hasOperatorField && <p>操作人字段填写当前登录账号的永久 Account ID；历史值保持原样。</p>}
     </section>
   );
 }

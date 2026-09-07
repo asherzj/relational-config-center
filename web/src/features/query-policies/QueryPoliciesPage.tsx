@@ -1,5 +1,6 @@
 import { FileCode2, Plus, RefreshCw } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { isUncertainWriteError } from "../../api/client";
 import { Button } from "../../components/ui/Button";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { EmptyState, ErrorState, LoadingState } from "../../components/ui/Feedback";
@@ -48,7 +49,7 @@ const commandContent: PolicyCommandCopy = {
   },
 };
 
-function PolicyActions({ policy, supported, onCommand }: { policy: QueryPolicy; supported: boolean; onCommand: (command: PolicyLifecycleCommand, code: string) => void }) {
+function PolicyActions({ policy, supported, commandsBlocked, onCommand }: { policy: QueryPolicy; supported: boolean; commandsBlocked: boolean; onCommand: (command: PolicyLifecycleCommand, code: string) => void }) {
   const navigate = useNavigate();
   const actions = policyActionAvailability(policy.status, supported);
   const open = (suffix = "") => navigate(`/platform/query-policies/${encodeURIComponent(policy.code)}${suffix}`);
@@ -57,9 +58,9 @@ function PolicyActions({ policy, supported, onCommand }: { policy: QueryPolicy; 
       <button onClick={() => open()}>查看</button>
       {actions.replace && <button onClick={() => open("?mode=edit")}>修改执行规则</button>}
       {actions.metadata && <button onClick={() => open("?mode=metadata")}>名称和描述</button>}
-      {actions.activate && <button onClick={() => onCommand("activate", policy.code)}>激活</button>}
-      {actions.deprecate && <button className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</button>}
-      {actions.delete && <button className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</button>}
+      {!commandsBlocked && actions.activate && <button onClick={() => onCommand("activate", policy.code)}>激活</button>}
+      {!commandsBlocked && actions.deprecate && <button className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</button>}
+      {!commandsBlocked && actions.delete && <button className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</button>}
     </div>
   );
 }
@@ -77,7 +78,17 @@ export function QueryPoliciesPage() {
   const activate = useActivateQueryPolicy();
   const deprecate = useDeprecateQueryPolicy();
   const remove = useDeleteQueryPolicy();
+  const uncertainCommand = [activate.error, deprecate.error, remove.error].some(isUncertainWriteError);
+  const verifyCommand = async () => {
+    const result = await policies.refetch();
+    if (!result.isSuccess) return;
+    activate.reset(); deprecate.reset(); remove.reset();
+  };
   const lifecycle = usePolicyLifecycleCommands({
+    blocked: uncertainCommand,
+    onUncertainWrite: (_error, targetCode) => {
+      if (code === targetCode) navigate("/platform/query-policies");
+    },
     selectedCode: code,
     collectionPath: "/platform/query-policies",
     copy: commandContent,
@@ -98,7 +109,7 @@ export function QueryPoliciesPage() {
           <h1>查询规则定义</h1>
           <p>统一配置表的排序与分页方式。规则从草稿开始，激活后即可分配使用。</p>
         </div>
-        <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/query-policies/new")} disabled={types.isPending || types.isError || !supportedTypes.length}>
+        <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/query-policies/new")} disabled={uncertainCommand || types.isPending || types.isError || !supportedTypes.length}>
           新建草稿
         </Button>
       </div>
@@ -113,7 +124,8 @@ export function QueryPoliciesPage() {
       </section>
 
       <section className="catalog" aria-label="查询规则目录">
-        {policies.isPending ? <LoadingState label="正在读取查询规则目录…" /> : policies.isError ? (
+        {uncertainCommand && <div className="inline-alert" role="alert"><strong>提交结果尚未确认。系统不会自动重复此写入。</strong><Button variant="secondary" onClick={() => void verifyCommand()}>只读查询当前状态</Button></div>}
+        {policies.isPending ? <LoadingState label="正在读取查询规则目录…" /> : policies.isError && !policies.data ? (
           <ErrorState error={policies.error} onRetry={() => void policies.refetch()} />
         ) : !policies.data.length ? <EmptyState /> : (
           <div className="table-scroll">
@@ -128,7 +140,7 @@ export function QueryPoliciesPage() {
                     <td>{policy.defaultPageSize}<small>最多 {policy.maxPageSize} 条</small></td>
                     <td><span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span></td>
                     <td className="timestamp">{formatTimestamp(policy.modifiedAt)}<small>{policy.modifier}</small></td>
-                    <td><PolicyActions policy={policy} supported={supported} onCommand={lifecycle.request} /></td>
+                    <td><PolicyActions policy={policy} supported={supported} commandsBlocked={uncertainCommand} onCommand={lifecycle.request} /></td>
                   </tr>;
                 })}
               </tbody>
@@ -142,7 +154,7 @@ export function QueryPoliciesPage() {
         </footer>
       </section>
 
-      <QueryPolicyDrawer code={code} onRequestCommand={lifecycle.request} />
+      <QueryPolicyDrawer code={code} commandsBlocked={uncertainCommand} onRequestCommand={lifecycle.request} />
       {confirm && (
         <ConfirmDialog
           open

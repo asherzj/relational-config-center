@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -33,7 +32,7 @@ func TestQueryPolicyQuotesManagedTableNameAsIdentifier(t *testing.T) {
 	}
 	setPolicyAssignmentEnabled(t, app, tableName, true)
 
-	response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/"+url.PathEscape(tableName)+"/query", `{
+	response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/"+url.PathEscape(tableName)+"/query", `{
 		"order":{"field":"id","direction":"ASC"}
 	}`)
 	assertQueryIDs(t, response, "1")
@@ -46,7 +45,7 @@ func TestQueryPolicyContainsTreatsWildcardsAndEscapeCharacterLiterally(t *testin
 	)
 	enableQueryPolicy(t, app, "query_policy_items", queryPolicyFixture{})
 
-	response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{
+	response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{
 		"conditions":[{"field":"name","operator":"contains","value":"%_!"}],
 		"order":{"field":"id","direction":"ASC"},
 		"page_number":1,
@@ -85,11 +84,11 @@ func TestQueryPolicyAppliesOpenAndClosedRanges(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			assertQueryIDs(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", test.body), test.expected...)
+			assertQueryIDs(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", test.body), test.expected...)
 		})
 	}
 
-	missingBoundary := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{"conditions":[{"field":"score","operator":"open_range"}]}`)
+	missingBoundary := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{"conditions":[{"field":"score","operator":"open_range"}]}`)
 	assertIntegrationErrorCode(t, missingBoundary, http.StatusBadRequest, "invalid_query_condition")
 }
 
@@ -113,7 +112,7 @@ func TestQueryPolicyAppliesMembershipNullAndEmptyStringSemantics(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			assertQueryIDs(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", test.body), test.expected...)
+			assertQueryIDs(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", test.body), test.expected...)
 		})
 	}
 
@@ -127,7 +126,7 @@ func TestQueryPolicyAppliesMembershipNullAndEmptyStringSemantics(t *testing.T) {
 		`{"conditions":[{"field":"nullable_value","operator":"is_null","value":""}]}`,
 	}
 	for _, body := range invalidConditions {
-		response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", body)
+		response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", body)
 		assertIntegrationErrorCode(t, response, http.StatusBadRequest, "invalid_query_condition")
 	}
 }
@@ -141,18 +140,18 @@ func TestQueryPolicyEnforcesLimitsAndRequestSortWithoutCorrection(t *testing.T) 
 
 	condition := `{"field":"score","operator":"closed_range","from":"10"}`
 	twentyConditions := `{"conditions":[` + strings.Join(repeated(condition, 20), ",") + `],"page_size":200}`
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", twentyConditions); response.Code != http.StatusOK {
+	if response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", twentyConditions); response.Code != http.StatusOK {
 		t.Fatalf("20 conditions must be accepted: HTTP %d %s", response.Code, response.Body.String())
 	}
 	twentyOneConditions := `{"conditions":[` + strings.Join(repeated(condition, 21), ",") + `]}`
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", twentyOneConditions), http.StatusBadRequest, "invalid_query_condition")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", twentyOneConditions), http.StatusBadRequest, "invalid_query_condition")
 
 	hundredValues := `{"conditions":[{"field":"score","operator":"in","values":[` + strings.Join(repeated(`"10"`, 100), ",") + `]}]}`
-	assertQueryIDs(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", hundredValues), "1")
+	assertQueryIDs(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", hundredValues), "1")
 	hundredOneValues := `{"conditions":[{"field":"score","operator":"in","values":[` + strings.Join(repeated(`"10"`, 101), ",") + `]}]}`
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", hundredOneValues), http.StatusBadRequest, "invalid_query_condition")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", hundredOneValues), http.StatusBadRequest, "invalid_query_condition")
 
-	maximumOffset := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{"page_number":51,"page_size":200}`)
+	maximumOffset := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{"page_number":51,"page_size":200}`)
 	if maximumOffset.Code != http.StatusOK {
 		t.Fatalf("offset 10000 must be accepted: HTTP %d %s", maximumOffset.Code, maximumOffset.Body.String())
 	}
@@ -161,17 +160,17 @@ func TestQueryPolicyEnforcesLimitsAndRequestSortWithoutCorrection(t *testing.T) 
 		`{"page_number":52,"page_size":200}`,
 		`{"page_number":9223372036854775807,"page_size":200}`,
 	} {
-		assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", body), http.StatusBadRequest, "invalid_pagination")
+		assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", body), http.StatusBadRequest, "invalid_pagination")
 	}
 
-	assertQueryIDs(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{"page_size":1}`), "4")
-	assertQueryIDs(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{"order":{"field":"id","direction":"ASC"},"page_size":1}`), "1")
+	assertQueryIDs(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{"page_size":1}`), "4")
+	assertQueryIDs(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{"order":{"field":"id","direction":"ASC"},"page_size":1}`), "1")
 	for _, body := range []string{
 		`{"order":{"field":"id","direction":"asc"}}`,
 		`{"order":{"field":"missing","direction":"ASC"}}`,
 		`{"order":{"field":"id` + "`" + ` DESC, score","direction":"ASC"}}`,
 	} {
-		assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", body), http.StatusBadRequest, "invalid_query_order")
+		assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", body), http.StatusBadRequest, "invalid_query_order")
 	}
 }
 
@@ -182,7 +181,7 @@ func TestQueryPolicyReturnsEverySupportedLiveTypeAsLosslessJSONString(t *testing
 	)
 	enableQueryPolicy(t, app, "query_type_values", queryPolicyFixture{})
 
-	response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_type_values/query", `{"page_size":1}`)
+	response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_type_values/query", `{"page_size":1}`)
 	if response.Code != http.StatusOK {
 		t.Fatalf("query supported live types: HTTP %d %s", response.Code, response.Body.String())
 	}
@@ -274,7 +273,7 @@ func TestQueryPolicyParsesConditionValuesByLiveType(t *testing.T) {
 				t.Fatalf("encode condition value: %v", err)
 			}
 			body := `{"conditions":[{"field":"` + item.field + `","operator":"exact","value":` + string(valueJSON) + `}]}`
-			assertQueryIDs(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_type_values/query", body), "1")
+			assertQueryIDs(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_type_values/query", body), "1")
 		})
 	}
 
@@ -308,7 +307,7 @@ func TestQueryPolicyParsesConditionValuesByLiveType(t *testing.T) {
 			} else {
 				body = `{"conditions":[{"field":"` + item.field + `","operator":"` + item.operator + `","value":` + string(valueJSON) + `}]}`
 			}
-			assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_type_values/query", body), http.StatusBadRequest, "invalid_query_condition")
+			assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_type_values/query", body), http.StatusBadRequest, "invalid_query_condition")
 		})
 	}
 }
@@ -347,7 +346,7 @@ func TestQueryPolicyRejectsEveryUnsupportedFullRowType(t *testing.T) {
 			if _, err := database.ExecContext(ctx, "ALTER TABLE `query_policy_items` ADD COLUMN `"+item.name+"` "+item.definition); err != nil {
 				t.Fatalf("add unsupported live column: %v", err)
 			}
-			response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{}`)
+			response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{}`)
 			assertIntegrationErrorCode(t, response, http.StatusUnprocessableEntity, "incompatible_table")
 			if _, err := database.ExecContext(ctx, "ALTER TABLE `query_policy_items` DROP COLUMN `"+item.name+"`"); err != nil {
 				t.Fatalf("remove unsupported live column: %v", err)
@@ -387,7 +386,7 @@ func TestQueryPolicyMapsDatabaseTimeoutToSafeGatewayTimeout(t *testing.T) {
 		_, _ = connection.ExecContext(unlockContext, "UNLOCK TABLES")
 	})
 
-	response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{}`)
+	response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{}`)
 	assertIntegrationErrorCode(t, response, http.StatusGatewayTimeout, "query_timeout")
 	if strings.Contains(response.Body.String(), "query_policy_items") || strings.Contains(response.Body.String(), "SELECT") {
 		t.Fatalf("timeout response exposed storage details: %s", response.Body.String())
@@ -395,7 +394,7 @@ func TestQueryPolicyMapsDatabaseTimeoutToSafeGatewayTimeout(t *testing.T) {
 	if _, err := connection.ExecContext(ctx, "UNLOCK TABLES"); err != nil {
 		t.Fatalf("unlock Managed Table after timeout: %v", err)
 	}
-	assertQueryIDs(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{}`), "4", "3", "2", "1")
+	assertQueryIDs(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{}`), "4", "3", "2", "1")
 }
 
 func repeated(value string, count int) []string {
@@ -414,7 +413,7 @@ func TestEnabledTablePolicyQueriesExactRowsWithPolicyDefaults(t *testing.T) {
 
 	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "DESC", DefaultPageSize: 2, MaxPageSize: 5})
 
-	queried := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{"conditions":[{"field":"category","operator":"exact","value":"alpha"}],"page_number":1}`)
+	queried := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{"conditions":[{"field":"category","operator":"exact","value":"alpha"}],"page_number":1}`)
 	if queried.Code != http.StatusOK {
 		t.Fatalf("query Managed Table: HTTP %d %s", queried.Code, queried.Body.String())
 	}
@@ -454,16 +453,16 @@ func TestPolicyReplacementAndDisableAffectTheNextQuery(t *testing.T) {
 	)
 
 	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "DESC", DefaultPageSize: 1, MaxPageSize: 5})
-	assertFirstQueryID(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`), "4")
+	assertFirstQueryID(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`), "4")
 
 	replacePolicyAssignment(t, app, "query_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "ASC", DefaultPageSize: 1, MaxPageSize: 5}, mutationPolicyFixture{})
-	assertFirstQueryID(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`), "1")
+	assertFirstQueryID(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`), "1")
 
-	disabled := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies/query_items/disable", "")
+	disabled := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/table-policies/query_items/disable", "")
 	if disabled.Code != http.StatusOK {
 		t.Fatalf("disable Policy: HTTP %d %s", disabled.Code, disabled.Body.String())
 	}
-	denied := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`)
+	denied := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`)
 	assertIntegrationErrorCode(t, denied, http.StatusForbidden, "table_policy_disabled")
 }
 
@@ -475,7 +474,7 @@ func TestExactQueryUsesANDValidatedSortAndPreservesAnEmptyRequestedPage(t *testi
 	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{})
 
 	andQuery := `{"conditions":[{"field":"category","operator":"exact","value":"alpha"},{"field":"label","operator":"exact","value":"third"}],"order":{"field":"id","direction":"ASC"},"page_number":1,"page_size":10}`
-	andResult := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", andQuery)
+	andResult := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", andQuery)
 	assertFirstQueryID(t, andResult, "3")
 	var matched struct {
 		Rows []map[string]*string `json:"rows"`
@@ -490,7 +489,7 @@ func TestExactQueryUsesANDValidatedSortAndPreservesAnEmptyRequestedPage(t *testi
 		t.Fatalf("conditions were not AND-connected: %s", andResult.Body.String())
 	}
 
-	empty := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{"conditions":[{"field":"category","operator":"exact","value":"missing"}],"page_number":7,"page_size":2}`)
+	empty := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{"conditions":[{"field":"category","operator":"exact","value":"missing"}],"page_number":7,"page_size":2}`)
 	if empty.Code != http.StatusOK {
 		t.Fatalf("query empty page: HTTP %d %s", empty.Code, empty.Body.String())
 	}
@@ -510,10 +509,10 @@ func TestExactQueryUsesANDValidatedSortAndPreservesAnEmptyRequestedPage(t *testi
 		t.Fatalf("empty result did not preserve the requested valid page: %s", empty.Body.String())
 	}
 
-	invalidSort := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{"order":{"field":"missing","direction":"ASC"}}`)
+	invalidSort := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{"order":{"field":"missing","direction":"ASC"}}`)
 	assertIntegrationErrorCode(t, invalidSort, http.StatusBadRequest, "invalid_query_order")
 
-	boundValue := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{"conditions":[{"field":"category","operator":"exact","value":"alpha' OR 1=1 --"}]}`)
+	boundValue := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{"conditions":[{"field":"category","operator":"exact","value":"alpha' OR 1=1 --"}]}`)
 	if boundValue.Code != http.StatusOK {
 		t.Fatalf("query bound value: HTTP %d %s", boundValue.Code, boundValue.Body.String())
 	}
@@ -529,7 +528,7 @@ func TestExactQueryUsesANDValidatedSortAndPreservesAnEmptyRequestedPage(t *testi
 	if len(boundResponse.Rows) != 0 || boundResponse.Page.TotalCount != 0 {
 		t.Fatalf("exact value was not bound as data: %s", boundValue.Body.String())
 	}
-	containsInjection := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{"conditions":[{"field":"category","operator":"contains","value":"%' OR 1=1 --"}]}`)
+	containsInjection := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{"conditions":[{"field":"category","operator":"contains","value":"%' OR 1=1 --"}]}`)
 	if containsInjection.Code != http.StatusOK {
 		t.Fatalf("query contains injection-shaped value: HTTP %d %s", containsInjection.Code, containsInjection.Body.String())
 	}
@@ -537,7 +536,7 @@ func TestExactQueryUsesANDValidatedSortAndPreservesAnEmptyRequestedPage(t *testi
 		t.Fatalf("contains value changed query structure: %s", containsInjection.Body.String())
 	}
 
-	invalidIdentifier := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{"conditions":[{"field":"category`+"`"+` OR 1=1","operator":"exact","value":"alpha"}]}`)
+	invalidIdentifier := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{"conditions":[{"field":"category`+"`"+` OR 1=1","operator":"exact","value":"alpha"}]}`)
 	assertIntegrationErrorCode(t, invalidIdentifier, http.StatusBadRequest, "invalid_query_condition")
 	if strings.Contains(invalidIdentifier.Body.String(), "OR 1=1") || strings.Contains(invalidIdentifier.Body.String(), "category") {
 		t.Fatalf("safe error exposed the rejected identifier: %s", invalidIdentifier.Body.String())
@@ -566,7 +565,7 @@ func TestQueryFailsClosedWhenLiveSchemaBecomesInvalid(t *testing.T) {
 		t.Fatalf("drift live Schema: %v", err)
 	}
 
-	rejected := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`)
+	rejected := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`)
 	assertIntegrationErrorCode(t, rejected, http.StatusUnprocessableEntity, "incompatible_table")
 }
 
@@ -590,7 +589,7 @@ func TestQueryFailsClosedWhenPolicyCatalogIsUnavailable(t *testing.T) {
 		t.Fatalf("make Policy Catalog unavailable: %v", err)
 	}
 
-	rejected := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`)
+	rejected := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`)
 	assertIntegrationErrorCode(t, rejected, http.StatusServiceUnavailable, "policy_catalog_unavailable")
 }
 
@@ -610,7 +609,7 @@ func TestAssignedDeprecatedPolicyDefinitionsRemainQueryable(t *testing.T) {
 	if _, err := app.mysql.SetMutationPolicyStatus(t.Context(), assignment.MutationPolicyCode, domain.PolicyStatusActive, domain.PolicyStatusDeprecated, "integration-test"); err != nil {
 		t.Fatalf("deprecate assigned Mutation Policy: %v", err)
 	}
-	assertFirstQueryID(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`), "1")
+	assertFirstQueryID(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`), "1")
 }
 
 func TestQueryPolicySnapshotCorruptionFailsClosed(t *testing.T) {
@@ -706,7 +705,7 @@ func TestQueryPolicySnapshotCorruptionFailsClosed(t *testing.T) {
 			if err := test.corrupt(ctx, database, assignment); err != nil {
 				t.Fatalf("corrupt Policy Snapshot: %v", err)
 			}
-			response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", test.request)
+			response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", test.request)
 			assertIntegrationErrorCode(t, response, test.status, test.errorCode)
 			if strings.Contains(response.Body.String(), "SELECT") || strings.Contains(response.Body.String(), "rcc_") || strings.Contains(response.Body.String(), "missing_column") {
 				t.Fatalf("corruption response exposed storage details: %s", response.Body.String())
@@ -729,7 +728,7 @@ func TestInFlightQueryKeepsOnePolicySnapshotWhileReplacementAffectsNextRequest(t
 
 	responseChannel := make(chan *httptest.ResponseRecorder, 1)
 	go func() {
-		responseChannel <- policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`)
+		responseChannel <- policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`)
 	}()
 	waitForSnapshotBarrier(t, tableRead, "Table Policy read")
 	replacePolicyAssignment(t, app, "query_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "ASC", DefaultPageSize: 1, MaxPageSize: 5}, mutationPolicyFixture{})
@@ -741,7 +740,7 @@ func TestInFlightQueryKeepsOnePolicySnapshotWhileReplacementAffectsNextRequest(t
 	case <-time.After(10 * time.Second):
 		t.Fatal("in-flight query did not finish after Policy replacement")
 	}
-	assertFirstQueryID(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`), "1")
+	assertFirstQueryID(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`), "1")
 }
 
 func TestExternalDDLRaceFailsSafelyWithoutStorageDetails(t *testing.T) {
@@ -762,7 +761,7 @@ func TestExternalDDLRaceFailsSafelyWithoutStorageDetails(t *testing.T) {
 	installQuerySnapshotExecutor(t, app, barrier)
 	responseChannel := make(chan *httptest.ResponseRecorder, 1)
 	go func() {
-		responseChannel <- policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`)
+		responseChannel <- policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`)
 	}()
 	waitForSnapshotBarrier(t, schemaRead, "live Schema read")
 
@@ -856,15 +855,12 @@ func (session *querySnapshotBarrierSession) GetTableSchema(ctx context.Context, 
 func installQuerySnapshotExecutor(t *testing.T, app *adminApplication, executor application.QuerySnapshotExecutor) {
 	t.Helper()
 	discovery := application.NewDatabaseTableDiscovery(app.mysql)
-	queryPolicies := application.NewQueryPolicyManagement(app.mysql, application.NewQueryPolicyTypeRegistry(), "integration-test")
-	mutationPolicies := application.NewMutationPolicyManagement(app.mysql, application.NewMutationPolicyTypeRegistry(), "integration-test")
-	policies := application.NewTablePolicyManagement(app.mysql, app.mysql, queryPolicies, mutationPolicies, "integration-test")
+	queryPolicies := application.NewQueryPolicyManagement(app.mysql, application.NewQueryPolicyTypeRegistry())
+	mutationPolicies := application.NewMutationPolicyManagement(app.mysql, application.NewMutationPolicyTypeRegistry())
+	policies := application.NewTablePolicyManagement(app.mysql, app.mysql, queryPolicies, mutationPolicies)
 	queries := application.NewManagedTableQuery(executor, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
-	mutations := application.NewManagedTableMutation(app.mysql, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry(), application.NewFixedOperatorProvider("integration-test"))
-	app.handler = httpinterface.NewRouter(discovery, app.mysql, queryPolicies, mutationPolicies, policies, queries, mutations, httpinterface.RouterOptions{
-		AuthDisabled: true,
-		AccessLog:    io.Discard,
-	})
+	mutations := application.NewManagedTableMutation(app.mysql, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
+	app.handler = httpinterface.NewRouter(discovery, app.mysql, queryPolicies, mutationPolicies, policies, queries, mutations, integrationRouterOptions(app))
 }
 
 func waitForSnapshotBarrier(t *testing.T, barrier <-chan struct{}, description string) {

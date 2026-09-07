@@ -1,8 +1,10 @@
 import { AlertCircle } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { Button } from "../../components/ui/Button";
+import { isUncertainWriteError, prioritizeUncertainWriteError } from "../../api/client";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Drawer } from "../../components/ui/Drawer";
 import { ErrorState, LoadingState } from "../../components/ui/Feedback";
@@ -13,20 +15,34 @@ import { MutationPolicyEffect, QueryPolicyEffect } from "../policies/PolicyEffec
 import { supportedQueryPolicyTypes } from "../query-policies/model";
 import { useQueryPolicies, useQueryPolicyTypes } from "../query-policies/queries";
 import type { TablePolicyAssignment } from "./model";
-import { useCreateTablePolicy, useDatabaseTables, useDisableTablePolicy, useEnableTablePolicy, useReplaceTablePolicy, useTablePolicy } from "./queries";
+import { tablePolicyKeys, useCreateTablePolicy, useDatabaseTables, useDisableTablePolicy, useEnableTablePolicy, useReplaceTablePolicy, useTablePolicy } from "./queries";
 
 type Props = { tableName?: string };
 const emptyAssignment: TablePolicyAssignment = { tableName: "", queryPolicyCode: "", mutationPolicyCode: "" };
 
 export function TablePolicyDrawer({ tableName }: Props) {
   const [searchParams] = useSearchParams();
-  return <TablePolicySession key={`${tableName}:${searchParams.get("mode")}`} tableName={tableName} />;
+  const create = useCreateTablePolicy();
+  const replace = useReplaceTablePolicy();
+  const enable = useEnableTablePolicy();
+  const disable = useDisableTablePolicy();
+  // Editing selections reset on navigation; an unconfirmed write outcome must
+  // survive closing and reopening the drawer until its state is read back.
+  return <TablePolicySession key={`${tableName}:${searchParams.get("mode")}`} tableName={tableName} commands={{ create, replace, enable, disable }} />;
 }
 
-function TablePolicySession({ tableName }: Props) {
+type Commands = {
+  create: ReturnType<typeof useCreateTablePolicy>;
+  replace: ReturnType<typeof useReplaceTablePolicy>;
+  enable: ReturnType<typeof useEnableTablePolicy>;
+  disable: ReturnType<typeof useDisableTablePolicy>;
+};
+
+function TablePolicySession({ tableName, commands: { create, replace, enable, disable } }: Props & { commands: Commands }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const creating = !tableName && searchParams.get("mode") === "create";
   const replacing = !creating && searchParams.get("mode") === "replace";
   const selectingAssignment = creating || replacing;
@@ -35,10 +51,6 @@ function TablePolicySession({ tableName }: Props) {
   const queryPolicyTypes = useQueryPolicyTypes();
   const mutationPolicies = useMutationPolicies();
   const mutationPolicyTypes = useMutationPolicyTypes();
-  const create = useCreateTablePolicy();
-  const replace = useReplaceTablePolicy();
-  const enable = useEnableTablePolicy();
-  const disable = useDisableTablePolicy();
   const detail = useTablePolicy(creating ? undefined : tableName);
   const [assignment, setAssignment] = useState<TablePolicyAssignment>(emptyAssignment);
   const [baseline, setBaseline] = useState<TablePolicyAssignment | null>(creating ? emptyAssignment : null);
@@ -48,6 +60,25 @@ function TablePolicySession({ tableName }: Props) {
   const [confirmReplace, setConfirmReplace] = useState(false);
   const [pendingStateCommand, setPendingStateCommand] = useState<"enable" | "disable" | null>(null);
   const close = () => navigate("/platform/table-policies");
+  const serverError = prioritizeUncertainWriteError([create.error, replace.error, enable.error, disable.error]);
+  const uncertain = isUncertainWriteError(serverError);
+  const verifyCurrentState = async () => {
+    try {
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: tablePolicyKeys.list }, { throwOnError: true }),
+        queryClient.refetchQueries({ queryKey: tablePolicyKeys.discovery }, { throwOnError: true }),
+        ...(tableName ? [queryClient.refetchQueries({ queryKey: tablePolicyKeys.detail(tableName) }, { throwOnError: true })] : []),
+      ]);
+    } catch {
+      // A failed read cannot establish the outcome of the previous write.
+      return;
+    }
+    create.reset(); replace.reset(); enable.reset(); disable.reset();
+    protection.afterSave(() => navigate(tableName ? `/platform/table-policies/${encodeURIComponent(tableName)}` : "/platform/table-policies"));
+  };
+  const writeError = serverError && (uncertain
+    ? <div className="inline-alert" role="alert"><strong>提交结果尚未确认。系统不会自动重复此写入。</strong>{selectingAssignment && <Button type="button" variant="secondary" onClick={verifyCurrentState}>只读查询当前状态</Button>}</div>
+    : <ErrorState error={serverError} />);
 
   useEffect(() => {
     if (!baseline && detail.data) {
@@ -63,8 +94,22 @@ function TablePolicySession({ tableName }: Props) {
   const activeQueryPolicies = (queryPolicies.data ?? []).filter((policy) => policy.status === "ACTIVE" && supportedQueryPolicyTypes.has(policy.typeCode) && queryPolicyTypes.data?.includes(policy.typeCode));
   const activeMutationPolicies = (mutationPolicies.data ?? []).filter((policy) => policy.status === "ACTIVE" && supportsMutationPolicyType(mutationPolicyTypes.data, policy.typeCode));
   const loading = (selectingAssignment && (discovery.isPending || queryPolicies.isPending || queryPolicyTypes.isPending || mutationPolicies.isPending || mutationPolicyTypes.isPending)) || (!creating && detail.isPending);
-  const loadError = (selectingAssignment && (discovery.error || queryPolicies.error || queryPolicyTypes.error || mutationPolicies.error || mutationPolicyTypes.error)) || (!detail.data && detail.error);
-  const valid = Boolean(assignment.tableName && assignment.queryPolicyCode && assignment.mutationPolicyCode);
+  const loadError = (selectingAssignment && (
+    (discovery.isError && !discovery.data && discovery.error)
+    || (queryPolicies.isError && !queryPolicies.data && queryPolicies.error)
+    || (queryPolicyTypes.isError && !queryPolicyTypes.data && queryPolicyTypes.error)
+    || (mutationPolicies.isError && !mutationPolicies.data && mutationPolicies.error)
+    || (mutationPolicyTypes.isError && !mutationPolicyTypes.data && mutationPolicyTypes.error)
+  )) || (detail.isError && !detail.data && detail.error);
+  const valid = Boolean(
+    assignment.tableName
+    && assignment.queryPolicyCode
+    && assignment.mutationPolicyCode
+    && (!creating || candidates.some((table) => table.tableName === assignment.tableName))
+    && activeQueryPolicies.some((policy) => policy.code === assignment.queryPolicyCode)
+    && activeMutationPolicies.some((policy) => policy.code === assignment.mutationPolicyCode),
+  );
+
   const queryRegistryState = queryPolicyTypes.isPending ? "loading" : queryPolicyTypes.isError ? "error" : "ready";
   const mutationRegistryState = mutationPolicyTypes.isPending ? "loading" : mutationPolicyTypes.isError ? "error" : "ready";
   const effects = (target: TablePolicyAssignment, preview: boolean, enabled = false) => {
@@ -92,7 +137,7 @@ function TablePolicySession({ tableName }: Props) {
   };
 
   const executeReplace = () => {
-    if (!tableName || !valid || inFlight.current || pending) return;
+    if (!tableName || !valid || uncertain || inFlight.current || pending) return;
     inFlight.current = true;
     replace.mutate({ tableName, assignment }, {
       onSuccess() {
@@ -106,7 +151,7 @@ function TablePolicySession({ tableName }: Props) {
   };
 
   const executeStateCommand = () => {
-    if (!tableName || !pendingStateCommand || inFlight.current || pending) return;
+    if (!tableName || !pendingStateCommand || uncertain || inFlight.current || pending) return;
     inFlight.current = true;
     const command = pendingStateCommand;
     const mutation = command === "enable" ? enable : disable;
@@ -122,7 +167,7 @@ function TablePolicySession({ tableName }: Props) {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (!valid || inFlight.current || pending) return;
+    if (!valid || uncertain || inFlight.current || pending) return;
     if (creating) {
       inFlight.current = true;
       create.mutate(assignment, {
@@ -156,7 +201,7 @@ function TablePolicySession({ tableName }: Props) {
       <label className="field"><span>变更规则编码</span><input value={detail.data.mutationPolicyCode} disabled readOnly /></label>
       {effects({ tableName: detail.data.tableName, queryPolicyCode: detail.data.queryPolicyCode, mutationPolicyCode: detail.data.mutationPolicyCode }, false, detail.data.enabled)}
       <dl className="audit-grid"><div><dt>创建人</dt><dd>{detail.data.creator}</dd></div><div><dt>修改人</dt><dd>{detail.data.modifier}</dd></div><div><dt>创建时间</dt><dd>{detail.data.createdAt}</dd></div><div><dt>修改时间</dt><dd>{detail.data.modifiedAt}</dd></div></dl>
-      {(enable.error || disable.error) && <ErrorState error={enable.error || disable.error} />}
+      {writeError}
     </div>
   );
   else content = (
@@ -180,14 +225,16 @@ function TablePolicySession({ tableName }: Props) {
       </select></label>
       {(assignment.queryPolicyCode || assignment.mutationPolicyCode) && effects(assignment, true)}
       {creating && !candidates.length && <div className="inline-alert"><AlertCircle size={17} /><span>没有兼容且未分配的真实数据库表。</span></div>}
-      {(create.error || replace.error) && <ErrorState error={create.error || replace.error} />}
+      {writeError}
       </fieldset>
     </form>
   );
 
   let footer: ReactNode;
-  if (creating || replacing) footer = <><Button type="submit" form="table-policy-form" variant="primary" disabled={!valid || create.isPending || replace.isPending}>{create.isPending || replace.isPending ? "正在保存…" : creating ? "创建未启用分配" : "检查并替换"}</Button><Button onClick={() => replacing && tableName ? navigate(`/platform/table-policies/${encodeURIComponent(tableName)}`) : close()} disabled={create.isPending || replace.isPending}>取消</Button></>;
-  else footer = <><Button variant="primary" onClick={() => navigate("?mode=replace")}>替换所选规则</Button>{detail.data && <Button variant={detail.data.enabled ? "danger" : "primary"} onClick={() => setPendingStateCommand(detail.data.enabled ? "disable" : "enable")}>{detail.data.enabled ? "停用" : "启用"}</Button>}<Button className="drawer-close-action" onClick={close}>关闭</Button></>;
+  if (creating || replacing) footer = <><Button type="submit" form="table-policy-form" variant="primary" disabled={!valid || uncertain || create.isPending || replace.isPending}>{create.isPending || replace.isPending ? "正在保存…" : creating ? "创建未启用分配" : "检查并替换"}</Button><Button onClick={() => replacing && tableName ? navigate(`/platform/table-policies/${encodeURIComponent(tableName)}`) : close()} disabled={create.isPending || replace.isPending}>取消</Button></>;
+  else footer = uncertain
+    ? <><Button variant="primary" onClick={verifyCurrentState}>只读查询当前状态</Button><Button className="drawer-close-action" onClick={close}>关闭</Button></>
+    : <><Button variant="primary" onClick={() => navigate("?mode=replace")}>替换所选规则</Button>{detail.data && <Button variant={detail.data.enabled ? "danger" : "primary"} onClick={() => setPendingStateCommand(detail.data.enabled ? "disable" : "enable")}>{detail.data.enabled ? "停用" : "启用"}</Button>}<Button className="drawer-close-action" onClick={close}>关闭</Button></>;
   const title = creating ? "新建表规则分配" : replacing ? "替换表规则" : "表规则详情";
   const stateConfirm = pendingStateCommand === "enable" ? { title: "启用表规则？", description: "Admin 将根据实时 Schema 和两条规则引用重新校验；成功后该表成为 Managed Table。", label: "确认启用" } : { title: "停用表规则？", description: "停用后该表立即失去 Managed Table 身份，后续数据 API 请求将被拒绝。", label: "确认停用" };
   return <><Drawer open title={title} eyebrow="表规则" onClose={close} footer={footer}>{content}</Drawer>{detail.data?.enabled && <ConfirmDialog open={confirmReplace} title="替换已启用的表规则？" description="查询规则和变更规则校验成功后会一起替换，下一次请求立即生效。" confirmLabel="确认替换" pending={replace.isPending} onCancel={() => setConfirmReplace(false)} onConfirm={executeReplace} />}{pendingStateCommand && <ConfirmDialog open title={stateConfirm.title} description={stateConfirm.description} confirmLabel={stateConfirm.label} destructive={pendingStateCommand === "disable"} pending={enable.isPending || disable.isPending} onCancel={() => setPendingStateCommand(null)} onConfirm={executeStateCommand} />}</>;

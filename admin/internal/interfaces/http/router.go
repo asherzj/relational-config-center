@@ -12,14 +12,16 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/asherzj/relational-config-center/admin/internal/application"
-	"github.com/asherzj/relational-config-center/admin/internal/domain"
 )
 
 func NewRouter(discovery *application.DatabaseTableDiscovery, readiness application.Readiness, queryPolicies *application.QueryPolicyManagement, mutationPolicies *application.MutationPolicyManagement, policies *application.TablePolicyManagement, queries *application.ManagedTableQuery, mutations *application.ManagedTableMutation, options RouterOptions) stdhttp.Handler {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.HandleMethodNotAllowed = true
-	router.Use(requestIdentity(), structuredAccessLog(options.AccessLog), safeRecovery(), limitRequestBody(), exactCORS(options), bearerAuthentication(options))
+	router.Use(requestIdentity(), structuredAccessLog(options.AccessLog), safeRecovery(), limitRequestBody(), sessionAuthentication(options))
+	if options.Authentication != nil {
+		registerAccountRoutes(router, options.Authentication, options.AccountHTTP)
+	}
 	router.NoRoute(func(context *gin.Context) {
 		if isAPIRequest(context.Request.URL.Path) {
 			writeError(context, stdhttp.StatusNotFound, "route_not_found", "route not found")
@@ -173,7 +175,7 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 			writeError(context, stdhttp.StatusBadRequest, "invalid_request", "request body must be valid JSON with only supported fields")
 			return
 		}
-		affected, err := mutations.Modify(context.Request.Context(), context.Param("table_name"), domain.JSONString(context.Param("id")), *request.Content)
+		affected, err := mutations.Modify(context.Request.Context(), context.Param("table_name"), application.JSONString(context.Param("id")), *request.Content)
 		if writeManagedMutationError(context, err) {
 			return
 		}
@@ -181,7 +183,7 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 	})
 
 	router.DELETE("/api/v1/tables/:table_name/rows/:id", func(context *gin.Context) {
-		affected, err := mutations.Delete(context.Request.Context(), context.Param("table_name"), domain.JSONString(context.Param("id")))
+		affected, err := mutations.Delete(context.Request.Context(), context.Param("table_name"), application.JSONString(context.Param("id")))
 		if writeManagedMutationError(context, err) {
 			return
 		}
@@ -420,19 +422,19 @@ type queryPolicyTypeResponse struct {
 }
 
 type queryPolicyResponse struct {
-	Code                  string              `json:"code"`
-	Name                  string              `json:"name"`
-	Description           string              `json:"description"`
-	TypeCode              string              `json:"type_code"`
-	DefaultOrderField     string              `json:"default_order_field"`
-	DefaultOrderDirection string              `json:"default_order_direction"`
-	DefaultPageSize       int                 `json:"default_page_size"`
-	MaxPageSize           int                 `json:"max_page_size"`
-	Status                domain.PolicyStatus `json:"status"`
-	Creator               string              `json:"creator"`
-	Modifier              string              `json:"modifier"`
-	CreatedAt             string              `json:"gmt_created"`
-	UpdatedAt             string              `json:"gmt_modified"`
+	Code                  string                   `json:"code"`
+	Name                  string                   `json:"name"`
+	Description           string                   `json:"description"`
+	TypeCode              string                   `json:"type_code"`
+	DefaultOrderField     string                   `json:"default_order_field"`
+	DefaultOrderDirection string                   `json:"default_order_direction"`
+	DefaultPageSize       int                      `json:"default_page_size"`
+	MaxPageSize           int                      `json:"max_page_size"`
+	Status                application.PolicyStatus `json:"status"`
+	Creator               string                   `json:"creator"`
+	Modifier              string                   `json:"modifier"`
+	CreatedAt             string                   `json:"gmt_created"`
+	UpdatedAt             string                   `json:"gmt_modified"`
 }
 
 type putMutationPolicyRequest struct {
@@ -469,25 +471,25 @@ type mutationPolicyTypeResponse struct {
 }
 
 type mutationPolicyResponse struct {
-	Code                string              `json:"code"`
-	Name                string              `json:"name"`
-	Description         string              `json:"description"`
-	TypeCode            string              `json:"type_code"`
-	AllowAdd            bool                `json:"allow_add"`
-	AllowModify         bool                `json:"allow_modify"`
-	AllowDelete         bool                `json:"allow_delete"`
-	CreateOperatorField *string             `json:"create_operator_field"`
-	CreateTimeField     *string             `json:"create_time_field"`
-	ModifyOperatorField *string             `json:"modify_operator_field"`
-	ModifyTimeField     *string             `json:"modify_time_field"`
-	Status              domain.PolicyStatus `json:"status"`
-	Creator             string              `json:"creator"`
-	Modifier            string              `json:"modifier"`
-	CreatedAt           string              `json:"gmt_created"`
-	UpdatedAt           string              `json:"gmt_modified"`
+	Code                string                   `json:"code"`
+	Name                string                   `json:"name"`
+	Description         string                   `json:"description"`
+	TypeCode            string                   `json:"type_code"`
+	AllowAdd            bool                     `json:"allow_add"`
+	AllowModify         bool                     `json:"allow_modify"`
+	AllowDelete         bool                     `json:"allow_delete"`
+	CreateOperatorField *string                  `json:"create_operator_field"`
+	CreateTimeField     *string                  `json:"create_time_field"`
+	ModifyOperatorField *string                  `json:"modify_operator_field"`
+	ModifyTimeField     *string                  `json:"modify_time_field"`
+	Status              application.PolicyStatus `json:"status"`
+	Creator             string                   `json:"creator"`
+	Modifier            string                   `json:"modifier"`
+	CreatedAt           string                   `json:"gmt_created"`
+	UpdatedAt           string                   `json:"gmt_modified"`
 }
 
-func mutationPolicyResponseFor(policy domain.MutationPolicy) mutationPolicyResponse {
+func mutationPolicyResponseFor(policy application.MutationPolicy) mutationPolicyResponse {
 	return mutationPolicyResponse{
 		Code: policy.Code, Name: policy.Name, Description: policy.Description, TypeCode: policy.TypeCode,
 		AllowAdd: policy.AllowAdd, AllowModify: policy.AllowModify, AllowDelete: policy.AllowDelete,
@@ -498,7 +500,7 @@ func mutationPolicyResponseFor(policy domain.MutationPolicy) mutationPolicyRespo
 	}
 }
 
-func queryPolicyResponseFor(policy domain.QueryPolicy) queryPolicyResponse {
+func queryPolicyResponseFor(policy application.QueryPolicy) queryPolicyResponse {
 	return queryPolicyResponse{
 		Code: policy.Code, Name: policy.Name, Description: policy.Description, TypeCode: policy.TypeCode,
 		DefaultOrderField: policy.DefaultOrderField, DefaultOrderDirection: policy.DefaultOrderDirection,
@@ -527,11 +529,11 @@ type tableQueryRequest struct {
 }
 
 type tableAddRequest struct {
-	Content domain.MutationContent `json:"content"`
+	Content application.MutationContent `json:"content"`
 }
 
 type tablePatchRequest struct {
-	Content *domain.MutationContent `json:"content"`
+	Content *application.MutationContent `json:"content"`
 }
 
 type tableQueryCondition struct {
@@ -581,39 +583,39 @@ type tableQueryOrder struct {
 	Direction string `json:"direction"`
 }
 
-func (request tableQueryRequest) spec() domain.QuerySpec {
-	conditions := make([]domain.QueryCondition, 0, len(request.Conditions))
+func (request tableQueryRequest) spec() application.QuerySpec {
+	conditions := make([]application.QueryCondition, 0, len(request.Conditions))
 	for _, condition := range request.Conditions {
-		var value *domain.JSONString
+		var value *application.JSONString
 		if condition.Value.Value != nil {
-			converted := domain.JSONString(*condition.Value.Value)
+			converted := application.JSONString(*condition.Value.Value)
 			value = &converted
 		}
-		var from *domain.JSONString
+		var from *application.JSONString
 		if condition.From.Value != nil {
-			converted := domain.JSONString(*condition.From.Value)
+			converted := application.JSONString(*condition.From.Value)
 			from = &converted
 		}
-		var to *domain.JSONString
+		var to *application.JSONString
 		if condition.To.Value != nil {
-			converted := domain.JSONString(*condition.To.Value)
+			converted := application.JSONString(*condition.To.Value)
 			to = &converted
 		}
-		var values []*domain.JSONString
+		var values []*application.JSONString
 		if condition.Values.Value != nil {
-			values = make([]*domain.JSONString, 0, len(condition.Values.Value))
+			values = make([]*application.JSONString, 0, len(condition.Values.Value))
 			for _, item := range condition.Values.Value {
 				if item == nil {
 					values = append(values, nil)
 					continue
 				}
-				converted := domain.JSONString(*item)
+				converted := application.JSONString(*item)
 				values = append(values, &converted)
 			}
 		}
-		conditions = append(conditions, domain.QueryCondition{
+		conditions = append(conditions, application.QueryCondition{
 			Field:         condition.Field,
-			Operator:      domain.QueryOperator(condition.Operator),
+			Operator:      application.QueryOperator(condition.Operator),
 			Value:         value,
 			ValuePresent:  condition.Value.Present,
 			From:          from,
@@ -624,11 +626,11 @@ func (request tableQueryRequest) spec() domain.QuerySpec {
 			ValuesPresent: condition.Values.Present,
 		})
 	}
-	var order *domain.QueryOrder
+	var order *application.QueryOrder
 	if request.Order != nil {
-		order = &domain.QueryOrder{Field: request.Order.Field, Direction: request.Order.Direction}
+		order = &application.QueryOrder{Field: request.Order.Field, Direction: request.Order.Direction}
 	}
-	return domain.QuerySpec{
+	return application.QuerySpec{
 		Conditions: conditions,
 		Order:      order,
 		PageNumber: request.PageNumber,
@@ -643,9 +645,9 @@ type tableQueryResponse struct {
 }
 
 type tableQueryColumnResponse struct {
-	Name     string            `json:"name"`
-	Type     domain.ColumnType `json:"type"`
-	Nullable bool              `json:"nullable"`
+	Name     string                 `json:"name"`
+	Type     application.ColumnType `json:"type"`
+	Nullable bool                   `json:"nullable"`
 }
 
 type tableQueryPageResponse struct {
@@ -655,7 +657,7 @@ type tableQueryPageResponse struct {
 	TotalPages int64 `json:"total_pages"`
 }
 
-func queryResponse(result domain.QueryResult) tableQueryResponse {
+func queryResponse(result application.QueryResult) tableQueryResponse {
 	columns := make([]tableQueryColumnResponse, 0, len(result.Columns))
 	for _, column := range result.Columns {
 		columns = append(columns, tableQueryColumnResponse{Name: column.Name, Type: column.Type, Nullable: column.Nullable})
@@ -685,7 +687,7 @@ func queryResponse(result domain.QueryResult) tableQueryResponse {
 	}
 }
 
-func assignmentPolicyResponse(policy domain.TablePolicy) tablePolicyAssignmentResponse {
+func assignmentPolicyResponse(policy application.TablePolicy) tablePolicyAssignmentResponse {
 	return tablePolicyAssignmentResponse{
 		TableName: policy.TableName, QueryPolicyCode: policy.QueryPolicyCode, MutationPolicyCode: policy.MutationPolicyCode,
 		Enabled: policy.Enabled, Creator: policy.Creator, Modifier: policy.Modifier,
@@ -726,13 +728,13 @@ func writePolicyError(context *gin.Context, err error) bool {
 		writeError(context, stdhttp.StatusForbidden, "protected_table", "protected tables cannot have a Table Policy")
 	case errors.Is(err, application.ErrDatabaseTableNotFound):
 		writeError(context, stdhttp.StatusNotFound, "database_table_not_found", "database table not found")
-	case errors.Is(err, domain.ErrTablePolicyNotFound):
+	case errors.Is(err, application.ErrTablePolicyNotFound):
 		writeError(context, stdhttp.StatusNotFound, "table_policy_not_found", "Table Policy not found")
-	case errors.Is(err, domain.ErrTablePolicyExists):
+	case errors.Is(err, application.ErrTablePolicyExists):
 		writeError(context, stdhttp.StatusConflict, "table_policy_exists", "Table Policy already exists")
-	case errors.Is(err, domain.ErrQueryPolicyNotFound), errors.Is(err, application.ErrQueryPolicyNotAssignable):
+	case errors.Is(err, application.ErrQueryPolicyNotFound), errors.Is(err, application.ErrQueryPolicyNotAssignable):
 		writeError(context, stdhttp.StatusUnprocessableEntity, "query_policy_not_assignable", "Query Policy is not Active and assignable")
-	case errors.Is(err, domain.ErrMutationPolicyNotFound), errors.Is(err, application.ErrMutationPolicyNotAssignable):
+	case errors.Is(err, application.ErrMutationPolicyNotFound), errors.Is(err, application.ErrMutationPolicyNotAssignable):
 		writeError(context, stdhttp.StatusUnprocessableEntity, "mutation_policy_not_assignable", "Mutation Policy is not Active and assignable")
 	case errors.Is(err, application.ErrUnknownQueryPolicyType), errors.Is(err, application.ErrUnknownMutationPolicyType):
 		writeError(context, stdhttp.StatusUnprocessableEntity, "unknown_policy_type", "Policy definition references an unknown Type")
@@ -755,11 +757,11 @@ func writeQueryPolicyError(context *gin.Context, err error) bool {
 		writeError(context, stdhttp.StatusBadRequest, "invalid_policy_code", "Policy Code must be lower-case, versioned, and technology-neutral")
 	case errors.Is(err, application.ErrInvalidQueryPolicyDefinition):
 		writeError(context, stdhttp.StatusBadRequest, "invalid_query_policy_definition", "Query Policy definition is incomplete")
-	case errors.Is(err, domain.ErrQueryPolicyNotFound):
+	case errors.Is(err, application.ErrQueryPolicyNotFound):
 		writeError(context, stdhttp.StatusNotFound, "query_policy_not_found", "Query Policy not found")
-	case errors.Is(err, domain.ErrQueryPolicyExists):
+	case errors.Is(err, application.ErrQueryPolicyExists):
 		writeError(context, stdhttp.StatusConflict, "query_policy_exists", "Query Policy already exists")
-	case errors.Is(err, application.ErrInvalidPolicyTransition), errors.Is(err, domain.ErrQueryPolicyStateConflict):
+	case errors.Is(err, application.ErrInvalidPolicyTransition), errors.Is(err, application.ErrQueryPolicyStateConflict):
 		writeError(context, stdhttp.StatusConflict, "invalid_policy_transition", "Query Policy lifecycle transition is not allowed")
 	case errors.Is(err, application.ErrUnknownQueryPolicyType):
 		writeError(context, stdhttp.StatusUnprocessableEntity, "unknown_policy_type", "Query Policy references an unknown Type")
@@ -780,11 +782,11 @@ func writeMutationPolicyError(context *gin.Context, err error) bool {
 		writeError(context, stdhttp.StatusBadRequest, "invalid_policy_code", "Policy Code must be lower-case, versioned, and technology-neutral")
 	case errors.Is(err, application.ErrInvalidMutationPolicyDefinition):
 		writeError(context, stdhttp.StatusBadRequest, "invalid_mutation_policy_definition", "Mutation Policy definition is incomplete")
-	case errors.Is(err, domain.ErrMutationPolicyNotFound):
+	case errors.Is(err, application.ErrMutationPolicyNotFound):
 		writeError(context, stdhttp.StatusNotFound, "mutation_policy_not_found", "Mutation Policy not found")
-	case errors.Is(err, domain.ErrMutationPolicyExists):
+	case errors.Is(err, application.ErrMutationPolicyExists):
 		writeError(context, stdhttp.StatusConflict, "mutation_policy_exists", "Mutation Policy already exists")
-	case errors.Is(err, application.ErrInvalidPolicyTransition), errors.Is(err, domain.ErrMutationPolicyStateConflict):
+	case errors.Is(err, application.ErrInvalidPolicyTransition), errors.Is(err, application.ErrMutationPolicyStateConflict):
 		writeError(context, stdhttp.StatusConflict, "invalid_policy_transition", "Mutation Policy lifecycle transition is not allowed")
 	case errors.Is(err, application.ErrUnknownMutationPolicyType):
 		writeError(context, stdhttp.StatusUnprocessableEntity, "unknown_policy_type", "Mutation Policy references an unknown Type")
@@ -803,7 +805,7 @@ func writeManagedQueryError(context *gin.Context, err error) bool {
 	switch {
 	case errors.Is(err, application.ErrProtectedTable):
 		writeError(context, stdhttp.StatusForbidden, "protected_table", "protected tables cannot be queried")
-	case errors.Is(err, domain.ErrTablePolicyNotFound):
+	case errors.Is(err, application.ErrTablePolicyNotFound):
 		writeError(context, stdhttp.StatusNotFound, "table_policy_not_found", "Table Policy not found")
 	case errors.Is(err, application.ErrTablePolicyDisabled):
 		writeError(context, stdhttp.StatusForbidden, "table_policy_disabled", "Table Policy is disabled")
@@ -838,9 +840,11 @@ func writeManagedMutationError(context *gin.Context, err error) bool {
 		return false
 	}
 	switch {
+	case errors.Is(err, application.ErrOperatorFieldIncompatible):
+		writeError(context, stdhttp.StatusUnprocessableEntity, "operator_field_incompatible", "Operator fields must be ordinary text columns that can store a complete 36-character Account ID")
 	case errors.Is(err, application.ErrProtectedTable):
 		writeError(context, stdhttp.StatusForbidden, "protected_table", "protected tables cannot be mutated")
-	case errors.Is(err, domain.ErrTablePolicyNotFound):
+	case errors.Is(err, application.ErrTablePolicyNotFound):
 		writeError(context, stdhttp.StatusNotFound, "table_policy_not_found", "Table Policy not found")
 	case errors.Is(err, application.ErrTablePolicyDisabled):
 		writeError(context, stdhttp.StatusForbidden, "table_policy_disabled", "Table Policy is disabled")
@@ -875,15 +879,15 @@ func writeManagedMutationError(context *gin.Context, err error) bool {
 }
 
 type databaseTableResponse struct {
-	TableName             string                        `json:"table_name"`
-	TableComment          string                        `json:"table_comment"`
-	PolicyExists          bool                          `json:"policy_exists"`
-	PolicyEnabled         bool                          `json:"policy_enabled"`
-	Compatible            bool                          `json:"compatible"`
-	IncompatibilityReason *domain.IncompatibilityReason `json:"incompatibility_reason"`
+	TableName             string                             `json:"table_name"`
+	TableComment          string                             `json:"table_comment"`
+	PolicyExists          bool                               `json:"policy_exists"`
+	PolicyEnabled         bool                               `json:"policy_enabled"`
+	Compatible            bool                               `json:"compatible"`
+	IncompatibilityReason *application.IncompatibilityReason `json:"incompatibility_reason"`
 }
 
-func tableResponse(table domain.DatabaseTable) databaseTableResponse {
+func tableResponse(table application.DatabaseTable) databaseTableResponse {
 	return databaseTableResponse{
 		TableName:             table.Name,
 		TableComment:          table.Comment,

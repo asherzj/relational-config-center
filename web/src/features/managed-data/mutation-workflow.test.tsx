@@ -62,7 +62,10 @@ describe("Managed Data mutation workflow", () => {
     act(() => hook.result.current.send({ type: "review-content", content: { name: "created" } }));
     expect(hook.result.current.view.changeSet?.operation).toBe("ADD");
 
-    act(() => hook.result.current.send({ type: "confirm-pending" }));
+    act(() => {
+      hook.result.current.send({ type: "confirm-pending" });
+      hook.result.current.send({ type: "confirm-pending" });
+    });
     await waitFor(() => expect(hook.result.current.view.outcome?.retrievalError).toBeDefined());
     expect(fetchMock.mock.calls.filter(([url, init]) => String(url).endsWith("/tables/managed_items/rows") && init?.method === "POST")).toHaveLength(1);
 

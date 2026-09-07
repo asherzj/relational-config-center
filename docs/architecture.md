@@ -98,4 +98,49 @@ The first iteration ships the Policy Catalog as runtime data (ADR 0005) and prov
 
 The original prototype packages (`httpapi`, `managedtable`, `mysqlstore`) were rewritten into the layout above rather than preserved; the compile-time `bootstrap` registry was deleted when the runtime Policy Catalog landed (issue #2).
 
-Relations, end-user identity and authorization, audit history, publishing workflows, runtime gRPC reads, and in-place schema upgrades belong to later iterations.
+Relations, role-based authorization, audit history, publishing workflows and runtime gRPC reads belong to later iterations. Local Account identity and explicit control-schema upgrades are delivered below.
+
+## Local Accounts and business request identity
+
+The account entry uses `interfaces/http/authentication.go` →
+`application/Authentication` → Domain-owned account and rate-state contracts.
+The MySQL adapter commits account creation and its initial Login Session in one
+transaction. The password adapter owns Argon2id computation and its concurrency
+bound. HTTP maps the current account into a safe identity response; the Web
+account page consumes that response through its account API client.
+
+Account IDs, normalized unique account fields, opaque session digests, pre-login
+CSRF digests and rate windows live in protected `rcc_` control tables. Authenticated
+reads check enabled status and both stored security versions in the same query;
+session issuance rechecks the verified account under a database lock. Password
+computation happens outside database transactions. Control-table admission uses
+one MySQL lock row so capacity and rate decisions work across Admin processes.
+
+Every business route now requires the account session and every non-GET/HEAD
+request requires same-origin CSRF. Authentication produces an immutable
+`AuthenticatedOperator` with a private Account ID, bound to one request context;
+shared business services never store account state. Query/Mutation/Table Policy
+writes and configuration Auto Fill read the same request identity. Revocation
+blocks new authentication while allowing already-authenticated writes to finish.
+Live metadata supplies unrestricted text capacity for 36-character Account IDs;
+short columns and ENUM reject affected writes without changing historical text.
+
+HTTP consumes Application contracts only, checked by
+`TestHTTPDependsOnApplicationRatherThanDomainOrInfrastructure`. A second source
+check rejects actor/account fields on shared business service structs. Concurrent
+HTTP/MySQL tests verify actual attribution and revocation outcomes. The full
+repository does not yet have a general layer dependency graph checker.
+
+TMP-01 is removed. `OpenMaintenance` and `LoadMySQL` initialize maintenance
+connections independently from normal Admin HTTP and required-schema readiness.
+The `account-maintain` composition root invokes `application/AccountMaintenance`
+with the Domain-owned maintenance repository and existing password adapter. It
+uses database authority and exposes no HTTP account-management route. Resets
+commit password and session-version changes with revocation; status changes share
+the authentication transaction lock and retain old session rows for disabled-client
+draft destruction until normal expiry cleanup. Enable never revives an old version.
+The normal build and Admin image distribute the executable. Normal startup and
+readiness inspect required authentication columns, constraints, indexes and the
+admission-lock row through parameterized GORM Raw queries. Missing structures
+fail startup with migration guidance; an empty account directory remains ready.
+See [the complete release evidence](./admin-local-accounts-evidence.md).

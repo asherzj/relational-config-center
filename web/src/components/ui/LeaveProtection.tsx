@@ -33,7 +33,7 @@ function LeaveDialog({ busy, onStay, onLeave }: { busy: boolean; onStay: () => v
 }
 
 /** One router blocker handles all active drafts, including browser POP navigation. */
-export function LeaveProtectionProvider({ children }: { children: ReactNode }) {
+export function LeaveProtectionProvider({ children, enabled = true }: { children: ReactNode; enabled?: boolean }) {
   const statuses = useRef(new Set<RefObject<DraftStatus>>());
   const bypass = useRef(false);
   const [localLeave, setLocalLeave] = useState<(() => void) | null>(null);
@@ -42,7 +42,7 @@ export function LeaveProtectionProvider({ children }: { children: ReactNode }) {
     dirty: [...statuses.current].some((item) => item.current.dirty),
     pending: [...statuses.current].some((item) => item.current.pending),
   }), []);
-  const blocker = useBlocker(() => !bypass.current && (status().dirty || status().pending));
+  const blocker = useBlocker(() => enabled && !bypass.current && (status().dirty || status().pending));
   const submissionSettled = useCallback(() => setBusyNotice(false), []);
   const afterSave = useCallback((action: () => void) => {
     setBusyNotice(false);
@@ -55,11 +55,20 @@ export function LeaveProtectionProvider({ children }: { children: ReactNode }) {
     return () => { statuses.current.delete(entry); };
   }, []);
   const requestLeave = useCallback((action: () => void) => {
+    if (!enabled) { action(); return; }
     const current = status();
     if (current.pending) { setBusyNotice(true); return; }
     if (current.dirty) setLocalLeave(() => action);
     else action();
-  }, [status]);
+  }, [enabled, status]);
+  useEffect(() => {
+    if (enabled) return;
+    // Authentication interruption must not leave a hidden navigation or focus trap
+    // queued behind re-login. Draft registrations stay available for recovery.
+    setLocalLeave(null);
+    setBusyNotice(false);
+    if (blocker.state === "blocked") blocker.reset();
+  }, [enabled, blocker]);
   useEffect(() => {
     if (blocker.state === "blocked" && status().pending) {
       // Never queue a navigation behind a write: a completed write must show its outcome.
@@ -90,7 +99,7 @@ export function LeaveProtectionProvider({ children }: { children: ReactNode }) {
     else if (action) afterSave(action);
   };
   const value = useMemo(() => ({ register, requestLeave, afterSave, submissionSettled }), [register, requestLeave, afterSave, submissionSettled]);
-  return <Context.Provider value={value}>{children}{(localLeave || blocker.state === "blocked" || busyNotice) && <LeaveDialog busy={busyNotice || status().pending} onStay={stay} onLeave={leave} />}</Context.Provider>;
+  return <Context.Provider value={value}>{children}{enabled && (localLeave || blocker.state === "blocked" || busyNotice) && <LeaveDialog busy={busyNotice || status().pending} onStay={stay} onLeave={leave} />}</Context.Provider>;
 }
 
 export function useLeaveProtection() {

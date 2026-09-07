@@ -30,9 +30,7 @@ func TestDatabaseTableListDiscoversOnlyOrdinaryBaseTables(t *testing.T) {
 		"testdata/002-discovery-fixture.sql",
 	)
 
-	recorder := httptest.NewRecorder()
-	request := httptest.NewRequest(http.MethodGet, "/api/v1/database-tables", nil)
-	app.Handler().ServeHTTP(recorder, request)
+	recorder := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/database-tables", "")
 
 	if recorder.Code != http.StatusOK {
 		t.Fatalf("expected HTTP 200, got %d: %s", recorder.Code, recorder.Body.String())
@@ -83,9 +81,7 @@ func TestDatabaseTableDetailReturnsLiveMetadataAndStableNotFoundError(t *testing
 		"testdata/002-discovery-fixture.sql",
 	)
 
-	recorder := httptest.NewRecorder()
-	request := httptest.NewRequest(http.MethodGet, "/api/v1/database-tables/managed_alpha", nil)
-	app.Handler().ServeHTTP(recorder, request)
+	recorder := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/database-tables/managed_alpha", "")
 
 	if recorder.Code != http.StatusOK {
 		t.Fatalf("expected HTTP 200, got %d: %s", recorder.Code, recorder.Body.String())
@@ -95,9 +91,7 @@ func TestDatabaseTableDetailReturnsLiveMetadataAndStableNotFoundError(t *testing
 		t.Fatalf("unexpected table detail: %s", recorder.Body.String())
 	}
 
-	recorder = httptest.NewRecorder()
-	request = httptest.NewRequest(http.MethodGet, "/api/v1/database-tables/does_not_exist", nil)
-	app.Handler().ServeHTTP(recorder, request)
+	recorder = policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/database-tables/does_not_exist", "")
 	if recorder.Code != http.StatusNotFound {
 		t.Fatalf("expected HTTP 404, got %d: %s", recorder.Code, recorder.Body.String())
 	}
@@ -222,7 +216,33 @@ func startIntegrationApplication(t *testing.T, scripts ...string) *adminApplicat
 
 func startIntegrationMySQL(t *testing.T, scripts ...string) (context.Context, *mysqldriver.Config) {
 	t.Helper()
-	testcontainers.SkipIfProviderIsNotHealthy(t)
+	return startIntegrationMySQLWithRequirement(t, false, scripts...)
+}
+
+func startIntegrationMySQLWithRequirement(t *testing.T, required bool, scripts ...string) (context.Context, *mysqldriver.Config) {
+	t.Helper()
+	if required {
+		// System acceptance must fail, never silently pass via a provider skip.
+		func() {
+			defer func() {
+				if recovered := recover(); recovered != nil {
+					t.Fatalf("required Docker provider unavailable: %v", recovered)
+				}
+			}()
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			provider, err := testcontainers.ProviderDocker.GetProvider()
+			if err != nil {
+				t.Fatalf("required Docker provider unavailable: %v", err)
+			}
+			defer provider.Close()
+			if err := provider.Health(ctx); err != nil {
+				t.Fatalf("required Docker provider unavailable: %v", err)
+			}
+		}()
+	} else {
+		testcontainers.SkipIfProviderIsNotHealthy(t)
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	t.Cleanup(cancel)
@@ -253,9 +273,9 @@ func startIntegrationMySQL(t *testing.T, scripts ...string) (context.Context, *m
 
 func integrationConfig(driverConfig *mysqldriver.Config) config.Config {
 	return config.Config{
-		HTTPAddr:     "127.0.0.1:0",
-		AuthDisabled: true,
-		Operator:     "integration-test",
+		AccountPublicOrigin: "http://127.0.0.1:5173",
+		AccountInsecureHTTP: true,
+		HTTPAddr:            "127.0.0.1:0",
 		MySQL: config.MySQL{
 			Network:            driverConfig.Net,
 			Address:            driverConfig.Addr,
@@ -278,8 +298,8 @@ func integrationEnvironment(driverConfig *mysqldriver.Config, httpAddress string
 	host, port, _ := net.SplitHostPort(driverConfig.Addr)
 	return []string{
 		"ADMIN_HTTP_ADDR=" + httpAddress,
-		"ADMIN_API_TOKEN=integration-token",
-		"ADMIN_OPERATOR=integration-test",
+		"ADMIN_PUBLIC_ORIGIN=http://127.0.0.1:5173",
+		"ADMIN_ALLOW_LOCAL_HTTP=true",
 		"MYSQL_HOST=" + host,
 		"MYSQL_PORT=" + port,
 		"MYSQL_DATABASE=" + driverConfig.DBName,

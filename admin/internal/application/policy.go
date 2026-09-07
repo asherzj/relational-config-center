@@ -28,7 +28,6 @@ type TablePolicyManagement struct {
 	catalog          domain.TablePolicyCatalog
 	queryPolicies    *QueryPolicyManagement
 	mutationPolicies *MutationPolicyManagement
-	operator         string
 }
 
 type activePolicyAssignmentCatalog interface {
@@ -36,14 +35,18 @@ type activePolicyAssignmentCatalog interface {
 	ReplaceWithActivePolicyCodes(context.Context, domain.TablePolicy, string) (domain.TablePolicy, error)
 }
 
-func NewTablePolicyManagement(metadata TableMetadataReader, catalog domain.TablePolicyCatalog, queryPolicies *QueryPolicyManagement, mutationPolicies *MutationPolicyManagement, operator string) *TablePolicyManagement {
+func NewTablePolicyManagement(metadata TableMetadataReader, catalog domain.TablePolicyCatalog, queryPolicies *QueryPolicyManagement, mutationPolicies *MutationPolicyManagement) *TablePolicyManagement {
 	return &TablePolicyManagement{
 		metadata: metadata, catalog: catalog, queryPolicies: queryPolicies,
-		mutationPolicies: mutationPolicies, operator: operator,
+		mutationPolicies: mutationPolicies,
 	}
 }
 
 func (management *TablePolicyManagement) Create(ctx context.Context, candidate CreateTablePolicy) (domain.TablePolicy, error) {
+	operator, identityErr := requestOperator(ctx)
+	if identityErr != nil {
+		return domain.TablePolicy{}, identityErr
+	}
 	candidate.TableName = strings.TrimSpace(candidate.TableName)
 	candidate.QueryPolicyCode = strings.TrimSpace(candidate.QueryPolicyCode)
 	candidate.MutationPolicyCode = strings.TrimSpace(candidate.MutationPolicyCode)
@@ -65,10 +68,10 @@ func (management *TablePolicyManagement) Create(ctx context.Context, candidate C
 		return domain.TablePolicy{}, err
 	}
 	if catalog, ok := management.catalog.(activePolicyAssignmentCatalog); ok {
-		if err := catalog.CreateWithActivePolicyCodes(ctx, policy, management.operator); err != nil {
+		if err := catalog.CreateWithActivePolicyCodes(ctx, policy, operator); err != nil {
 			return domain.TablePolicy{}, err
 		}
-	} else if err := management.catalog.Create(ctx, policy, management.operator); err != nil {
+	} else if err := management.catalog.Create(ctx, policy, operator); err != nil {
 		return domain.TablePolicy{}, err
 	}
 	return management.catalog.Get(ctx, policy.TableName)
@@ -86,6 +89,10 @@ func (management *TablePolicyManagement) Get(ctx context.Context, tableName stri
 }
 
 func (management *TablePolicyManagement) Replace(ctx context.Context, tableName string, candidate CreateTablePolicy) (domain.TablePolicy, error) {
+	operator, identityErr := requestOperator(ctx)
+	if identityErr != nil {
+		return domain.TablePolicy{}, identityErr
+	}
 	if protectedTable(tableName) {
 		return domain.TablePolicy{}, ErrProtectedTable
 	}
@@ -109,12 +116,16 @@ func (management *TablePolicyManagement) Replace(ctx context.Context, tableName 
 		return domain.TablePolicy{}, err
 	}
 	if catalog, ok := management.catalog.(activePolicyAssignmentCatalog); ok {
-		return catalog.ReplaceWithActivePolicyCodes(ctx, policy, management.operator)
+		return catalog.ReplaceWithActivePolicyCodes(ctx, policy, operator)
 	}
-	return management.catalog.Replace(ctx, policy, management.operator)
+	return management.catalog.Replace(ctx, policy, operator)
 }
 
 func (management *TablePolicyManagement) Enable(ctx context.Context, tableName string) (domain.TablePolicy, error) {
+	operator, identityErr := requestOperator(ctx)
+	if identityErr != nil {
+		return domain.TablePolicy{}, identityErr
+	}
 	if protectedTable(tableName) {
 		return domain.TablePolicy{}, ErrProtectedTable
 	}
@@ -132,14 +143,18 @@ func (management *TablePolicyManagement) Enable(ctx context.Context, tableName s
 	if err := management.validateExistingAssignment(ctx, policy, schema); err != nil {
 		return domain.TablePolicy{}, err
 	}
-	return management.catalog.SetEnabled(ctx, tableName, true, management.operator)
+	return management.catalog.SetEnabled(ctx, tableName, true, operator)
 }
 
 func (management *TablePolicyManagement) Disable(ctx context.Context, tableName string) (domain.TablePolicy, error) {
+	operator, identityErr := requestOperator(ctx)
+	if identityErr != nil {
+		return domain.TablePolicy{}, identityErr
+	}
 	if protectedTable(tableName) {
 		return domain.TablePolicy{}, ErrProtectedTable
 	}
-	return management.catalog.SetEnabled(ctx, tableName, false, management.operator)
+	return management.catalog.SetEnabled(ctx, tableName, false, operator)
 }
 
 func (management *TablePolicyManagement) assignmentFromActiveDefinitions(ctx context.Context, tableName, queryCode, mutationCode string, schema domain.TableSchema) (domain.TablePolicy, error) {

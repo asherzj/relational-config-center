@@ -1,6 +1,8 @@
 import { Info } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useDraftProtection } from "../../components/ui/LeaveProtection";
+import { isUncertainWriteError } from "../../api/client";
+import { Button } from "../../components/ui/Button";
 import { presentError } from "../../api/error-messages";
 import type { PolicyFormMode } from "../policies/lifecycle";
 import { QueryPolicyEffect, type RegistryState } from "../policies/PolicyEffect";
@@ -47,11 +49,12 @@ type Props = {
   typeCodes: string[];
   registryState: RegistryState;
   serverError?: unknown;
+  onVerify?: () => void;
   pending?: boolean;
   onSubmit: (value: QueryPolicyDraft | QueryPolicyMetadata) => void;
 };
 
-export function QueryPolicyForm({ mode, policy, typeCodes, registryState, serverError, pending = false, onSubmit }: Props) {
+export function QueryPolicyForm({ mode, policy, typeCodes, registryState, serverError, onVerify, pending = false, onSubmit }: Props) {
   const [baseline] = useState(() => draftFor(policy));
   const [editableDraft, setDraft] = useState<QueryPolicyDraft>(baseline);
   const draft = mode === "view" ? draftFor(policy) : editableDraft;
@@ -104,8 +107,9 @@ export function QueryPolicyForm({ mode, policy, typeCodes, registryState, server
     <form id="query-policy-form" className="policy-form" onSubmit={submit} noValidate>
       {presentedError && (
         <div className="inline-alert" role="alert">
-          <strong>{presentedError.message}</strong>
+          <strong>{isUncertainWriteError(serverError) ? "提交结果尚未确认。系统不会自动重复此写入。" : presentedError.message}</strong>
           {presentedError.requestId && <span>请求编号：{presentedError.requestId}</span>}
+          {isUncertainWriteError(serverError) && onVerify && <Button type="button" variant="secondary" onClick={onVerify}>只读查询当前状态</Button>}
         </div>
       )}
 

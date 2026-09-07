@@ -11,11 +11,12 @@ const focusableSelector = [
 
 function focusableElements(container: HTMLElement) {
   return Array.from(container.querySelectorAll<HTMLElement>(focusableSelector))
-    .filter((element) => element.getAttribute("aria-hidden") !== "true");
+    .filter((element) => !element.closest('[hidden], [aria-hidden="true"]'));
 }
 
 function isTopModal(container: HTMLElement) {
-  const surfaces = document.querySelectorAll<HTMLElement>('[data-modal-surface="true"]');
+  const surfaces = Array.from(document.querySelectorAll<HTMLElement>('[data-modal-surface="true"]'))
+    .filter((element) => !element.closest('[hidden], [aria-hidden="true"]'));
   return surfaces.length > 0 && surfaces[surfaces.length - 1] === container;
 }
 
@@ -66,10 +67,10 @@ export function useModalFocus({
     };
 
     document.addEventListener("keydown", onKeyDown, true);
-    (initialFocusRef?.current ?? dialog).focus();
+    if (!dialog.closest('[hidden], [aria-hidden="true"]')) (initialFocusRef?.current ?? dialog).focus();
     return () => {
       document.removeEventListener("keydown", onKeyDown, true);
-      previous?.focus();
+      if (previous?.isConnected && !previous.closest('[hidden], [aria-hidden="true"]')) previous.focus();
     };
   }, [dialogRef, initialFocusRef, open]);
 }

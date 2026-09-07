@@ -29,6 +29,9 @@ const (
 )
 
 type Column struct {
+	// TextCapacity is the live character capacity of unrestricted text columns.
+	// Zero means the column cannot hold arbitrary Operator identifiers (e.g. ENUM).
+	TextCapacity  uint64
 	Name          string
 	Type          ColumnType
 	Nullable      bool
