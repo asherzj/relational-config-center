@@ -264,6 +264,8 @@ func writeAuthError(c *gin.Context, err error) {
 		writeError(c, 400, "current_password_invalid", "current password is incorrect")
 	case errors.Is(err, application.ErrSession):
 		writeError(c, 401, "session_invalid", "a valid login session is required")
+	case errors.Is(err, application.ErrAccountDisabled):
+		writeError(c, 401, "account_disabled", "the account for this login session is disabled")
 	case errors.Is(err, application.ErrCSRF):
 		writeError(c, 403, "csrf_invalid", "valid same-origin CSRF credentials are required")
 	case errors.Is(err, application.ErrAuthTimeout):

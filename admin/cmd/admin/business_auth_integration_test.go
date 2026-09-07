@@ -3,19 +3,152 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/asherzj/relational-config-center/admin/internal/application"
-	passwordadapter "github.com/asherzj/relational-config-center/admin/internal/infrastructure/password"
-	httpinterface "github.com/asherzj/relational-config-center/admin/internal/interfaces/http"
 	"io"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/asherzj/relational-config-center/admin/internal/application"
+	passwordadapter "github.com/asherzj/relational-config-center/admin/internal/infrastructure/password"
+	httpinterface "github.com/asherzj/relational-config-center/admin/internal/interfaces/http"
 )
+
+type droppedResponseTransport struct {
+	base http.RoundTripper
+	drop atomic.Bool
+}
+
+func (transport *droppedResponseTransport) RoundTrip(request *http.Request) (*http.Response, error) {
+	response, err := transport.base.RoundTrip(request)
+	if err != nil || !transport.drop.CompareAndSwap(true, false) {
+		return response, err
+	}
+	_, _ = io.Copy(io.Discard, response.Body)
+	_ = response.Body.Close()
+	return nil, errors.New("injected response loss after server completed request")
+}
+
+func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
+	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/008-mutation-policy-snapshot-fixture.sql")
+	app, err := newApplication(ctx, integrationConfig(driver))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = app.Close() })
+	db, err := sql.Open("mysql", driver.FormatDSN())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+	assignRelationalMutationPolicy(t, app, "response_loss_mutation_v1", true, true, true, true)
+	server := httptest.NewServer(app.Handler())
+	t.Cleanup(server.Close)
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	transport := &droppedResponseTransport{base: http.DefaultTransport}
+	client := &http.Client{Jar: jar, Transport: transport}
+
+	do := func(method, path, body, csrf string) (*http.Response, error) {
+		request, err := http.NewRequest(method, server.URL+path, strings.NewReader(body))
+		if err != nil {
+			t.Fatal(err)
+		}
+		request.Header.Set("Origin", "http://127.0.0.1:5173")
+		request.Header.Set("Content-Type", "application/json")
+		if csrf != "" {
+			request.Header.Set("X-CSRF-Token", csrf)
+		}
+		return client.Do(request)
+	}
+	decode := func(response *http.Response, target any) {
+		t.Helper()
+		defer response.Body.Close()
+		if err := json.NewDecoder(response.Body).Decode(target); err != nil {
+			t.Fatal(err)
+		}
+	}
+	prepare := func() string {
+		response, err := do(http.MethodGet, "/api/v1/auth/csrf", "", "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		var payload struct {
+			CSRF string `json:"csrf_token"`
+		}
+		decode(response, &payload)
+		return payload.CSRF
+	}
+	login := func(password string, expected int) string {
+		body := fmt.Sprintf(`{"username":"response.loss","password":%q}`, password)
+		response, err := do(http.MethodPost, "/api/v1/auth/login", body, prepare())
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer response.Body.Close()
+		if response.StatusCode != expected {
+			payload, _ := io.ReadAll(response.Body)
+			t.Fatalf("login status: got %d want %d: %s", response.StatusCode, expected, payload)
+		}
+		if expected != http.StatusOK {
+			return ""
+		}
+		var identity struct {
+			CSRF string `json:"csrf_token"`
+		}
+		if err := json.NewDecoder(response.Body).Decode(&identity); err != nil {
+			t.Fatal(err)
+		}
+		return identity.CSRF
+	}
+
+	registration := `{"username":"response.loss","email":"response.loss@example.com","password":"correct horse battery staple"}`
+	registrationCSRF := prepare()
+	transport.drop.Store(true)
+	if response, err := do(http.MethodPost, "/api/v1/auth/register", registration, registrationCSRF); err == nil || response != nil {
+		t.Fatalf("registration response was not lost: response=%v err=%v", response, err)
+	}
+	csrf := login("correct horse battery staple", http.StatusOK)
+
+	transport.drop.Store(true)
+	row := `{"content":{"code":"response-loss","label":"committed once"}}`
+	if response, err := do(http.MethodPost, "/api/v1/tables/mutation_snapshot_items/rows", row, csrf); err == nil || response != nil {
+		t.Fatalf("business response was not lost: response=%v err=%v", response, err)
+	}
+	var rows int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM mutation_snapshot_items WHERE code = 'response-loss' AND label = 'committed once'`).Scan(&rows); err != nil {
+		t.Fatal(err)
+	}
+	if rows != 1 {
+		t.Fatalf("committed business rows: got %d want 1", rows)
+	}
+
+	transport.drop.Store(true)
+	passwordBody := `{"current_password":"correct horse battery staple","new_password":"new correct horse battery staple"}`
+	if response, err := do(http.MethodPost, "/api/v1/auth/password", passwordBody, csrf); err == nil || response != nil {
+		t.Fatalf("password response was not lost: response=%v err=%v", response, err)
+	}
+	current, err := do(http.MethodGet, "/api/v1/auth/session", "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = current.Body.Close()
+	if current.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("old session after password commit: got %d want 401", current.StatusCode)
+	}
+	login("correct horse battery staple", http.StatusUnauthorized)
+	login("new correct horse battery staple", http.StatusOK)
+}
 
 func TestBusinessAPIsRequireSessionAndCSRF(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
@@ -59,6 +192,8 @@ func TestBusinessAPIsRequireSessionAndCSRF(t *testing.T) {
 	}
 	if response := accountRequest(app, "GET", "/api/v1/query-policies", "", session.Result().Cookies(), ""); response.Code != 200 {
 		t.Fatalf("authenticated read: %d %s", response.Code, response.Body.String())
+	} else if got, want := response.Header().Get("X-RCC-Account-ID"), accountID(t, session); got != want {
+		t.Fatalf("authenticated response account: got %q want %q", got, want)
 	}
 }
 

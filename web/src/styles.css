@@ -366,3 +366,7 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 .account-action h2 { margin: 0; font-size: 17px; }
 .account-session-actions { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 10px; }
 .account-notice { padding: 12px 14px; border-radius: 6px; background: var(--accent-soft); color: var(--accent-strong); font-size: 14px; }
+.session-interruption { position: fixed; z-index: 100; inset: 0; overflow: auto; background: #f4f6f9; }
+.session-interruption-copy { position: relative; z-index: 1; width: min(100% - 40px, 560px); margin: 32px auto -72px; padding: 18px 22px; border: 1px solid #d8e1de; border-radius: 10px; background: #fff; box-shadow: var(--shadow); }
+.session-interruption-copy h2 { margin: 0 0 8px; font-size: 18px; }
+.session-interruption-copy p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.65; }

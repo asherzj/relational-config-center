@@ -443,8 +443,15 @@ func TestLocalAccountFailuresAndCredentialBoundaries(t *testing.T) {
 		t.Fatal("not UUID v4")
 	}
 	// Database state is used only to set up the disabled-account scenario.
-	if _, err := db.Exec("UPDATE rcc_accounts SET enabled = FALSE WHERE id = ?", identity.Account.ID); err != nil {
+	if _, err := db.Exec("UPDATE rcc_accounts SET enabled = FALSE, session_version = session_version + 1 WHERE id = ?", identity.Account.ID); err != nil {
 		t.Fatal(err)
+	}
+	if _, err := db.Exec("UPDATE rcc_login_sessions SET expires_at = ? WHERE account_id = ?", now.Add(-time.Minute), identity.Account.ID); err != nil {
+		t.Fatal(err)
+	}
+	disabledSession := accountRequest(app, "GET", "/api/v1/auth/session", "", registered.Result().Cookies(), "")
+	if disabledSession.Code != 401 || !strings.Contains(disabledSession.Body.String(), `"account_disabled"`) {
+		t.Fatalf("disabled session classification: %d %s", disabledSession.Code, disabledSession.Body.String())
 	}
 	var failure string
 	for _, attempt := range []string{`{"username":"unknown.user","password":"wrong password long enough"}`, `{"username":"credential.user","password":"wrong password long enough"}`, `{"username":"credential.user","password":" exact password with spaces "}`} {
@@ -465,6 +472,9 @@ func TestLocalAccountFailuresAndCredentialBoundaries(t *testing.T) {
 	}
 	if _, err := db.Exec("UPDATE rcc_accounts SET enabled = TRUE WHERE id = ?", identity.Account.ID); err != nil {
 		t.Fatal(err)
+	}
+	if restoredOldSession := accountRequest(app, "GET", "/api/v1/auth/session", "", registered.Result().Cookies(), ""); restoredOldSession.Code != 401 || !strings.Contains(restoredOldSession.Body.String(), `"session_invalid"`) {
+		t.Fatalf("restored account revived old session: %d %s", restoredOldSession.Code, restoredOldSession.Body.String())
 	}
 	// Password spaces are significant.
 	cookies, csrf := prepareAccount(t, app)

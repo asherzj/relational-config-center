@@ -15,6 +15,7 @@ import type { MutationPolicy, MutationPolicyDraft, MutationPolicyMetadata } from
 import { useDeletePolicyCommand, usePolicyCommand as useSharedPolicyCommand } from "../policies/queries";
 
 export const mutationPolicyKeys = {
+  all: ["mutation-policies"] as const,
   list: ["mutation-policies", "list"] as const,
   types: ["mutation-policy-types"] as const,
   detail: (code: string) => ["mutation-policies", "detail", code] as const,

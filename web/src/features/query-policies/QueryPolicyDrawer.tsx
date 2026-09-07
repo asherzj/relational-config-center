@@ -1,7 +1,9 @@
 import { AlertCircle } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
+import { isUncertainWriteError } from "../../api/client";
 import { Drawer } from "../../components/ui/Drawer";
 import { ErrorState, LoadingState } from "../../components/ui/Feedback";
 import { useToast } from "../../components/ui/Toast";
@@ -12,6 +14,7 @@ import {
   useQueryPolicyTypes,
   useReplaceQueryPolicy,
   useUpdateQueryPolicyMetadata,
+  queryPolicyKeys,
 } from "./queries";
 import { QueryPolicyForm, type FormMode } from "./QueryPolicyForm";
 
@@ -24,6 +27,7 @@ export function QueryPolicyDrawer({ code, onRequestCommand }: Props) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const creating = code === "new";
   const detail = useQueryPolicy(creating ? undefined : code);
   const types = useQueryPolicyTypes();
@@ -41,6 +45,11 @@ export function QueryPolicyDrawer({ code, onRequestCommand }: Props) {
   const mode: FormMode = !creating && policy && (!supported || !requestedActionAllowed) ? "view" : requestedFormMode;
   const pending = create.isPending || replace.isPending || metadata.isPending;
   const serverError = create.error || replace.error || metadata.error;
+  const uncertain = isUncertainWriteError(serverError);
+  const verifyCurrentState = () => {
+    create.reset(); replace.reset(); metadata.reset();
+    void queryClient.refetchQueries({ queryKey: queryPolicyKeys.all }).finally(() => close());
+  };
 
   const title = useMemo(() => {
     if (mode === "create") return "新建查询规则草稿";
@@ -70,7 +79,7 @@ export function QueryPolicyDrawer({ code, onRequestCommand }: Props) {
 
   let content: ReactNode;
   if (!creating && detail.isPending) content = <LoadingState label="正在读取查询规则…" />;
-  else if (!creating && detail.isError) content = <ErrorState error={detail.error} onRetry={() => void detail.refetch()} />;
+  else if (!creating && detail.isError && !detail.data) content = <ErrorState error={detail.error} onRetry={() => void detail.refetch()} />;
   else content = (
     <>
       {!supported && (
@@ -81,6 +90,7 @@ export function QueryPolicyDrawer({ code, onRequestCommand }: Props) {
         policy={policy}
         typeCodes={types.data ?? []}
         serverError={serverError}
+        onVerify={verifyCurrentState}
         onSubmit={submit}
       />
     </>
@@ -90,7 +100,7 @@ export function QueryPolicyDrawer({ code, onRequestCommand }: Props) {
   if (mode === "create" || mode === "replace" || mode === "metadata") {
     footer = (
       <>
-        <Button variant="primary" type="submit" form="query-policy-form" disabled={pending || (mode === "create" && !types.data?.some((type) => supportedQueryPolicyTypes.has(type)))}>
+        <Button variant="primary" type="submit" form="query-policy-form" disabled={pending || uncertain || (mode === "create" && !types.data?.some((type) => supportedQueryPolicyTypes.has(type)))}>
           {pending ? "正在保存…" : mode === "create" ? "创建草稿" : "保存"}
         </Button>
         <Button onClick={close} disabled={pending}>取消</Button>

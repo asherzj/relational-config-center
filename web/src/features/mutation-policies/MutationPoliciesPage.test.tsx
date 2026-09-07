@@ -1,11 +1,12 @@
-import { withAccountSession } from "../../test/account-session";
+import { testIdentity, withAccountSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
+import { businessSessionInvalid } from "../../api/business-session";
 
 const activePolicy = {
   code: "standard_mutation_v1",
@@ -179,6 +180,94 @@ describe("变更规则页面", () => {
     expect(screen.getByText(/请输入安全的字段名/)).toBeVisible();
     expect(screen.getAllByText(/Auto Fill 目标不能重复/)).toHaveLength(2);
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(false);
+  });
+
+  it("does not replay a mutation-rule write whose response was lost and offers a read-only check", async () => {
+    let writes = 0;
+    let reads = 0;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
+      if (url.endsWith("/mutation-policies/editable_mutation_v2") && init?.method === "PUT") {
+        writes += 1;
+        throw new TypeError("response lost after commit");
+      }
+      if (url.endsWith("/mutation-policies/editable_mutation_v2")) { reads += 1; return json(draftPolicy); }
+      if (url.endsWith("/mutation-policies")) { reads += 1; return json({ policies: [draftPolicy] }); }
+      throw new Error(`unexpected request ${url}`);
+    });
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    const user = userEvent.setup();
+    renderPage("/platform/mutation-policies/editable_mutation_v2?mode=edit");
+    await user.clear(await screen.findByLabelText("显示名称"));
+    await user.type(screen.getByLabelText("显示名称"), "可能已提交");
+    await user.click(screen.getByRole("button", { name: "保存" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+    expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
+    expect(writes).toBe(1);
+    const readsBeforeCheck = reads;
+    await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+    await waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
+    expect(writes).toBe(1);
+  });
+
+  it("blocks a mutation-rule lifecycle command after its response is lost until a read-only check", async () => {
+    let writes = 0;
+    let reads = 0;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
+      if (url.endsWith("/mutation-policies/editable_mutation_v2/activate") && init?.method === "POST") {
+        writes += 1;
+        throw new TypeError("response lost after commit");
+      }
+      if (url.endsWith("/mutation-policies/editable_mutation_v2")) { reads += 1; return json(draftPolicy); }
+      if (url.endsWith("/mutation-policies")) { reads += 1; return json({ policies: [draftPolicy] }); }
+      throw new Error(`unexpected request ${url}`);
+    });
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    const user = userEvent.setup();
+    renderPage("/platform/mutation-policies/editable_mutation_v2");
+    await user.click((await screen.findAllByRole("button", { name: "激活" })).at(-1)!);
+    await user.click(screen.getByRole("button", { name: "确认激活" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+    expect(screen.queryByRole("button", { name: "激活" })).not.toBeInTheDocument();
+    expect(writes).toBe(1);
+    const readsBeforeCheck = reads;
+    await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+    await waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
+    expect(writes).toBe(1);
+  });
+
+  it("keeps a mutation-rule draft across same-account login and refetches before allowing save", async () => {
+    let signedIn = true;
+    let writes = 0;
+    let detailReads = 0;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/auth/session")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
+      if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
+      if (url.endsWith("/auth/login")) { signedIn = true; return json(testIdentity); }
+      if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
+      if (url.endsWith("/mutation-policies/editable_mutation_v2") && init?.method === "PUT") { writes += 1; return json(draftPolicy); }
+      if (url.endsWith("/mutation-policies/editable_mutation_v2")) { detailReads += 1; return json(draftPolicy); }
+      if (url.endsWith("/mutation-policies")) return json({ policies: [draftPolicy] });
+      throw new Error(`unexpected request ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    renderPage("/platform/mutation-policies/editable_mutation_v2?mode=edit");
+    await user.clear(await screen.findByLabelText("显示名称"));
+    await user.type(screen.getByLabelText("显示名称"), "恢复后的变更意图");
+    signedIn = false;
+    act(() => window.dispatchEvent(new CustomEvent(businessSessionInvalid, { detail: { code: "session_invalid" } })));
+    await user.type(await screen.findByLabelText("用户名"), "test.user");
+    await user.type(screen.getByLabelText("密码"), "correct horse battery staple");
+    await user.click(screen.getByRole("button", { name: "登录" }));
+    await waitFor(() => expect(screen.queryByRole("heading", { name: "登录本地账号" })).not.toBeInTheDocument());
+    expect(screen.getByLabelText("显示名称")).toHaveValue("恢复后的变更意图");
+    expect(detailReads).toBeGreaterThanOrEqual(2);
+    expect(writes).toBe(0);
   });
 
   it("fails an unknown Type closed while allowing only safe metadata updates", async () => {

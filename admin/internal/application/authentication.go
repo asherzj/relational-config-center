@@ -80,6 +80,7 @@ var (
 	ErrCredentials     = domain.ErrCredentials
 	ErrCurrentPassword = domain.ErrCurrentPassword
 	ErrSession         = domain.ErrSession
+	ErrAccountDisabled = domain.ErrAccountDisabled
 	ErrCSRF            = domain.ErrCSRF
 	ErrAuthTimeout     = domain.ErrAuthTimeout
 )

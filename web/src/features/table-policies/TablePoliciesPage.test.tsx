@@ -1,11 +1,12 @@
-import { withAccountSession } from "../../test/account-session";
+import { testIdentity, withAccountSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
+import { businessSessionInvalid } from "../../api/business-session";
 
 const tablePolicy = {
   table_name: "notification_templates",
@@ -185,6 +186,104 @@ describe("表规则分配页面", () => {
       mutation_policy_code: "standard_mutation_v1",
     });
     expect(await screen.findByText("表规则已创建并保持未启用")).toBeVisible();
+  });
+
+  it("does not replay a table-rule assignment whose response was lost and offers a read-only check", async () => {
+    let writes = 0;
+    let reads = 0;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/database-tables")) { reads += 1; return json({ tables: discoveryTables }); }
+      if (url.endsWith("/query-policy-types")) return json(queryPolicyTypes);
+      if (url.endsWith("/mutation-policy-types")) return json(mutationPolicyTypes);
+      if (url.endsWith("/query-policies")) return json({ policies: queryPolicies });
+      if (url.endsWith("/mutation-policies")) return json({ policies: mutationPolicies });
+      if (url.endsWith("/table-policies") && init?.method === "POST") {
+        writes += 1;
+        throw new TypeError("response lost after commit");
+      }
+      if (url.endsWith("/table-policies")) { reads += 1; return json({ policies: [tablePolicy] }); }
+      throw new Error(`unexpected request ${url}`);
+    });
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    const user = userEvent.setup();
+    renderPage("/platform/table-policies?mode=create");
+    await user.selectOptions(await screen.findByRole("combobox", { name: "真实数据库表" }), "message_templates");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Active 查询规则" }), "standard_page_query_v1");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "standard_mutation_v1");
+    await user.click(screen.getByRole("button", { name: "创建未启用分配" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+    expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeDisabled();
+    expect(writes).toBe(1);
+    const readsBeforeCheck = reads;
+    await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+    await vi.waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
+    expect(writes).toBe(1);
+  });
+
+  it("blocks a table-rule state command after its response is lost until a read-only check", async () => {
+    let writes = 0;
+    let reads = 0;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/database-tables")) { reads += 1; return json({ tables: discoveryTables }); }
+      if (url.endsWith("/table-policies/notification_templates/disable") && init?.method === "POST") {
+        writes += 1;
+        throw new TypeError("response lost after commit");
+      }
+      if (url.endsWith("/table-policies/notification_templates")) { reads += 1; return json(tablePolicy); }
+      if (url.endsWith("/table-policies")) { reads += 1; return json({ policies: [tablePolicy] }); }
+      throw new Error(`unexpected request ${url}`);
+    });
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    const user = userEvent.setup();
+    renderPage("/platform/table-policies/notification_templates");
+    await user.click(await screen.findByRole("button", { name: "停用" }));
+    await user.click(screen.getByRole("button", { name: "确认停用" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+    expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
+    expect(writes).toBe(1);
+    const readsBeforeCheck = reads;
+    await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+    await waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
+    expect(writes).toBe(1);
+  });
+
+  it("keeps a table-rule assignment across same-account login and revalidates its candidates", async () => {
+    let signedIn = true;
+    let discoveryReads = 0;
+    let writes = 0;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/auth/session")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
+      if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
+      if (url.endsWith("/auth/login")) { signedIn = true; return json(testIdentity); }
+      if (url.endsWith("/database-tables")) { discoveryReads += 1; return json({ tables: discoveryTables }); }
+      if (url.endsWith("/query-policy-types")) return json(queryPolicyTypes);
+      if (url.endsWith("/mutation-policy-types")) return json(mutationPolicyTypes);
+      if (url.endsWith("/query-policies")) return json({ policies: queryPolicies });
+      if (url.endsWith("/mutation-policies")) return json({ policies: mutationPolicies });
+      if (url.endsWith("/table-policies") && init?.method === "POST") { writes += 1; return json(tablePolicy, 201); }
+      if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
+      throw new Error(`unexpected request ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    renderPage("/platform/table-policies?mode=create");
+    await user.selectOptions(await screen.findByRole("combobox", { name: "真实数据库表" }), "message_templates");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Active 查询规则" }), "standard_page_query_v1");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "standard_mutation_v1");
+    signedIn = false;
+    act(() => window.dispatchEvent(new CustomEvent(businessSessionInvalid, { detail: { code: "session_invalid" } })));
+    await user.type(await screen.findByLabelText("用户名"), "test.user");
+    await user.type(screen.getByLabelText("密码"), "correct horse battery staple");
+    await user.click(screen.getByRole("button", { name: "登录" }));
+    await waitFor(() => expect(screen.queryByRole("heading", { name: "登录本地账号" })).not.toBeInTheDocument());
+    expect(screen.getByRole("combobox", { name: "真实数据库表" })).toHaveValue("message_templates");
+    expect(screen.getByRole("combobox", { name: "Active 查询规则" })).toHaveValue("standard_page_query_v1");
+    expect(screen.getByRole("combobox", { name: "Active 变更规则" })).toHaveValue("standard_mutation_v1");
+    expect(discoveryReads).toBeGreaterThanOrEqual(2);
+    expect(writes).toBe(0);
   });
 
   it("从可复制详情 URL 原子替换两个 Code，并警告 enabled 分配下一次请求立即生效", async () => {

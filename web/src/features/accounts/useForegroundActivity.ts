@@ -7,7 +7,7 @@ export function useForegroundActivity(identity: CurrentIdentity | null, callback
  generation: () => number;
  isCurrent: (generation: number, csrf: string) => boolean;
  onCurrent: (current: CurrentIdentity) => void;
- onInvalid: () => void;
+ onInvalid: (code: string) => void;
  onError: (cause: unknown) => void;
 }) {
   useEffect(() => {
@@ -31,7 +31,7 @@ export function useForegroundActivity(identity: CurrentIdentity | null, callback
           try { if (localStorage.getItem(activityStorageKey) === reservation) localStorage.removeItem(activityStorageKey); } catch { /* retry on the next interaction */ }
           if (!callbacks.isCurrent(generation, sessionCSRF)) return;
           if (cause instanceof ApiError && cause.status === 401) {
-            callbacks.onInvalid();
+            callbacks.onInvalid(cause.code);
             return;
           }
           callbacks.onError(cause);

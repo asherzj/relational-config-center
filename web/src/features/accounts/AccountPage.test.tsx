@@ -84,6 +84,7 @@ it("offers session rechecking after an uncertain registration without replaying 
   await user.type(screen.getByLabelText("密码"), "correct horse battery staple");
   await user.click(screen.getByRole("button", { name: "注册并登录" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+  expect(screen.getByRole("button", { name: "注册并登录" })).toBeDisabled();
   await user.click(screen.getByRole("button", { name: "重新检查登录状态" }));
   expect(await screen.findByText("小爱")).toBeVisible();
   expect(writes).toBe(1);
@@ -165,6 +166,33 @@ it("changes the password and returns to login after every session is revoked", a
   await user.click(screen.getByRole("button", { name: "修改密码并退出全部设备" }));
   expect(await screen.findByRole("heading", { name: "登录本地账号" })).toBeVisible();
   expect(changed).toBe(true);
+});
+
+it("offers the login path after a password response is lost without replaying the change", async () => {
+  let writes = 0;
+  let passwordAttempted = false;
+  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    const path = String(input);
+    if (path.endsWith("/session")) return passwordAttempted ? failure("session_invalid", 401) : json(identity);
+    if (path.endsWith("/password")) {
+      writes += 1;
+      passwordAttempted = true;
+      throw new TypeError("response lost after commit");
+    }
+    throw new Error(`unexpected ${path}`);
+  }));
+  renderAccount("/account");
+  const user = userEvent.setup();
+  await screen.findByText("小爱");
+  await user.type(screen.getByLabelText("当前密码", { selector: "#password-current-password" }), "current password long enough");
+  await user.type(screen.getByLabelText("新密码"), "replacement password long enough");
+  await user.click(screen.getByRole("button", { name: "修改密码并退出全部设备" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+  expect(screen.getByRole("button", { name: "修改密码并退出全部设备" })).toBeDisabled();
+  expect(writes).toBe(1);
+  await user.click(screen.getByRole("button", { name: "重新检查登录状态" }));
+  expect(await screen.findByRole("heading", { name: "登录本地账号" })).toBeVisible();
+  expect(writes).toBe(1);
 });
 
 it("can exit every device from the current account", async () => {

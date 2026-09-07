@@ -17,6 +17,7 @@ var (
 	ErrCredentials     = errors.New("invalid credentials")
 	ErrCurrentPassword = errors.New("current password invalid")
 	ErrSession         = errors.New("invalid session")
+	ErrAccountDisabled = errors.New("account disabled")
 	ErrCSRF            = errors.New("invalid csrf credentials")
 	ErrAuthUnavailable = errors.New("authentication unavailable")
 	ErrAuthTimeout     = errors.New("authentication timed out")

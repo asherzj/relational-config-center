@@ -6,6 +6,7 @@ import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { EmptyState, ErrorState, LoadingState } from "../../components/ui/Feedback";
 import { useToast } from "../../components/ui/Toast";
 import { presentError } from "../../api/error-messages";
+import { isUncertainWriteError } from "../../api/client";
 import {
   allowedActions,
   formatTimestamp,
@@ -45,7 +46,7 @@ const commandContent: Record<Command, { title: string; description: string; labe
   },
 };
 
-function PolicyActions({ policy, onCommand }: { policy: QueryPolicy; onCommand: (command: Command, code: string) => void }) {
+function PolicyActions({ policy, commandsBlocked, onCommand }: { policy: QueryPolicy; commandsBlocked: boolean; onCommand: (command: Command, code: string) => void }) {
   const navigate = useNavigate();
   const actions = allowedActions[policy.status];
   const supported = supportedQueryPolicyTypes.has(policy.typeCode);
@@ -55,9 +56,9 @@ function PolicyActions({ policy, onCommand }: { policy: QueryPolicy; onCommand: 
       <button onClick={() => open()}>查看</button>
       {supported && actions.includes("replace") && <button onClick={() => open("?mode=edit")}>编辑</button>}
       {supported && actions.includes("metadata") && <button onClick={() => open("?mode=metadata")}>元数据</button>}
-      {supported && actions.includes("activate") && <button onClick={() => onCommand("activate", policy.code)}>激活</button>}
-      {supported && actions.includes("deprecate") && <button className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</button>}
-      {supported && actions.includes("delete") && <button className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</button>}
+      {!commandsBlocked && supported && actions.includes("activate") && <button onClick={() => onCommand("activate", policy.code)}>激活</button>}
+      {!commandsBlocked && supported && actions.includes("deprecate") && <button className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</button>}
+      {!commandsBlocked && supported && actions.includes("delete") && <button className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</button>}
     </div>
   );
 }
@@ -73,6 +74,11 @@ export function QueryPoliciesPage() {
   const { showToast } = useToast();
   const [pendingCommand, setPendingCommand] = useState<PendingCommand>(null);
   const commandMutation = pendingCommand?.command === "activate" ? activate : pendingCommand?.command === "deprecate" ? deprecate : remove;
+  const uncertainCommand = isUncertainWriteError(activate.error || deprecate.error || remove.error);
+  const verifyCommand = async () => {
+    await policies.refetch();
+    activate.reset(); deprecate.reset(); remove.reset();
+  };
 
   const executeCommand = () => {
     if (!pendingCommand) return;
@@ -83,6 +89,11 @@ export function QueryPoliciesPage() {
       if (command === "delete" && code === targetCode) navigate("/platform/query-policies");
     };
     const onError = (error: unknown) => {
+      if (isUncertainWriteError(error)) {
+        setPendingCommand(null);
+        if (code === targetCode) navigate("/platform/query-policies");
+        return;
+      }
       const shown = presentError(error);
       showToast(shown.requestId ? `${shown.message}（请求编号：${shown.requestId}）` : shown.message);
       setPendingCommand(null);
@@ -102,7 +113,7 @@ export function QueryPoliciesPage() {
           <h1>查询规则定义</h1>
           <p>创建可复用、版本化的查询规则；草稿验证通过后才能激活并分配。</p>
         </div>
-        <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/query-policies/new")} disabled={types.isPending || types.isError || !supportedTypes.length}>
+        <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/query-policies/new")} disabled={uncertainCommand || types.isPending || types.isError || !supportedTypes.length}>
           新建草稿
         </Button>
       </div>
@@ -118,7 +129,8 @@ export function QueryPoliciesPage() {
       </section>
 
       <section className="catalog" aria-label="查询规则目录">
-        {policies.isPending ? <LoadingState label="正在读取查询规则目录…" /> : policies.isError ? (
+        {uncertainCommand && <div className="inline-alert" role="alert"><strong>提交结果尚未确认。系统不会自动重复此写入。</strong><Button variant="secondary" onClick={() => void verifyCommand()}>只读查询当前状态</Button></div>}
+        {policies.isPending ? <LoadingState label="正在读取查询规则目录…" /> : policies.isError && !policies.data ? (
           <ErrorState error={policies.error} onRetry={() => void policies.refetch()} />
         ) : !policies.data.length ? <EmptyState /> : (
           <div className="table-scroll">
@@ -135,7 +147,7 @@ export function QueryPoliciesPage() {
                     <td><span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span></td>
                     <td>{policy.modifier}</td>
                     <td className="timestamp">{formatTimestamp(policy.modifiedAt)}</td>
-                    <td><PolicyActions policy={policy} onCommand={(command, targetCode) => setPendingCommand({ command, code: targetCode })} /></td>
+                    <td><PolicyActions policy={policy} commandsBlocked={uncertainCommand} onCommand={(command, targetCode) => setPendingCommand({ command, code: targetCode })} /></td>
                   </tr>
                 ))}
               </tbody>

@@ -1,6 +1,8 @@
 import { Info } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { presentError } from "../../api/error-messages";
+import { isUncertainWriteError } from "../../api/client";
+import { Button } from "../../components/ui/Button";
 import {
   formatTimestamp,
   policyStatusLabels,
@@ -43,10 +45,11 @@ type Props = {
   policy?: QueryPolicy;
   typeCodes: string[];
   serverError?: unknown;
+  onVerify?: () => void;
   onSubmit: (value: QueryPolicyDraft | QueryPolicyMetadata) => void;
 };
 
-export function QueryPolicyForm({ mode, policy, typeCodes, serverError, onSubmit }: Props) {
+export function QueryPolicyForm({ mode, policy, typeCodes, serverError, onVerify, onSubmit }: Props) {
   const [draft, setDraft] = useState<QueryPolicyDraft>(() => draftFor(policy));
   const [errors, setErrors] = useState<Partial<Record<keyof QueryPolicyDraft, string>>>({});
   const executionLocked = mode === "view" || mode === "metadata";
@@ -55,7 +58,7 @@ export function QueryPolicyForm({ mode, policy, typeCodes, serverError, onSubmit
   useEffect(() => {
     setDraft(draftFor(policy));
     setErrors({});
-  }, [policy, mode]);
+  }, [policy?.code, mode]);
 
   const update = <K extends keyof QueryPolicyDraft>(key: K, value: QueryPolicyDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -95,8 +98,9 @@ export function QueryPolicyForm({ mode, policy, typeCodes, serverError, onSubmit
     <form id="query-policy-form" className="policy-form" onSubmit={submit} noValidate>
       {presentedError && (
         <div className="inline-alert" role="alert">
-          <strong>{presentedError.message}</strong>
+          <strong>{isUncertainWriteError(serverError) ? "提交结果尚未确认。系统不会自动重复此写入。" : presentedError.message}</strong>
           {presentedError.requestId && <span>请求编号：{presentedError.requestId}</span>}
+          {isUncertainWriteError(serverError) && onVerify && <Button type="button" variant="secondary" onClick={onVerify}>只读查询当前状态</Button>}
         </div>
       )}
 

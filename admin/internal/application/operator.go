@@ -9,6 +9,8 @@ import "context"
 type AuthenticatedOperator struct{ accountID string }
 type operatorContextKey struct{}
 
+func (operator AuthenticatedOperator) AccountID() string { return operator.accountID }
+
 func (operator AuthenticatedOperator) Bind(ctx context.Context) context.Context {
 	return context.WithValue(ctx, operatorContextKey{}, operator)
 }

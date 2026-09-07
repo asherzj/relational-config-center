@@ -1,4 +1,4 @@
-# Local Accounts, sessions and protected workspace: T1–T3
+# Local Accounts, sessions and protected workspace: T1–T4
 
 [#35](https://github.com/asherzj/relational-config-center/issues/35) implements the
 account-entry slice and [#36](https://github.com/asherzj/relational-config-center/issues/36)
@@ -12,8 +12,8 @@ or mail operation exists.
 [#37](https://github.com/asherzj/relational-config-center/issues/37) protects every
 business route and attributes every authored row/catalog change to the requesting
 account's permanent ID. TMP-01 has been removed: no shared Token, disabled-auth
-mode, proxy credential injection or normal fixed Operator remains. #38 owns
-interrupted draft recovery; #39 owns account maintenance commands; #40 owns final
+mode, proxy credential injection or normal fixed Operator remains. #38 adds
+interrupted in-memory edit recovery; #39 owns account maintenance commands; #40 owns final
 required-schema startup checks and complete release acceptance.
 
 ## Start the development entry
@@ -112,13 +112,17 @@ are 15–128 Unicode code points, preserving all spaces and case without truncat
 | `current_password_invalid` | 400 | A profile/password form supplied the wrong current password; the session remains valid |
 | `csrf_invalid` | 403 | CSRF pair or origin failed; no account/session transition |
 | `account_conflict` | 409 | Normalized username or email is occupied |
+| `account_disabled` | 401 | A previously valid session belongs to a disabled account; Web destroys its recoverable in-memory state |
 | `auth_rate_limited` | 429 | Wait the integer seconds in `Retry-After` |
 | `auth_unavailable` | 503 | Authentication/database dependency unavailable |
 | `auth_timeout` | 504 | Authentication/database operation timed out |
 
 Web does not automatically retry writes. After a lost registration response, check
 current identity or log in using the original username/password. A committed
-registration may produce a conflict if submitted again. Account request deadlines are shorter than driver socket and HTTP deadlines;
+registration may produce a conflict if submitted again. After a lost password-change
+response, use the login path with the intended new password. After a lost business
+write response, use the offered read-only catalog, rule-detail or Managed Data query;
+the original write stays blocked until leaving that uncertain result. Account request deadlines are shorter than driver socket and HTTP deadlines;
 lock waits and elapsed deadlines return 504. Service errors preserve
 existing cookies and offer explicit state rechecking.
 
@@ -152,6 +156,43 @@ credential-free storage event so other tabs clear or recheck their in-memory vie
 The only persistent Web values added here are an activity timestamp and an event
 kind/time/nonce; account data, email, session/CSRF credentials and passwords remain
 out of browser storage.
+
+## Interrupted workspace recovery
+
+An expired or ordinarily revoked session immediately clears the in-memory business
+credential and hides the mounted workspace. Query filters, configuration row input,
+rule forms, table assignments and an open Change Set stay only in that tab's memory.
+The interruption view accepts a normal public login. If the permanent Account ID is
+unchanged, Web refetches every active rule, Schema, catalog and target query before it
+reveals the workspace. A pending Managed Data Change Set is rebuilt from the current
+Schema and, when it has an ID, an exact current-row query. The user must press the
+confirmation button again; recovery never sends a business write.
+
+A different Account ID clears the query cache and remounts the workspace, destroying
+the previous account's drafts before the new account is shown. Explicit logout,
+logout-all, refresh and a cross-tab ended event also destroy them. Each authenticated
+business response carries `X-RCC-Account-ID`; Web compares it with the in-memory
+session before parsing the body. Session generation checks before and after parsing
+turn late success, 401, error and chained readback results into `stale_session` instead
+of exposing them to the new account. When local storage rejects publication,
+`BroadcastChannel` carries the same event; visibility verification remains the final
+supported-browser fallback for a missed notification or changed Cookie.
+
+Authentication dependency failures (`503` or `504`) hide the workspace but retain the
+Cookie and same-account in-memory intent so the user can retry identity inspection.
+They are distinct from session invalidation. A disabled account returns
+`401 account_disabled` for its still-identifiable old session and Web destroys all
+recoverable state. Login still returns the same `invalid_credentials` response for an
+unknown username, wrong password and disabled account.
+
+The #39 disable operation must preserve enough old login-session rows to classify a
+previously authenticated Cookie as `account_disabled`, while atomically setting the
+account disabled and advancing its session version. It must not delete those rows as
+ordinary logout currently does. Re-enabling the account must not revive them: with the
+account enabled again, their older version must resolve to `session_invalid`. Expired
+session cleanup may remove them at the normal expiry boundary. This maintenance
+contract keeps disabled-account draft destruction observable without revealing
+account status through login.
 
 | Setting | Default window and limit |
 | --- | --- |
@@ -221,7 +262,9 @@ credential and configured Origin (or same-origin Referer), including POST querie
 Health endpoints remain public and an empty account directory accepts registration.
 Missing or revoked sessions return `401 session_invalid`; authenticated rule
 rejections and CSRF failures remain stable 403 responses, and Web does not treat
-those as login failures. Business responses use `Cache-Control: no-store`.
+those as login failures. Business responses use `Cache-Control: no-store` and
+include the permanent requesting Account ID in `X-RCC-Account-ID` so Web can
+reject a response when another tab replaced the shared Cookie.
 
 HTTP authenticates once before entering a business use case. The immutable
 `AuthenticatedOperator` result binds its private Account ID to that request's

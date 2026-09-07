@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, useLocation } from "react-router-dom";
@@ -82,7 +82,7 @@ it("preserves a service failure as a retryable session check", async () => {
  expect(screen.queryByLabelText("主导航")).not.toBeInTheDocument();
 });
 
-it("handles a business session 401 by hiding the workspace and returning to login", async () => {
+it("handles a business session 401 by hiding the workspace behind reauthentication", async () => {
  let revoked=false;
  vi.stubGlobal("fetch",vi.fn(async(input:RequestInfo|URL)=>{
   if(String(input).endsWith("/session"))return revoked?failure("session_invalid",401):json(identity);
@@ -90,8 +90,166 @@ it("handles a business session 401 by hiding the workspace and returning to logi
   revoked=true;
   return failure("session_invalid",401);
  }));
- renderWorkspace("/platform/query-policies");
+  renderWorkspace("/platform/query-policies");
+  expect(await screen.findByRole("heading",{name:"登录本地账号"})).toBeVisible();
+  expect(screen.getByLabelText("主导航")).not.toBeVisible();
+  expect(screen.getByLabelText("current path")).toHaveTextContent("/platform/query-policies");
+});
+
+it("keeps a query-rule edit in memory across same-account reauthentication and rechecks server state", async () => {
+ const draftPolicy = {
+  code:"editable_query_v1",name:"原名称",description:"",type_code:"page_query",default_order_field:"id",
+  default_order_direction:"DESC",default_page_size:20,max_page_size:200,status:"DRAFT",
+  creator:identity.account.id,modifier:identity.account.id,gmt_created:"2026-09-07T00:00:00Z",gmt_modified:"2026-09-07T00:00:00Z",
+ };
+ let expired=false;
+ let detailReads=0;
+ let writes=0;
+ localStorage.setItem("rcc:last-activity-report",String(Date.now()));
+ vi.stubGlobal("navigator",Object.assign(Object.create(navigator),{locks:{request:(_name:string,callback:()=>Promise<unknown>)=>callback()}}));
+ vi.stubGlobal("fetch",vi.fn(async(input:RequestInfo|URL,init?:RequestInit)=>{
+  const path=String(input);
+  if(path.endsWith("/session"))return expired?failure("session_invalid",401):json(identity);
+  if(path.endsWith("/csrf"))return json({csrf_token:"preauth-csrf"});
+  if(path.endsWith("/login")){expired=false;return json(identity);}
+  if(expired)return failure("session_invalid",401);
+  if(path.endsWith("/query-policy-types"))return json({types:[{code:"page_query"}]});
+  if(path.endsWith("/query-policies/editable_query_v1")){
+   if(init?.method){writes++;return json(draftPolicy);}
+   detailReads++;return json({...draftPolicy,gmt_modified:`2026-09-07T00:00:0${detailReads}Z`});
+  }
+  if(path.endsWith("/query-policies"))return json({policies:[draftPolicy]});
+  throw new Error(`unexpected ${path}`);
+ }));
+ renderWorkspace("/platform/query-policies/editable_query_v1?mode=edit");
+ const user=userEvent.setup();
+ const name=await screen.findByLabelText("显示名称");
+ await user.clear(name);
+ await user.type(name,"会话中断编辑意图");
+ expired=true;
+ await user.click(screen.getByRole("button",{name:"刷新"}));
  expect(await screen.findByRole("heading",{name:"登录本地账号"})).toBeVisible();
- expect(screen.queryByLabelText("主导航")).not.toBeInTheDocument();
- expect(screen.getByLabelText("current path")).toHaveTextContent("/login?returnTo=%2Fplatform%2Fquery-policies");
+ expect(screen.getByLabelText("主导航")).not.toBeVisible();
+ await user.type(screen.getByLabelText("用户名"),"alice");
+ await user.type(screen.getByLabelText("密码"),"correct horse battery staple");
+ await user.click(screen.getByRole("button",{name:"登录"}));
+ await waitFor(()=>expect(screen.queryByRole("heading",{name:"登录本地账号"})).not.toBeInTheDocument());
+ expect(screen.getByLabelText("显示名称")).toHaveValue("会话中断编辑意图");
+ expect(detailReads).toBeGreaterThanOrEqual(2);
+ expect(writes).toBe(0);
+});
+
+it("clears an in-memory rule draft when focus reveals a different Cookie account", async () => {
+ const bob={...identity,account:{...identity.account,id:"9e5e2b50-6aaa-4eaa-83fb-f56d84240214",username:"bob",display_name:"小博",email:"bob@example.com"},csrf_token:"bob-csrf"};
+ let current=identity;
+ localStorage.setItem("rcc:last-activity-report",String(Date.now()));
+ vi.stubGlobal("navigator",Object.assign(Object.create(navigator),{locks:{request:(_name:string,callback:()=>Promise<unknown>)=>callback()}}));
+ vi.stubGlobal("fetch",vi.fn(async(input:RequestInfo|URL)=>{
+  const path=String(input);
+  if(path.endsWith("/activity"))return json(current);
+  if(path.endsWith("/session"))return json(current);
+  if(path.endsWith("/query-policy-types"))return json({types:[{code:"page_query"}]});
+  if(path.endsWith("/query-policies"))return json({policies:[]});
+  throw new Error(`unexpected ${path}`);
+ }));
+ renderWorkspace("/platform/query-policies/new");
+ const user=userEvent.setup();
+ const name=await screen.findByLabelText("显示名称");
+ await user.type(name,"不得跨账号显示");
+ current=bob;
+ act(()=>document.dispatchEvent(new Event("visibilitychange")));
+ expect(await screen.findByText("小博")).toBeVisible();
+ expect(screen.getByLabelText("显示名称")).toHaveValue("");
+});
+
+it("clears an in-memory rule draft when another tab ends the session", async () => {
+ let signedIn=true;
+ vi.stubGlobal("navigator",Object.assign(Object.create(navigator),{locks:{request:(_name:string,callback:()=>Promise<unknown>)=>callback()}}));
+ vi.stubGlobal("fetch",vi.fn(async(input:RequestInfo|URL)=>{
+  const path=String(input);
+  if(path.endsWith("/session"))return signedIn?json(identity):failure("session_invalid",401);
+  if(path.endsWith("/csrf"))return json({csrf_token:"preauth-csrf"});
+  if(path.endsWith("/login")){signedIn=true;return json(identity);}
+  if(path.endsWith("/query-policy-types"))return json({types:[{code:"page_query"}]});
+  if(path.endsWith("/query-policies"))return json({policies:[]});
+  throw new Error(`unexpected ${path}`);
+ }));
+ renderWorkspace("/platform/query-policies/new");
+ const user=userEvent.setup();
+ await user.type(await screen.findByLabelText("显示名称"),"跨标签退出后必须销毁");
+ signedIn=false;
+ act(()=>window.dispatchEvent(new StorageEvent("storage",{key:"rcc:session-event",newValue:JSON.stringify({type:"ended",at:Date.now()})})));
+ expect(await screen.findByRole("heading",{name:"登录本地账号"})).toBeVisible();
+ await user.type(screen.getByLabelText("用户名"),"alice");
+ await user.type(screen.getByLabelText("密码"),"correct horse battery staple");
+ await user.click(screen.getByRole("button",{name:"登录"}));
+ expect(await screen.findByLabelText("显示名称")).toHaveValue("");
+});
+
+it("keeps same-account memory hidden through an authentication service failure", async () => {
+ let unavailable=false;
+ localStorage.setItem("rcc:last-activity-report",String(Date.now()));
+ vi.stubGlobal("navigator",Object.assign(Object.create(navigator),{locks:{request:(_name:string,callback:()=>Promise<unknown>)=>callback()}}));
+ vi.stubGlobal("fetch",vi.fn(async(input:RequestInfo|URL)=>{
+  const path=String(input);
+  if(path.endsWith("/activity"))return json(identity);
+  if(path.endsWith("/session"))return unavailable?failure("auth_unavailable",503):json(identity);
+  if(path.endsWith("/query-policy-types"))return json({types:[{code:"page_query"}]});
+  if(path.endsWith("/query-policies"))return json({policies:[]});
+  throw new Error(`unexpected ${path}`);
+ }));
+ renderWorkspace("/platform/query-policies/new");
+ const user=userEvent.setup();
+ const name=await screen.findByLabelText("显示名称");
+ fireEvent.change(name,{target:{value:"服务恢复后仍在"}});
+ unavailable=true;
+ act(()=>document.dispatchEvent(new Event("visibilitychange")));
+ expect(await screen.findByRole("alert")).toHaveTextContent("账号服务暂时不可用");
+ expect(screen.getByLabelText("主导航")).not.toBeVisible();
+ unavailable=false;
+ await user.click(screen.getByRole("button",{name:"重新检查登录状态"}));
+ await waitFor(()=>expect(screen.queryByText("账号服务暂时不可用")).not.toBeInTheDocument());
+ expect(screen.getByLabelText("显示名称")).toHaveValue("服务恢复后仍在");
+});
+
+it("destroys recoverable drafts when the server identifies a disabled account", async () => {
+ let disabled=false;
+ localStorage.setItem("rcc:last-activity-report",String(Date.now()));
+ vi.stubGlobal("navigator",Object.assign(Object.create(navigator),{locks:{request:(_name:string,callback:()=>Promise<unknown>)=>callback()}}));
+ vi.stubGlobal("fetch",vi.fn(async(input:RequestInfo|URL)=>{
+  const path=String(input);
+  if(path.endsWith("/activity"))return disabled?failure("account_disabled",401):json(identity);
+  if(path.endsWith("/session"))return disabled?failure("account_disabled",401):json(identity);
+  if(path.endsWith("/query-policy-types"))return json({types:[{code:"page_query"}]});
+  if(path.endsWith("/query-policies"))return json({policies:[]});
+  throw new Error(`unexpected ${path}`);
+ }));
+ renderWorkspace("/platform/query-policies/new");
+ const user=userEvent.setup();
+ await user.type(await screen.findByLabelText("显示名称"),"停用后必须销毁");
+  disabled=true;
+ localStorage.removeItem("rcc:last-activity-report");
+ fireEvent.pointerDown(document.body);
+ expect(await screen.findByRole("heading",{name:"登录本地账号"})).toBeVisible();
+ expect(screen.getByLabelText("current path")).toHaveTextContent("/login");
+ expect(screen.queryByDisplayValue("停用后必须销毁")).not.toBeInTheDocument();
+});
+
+it("destroys an interrupted draft when the embedded login inspection discovers a disabled account", async () => {
+ let sessionReads=0;
+ vi.stubGlobal("navigator",Object.assign(Object.create(navigator),{locks:{request:(_name:string,callback:()=>Promise<unknown>)=>callback()}}));
+ vi.stubGlobal("fetch",vi.fn(async(input:RequestInfo|URL)=>{
+  const path=String(input);
+  if(path.endsWith("/session"))return sessionReads++===0?json(identity):failure("account_disabled",401);
+  if(path.endsWith("/query-policy-types"))return json({types:[{code:"page_query"}]});
+  if(path.endsWith("/query-policies"))return json({policies:[]});
+  throw new Error(`unexpected ${path}`);
+ }));
+ renderWorkspace("/platform/query-policies/new");
+ const user=userEvent.setup();
+ await user.type(await screen.findByLabelText("显示名称"),"停用检查必须销毁");
+ act(()=>window.dispatchEvent(new CustomEvent("rcc:business-session-invalid",{detail:{code:"session_invalid"}})));
+ await waitFor(()=>expect(screen.getByLabelText("current path")).toHaveTextContent("/login"));
+ expect(screen.getByRole("heading",{name:"登录本地账号"})).toBeVisible();
+ expect(screen.queryByDisplayValue("停用检查必须销毁")).not.toBeInTheDocument();
 });

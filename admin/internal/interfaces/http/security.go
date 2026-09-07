@@ -158,6 +158,7 @@ func sessionAuthentication(options RouterOptions) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		c.Header("X-RCC-Account-ID", operator.AccountID())
 		c.Request = c.Request.WithContext(operator.Bind(c.Request.Context()))
 		c.Next()
 	}

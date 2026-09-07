@@ -61,17 +61,37 @@ export async function request<T>(path: string, options: RequestOptions<T> = {}):
       },
     });
   } catch (cause) {
+    if (business && session.generation !== businessSession().generation) {
+      throw new ApiError("stale_session", "登录状态已变化，请重新查询。", 0);
+    }
     throw new ApiError("network_error", "无法连接 Admin，请检查服务状态后重试。", 0, undefined, { cause });
   }
 
-  const payload = await parseJson(response);
+  const responseAccountID = response.headers.get("X-RCC-Account-ID");
   if (business && session.generation !== businessSession().generation) {
     throw new ApiError("stale_session", "登录状态已变化，请重新查询。", 0);
   }
-  if (business && response.status === 401) window.dispatchEvent(new Event(businessSessionInvalid));
+  if (business && session.credentials && responseAccountID && responseAccountID !== session.credentials.accountID) {
+    window.dispatchEvent(new CustomEvent(businessSessionInvalid, { detail: { code: "account_changed" } }));
+    throw new ApiError("stale_session", "登录账号已变化，请重新查询。", 0);
+  }
+  let payload: unknown;
+  try {
+    payload = await parseJson(response);
+  } catch (cause) {
+    if (business && session.generation !== businessSession().generation) {
+      throw new ApiError("stale_session", "登录状态已变化，请重新查询。", 0);
+    }
+    if (cause instanceof ApiError) throw cause;
+    throw new ApiError("network_error", "读取 Admin 响应时连接中断，请重新查询。", response.status, response.headers.get("X-Request-ID") ?? undefined, { cause });
+  }
+  if (business && session.generation !== businessSession().generation) {
+    throw new ApiError("stale_session", "登录状态已变化，请重新查询。", 0);
+  }
   if (!response.ok) {
     const parsedError = adminErrorDtoSchema.safeParse(payload);
     if (parsedError.success) {
+      if (business && response.status === 401) window.dispatchEvent(new CustomEvent(businessSessionInvalid, { detail: { code: parsedError.data.error.code } }));
       throw new ApiError(
         parsedError.data.error.code,
         parsedError.data.error.message,
@@ -106,4 +126,13 @@ export async function request<T>(path: string, options: RequestOptions<T> = {}):
 export function shouldRetryQuery(failureCount: number, error: unknown): boolean {
   if (failureCount >= 1 || !(error instanceof ApiError)) return false;
   return error.code === "network_error" || error.status === 503 || error.status === 504;
+}
+
+export function isUncertainWriteError(error: unknown): boolean {
+  return error instanceof ApiError
+    && (error.code === "network_error"
+      || error.code === "contract_mismatch"
+      || error.code === "unexpected_response"
+      || error.code === "stale_session"
+      || error.status === 504);
 }

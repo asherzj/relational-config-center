@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Database, Pencil, Plus, RefreshCw, RotateCcw, Search, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../../components/ui/Button";
 import { ErrorState, LoadingState } from "../../components/ui/Feedback";
 import { useTablePolicies } from "../table-policies/queries";
@@ -23,6 +23,7 @@ import { useManagedDataMutation, useManagedDataQuery, useManagedDataRowRefetch, 
 import { ManagedRowEditor } from "./ManagedRowEditor";
 import { ChangeSetDialog } from "./ChangeSetDialog";
 import { MutationSuccessDialog } from "./MutationSuccessDialog";
+import { useWorkspaceRecovery } from "../accounts/ProtectedWorkspace";
 
 const initialQuerySpec: QuerySpec = { conditions: [], pageNumber: 1 };
 
@@ -121,6 +122,7 @@ function ConditionValueEditor({ index, condition, column, update }: {
 }
 
 export function ManagedDataPage() {
+  const recoveryVersion = useWorkspaceRecovery();
   const policies = useTablePolicies();
   const [requestedTable, setRequestedTable] = useState("");
   const [querySpec, setQuerySpec] = useState<QuerySpec>(initialQuerySpec);
@@ -132,7 +134,12 @@ export function ManagedDataPage() {
   const [editorSequence, setEditorSequence] = useState(0);
   const [editor, setEditor] = useState<ManagedDataEditorState | null>(null);
   const [pendingChange, setPendingChange] = useState<PendingManagedDataChange | null>(null);
+  const [reviewedRecoveryVersion, setReviewedRecoveryVersion] = useState(recoveryVersion);
+  const [recheckingChange, setRecheckingChange] = useState(false);
+  const [recheckError, setRecheckError] = useState<unknown>(null);
   const [outcome, setOutcome] = useState<ManagedDataMutationOutcome | null>(null);
+  const recoveryVersionRef = useRef(recoveryVersion);
+  recoveryVersionRef.current = recoveryVersion;
   const enabledPolicies = (policies.data ?? []).filter((policy) => policy.enabled);
   const selectedTable = enabledPolicies.some((policy) => policy.tableName === requestedTable)
     ? requestedTable
@@ -161,6 +168,55 @@ export function ManagedDataPage() {
   const fieldsFromTargets = (targets: readonly AutoFillTarget[]) => targets.flatMap(([field]) => field ? [field] : []);
   const autoFillFields = new Set([...fieldsFromTargets(autoFillTargets("ADD")), ...fieldsFromTargets(autoFillTargets("MODIFY"))]);
   const changeSetAutoFillFields = (operation: ChangeSetOperation) => new Set(fieldsFromTargets(autoFillTargets(operation)));
+  const recheckOpenEditor = (version: number) => {
+    if (!editor || editor.operation !== "MODIFY" || typeof editor.row?.id !== "string") return;
+    const target = { sequence: editor.sequence, tableName: editor.tableName, id: editor.row.id };
+    setRecheckingChange(true);
+    setRecheckError(null);
+    rowRefetch.mutate({ operation: "MODIFY", tableName: target.tableName, id: target.id }, {
+      onSuccess(fresh) {
+        if (recoveryVersionRef.current !== version) return;
+        setEditor((current) => current?.sequence === target.sequence ? {
+          ...current,
+          row: fresh.row,
+          columns: fresh.columns ?? current.columns,
+          allAutoFillFields: [...autoFillFields],
+          changeSetAutoFillFields: [...changeSetAutoFillFields("MODIFY")],
+        } : current);
+        setReviewedRecoveryVersion(version);
+        setRecheckingChange(false);
+      },
+      onError(error) {
+        if (recoveryVersionRef.current !== version) return;
+        setRecheckError(error);
+        setRecheckingChange(false);
+      },
+    });
+  };
+  const recheckPendingTarget = (version: number) => {
+    if (!pendingChange?.id) return;
+    const target = { operation: pendingChange.operation, tableName: pendingChange.tableName, id: pendingChange.id };
+    setRecheckingChange(true);
+    setRecheckError(null);
+    rowRefetch.mutate(target, {
+      onSuccess(fresh) {
+        if (recoveryVersionRef.current !== version) return;
+        setPendingChange((current) => current?.id === target.id && current.tableName === target.tableName ? {
+          ...current,
+          row: fresh.row,
+          columns: fresh.columns ?? current.columns,
+          changeSetAutoFillFields: [...changeSetAutoFillFields(current.operation)],
+        } : current);
+        setReviewedRecoveryVersion(version);
+        setRecheckingChange(false);
+      },
+      onError(error) {
+        if (recoveryVersionRef.current !== version) return;
+        setRecheckError(error);
+        setRecheckingChange(false);
+      },
+    });
+  };
   const capabilityReason = (operation: "ADD" | "MODIFY" | "DELETE") => {
     if (!executableMutationPolicy) return "当前规则快照的变更能力尚不可执行";
     const allowed = operation === "ADD" ? executableMutationPolicy.allowAdd : operation === "MODIFY" ? executableMutationPolicy.allowModify : executableMutationPolicy.allowDelete;
@@ -175,12 +231,50 @@ export function ManagedDataPage() {
     }
     return undefined;
   };
+  useEffect(() => {
+    if (recoveryVersion === 0) return;
+    mutation.reset();
+    setRecheckError(null);
+    if (editor && !pendingChange && result.data && selectedTable === editor.tableName) {
+      setEditor((current) => current ? {
+        ...current,
+        columns: [...result.data.columns],
+        allAutoFillFields: [...autoFillFields],
+        changeSetAutoFillFields: [...changeSetAutoFillFields(current.operation)],
+      } : current);
+      if (editor.operation === "MODIFY" && typeof editor.row?.id === "string") {
+        recheckOpenEditor(recoveryVersion);
+      } else {
+        setReviewedRecoveryVersion(recoveryVersion);
+      }
+    }
+    if (!pendingChange) {
+      return;
+    }
+    if (!pendingChange.id) {
+      if (result.data && selectedTable === pendingChange.tableName) {
+        setPendingChange((current) => current ? {
+          ...current,
+          columns: [...result.data.columns],
+          changeSetAutoFillFields: [...changeSetAutoFillFields(current.operation)],
+        } : current);
+        setReviewedRecoveryVersion(recoveryVersion);
+      }
+      return;
+    }
+    recheckPendingTarget(recoveryVersion);
+  // Recovery changes only after the workspace has refetched every active server snapshot.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recoveryVersion]);
   const startEditor = (operation: "ADD" | "MODIFY", row?: Record<string, string | null>) => {
     if (!result.data) return;
     const sequence = editorSequence + 1;
     setEditorSequence(sequence);
     mutation.reset();
+    setRecheckError(null);
+    setRecheckingChange(false);
     setPendingChange(null);
+    setReviewedRecoveryVersion(recoveryVersion);
     setEditor({
       operation,
       tableName: selectedTable,
@@ -196,12 +290,13 @@ export function ManagedDataPage() {
     mutation.reset();
     setEditor(null);
     setPendingChange({ operation: "DELETE", tableName: selectedTable, columns: [...result.data.columns], row: { ...row }, id: row.id, content: {}, changeSetAutoFillFields: [] });
+    setReviewedRecoveryVersion(recoveryVersion);
   };
   const changeSet = pendingChange
     ? buildChangeSet(pendingChange.operation, pendingChange.columns, pendingChange.row, pendingChange.content, new Set(pendingChange.changeSetAutoFillFields))
     : null;
   const executePendingChange = () => {
-    if (!pendingChange) return;
+    if (!pendingChange || recheckingChange || reviewedRecoveryVersion !== recoveryVersion) return;
     mutation.mutate({ operation: pendingChange.operation, tableName: pendingChange.tableName, ...(pendingChange.id !== undefined ? { id: pendingChange.id } : {}), content: pendingChange.content }, {
       onSuccess(nextOutcome) {
         setOutcome(nextOutcome);
@@ -236,7 +331,7 @@ export function ManagedDataPage() {
         </div>
       </div>
 
-      {policies.isPending ? <LoadingState label="正在读取 Managed Table…" /> : policies.isError ? (
+      {policies.isPending ? <LoadingState label="正在读取 Managed Table…" /> : policies.isError && !policies.data ? (
         <ErrorState error={policies.error} onRetry={() => void policies.refetch()} />
       ) : enabledPolicies.length === 0 ? (
         <section className="feedback-state managed-data-empty">
@@ -362,7 +457,7 @@ export function ManagedDataPage() {
           )}
 
           <section className="catalog managed-data-results" aria-label="Managed Data 查询结果">
-            {result.isPending ? <LoadingState label="正在查询 Managed Table…" /> : result.isError ? (
+            {result.isPending ? <LoadingState label="正在查询 Managed Table…" /> : result.isError && !result.data ? (
               <ErrorState error={result.error} onRetry={() => void result.refetch()} />
             ) : (
               <>
@@ -416,6 +511,9 @@ export function ManagedDataPage() {
             columns={editor.columns}
             original={editor.row}
             autoFillFields={new Set(editor.allAutoFillFields)}
+            reviewDisabled={recheckingChange || reviewedRecoveryVersion !== recoveryVersion}
+            recheckError={recheckError}
+            onRetryRecheck={() => recheckOpenEditor(recoveryVersion)}
             onClose={() => setEditor(null)}
             onReview={(content) => {
               setPendingChange({
@@ -427,18 +525,27 @@ export function ManagedDataPage() {
                 content,
                 changeSetAutoFillFields: editor.changeSetAutoFillFields,
               });
+              setReviewedRecoveryVersion(recoveryVersion);
             }}
           />}
           <ChangeSetDialog
             changeSet={changeSet}
-            error={mutation.error}
-            pending={mutation.isPending}
+            error={recheckError || mutation.error}
+            pending={mutation.isPending || recheckingChange}
+            confirmDisabled={reviewedRecoveryVersion !== recoveryVersion}
             onEdit={() => {
               mutation.reset();
               setPendingChange(null);
             }}
             onCancel={() => { mutation.reset(); setPendingChange(null); setEditor(null); }}
             onConfirm={executePendingChange}
+            onRetryRecheck={recheckError && pendingChange?.id ? () => recheckPendingTarget(recoveryVersion) : undefined}
+            onVerify={() => {
+              mutation.reset();
+              setPendingChange(null);
+              setEditor(null);
+              void result.refetch();
+            }}
           />
           <MutationSuccessDialog
             outcome={outcome}

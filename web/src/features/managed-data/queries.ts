@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "../../api/client";
 import { addManagedRow, deleteManagedRow, modifyManagedRow, queryManagedTable } from "../../api/managed-data";
+import { businessSession } from "../../api/business-session";
 import type { ChangeSetOperation, ManagedDataColumn, MutationContent, QuerySpec } from "./model";
 
 export const managedDataKeys = {
@@ -45,6 +46,7 @@ async function readManagedRow(tableName: string, id: string) {
 }
 
 async function executeMutation(command: ManagedDataMutationCommand): Promise<ManagedDataMutationOutcome> {
+  const sessionGeneration = businessSession().generation;
   let id = command.id;
   if (command.operation === "ADD") {
     id = (await addManagedRow(command.tableName, command.content)).id;
@@ -56,6 +58,7 @@ async function executeMutation(command: ManagedDataMutationCommand): Promise<Man
 
   if (command.operation === "DELETE") return { operation: command.operation, tableName: command.tableName, id: id! };
   try {
+    if (businessSession().generation !== sessionGeneration) throw new ApiError("stale_session", "登录状态已变化，请重新查询。", 0);
     return { operation: command.operation, tableName: command.tableName, id: id!, ...await readManagedRow(command.tableName, id!) };
   } catch (retrievalError) {
     return { operation: command.operation, tableName: command.tableName, id: id!, retrievalError };
@@ -64,7 +67,7 @@ async function executeMutation(command: ManagedDataMutationCommand): Promise<Man
 
 export function useManagedDataRowRefetch() {
   return useMutation({
-    mutationFn: async ({ operation, tableName, id }: { operation: "ADD" | "MODIFY"; tableName: string; id: string }): Promise<ManagedDataMutationOutcome> => ({
+    mutationFn: async ({ operation, tableName, id }: { operation: ChangeSetOperation; tableName: string; id: string }): Promise<ManagedDataMutationOutcome> => ({
       operation,
       tableName,
       id,

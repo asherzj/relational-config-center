@@ -1,6 +1,8 @@
 import { Info } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { presentError } from "../../api/error-messages";
+import { isUncertainWriteError } from "../../api/client";
+import { Button } from "../../components/ui/Button";
 import {
   formatTimestamp,
   policyStatusLabels,
@@ -38,10 +40,11 @@ type Props = {
   policy?: MutationPolicy;
   typeCodes: string[];
   serverError?: unknown;
+  onVerify?: () => void;
   onSubmit: (value: MutationPolicyDraft | MutationPolicyMetadata) => void;
 };
 
-export function MutationPolicyForm({ mode, policy, typeCodes, serverError, onSubmit }: Props) {
+export function MutationPolicyForm({ mode, policy, typeCodes, serverError, onVerify, onSubmit }: Props) {
   const [draft, setDraft] = useState<MutationPolicyDraft>(() => draftFor(policy));
   const [errors, setErrors] = useState<Partial<Record<keyof MutationPolicyDraft, string>>>({});
   const executionLocked = mode === "view" || mode === "metadata";
@@ -50,7 +53,7 @@ export function MutationPolicyForm({ mode, policy, typeCodes, serverError, onSub
   useEffect(() => {
     setDraft(draftFor(policy));
     setErrors({});
-  }, [policy, mode]);
+  }, [policy?.code, mode]);
 
   const update = <K extends keyof MutationPolicyDraft>(key: K, value: MutationPolicyDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -101,7 +104,7 @@ export function MutationPolicyForm({ mode, policy, typeCodes, serverError, onSub
 
   return (
     <form id="mutation-policy-form" className="policy-form" onSubmit={submit} noValidate>
-      {presentedError && <div className="inline-alert" role="alert"><strong>{presentedError.message}</strong>{presentedError.requestId && <span>请求编号：{presentedError.requestId}</span>}</div>}
+      {presentedError && <div className="inline-alert" role="alert"><strong>{isUncertainWriteError(serverError) ? "提交结果尚未确认。系统不会自动重复此写入。" : presentedError.message}</strong>{presentedError.requestId && <span>请求编号：{presentedError.requestId}</span>}{isUncertainWriteError(serverError) && onVerify && <Button type="button" variant="secondary" onClick={onVerify}>只读查询当前状态</Button>}</div>}
       {policy && <span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span>}
 
       <label className="field field-wide"><span>规则编码 · 创建后不可变</span><input value={draft.code} onChange={(event) => update("code", event.target.value)} disabled={mode !== "create"} placeholder="standard_mutation_v2" {...inputProps("code")} />{errors.code && <small id="code-error" className="field-error">{errors.code}</small>}</label>

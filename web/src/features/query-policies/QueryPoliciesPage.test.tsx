@@ -1,11 +1,12 @@
-import { withAccountSession } from "../../test/account-session";
+import { testIdentity, withAccountSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
+import { businessSessionInvalid } from "../../api/business-session";
 
 const activePolicy = {
   code: "standard_page_query_v1",
@@ -205,5 +206,95 @@ describe("查询规则页面", () => {
       "/api/v1/query-policies/compact_page_query_v1",
       expect.objectContaining({ method: "DELETE" }),
     ));
+  });
+
+  it("does not replay a query-rule write whose response was lost and offers a read-only check", async () => {
+    let writes = 0;
+    let reads = 0;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/compact_page_query_v1") && init?.method === "PUT") {
+        writes += 1;
+        throw new TypeError("response lost after commit");
+      }
+      if (url.endsWith("/query-policies/compact_page_query_v1")) { reads += 1; return json(draftPolicy); }
+      if (url.endsWith("/query-policies")) { reads += 1; return json({ policies: [draftPolicy] }); }
+      throw new Error(`unexpected request ${url}`);
+    });
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    const user = userEvent.setup();
+    renderPage("/platform/query-policies/compact_page_query_v1?mode=edit");
+    await user.clear(await screen.findByLabelText("显示名称"));
+    await user.type(screen.getByLabelText("显示名称"), "可能已提交");
+    await user.click(screen.getByRole("button", { name: "保存" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+    expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
+    expect(writes).toBe(1);
+    const readsBeforeCheck = reads;
+    await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+    await waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
+    expect(writes).toBe(1);
+  });
+
+  it("blocks a query-rule lifecycle command after its response is lost until a read-only check", async () => {
+    let writes = 0;
+    let reads = 0;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/compact_page_query_v1/activate") && init?.method === "POST") {
+        writes += 1;
+        throw new TypeError("response lost after commit");
+      }
+      if (url.endsWith("/query-policies/compact_page_query_v1")) { reads += 1; return json(draftPolicy); }
+      if (url.endsWith("/query-policies")) { reads += 1; return json({ policies: [draftPolicy] }); }
+      throw new Error(`unexpected request ${url}`);
+    });
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    const user = userEvent.setup();
+    renderPage("/platform/query-policies/compact_page_query_v1");
+    await user.click((await screen.findAllByRole("button", { name: "激活" })).at(-1)!);
+    await user.click(screen.getByRole("button", { name: "确认激活" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+    expect(screen.queryByRole("button", { name: "激活" })).not.toBeInTheDocument();
+    expect(writes).toBe(1);
+    const readsBeforeCheck = reads;
+    await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+    await waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
+    expect(writes).toBe(1);
+  });
+
+  it("keeps the mounted rule draft hidden when recovery refetch fails and reveals it after retry", async () => {
+    let signedIn = true;
+    let detailUnavailable = false;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/auth/session")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
+      if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
+      if (url.endsWith("/auth/login")) { signedIn = true; detailUnavailable = true; return json(testIdentity); }
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/compact_page_query_v1")) return detailUnavailable
+        ? json({ error: { code: "policy_catalog_unavailable", message: "down", request_id: "req-recovery" } }, 503)
+        : json(draftPolicy);
+      if (url.endsWith("/query-policies")) return json({ policies: [draftPolicy] });
+      throw new Error(`unexpected request ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    renderPage("/platform/query-policies/compact_page_query_v1?mode=edit");
+    await user.clear(await screen.findByLabelText("显示名称"));
+    await user.type(screen.getByLabelText("显示名称"), "重读失败仍保留");
+    signedIn = false;
+    act(() => window.dispatchEvent(new CustomEvent(businessSessionInvalid, { detail: { code: "session_invalid" } })));
+    await user.type(await screen.findByLabelText("用户名"), "test.user");
+    await user.type(screen.getByLabelText("密码"), "correct horse battery staple");
+    await user.click(screen.getByRole("button", { name: "登录" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("账号服务暂时不可用");
+    expect(screen.getByLabelText("显示名称")).toHaveValue("重读失败仍保留");
+    detailUnavailable = false;
+    await user.click(screen.getByRole("button", { name: "重新检查登录状态" }));
+    await waitFor(() => expect(screen.queryByText("账号服务暂时不可用")).not.toBeInTheDocument());
+    expect(screen.getByLabelText("显示名称")).toHaveValue("重读失败仍保留");
   });
 });

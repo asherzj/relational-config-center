@@ -2,6 +2,7 @@ import { ErrorState } from "../../components/ui/Feedback";
 import { Button } from "../../components/ui/Button";
 import type { ChangeSet, ChangeSetCell } from "./model";
 import { useEffect, useRef } from "react";
+import { isUncertainWriteError } from "../../api/client";
 
 function Cell({ cell, autoFill }: { cell: ChangeSetCell; autoFill?: boolean }) {
   const content = cell.state === "value" ? cell.value
@@ -16,12 +17,15 @@ type Props = {
   changeSet: ChangeSet | null;
   error?: unknown;
   pending: boolean;
+  confirmDisabled?: boolean;
   onEdit: () => void;
   onCancel: () => void;
   onConfirm: () => void;
+  onVerify: () => void;
+  onRetryRecheck?: () => void;
 };
 
-export function ChangeSetDialog({ changeSet, error, pending, onEdit, onCancel, onConfirm }: Props) {
+export function ChangeSetDialog({ changeSet, error, pending, confirmDisabled, onEdit, onCancel, onConfirm, onVerify, onRetryRecheck }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const pendingRef = useRef(pending);
   const cancelRef = useRef(onCancel);
@@ -37,6 +41,7 @@ export function ChangeSetDialog({ changeSet, error, pending, onEdit, onCancel, o
     return () => { window.removeEventListener("keydown", onKeyDown); previous?.focus(); };
   }, [operation]);
   if (!changeSet) return null;
+  const uncertain = isUncertainWriteError(error);
   return (
     <div className="modal-layer change-set-layer">
       <button className="drawer-scrim" aria-label="取消 Change Set" disabled={pending} onClick={onCancel} />
@@ -54,11 +59,16 @@ export function ChangeSetDialog({ changeSet, error, pending, onEdit, onCancel, o
             ))}</tbody>
           </table>
         </div>
-        {error !== undefined && error !== null && <ErrorState error={error} />}
+        {uncertain ? <div className="inline-alert" role="alert"><strong>提交结果尚未确认。系统不会自动重复此写入。</strong><span>请只重新查询当前表和目标记录。</span></div> : error !== undefined && error !== null && <ErrorState error={error} onRetry={onRetryRecheck} />}
         <footer>
+          {uncertain ? <>
+            <Button variant="primary" onClick={onVerify}>只读查询当前状态</Button>
+            <Button onClick={onCancel}>关闭</Button>
+          </> : <>
           <Button onClick={onCancel} disabled={pending}>取消</Button>
           <Button onClick={onEdit} disabled={pending}>{changeSet.operation === "DELETE" ? "返回" : "返回修改"}</Button>
-          <Button variant={changeSet.operation === "DELETE" ? "danger" : "primary"} onClick={onConfirm} disabled={pending}>{pending ? "正在执行…" : "确认并执行"}</Button>
+          <Button variant={changeSet.operation === "DELETE" ? "danger" : "primary"} onClick={onConfirm} disabled={pending || confirmDisabled}>{pending ? "正在执行…" : "确认并执行"}</Button>
+          </>}
         </footer>
       </div>
     </div>

@@ -40,7 +40,7 @@ func authError(err error) error {
 	if errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &timeout) && timeout.Timeout()) {
 		return domain.ErrAuthTimeout
 	}
-	for _, known := range []error{domain.ErrAccountConflict, domain.ErrCredentials, domain.ErrCurrentPassword, domain.ErrSession, domain.ErrCSRF, domain.ErrAuthUnavailable, domain.ErrAuthTimeout} {
+	for _, known := range []error{domain.ErrAccountConflict, domain.ErrCredentials, domain.ErrCurrentPassword, domain.ErrSession, domain.ErrAccountDisabled, domain.ErrCSRF, domain.ErrAuthUnavailable, domain.ErrAuthTimeout} {
 		if errors.Is(err, known) {
 			return known
 		}
@@ -154,19 +154,35 @@ func (a *Adapter) IssueSession(ctx context.Context, verified domain.LocalAccount
 }
 func currentSession(db *gorm.DB, token string, now time.Time) (domain.LocalAccount, domain.LoginSession, error) {
 	var row struct {
-		domain.LocalAccount `gorm:"embedded"`
-		TokenHash           string
-		CSRFHash            string
-		CreatedAt           time.Time
-		LastActiveAt        time.Time
-		ExpiresAt           time.Time
+		domain.LocalAccount    `gorm:"embedded"`
+		TokenHash              string
+		CSRFHash               string
+		SessionPasswordVersion uint64
+		SessionSessionVersion  uint64
+		CreatedAt              time.Time
+		LastActiveAt           time.Time
+		ExpiresAt              time.Time
 	}
 	// One statement observes account status and session versions consistently.
-	err := db.Table(sessionTable+" AS s").Select("a.*, s.token_hash, s.csrf_hash, s.created_at, s.last_active_at, s.expires_at").Joins("JOIN "+accountTable+" AS a ON a.id = s.account_id AND a.password_version = s.password_version AND a.session_version = s.session_version").Where("s.token_hash = ? AND a.enabled = TRUE AND s.expires_at > ? AND s.last_active_at > ?", token, now, now.Add(-30*time.Minute)).Take(&row).Error
+	// A valid credential for a disabled account is classified separately so Web
+	// can destroy recoverable drafts without changing the uniform login failure.
+	err := db.Table(sessionTable+" AS s").Select("a.*, s.token_hash, s.csrf_hash, s.password_version AS session_password_version, s.session_version AS session_session_version, s.created_at, s.last_active_at, s.expires_at").Joins("JOIN "+accountTable+" AS a ON a.id = s.account_id").Where("s.token_hash = ?", token).Take(&row).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return domain.LocalAccount{}, domain.LoginSession{}, domain.ErrSession
 	}
-	return row.LocalAccount, domain.LoginSession{TokenHash: row.TokenHash, AccountID: row.ID, CSRFHash: row.CSRFHash, CreatedAt: row.CreatedAt, LastActiveAt: row.LastActiveAt, ExpiresAt: row.ExpiresAt}, authError(err)
+	if err != nil {
+		return domain.LocalAccount{}, domain.LoginSession{}, authError(err)
+	}
+	if !row.Enabled {
+		return domain.LocalAccount{}, domain.LoginSession{}, domain.ErrAccountDisabled
+	}
+	if row.PasswordVersion != row.SessionPasswordVersion || row.SessionVersion != row.SessionSessionVersion {
+		return domain.LocalAccount{}, domain.LoginSession{}, domain.ErrSession
+	}
+	if !row.ExpiresAt.After(now) || !row.LastActiveAt.After(now.Add(-30*time.Minute)) {
+		return domain.LocalAccount{}, domain.LoginSession{}, domain.ErrSession
+	}
+	return row.LocalAccount, domain.LoginSession{TokenHash: row.TokenHash, AccountID: row.ID, CSRFHash: row.CSRFHash, CreatedAt: row.CreatedAt, LastActiveAt: row.LastActiveAt, ExpiresAt: row.ExpiresAt}, nil
 }
 func (a *Adapter) CurrentSession(ctx context.Context, token string, now time.Time) (domain.LocalAccount, domain.LoginSession, error) {
 	return currentSession(a.gorm.WithContext(ctx), token, now)

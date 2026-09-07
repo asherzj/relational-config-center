@@ -2,6 +2,7 @@ import { FileCode2, Plus, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { presentError } from "../../api/error-messages";
+import { isUncertainWriteError } from "../../api/client";
 import { Button } from "../../components/ui/Button";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { EmptyState, ErrorState, LoadingState } from "../../components/ui/Feedback";
@@ -40,7 +41,7 @@ const commandContent: Record<Command, { title: string; description: string; labe
   delete: { title: "删除变更规则草稿？", description: "删除后无法恢复。只有草稿状态的变更规则可以删除。", label: "确认删除", destructive: true },
 };
 
-function PolicyActions({ policy, supported, onCommand }: { policy: MutationPolicy; supported: boolean; onCommand: (command: Command, code: string) => void }) {
+function PolicyActions({ policy, supported, commandsBlocked, onCommand }: { policy: MutationPolicy; supported: boolean; commandsBlocked: boolean; onCommand: (command: Command, code: string) => void }) {
   const navigate = useNavigate();
   const actions = allowedActions[policy.status];
   const open = (suffix = "") => navigate(`/platform/mutation-policies/${encodeURIComponent(policy.code)}${suffix}`);
@@ -48,9 +49,9 @@ function PolicyActions({ policy, supported, onCommand }: { policy: MutationPolic
     <button onClick={() => open()}>查看</button>
     {supported && actions.includes("replace") && <button onClick={() => open("?mode=edit")}>编辑</button>}
     {actions.includes("metadata") && <button onClick={() => open("?mode=metadata")}>元数据</button>}
-    {supported && actions.includes("activate") && <button onClick={() => onCommand("activate", policy.code)}>激活</button>}
-    {supported && actions.includes("deprecate") && <button className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</button>}
-    {supported && actions.includes("delete") && <button className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</button>}
+    {!commandsBlocked && supported && actions.includes("activate") && <button onClick={() => onCommand("activate", policy.code)}>激活</button>}
+    {!commandsBlocked && supported && actions.includes("deprecate") && <button className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</button>}
+    {!commandsBlocked && supported && actions.includes("delete") && <button className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</button>}
   </div>;
 }
 
@@ -65,6 +66,11 @@ export function MutationPoliciesPage() {
   const { showToast } = useToast();
   const [pendingCommand, setPendingCommand] = useState<PendingCommand>(null);
   const commandMutation = pendingCommand?.command === "activate" ? activate : pendingCommand?.command === "deprecate" ? deprecate : remove;
+  const uncertainCommand = isUncertainWriteError(activate.error || deprecate.error || remove.error);
+  const verifyCommand = async () => {
+    await policies.refetch();
+    activate.reset(); deprecate.reset(); remove.reset();
+  };
   const supportedTypes = (types.data ?? []).filter((type) => supportsMutationPolicyType(types.data, type.code));
   const confirm = pendingCommand ? commandContent[pendingCommand.command] : null;
 
@@ -77,6 +83,11 @@ export function MutationPoliciesPage() {
       if (command === "delete" && code === targetCode) navigate("/platform/mutation-policies");
     };
     const onError = (error: unknown) => {
+      if (isUncertainWriteError(error)) {
+        setPendingCommand(null);
+        if (code === targetCode) navigate("/platform/mutation-policies");
+        return;
+      }
       const shown = presentError(error);
       showToast(shown.requestId ? `${shown.message}（请求编号：${shown.requestId}）` : shown.message);
       setPendingCommand(null);
@@ -93,7 +104,7 @@ export function MutationPoliciesPage() {
           <h1>变更规则定义</h1>
           <p>以关系字段定义操作授权和四个固定 Auto Fill 槽位；不使用配置 JSON。</p>
         </div>
-        <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/mutation-policies/new")} disabled={types.isPending || types.isError || !supportedTypes.length}>新建草稿</Button>
+        <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/mutation-policies/new")} disabled={uncertainCommand || types.isPending || types.isError || !supportedTypes.length}>新建草稿</Button>
       </div>
 
       <section className="type-registry" aria-label="变更规则类型注册表">
@@ -110,7 +121,8 @@ export function MutationPoliciesPage() {
       </section>
 
       <section className="catalog" aria-label="变更规则目录">
-        {policies.isPending ? <LoadingState label="正在读取变更规则目录…" /> : policies.isError ? (
+        {uncertainCommand && <div className="inline-alert" role="alert"><strong>提交结果尚未确认。系统不会自动重复此写入。</strong><Button variant="secondary" onClick={() => void verifyCommand()}>只读查询当前状态</Button></div>}
+        {policies.isPending ? <LoadingState label="正在读取变更规则目录…" /> : policies.isError && !policies.data ? (
           <ErrorState error={policies.error} onRetry={() => void policies.refetch()} />
         ) : !policies.data.length ? <EmptyState entity="变更规则" /> : (
           <div className="table-scroll">
@@ -127,7 +139,7 @@ export function MutationPoliciesPage() {
                   <td><div className="auto-fill-targets">{autoFillTargets(policy).length ? autoFillTargets(policy).map((target) => <code key={target}>{target}</code>) : <span>无</span>}</div></td>
                   <td><span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span></td>
                   <td className="timestamp">{formatTimestamp(policy.modifiedAt)}</td>
-                  <td><PolicyActions policy={policy} supported={supportsMutationPolicyType(types.data, policy.typeCode)} onCommand={(command, targetCode) => setPendingCommand({ command, code: targetCode })} /></td>
+                  <td><PolicyActions policy={policy} supported={supportsMutationPolicyType(types.data, policy.typeCode)} commandsBlocked={uncertainCommand} onCommand={(command, targetCode) => setPendingCommand({ command, code: targetCode })} /></td>
                 </tr>
               ))}</tbody>
             </table>
