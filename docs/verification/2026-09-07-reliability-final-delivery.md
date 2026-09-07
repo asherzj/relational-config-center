@@ -33,9 +33,9 @@
 
 main 在收尾期间合入 [MR #46](https://github.com/asherzj/relational-config-center/pull/46)。本分支解决了 12 个冲突文件，采用新的中性主题、Radix 组件和 inline Sheet/Dialog，同时保留未知写结果锁、只读核对、原始 CR/CRLF、history entry 防护与原生 inert。抽屉仍保留 320px 下单列收缩及底部操作可达约束。Playwright 继续固定为本轮已验收的 1.62.1。
 
-Web 25 文件 / 243 项、typecheck、production build 通过；真实 Chrome 账号路径 47.76 秒通过。合并时修复了新 jsdom `matchMedia` mock 对 Node TCP 测试环境的假设；操作验收脚本改为定位可见的 checkbox 角色，避免命中 Radix 隐藏表单输入。两处都未放宽产品或写次数断言。
+Web 25 文件 / 243 项、typecheck、production build 通过；真实 Chrome 账号路径 47.76 秒通过。合并时修复了新 jsdom `matchMedia` mock 对 Node TCP 测试环境的假设；操作验收脚本改为定位可见的 checkbox 角色，避免命中 Radix 隐藏表单输入。另外，Change Set 横向滚动断言跟随 shadcn 的实际表格容器，新增横、纵滚动位移断言；产品与写次数断言均保留。
 
-浏览器组合的本次结果与源码检查点见结构化报告的 `shadcnMainFollowUp`；此前表格和 Linux 图片保留为其对应提交的历史证据。最终 HEAD 的 CI 以 MR/Notion 的明确结果为准，不把早期检查点写成新树验收。
+本机两次执行合计验证 131 项：完整组合的五组业务检查 110 项通过，旧横向滚动选择器导致该次整轮失败，尚未执行末尾 fixture 比对；修正选择器后，独立三引擎执行 21 项及 fixture 完整行比对全部通过，结束于 10:59:40Z。两次资源清理成功，不把失败整轮计为成功。真实 [WebKit 320px 新样式截图](2026-09-07-reliability-shadcn-webkit-change-set-320.png)保留三个操作和局部滚动。用例摘要、产物 SHA256 与源码检查点见结构化报告的 `shadcnMainFollowUp`；此前表格和 Linux 图片保留为其对应提交的历史证据。最终 HEAD 的 CI 以 MR/Notion 的明确结果为准，不把早期检查点写成新树验收。
 
 ## Linux 与事实边界
 

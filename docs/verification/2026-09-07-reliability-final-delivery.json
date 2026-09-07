@@ -503,5 +503,77 @@
     "fixtureRowsEqual": true,
     "allFourJobs": "success",
     "mysqlSeconds": 1216
+  },
+  "shadcnMainFollowUp": {
+    "mainSHA": "cd5df5845ea9b978f07639d7ac5d88243e400517",
+    "mergeSHA": "9ad0c0793a5a4ddc0384943b927fd4319d6a5ab7",
+    "resolvedConflictFiles": 12,
+    "web": {
+      "files": 25,
+      "passed": 243,
+      "typecheck": true,
+      "productionBuild": true
+    },
+    "accountChromeSeconds": 47.76,
+    "localPassedAcrossTwoExecutions": 131,
+    "localExecutionBoundary": "110 business cases passed in shadcn-cookie-verified; that whole run failed at the old horizontal-scroll selector and did not reach the final full-fixture comparison. The corrected shadcn-accessibility-verified execution passed 7 cases per engine and the full-fixture comparison. Do not describe the earlier whole execution as success. Product source remained unchanged between the two executions.",
+    "suites": [
+      {
+        "run": "shadcn-cookie-verified",
+        "path": "unsaved-changes/result.json",
+        "passed": 14,
+        "sha256": "91d613e2ecb8b786ee4ca33e84d273beb5b3545c235d308bd72c335ce47cb290"
+      },
+      {
+        "run": "shadcn-cookie-verified",
+        "path": "rule-clarity/result.json",
+        "passed": 6,
+        "sha256": "298efd9353373b560bccc89390d51f32db79fdc0a57ca0e1d21cdbb1fa8c366c"
+      },
+      {
+        "run": "shadcn-cookie-verified",
+        "path": "write-recovery/result.json",
+        "passed": 28,
+        "sha256": "59d3dcedc806a6e9c425a6f63903a8c2a20d05e16665b6ed4b92332bd9848a32"
+      },
+      {
+        "run": "shadcn-cookie-verified",
+        "path": "operation-coverage/result.json",
+        "passed": 20,
+        "sha256": "d04811147660d549e735a7fbbc7ec3b26dafd2041e5c944a2e31590c8a28b3eb"
+      },
+      {
+        "run": "shadcn-cookie-verified",
+        "path": "complex-fields/result.json",
+        "passed": 42,
+        "sha256": "f23340001aa14ddf4e1954142c2d73d434d7fcdd0d057aa918625428a930fd31"
+      },
+      {
+        "run": "shadcn-accessibility-verified",
+        "path": "browser-accessibility/chromium/result.json",
+        "passed": 7,
+        "sha256": "14f4101b2c2504b15cc485f3b5dfaa53a2916126eb11b7fe826fefaadb22442d"
+      },
+      {
+        "run": "shadcn-accessibility-verified",
+        "path": "browser-accessibility/firefox/result.json",
+        "passed": 7,
+        "sha256": "1aeb721eec3125ffef1f152087489440f849e0c977aa4a9965b634457513c81d"
+      },
+      {
+        "run": "shadcn-accessibility-verified",
+        "path": "browser-accessibility/webkit/result.json",
+        "passed": 7,
+        "sha256": "f66b8039fdb56796d1d7c6a3be73391bc5acdf31e09b09bba5ff8a398d75ba38"
+      }
+    ],
+    "accessibilityFixtureRowsEqual": true,
+    "cleanupVerifiedInBothExecutions": true,
+    "accessibilityRunMeta": "run id: rcc-browser-1788778730-28507\ncontainer name: rcc-browser-1788778730-28507-mysql\nvolume name: rcc-browser-1788778730-28507-mysql-data\nstarted at: 2026-09-07T10:58:50Z\ndocker client=29.7.2 server=29.5.2\nv24.19.0\n10.28.2\ngo version go1.27.0 darwin/arm64\nexit status: 0\nfinished at: 2026-09-07T10:59:40Z\ncleanup verified: true\ncontainer name: rcc-browser-1788778730-28507-mysql\nvolume name: rcc-browser-1788778730-28507-mysql-data\n",
+    "sourceFingerprint": {
+      "sha256": "c8979b1c560ce78848081aa5046f624e602deae5bc83f94e7509a7923bd02193",
+      "algorithm": "SHA256 over sorted tracked paths excluding docs/ and *.md; append UTF-8 path, NUL, then raw SHA256(file bytes) for each regular file."
+    },
+    "finalHeadCI": "Recorded separately in MR #43 and Notion at delivery."
   }
 }
