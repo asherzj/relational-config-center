@@ -18,6 +18,8 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.HandleMethodNotAllowed = true
+	router.UseRawPath = true
+	router.UnescapePathValues = true
 	router.Use(requestIdentity(), structuredAccessLog(options.AccessLog), safeRecovery(), limitRequestBody(), sessionAuthentication(options))
 	if options.Authentication != nil {
 		registerAccountRoutes(router, options.Authentication, options.AccountHTTP)

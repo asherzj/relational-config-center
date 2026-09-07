@@ -5,9 +5,9 @@ const { browserOptions, registerFixtureAccount } = require("./local-account.cjs"
 const playwrightModule = process.env.RCC_PLAYWRIGHT_MODULE || "playwright";
 const { chromium } = require(playwrightModule);
 const baseURL = process.env.RCC_WEB_URL || "http://127.0.0.1:15173";
-const outputDir = process.env.RCC_E2E_OUTPUT || path.resolve(__dirname, "../../docs/verification");
-const screenshotPath = path.join(outputDir, "2026-09-07-stage3-rule-clarity-390.png");
-const resultPath = path.join(outputDir, "2026-09-07-stage3-browser.json");
+const outputDir = process.env.RCC_E2E_OUTPUT || "/tmp/rcc-rule-clarity-browser";
+const screenshotPath = path.join(outputDir, "rule-clarity-390.png");
+const resultPath = path.join(outputDir, "result.json");
 
 function check(condition, message) {
   if (!condition) throw new Error(message);
@@ -15,11 +15,12 @@ function check(condition, message) {
 
 (async () => {
   fs.mkdirSync(outputDir, { recursive: true });
-  const browser = await chromium.launch(browserOptions());
-  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
-  const page = await context.newPage();
+  let browser;
+  let browserVersion = null;
+  let page;
+  let context;
+  let failure = null;
   const pageErrors = [];
-  page.on("pageerror", (error) => pageErrors.push(error.message));
   const checks = [];
   const verify = async (name, run) => {
     await run();
@@ -27,7 +28,14 @@ function check(condition, message) {
   };
 
   try {
+    browser = await chromium.launch(browserOptions());
+    browserVersion = browser.version();
+    context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    page = await context.newPage();
     const account = await registerFixtureAccount(context, baseURL);
+    page.setDefaultTimeout(10000);
+    page.setDefaultNavigationTimeout(15000);
+    page.on("pageerror", (error) => pageErrors.push(error.message));
     await verify("query detail explains default order and pagination", async () => {
       await page.goto(`${baseURL}/platform/query-policies/notification_page_query_v1`);
       const effect = page.getByRole("region", { name: "实际查询效果" });
@@ -98,10 +106,23 @@ function check(condition, message) {
 
     await account.assertMemoryOnly(page);
     check(pageErrors.length === 0, `browser page errors: ${pageErrors.join("; ")}`);
-    fs.writeFileSync(resultPath, JSON.stringify({ baseURL, chromium: browser.version(), checks, pageErrors }, null, 2) + "\n");
     console.log(JSON.stringify({ ok: true, checks: checks.length, resultPath, screenshotPath }));
+  } catch (error) {
+    failure = { name: error.name, message: error.message, stack: error.stack };
+    if (page) {
+      await page.screenshot({ path: path.join(outputDir, "failure.png"), fullPage: true, mask: [page.locator(".operator")] }).catch(() => {});
+    }
+    throw error;
   } finally {
-    await browser.close();
+    if (browser) await browser.close().catch(() => {});
+    fs.writeFileSync(resultPath, JSON.stringify({
+      ok: failure === null,
+      baseURL,
+      chromium: browserVersion,
+      checks,
+      pageErrors,
+      failure,
+    }, null, 2) + "\n");
   }
 })().catch((error) => {
   console.error(error);

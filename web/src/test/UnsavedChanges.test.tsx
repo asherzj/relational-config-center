@@ -110,27 +110,55 @@ describe("rule drafts and navigation protection", () => {
       expect(name).toHaveValue("查询基线draft");
       expect(router.state.location.search).toBe("?mode=edit");
     }
+    // Proceeding a blocked POP completes asynchronously. Flush its React update
+    // before starting another history action, so the old draft has unmounted.
+    const discardAndNavigate = async (pathname: string, heading: string) => {
+      await act(async () => { await user.click(screen.getByRole("button", { name: "放弃修改并离开" })); });
+      expect(router.state.location.pathname).toBe(pathname);
+      expect(await screen.findByRole("heading", { name: heading, level: 1 })).toBeVisible();
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    };
     await user.click(screen.getByRole("link", { name: "变更规则定义" }));
-    await user.click(screen.getByRole("button", { name: "放弃修改并离开" }));
-    expect(router.state.location.pathname).toBe("/platform/mutation-policies");
-    // Router state advances before React commits the route and unregisters the old draft.
-    // Start the next POP only after the destination page is actually visible.
-    await screen.findByRole("heading", { name: "变更规则定义", level: 1 });
+    await discardAndNavigate("/platform/mutation-policies", "变更规则定义");
     await act(() => router.navigate(-1));
     const restored = await screen.findByRole("textbox", { name: "显示名称" });
     expect(restored).toHaveValue("查询基线");
     await user.type(restored, "again");
     await act(() => router.navigate(1));
-    await user.click(screen.getByRole("button", { name: "放弃修改并离开" }));
-    expect(router.state.location.pathname).toBe("/platform/mutation-policies");
-    // Router state advances before React commits the route and unregisters the old draft.
-    // Start the next POP only after the destination page is actually visible.
-    await screen.findByRole("heading", { name: "变更规则定义", level: 1 });
+    await discardAndNavigate("/platform/mutation-policies", "变更规则定义");
     await act(() => router.navigate(-1));
     await user.type(await screen.findByRole("textbox", { name: "显示名称" }), "back");
     await act(() => router.navigate(-1));
-    await user.click(screen.getByRole("button", { name: "放弃修改并离开" }));
-    expect(router.state.location.pathname).toBe("/platform/query-policies");
+    await discardAndNavigate("/platform/query-policies", "查询规则定义");
+  });
+
+  it("does not let a discarded draft block the next history action before React unmounts it", async () => {
+    backend();
+    const user = userEvent.setup();
+    const path = "/platform/query-policies/query_v1?mode=edit";
+    const { router } = mount(path, [path, "/platform/mutation-policies"], 0);
+    await user.type(await screen.findByRole("textbox", { name: "显示名称" }), "discarded");
+    await act(() => router.navigate(1));
+    const discard = within(confirmLeave()).getByRole("button", { name: "放弃修改并离开" });
+    await act(async () => {
+      const destinationReached = new Promise<void>((resolve) => {
+        const unsubscribe = router.subscribe((state) => {
+          if (state.location.pathname === "/platform/mutation-policies") { unsubscribe(); resolve(); }
+        });
+      });
+      fireEvent.click(discard);
+      await destinationReached;
+      // The router has changed location, while this act still holds React's
+      // commit: the previous draft is registered until the callback completes.
+      await router.navigate(-1);
+    });
+    expect(router.state.location.pathname).toBe("/platform/query-policies/query_v1");
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    const currentDraft = await screen.findByRole("textbox", { name: "显示名称" });
+    await user.type(currentDraft, "current");
+    await act(() => router.navigate(1));
+    expect(confirmLeave()).toBeVisible();
+    expect(router.state.location.pathname).toBe("/platform/query-policies/query_v1");
   });
 
   it.each(variants)("$kind $mode: pending blocks repeat/leave, failure retains draft, success clears protection", async ({ kind, mode }) => {

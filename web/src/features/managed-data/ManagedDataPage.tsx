@@ -1,3 +1,4 @@
+import { ManagedTextInput } from "./ManagedTextInput";
 import { Input } from "../../components/shadcn/input";
 import { Checkbox } from "../../components/shadcn/checkbox";
 import { NativeSelect } from "../../components/shadcn/native-select";
@@ -52,6 +53,9 @@ function ScalarInput({ column, label, value, onChange }: { column: ManagedDataCo
         <option value="1">1（true）</option>
       </NativeSelect>
     );
+  }
+  if (column.type === "string" || column.type === "json") {
+    return <ManagedTextInput label={label} rows={2} value={value} onChange={onChange} />;
   }
   const inputType = column.type === "date" ? "date" : column.type === "time" ? "time" : "text";
   const inputMode = ["uint64", "int64", "decimal", "float64"].includes(column.type) ? "decimal" : undefined;
@@ -369,16 +373,15 @@ export function ManagedDataPage() {
           />}
           <ChangeSetDialog
             changeSet={changeSet}
-            error={changes.view.recheckError || changes.view.executionError}
+            error={changes.view.executionError}
+            recheckError={changes.view.recheckError}
             pending={changes.view.executionPending || changes.view.recheckingChange}
             confirmDisabled={changes.view.reviewDisabled}
             onRetryRecheck={changes.view.recheckError ? () => changes.send({ type: "retry-recheck" }) : undefined}
-            onVerify={() => protection.requestLeave(() => {
-              changes.send({ type: "cancel-pending" });
-              void result.refetch();
-            })}
             onEdit={() => changes.send({ type: "edit-pending" })}
             onCancel={() => send({ type: "cancel-pending" })}
+            onCheck={changes.checkCurrent}
+            onResume={() => { changes.send({ type: "resume-after-check" }); void result.refetch(); }}
             onConfirm={() => changes.send({ type: "confirm-pending" })}
           />
           <MutationSuccessDialog

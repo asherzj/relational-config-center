@@ -1,9 +1,10 @@
 import { createElement, type PropsWithChildren } from "react";
-import { MemoryRouter } from "react-router-dom";
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ApiError } from "../../api/client";
+import { LeaveProtectionProvider } from "../../components/ui/LeaveProtection";
 import { ToastProvider } from "../../components/ui/Toast";
+import { TestRouter } from "../../test/TestRouter";
 import { policyActionAvailability, policyTypeAvailabilityHint, requestedPolicyFormMode, resolvePolicyFormMode, usePolicyLifecycleCommands, type PolicyCommandCopy } from "./lifecycle";
 
 describe("policy lifecycle rules", () => {
@@ -41,9 +42,9 @@ const commandCopy: PolicyCommandCopy = {
 };
 
 function lifecycleWrapper({ children }: PropsWithChildren) {
-  return createElement(MemoryRouter, {
+  return createElement(TestRouter, {
     initialEntries: ["/policies"],
-    children: createElement(ToastProvider, null, children),
+    children: createElement(ToastProvider, null, createElement(LeaveProtectionProvider, null, children)),
   });
 }
 
@@ -96,7 +97,7 @@ describe("policy lifecycle command submissions", () => {
     const { result, run, calls } = renderCommands();
     act(() => result.current.request("activate", "draft_v1"));
     act(() => result.current.execute());
-    act(() => calls[0].fail(new ApiError("policy_conflict", "当前规则不可激活", 409, "req-conflict")));
+    act(() => calls[0].fail(new ApiError("invalid_policy_transition", "当前规则不可激活", 409, "req-conflict")));
     expect(result.current.confirm).toBeNull();
     act(() => result.current.request("activate", "draft_v1"));
     act(() => result.current.execute());
@@ -130,6 +131,7 @@ describe("policy lifecycle command submissions", () => {
     rerender({ blocked: false });
     act(() => result.current.execute());
     expect(run).toHaveBeenCalledTimes(1);
+    act(() => result.current.finishCheck());
     act(() => result.current.request("activate", "draft_v1"));
     act(() => result.current.execute());
     expect(run).toHaveBeenCalledTimes(2);

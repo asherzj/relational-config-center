@@ -1,3 +1,5 @@
+import { LeaveProtectionProvider } from "../../components/ui/LeaveProtection";
+import { TestRouter } from "../../test/TestRouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -17,13 +19,36 @@ function json(value: unknown, status = 200) {
 function createWrapper() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+    return <QueryClientProvider client={client}><TestRouter initialEntries={["/configuration/managed-data"]}><LeaveProtectionProvider>{children}</LeaveProtectionProvider></TestRouter></QueryClientProvider>;
   };
 }
 
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Managed Data mutation workflow", () => {
+  it.each(["ADD", "MODIFY"] as const)("uses only a known stored identity when checking an uncertain %s", async (operation) => {
+    const requests: { url: string; method?: string; body: unknown }[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      requests.push({ url, method: init?.method, body: init?.body ? JSON.parse(String(init.body)) : null });
+      if (url.includes("/rows")) throw new TypeError("response lost after the write");
+      if (url.endsWith("/query")) return json({ columns, rows: [{ id: operation === "ADD" ? "2" : "0", name: "created" }], page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 } });
+      throw new Error(`unexpected request ${url}`);
+    }));
+    const hook = renderHook(() => useManagedDataMutationWorkflow({ tableName: "managed_items", columns }), { wrapper: createWrapper() });
+    act(() => hook.result.current.send({ type: "open-editor", operation, ...(operation === "MODIFY" ? { row: { id: "0", name: "before" } } : {}) }));
+    act(() => hook.result.current.send({ type: "review-content", content: { name: "created", ...(operation === "ADD" ? { id: "0" } : {}) } }));
+    act(() => hook.result.current.send({ type: "confirm-pending" }));
+    await waitFor(() => expect(hook.result.current.view.executionError).toMatchObject({ code: "network_error" }));
+    await act(async () => { await hook.result.current.checkCurrent(); });
+    const read = requests.find(request => request.url.endsWith("/query"));
+    expect(read?.body).toEqual(operation === "ADD"
+      ? { conditions: [], page_number: 1 }
+      : { conditions: [{ field: "id", operator: "exact", value: "0" }], page_number: 1, page_size: 1 });
+    act(() => hook.result.current.send({ type: "confirm-pending" }));
+    expect(requests.filter(request => request.url.includes("/rows"))).toHaveLength(1);
+  });
+
   it("pins table identity, writes once, and retries only exact-id readback", async () => {
     let readbacks = 0;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {

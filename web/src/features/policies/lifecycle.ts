@@ -1,3 +1,4 @@
+import { useWriteRecovery } from "../../components/ui/WriteRecovery";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { isUncertainWriteError } from "../../api/client";
@@ -90,15 +91,24 @@ export function usePolicyLifecycleCommands({
     setPendingCommand(command);
   };
 
+  const lastTarget = useRef<string | undefined>(undefined);
+  const uncertainTargets = useRef(new Map<string, unknown>());
+  const recovery = useWriteRecovery();
   const request = (command: PolicyLifecycleCommand, code: string) => {
-    if (!blocked && !inFlight.current) setCommand({ command, code });
+    if (blocked || inFlight.current) return;
+    lastTarget.current = code;
+    recovery.reset();
+    if (uncertainTargets.current.has(code)) recovery.fail(uncertainTargets.current.get(code));
+    setCommand({ command, code });
   };
   const cancel = () => { if (!inFlight.current) setCommand(null); };
   const confirm = pendingCommand ? copy[pendingCommand.command] : null;
   const pending = pendingCommand ? runners[pendingCommand.command].pending : false;
 
+  const protection = useDraftProtection(false, pending, inFlight);
+
   const execute = () => {
-    if (!pendingCommand || pendingCommand !== currentCommand.current || inFlight.current || blocked || pending) return;
+    if (!pendingCommand || pendingCommand !== currentCommand.current || inFlight.current || blocked || pending || recovery.blocked.current) return;
     const acceptedCommand = pendingCommand;
     const { command, code } = acceptedCommand;
     // React Query publishes pending state after mutate(): guard the interval
@@ -107,13 +117,17 @@ export function usePolicyLifecycleCommands({
     const settle = () => {
       if (currentCommand.current !== acceptedCommand) return false;
       inFlight.current = false;
+      protection.submissionSettled();
       setCommand(null);
       return true;
     };
     const onError = (error: unknown) => {
       if (!settle()) return;
       if (isUncertainWriteError(error)) {
-        onUncertainWrite?.(error, code);
+        lastTarget.current = code;
+        uncertainTargets.current.set(code, error);
+        recovery.fail(error);
+        if (onUncertainWrite) protection.afterSave(() => onUncertainWrite(error, code));
         return;
       }
       const shown = presentError(error);
@@ -125,7 +139,7 @@ export function usePolicyLifecycleCommands({
         () => {
           if (!settle()) return;
           showToast(copy[command].success);
-          if (command === "delete" && selectedCode === code) navigate(collectionPath);
+          if (command === "delete" && selectedCode === code) protection.afterSave(() => navigate(collectionPath));
         },
         onError,
       );
@@ -134,7 +148,12 @@ export function usePolicyLifecycleCommands({
     }
   };
 
-  return { request, cancel, execute, confirm, pending };
+  const finishCheck = () => {
+    if (lastTarget.current) uncertainTargets.current.delete(lastTarget.current);
+    recovery.reset(); setCommand(null);
+    navigate(collectionPath);
+  };
+  return { request, cancel, execute, confirm, pending, recovery, finishCheck, targetCode: lastTarget.current };
 }
 
 export function usePolicyFormSubmission<TDraft, TMetadata>({
@@ -153,9 +172,9 @@ export function usePolicyFormSubmission<TDraft, TMetadata>({
   code?: string;
   collectionPath: string;
   copy: { created: string; replaced: string; metadataUpdated: string };
-  create: (value: TDraft, onSuccess: (code: string) => void, onError: () => void) => void;
-  replace: (code: string, value: TDraft, onSuccess: () => void, onError: () => void) => void;
-  updateMetadata: (code: string, value: TMetadata, onSuccess: () => void, onError: () => void) => void;
+  create: (value: TDraft, onSuccess: (code: string) => void, onError: (error: unknown) => void) => void;
+  replace: (code: string, value: TDraft, onSuccess: () => void, onError: (error: unknown) => void) => void;
+  updateMetadata: (code: string, value: TMetadata, onSuccess: () => void, onError: (error: unknown) => void) => void;
   pending: boolean;
   error: unknown;
   blocked?: boolean;
@@ -163,33 +182,37 @@ export function usePolicyFormSubmission<TDraft, TMetadata>({
   const navigate = useNavigate();
   const { showToast } = useToast();
   const inFlight = useRef(false);
-  const protection = useDraftProtection(false, pending);
-  const unlock = () => { inFlight.current = false; };
+  const protection = useDraftProtection(false, pending, inFlight);
+  const recovery = useWriteRecovery();
+  const submittedCode = useRef(code);
+  const unlock = () => { inFlight.current = false; protection.submissionSettled(); };
+  const fail = (cause: unknown) => { recovery.fail(cause); unlock(); };
   const openDetail = (targetCode: string) => {
     unlock();
     protection.afterSave(() => navigate(`${collectionPath}/${encodeURIComponent(targetCode)}`));
   };
 
   const submit = (value: TDraft | TMetadata) => {
-    if (inFlight.current || pending || blocked || mode === "view") return;
+    if (inFlight.current || pending || blocked || recovery.blocked.current || mode === "view") return;
+    submittedCode.current = mode === "create" ? (value as { code: string }).code : code;
     inFlight.current = true;
     if (mode === "create") {
       create(value as TDraft, (createdCode) => {
         showToast(copy.created);
         openDetail(createdCode);
-      }, unlock);
+      }, fail);
     } else if (mode === "replace" && code) {
       replace(code, value as TDraft, () => {
         showToast(copy.replaced);
         openDetail(code);
-      }, unlock);
+      }, fail);
     } else if (mode === "metadata" && code) {
       updateMetadata(code, value as TMetadata, () => {
         showToast(copy.metadataUpdated);
         openDetail(code);
-      }, unlock);
+      }, fail);
     }
   };
 
-  return { submit, pending, error };
+  return { submit, pending, error: isUncertainWriteError(error) ? null : error, recovery, submittedCode: submittedCode.current };
 }

@@ -205,13 +205,14 @@ ORDER BY ORDINAL_POSITION`, adapter.database, tableName).Scan(&rows).Error; err 
 	columns := make([]domain.Column, 0, len(rows))
 	primaryKey := make([]string, 0, 1)
 	for _, row := range rows {
+		// DEFAULT_GENERATED marks an expression default, not a computed column.
 		extra := strings.ToLower(row.Extra)
 		columns = append(columns, domain.Column{
 			Name:          row.Name,
 			TextCapacity:  liveTextCapacity(row.DataType, row.TextCapacity),
 			Type:          liveColumnType(row.DataType, row.ColumnType),
 			Nullable:      row.Nullable == "YES",
-			Generated:     row.GenerationExpression != "" || strings.Contains(extra, "generated"),
+			Generated:     row.GenerationExpression != "" || strings.Contains(extra, "stored generated") || strings.Contains(extra, "virtual generated"),
 			AutoIncrement: strings.Contains(extra, "auto_increment"),
 			HasDefault:    row.DefaultValue.Valid || strings.Contains(extra, "default_generated"),
 		})
@@ -1064,8 +1065,28 @@ func (adapter *Adapter) InsertRow(ctx context.Context, insert domain.RowInsert) 
 
 func insertRow(ctx context.Context, database *gorm.DB, insert domain.RowInsert) (string, error) {
 	values := make(map[string]any, len(insert.Values))
+	providedAutoZero := false
+	existingID := false
+	var providedID *domain.MutationValue
 	for _, value := range insert.Values {
 		values[value.Column.Name] = value.Value
+		if value.Column.Name == "id" {
+			providedID = &value
+			providedAutoZero = value.Column.AutoIncrement && (value.Value == uint64(0) || value.Value == int64(0))
+		}
+	}
+	if insert.ProvidedID != nil && providedID == nil {
+		return "", application.ErrInvalidMutation
+	}
+	if err := requireTransactionalInsertTable(ctx, database, insert.TableName); err != nil {
+		return "", err
+	}
+	if insert.ProvidedID != nil && !providedAutoZero {
+		var err error
+		existingID, err = explicitIDExists(ctx, database, insert.TableName, providedID.Value)
+		if err != nil {
+			return "", err
+		}
 	}
 	result := gorm.WithResult()
 	session := database.WithContext(ctx).Session(&gorm.Session{SkipDefaultTransaction: true}).Clauses(result)
@@ -1079,17 +1100,122 @@ func insertRow(ctx context.Context, database *gorm.DB, insert domain.RowInsert) 
 	if created.Error != nil {
 		return "", classifyMutationError(created.Error, ctx.Err())
 	}
-	if insert.ProvidedID != nil {
-		return string(*insert.ProvidedID), nil
+	if insert.ProvidedID != nil && !providedAutoZero {
+		// Only the INSERT's actual unique-index error decides a duplicate key.
+		// If it succeeded despite a pre-existing submitted identity, a trigger
+		// may have changed the new key; the old row cannot prove this ADD's ID.
+		if existingID {
+			return "", application.ErrInvalidMutation
+		}
+		id, err := readExplicitInsertedID(ctx, database, insert.TableName, providedID.Column, providedID.Value)
+		if err != nil {
+			return "", err
+		}
+		// The ID returned to the client must also be usable by the normal
+		// exact-query/PATCH parser. Do not commit an identity that loses its
+		// ability to locate the row when serialized (for example FLOAT precision).
+		parsedID, err := domain.ParseColumnValue(providedID.Column, domain.JSONString(id))
+		if err != nil {
+			return "", application.ErrInvalidMutation
+		}
+		confirmedID, err := readExplicitInsertedID(ctx, database, insert.TableName, providedID.Column, parsedID)
+		if err != nil {
+			return "", err
+		}
+		if confirmedID != id {
+			return "", application.ErrInvalidMutation
+		}
+		return id, nil
 	}
 	if result.Result == nil {
 		return "", application.ErrMutationUnavailable
 	}
 	insertID, err := result.Result.LastInsertId()
-	if err != nil || insertID < 0 {
+	if err != nil {
 		return "", application.ErrMutationUnavailable
 	}
-	return strconv.FormatInt(insertID, 10), nil
+	// Use this INSERT's result: a trigger can assign an auto-increment ID without
+	// updating the connection's LAST_INSERT_ID. The MySQL driver stores the
+	// protocol's uint64 ID as int64; converting back preserves BIGINT UNSIGNED,
+	// while also retaining an actual zero under NO_AUTO_VALUE_ON_ZERO.
+	return strconv.FormatUint(uint64(insertID), 10), nil
+}
+
+func explicitIDExists(ctx context.Context, database *gorm.DB, tableName string, value any) (bool, error) {
+	// A BEFORE INSERT trigger may change NEW.id. Never let the later readback
+	// mistake an existing row at the submitted key for the row we just inserted.
+	// The Policy Snapshot may already have an older RR read view, so use a current
+	// locking read; its gap lock also prevents a competing insert at this key.
+	rows, err := database.WithContext(ctx).Table(tableName).
+		Clauses(selectColumns([]domain.Column{{Name: "id"}}), clause.Locking{Strength: "SHARE"}).
+		Where(clause.Eq{Column: clause.Column{Name: "id"}, Value: value}).Limit(1).Rows()
+	if err != nil {
+		return false, classifyMutationError(err, ctx.Err())
+	}
+	exists := rows.Next()
+	readErr := rows.Err()
+	closeErr := rows.Close()
+	if readErr != nil {
+		return false, classifyMutationError(readErr, ctx.Err())
+	}
+	if closeErr != nil {
+		return false, classifyMutationError(closeErr, ctx.Err())
+	}
+	return exists, nil
+}
+
+func requireTransactionalInsertTable(ctx context.Context, database *gorm.DB, tableName string) error {
+	// Execute a real table read to retain its metadata lock until this transaction
+	// ends. Reading information_schema alone leaves an ALTER ENGINE race between
+	// checking transaction support and the INSERT that may need to be rolled back.
+	rows, err := database.WithContext(ctx).Table(tableName).
+		Clauses(selectColumns([]domain.Column{{Name: "id"}})).Limit(0).Rows()
+	if err != nil {
+		return classifyMutationError(err, ctx.Err())
+	}
+	if err := rows.Close(); err != nil {
+		return classifyMutationError(err, ctx.Err())
+	}
+	var transactional sql.NullString
+	err = database.WithContext(ctx).Raw(`
+SELECT engines.TRANSACTIONS
+FROM information_schema.TABLES AS tables
+LEFT JOIN information_schema.ENGINES AS engines ON engines.ENGINE = tables.ENGINE
+WHERE tables.TABLE_SCHEMA = DATABASE() AND tables.TABLE_NAME = ? AND tables.TABLE_TYPE = 'BASE TABLE'`, tableName).Row().Scan(&transactional)
+	if errors.Is(err, sql.ErrNoRows) {
+		return application.ErrIncompatibleTable
+	}
+	if err != nil {
+		return classifyMutationError(err, ctx.Err())
+	}
+	if !transactional.Valid || transactional.String != "YES" {
+		return application.ErrIncompatibleTable
+	}
+	return nil
+}
+
+// Read on the INSERT transaction, using exactly the bound primary-key value.
+// The database may normalize its representation; if it changes the key so that
+// it cannot be located precisely, reject the input and let the caller roll back.
+func readExplicitInsertedID(ctx context.Context, database *gorm.DB, tableName string, column domain.Column, value any) (string, error) {
+	rows, err := database.WithContext(ctx).Table(tableName).
+		Clauses(selectColumns([]domain.Column{column})).
+		Where(clause.Eq{Column: clause.Column{Name: "id"}, Value: value}).Limit(2).Rows()
+	if err != nil {
+		return "", classifyMutationError(err, ctx.Err())
+	}
+	result, scanErr := scanJSONStringRows(rows, []domain.Column{column})
+	closeErr := rows.Close()
+	if scanErr != nil {
+		return "", classifyMutationError(scanErr, ctx.Err())
+	}
+	if closeErr != nil {
+		return "", classifyMutationError(closeErr, ctx.Err())
+	}
+	if len(result) != 1 || result[0]["id"] == nil {
+		return "", application.ErrInvalidMutation
+	}
+	return string(*result[0]["id"]), nil
 }
 
 func (adapter *Adapter) UpdateRow(ctx context.Context, update domain.RowUpdate) (affected int64, returnErr error) {
@@ -1181,10 +1307,10 @@ func classifyMutationError(err error, contextErr error) error {
 		switch mysqlError.Number {
 		case 1062:
 			return application.ErrDuplicateKey
-		case 1265:
-			// MySQL reports an invalid ENUM member as data truncation. The
-			// submitted value caused the rejection, so expose it as editable
-			// Mutation Content instead of an infrastructure outage.
+		case 1264, 1265, 1406:
+			// Numeric overflow, invalid ENUM members and overlong strings are
+			// rejected storage values. Keep these known input errors editable;
+			// other database failures remain unavailable.
 			return application.ErrInvalidMutation
 		}
 	}

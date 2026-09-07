@@ -82,6 +82,81 @@ describe("modal focus management", () => {
     expect(close).toHaveFocus();
   });
 
+  it("makes the page behind a modal inert and rejects programmatic focus outside it", () => {
+    render(<><button data-testid="background-action">Background action</button><Drawer open title="编辑记录" eyebrow="记录" onClose={() => undefined}><button>Drawer action</button></Drawer></>);
+    const background = screen.getByTestId("background-action");
+    const drawer = screen.getByRole("dialog", { name: "编辑记录" });
+
+    expect(background.closest("[inert]")).not.toBeNull();
+    background.focus();
+    expect(drawer).toContainElement(document.activeElement as HTMLElement);
+  });
+
+  it("skips hidden controls at both ends of the keyboard loop", async () => {
+    const user = userEvent.setup();
+    render(
+      <Drawer open title="编辑记录" eyebrow="记录" onClose={() => undefined} footer={<><button>Visible footer</button><button style={{ display: "none" }}>Hidden footer</button></>}>
+        <button style={{ visibility: "hidden" }}>Hidden body</button>
+        <button>Visible body</button>
+      </Drawer>,
+    );
+    const visibleBody = screen.getByRole("button", { name: "Visible body" });
+    const visibleFooter = screen.getByRole("button", { name: "Visible footer" });
+
+    await user.tab({ shift: true });
+    expect(visibleFooter).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole("button", { name: "关闭" })).toHaveFocus();
+    visibleBody.focus();
+    await user.tab();
+    expect(visibleFooter).toHaveFocus();
+  });
+
+  it("locks scrolling for a confirmation without a drawer and restores it after close", () => {
+    const { rerender } = render(<ConfirmDialog open title="确认？" description="确认说明" confirmLabel="确认" onCancel={() => undefined} onConfirm={() => undefined} />);
+    expect(document.body).toHaveClass("modal-open");
+    expect(document.documentElement).toHaveClass("modal-open");
+    rerender(<ConfirmDialog open={false} title="确认？" description="确认说明" confirmLabel="确认" onCancel={() => undefined} onConfirm={() => undefined} />);
+    expect(document.body).not.toHaveClass("modal-open");
+    expect(document.documentElement).not.toHaveClass("modal-open");
+  });
+
+  it("focuses the dialog surface when its preferred action is disabled", () => {
+    render(<ConfirmDialog open pending title="正在处理" description="请稍候" confirmLabel="确认" onCancel={() => undefined} onConfirm={() => undefined} />);
+    expect(screen.getByRole("alertdialog", { name: "正在处理" })).toHaveFocus();
+  });
+
+  it("restores focus to the lower modal trigger after a nested dialog closes", async () => {
+    const user = userEvent.setup();
+    function NestedExample() {
+      const [confirming, setConfirming] = useState(false);
+      return <><Drawer open title="规则详情" eyebrow="规则" onClose={() => undefined}><button onClick={() => setConfirming(true)}>打开确认</button></Drawer><ConfirmDialog open={confirming} title="确认？" description="确认说明" confirmLabel="确认" onCancel={() => setConfirming(false)} onConfirm={() => undefined} /></>;
+    }
+    render(<NestedExample />);
+    const trigger = screen.getByRole("button", { name: "打开确认" });
+    await user.click(trigger);
+    const confirmation = screen.getByRole("alertdialog", { name: "确认？" });
+    expect(trigger.closest("[inert]")).not.toBeNull();
+    await user.keyboard("{Escape}");
+    expect(confirmation).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+    expect(document.body).toHaveClass("modal-open");
+  });
+
+  it("falls back to the lower modal when the original trigger becomes disabled", async () => {
+    const user = userEvent.setup();
+    function DisabledTriggerExample() {
+      const [confirming, setConfirming] = useState(false);
+      const [disabled, setDisabled] = useState(false);
+      return <><Drawer open title="规则详情" eyebrow="规则" onClose={() => undefined}><button disabled={disabled} onClick={() => setConfirming(true)}>打开确认</button></Drawer><ConfirmDialog open={confirming} title="确认？" description="确认说明" confirmLabel="确认" onCancel={() => setConfirming(false)} onConfirm={() => undefined}><button onClick={() => setDisabled(true)}>禁用下层触发按钮</button></ConfirmDialog></>;
+    }
+    render(<DisabledTriggerExample />);
+    await user.click(screen.getByRole("button", { name: "打开确认" }));
+    await user.click(screen.getByRole("button", { name: "禁用下层触发按钮" }));
+    await user.keyboard("{Escape}");
+    expect(screen.getByRole("dialog", { name: "规则详情" })).toContainElement(document.activeElement as HTMLElement);
+  });
+
   it("does not trap login keyboard input in a workspace drawer hidden by session expiry", async () => {
     const user = userEvent.setup();
     const closeDrawer = vi.fn();
@@ -96,6 +171,9 @@ describe("modal focus management", () => {
     screen.getByLabelText("登录用户名").focus();
     await user.tab();
     expect(screen.getByLabelText("登录密码")).toHaveFocus();
+    expect(screen.getByLabelText("登录用户名").closest("[inert]")).toBeNull();
+    expect(document.body).not.toHaveClass("modal-open");
+    expect(document.documentElement).not.toHaveClass("modal-open");
     await user.keyboard("{Escape}");
     expect(closeDrawer).not.toHaveBeenCalled();
   });

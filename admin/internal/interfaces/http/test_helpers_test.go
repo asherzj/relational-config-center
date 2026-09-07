@@ -37,6 +37,11 @@ func newPolicyHTTPHandlerWithOptionsAndMutationExecutor(t *testing.T, options ht
 func newPolicyHTTPHandlerWithExecutors(t *testing.T, options httpinterface.RouterOptions, queryExecutor application.QueryExecutor, mutationExecutor application.MutationExecutor) http.Handler {
 	t.Helper()
 	adapter := newMemorySnapshotAdapter(queryExecutor, mutationExecutor)
+	return newPolicyHTTPHandlerWithSnapshotAdapter(t, options, adapter)
+}
+
+func newPolicyHTTPHandlerWithSnapshotAdapter(t *testing.T, options httpinterface.RouterOptions, adapter *memorySnapshotAdapter) http.Handler {
+	t.Helper()
 	queryPolicies := application.NewQueryPolicyManagement(adapter, application.NewQueryPolicyTypeRegistry())
 	mutationPolicies := application.NewMutationPolicyManagement(adapter, application.NewMutationPolicyTypeRegistry())
 	policies := application.NewTablePolicyManagement(adapter, adapter, queryPolicies, mutationPolicies)
@@ -74,6 +79,7 @@ type memorySnapshotAdapter struct {
 	tablePolicies    map[string]domain.TablePolicy
 	queryPolicies    map[string]domain.QueryPolicy
 	mutationPolicies map[string]domain.MutationPolicy
+	schemaColumns    map[string][]domain.Column
 	queryExecutor    application.QueryExecutor
 	mutationExecutor application.MutationExecutor
 }
@@ -91,6 +97,7 @@ func newMemorySnapshotAdapter(queryExecutor application.QueryExecutor, mutationE
 		mutationPolicies: map[string]domain.MutationPolicy{
 			"test_mutation_v1": {Code: "test_mutation_v1", Name: "Test mutation", TypeCode: application.SingleTableMutationPolicyType, AllowAdd: true, AllowModify: true, AllowDelete: true, Status: domain.PolicyStatusActive},
 		},
+		schemaColumns: make(map[string][]domain.Column),
 		queryExecutor: queryExecutor, mutationExecutor: mutationExecutor,
 	}
 }
@@ -126,10 +133,14 @@ func (adapter *memorySnapshotAdapter) GetTableSchema(ctx context.Context, name s
 	if err != nil {
 		return domain.TableSchema{}, err
 	}
-	return domain.TableSchema{Name: name, Compatible: table.Compatible, IncompatibilityReason: table.IncompatibilityReason, Columns: []domain.Column{
-		{Name: "id", Type: domain.ColumnTypeUInt64, AutoIncrement: true},
-		{Name: "value", Type: domain.ColumnTypeString},
-	}}, nil
+	columns, found := adapter.schemaColumns[name]
+	if !found {
+		columns = []domain.Column{
+			{Name: "id", Type: domain.ColumnTypeUInt64, AutoIncrement: true},
+			{Name: "value", Type: domain.ColumnTypeString},
+		}
+	}
+	return domain.TableSchema{Name: name, Compatible: table.Compatible, IncompatibilityReason: table.IncompatibilityReason, Columns: columns}, nil
 }
 
 func (adapter *memorySnapshotAdapter) Create(_ context.Context, policy domain.TablePolicy, operator string) error {

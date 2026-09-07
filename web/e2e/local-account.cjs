@@ -11,6 +11,7 @@ const assert = require('node:assert/strict');
 const { randomBytes } = require('node:crypto');
 
 function browserOptions() {
+  if (process.env.RCC_E2E_ENGINE && !process.env.RCC_BROWSER_EXECUTABLE) return { headless: true };
   return process.env.RCC_BROWSER_EXECUTABLE
     ? { executablePath: process.env.RCC_BROWSER_EXECUTABLE, headless: true }
     : { channel: 'chrome', headless: true };
@@ -35,6 +36,7 @@ async function registerFixtureAccount(context, baseURL) {
   assert.equal(identity.account.email_verified, false);
 
   return {
+    accountID: identity.account.id,
     async assertMemoryOnly(page, draftValues = []) {
       const storage = await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage }, cookie: document.cookie }));
       // Coordination persists timestamps/events only; account/session/draft data
@@ -71,4 +73,15 @@ async function authenticatedDelete(context, baseURL, resourcePath) {
   });
 }
 
-module.exports = { browserOptions, registerFixtureAccount, authenticatedDelete };
+async function authenticatedRequest(context, baseURL, resourcePath, options = {}) {
+  const origin = new URL(baseURL).origin;
+  assert.ok(resourcePath.startsWith('/api/v1/') && !resourcePath.startsWith('/api/v1/auth/'));
+  const session = await context.request.get(`${origin}/api/v1/auth/session`);
+  assert.equal(session.status(), 200, 'fixture request requires the current local account');
+  const { csrf_token: csrf } = await session.json();
+  return context.request.fetch(`${origin}${resourcePath}`, {
+    ...options, headers: { ...options.headers, Origin: origin, 'X-CSRF-Token': csrf },
+  });
+}
+
+module.exports = { browserOptions, registerFixtureAccount, authenticatedDelete, authenticatedRequest };

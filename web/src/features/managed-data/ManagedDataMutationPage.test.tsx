@@ -110,7 +110,7 @@ function readFetch(input: RequestInfo | URL, init: RequestInit | undefined, poli
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Managed Data mutation capability", () => {
-  it("fails closed by capability and excludes id plus every server-managed Auto Fill field from ADD", async () => {
+  it("fails closed by capability, offers optional id and excludes every server-managed Auto Fill field from ADD", async () => {
     vi.stubGlobal("fetch", withAccountSession(vi.fn((input: RequestInfo | URL, init?: RequestInit) => Promise.resolve(readFetch(input, init)))));
     const user = userEvent.setup();
 
@@ -133,7 +133,7 @@ describe("Managed Data mutation capability", () => {
     const editor = screen.getByRole("dialog", { name: "新增 notification_templates 记录" });
     expect(within(editor).getByRole("checkbox", { name: "包含 template_key" })).toBeVisible();
     expect(within(editor).getByRole("checkbox", { name: "包含 subject" })).toBeVisible();
-    expect(within(editor).queryByRole("checkbox", { name: "包含 id" })).not.toBeInTheDocument();
+    expect(within(editor).getByRole("checkbox", { name: "包含 id" })).not.toBeChecked();
     expect(within(editor).queryByRole("checkbox", { name: "包含 creator" })).not.toBeInTheDocument();
     expect(within(editor).queryByRole("checkbox", { name: "包含 gmt_created" })).not.toBeInTheDocument();
     expect(within(editor).queryByRole("checkbox", { name: "包含 modifier" })).not.toBeInTheDocument();
@@ -413,17 +413,19 @@ describe("Managed Data mutation capability", () => {
     vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
     renderPage();
-    await user.click(await screen.findByRole("button", { name: "新增记录" }));
+    const add = await screen.findByRole("button", { name: "新增记录" });
+    await waitFor(() => expect(add).toBeEnabled());
+    await user.click(add);
     await user.click(screen.getByRole("checkbox", { name: "包含 template_key" }));
     await user.type(screen.getByRole("textbox", { name: "template_key 值" }), "possibly-committed");
     await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
     await user.click(screen.getByRole("button", { name: "确认并执行" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
-    expect(screen.queryByRole("button", { name: "确认并执行" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "确认并执行" })).toBeDisabled();
     expect(writes).toBe(1);
     const readsBeforeCheck = reads;
-    await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
-    await user.click(screen.getByRole("button", { name: "放弃修改并离开" }));
+    await user.click(screen.getByRole("button", { name: "只读核对当前状态" }));
+    await user.click(await screen.findByRole("button", { name: "我已核对，返回修改" }));
     await vi.waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
     expect(writes).toBe(1);
   });
@@ -453,7 +455,9 @@ describe("Managed Data mutation capability", () => {
     vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
     renderPage();
-    await user.click(await screen.findByRole("button", { name: "新增记录" }));
+    const add = await screen.findByRole("button", { name: "新增记录" });
+    await waitFor(() => expect(add).toBeEnabled());
+    await user.click(add);
     await user.click(screen.getByRole("checkbox", { name: "包含 template_key" }));
     await user.type(screen.getByRole("textbox", { name: "template_key 值" }), "recover-intent");
     await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
@@ -492,7 +496,9 @@ describe("Managed Data mutation capability", () => {
     vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
     renderPage();
-    await user.click(await screen.findByRole("button", { name: "新增记录" }));
+    const add = await screen.findByRole("button", { name: "新增记录" });
+    await waitFor(() => expect(add).toBeEnabled());
+    await user.click(add);
     await user.click(screen.getByRole("checkbox", { name: "包含 template_key" }));
     await user.type(screen.getByRole("textbox", { name: "template_key 值" }), "unresolved-intent");
     await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
@@ -512,8 +518,8 @@ describe("Managed Data mutation capability", () => {
     }
     expect(within(changeSet).getByText("unresolved-intent")).toBeVisible();
     expect(within(changeSet).getByRole("alert")).toHaveTextContent("提交结果尚未确认");
-    expect(within(changeSet).queryByRole("button", { name: "确认并执行" })).not.toBeInTheDocument();
-    expect(within(changeSet).getByRole("button", { name: "只读查询当前状态" })).toBeEnabled();
+    expect(within(changeSet).getByRole("button", { name: "确认并执行" })).toBeDisabled();
+    expect(within(changeSet).getByRole("button", { name: "只读核对当前状态" })).toBeEnabled();
     expect(writes).toBe(1);
   });
 
@@ -588,7 +594,9 @@ describe("Managed Data mutation capability", () => {
     await user.type(await screen.findByLabelText("用户名"), "test.user");
     await user.type(screen.getByLabelText("密码"), "correct horse battery staple");
     await user.click(screen.getByRole("button", { name: "登录" }));
-    await user.click(await screen.findByRole("button", { name: "新增记录" }));
+    const add = await screen.findByRole("button", { name: "新增记录" });
+    await waitFor(() => expect(add).toBeEnabled());
+    await user.click(add);
     expect(screen.getByRole("button", { name: "查看 Change Set" })).toBeEnabled();
   });
 

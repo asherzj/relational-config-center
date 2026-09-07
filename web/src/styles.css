@@ -239,7 +239,7 @@
 .feedback-state span { font-size: 12px; }
 .feedback-error > svg { color: var(--danger); }
 
-.drawer-open { overflow: hidden; }
+.modal-open { overflow: hidden; }
 
 @keyframes drawer-in { from { transform: translateX(28px); opacity: .7; } }
 .drawer-header { min-height: 88px; padding: 24px 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); }
@@ -399,6 +399,8 @@ input::placeholder, textarea::placeholder { color: var(--muted-foreground); opac
   .drawer-header { padding-inline: 20px; }
   .drawer-body { padding-inline: 18px; }
   .drawer-footer { flex-wrap: wrap; gap: 8px; padding-inline: 18px; }
+  .drawer-footer > .button { min-width: 0; flex: 1 1 120px; white-space: normal; overflow-wrap: anywhere; }
+  .drawer-footer > .drawer-close-action { margin-left: 0; }
   .form-grid, .audit-grid, .capability-grid, .policy-effect-operations, .managed-policy-effects { grid-template-columns: 1fr; }
   .policy-effect-operations > div { grid-template-columns: 15px minmax(0, 1fr); }
   .policy-effect-operations span { grid-column: 2; }
@@ -572,10 +574,22 @@ input::placeholder, textarea::placeholder { color: var(--muted-foreground); opac
   .modal-layer:has(.leave-protection-layer) { z-index: 80; }
   .drawer-backdrop, .modal-backdrop { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: rgb(24 24 27 / 26%); pointer-events: auto; cursor: default; }
   .drawer, .app-dialog { pointer-events: auto; }
-  .change-set-dialog { grid-template-rows: auto minmax(0, 1fr) auto auto; }
+  .change-set-dialog { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; }
   .change-set-scroll { min-height: 0; overflow: auto; }
   .change-set-dialog > header h2 { margin-top: 8px; line-height: 1.4; }
   .mutation-success-dialog > h2 { margin: 0; padding: 24px 24px 0; }
   .app-dialog { outline: none; }
   .drawer [data-state="open"], .app-dialog [data-state="open"] { --tw-duration: 160ms; }
+}
+
+@layer components {
+  .drawer, .drawer-header, .drawer-body, .drawer-footer { min-width: 0; }
+  .drawer-header > div { min-width: 0; }
+  .drawer-header .icon-button { flex: 0 0 auto; }
+  .drawer-header h2 { overflow-wrap: anywhere; }
+  .write-recovery { padding: 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
+  .write-recovery p { line-height: 1.6; }
+  .write-recovery-snapshot { max-height: 280px; overflow: auto; margin-top: 12px; }
+  .write-recovery-snapshot pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .confirm-dialog { max-height: calc(100dvh - 32px); overflow: auto; }
 }

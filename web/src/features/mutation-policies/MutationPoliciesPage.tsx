@@ -1,3 +1,5 @@
+import { getMutationPolicy } from "../../api/mutation-policies";
+import { WriteRecovery } from "../../components/ui/WriteRecovery";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/shadcn/table";
 import { Badge } from "../../components/shadcn/badge";
 import { FileCode2, Plus, RefreshCw } from "lucide-react";
@@ -71,11 +73,6 @@ export function MutationPoliciesPage() {
   const deprecate = useDeprecateMutationPolicy();
   const remove = useDeleteMutationPolicy();
   const uncertainCommand = [activate.error, deprecate.error, remove.error].some(isUncertainWriteError);
-  const verifyCommand = async () => {
-    const result = await policies.refetch();
-    if (!result.isSuccess) return;
-    activate.reset(); deprecate.reset(); remove.reset();
-  };
   const lifecycle = usePolicyLifecycleCommands({
     blocked: uncertainCommand,
     onUncertainWrite: (_error, targetCode) => { if (code === targetCode) navigate("/platform/mutation-policies"); },
@@ -114,7 +111,6 @@ export function MutationPoliciesPage() {
       </section>
 
       <section className="catalog" aria-label="变更规则目录">
-        {uncertainCommand && <div className="inline-alert" role="alert"><strong>提交结果尚未确认。系统不会自动重复此写入。</strong><Button variant="secondary" onClick={() => void verifyCommand()}>只读查询当前状态</Button></div>}
         {policies.isPending ? <LoadingState label="正在读取变更规则目录…" /> : policies.isError && !policies.data ? (
           <ErrorState error={policies.error} onRetry={() => void policies.refetch()} />
         ) : !policies.data.length ? <EmptyState entity="变更规则" /> : (
@@ -144,7 +140,16 @@ export function MutationPoliciesPage() {
         </footer>
       </section>
       <MutationPolicyDrawer code={code} commandsBlocked={uncertainCommand} onRequestCommand={lifecycle.request} />
-      {confirm && <ConfirmDialog open title={confirm.title} description={confirm.description} confirmLabel={confirm.label} destructive={confirm.destructive} pending={lifecycle.pending} onCancel={lifecycle.cancel} onConfirm={lifecycle.execute} />}
+      {!confirm && <WriteRecovery onResume={() => {
+        activate.reset(); deprecate.reset(); remove.reset();
+        lifecycle.finishCheck();
+        void policies.refetch();
+      }} resumeLabel="我已核对，结束本次核对" error={lifecycle.recovery.error} onCheck={() => getMutationPolicy(lifecycle.targetCode!)} />}
+      {confirm && <ConfirmDialog open title={confirm.title} description={confirm.description} confirmLabel={confirm.label} destructive={confirm.destructive} pending={lifecycle.pending} confirmDisabled={uncertainCommand || lifecycle.recovery.blocked.current} children={<WriteRecovery onResume={() => {
+        activate.reset(); deprecate.reset(); remove.reset();
+        lifecycle.finishCheck();
+        void policies.refetch();
+      }} resumeLabel="我已核对，结束本次核对" error={lifecycle.recovery.error} onCheck={() => getMutationPolicy(lifecycle.targetCode!)} />} onCancel={lifecycle.cancel} onConfirm={lifecycle.execute} />}
     </main>
   );
 }

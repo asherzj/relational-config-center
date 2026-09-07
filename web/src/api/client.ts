@@ -27,7 +27,13 @@ type RequestOptions<T> = RequestInit & {
 };
 
 async function parseJson(response: Response): Promise<unknown> {
-  const text = await response.text();
+  let text: string;
+  try {
+    text = await response.text();
+  } catch (cause) {
+    throw new ApiError("network_error", "Admin 响应传输中断。", response.status,
+      response.headers.get("X-Request-ID") ?? undefined, { cause });
+  }
   if (!text) return undefined;
   try {
     return JSON.parse(text);
@@ -128,13 +134,25 @@ export function shouldRetryQuery(failureCount: number, error: unknown): boolean 
   return error.code === "network_error" || error.status === 503 || error.status === 504;
 }
 
+// Only recognized rejection responses prove that this request was not accepted.
+// A 5xx may follow a commit or a failed read of the just-written policy.
+// Catalog not-found responses may also originate from that post-write read.
+const definiteWriteRejections = new Set([
+  "invalid_policy_code", "invalid_query_policy_definition", "query_policy_exists",
+  "invalid_policy_transition", "unknown_policy_type", "invalid_query_policy_rules",
+  "invalid_mutation_policy_definition", "mutation_policy_exists", "invalid_mutation_policy_rules",
+  "invalid_policy_definition", "database_table_not_found", "table_policy_exists",
+  "query_policy_not_assignable", "mutation_policy_not_assignable", "incompatible_policy_definition", "incompatible_table",
+  "protected_table", "table_policy_disabled", "invalid_policy_snapshot", "mutation_not_allowed", "mutation_row_not_found",
+  "invalid_mutation_content", "missing_required_field", "duplicate_key", "request_body_too_large", "invalid_request",
+  "unauthorized", "cors_origin_forbidden", "cors_preflight_forbidden",
+  "session_invalid", "account_disabled", "csrf_invalid",
+]);
+
 export function isUncertainWriteError(error: unknown): boolean {
-  return error instanceof ApiError
-    && (error.code === "network_error"
-      || error.code === "contract_mismatch"
-      || error.code === "unexpected_response"
-      || error.code === "stale_session"
-      || error.status === 504);
+  if (error === null || error === undefined) return false;
+  return !(error instanceof ApiError && error.status >= 400 && error.status < 500
+    && definiteWriteRejections.has(error.code));
 }
 
 // An earlier explicit rejection must never hide a later unresolved write.

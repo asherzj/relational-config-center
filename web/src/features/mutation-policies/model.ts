@@ -78,15 +78,16 @@ export function validateDraft(draft: MutationPolicyDraft): DraftErrors {
   for (const key of targetKeys) {
     const value = draft[key]?.trim();
     if (!value) continue;
-    if (value === "id") errors[key] = "id 是主键，不能作为 Auto Fill 目标。";
+    if (value.toLowerCase() === "id") errors[key] = "id 是主键，不能作为 Auto Fill 目标。";
     else if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(value)) errors[key] = "请输入安全的字段名。";
     else if (value.length > 64) errors[key] = "字段名不能超过 64 个字符。";
-    const prior = seen.get(value);
+    const normalizedValue = value.toLowerCase();
+    const prior = seen.get(normalizedValue);
     if (prior) {
       errors[key] = "Auto Fill 目标不能重复。";
       errors[prior] = "Auto Fill 目标不能重复。";
     } else {
-      seen.set(value, key);
+      seen.set(normalizedValue, key);
     }
   }
   if (!draft.allowAdd && (draft.createOperatorField || draft.createTimeField)) {

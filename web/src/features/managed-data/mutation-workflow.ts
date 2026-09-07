@@ -1,6 +1,8 @@
 import { isUncertainWriteError } from "../../api/client";
-import { useWorkspaceRecovery } from "../accounts/ProtectedWorkspace";
+import { queryManagedTable } from "../../api/managed-data";
 import { useEffect, useRef, useState } from "react";
+import { useDraftProtection } from "../../components/ui/LeaveProtection";
+import { useWorkspaceRecovery } from "../accounts/ProtectedWorkspace";
 import { supportsMutationPolicyType } from "../mutation-policies/model";
 import { useMutationPolicy, useMutationPolicyTypes } from "../mutation-policies/queries";
 import {
@@ -43,6 +45,7 @@ export type ManagedDataMutationIntent =
   | { type: "confirm-pending" }
   | { type: "retry-readback" }
   | { type: "retry-recheck" }
+  | { type: "resume-after-check" }
   | { type: "close-outcome" };
 
 type Options = {
@@ -57,6 +60,8 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
   const mutationTypes = useMutationPolicyTypes(Boolean(mutationPolicyCode));
   const mutation = useManagedDataMutation();
   const inFlight = useRef(false);
+  const protection = useDraftProtection(false, mutation.isPending, inFlight);
+  const uncertain = useRef(false);
   const rowRefetch = useManagedDataRowRefetch();
   const [editorSequence, setEditorSequence] = useState(0);
   const [editor, setEditor] = useState<ManagedDataEditorState | null>(null);
@@ -167,7 +172,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
 
   useEffect(() => {
     if (recoveryVersion === 0) return;
-    if (!inFlight.current && !isUncertainWriteError(mutation.error)) mutation.reset();
+    if (!inFlight.current && !uncertain.current && !isUncertainWriteError(mutation.error)) mutation.reset();
     recheckSequence.current++;
     setRecheckingChange(false);
     setRecheckError(null);
@@ -210,6 +215,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
         if (!columns) return;
         const sequence = editorSequence + 1;
         setEditorSequence(sequence);
+        uncertain.current = false;
         mutation.reset();
         recheckSequence.current++;
         setRecheckError(null);
@@ -229,6 +235,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
       }
       case "review-delete":
         if (!columns || typeof intent.row.id !== "string") return;
+        uncertain.current = false;
         mutation.reset();
         recheckSequence.current++;
         setRecheckError(null);
@@ -252,8 +259,17 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
           changeSetAutoFillFields: editor.changeSetAutoFillFields,
         });
         return;
+      case "resume-after-check":
+        uncertain.current = false;
+        recheckSequence.current++;
+        setRecheckingChange(false);
+        setRecheckError(null);
+        setReviewedRecoveryVersion(recoveryVersion);
+        mutation.reset();
+        setPendingChange(null);
+        return;
       case "edit-pending":
-        if (isUncertainWriteError(mutation.error)) return;
+        if (uncertain.current || isUncertainWriteError(mutation.error)) return;
         if (editor && pendingChange) setEditor({
           ...editor, row: pendingChange.row, columns: pendingChange.columns,
           allAutoFillFields: [...allAutoFillFields],
@@ -262,6 +278,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
         setPendingChange(null);
         return;
       case "cancel-pending":
+        uncertain.current = false;
         recheckSequence.current++;
         setRecheckingChange(false);
         setRecheckError(null);
@@ -270,20 +287,22 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
         setEditor(null);
         return;
       case "confirm-pending":
-        if (!pendingChange || recheckingChange || reviewedRecoveryVersion !== recoveryVersion || isUncertainWriteError(mutation.error)) return;
+        if (!pendingChange || recheckingChange || reviewedRecoveryVersion !== recoveryVersion || uncertain.current || isUncertainWriteError(mutation.error)) return;
         inFlight.current = true;
-        void mutation.mutateAsync({
+        mutation.mutate({
           operation: pendingChange.operation,
           tableName: pendingChange.tableName,
           ...(pendingChange.id !== undefined ? { id: pendingChange.id } : {}),
           content: pendingChange.content,
-        }).then((nextOutcome) => {
-          setOutcome(nextOutcome);
-          setPendingChange(null);
-          setEditor(null);
-        }).catch(() => {
-          // The mutation retains the failure and request ID for the current draft.
-        }).finally(() => { inFlight.current = false; });
+        }, {
+          onSuccess(nextOutcome) {
+            setOutcome(nextOutcome);
+            setPendingChange(null);
+            setEditor(null);
+          },
+          onError(error) { uncertain.current = isUncertainWriteError(error); },
+          onSettled() { inFlight.current = false; protection.submissionSettled(); },
+        });
         return;
       case "retry-recheck":
         if (pendingChange) recheckPendingTarget(recoveryVersion);
@@ -320,6 +339,17 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
       executionError: mutation.error,
       executionPending: mutation.isPending,
       retryPending: rowRefetch.isPending,
+    },
+    checkCurrent: async () => {
+      if (!pendingChange) return;
+      // Only an existing row gives us a known stored ID. ADD input may be
+      // transformed by MySQL (for example auto-increment zero); a lost response
+      // leaves its actual ID unknown even when the caller supplied one.
+      const id = pendingChange.id;
+      return queryManagedTable(pendingChange.tableName, {
+        conditions: typeof id === "string" ? [{ field: "id", operator: "exact", value: id }] : [],
+        pageNumber: 1, ...(typeof id === "string" ? { pageSize: 1 } : {}),
+      });
     },
     send,
   };

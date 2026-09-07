@@ -1,8 +1,8 @@
+import { getQueryPolicy } from "../../api/query-policies";
+import { WriteRecovery } from "../../components/ui/WriteRecovery";
 import { AlertCircle } from "lucide-react";
-import { useMemo, useRef, type ReactNode } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMemo, useRef, type MutableRefObject, type ReactNode } from "react";
 import { isUncertainWriteError, prioritizeUncertainWriteError } from "../../api/client";
-import { useLeaveProtection } from "../../components/ui/LeaveProtection";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { Drawer } from "../../components/ui/Drawer";
@@ -16,7 +16,6 @@ import {
 } from "../policies/lifecycle";
 import { supportedQueryPolicyTypes, type QueryPolicyDraft, type QueryPolicyMetadata } from "./model";
 import {
-  queryPolicyKeys,
   useCreateQueryPolicy,
   useQueryPolicy,
   useQueryPolicyTypes,
@@ -37,20 +36,20 @@ export function QueryPolicyDrawer(props: Props) {
   const create = useCreateQueryPolicy();
   const replace = useReplaceQueryPolicy();
   const metadata = useUpdateQueryPolicyMetadata();
-  return <QueryPolicySession key={`${props.code}:${searchParams.get("mode")}`} {...props} create={create} replace={replace} metadata={metadata} />;
+  const submittedCode = useRef<string | undefined>(undefined);
+  return <QueryPolicySession key={`${props.code}:${searchParams.get("mode")}`} {...props} create={create} replace={replace} metadata={metadata} submittedCode={submittedCode} />;
 }
 
 type SessionProps = Props & {
   create: ReturnType<typeof useCreateQueryPolicy>;
   replace: ReturnType<typeof useReplaceQueryPolicy>;
   metadata: ReturnType<typeof useUpdateQueryPolicyMetadata>;
+  submittedCode: MutableRefObject<string | undefined>;
 };
 
-function QueryPolicySession({ code, commandsBlocked, onRequestCommand, create, replace, metadata }: SessionProps) {
+function QueryPolicySession({ code, commandsBlocked, onRequestCommand, create, replace, metadata, submittedCode }: SessionProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const queryClient = useQueryClient();
-  const protection = useLeaveProtection();
   const creating = code === "new";
   const detail = useQueryPolicy(creating ? undefined : code);
   const types = useQueryPolicyTypes();
@@ -68,28 +67,31 @@ function QueryPolicySession({ code, commandsBlocked, onRequestCommand, create, r
   const actions = policy ? policyActionAvailability(policy.status, supported) : null;
   const serverError = prioritizeUncertainWriteError([create.error, replace.error, metadata.error]);
   const uncertain = isUncertainWriteError(serverError);
-  const verifyCurrentState = async () => {
-    try {
-      await queryClient.refetchQueries({ queryKey: queryPolicyKeys.all }, { throwOnError: true });
-    } catch {
-      // Keep the uncertain write blocked until its current state can be read.
-      return;
-    }
-    create.reset(); replace.reset(); metadata.reset();
-    protection.afterSave(close);
-  };
   const form = usePolicyFormSubmission<QueryPolicyDraft, QueryPolicyMetadata>({
     mode,
     code,
     blocked: uncertain || commandsBlocked,
     collectionPath: "/platform/query-policies",
     copy: { created: "查询规则草稿已创建", replaced: "查询规则草稿已更新", metadataUpdated: "查询规则显示信息已更新" },
-    create: (value, onSuccess, onError) => create.mutate(value, { onSuccess: (created) => onSuccess(created.code), onError }),
-    replace: (target, value, onSuccess, onError) => replace.mutate({ code: target, draft: value }, { onSuccess, onError }),
-    updateMetadata: (target, value, onSuccess, onError) => metadata.mutate({ code: target, metadata: value }, { onSuccess, onError }),
+    create: (value, onSuccess, onError) => {
+      submittedCode.current = value.code;
+      create.mutate(value, { onSuccess: (created) => onSuccess(created.code), onError });
+    },
+    replace: (target, value, onSuccess, onError) => {
+      submittedCode.current = target;
+      replace.mutate({ code: target, draft: value }, { onSuccess, onError });
+    },
+    updateMetadata: (target, value, onSuccess, onError) => {
+      submittedCode.current = target;
+      metadata.mutate({ code: target, metadata: value }, { onSuccess, onError });
+    },
     pending: create.isPending || replace.isPending || metadata.isPending,
     error: serverError,
   });
+  const finishRecovery = () => {
+    create.reset(); replace.reset(); metadata.reset();
+    form.recovery.reset();
+  };
 
   const title = useMemo(() => {
     if (mode === "create") return "新建查询规则草稿";
@@ -114,7 +116,6 @@ function QueryPolicySession({ code, commandsBlocked, onRequestCommand, create, r
         typeCodes={types.data ?? []}
         registryState={types.isPending ? "loading" : types.isError ? "error" : "ready"}
         serverError={form.error}
-        onVerify={verifyCurrentState}
         onSubmit={form.submit}
       />
     </>
@@ -124,7 +125,7 @@ function QueryPolicySession({ code, commandsBlocked, onRequestCommand, create, r
   if (mode === "create" || mode === "replace" || mode === "metadata") {
     footer = (
       <>
-        <Button variant="primary" type="submit" form="query-policy-form" disabled={form.pending || uncertain || commandsBlocked || (mode === "create" && !types.data?.some((type) => supportedQueryPolicyTypes.has(type)))}>
+        <Button variant="primary" type="submit" form="query-policy-form" disabled={form.pending || uncertain || commandsBlocked || form.recovery.blocked.current || (mode === "create" && !types.data?.some((type) => supportedQueryPolicyTypes.has(type)))}>
           {form.pending ? "正在保存…" : mode === "create" ? "创建草稿" : mode === "metadata" ? "保存名称和描述" : "保存执行规则"}
         </Button>
         <Button onClick={close} disabled={form.pending}>取消</Button>
@@ -143,5 +144,5 @@ function QueryPolicySession({ code, commandsBlocked, onRequestCommand, create, r
     );
   }
 
-  return <Drawer open={Boolean(code)} title={title} eyebrow="查询规则" onClose={close} footer={footer}>{content}</Drawer>;
+  return <Drawer open={Boolean(code)} title={title} eyebrow="查询规则" onClose={close} footer={footer}>{content}<WriteRecovery onResume={finishRecovery} error={serverError} onCheck={() => getQueryPolicy(submittedCode.current!)} /></Drawer>;
 }

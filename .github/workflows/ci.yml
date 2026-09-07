@@ -97,3 +97,49 @@ jobs:
 
       - name: Run MySQL 8.4 integration tests without cache
         run: make test-integration
+
+  browser-acceptance:
+    name: Browser acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.28.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.19.0
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.work
+          cache-dependency-path: |
+            go.work.sum
+            admin/go.sum
+
+      - name: Require a healthy Docker provider
+        run: docker info
+
+      - name: Run isolated browser acceptance
+        env:
+          RCC_E2E_ARTIFACTS: ${{ runner.temp }}/rcc-browser-acceptance
+          RCC_E2E_ENGINES: chromium,firefox,webkit
+        run: make test-browser-acceptance
+
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: browser-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/rcc-browser-acceptance
+          if-no-files-found: error
+          retention-days: 14
