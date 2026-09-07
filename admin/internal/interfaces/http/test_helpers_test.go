@@ -46,7 +46,7 @@ func newPolicyHTTPHandlerWithExecutors(t *testing.T, options httpinterface.Route
 	options.Authentication = application.NewAuthentication(authStore, passwordadapter.NewArgon2id(), nil, authStore, application.AuthenticationLimits{})
 	options.AccountHTTP = httpinterface.AccountHTTPOptions{PublicOrigin: "http://127.0.0.1:5173", InsecureLocalHTTP: true}
 	handler := httpinterface.NewRouter(application.NewDatabaseTableDiscovery(adapter), readyAdapter{}, queryPolicies, mutationPolicies, policies, queries, mutations, options)
-	client := registerSecurityClient(t, handler)
+	client := registerSecurityAdminClient(t, handler, authStore)
 	if log, ok := options.AccessLog.(*bytes.Buffer); ok {
 		log.Reset()
 	}
@@ -343,7 +343,7 @@ type authenticatedTestHandler struct {
 	csrf    string
 }
 
-func registerSecurityClient(t *testing.T, handler http.Handler) *authenticatedTestHandler {
+func registerSecurityAdminClient(t *testing.T, handler http.Handler, store *mysqladapter.Adapter) *authenticatedTestHandler {
 	t.Helper()
 	send := func(method, path, body string, cookies []*http.Cookie, csrf string) *httptest.ResponseRecorder {
 		request := httptest.NewRequest(method, path, strings.NewReader(body))
@@ -369,6 +369,10 @@ func registerSecurityClient(t *testing.T, handler http.Handler) *authenticatedTe
 	registered := send("POST", "/api/v1/auth/register", `{"username":"security.user","email":"security@example.com","password":"correct horse battery staple"}`, prepare.Result().Cookies(), challenge.CSRF)
 	if registered.Code != 201 {
 		t.Fatalf("register real security test account: %d %s", registered.Code, registered.Body.String())
+	}
+	// Writer regression fixtures explicitly grant ADMIN, never change registration defaults.
+	if _, err := application.NewAccountMaintenance(store, passwordadapter.NewArgon2id()).GrantAdmin(t.Context(), application.AccountSelector{Username: "security.user"}); err != nil {
+		t.Fatal(err)
 	}
 	// Normal test clients authenticate with the public login flow as scripts do.
 	prepare = send("GET", "/api/v1/auth/csrf", "", nil, "")

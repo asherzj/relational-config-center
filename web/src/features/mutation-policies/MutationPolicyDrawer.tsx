@@ -1,3 +1,4 @@
+import { useAccountRole } from "../accounts/roles";
 import { AlertCircle } from "lucide-react";
 import { useMemo, useRef, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -48,6 +49,8 @@ type SessionProps = Props & {
 
 function MutationPolicySession({ code, commandsBlocked, onRequestCommand, create, replace, metadata }: SessionProps) {
   const navigate = useNavigate();
+  const canManage = useAccountRole("ADMIN");
+  const editingAllowedAtOpen = useRef(canManage).current;
   const [searchParams] = useSearchParams();
   const creating = code === "new";
   const detail = useMutationPolicy(creating ? undefined : code);
@@ -65,7 +68,7 @@ function MutationPolicySession({ code, commandsBlocked, onRequestCommand, create
     create.reset(); replace.reset(); metadata.reset();
     protection.afterSave(() => navigate("/platform/mutation-policies"));
   };
-  const requestedFormMode = requestedPolicyFormMode(creating, searchParams.get("mode"));
+  const requestedFormMode = editingAllowedAtOpen ? requestedPolicyFormMode(creating, searchParams.get("mode")) : "view";
   const close = () => navigate("/platform/mutation-policies");
   const editingPolicy = useRef(detail.data);
   if (!editingPolicy.current && detail.data) editingPolicy.current = detail.data;
@@ -81,7 +84,7 @@ function MutationPolicySession({ code, commandsBlocked, onRequestCommand, create
   const form = usePolicyFormSubmission<MutationPolicyDraft, MutationPolicyMetadata>({
     mode,
     code,
-    blocked: uncertain || commandsBlocked,
+    blocked: uncertain || commandsBlocked || !canManage,
     collectionPath: "/platform/mutation-policies",
     copy: { created: "变更规则草稿已创建", replaced: "变更规则草稿已更新", metadataUpdated: "变更规则显示信息已更新" },
     create: (value, onSuccess, onError) => create.mutate(value, { onSuccess: (created) => onSuccess(created.code), onError }),
@@ -101,11 +104,12 @@ function MutationPolicySession({ code, commandsBlocked, onRequestCommand, create
   let content: ReactNode;
   if (!creating && detail.isPending) content = <LoadingState label="正在读取变更规则…" />;
   else if (!creating && detail.isError && !detail.data) content = <ErrorState error={detail.error} onRetry={() => void detail.refetch()} />;
-  else content = <>{!supported && <div className="inline-alert"><AlertCircle size={18} /><strong>规则类型目录未确认 {policy?.typeCode} 的完整新增、修改和删除能力；无法确认执行规则，{actions?.metadata ? "仍可安全查看或修改名称和描述。" : "当前只能安全查看。"}</strong></div>}<MutationPolicyForm key={`${code}:${mode}`} pending={form.pending} mode={mode} policy={policy} typeCodes={(types.data ?? []).map((type) => type.code)} registryTypes={types.data} registryState={types.isPending ? "loading" : types.isError ? "error" : "ready"} serverError={form.error} onVerify={verifyCurrentState} onSubmit={form.submit} /></>;
+  else content = <>{!supported && <div className="inline-alert"><AlertCircle size={18} /><strong>规则类型目录未确认 {policy?.typeCode} 的完整新增、修改和删除能力；无法确认执行规则，{actions?.metadata ? "仍可安全查看或修改名称和描述。" : "当前只能安全查看。"}</strong></div>}<MutationPolicyForm key={`${code}:${mode}`} pending={form.pending}
+        readOnly={!canManage} mode={mode} policy={policy} typeCodes={(types.data ?? []).map((type) => type.code)} registryTypes={types.data} registryState={types.isPending ? "loading" : types.isError ? "error" : "ready"} serverError={form.error} onVerify={verifyCurrentState} onSubmit={form.submit} /></>;
 
   let footer: ReactNode = <Button onClick={close}>关闭</Button>;
-  if (mode === "create" || mode === "replace" || mode === "metadata") footer = <><Button variant="primary" type="submit" form="mutation-policy-form" disabled={form.pending || uncertain || commandsBlocked || (mode === "create" && !types.data?.some((type) => supportedMutationPolicyTypes.has(type.code)))}>{form.pending ? "正在保存…" : mode === "create" ? "创建草稿" : mode === "metadata" ? "保存名称和描述" : "保存执行规则"}</Button><Button onClick={close} disabled={form.pending}>取消</Button></>;
-  else if (policy && actions && !uncertain && !commandsBlocked) footer = <>{actions.replace && <Button variant="primary" onClick={() => navigate("?mode=edit")}>修改执行规则</Button>}{actions.activate && <Button variant="primary" onClick={() => onRequestCommand("activate", policy.code)}>激活</Button>}{actions.metadata && <Button onClick={() => navigate("?mode=metadata")}>修改名称和描述</Button>}{actions.deprecate && <Button variant="danger" onClick={() => onRequestCommand("deprecate", policy.code)}>弃用</Button>}{actions.delete && <Button variant="danger" onClick={() => onRequestCommand("delete", policy.code)}>删除</Button>}<Button className="drawer-close-action" onClick={close}>关闭</Button></>;
+  if (mode === "create" || mode === "replace" || mode === "metadata") footer = <><Button variant="primary" type="submit" form="mutation-policy-form" disabled={!canManage || form.pending || uncertain || commandsBlocked || (mode === "create" && !types.data?.some((type) => supportedMutationPolicyTypes.has(type.code)))}>{form.pending ? "正在保存…" : mode === "create" ? "创建草稿" : mode === "metadata" ? "保存名称和描述" : "保存执行规则"}</Button><Button onClick={close} disabled={form.pending}>取消</Button></>;
+  else if (canManage && policy && actions && !uncertain && !commandsBlocked) footer = <>{actions.replace && <Button variant="primary" onClick={() => navigate("?mode=edit")}>修改执行规则</Button>}{actions.activate && <Button variant="primary" onClick={() => onRequestCommand("activate", policy.code)}>激活</Button>}{actions.metadata && <Button onClick={() => navigate("?mode=metadata")}>修改名称和描述</Button>}{actions.deprecate && <Button variant="danger" onClick={() => onRequestCommand("deprecate", policy.code)}>弃用</Button>}{actions.delete && <Button variant="danger" onClick={() => onRequestCommand("delete", policy.code)}>删除</Button>}<Button className="drawer-close-action" onClick={close}>关闭</Button></>;
 
   return <Drawer open={Boolean(code)} title={title} eyebrow="变更规则" onClose={close} footer={footer}>{content}</Drawer>;
 }

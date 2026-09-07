@@ -1,3 +1,4 @@
+import { AccountRolesPage } from "./features/account-roles/AccountRolesPage";
 import { safeReturnDestination } from "./features/accounts/returnDestination";
 import { ProtectedWorkspace } from "./features/accounts/ProtectedWorkspace";
 import { AccountPage } from "./features/accounts/AccountPage";
@@ -17,6 +18,7 @@ export function AppRoutes() {
       <Route element={<ProtectedWorkspace />}>
       <Route element={<AppShell />}>
         <Route index element={<Navigate to="/platform/query-policies" replace />} />
+        <Route path="platform/account-roles" element={<AccountRolesPage />} />
         <Route path="platform/query-policies" element={<QueryPoliciesPage />} />
         <Route path="platform/query-policies/:code" element={<QueryPoliciesPage />} />
         <Route path="platform/mutation-policies" element={<MutationPoliciesPage />} />

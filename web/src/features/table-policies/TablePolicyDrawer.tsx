@@ -1,3 +1,4 @@
+import { useAccountRole } from "../accounts/roles";
 import { Input } from "../../components/shadcn/input";
 import { NativeSelect } from "../../components/shadcn/native-select";
 import { Label } from "../../components/shadcn/label";
@@ -44,11 +45,13 @@ type Commands = {
 
 function TablePolicySession({ tableName, commands: { create, replace, enable, disable } }: Props & { commands: Commands }) {
   const navigate = useNavigate();
+  const canManage = useAccountRole("ADMIN");
+  const editingAllowedAtOpen = useRef(canManage).current;
   const [searchParams] = useSearchParams();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
-  const creating = !tableName && searchParams.get("mode") === "create";
-  const replacing = !creating && searchParams.get("mode") === "replace";
+  const creating = editingAllowedAtOpen && !tableName && searchParams.get("mode") === "create";
+  const replacing = editingAllowedAtOpen && !creating && searchParams.get("mode") === "replace";
   const selectingAssignment = creating || replacing;
   const discovery = useDatabaseTables(selectingAssignment);
   const queryPolicies = useQueryPolicies();
@@ -141,6 +144,7 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
   };
 
   const executeReplace = () => {
+    if (!canManage) return;
     if (!tableName || !valid || uncertain || inFlight.current || pending) return;
     inFlight.current = true;
     replace.mutate({ tableName, assignment }, {
@@ -155,7 +159,7 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
   };
 
   const executeStateCommand = () => {
-    if (!tableName || !pendingStateCommand || uncertain || inFlight.current || pending) return;
+    if (!canManage || !tableName || !pendingStateCommand || uncertain || inFlight.current || pending) return;
     inFlight.current = true;
     const command = pendingStateCommand;
     const mutation = command === "enable" ? enable : disable;
@@ -171,6 +175,7 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    if (!canManage) return;
     if (!valid || uncertain || inFlight.current || pending) return;
     if (creating) {
       inFlight.current = true;
@@ -210,7 +215,7 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
   );
   else content = (
     <form id="table-policy-form" className="policy-form" onSubmit={submit}>
-      <fieldset className="form-controls" disabled={pending}>
+      <fieldset className="form-controls" disabled={pending || !canManage}>
       <div className="form-note"><AlertCircle size={17} /><span>{creating ? "新分配始终创建为未启用；启用前 Admin 会再次校验实时 Schema 与两条规则引用。" : "查询规则和变更规则会一起校验、一起替换；任何一项失败，当前分配都保持不变。"}</span></div>
       {creating ? <Label className="field"><span>真实数据库表</span><NativeSelect aria-label="真实数据库表" value={assignment.tableName} onChange={(event) => setAssignment((current) => ({ ...current, tableName: event.target.value }))}>
           <option value="">请选择兼容且未分配的表</option>
@@ -239,6 +244,7 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
   else footer = uncertain
     ? <><Button variant="primary" onClick={verifyCurrentState}>只读查询当前状态</Button><Button className="drawer-close-action" onClick={close}>关闭</Button></>
     : <><Button variant="primary" onClick={() => navigate("?mode=replace")}>替换所选规则</Button>{detail.data && <Button variant={detail.data.enabled ? "danger" : "primary"} onClick={() => setPendingStateCommand(detail.data.enabled ? "disable" : "enable")}>{detail.data.enabled ? "停用" : "启用"}</Button>}<Button className="drawer-close-action" onClick={close}>关闭</Button></>;
+  if (!canManage) footer = <Button onClick={close}>关闭</Button>;
   const title = creating ? "新建表规则分配" : replacing ? "替换表规则" : "表规则详情";
   const stateConfirm = pendingStateCommand === "enable" ? { title: "启用表规则？", description: "Admin 将根据实时 Schema 和两条规则引用重新校验；成功后该表成为 Managed Table。", label: "确认启用" } : { title: "停用表规则？", description: "停用后该表立即失去 Managed Table 身份，后续数据 API 请求将被拒绝。", label: "确认停用" };
   return <><Drawer open title={title} eyebrow="表规则" onClose={close} footer={footer}>{content}</Drawer>{detail.data?.enabled && <ConfirmDialog open={confirmReplace} title="替换已启用的表规则？" description="查询规则和变更规则校验成功后会一起替换，下一次请求立即生效。" confirmLabel="确认替换" pending={replace.isPending} onCancel={() => setConfirmReplace(false)} onConfirm={executeReplace} />}{pendingStateCommand && <ConfirmDialog open title={stateConfirm.title} description={stateConfirm.description} confirmLabel={stateConfirm.label} destructive={pendingStateCommand === "disable"} pending={enable.isPending || disable.isPending} onCancel={() => setPendingStateCommand(null)} onConfirm={executeStateCommand} />}</>;

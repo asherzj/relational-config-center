@@ -105,7 +105,7 @@ A known configuration record identity reserved by a submitted, unfinished Releas
 _Avoid_: Draft editing lock, business-field similarity
 
 **Account Role（账号角色）**:
-A global grant governing the actions a Local Account may perform across this deployment's Managed Tables and Release Orders. Roles can be combined; an administrative role does not permit approval of one's own order.
+A global grant governing the actions a Local Account may perform across this deployment's Managed Tables and Release Orders. Roles can be combined; every role includes viewing, while editing, approving and publishing do not imply one another. New accounts begin as viewers, with administrators explicitly appointed by deployment maintenance. An administrative role does not permit approval of one's own order.
 _Avoid_: Account Status, Table Policy, per-table permission
 
 **Publication Command（发布变更记录）**:

@@ -1,10 +1,11 @@
+import { accountRoleSchema } from "./account-roles";
 import { z } from "zod";
 import { request } from "./client";
 
 export const currentIdentitySchema = z.object({
   account: z.object({
     id: z.uuid(), username: z.string(), display_name: z.string(),
-    email: z.string(), email_verified: z.literal(false), status: z.literal("enabled"),
+    email: z.string(), email_verified: z.literal(false), status: z.literal("enabled"), roles: z.array(accountRoleSchema).min(1).max(5),
   }),
   csrf_token: z.string().min(1),
   idle_expires_at: z.iso.datetime({ offset: true }),

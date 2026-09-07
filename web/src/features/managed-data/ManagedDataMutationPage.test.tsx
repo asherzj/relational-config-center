@@ -1,4 +1,4 @@
-import { testIdentity, withAccountSession } from "../../test/account-session";
+import { testAdminIdentity, withAdminSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -111,7 +111,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("Managed Data mutation capability", () => {
   it("fails closed by capability and excludes id plus every server-managed Auto Fill field from ADD", async () => {
-    vi.stubGlobal("fetch", withAccountSession(vi.fn((input: RequestInfo | URL, init?: RequestInit) => Promise.resolve(readFetch(input, init)))));
+    vi.stubGlobal("fetch", withAdminSession(vi.fn((input: RequestInfo | URL, init?: RequestInit) => Promise.resolve(readFetch(input, init)))));
     const user = userEvent.setup();
 
     renderPage();
@@ -142,7 +142,7 @@ describe("Managed Data mutation capability", () => {
 
   it("fails closed when an applicable Auto Fill target is absent from the live dynamic Schema", async () => {
     const invalidPolicy = { ...mutationPolicy, create_operator_field: "missing_creator", allow_modify: true, allow_delete: true };
-    vi.stubGlobal("fetch", withAccountSession(vi.fn((input: RequestInfo | URL, init?: RequestInit) => Promise.resolve(readFetch(input, init, invalidPolicy)))));
+    vi.stubGlobal("fetch", withAdminSession(vi.fn((input: RequestInfo | URL, init?: RequestInit) => Promise.resolve(readFetch(input, init, invalidPolicy)))));
 
     renderPage();
 
@@ -184,7 +184,7 @@ describe("Managed Data mutation capability", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
     renderPage();
 
@@ -247,7 +247,7 @@ describe("Managed Data mutation capability", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
     renderPage();
 
@@ -298,7 +298,7 @@ describe("Managed Data mutation capability", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
     renderPage();
 
@@ -338,7 +338,7 @@ describe("Managed Data mutation capability", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
     renderPage();
 
@@ -366,7 +366,7 @@ describe("Managed Data mutation capability", () => {
       if (url.endsWith("/tables/notification_templates/query")) return json({ columns, rows: [row], page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 } });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
     renderPage();
 
@@ -410,7 +410,7 @@ describe("Managed Data mutation capability", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
     renderPage();
     await user.click(await screen.findByRole("button", { name: "新增记录" }));
@@ -437,9 +437,9 @@ describe("Managed Data mutation capability", () => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
-      if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
+      if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
       if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
-      if (url.endsWith("/auth/login")) { signedIn = true; return json(testIdentity); }
+      if (url.endsWith("/auth/login")) { signedIn = true; return json(testAdminIdentity); }
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
@@ -479,9 +479,9 @@ describe("Managed Data mutation capability", () => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
-      if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired" } }, 401);
+      if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired" } }, 401);
       if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
-      if (url.endsWith("/auth/login")) { signedIn = true; return json(testIdentity); }
+      if (url.endsWith("/auth/login")) { signedIn = true; return json(testAdminIdentity); }
       if (url.endsWith("/tables/notification_templates/rows") && init?.method === "POST") {
         writes++;
         if (delayed) return new Promise<Response>((resolve) => { settleWrite = () => resolve(json({ id: "42" }, 201)); });
@@ -528,9 +528,9 @@ describe("Managed Data mutation capability", () => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
-      if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
+      if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
       if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
-      if (url.endsWith("/auth/login")) { signedIn = true; recovered = true; return json(testIdentity); }
+      if (url.endsWith("/auth/login")) { signedIn = true; recovered = true; return json(testAdminIdentity); }
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
@@ -570,9 +570,9 @@ describe("Managed Data mutation capability", () => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
-      if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
+      if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
       if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
-      if (url.endsWith("/auth/login")) { signedIn = true; return json(testIdentity); }
+      if (url.endsWith("/auth/login")) { signedIn = true; return json(testAdminIdentity); }
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
@@ -603,9 +603,9 @@ describe("Managed Data mutation capability", () => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
-      if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
+      if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
       if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
-      if (url.endsWith("/auth/login")) { signedIn = true; recovered = true; return json(testIdentity); }
+      if (url.endsWith("/auth/login")) { signedIn = true; recovered = true; return json(testAdminIdentity); }
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
@@ -672,7 +672,7 @@ describe("Managed Data mutation capability", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
     renderPage();
 

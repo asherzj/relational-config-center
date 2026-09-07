@@ -51,7 +51,7 @@ describe("Managed Data mutation workflow", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const hook = renderHook(
-      ({ tableName }) => useManagedDataMutationWorkflow({ tableName, mutationPolicyCode: "full_mutation_v1", columns }),
+      ({ tableName }) => useManagedDataMutationWorkflow({ canEdit: true, tableName, mutationPolicyCode: "full_mutation_v1", columns }),
       { wrapper: createWrapper(), initialProps: { tableName: "managed_items" } },
     );
     await waitFor(() => expect(hook.result.current.view.capabilityReasons.ADD).toBeUndefined());

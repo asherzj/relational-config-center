@@ -19,6 +19,13 @@ import (
 func TestAccountBrowserSystemPath(t *testing.T) {
 	_, driver := startIntegrationMySQLWithRequirement(t, true, "../../../deploy/mysql/init/001-schema.sql", localManagedTableFixture, "../../../docs/verification/fixtures/stage1_acceptance.sql")
 	db := deliveryDB(t, driver)
+	maintenance := filepath.Join(t.TempDir(), "account-maintain")
+	build := exec.Command("go", "build", "-o", maintenance, "../account-maintain")
+	if output, err := build.CombinedOutput(); err != nil {
+		t.Fatalf("build maintenance: %v %s", err, output)
+	}
+	fixtureEnvironment := append(os.Environ(), integrationEnvironment(driver, "invalid-http-address")...)
+	fixtureEnvironment = append(fixtureEnvironment, "RCC_ACCOUNT_MAINTAIN="+maintenance)
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -61,7 +68,7 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 	}
 	browser := exec.Command("node", filepath.Join(web, "e2e/accounts.mjs"))
 	browser.Dir = web
-	browser.Env = append(os.Environ(), "RCC_E2E_ORIGIN="+origin)
+	browser.Env = append(fixtureEnvironment, "RCC_E2E_ORIGIN="+origin)
 	result, err := browser.CombinedOutput()
 	if err != nil {
 		t.Fatalf("browser system path: %v %s", err, result)
@@ -81,12 +88,12 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 	if len(evidence.AccountID) != 36 || creator != evidence.AccountID || modifier != evidence.AccountID || body != "browser system configuration" {
 		t.Fatal("real database Operator/content did not match browser account")
 	}
-	prepareManagementBrowserPolicies(t, admin)
+	prepareManagementBrowserPolicies(t, admin, maintenance, fixtureEnvironment)
 	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs"} {
 		t.Run(script, func(t *testing.T) {
 			command := exec.Command("node", filepath.Join(web, "e2e", script))
 			command.Dir = web
-			command.Env = append(os.Environ(), "RCC_WEB_URL="+origin, "RCC_E2E_OUTPUT="+t.TempDir())
+			command.Env = append(fixtureEnvironment, "RCC_WEB_URL="+origin, "RCC_E2E_OUTPUT="+t.TempDir())
 			result, err := command.CombinedOutput()
 			if err != nil {
 				t.Fatalf("authenticated management acceptance %s: %v %s", script, err, result)
@@ -110,9 +117,23 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 	t.Logf("browser → Vite same-origin proxy → Admin → MySQL: %s; creator/modifier match current Account ID", strings.Join(evidence.Checks, ", "))
 }
 
-func prepareManagementBrowserPolicies(t *testing.T, admin *accountProcess) {
+func prepareManagementBrowserPolicies(t *testing.T, admin *accountProcess, maintenance string, environment []string) {
 	t.Helper()
-	cookies, csrf, _ := processCredentials(t, admin, "/api/v1/auth/register", `{"username":"browser.setup","email":"browser.setup@example.invalid","password":"browser setup password long enough"}`)
+	cookies, csrf, identity := processCredentials(t, admin, "/api/v1/auth/register", `{"username":"browser.setup","email":"browser.setup@example.invalid","password":"browser setup password long enough"}`)
+
+	var account struct {
+		Account struct {
+			ID string `json:"id"`
+		} `json:"account"`
+	}
+	if err := json.Unmarshal(identity, &account); err != nil {
+		t.Fatal(err)
+	}
+	grant := exec.Command(maintenance, "grant-admin", "--id", account.Account.ID)
+	grant.Env = environment
+	if output, err := grant.CombinedOutput(); err != nil {
+		t.Fatalf("grant browser setup administrator: %v %s", err, output)
+	}
 	for _, request := range []struct {
 		path string
 		body string

@@ -7,7 +7,8 @@ import { afterEach, expect, it, vi } from "vitest";
 import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
 
-const identity = { account: { id: "ab09850e-ef9a-4317-a000-d67465416b5b", username: "alice", display_name: "小爱", email: "alice@example.com", email_verified: false, status: "enabled" }, csrf_token: "session-csrf", expires_at: "2099-09-07T08:00:00Z", idle_expires_at: "2099-09-07T00:30:00Z" };
+// Session/draft recovery fixtures represent an explicitly authorized catalog administrator.
+const identity = { account: { id: "ab09850e-ef9a-4317-a000-d67465416b5b", username: "alice", display_name: "小爱", email: "alice@example.com", email_verified: false, status: "enabled", roles:["ADMIN"] }, csrf_token: "session-csrf", expires_at: "2099-09-07T08:00:00Z", idle_expires_at: "2099-09-07T00:30:00Z" };
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } });
 const failure = (code: string, status: number) => json({ error: { code, message: "safe failure", request_id: "request-1" } }, status);
 function Location() { const location = useLocation(); return <output aria-label="current path">{location.pathname}{location.search}{location.hash}</output>; }

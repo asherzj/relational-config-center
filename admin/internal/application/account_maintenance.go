@@ -73,3 +73,11 @@ func (m *AccountMaintenance) CorrectEmail(ctx context.Context, selector AccountS
 	err = m.accounts.CorrectAccountEmail(ctx, account.ID, email, time.Now())
 	return account, err
 }
+
+func (m *AccountMaintenance) GrantAdmin(ctx context.Context, selector AccountSelector) (LocalAccountSummary, error) {
+	account, err := m.Find(ctx, selector)
+	if err != nil {
+		return LocalAccountSummary{}, err
+	}
+	return account, m.accounts.GrantAccountAdmin(ctx, account.ID, time.Now())
+}

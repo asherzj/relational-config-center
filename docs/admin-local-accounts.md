@@ -1,5 +1,7 @@
 # Local Accounts, sessions, protected workspace and maintenance
 
+当前角色授权见 [全局账号角色](admin-account-roles.md)：新老账号默认 VIEWER，维护者显式指定管理员，只有 ADMIN 可管理规则和角色。身份响应新增 `account.roles`；存量安装完成 007 后继续执行迁移 008。以下账号会话行为继续适用。
+
 [#35](https://github.com/asherzj/relational-config-center/issues/35) implements the
 account-entry slice and [#36](https://github.com/asherzj/relational-config-center/issues/36)
 implements profile and session lifecycle from

@@ -24,6 +24,7 @@ func NormalizeAccountSelector(selector AccountSelector) (AccountSelector, error)
 // AccountMaintenanceRepository is reachable only by database-authorized tools.
 type AccountMaintenanceRepository interface {
 	FindAccount(context.Context, AccountSelector) (LocalAccount, error)
+	GrantAccountAdmin(context.Context, string, time.Time) error
 	ResetAccountPassword(context.Context, string, string, time.Time) error
 	SetAccountEnabled(context.Context, string, bool, time.Time) error
 	CorrectAccountEmail(context.Context, string, string, time.Time) error

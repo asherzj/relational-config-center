@@ -135,7 +135,7 @@ func (management *QueryPolicyManagement) Types() []QueryPolicyType {
 }
 
 func (management *QueryPolicyManagement) Create(ctx context.Context, candidate PutQueryPolicy) (domain.QueryPolicy, error) {
-	operator, identityErr := requestOperator(ctx)
+	operator, identityErr := requireRole(ctx, RoleAdmin)
 	if identityErr != nil {
 		return domain.QueryPolicy{}, identityErr
 	}
@@ -178,7 +178,7 @@ func (management *QueryPolicyManagement) ValidateForTable(policy domain.QueryPol
 }
 
 func (management *QueryPolicyManagement) ReplaceDraft(ctx context.Context, code string, candidate PutQueryPolicy) (domain.QueryPolicy, error) {
-	operator, identityErr := requestOperator(ctx)
+	operator, identityErr := requireRole(ctx, RoleAdmin)
 	if identityErr != nil {
 		return domain.QueryPolicy{}, identityErr
 	}
@@ -196,7 +196,7 @@ func (management *QueryPolicyManagement) ReplaceDraft(ctx context.Context, code 
 }
 
 func (management *QueryPolicyManagement) Activate(ctx context.Context, code string) (domain.QueryPolicy, error) {
-	operator, identityErr := requestOperator(ctx)
+	operator, identityErr := requireRole(ctx, RoleAdmin)
 	if identityErr != nil {
 		return domain.QueryPolicy{}, identityErr
 	}
@@ -218,7 +218,7 @@ func (management *QueryPolicyManagement) Deprecate(ctx context.Context, code str
 }
 
 func (management *QueryPolicyManagement) transition(ctx context.Context, code string, from, to domain.PolicyStatus) (domain.QueryPolicy, error) {
-	operator, identityErr := requestOperator(ctx)
+	operator, identityErr := requireRole(ctx, RoleAdmin)
 	if identityErr != nil {
 		return domain.QueryPolicy{}, identityErr
 	}
@@ -233,7 +233,7 @@ func (management *QueryPolicyManagement) transition(ctx context.Context, code st
 }
 
 func (management *QueryPolicyManagement) UpdateMetadata(ctx context.Context, code, name, description string) (domain.QueryPolicy, error) {
-	operator, identityErr := requestOperator(ctx)
+	operator, identityErr := requireRole(ctx, RoleAdmin)
 	if identityErr != nil {
 		return domain.QueryPolicy{}, identityErr
 	}
@@ -253,7 +253,7 @@ func (management *QueryPolicyManagement) UpdateMetadata(ctx context.Context, cod
 }
 
 func (management *QueryPolicyManagement) DeleteDraft(ctx context.Context, code string) error {
-	if _, identityErr := requestOperator(ctx); identityErr != nil {
+	if _, identityErr := requireRole(ctx, RoleAdmin); identityErr != nil {
 		return identityErr
 	}
 	policy, err := management.catalog.GetQueryPolicy(ctx, code)

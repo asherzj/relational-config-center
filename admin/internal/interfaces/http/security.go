@@ -32,6 +32,7 @@ var (
 // Request-scoped safety behavior remains behind NewRouter.
 type RouterOptions struct {
 	Authentication *application.Authentication
+	AccountRoles   *application.AccountRoleManagement
 	AccountHTTP    AccountHTTPOptions
 	AccessLog      io.Writer
 }
@@ -155,6 +156,19 @@ func sessionAuthentication(options RouterOptions) gin.HandlerFunc {
 		cancel()
 		if err != nil {
 			writeAuthError(c, err)
+			c.Abort()
+			return
+		}
+		// Query uses POST for structured conditions, but requires only read access.
+		required := application.RoleViewer
+		if change && c.FullPath() != "/api/v1/tables/:table_name/query" {
+			required = application.RoleAdmin
+			if c.FullPath() == "/api/v1/tables/:table_name/rows" || c.FullPath() == "/api/v1/tables/:table_name/rows/:id" {
+				required = application.RoleEditor
+			}
+		}
+		if !operator.Allows(required) {
+			writeError(c, 403, "permission_denied", "the current account does not have the required role")
 			c.Abort()
 			return
 		}

@@ -36,6 +36,8 @@ type LocalAccount struct {
 	Enabled         bool
 	PasswordVersion uint64
 	SessionVersion  uint64
+	Roles           AccountRoles
+	RoleVersion     uint64
 }
 
 type LoginSession struct {

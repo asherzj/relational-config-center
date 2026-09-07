@@ -1,5 +1,7 @@
 # 关系型配置中心
 
+账号默认只读。部署维护者通过 `account-maintain grant-admin` 明确指定首位管理员，再在管理台分配全局角色；存量部署需迁移 008。见[账号角色、初始化与恢复](docs/admin-account-roles.md)。发布单审批仍按 #48 的后续工单推进。
+
 本地账号提供 `/register`、`/login` 和 `/account`，所有业务页面及 API 均要求真实 MySQL Cookie 会话，配置行和规则目录写入归属当前账号的永久 Account ID。启动需显式配置 `ADMIN_PUBLIC_ORIGIN`；本机 HTTP 还需 `ADMIN_ALLOW_LOCAL_HTTP=true`。参见[账号入口与 HTTP 契约](docs/admin-local-accounts.md)。旧共享 Token、免认证和固定 Operator 已移除；已包含草稿恢复、账号维护工具、缺结构启动检查和真实浏览器验收；参见[完整验收证据](docs/admin-local-accounts-evidence.md)。
 
 Relational Configuration Center 是一个面向实体、字段和关系建模的配置管理系统。

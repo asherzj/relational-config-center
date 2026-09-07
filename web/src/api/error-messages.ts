@@ -1,6 +1,13 @@
 import { ApiError } from "./client";
 
 const errorMessages: Record<string, string> = {
+  permission_denied: "当前账号没有执行此操作的角色，请联系管理员授权。",
+  invalid_account_roles: "请至少选择一个角色，且不要重复选择。",
+  account_roles_conflict: "角色已被其他管理员更新，请先查看最新角色。",
+  last_administrator: "不能移除最后一个启用管理员，请先为其他启用账号授予管理员角色。",
+  idempotency_conflict: "请求标识已用于其他内容，请核对原请求结果。",
+  account_not_found: "账号不存在，请刷新列表。",
+
   invalid_policy_code: "规则编码必须使用小写、包含版本号，并且不能包含技术实现名称。",
   invalid_query_policy_definition: "查询规则定义不完整，请检查必填项。",
   query_policy_not_found: "查询规则不存在或已被移除。",

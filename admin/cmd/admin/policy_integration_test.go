@@ -820,6 +820,6 @@ func assertIntegrationErrorCode(t *testing.T, response *httptest.ResponseRecorde
 
 func policyIntegrationRequest(t *testing.T, app *adminApplication, method, path, body string) *httptest.ResponseRecorder {
 	t.Helper()
-	session := integrationSession(t, app)
+	session := integrationAdminSession(t, app)
 	return accountRequest(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session))
 }

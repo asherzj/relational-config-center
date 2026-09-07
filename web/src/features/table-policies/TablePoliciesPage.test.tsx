@@ -1,4 +1,4 @@
-import { testIdentity, withAccountSession } from "../../test/account-session";
+import { testAdminIdentity, withAdminSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -118,7 +118,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("表规则分配页面", () => {
   it("通过正式路由展示真实表发现状态、表规则目录并在客户端筛选", async () => {
-    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: discoveryTables });
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
@@ -157,7 +157,7 @@ describe("表规则分配页面", () => {
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/table-policies?mode=create");
@@ -221,7 +221,7 @@ describe("表规则分配页面", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
     renderPage("/platform/table-policies?mode=create");
     await user.selectOptions(await screen.findByRole("combobox", { name: "真实数据库表" }), "message_templates");
@@ -275,7 +275,7 @@ describe("表规则分配页面", () => {
       if (url.endsWith("/table-policies")) { reads += 1; return json({ policies: [tablePolicy] }); }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
     renderPage("/platform/table-policies/notification_templates");
     await user.click(await screen.findByRole("button", { name: "停用" }));
@@ -314,9 +314,9 @@ describe("表规则分配页面", () => {
     let writes = 0;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
-      if (url.endsWith("/auth/session")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
+      if (url.endsWith("/auth/session")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
       if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
-      if (url.endsWith("/auth/login")) { signedIn = true; return json(testIdentity); }
+      if (url.endsWith("/auth/login")) { signedIn = true; return json(testAdminIdentity); }
       if (url.endsWith("/database-tables")) { discoveryReads += 1; return json({ tables: discoveryTables }); }
       if (url.endsWith("/query-policy-types")) return json(queryPolicyTypes);
       if (url.endsWith("/mutation-policy-types")) return json(mutationPolicyTypes);
@@ -360,7 +360,7 @@ describe("表规则分配页面", () => {
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/table-policies/notification_templates");
@@ -388,7 +388,7 @@ describe("表规则分配页面", () => {
   });
 
   it("已启用分配一起替换失败后呈现稳定错误和 Request ID", async () => {
-    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: discoveryTables });
       if (url.endsWith("/query-policy-types")) return json(queryPolicyTypes);
@@ -424,7 +424,7 @@ describe("表规则分配页面", () => {
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
 
     renderPage("/platform/table-policies/notification_templates");
 
@@ -437,7 +437,7 @@ describe("表规则分配页面", () => {
 
   it("详情读取失败时呈现稳定错误并可重试专用详情端点", async () => {
     let detailAttempts = 0;
-    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: discoveryTables });
       if (url.endsWith("/table-policies/notification_templates")) {
@@ -461,7 +461,7 @@ describe("表规则分配页面", () => {
 
   it("真实表名为 new 时仍使用可复制详情 URL，而不是打开创建页", async () => {
     const namedNewPolicy = { ...tablePolicy, table_name: "new" };
-    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: [] });
       if (url.endsWith("/table-policies/new")) return json(namedNewPolicy);
@@ -477,7 +477,7 @@ describe("表规则分配页面", () => {
   });
 
   it("Discovery 成功但没有真实表时展示明确空态", async () => {
-    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: [] });
       if (url.endsWith("/table-policies")) return json({ policies: [] });
@@ -490,7 +490,7 @@ describe("表规则分配页面", () => {
   });
 
   it("关闭详情后进入新建会清空旧分配，不能提交已分配表", async () => {
-    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: discoveryTables });
       if (url.endsWith("/query-policy-types")) return json(queryPolicyTypes);
@@ -531,7 +531,7 @@ describe("表规则分配页面", () => {
       if (url.endsWith("/table-policies")) return json({ policies: [currentPolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/table-policies/notification_templates");
@@ -548,7 +548,7 @@ describe("表规则分配页面", () => {
 
   it("清晰呈现 Admin 的实时 Schema 稳定错误和 Request ID", async () => {
     const disabledPolicy = { ...tablePolicy, enabled: false };
-    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: discoveryTables });
       if (url.endsWith("/query-policies")) return json({ policies: queryPolicies });

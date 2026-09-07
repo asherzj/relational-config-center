@@ -1,3 +1,4 @@
+import { accountRolesChanged } from "./roles";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
@@ -59,7 +60,11 @@ export function ProtectedWorkspace() {
     identityRef.current = current;
     setIdentity(current);
     if (previousAccountID) {
-      await queryClient.refetchQueries({ type: "active" }, { throwOnError: true });
+      try {
+        await queryClient.refetchQueries({ type: "active" }, { throwOnError: true });
+      } catch (cause) {
+        if (!(cause instanceof ApiError && cause.code === "permission_denied")) throw cause;
+      }
       if (generation.current !== currentGeneration) return;
       if (sameAccount) setRecoveryVersion((value) => value + 1);
     }
@@ -116,12 +121,23 @@ export function ProtectedWorkspace() {
       suspend("checking");
       void inspect();
     };
+    const refreshRoles = async () => {
+      const currentGeneration = generation.current;
+      try {
+        const current = await accounts.current();
+        if (generation.current !== currentGeneration || current.account.id !== identityRef.current?.account.id) return;
+        identityRef.current = current;
+        setIdentity(current);
+      } catch { /* The next authenticated request or visibility check handles session recovery. */ }
+    };
+    window.addEventListener(accountRolesChanged, refreshRoles);
     window.addEventListener(businessSessionInvalid, invalid);
     const unsubscribeSessionEvents = subscribeSessionEvents(synchronize);
     document.addEventListener("visibilitychange", verifyOnReturn);
     return () => {
       generation.current++;
       setBusinessSession(null);
+      window.removeEventListener(accountRolesChanged, refreshRoles);
       window.removeEventListener(businessSessionInvalid, invalid);
       unsubscribeSessionEvents();
       document.removeEventListener("visibilitychange", verifyOnReturn);

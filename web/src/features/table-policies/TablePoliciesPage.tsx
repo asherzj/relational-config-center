@@ -1,3 +1,4 @@
+import { useAccountRole } from "../accounts/roles";
 import { Input } from "../../components/shadcn/input";
 import { Label } from "../../components/shadcn/label";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/shadcn/table";
@@ -12,6 +13,7 @@ import { useDatabaseTables, useTablePolicies } from "./queries";
 import { TablePolicyDrawer } from "./TablePolicyDrawer";
 
 export function TablePoliciesPage() {
+  const canManage = useAccountRole("ADMIN");
   const navigate = useNavigate();
   const { tableName } = useParams<{ tableName?: string }>();
   const discovery = useDatabaseTables();
@@ -27,7 +29,7 @@ export function TablePoliciesPage() {
     <main className="workspace table-policies-workspace">
       <div className="page-heading">
         <div><h1>表规则分配</h1><p>为数据库表选择查询与变更规则，启用后即可管理配置内容。</p></div>
-        <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/table-policies?mode=create")}>新建分配</Button>
+        <Button disabled={!canManage} variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/table-policies?mode=create")}>新建分配</Button>
       </div>
 
       <section className="discovery-panel" aria-label="Database Table Discovery">

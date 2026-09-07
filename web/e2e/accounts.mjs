@@ -1,5 +1,6 @@
+import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
-import { chromium } from 'playwright';
+import { chromium, request } from 'playwright';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -27,6 +28,42 @@ try {
   const identity = await page.evaluate(async () => (await fetch('/api/v1/auth/session')).json());
   assert.match(identity.account.id, /^[a-f0-9-]{36}$/);
   assert.equal(identity.account.email_verified, false);
+  assert.deepEqual(identity.account.roles, ['VIEWER']);
+  await page.getByRole('button', {name:'新增记录',exact:true}).waitFor();
+  assert.equal(await page.getByRole('button', {name:'新增记录',exact:true}).isDisabled(),true);
+  assert.ok(process.env.RCC_ACCOUNT_MAINTAIN, 'isolated fixture must supply the maintenance executable');
+  execFileSync(process.env.RCC_ACCOUNT_MAINTAIN,['grant-admin','--id',identity.account.id],{stdio:'pipe'});
+  // A separate registered account remains VIEWER until the administrator uses the UI.
+  const member=await request.newContext();
+  const prepared=await member.get(`${origin}/api/v1/auth/csrf`);
+  const preparation=await prepared.json();
+  const response=await member.post(`${origin}/api/v1/auth/register`,{headers:{Origin:origin,'X-CSRF-Token':preparation.csrf_token},data:{username:'roles.member',email:'roles.member@example.invalid',password:'member password long enough'}});
+  assert.equal(response.status(),201);
+  assert.deepEqual((await response.json()).account.roles,['VIEWER']);
+  await page.goto(`${origin}/platform/account-roles`);
+  await page.getByRole('button',{name:'管理 roles.member 的角色'}).waitFor();
+  if(process.env.RCC_E2E_OUTPUT)await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'account-roles-desktop.png')});
+  await page.setViewportSize({width:390,height:844});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'role catalog overflows mobile viewport');
+  await page.getByRole('button',{name:'管理 roles.member 的角色'}).click();
+  await page.getByRole('dialog',{name:'管理 roles.member 的角色'}).evaluate(async element=>{await Promise.all(element.getAnimations({subtree:true}).map(animation=>animation.finished));});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'role drawer overflows mobile viewport');
+  if(process.env.RCC_E2E_OUTPUT)await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'account-roles-mobile.png')});
+  await page.setViewportSize({width:1280,height:900});
+  await page.getByRole('checkbox',{name:/查看者 VIEWER/}).uncheck();
+  await page.getByRole('checkbox',{name:/编辑者 EDITOR/}).check();
+  await page.getByRole('checkbox',{name:/审批人 APPROVER/}).check();
+  await page.getByRole('button',{name:'保存角色',exact:true}).click();
+  await page.getByText('角色已保存，后续请求立即生效。').waitFor();
+  const memberIdentity=await (await member.get(`${origin}/api/v1/auth/session`)).json();
+  assert.deepEqual(memberIdentity.account.roles,['EDITOR','APPROVER']);
+  await page.getByRole('button',{name:'管理 roles.member 的角色'}).click();
+  await page.getByRole('heading',{name:'角色变更历史'}).waitFor();
+  await page.getByText(`操作者：${identity.account.id}`,{exact:true}).waitFor();
+  await page.getByRole('button',{name:'关闭',exact:true}).last().click();
+  await member.dispose();
+  await page.goto(`${origin}/configuration/managed-data`);
+
   await page.reload();
   await page.getByRole('heading', { name: '配置内容管理' }).waitFor();
   await context.close();
@@ -78,7 +115,7 @@ try {
   assert.equal(await page.evaluate(async () => (await fetch('/api/v1/table-policies')).status),401);
   await page.goto(`${origin}/configuration/managed-data`);
   await page.getByRole('heading', { name: '登录本地账号' }).waitFor();
-  process.stdout.write(JSON.stringify({account_id:identity.account.id,template_key:'browser_system',checks:['registration','refresh','reopen','dirty navigation protection','same-account draft recovery after session loss','hidden drawer keyboard isolation','business write','HTTP Cookie','storage/URL secrecy','logout rejection']}));
+  process.stdout.write(JSON.stringify({account_id:identity.account.id,template_key:'browser_system',checks:['registration defaults VIEWER','maintenance ADMIN bootstrap','UI combination grant','390px role catalog and drawer','role history with permanent actor','original member session refresh','refresh','reopen','dirty navigation protection','same-account draft recovery after session loss','hidden drawer keyboard isolation','business write','HTTP Cookie','storage/URL secrecy','logout rejection']}));
 } finally {
   await context?.close();
   await rm(profile, { recursive: true, force: true });

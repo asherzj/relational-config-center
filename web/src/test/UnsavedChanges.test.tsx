@@ -5,7 +5,7 @@ import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "../app";
 import { ToastProvider } from "../components/ui/Toast";
-import { withAccountSession } from "./account-session";
+import { withAdminSession } from "./account-session";
 
 const audit = { creator: "fixture", modifier: "fixture", gmt_created: "2026-09-07T00:00:00Z", gmt_modified: "2026-09-07T00:00:00Z" };
 const query = { ...audit, code: "query_v1", name: "查询基线", description: "说明", type_code: "page_query", default_order_field: "id", default_order_direction: "DESC", default_page_size: 20, max_page_size: 200, status: "DRAFT" };
@@ -35,7 +35,7 @@ function backend({ active = false, write }: { active?: boolean; write?: (url: st
     if (url.endsWith("/query")) return json({ columns, rows: [row], page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 } });
     throw new Error(`Unexpected read ${url}`);
   });
-  vi.stubGlobal("fetch", withAccountSession(fetch));
+  vi.stubGlobal("fetch", withAdminSession(fetch));
   return fetch;
 }
 function mount(path: string, entries = [path], index = entries.length - 1) {

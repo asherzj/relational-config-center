@@ -43,7 +43,7 @@ func NewTablePolicyManagement(metadata TableMetadataReader, catalog domain.Table
 }
 
 func (management *TablePolicyManagement) Create(ctx context.Context, candidate CreateTablePolicy) (domain.TablePolicy, error) {
-	operator, identityErr := requestOperator(ctx)
+	operator, identityErr := requireRole(ctx, RoleAdmin)
 	if identityErr != nil {
 		return domain.TablePolicy{}, identityErr
 	}
@@ -89,7 +89,7 @@ func (management *TablePolicyManagement) Get(ctx context.Context, tableName stri
 }
 
 func (management *TablePolicyManagement) Replace(ctx context.Context, tableName string, candidate CreateTablePolicy) (domain.TablePolicy, error) {
-	operator, identityErr := requestOperator(ctx)
+	operator, identityErr := requireRole(ctx, RoleAdmin)
 	if identityErr != nil {
 		return domain.TablePolicy{}, identityErr
 	}
@@ -122,7 +122,7 @@ func (management *TablePolicyManagement) Replace(ctx context.Context, tableName 
 }
 
 func (management *TablePolicyManagement) Enable(ctx context.Context, tableName string) (domain.TablePolicy, error) {
-	operator, identityErr := requestOperator(ctx)
+	operator, identityErr := requireRole(ctx, RoleAdmin)
 	if identityErr != nil {
 		return domain.TablePolicy{}, identityErr
 	}
@@ -147,7 +147,7 @@ func (management *TablePolicyManagement) Enable(ctx context.Context, tableName s
 }
 
 func (management *TablePolicyManagement) Disable(ctx context.Context, tableName string) (domain.TablePolicy, error) {
-	operator, identityErr := requestOperator(ctx)
+	operator, identityErr := requireRole(ctx, RoleAdmin)
 	if identityErr != nil {
 		return domain.TablePolicy{}, identityErr
 	}

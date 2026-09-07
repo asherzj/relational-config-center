@@ -59,7 +59,7 @@ func NewManagedTableMutation(executor MutationSnapshotExecutor, queryTypes *Quer
 }
 
 func (mutation *ManagedTableMutation) Add(ctx context.Context, tableName string, content domain.MutationContent) (string, error) {
-	if _, err := requestOperator(ctx); err != nil {
+	if _, err := requireRole(ctx, RoleEditor); err != nil {
 		return "", err
 	}
 	if protectedTable(tableName) {
@@ -81,7 +81,7 @@ func (mutation *ManagedTableMutation) Add(ctx context.Context, tableName string,
 }
 
 func (mutation *ManagedTableMutation) Modify(ctx context.Context, tableName string, id domain.JSONString, content domain.MutationContent) (int64, error) {
-	if _, err := requestOperator(ctx); err != nil {
+	if _, err := requireRole(ctx, RoleEditor); err != nil {
 		return 0, err
 	}
 	if protectedTable(tableName) {
@@ -103,7 +103,7 @@ func (mutation *ManagedTableMutation) Modify(ctx context.Context, tableName stri
 }
 
 func (mutation *ManagedTableMutation) Delete(ctx context.Context, tableName string, id domain.JSONString) (int64, error) {
-	if _, err := requestOperator(ctx); err != nil {
+	if _, err := requireRole(ctx, RoleEditor); err != nil {
 		return 0, err
 	}
 	if protectedTable(tableName) {
@@ -204,7 +204,7 @@ func (mutation *ManagedTableMutation) effectiveRelationalContent(ctx context.Con
 	}
 
 	if nonNilFieldCount(operatorFields) > 0 {
-		operator, err := requestOperator(ctx)
+		operator, err := requireRole(ctx, RoleEditor)
 		if err != nil {
 			return nil, err
 		}

@@ -96,6 +96,8 @@ CREATE TABLE rcc_accounts (
  enabled BOOLEAN NOT NULL DEFAULT TRUE,
  password_version BIGINT UNSIGNED NOT NULL DEFAULT 1,
  session_version BIGINT UNSIGNED NOT NULL DEFAULT 1,
+ roles TINYINT UNSIGNED NOT NULL DEFAULT 1,
+ role_version BIGINT UNSIGNED NOT NULL DEFAULT 1,
  created_at DATETIME(6) NOT NULL,
  UNIQUE KEY uq_rcc_accounts_username(username), UNIQUE KEY uq_rcc_accounts_email(email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -127,3 +129,20 @@ CREATE TABLE rcc_auth_rate_limits (
 -- Serializes bounded control-table admissions across processes, not password work.
 CREATE TABLE rcc_auth_control_lock (id INT PRIMARY KEY) ENGINE=InnoDB;
 INSERT INTO rcc_auth_control_lock(id) VALUES (1);
+-- Append-only role decisions also retain successful request results for retries.
+CREATE TABLE IF NOT EXISTS rcc_account_role_history (
+ id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ actor_kind VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ actor_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ account_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ before_roles TINYINT UNSIGNED NOT NULL,
+ after_roles TINYINT UNSIGNED NOT NULL,
+ version BIGINT UNSIGNED NOT NULL,
+ request_key VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ request_digest CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ result JSON NOT NULL,
+ created_at DATETIME(6) NOT NULL,
+ UNIQUE KEY uq_rcc_role_request(actor_id,request_key),
+ KEY ix_rcc_role_history(account_id,id),
+ CONSTRAINT fk_rcc_role_history_account FOREIGN KEY(account_id) REFERENCES rcc_accounts(id)
+) ENGINE=InnoDB;

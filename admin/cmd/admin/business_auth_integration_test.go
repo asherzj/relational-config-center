@@ -119,6 +119,9 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
 		t.Fatalf("registration response was not lost: response=%v err=%v", response, err)
 	}
 	csrf := login("correct horse battery staple", http.StatusOK)
+	if _, err := application.NewAccountMaintenance(app.mysql, passwordadapter.NewArgon2id()).GrantAdmin(t.Context(), application.AccountSelector{Username: "response.loss"}); err != nil {
+		t.Fatal(err)
+	}
 
 	transport.drop.Store(true)
 	row := `{"content":{"code":"response-loss","label":"committed once"}}`
@@ -208,6 +211,9 @@ func TestConcurrentAccountsOwnTheirBusinessChanges(t *testing.T) {
 		registerAccount(t, app, "actor.alpha", "alpha@example.com", "correct horse battery staple"),
 		registerAccount(t, app, "actor.beta", "beta@example.com", "correct horse battery staple"),
 	}
+	for _, session := range sessions {
+		grantTestAdministrator(t, app, session)
+	}
 	for i, table := range []string{"actor_alpha", "actor_beta"} {
 		t.Run(table, func(t *testing.T) {
 			t.Parallel()
@@ -284,6 +290,7 @@ func TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory(t *testing.T)
 		t.Fatal(err)
 	}
 	session := registerAccount(t, app, "history.user", "history@example.com", "correct horse battery staple")
+	grantTestAdministrator(t, app, session)
 	request := func(method, path, body string) *httptest.ResponseRecorder {
 		return accountRequest(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session))
 	}
@@ -332,7 +339,7 @@ type integrationClient struct {
 	session *httptest.ResponseRecorder
 }
 
-func integrationSession(t *testing.T, app *adminApplication) *httptest.ResponseRecorder {
+func integrationAdminSession(t *testing.T, app *adminApplication) *httptest.ResponseRecorder {
 	t.Helper()
 	value, _ := integrationClients.LoadOrStore(app, &integrationClient{})
 	client := value.(*integrationClient)
@@ -343,13 +350,15 @@ func integrationSession(t *testing.T, app *adminApplication) *httptest.ResponseR
 			t.Fatalf("register business test account: %d %s", registered.Code, registered.Body.String())
 		}
 		client.session = loginAccount(t, app, "integration.user", "correct horse battery staple")
+		// These fixtures exercise catalog and mutation contracts with an explicit grant.
+		grantTestAdministrator(t, app, client.session)
 	})
 	return client.session
 }
 
 func integrationAccountID(t *testing.T, app *adminApplication) string {
 	t.Helper()
-	return accountID(t, integrationSession(t, app))
+	return accountID(t, integrationAdminSession(t, app))
 }
 
 func integrationRouterOptions(app *adminApplication) httpinterface.RouterOptions {
@@ -360,6 +369,7 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/008-mutation-policy-snapshot-fixture.sql")
 	assignRelationalMutationPolicy(t, app, "inflight_mutation_v1", true, true, true, true)
 	session := registerAccount(t, app, "inflight.user", "inflight@example.com", "correct horse battery staple")
+	grantTestAdministrator(t, app, session)
 	actor := accountID(t, session)
 	csrf := sessionCSRF(t, session)
 	resume := make(chan struct{})
@@ -405,6 +415,7 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
 func TestAccountControlTablesCannotBeDiscoveredOrManaged(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
 	session := registerAccount(t, app, "control.user", "control@example.com", "correct horse battery staple")
+	grantTestAdministrator(t, app, session)
 	request := func(method, path, body string) *httptest.ResponseRecorder {
 		return accountRequest(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session))
 	}
@@ -412,7 +423,7 @@ func TestAccountControlTablesCannotBeDiscoveredOrManaged(t *testing.T) {
 	if discovered.Code != 200 || strings.Contains(discovered.Body.String(), "rcc_") {
 		t.Fatalf("control table discovered: %d %s", discovered.Code, discovered.Body.String())
 	}
-	for _, table := range []string{"rcc_accounts", "rcc_login_sessions", "rcc_preauth_credentials", "rcc_auth_rate_limits", "rcc_auth_control_lock", "rcc_future_control", "RCC_ACCOUNTS"} {
+	for _, table := range []string{"rcc_accounts", "rcc_login_sessions", "rcc_preauth_credentials", "rcc_auth_rate_limits", "rcc_auth_control_lock", "rcc_account_role_history", "rcc_future_control", "RCC_ACCOUNTS"} {
 		if response := request("GET", "/api/v1/database-tables/"+table, ""); response.Code != 404 {
 			t.Fatalf("control detail %s: %d %s", table, response.Code, response.Body.String())
 		}
@@ -432,5 +443,13 @@ func TestAccountControlTablesCannotBeDiscoveredOrManaged(t *testing.T) {
 	}
 	if current := accountRequest(app, "GET", "/api/v1/auth/session", "", session.Result().Cookies(), ""); current.Code != 200 {
 		t.Fatalf("generic requests changed session: %d %s", current.Code, current.Body.String())
+	}
+}
+
+// Explicit setup for existing writer regressions. Registration helpers stay VIEWER.
+func grantTestAdministrator(t *testing.T, app *adminApplication, session *httptest.ResponseRecorder) {
+	t.Helper()
+	if err := app.mysql.GrantAccountAdmin(t.Context(), accountID(t, session), time.Now()); err != nil {
+		t.Fatal(err)
 	}
 }

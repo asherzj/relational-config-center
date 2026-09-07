@@ -66,6 +66,11 @@ func (a *Adapter) SetAccountEnabled(ctx context.Context, id string, enabled bool
 		if current.Enabled == enabled {
 			return nil
 		}
+		if !enabled && current.Roles&domain.RoleAdmin != 0 {
+			if err := retainEnabledAdministrator(tx, id); err != nil {
+				return err
+			}
+		}
 		// Keep identifiable old sessions until normal expiry cleanup so disabled
 		// clients can destroy drafts. Advancing the version prevents revival.
 		return tx.Table(accountTable).Where("id = ?", id).Updates(map[string]any{

@@ -7,6 +7,7 @@
 // Each run registers a random disposable account through the public auth API.
 // Accounts have no public delete endpoint: remove them by tearing down that
 // isolated database, never by deleting accounts from a shared deployment.
+const { execFileSync } = require('node:child_process');
 const assert = require('node:assert/strict');
 const { randomBytes } = require('node:crypto');
 
@@ -33,6 +34,9 @@ async function registerFixtureAccount(context, baseURL) {
   const identity = await registration.json();
   assert.match(identity.account.id, /^[a-f0-9-]{36}$/, 'registration returned no Account ID');
   assert.equal(identity.account.email_verified, false);
+  assert.deepEqual(identity.account.roles, ['VIEWER']);
+  assert.ok(process.env.RCC_ACCOUNT_MAINTAIN, 'supply the maintenance tool for this isolated writer fixture');
+  execFileSync(process.env.RCC_ACCOUNT_MAINTAIN, ['grant-admin', '--id', identity.account.id], {stdio:'pipe'});
 
   return {
     async assertMemoryOnly(page, draftValues = []) {

@@ -110,7 +110,10 @@ func (adapter *Adapter) Ready(ctx context.Context) error {
 			return fmt.Errorf("Policy Catalog unavailable: %w", err)
 		}
 	}
-	return adapter.accountSchemaReady(ctx)
+	if err := adapter.accountSchemaReady(ctx); err != nil {
+		return err
+	}
+	return adapter.accountRoleSchemaReady(ctx)
 }
 
 func (adapter *Adapter) ListDatabaseTables(ctx context.Context) ([]domain.DatabaseTable, error) {

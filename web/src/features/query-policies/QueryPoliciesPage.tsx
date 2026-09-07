@@ -1,3 +1,4 @@
+import { useAccountRole } from "../accounts/roles";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/shadcn/table";
 import { Badge } from "../../components/shadcn/badge";
 import { FileCode2, Plus, RefreshCw } from "lucide-react";
@@ -53,16 +54,17 @@ const commandContent: PolicyCommandCopy = {
 
 function PolicyActions({ policy, supported, commandsBlocked, onCommand }: { policy: QueryPolicy; supported: boolean; commandsBlocked: boolean; onCommand: (command: PolicyLifecycleCommand, code: string) => void }) {
   const navigate = useNavigate();
+  const canManage = useAccountRole("ADMIN");
   const actions = policyActionAvailability(policy.status, supported);
   const open = (suffix = "") => navigate(`/platform/query-policies/${encodeURIComponent(policy.code)}${suffix}`);
   return (
     <div className="row-actions">
       <Button variant="ghost" onClick={() => open()}>查看</Button>
-      {actions.replace && <Button variant="ghost" onClick={() => open("?mode=edit")}>修改执行规则</Button>}
-      {actions.metadata && <Button variant="ghost" onClick={() => open("?mode=metadata")}>名称和描述</Button>}
-      {!commandsBlocked && actions.activate && <Button variant="ghost" onClick={() => onCommand("activate", policy.code)}>激活</Button>}
-      {!commandsBlocked && actions.deprecate && <Button variant="ghost" className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</Button>}
-      {!commandsBlocked && actions.delete && <Button variant="ghost" className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</Button>}
+      {canManage && actions.replace && <Button variant="ghost" onClick={() => open("?mode=edit")}>修改执行规则</Button>}
+      {canManage && actions.metadata && <Button variant="ghost" onClick={() => open("?mode=metadata")}>名称和描述</Button>}
+      {canManage && !commandsBlocked && actions.activate && <Button variant="ghost" onClick={() => onCommand("activate", policy.code)}>激活</Button>}
+      {canManage && !commandsBlocked && actions.deprecate && <Button variant="ghost" className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</Button>}
+      {canManage && !commandsBlocked && actions.delete && <Button variant="ghost" className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</Button>}
     </div>
   );
 }
@@ -74,6 +76,7 @@ function PolicyTypeAvailability({ policy, supported }: { policy: QueryPolicy; su
 
 export function QueryPoliciesPage() {
   const navigate = useNavigate();
+  const canManage = useAccountRole("ADMIN");
   const { code } = useParams<{ code?: string }>();
   const policies = useQueryPolicies();
   const types = useQueryPolicyTypes();
@@ -87,7 +90,7 @@ export function QueryPoliciesPage() {
     activate.reset(); deprecate.reset(); remove.reset();
   };
   const lifecycle = usePolicyLifecycleCommands({
-    blocked: uncertainCommand,
+    blocked: uncertainCommand || !canManage,
     onUncertainWrite: (_error, targetCode) => {
       if (code === targetCode) navigate("/platform/query-policies");
     },
@@ -111,11 +114,12 @@ export function QueryPoliciesPage() {
           <h1>查询规则定义</h1>
           <p>统一配置表的排序与分页方式。规则从草稿开始，激活后即可分配使用。</p>
         </div>
-        <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/query-policies/new")} disabled={uncertainCommand || types.isPending || types.isError || !supportedTypes.length}>
+        <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/query-policies/new")} disabled={!canManage || uncertainCommand || types.isPending || types.isError || !supportedTypes.length}>
           新建草稿
         </Button>
       </div>
 
+      {!canManage && <p className="inline-alert">当前账号可查看规则；修改规则需要管理员角色。</p>}
       <section className="type-registry" aria-label="查询规则类型注册表">
         <span><FileCode2 size={18} />已注册规则类型</span>
         {types.isPending && <small>正在读取…</small>}
@@ -142,7 +146,7 @@ export function QueryPoliciesPage() {
                     <TableCell>{policy.defaultPageSize}<small>最多 {policy.maxPageSize} 条</small></TableCell>
                     <TableCell><Badge variant="outline" className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</Badge></TableCell>
                     <TableCell className="timestamp">{formatTimestamp(policy.modifiedAt)}<small>{policy.modifier}</small></TableCell>
-                    <TableCell><PolicyActions policy={policy} supported={supported} commandsBlocked={uncertainCommand} onCommand={lifecycle.request} /></TableCell>
+                    <TableCell><PolicyActions policy={policy} supported={supported} commandsBlocked={uncertainCommand || !canManage} onCommand={lifecycle.request} /></TableCell>
                   </TableRow>;
                 })}
               </TableBody>
@@ -156,7 +160,7 @@ export function QueryPoliciesPage() {
         </footer>
       </section>
 
-      <QueryPolicyDrawer code={code} commandsBlocked={uncertainCommand} onRequestCommand={lifecycle.request} />
+      <QueryPolicyDrawer code={code} commandsBlocked={uncertainCommand || !canManage} onRequestCommand={lifecycle.request} />
       {confirm && (
         <ConfirmDialog
           open

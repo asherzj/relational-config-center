@@ -91,6 +91,7 @@ export async function request<T>(path: string, options: RequestOptions<T> = {}):
   if (!response.ok) {
     const parsedError = adminErrorDtoSchema.safeParse(payload);
     if (parsedError.success) {
+      if (business && parsedError.data.error.code === "permission_denied") window.dispatchEvent(new Event("rcc:account-roles-changed"));
       if (business && response.status === 401) window.dispatchEvent(new CustomEvent(businessSessionInvalid, { detail: { code: parsedError.data.error.code } }));
       throw new ApiError(
         parsedError.data.error.code,

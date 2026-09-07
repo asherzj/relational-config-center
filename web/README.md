@@ -88,3 +88,8 @@ pnpm dlx shadcn@latest add <component>
 ```
 
 升级 Dialog / Sheet 时保留 `inline` 挂载与业务焦点保护，避免会话失效时浮层脱离隐藏的工作区。Table 的密度、NativeSelect 的全宽布局和 Toaster 的浅色主题也是项目定制项。组件使用 `cn` 合并工具类，`@/` 指向 `src/`。
+
+
+账号角色页面位于 `/platform/account-roles`，仅 ADMIN 可访问；规则修改仅 ADMIN 可操作，配置编辑需要 EDITOR/ADMIN。当前身份契约包含 `account.roles`。角色页保留冲突输入，未知结果使用原请求标识重试。详见[全局角色契约](../docs/admin-account-roles.md)。
+
+`make test-browser` 同时验证默认 VIEWER、真实维护命令初始化 ADMIN、角色界面组合授权和历史。独立运行 `unsaved-changes.cjs` / `rule-clarity.cjs` 时，需额外提供 `RCC_ACCOUNT_MAINTAIN`（维护命令绝对路径）及隔离数据库的 `MYSQL_*`；脚本先验证注册默认只读，再显式授予测试账号管理员。禁止用于共享部署。

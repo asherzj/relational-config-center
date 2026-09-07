@@ -46,12 +46,13 @@ export type ManagedDataMutationIntent =
   | { type: "close-outcome" };
 
 type Options = {
+  canEdit: boolean;
   tableName: string;
   mutationPolicyCode?: string;
   columns?: readonly ManagedDataColumn[];
 };
 
-export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, columns }: Options) {
+export function useManagedDataMutationWorkflow({ canEdit, tableName, mutationPolicyCode, columns }: Options) {
   const recoveryVersion = useWorkspaceRecovery();
   const mutationPolicy = useMutationPolicy(mutationPolicyCode);
   const mutationTypes = useMutationPolicyTypes(Boolean(mutationPolicyCode));
@@ -142,6 +143,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
   };
 
   const capabilityReason = (operation: ChangeSetOperation): string | undefined => {
+    if (!canEdit) return "当前账号只可查看；修改配置需要编辑者或管理员角色";
     if (!executablePolicy) return "当前规则快照的变更能力尚不可执行";
     const allowed = operation === "ADD" ? executablePolicy.allowAdd : operation === "MODIFY" ? executablePolicy.allowModify : executablePolicy.allowDelete;
     if (!allowed) return `${operation} 未由当前变更规则授权`;
@@ -270,7 +272,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
         setEditor(null);
         return;
       case "confirm-pending":
-        if (!pendingChange || recheckingChange || reviewedRecoveryVersion !== recoveryVersion || isUncertainWriteError(mutation.error)) return;
+        if (!canEdit || !pendingChange || recheckingChange || reviewedRecoveryVersion !== recoveryVersion || isUncertainWriteError(mutation.error)) return;
         inFlight.current = true;
         void mutation.mutateAsync({
           operation: pendingChange.operation,
@@ -316,7 +318,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
       mutationRegistryState: mutationTypes.isPending ? "loading" as const : mutationTypes.isError ? "error" as const : "ready" as const,
       recheckError,
       recheckingChange,
-      reviewDisabled: recheckingChange || reviewedRecoveryVersion !== recoveryVersion,
+      reviewDisabled: !canEdit || recheckingChange || reviewedRecoveryVersion !== recoveryVersion,
       executionError: mutation.error,
       executionPending: mutation.isPending,
       retryPending: rowRefetch.isPending,

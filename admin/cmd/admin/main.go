@@ -25,6 +25,8 @@ func runMain(standardError *os.File) int {
 	if err != nil {
 		if errors.Is(err, mysqladapter.ErrAuthenticationSchemaIncomplete) {
 			fmt.Fprintln(standardError, "startup error: authentication schema is incomplete; apply migration 007 (see deploy/mysql/migrations/README.md)")
+		} else if errors.Is(err, mysqladapter.ErrAccountRoleSchemaIncomplete) {
+			fmt.Fprintln(standardError, "startup error: account role schema is incomplete; apply migration 008 (see deploy/mysql/migrations/README.md)")
 		} else {
 			fmt.Fprintln(standardError, "startup error: Managed Data Source is unavailable")
 		}

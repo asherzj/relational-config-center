@@ -1,3 +1,4 @@
+import { useAccountRole } from "../accounts/roles";
 import { Input } from "../../components/shadcn/input";
 import { Checkbox } from "../../components/shadcn/checkbox";
 import { NativeSelect } from "../../components/shadcn/native-select";
@@ -104,6 +105,7 @@ function ConditionValueEditor({ index, condition, column, update }: {
 }
 
 export function ManagedDataPage() {
+  const canEdit = useAccountRole("EDITOR");
   const policies = useTablePolicies();
   const [requestedTable, setRequestedTable] = useState("");
   const [querySpec, setQuerySpec] = useState<QuerySpec>(initialQuerySpec);
@@ -121,6 +123,7 @@ export function ManagedDataPage() {
   const queryPolicy = useQueryPolicy(selectedPolicy?.queryPolicyCode);
   const queryPolicyTypes = useQueryPolicyTypes(Boolean(selectedPolicy));
   const changes = useManagedDataMutationWorkflow({
+    canEdit,
     tableName: selectedTable,
     mutationPolicyCode: selectedPolicy?.mutationPolicyCode,
     columns: result.data?.columns,

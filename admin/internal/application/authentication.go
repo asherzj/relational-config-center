@@ -63,6 +63,7 @@ type AccountIdentity struct {
 	Username    string
 	Email       string
 	DisplayName string
+	Roles       domain.AccountRoles
 }
 type SessionTiming struct {
 	LastActiveAt time.Time
@@ -104,7 +105,7 @@ func TokenDigest(token string) string {
 }
 func csrfFor(token string) string { return TokenDigest("rcc-csrf:" + token) }
 func currentIdentity(account domain.LocalAccount, session domain.LoginSession, token string) AuthenticationResult {
-	return AuthenticationResult{Account: AccountIdentity{ID: account.ID, Username: account.Username, Email: account.Email, DisplayName: account.DisplayName}, Session: SessionTiming{LastActiveAt: session.LastActiveAt, ExpiresAt: session.ExpiresAt}, CSRF: csrfFor(token)}
+	return AuthenticationResult{Account: AccountIdentity{ID: account.ID, Username: account.Username, Email: account.Email, DisplayName: account.DisplayName, Roles: account.Roles}, Session: SessionTiming{LastActiveAt: session.LastActiveAt, ExpiresAt: session.ExpiresAt}, CSRF: csrfFor(token)}
 }
 func (a *Authentication) Prepare(ctx context.Context) (string, string, error) {
 	token, err := credential()
@@ -126,6 +127,7 @@ func (a *Authentication) Register(ctx context.Context, input Registration, preau
 	if err != nil {
 		return AuthenticationResult{}, err
 	}
+	account.Roles, account.RoleVersion = domain.RoleViewer, 1
 	account.PasswordHash, err = a.passwords.Hash(ctx, input.Password)
 	if err != nil {
 		return AuthenticationResult{}, err

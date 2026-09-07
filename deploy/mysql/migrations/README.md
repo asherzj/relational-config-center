@@ -73,3 +73,14 @@ instances in parallel with the new entry. Normal startup/readiness verifies the 
 structures with migration guidance. The complete maintenance-window sequence and
 proxy/script replacement are documented below.
 See [the account interface and development setup](../../../docs/admin-local-accounts.md).
+
+## Global account roles
+
+After 007, stop old Admin instances and apply
+[`008-account-roles.sql`](./008-account-roles.sql). It is restartable and gives
+existing accounts VIEWER without resetting previously granted roles on reruns.
+Fresh installations already contain the same columns and history table.
+Startup/readiness requires the role schema, but deliberately does not require an
+existing administrator: registration and read-only login must work before the
+maintainer explicitly runs `account-maintain grant-admin` for a selected account.
+See [role bootstrap, recovery and HTTP contracts](../../../docs/admin-account-roles.md).
