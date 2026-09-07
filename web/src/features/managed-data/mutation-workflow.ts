@@ -1,4 +1,4 @@
-import { isUncertainWriteError } from "../../api/client";
+import { ApiError, isUncertainWriteError } from "../../api/client";
 import { useWorkspaceRecovery } from "../accounts/ProtectedWorkspace";
 import { useEffect, useRef, useState } from "react";
 import { supportsMutationPolicyType } from "../mutation-policies/model";
@@ -17,6 +17,7 @@ type ManagedDataEditorState = {
   tableName: string;
   columns: ManagedDataColumn[];
   row?: Record<string, string | null>;
+  expectedVersion?: string;
   allAutoFillFields: string[];
   changeSetAutoFillFields: string[];
   sequence: number;
@@ -27,6 +28,7 @@ type PendingManagedDataChange = {
   tableName: string;
   columns: ManagedDataColumn[];
   row?: Record<string, string | null>;
+  expectedVersion?: string;
   id?: string;
   content: MutationContent;
   changeSetAutoFillFields: string[];
@@ -35,15 +37,17 @@ type PendingManagedDataChange = {
 type AutoFillTarget = readonly [field: string | null | undefined, kind: "operator" | "time"];
 
 export type ManagedDataMutationIntent =
-  | { type: "open-editor"; operation: "ADD" | "MODIFY"; row?: Record<string, string | null> }
-  | { type: "review-delete"; row: Record<string, string | null> }
+  | { type: "open-editor"; operation: "ADD" | "MODIFY"; row?: Record<string, string | null>; expectedVersion?: string }
+  | { type: "review-delete"; row: Record<string, string | null>; expectedVersion?: string }
   | { type: "review-content"; content: MutationContent }
   | { type: "edit-pending" }
   | { type: "cancel-pending" }
   | { type: "confirm-pending" }
   | { type: "retry-readback" }
   | { type: "retry-recheck" }
-  | { type: "close-outcome" };
+  | { type: "close-outcome" }
+  | { type: "inspect-latest" }
+  | { type: "rebuild-latest" };
 
 type Options = {
   canEdit: boolean;
@@ -69,6 +73,10 @@ export function useManagedDataMutationWorkflow({ canEdit, tableName, mutationPol
   recoveryVersionRef.current = recoveryVersion;
   const recheckSequence = useRef(0);
   const [outcome, setOutcome] = useState<ManagedDataMutationOutcome | null>(null);
+
+  const [latest, setLatest] = useState<ManagedDataMutationOutcome | null>(null);
+  const [requiresRebuild, setRequiresRebuild] = useState(false);
+  const recordConflict = requiresRebuild || (mutation.error instanceof ApiError && mutation.error.code === "record_version_conflict");
 
   const executablePolicy = mutationPolicy.data
     && mutationPolicy.data.code === mutationPolicyCode
@@ -99,6 +107,7 @@ export function useManagedDataMutationWorkflow({ canEdit, tableName, mutationPol
     rowRefetch.mutate({ operation: "MODIFY", tableName: target.tableName, id: target.id }, {
       onSuccess(fresh) {
         if (recoveryVersionRef.current !== version || recheckSequence.current !== sequence) return;
+        if (fresh.recordVersion !== editor.expectedVersion) { setRequiresRebuild(true); setLatest(fresh); setReviewedRecoveryVersion(version); setRecheckingChange(false); return; }
         setEditor((current) => current?.sequence === target.sequence ? {
           ...current,
           row: fresh.row,
@@ -125,6 +134,7 @@ export function useManagedDataMutationWorkflow({ canEdit, tableName, mutationPol
     rowRefetch.mutate(target, {
       onSuccess(fresh) {
         if (recoveryVersionRef.current !== version || recheckSequence.current !== sequence) return;
+        if (fresh.recordVersion !== pendingChange.expectedVersion) { setRequiresRebuild(true); setLatest(fresh); setReviewedRecoveryVersion(version); setRecheckingChange(false); return; }
         setPendingChange((current) => current?.id === target.id && current.tableName === target.tableName ? {
           ...current,
           row: fresh.row,
@@ -218,7 +228,10 @@ export function useManagedDataMutationWorkflow({ canEdit, tableName, mutationPol
         setRecheckingChange(false);
         setReviewedRecoveryVersion(recoveryVersion);
         setPendingChange(null);
+        setLatest(null);
+        setRequiresRebuild(false);
         setEditor({
+          expectedVersion: intent.expectedVersion,
           operation: intent.operation,
           tableName,
           columns: [...columns],
@@ -237,7 +250,10 @@ export function useManagedDataMutationWorkflow({ canEdit, tableName, mutationPol
         setRecheckingChange(false);
         setReviewedRecoveryVersion(recoveryVersion);
         setEditor(null);
+        setLatest(null);
+        setRequiresRebuild(false);
         setPendingChange({
+          expectedVersion: intent.expectedVersion,
           operation: "DELETE", tableName, columns: [...columns], row: { ...intent.row },
           id: intent.row.id, content: {}, changeSetAutoFillFields: [],
         });
@@ -245,6 +261,7 @@ export function useManagedDataMutationWorkflow({ canEdit, tableName, mutationPol
       case "review-content":
         if (!editor || recheckingChange || reviewedRecoveryVersion !== recoveryVersion) return;
         setPendingChange({
+          expectedVersion: editor.expectedVersion,
           operation: editor.operation,
           tableName: editor.tableName,
           columns: editor.columns,
@@ -257,7 +274,7 @@ export function useManagedDataMutationWorkflow({ canEdit, tableName, mutationPol
       case "edit-pending":
         if (isUncertainWriteError(mutation.error)) return;
         if (editor && pendingChange) setEditor({
-          ...editor, row: pendingChange.row, columns: pendingChange.columns,
+          ...editor, expectedVersion: pendingChange.expectedVersion, row: pendingChange.row, columns: pendingChange.columns,
           allAutoFillFields: [...allAutoFillFields],
           changeSetAutoFillFields: pendingChange.changeSetAutoFillFields,
         });
@@ -270,11 +287,14 @@ export function useManagedDataMutationWorkflow({ canEdit, tableName, mutationPol
         mutation.reset();
         setPendingChange(null);
         setEditor(null);
+        setLatest(null);
+        setRequiresRebuild(false);
         return;
       case "confirm-pending":
-        if (!canEdit || !pendingChange || recheckingChange || reviewedRecoveryVersion !== recoveryVersion || isUncertainWriteError(mutation.error)) return;
+        if (!canEdit || recordConflict || latest || !pendingChange || recheckingChange || reviewedRecoveryVersion !== recoveryVersion || isUncertainWriteError(mutation.error)) return;
         inFlight.current = true;
         void mutation.mutateAsync({
+          expectedVersion: pendingChange.expectedVersion,
           operation: pendingChange.operation,
           tableName: pendingChange.tableName,
           ...(pendingChange.id !== undefined ? { id: pendingChange.id } : {}),
@@ -286,6 +306,23 @@ export function useManagedDataMutationWorkflow({ canEdit, tableName, mutationPol
         }).catch(() => {
           // The mutation retains the failure and request ID for the current draft.
         }).finally(() => { inFlight.current = false; });
+        return;
+      case "inspect-latest": {
+        const target = pendingChange ?? (editor?.row?.id !== undefined ? { ...editor, id: editor.row.id } : null);
+        if (!target || target.id === undefined || target.id === null) return;
+        const sequence = ++recheckSequence.current;
+        setRecheckingChange(true); setRecheckError(null); setLatest(null);
+        rowRefetch.mutate({ operation: target.operation, tableName: target.tableName, id: target.id }, {
+          onSuccess(fresh) { if (sequence !== recheckSequence.current) return; setLatest(fresh); setRecheckingChange(false); },
+          onError(error) { if (sequence !== recheckSequence.current) return; setRecheckError(error); setRecheckingChange(false); },
+        });
+        return;
+      }
+      case "rebuild-latest":
+        if (!latest?.row || latest.recordVersion === undefined || recheckingChange) return;
+        setPendingChange((current) => current ? { ...current, row: latest.row, expectedVersion: latest.recordVersion, columns: latest.columns ?? current.columns } : null);
+        setEditor((current) => current ? { ...current, row: latest.row, expectedVersion: latest.recordVersion, columns: latest.columns ?? current.columns } : null);
+        setLatest(null); setRequiresRebuild(false); setRecheckError(null); mutation.reset();
         return;
       case "retry-recheck":
         if (pendingChange) recheckPendingTarget(recoveryVersion);
@@ -318,7 +355,9 @@ export function useManagedDataMutationWorkflow({ canEdit, tableName, mutationPol
       mutationRegistryState: mutationTypes.isPending ? "loading" as const : mutationTypes.isError ? "error" as const : "ready" as const,
       recheckError,
       recheckingChange,
-      reviewDisabled: !canEdit || recheckingChange || reviewedRecoveryVersion !== recoveryVersion,
+      latest,
+      recordConflict,
+      reviewDisabled: !canEdit || recordConflict || Boolean(latest) || recheckingChange || reviewedRecoveryVersion !== recoveryVersion,
       executionError: mutation.error,
       executionPending: mutation.isPending,
       retryPending: rowRefetch.isPending,

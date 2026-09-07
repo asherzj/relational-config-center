@@ -1,3 +1,4 @@
+import { withDefaultRecordVersions } from "../../test/managed-data-fixture";
 import { testAdminIdentity, withAdminSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
@@ -77,6 +78,7 @@ const row = {
 };
 
 function json(value: unknown, status = 200, requestId = "req-change-set") {
+  value = withDefaultRecordVersions(value);
   return new Response(JSON.stringify(value), {
     status,
     headers: { "Content-Type": "application/json", "X-Request-ID": requestId },
@@ -279,7 +281,7 @@ describe("Managed Data mutation capability", () => {
     expect(await screen.findByRole("heading", { name: "MODIFY 已完成" })).toBeVisible();
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST" && String(init.body).includes('"field":"id"'))).toBe(true);
     const patchCall = fetchMock.mock.calls.find(([, init]) => init?.method === "PATCH");
-    expect(JSON.parse(String(patchCall?.[1]?.body))).toEqual({ content: { body: "changed" } });
+    expect(JSON.parse(String(patchCall?.[1]?.body))).toEqual({ content: { body: "changed" }, expected_version: "0" });
   });
 
   it("DELETE shows every original value struck out against a missing record and finishes with a summary", async () => {
@@ -592,7 +594,7 @@ describe("Managed Data mutation capability", () => {
     expect(screen.getByRole("button", { name: "查看 Change Set" })).toBeEnabled();
   });
 
-  it("keeps a recovered MODIFY Change Set usable when its exact target recheck must be retried", async () => {
+  it.each([false, true])("keeps a recovered MODIFY Change Set gated through failed latest reads (version changed: %s)", async (versionChanged) => {
     const fullPolicy = { ...mutationPolicy, allow_modify: true, allow_delete: true };
     const currentRow = { ...row, body: "current-after-retry" };
     let signedIn = true;
@@ -612,8 +614,8 @@ describe("Managed Data mutation capability", () => {
       if (url.endsWith("/tables/notification_templates/rows/41") && init?.method === "PATCH") { writes += 1; return json({ affected: 1 }); }
       if (url.endsWith("/tables/notification_templates/query") && init?.method === "POST") {
         const exact = String(init.body).includes('"field":"id"');
-        if (exact && recovered && ++exactReads === 1) return json({ error: { code: "query_unavailable", message: "down", request_id: "req-recheck" } }, 503);
-        return json({ columns, rows: [exact && recovered ? currentRow : row], page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 } });
+        if (exact && recovered && (++exactReads === 1 || (versionChanged && exactReads === 3))) return json({ error: { code: "query_unavailable", message: "down", request_id: "req-recheck" } }, 503);
+        return json({ columns, rows: [exact && recovered ? currentRow : row], record_versions: [exact && recovered && versionChanged ? "1" : "0"], page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 } });
       }
       throw new Error(`unexpected request ${url}`);
     });
@@ -640,10 +642,21 @@ describe("Managed Data mutation capability", () => {
     expect(within(changeSet).getByRole("button", { name: "确认并执行" })).toBeDisabled();
     expect(within(changeSet).getByRole("button", { name: "返回修改" })).toBeEnabled();
     await user.click(within(changeSet).getByRole("button", { name: "重试" }));
+    if (versionChanged) {
+      await within(changeSet).findByRole("button", { name: "基于最新值重建差异" });
+      expect(within(changeSet).getByRole("button", { name: "确认并执行" })).toBeDisabled();
+      await user.click(within(changeSet).getByRole("button", { name: "查看最新值" }));
+      expect(await within(changeSet).findByRole("alert")).toHaveTextContent("req-recheck");
+      expect(within(changeSet).getByRole("button", { name: "确认并执行" })).toBeDisabled();
+      expect(within(changeSet).getByText("operator-intent")).toBeVisible();
+      expect(writes).toBe(0);
+      await user.click(within(changeSet).getByRole("button", { name: "重试" }));
+      await user.click(await within(changeSet).findByRole("button", { name: "基于最新值重建差异" }));
+    }
     await waitFor(() => expect(within(changeSet).getByRole("button", { name: "确认并执行" })).toBeEnabled());
     expect(within(changeSet).getByText("current-after-retry")).toBeVisible();
     expect(within(changeSet).getByText("operator-intent")).toBeVisible();
-    expect(exactReads).toBe(2);
+    expect(exactReads).toBe(versionChanged ? 4 : 2);
     expect(writes).toBe(0);
   });
 
@@ -696,4 +709,48 @@ describe("Managed Data mutation capability", () => {
     expect(fetchMock.mock.calls.filter(([url, init]) => String(url).endsWith("/rows") && init?.method === "POST")).toHaveLength(1);
     expect(exactAttempts).toBe(2);
   });
+});
+
+it("preserves a stale change, reads latest separately, and requires an explicit rebuild before retry", async () => {
+  const writes: unknown[] = [];
+  let latestReads = 0;
+  vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (init?.method === "PATCH") {
+      writes.push(JSON.parse(String(init.body)));
+      return json({ error: { code: "record_version_conflict", message: "record changed", request_id: "stale-33" } }, 409);
+    }
+    if (url.endsWith("/query")) {
+      const exact = JSON.parse(String(init?.body)).conditions?.[0]?.field === "id";
+      if (exact) latestReads++;
+      return json({ columns, rows: [exact ? { ...row, body: "other editor" } : row], record_versions: [exact ? "9007199254740994" : "9007199254740993"], page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 } });
+    }
+    return readFetch(input, init, { ...mutationPolicy, allow_modify: true });
+  })));
+  const user = userEvent.setup();
+  renderPage();
+  const modify = await screen.findByRole("button", { name: "修改记录 41" });
+  await waitFor(() => expect(modify).toBeEnabled());
+  await user.click(modify);
+  await user.click(screen.getByRole("checkbox", { name: "包含 body" }));
+  await user.type(screen.getByRole("textbox", { name: "body 值" }), "my pending input");
+  await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
+  await user.click(screen.getByRole("button", { name: "确认并执行" }));
+  await screen.findByText("stale-33", { exact: false });
+  expect(writes).toEqual([{ content: { body: "my pending input" }, expected_version: "9007199254740993" }]);
+  expect(screen.getByRole("button", { name: "确认并执行" })).toBeDisabled();
+  expect(latestReads).toBe(0);
+  await user.click(screen.getByRole("button", { name: "查看最新值" }));
+  await screen.findByText("other editor");
+  expect(screen.getByText("my pending input")).toBeVisible();
+  expect(writes).toHaveLength(1);
+  expect(screen.getByRole("button", { name: "确认并执行" })).toBeDisabled();
+  await user.click(screen.getByRole("button", { name: "基于最新值重建差异" }));
+  const dialog = screen.getByRole("dialog", { name: "MODIFY Change Set" });
+  expect(within(dialog).getByText("other editor")).toBeVisible();
+  expect(within(dialog).getByText("my pending input")).toBeVisible();
+  expect(writes).toHaveLength(1);
+  await user.click(screen.getByRole("button", { name: "确认并执行" }));
+  await waitFor(() => expect(writes).toHaveLength(2));
+  expect(writes[1]).toEqual({ content: { body: "my pending input" }, expected_version: "9007199254740994" });
 });

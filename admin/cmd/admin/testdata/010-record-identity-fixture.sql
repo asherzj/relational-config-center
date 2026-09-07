@@ -1,0 +1,5 @@
+CREATE TABLE record_identity_ci (id VARCHAR(80) PRIMARY KEY, label VARCHAR(64) NOT NULL) ENGINE=InnoDB COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE record_identity_pad (id VARCHAR(80) PRIMARY KEY, label VARCHAR(64) NOT NULL) ENGINE=InnoDB COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE record_identity_bin (id VARCHAR(80) PRIMARY KEY, label VARCHAR(64) NOT NULL) ENGINE=InnoDB COLLATE=utf8mb4_0900_bin;
+CREATE TABLE record_identity_decimal (id DECIMAL(20,4) PRIMARY KEY, label VARCHAR(64) NOT NULL) ENGINE=InnoDB;
+CREATE TABLE record_identity_timestamp (id TIMESTAMP(6) PRIMARY KEY, label VARCHAR(64) NOT NULL) ENGINE=InnoDB;

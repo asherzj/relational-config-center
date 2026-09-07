@@ -99,6 +99,40 @@ try {
   await page.getByRole('button', { name: '查看 Change Set' }).click();
   await page.getByRole('button', { name: '确认并执行' }).click();
   await page.getByRole('heading', { name: 'ADD 已完成' }).waitFor();
+  await page.getByRole('button', { name: '关闭', exact: true }).last().click();
+  const baseline = await page.evaluate(async () => {
+    const auth = await (await fetch('/api/v1/auth/session')).json();
+    const result = await (await fetch('/api/v1/tables/notification_templates/query', { method: 'POST', headers: {'Content-Type':'application/json','X-CSRF-Token':auth.csrf_token}, body: JSON.stringify({conditions:[{field:'template_key',operator:'exact',value:'browser_system'}]}) })).json();
+    return {id:result.rows[0].id,version:result.record_versions[0]};
+  });
+  assert.equal(baseline.version,'1');
+  await page.getByRole('button',{name:`修改记录 ${baseline.id}`,exact:true}).click();
+  await page.getByLabel('包含 body',{exact:true}).check();
+  await page.getByLabel('body 值',{exact:true}).fill('browser system configuration');
+  await page.getByRole('button',{name:'查看 Change Set',exact:true}).click();
+  const concurrent = await page.evaluate(async ({id,version}) => {
+    const current = await (await fetch('/api/v1/auth/session')).json();
+    return (await fetch(`/api/v1/tables/notification_templates/rows/${id}`, {method:'PATCH',headers:{'Content-Type':'application/json','X-CSRF-Token':current.csrf_token},body:JSON.stringify({content:{body:'concurrent browser update'},expected_version:version})})).status;
+  },baseline);
+  assert.equal(concurrent,200);
+  await page.getByRole('button',{name:'确认并执行',exact:true}).click();
+  await page.getByText('记录已被其他操作修改；你的输入已保留，请查看最新值并重新确认。',{exact:true}).waitFor();
+  assert.equal(await page.getByRole('button',{name:'确认并执行',exact:true}).isDisabled(),true);
+  await page.getByRole('button',{name:'查看最新值',exact:true}).click();
+  await page.getByText('concurrent browser update',{exact:true}).waitFor();
+  assert.equal(await page.getByRole('button',{name:'确认并执行',exact:true}).isDisabled(),true);
+  if(process.env.RCC_E2E_OUTPUT)await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'record-version-conflict.png')});
+  assert.ok(await page.locator('.change-set-scroll').evaluate(element => element.clientHeight >= 100), 'latest values hid the pending difference');
+  await page.setViewportSize({width:390,height:844});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth), 'record conflict overflows mobile viewport');
+  assert.ok(await page.locator('.change-set-scroll').evaluate(element=>element.clientHeight>=50), 'mobile conflict hid pending difference');
+  assert.ok(await page.getByRole('button',{name:'确认并执行',exact:true}).evaluate(element=>element.getBoundingClientRect().bottom<=innerHeight), 'mobile conflict hid confirm action');
+  if(process.env.RCC_E2E_OUTPUT)await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'record-version-conflict-mobile.png')});
+  await page.setViewportSize({width:1280,height:900});
+
+  await page.getByRole('button',{name:'基于最新值重建差异',exact:true}).click();
+  await page.getByRole('button',{name:'确认并执行',exact:true}).click();
+  await page.getByRole('heading',{name:'MODIFY 已完成',exact:true}).waitFor();
   const cookies = await context.cookies();
   const session = cookies.find(cookie => cookie.name === 'rcc-session-dev');
   assert.ok(session?.httpOnly && !session.secure && session.sameSite === 'Lax' && session.path === '/');
@@ -115,7 +149,7 @@ try {
   assert.equal(await page.evaluate(async () => (await fetch('/api/v1/table-policies')).status),401);
   await page.goto(`${origin}/configuration/managed-data`);
   await page.getByRole('heading', { name: '登录本地账号' }).waitFor();
-  process.stdout.write(JSON.stringify({account_id:identity.account.id,template_key:'browser_system',checks:['registration defaults VIEWER','maintenance ADMIN bootstrap','UI combination grant','390px role catalog and drawer','role history with permanent actor','original member session refresh','refresh','reopen','dirty navigation protection','same-account draft recovery after session loss','hidden drawer keyboard isolation','business write','HTTP Cookie','storage/URL secrecy','logout rejection']}));
+  process.stdout.write(JSON.stringify({account_id:identity.account.id,template_key:'browser_system',checks:['record version conflict preserves input','explicit latest read and baseline rebuild','registration defaults VIEWER','maintenance ADMIN bootstrap','UI combination grant','390px role catalog and drawer','role history with permanent actor','original member session refresh','refresh','reopen','dirty navigation protection','same-account draft recovery after session loss','hidden drawer keyboard isolation','business write','HTTP Cookie','storage/URL secrecy','logout rejection']}));
 } finally {
   await context?.close();
   await rm(profile, { recursive: true, force: true });

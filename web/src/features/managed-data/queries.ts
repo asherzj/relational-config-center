@@ -22,6 +22,7 @@ export type ManagedDataMutationCommand = {
   operation: ChangeSetOperation;
   tableName: string;
   id?: string;
+  expectedVersion?: string;
   content: MutationContent;
 };
 
@@ -31,9 +32,9 @@ async function readManagedRow(tableName: string, id: string) {
     pageNumber: 1,
     pageSize: 1,
   });
-  const row = result.rows.find((candidate) => candidate.id === id);
+  const row = result.rows.length === 1 ? result.rows[0] : undefined;
   if (!row) throw new ApiError("contract_mismatch", "Admin did not return the mutated row.", 200);
-  return { row, columns: result.columns };
+  return { row, columns: result.columns, recordVersion: result.recordVersions[0]! };
 }
 
 async function executeMutation(command: ManagedDataMutationCommand): Promise<ManagedDataMutationOutcome> {
@@ -43,8 +44,9 @@ async function executeMutation(command: ManagedDataMutationCommand): Promise<Man
     id = (await addManagedRow(command.tableName, command.content)).id;
   } else {
     if (id === undefined) throw new ApiError("invalid_request", "Managed Table row id is required.", 400);
-    if (command.operation === "MODIFY") await modifyManagedRow(command.tableName, id, command.content);
-    else await deleteManagedRow(command.tableName, id);
+    if (command.expectedVersion === undefined) throw new ApiError("record_version_required", "请重新查询记录版本。", 422);
+    if (command.operation === "MODIFY") await modifyManagedRow(command.tableName, id, command.content, command.expectedVersion);
+    else await deleteManagedRow(command.tableName, id, command.expectedVersion);
   }
 
   if (command.operation === "DELETE") return { operation: command.operation, tableName: command.tableName, id: id! };

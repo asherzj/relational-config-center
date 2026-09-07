@@ -1,0 +1,63 @@
+# 配置记录并发版本
+
+[#33](https://github.com/asherzj/relational-config-center/issues/33) 为所有现有 Managed Data 单行写入维护同一份 Record Version。它是发布单基线能力，尚不代表审批发布闭环已完成。旧记录写路由及 Web 直写调用由 [T5 #52](https://github.com/asherzj/relational-config-center/issues/52) 删除。
+
+## HTTP 与使用流程
+
+查询 `POST /api/v1/tables/:table_name/query` 保持 `columns`、`rows`、`page`，增加 `record_versions`。该字符串数组与 `rows` 逐项对应、长度相同；空页返回两个空数组。每条记录内容和版本在同一个只读 REPEATABLE READ 事务读取，版本不是业务列。
+
+```json
+{"columns":[{"name":"id","type":"uint64","nullable":false},{"name":"label","type":"string","nullable":false}],"rows":[{"id":"7","label":"原值"}],"record_versions":["9007199254740993"],"page":{"page_number":1,"page_size":20,"total_count":1,"total_pages":1}}
+```
+
+修改 `PATCH /api/v1/tables/:table_name/rows/:id`：
+
+```json
+{"content":{"label":"新值"},"expected_version":"9007199254740993"}
+```
+
+删除 `DELETE /api/v1/tables/:table_name/rows/:id` 也需要 JSON 请求体：
+
+```json
+{"expected_version":"9007199254740993"}
+```
+
+版本是规范十进制无符号 64 位字符串（含 `"0"`），不得转为 JavaScript Number。缺失、null 或空串返回 `422 record_version_required`；负数、前导零、非十进制或越界字符串返回 `422 record_version_invalid`；JSON 数字等违反请求类型时为 `400 invalid_request`。旧版本返回 `409 record_version_conflict`，行已经不存在为 `404 mutation_row_not_found`，两者不写任何业务内容。成功响应沿用 `affected: 1`；新增沿用 `id`，查询可取得对应的新版本。
+
+Web 将初次读取的版本随编辑内容固定。409 后不重复提交、不自动替换基线；输入和 Change Set 保留。点击“查看最新值”只读取目标行，随后“基于最新值重建差异”明确采用新基线，最后仍需“确认并执行”。最新行已被删除或读取失败时保留输入，不能重建。登录恢复时发现版本变化也要求明确重建。新增的重复唯一键与记录版本冲突保持不同语义。
+
+## 存储、身份与事务
+
+`rcc_record_versions` 是唯一版本控制表，受 `rcc_*` 通用访问保护。主键为二进制表名和 32 字节记录身份摘要；业务表不增加版本列。缺失条目的存量行以 `0` 为初始版本，只读查询不创建控制行；首次写入按目标行取得数据库锁、原子建立控制条目，再按期望值条件推进。版本推进、业务数据、自动操作人/时间与规则快照共享同一写事务。不同记录不获取公共全局版本锁。缺失/不兼容控制表阻止启动与就绪；业务写入只允许 InnoDB 表。
+
+新增版本从 `1` 开始；修改或删除都推进一次，包括写回相同值。删除保留控制条目，同一 id 重建继续推进（例如 `1 → 删除 2 → 重建 3`）。事务约束或控制存储失败全部回滚；溢出不能绕回零或成功写入。控制条目永久保留，不提供自动清理或删除 API。
+
+当前实际行身份先由 MySQL `WHERE id = ?` 定位，再使用存储主键的数据库比较权重摘要。数值及时间主键取数据库规范字符输出；字符主键遵守 live collation，PAD SPACE 排序规则去除等价尾空格，NO PAD 保留。以 SHA-256 固定长度摘要容纳长主键；不使用小写化、客户端字符串或业务字段内容作为主键等价判断。
+
+`record_versions.go` 的身份解析当前要求目标行已经存在，满足查询、修改、删除及插入后的初始化。T3 可直接消费 QueryResult.RecordVersions 和现有 MutationSnapshotSession 的 RowUpdate/RowDelete.ExpectedVersion。删除留下的控制条目目前只由 MySQL 内部读取并在重建时续接；查询不存在的业务行不会返回墓碑，也没有公开的缺失行身份/墓碑版本查询接口。T4 对不存在行的已知 ADD id 取得占用时，必须在同一 MySQL 身份能力中补齐按实时主键类型和排序规则的解析，并读取该身份的墓碑与整表维护基线，用本单等价 fixture 对照实际插入后的身份；不能在应用层另造一套 key，也不能把业务行缺失视为版本归零。若 T3 草稿基线验收已需要保存不存在 ADD 目标的版本，则由 T3 提前扩展同一读取能力；目标占用在 T4 实现不意味着草稿可先假定版本为 0。T5 将这份存储和推进能力纳入发布事务，不能另建发布专用行版本表。
+
+## 升级与维护代际
+
+首次升级必须停掉全部旧 Admin 及外部业务写入，备份业务表和控制表，执行 `deploy/mysql/migrations/009-record-versions.sql`，部署同时要求期望版本的 Admin/Web，再恢复服务。迁移可重跑，既有业务数据与控制版本不变；旧客户端缺版本会被拒绝。旧二进制不能与新版本同时写入，也不能回退旧二进制后继续写。
+
+直接 SQL、其他应用写库、表重建和任意绕过版本推进的写入不在自动保护范围内。维护窗口内可用以下流程使所有旧令牌失效，同时保留历史位置：
+
+1. 停止并排空所有读写请求和所有其他写库进程；备份业务与 `rcc_record_versions`，记录准确的数据库版本、主键定义和排序规则。
+2. 为每张受影响表，在旧身份仍有效时取得该表全部控制条目的最大 `lock_version`（包含原维护基线；没有条目为 0）。确认未耗尽 unsigned BIGINT。
+3. 将下面的 `@rcc_maintenance_table` 设置为准确物理表名并执行。空 `record_key` 是保留的整表维护基线，普通记录 key 始终为 32 字节，二者不能混用。
+
+```sql
+SET @rcc_maintenance_table = 'notification_templates';
+START TRANSACTION;
+SELECT COALESCE(MAX(lock_version), 0) + 1 INTO @rcc_next_floor
+  FROM rcc_record_versions WHERE table_name = BINARY @rcc_maintenance_table;
+INSERT INTO rcc_record_versions(table_name, record_key, lock_version)
+  VALUES(BINARY @rcc_maintenance_table, X'', @rcc_next_floor)
+  ON DUPLICATE KEY UPDATE lock_version = @rcc_next_floor;
+COMMIT;
+```
+
+4. 执行计划中的表重建、外部数据修复、主键/排序规则调整或数据库升级；保留控制表和维护基线。更改表名必须把原表最大版本也带入新表基线，不能以改名获得 `0`。
+5. 恢复前验证真实主键等价测试、查询/写入和依赖检查；当前记录有效版本为其控制版本与整表维护基线中的较大值，缺失新身份条目也从维护基线开始。原令牌都小于新基线，必须重新读取并确认。
+
+MySQL 将 [WEIGHT_STRING](https://dev.mysql.com/doc/refman/8.4/en/string-functions.html#function_weight-string) 定义为内部调试函数，其行为可能随版本变化。因此 MySQL 版本、排序规则、字符集或身份算法变化均视为上述维护代际切换；禁止直接升级后静默产生新 key 并回到 `0`。本期经过验证的是 MySQL 8.4，不能仅据旧技术基线假定其他版本等价。中断恢复仍保持停写，读取已经提交的基线继续维护；重复提高基线安全，但绝不能降低或清空它。该流程没有在线或滚动升级承诺。

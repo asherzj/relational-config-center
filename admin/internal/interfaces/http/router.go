@@ -178,7 +178,7 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 			writeError(context, stdhttp.StatusBadRequest, "invalid_request", "request body must be valid JSON with only supported fields")
 			return
 		}
-		affected, err := mutations.Modify(context.Request.Context(), context.Param("table_name"), application.JSONString(context.Param("id")), *request.Content)
+		affected, err := mutations.Modify(context.Request.Context(), context.Param("table_name"), application.JSONString(context.Param("id")), *request.Content, request.ExpectedVersion)
 		if writeManagedMutationError(context, err) {
 			return
 		}
@@ -186,7 +186,16 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 	})
 
 	router.DELETE("/api/v1/tables/:table_name/rows/:id", func(context *gin.Context) {
-		affected, err := mutations.Delete(context.Request.Context(), context.Param("table_name"), application.JSONString(context.Param("id")))
+		var request struct {
+			ExpectedVersion string `json:"expected_version"`
+		}
+		if context.Request.ContentLength != 0 {
+			if err := decodeRequest(context, &request); err != nil {
+				writeRequestDecodeError(context, err)
+				return
+			}
+		}
+		affected, err := mutations.Delete(context.Request.Context(), context.Param("table_name"), application.JSONString(context.Param("id")), request.ExpectedVersion)
 		if writeManagedMutationError(context, err) {
 			return
 		}
@@ -536,7 +545,8 @@ type tableAddRequest struct {
 }
 
 type tablePatchRequest struct {
-	Content *application.MutationContent `json:"content"`
+	ExpectedVersion string                       `json:"expected_version"`
+	Content         *application.MutationContent `json:"content"`
 }
 
 type tableQueryCondition struct {
@@ -642,9 +652,10 @@ func (request tableQueryRequest) spec() application.QuerySpec {
 }
 
 type tableQueryResponse struct {
-	Columns []tableQueryColumnResponse `json:"columns"`
-	Rows    []map[string]*string       `json:"rows"`
-	Page    tableQueryPageResponse     `json:"page"`
+	RecordVersions []string                   `json:"record_versions"`
+	Columns        []tableQueryColumnResponse `json:"columns"`
+	Rows           []map[string]*string       `json:"rows"`
+	Page           tableQueryPageResponse     `json:"page"`
 }
 
 type tableQueryColumnResponse struct {
@@ -679,8 +690,9 @@ func queryResponse(result application.QueryResult) tableQueryResponse {
 		rows = append(rows, row)
 	}
 	return tableQueryResponse{
-		Columns: columns,
-		Rows:    rows,
+		RecordVersions: result.RecordVersions,
+		Columns:        columns,
+		Rows:           rows,
 		Page: tableQueryPageResponse{
 			PageNumber: result.Page.PageNumber,
 			PageSize:   result.Page.PageSize,
@@ -843,6 +855,12 @@ func writeManagedMutationError(context *gin.Context, err error) bool {
 		return false
 	}
 	switch {
+	case errors.Is(err, application.ErrRecordVersionRequired):
+		writeError(context, stdhttp.StatusUnprocessableEntity, "record_version_required", "read and supply the expected record version")
+	case errors.Is(err, application.ErrRecordVersionInvalid):
+		writeError(context, stdhttp.StatusUnprocessableEntity, "record_version_invalid", "expected_version must be an unsigned decimal JSON string")
+	case errors.Is(err, application.ErrRecordVersionConflict):
+		writeError(context, stdhttp.StatusConflict, "record_version_conflict", "record changed; inspect the latest data and explicitly reconfirm")
 	case errors.Is(err, application.ErrOperatorFieldIncompatible):
 		writeError(context, stdhttp.StatusUnprocessableEntity, "operator_field_incompatible", "Operator fields must be ordinary text columns that can store a complete 36-character Account ID")
 	case errors.Is(err, application.ErrProtectedTable):

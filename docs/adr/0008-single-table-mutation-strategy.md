@@ -4,6 +4,7 @@ status: superseded by ADR-0016
 
 # Use one schema-driven single-table mutation strategy
 
+> Managed record concurrency now follows ADR-0021; the last-write-wins text below is historical.
 > ADR-0016 retains the schema-driven ADD/MODIFY/DELETE behavior but supersedes
 > the technology-specific identifier, per-table authorization, arbitrary JSON
 > Auto Fill, literal sources, and separate per-mutation transactions described

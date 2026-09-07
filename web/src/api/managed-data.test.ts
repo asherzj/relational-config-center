@@ -24,7 +24,7 @@ describe("Managed Data query API contract", () => {
   ])("serializes %s without inventing nullable values", async (_name, condition, expected) => {
     const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => json({
       columns: [{ name: "id", type: "uint64", nullable: false }],
-      rows: [{ id: "1" }],
+      rows: [{ id: "1" }], record_versions: ["0"],
       page: { page_number: 2, page_size: 10, total_count: 21, total_pages: 3 },
     }));
     vi.stubGlobal("fetch", fetchMock);
@@ -54,7 +54,7 @@ describe("Managed Data query API contract", () => {
         { name: "id", type: "uint64", nullable: false },
         { name: "subject", type: "string", nullable: true },
       ],
-      rows: [{ id: "1", unexpected: "leaked" }],
+      rows: [{ id: "1", unexpected: "leaked" }], record_versions: ["0"],
       page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 },
     })));
 
@@ -67,7 +67,7 @@ describe("Managed Data query API contract", () => {
   it("fails closed instead of rounding 64-bit page counts beyond JavaScript's safe range", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => json({
       columns: [{ name: "id", type: "uint64", nullable: false }],
-      rows: [],
+      rows: [], record_versions: [],
       page: {
         page_number: 1,
         page_size: 20,
@@ -93,13 +93,13 @@ describe("Managed Data mutation API contract", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(addManagedRow("notification_templates", { subject: null, body: "" })).resolves.toEqual({ id: "9007199254740993" });
-    await expect(modifyManagedRow("notification_templates", "9007199254740993", { subject: "ready", body: null })).resolves.toEqual({ affected: 1 });
-    await expect(deleteManagedRow("notification_templates", "9007199254740993")).resolves.toEqual({ affected: 1 });
+    await expect(modifyManagedRow("notification_templates", "9007199254740993", { subject: "ready", body: null }, "9007199254740993")).resolves.toEqual({ affected: 1 });
+    await expect(deleteManagedRow("notification_templates", "9007199254740993", "9007199254740994")).resolves.toEqual({ affected: 1 });
 
     expect(fetchMock.mock.calls.map(([url, init]) => [String(url), init?.method, init?.body ? JSON.parse(String(init.body)) : undefined])).toEqual([
       ["/api/v1/tables/notification_templates/rows", "POST", { content: { subject: null, body: "" } }],
-      ["/api/v1/tables/notification_templates/rows/9007199254740993", "PATCH", { content: { subject: "ready", body: null } }],
-      ["/api/v1/tables/notification_templates/rows/9007199254740993", "DELETE", undefined],
+      ["/api/v1/tables/notification_templates/rows/9007199254740993", "PATCH", { content: { subject: "ready", body: null }, expected_version: "9007199254740993" }],
+      ["/api/v1/tables/notification_templates/rows/9007199254740993", "DELETE", { expected_version: "9007199254740994" }],
     ]);
   });
 
@@ -114,9 +114,18 @@ describe("Managed Data mutation API contract", () => {
     const action = method === "POST"
       ? addManagedRow("notification_templates", {})
       : method === "PATCH"
-        ? modifyManagedRow("notification_templates", "1", {})
-        : deleteManagedRow("notification_templates", "1");
+        ? modifyManagedRow("notification_templates", "1", {}, "0")
+        : deleteManagedRow("notification_templates", "1", "0");
 
     await expect(action).rejects.toMatchObject({ code: "contract_mismatch", requestId: "req-managed-data-contract" });
   });
+});
+
+it.each([undefined, null, [], ["01"], ["abc"], ["1.5"], ["18446744073709551616"], [7]])("rejects unusable record version metadata %j", async (record_versions) => {
+  vi.stubGlobal("fetch", vi.fn(async () => json({
+    columns: [{ name: "id", type: "uint64", nullable: false }],
+    rows: [{ id: "7" }], record_versions,
+    page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 },
+  })));
+  await expect(queryManagedTable("items", { conditions: [] })).rejects.toMatchObject({ code: "contract_mismatch" });
 });

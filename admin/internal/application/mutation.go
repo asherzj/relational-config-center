@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -11,6 +12,9 @@ import (
 )
 
 var (
+	ErrRecordVersionRequired     = errors.New("record version is required")
+	ErrRecordVersionInvalid      = errors.New("record version must be a canonical unsigned decimal string")
+	ErrRecordVersionConflict     = errors.New("record version conflict")
 	ErrOperatorFieldIncompatible = errors.New("operator field cannot store a complete Account ID")
 	ErrMutationNotAllowed        = errors.New("mutation operation is not allowed")
 	ErrInvalidMutation           = errors.New("invalid mutation content")
@@ -80,12 +84,15 @@ func (mutation *ManagedTableMutation) Add(ctx context.Context, tableName string,
 	return id, err
 }
 
-func (mutation *ManagedTableMutation) Modify(ctx context.Context, tableName string, id domain.JSONString, content domain.MutationContent) (int64, error) {
+func (mutation *ManagedTableMutation) Modify(ctx context.Context, tableName string, id domain.JSONString, content domain.MutationContent, expectedVersion string) (int64, error) {
 	if _, err := requireRole(ctx, RoleEditor); err != nil {
 		return 0, err
 	}
 	if protectedTable(tableName) {
 		return 0, ErrProtectedTable
+	}
+	if err := ValidateRecordVersion(expectedVersion); err != nil {
+		return 0, err
 	}
 	var affected int64
 	err := mutation.snapshotExecutor.ExecuteMutationSnapshot(ctx, func(session MutationSnapshotSession) error {
@@ -96,18 +103,21 @@ func (mutation *ManagedTableMutation) Modify(ctx context.Context, tableName stri
 		if !snapshot.mutationPolicy.AllowModify {
 			return ErrMutationNotAllowed
 		}
-		affected, err = mutation.relationalModify(ctx, session, snapshot.schema, snapshot.mutationPolicy, id, content)
+		affected, err = mutation.relationalModify(ctx, session, snapshot.schema, snapshot.mutationPolicy, id, content, expectedVersion)
 		return err
 	})
 	return affected, err
 }
 
-func (mutation *ManagedTableMutation) Delete(ctx context.Context, tableName string, id domain.JSONString) (int64, error) {
+func (mutation *ManagedTableMutation) Delete(ctx context.Context, tableName string, id domain.JSONString, expectedVersion string) (int64, error) {
 	if _, err := requireRole(ctx, RoleEditor); err != nil {
 		return 0, err
 	}
 	if protectedTable(tableName) {
 		return 0, ErrProtectedTable
+	}
+	if err := ValidateRecordVersion(expectedVersion); err != nil {
+		return 0, err
 	}
 	var affected int64
 	err := mutation.snapshotExecutor.ExecuteMutationSnapshot(ctx, func(session MutationSnapshotSession) error {
@@ -118,7 +128,7 @@ func (mutation *ManagedTableMutation) Delete(ctx context.Context, tableName stri
 		if !snapshot.mutationPolicy.AllowDelete {
 			return ErrMutationNotAllowed
 		}
-		affected, err = relationalDelete(ctx, session, snapshot.schema, id)
+		affected, err = relationalDelete(ctx, session, snapshot.schema, id, expectedVersion)
 		return err
 	})
 	return affected, err
@@ -141,7 +151,7 @@ func (mutation *ManagedTableMutation) relationalAdd(ctx context.Context, session
 	return session.InsertRow(ctx, domain.RowInsert{TableName: schema.Name, Values: values, ProvidedID: effective["id"]})
 }
 
-func (mutation *ManagedTableMutation) relationalModify(ctx context.Context, session MutationSnapshotSession, schema domain.TableSchema, policy domain.MutationPolicy, id domain.JSONString, content domain.MutationContent) (int64, error) {
+func (mutation *ManagedTableMutation) relationalModify(ctx context.Context, session MutationSnapshotSession, schema domain.TableSchema, policy domain.MutationPolicy, id domain.JSONString, content domain.MutationContent, expectedVersion string) (int64, error) {
 	if _, supplied := content["id"]; supplied {
 		return 0, ErrInvalidMutation
 	}
@@ -164,10 +174,10 @@ func (mutation *ManagedTableMutation) relationalModify(ctx context.Context, sess
 	if err != nil {
 		return 0, err
 	}
-	return session.UpdateRow(ctx, domain.RowUpdate{TableName: schema.Name, IDColumn: idColumn, ID: parsedID, Values: values})
+	return session.UpdateRow(ctx, domain.RowUpdate{ExpectedVersion: expectedVersion, TableName: schema.Name, IDColumn: idColumn, ID: parsedID, Values: values})
 }
 
-func relationalDelete(ctx context.Context, session MutationSnapshotSession, schema domain.TableSchema, id domain.JSONString) (int64, error) {
+func relationalDelete(ctx context.Context, session MutationSnapshotSession, schema domain.TableSchema, id domain.JSONString, expectedVersion string) (int64, error) {
 	idColumn, found := schema.Column("id")
 	if !found || idColumn.Type == domain.ColumnTypeUnsupported {
 		return 0, ErrIncompatibleTable
@@ -176,7 +186,7 @@ func relationalDelete(ctx context.Context, session MutationSnapshotSession, sche
 	if err != nil {
 		return 0, ErrInvalidMutation
 	}
-	return session.DeleteRow(ctx, domain.RowDelete{TableName: schema.Name, IDColumn: idColumn, ID: parsedID})
+	return session.DeleteRow(ctx, domain.RowDelete{ExpectedVersion: expectedVersion, TableName: schema.Name, IDColumn: idColumn, ID: parsedID})
 }
 
 func (mutation *ManagedTableMutation) effectiveRelationalContent(ctx context.Context, session MutationSnapshotSession, schema domain.TableSchema, policy domain.MutationPolicy, operation MutationOperation, content domain.MutationContent) (domain.MutationContent, error) {
@@ -300,4 +310,16 @@ func mutationValues(schema domain.TableSchema, content domain.MutationContent, a
 		values = append(values, domain.MutationValue{Column: column, Value: parsed})
 	}
 	return values, nil
+}
+
+// ValidateRecordVersion rejects a missing baseline rather than adopting the latest value.
+func ValidateRecordVersion(version string) error {
+	if version == "" {
+		return ErrRecordVersionRequired
+	}
+	value, err := strconv.ParseUint(version, 10, 64)
+	if err != nil || strconv.FormatUint(value, 10) != version {
+		return ErrRecordVersionInvalid
+	}
+	return nil
 }

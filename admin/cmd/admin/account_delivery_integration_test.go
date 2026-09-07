@@ -359,6 +359,11 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	}
 	deliveryExec(t, owner, string(migration))
 	applyRoleMigration(t, owner)
+	recordVersionMigration, err := os.ReadFile("../../../deploy/mysql/migrations/009-record-versions.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	deliveryExec(t, owner, string(recordVersionMigration))
 	deliveryExec(t, owner, "CREATE DATABASE fresh_accounts CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
 	freshDriver := ownerDriver
 	freshDriver.DBName = "fresh_accounts"

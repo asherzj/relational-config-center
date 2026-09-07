@@ -4,6 +4,8 @@
 
 当前实现说明：本文冻结的是 Admin 后端第一迭代的历史范围。正式 Web 管理台已经在 [`web/README.md`](../web/README.md) 和 [`web/DESIGN.md`](../web/DESIGN.md) 所述入口交付；Server、Client 仍未提供运行时配置服务或账户功能。
 
+当前并发语义已由 [ADR-0021](./adr/0021-store-record-versions-outside-business-tables.md) 及 [记录版本契约](./admin-record-versions.md) 替代下文受管记录的 last-write-wins 约定；规则目录并发语义不变。当前数据库版本与身份维护要求也以该契约为准。
+
 ## 1. 目标与范围
 
 Admin 是 Web 的管理端后端，治理部署配置指定的一个 MySQL database 中的既有配置表。Admin 不创建、修改、删除或迁移业务表结构，只通过实时元数据验证并管理表中的行数据。

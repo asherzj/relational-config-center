@@ -1,3 +1,4 @@
+import { RecordConflictReview, type RecordConflictReviewProps } from "./RecordConflictReview";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/shadcn/table";
 import { ErrorState } from "../../components/ui/Feedback";
 import { Button } from "../../components/ui/Button";
@@ -16,7 +17,7 @@ function Cell({ cell, autoFill }: { cell: ChangeSetCell; autoFill?: boolean }) {
   return <><span className={`change-cell-value cell-${cell.state}`}>{content}</span>{autoFill && cell.state === "unsubmitted" && <small className="auto-fill-label">Auto Fill</small>}</>;
 }
 
-type Props = {
+type Props = RecordConflictReviewProps & {
   changeSet: ChangeSet | null;
   error?: unknown;
   pending: boolean;
@@ -28,7 +29,7 @@ type Props = {
   onRetryRecheck?: () => void;
 };
 
-export function ChangeSetDialog({ changeSet, error, pending, confirmDisabled, onEdit, onCancel, onConfirm, onVerify, onRetryRecheck }: Props) {
+export function ChangeSetDialog({ changeSet, error, pending, confirmDisabled, onEdit, onCancel, onConfirm, onVerify, onRetryRecheck, ...conflictReview }: Props) {
   const operation = changeSet?.operation;
   if (!changeSet) return null;
   const uncertain = isUncertainWriteError(error);
@@ -47,7 +48,10 @@ export function ChangeSetDialog({ changeSet, error, pending, confirmDisabled, on
             ))}</TableBody>
           </Table>
         </div>
+        <div className="change-set-feedback">
         {uncertain ? <div className="inline-alert" role="alert"><strong>提交结果尚未确认。系统不会自动重复此写入。</strong><span>请只重新查询当前表和目标记录。</span></div> : error !== undefined && error !== null && <ErrorState error={error} onRetry={onRetryRecheck} />}
+        <RecordConflictReview {...conflictReview} pending={pending} />
+        </div>
         <footer>
           {uncertain ? <>
             <Button variant="primary" onClick={onVerify}>只读查询当前状态</Button>

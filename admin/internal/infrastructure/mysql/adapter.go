@@ -113,7 +113,10 @@ func (adapter *Adapter) Ready(ctx context.Context) error {
 	if err := adapter.accountSchemaReady(ctx); err != nil {
 		return err
 	}
-	return adapter.accountRoleSchemaReady(ctx)
+	if err := adapter.accountRoleSchemaReady(ctx); err != nil {
+		return err
+	}
+	return adapter.recordVersionSchemaReady(ctx)
 }
 
 func (adapter *Adapter) ListDatabaseTables(ctx context.Context) ([]domain.DatabaseTable, error) {
@@ -1032,9 +1035,14 @@ func executePageQuery(ctx context.Context, database *gorm.DB, query domain.PageQ
 	if totalCount > 0 {
 		totalPages = (totalCount + int64(query.PageSize) - 1) / int64(query.PageSize)
 	}
+	versions, err := queryRecordVersions(ctx, database, query.TableName, resultRows)
+	if err != nil {
+		return domain.QueryResult{}, classifyQueryError(err, ctx.Err(), "read record versions")
+	}
 	return domain.QueryResult{
-		Columns: append([]domain.Column(nil), query.Columns...),
-		Rows:    resultRows,
+		RecordVersions: versions,
+		Columns:        append([]domain.Column(nil), query.Columns...),
+		Rows:           resultRows,
 		Page: domain.Page{
 			PageNumber: query.PageNumber,
 			PageSize:   query.PageSize,
@@ -1066,6 +1074,18 @@ func (adapter *Adapter) InsertRow(ctx context.Context, insert domain.RowInsert) 
 }
 
 func insertRow(ctx context.Context, database *gorm.DB, insert domain.RowInsert) (string, error) {
+	// Open the table before checking its engine so the transaction retains its
+	// metadata lock. A nontransactional table cannot be repaired by rolling back.
+	if err := database.WithContext(ctx).Exec("SELECT `id` FROM " + database.Statement.Quote(insert.TableName) + " WHERE 1=0").Error; err != nil {
+		return "", classifyMutationError(err, ctx.Err())
+	}
+	var engine string
+	if err := database.WithContext(ctx).Raw("SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?", insert.TableName).Row().Scan(&engine); err != nil {
+		return "", classifyMutationError(err, ctx.Err())
+	}
+	if engine != "InnoDB" {
+		return "", application.ErrIncompatibleTable
+	}
 	values := make(map[string]any, len(insert.Values))
 	for _, value := range insert.Values {
 		values[value.Column.Name] = value.Value
@@ -1083,7 +1103,11 @@ func insertRow(ctx context.Context, database *gorm.DB, insert domain.RowInsert) 
 		return "", classifyMutationError(created.Error, ctx.Err())
 	}
 	if insert.ProvidedID != nil {
-		return string(*insert.ProvidedID), nil
+		id := string(*insert.ProvidedID)
+		if err := advanceRecordVersion(ctx, database, insert.TableName, id, nil); err != nil {
+			return "", err
+		}
+		return id, nil
 	}
 	if result.Result == nil {
 		return "", application.ErrMutationUnavailable
@@ -1092,7 +1116,11 @@ func insertRow(ctx context.Context, database *gorm.DB, insert domain.RowInsert) 
 	if err != nil || insertID < 0 {
 		return "", application.ErrMutationUnavailable
 	}
-	return strconv.FormatInt(insertID, 10), nil
+	id := strconv.FormatInt(insertID, 10)
+	if err := advanceRecordVersion(ctx, database, insert.TableName, id, nil); err != nil {
+		return "", err
+	}
+	return id, nil
 }
 
 func (adapter *Adapter) UpdateRow(ctx context.Context, update domain.RowUpdate) (affected int64, returnErr error) {
@@ -1117,6 +1145,9 @@ func (adapter *Adapter) UpdateRow(ctx context.Context, update domain.RowUpdate) 
 }
 
 func updateRow(ctx context.Context, database *gorm.DB, update domain.RowUpdate) (int64, error) {
+	if err := compareAndAdvanceRecordVersion(ctx, database, update.TableName, update.ID, update.ExpectedVersion); err != nil {
+		return 0, err
+	}
 	values := make(map[string]any, len(update.Values))
 	for _, value := range update.Values {
 		values[value.Column.Name] = value.Value
@@ -1159,6 +1190,9 @@ func (adapter *Adapter) DeleteRow(ctx context.Context, deletion domain.RowDelete
 }
 
 func deleteRow(ctx context.Context, database *gorm.DB, deletion domain.RowDelete) (int64, error) {
+	if err := compareAndAdvanceRecordVersion(ctx, database, deletion.TableName, deletion.ID, deletion.ExpectedVersion); err != nil {
+		return 0, err
+	}
 	deleted := database.WithContext(ctx).Session(&gorm.Session{SkipDefaultTransaction: true}).
 		Table(deletion.TableName).
 		Where(clause.Eq{Column: clause.Column{Name: deletion.IDColumn.Name}, Value: deletion.ID}).

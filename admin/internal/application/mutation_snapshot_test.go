@@ -70,7 +70,7 @@ func TestTransactionalManagedTableMutationAuthorizationComesOnlyFromMutationPoli
 func TestTransactionalManagedTableMutationModifyFillsOnlyModifyAndDeleteFillsNothing(t *testing.T) {
 	modifySession := validMutationSnapshotSession()
 	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: modifySession}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
-	if _, err := mutation.Modify((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001", roles: RoleAdmin}).Bind(t.Context()), "managed_items", "7", domain.MutationContent{"name": jsonStringPointer("changed")}); err != nil {
+	if _, err := mutation.Modify((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001", roles: RoleAdmin}).Bind(t.Context()), "managed_items", "7", domain.MutationContent{"name": jsonStringPointer("changed")}, "0"); err != nil {
 		t.Fatalf("MODIFY through relational Policy Snapshot: %v", err)
 	}
 	values := mutationValueMap(modifySession.update.Values)
@@ -86,7 +86,7 @@ func TestTransactionalManagedTableMutationModifyFillsOnlyModifyAndDeleteFillsNot
 
 	deleteSession := validMutationSnapshotSession()
 	deleteMutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: deleteSession}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
-	if _, err := deleteMutation.Delete((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001", roles: RoleAdmin}).Bind(t.Context()), "managed_items", "7"); err != nil {
+	if _, err := deleteMutation.Delete((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001", roles: RoleAdmin}).Bind(t.Context()), "managed_items", "7", "0"); err != nil {
 		t.Fatalf("DELETE through relational Policy Snapshot: %v", err)
 	}
 	if containsCall(deleteSession.calls, "database-time") {
@@ -99,7 +99,7 @@ func TestTransactionalManagedTableMutationAllowsDeprecatedAndFailsClosedForDraft
 	deprecated.queryPolicy.Status = domain.PolicyStatusDeprecated
 	deprecated.mutationPolicy.Status = domain.PolicyStatusDeprecated
 	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: deprecated}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
-	if _, err := mutation.Delete((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001", roles: RoleAdmin}).Bind(t.Context()), "managed_items", "7"); err != nil {
+	if _, err := mutation.Delete((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001", roles: RoleAdmin}).Bind(t.Context()), "managed_items", "7", "0"); err != nil {
 		t.Fatalf("existing Deprecated references must execute: %v", err)
 	}
 
@@ -118,7 +118,7 @@ func TestTransactionalManagedTableMutationAllowsDeprecatedAndFailsClosedForDraft
 			session := validMutationSnapshotSession()
 			test.edit(session)
 			mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: session}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
-			if _, err := mutation.Delete((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001", roles: RoleAdmin}).Bind(t.Context()), "managed_items", "7"); !errors.Is(err, test.want) {
+			if _, err := mutation.Delete((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001", roles: RoleAdmin}).Bind(t.Context()), "managed_items", "7", "0"); !errors.Is(err, test.want) {
 				t.Fatalf("expected %v, got %v", test.want, err)
 			}
 			if containsCall(session.calls, "delete:managed_items") {

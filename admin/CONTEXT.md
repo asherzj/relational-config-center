@@ -85,7 +85,7 @@ The decision of an authorized person other than the applicant to approve or reje
 _Avoid_: Login, publication, self-confirmation
 
 **Record Version（记录并发版本）**:
-The monotonically advancing concurrency identity of one configuration record, used to reject changes based on an older record state, including after deletion and recreation of the same record identity.
+The monotonically advancing concurrency identity of one configuration record, used to reject changes based on an older record state, including after deletion and recreation of the same record identity. Equivalent representations of the same database identity share that version, and a maintenance generation change invalidates previously observed baselines.
 _Avoid_: Release Order Version, Table Version, historical revision
 
 **Release Order Version（发布单版本）**:

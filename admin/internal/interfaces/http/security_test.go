@@ -75,7 +75,7 @@ func TestAPIAccessLogIsStructuredAndRedactsRequestDetails(t *testing.T) {
 func TestAPIAccessLogUsesRouteTemplatesWithoutDynamicTableOrRowValues(t *testing.T) {
 	var logOutput bytes.Buffer
 	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{AccessLog: &logOutput})
-	response := performRequest(handler, http.MethodDelete, "/api/v1/tables/managed_alpha/rows/sensitive-row-id", "")
+	response := performRequest(handler, http.MethodDelete, "/api/v1/tables/managed_alpha/rows/sensitive-row-id", `{"expected_version":"0"}`)
 	if response.Code != http.StatusNotFound {
 		t.Fatalf("expected Policy lookup result, got HTTP %d: %s", response.Code, response.Body.String())
 	}

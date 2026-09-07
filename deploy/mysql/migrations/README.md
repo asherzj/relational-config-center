@@ -84,3 +84,9 @@ Startup/readiness requires the role schema, but deliberately does not require an
 existing administrator: registration and read-only login must work before the
 maintainer explicitly runs `account-maintain grant-admin` for a selected account.
 See [role bootstrap, recovery and HTTP contracts](../../../docs/admin-account-roles.md).
+
+## 记录版本（009）
+
+停止全部旧版本和外部写入后执行 `009-record-versions.sql`。该迁移只建立受保护控制表，不改业务表；重跑保留所有版本。新 Admin 启动及就绪检查要求其列、唯一键及 InnoDB 引擎完整。Admin/Web 必须一起切换为版本必填调用方，不能并行运行旧写入者。
+
+存量基线为 0，删除保留版本条目。外部 SQL、表重建、排序规则、数据库或身份算法升级必须按 [记录版本维护流程](../../../docs/admin-record-versions.md) 提高整表维护基线并重新确认；不允许清空版本控制表或降级继续写入。

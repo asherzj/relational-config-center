@@ -1,3 +1,4 @@
+import { withDefaultRecordVersions } from "../../test/managed-data-fixture";
 import { withAdminSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
@@ -19,6 +20,7 @@ const enabledPolicy = {
 };
 
 function json(value: unknown, status = 200, requestId = "req-managed-data") {
+  value = withDefaultRecordVersions(value);
   return new Response(JSON.stringify(value), {
     status,
     headers: { "Content-Type": "application/json", "X-Request-ID": requestId },

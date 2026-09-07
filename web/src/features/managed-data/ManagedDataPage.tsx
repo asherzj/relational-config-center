@@ -324,8 +324,8 @@ export function ManagedDataPage() {
                       <TableRow key={String(row.id ?? rowIndex)}>{result.data.columns.map((column) => (
                         <TableCell key={column.name}><CellValue value={row[column.name] ?? null} /></TableCell>
                       ))}<TableCell className="managed-data-actions">
-                        <Button variant="ghost" icon={<Pencil size={14} />} aria-label={`修改记录 ${row.id ?? "未知"}`} disabled={typeof row.id !== "string" || Boolean(capabilityReasons.MODIFY)} title={typeof row.id !== "string" ? "记录缺少可用的 id" : capabilityReasons.MODIFY} aria-describedby={capabilityReasons.MODIFY ? "mutation-modify-reason" : undefined} onClick={() => send({ type: "open-editor", operation: "MODIFY", row })}>修改</Button>
-                        <Button variant="ghost" icon={<Trash2 size={14} />} aria-label={`删除记录 ${row.id ?? "未知"}`} disabled={typeof row.id !== "string" || Boolean(capabilityReasons.DELETE)} title={typeof row.id !== "string" ? "记录缺少可用的 id" : capabilityReasons.DELETE} aria-describedby={capabilityReasons.DELETE ? "mutation-delete-reason" : undefined} onClick={() => send({ type: "review-delete", row })}>删除</Button>
+                        <Button variant="ghost" icon={<Pencil size={14} />} aria-label={`修改记录 ${row.id ?? "未知"}`} disabled={typeof row.id !== "string" || Boolean(capabilityReasons.MODIFY)} title={typeof row.id !== "string" ? "记录缺少可用的 id" : capabilityReasons.MODIFY} aria-describedby={capabilityReasons.MODIFY ? "mutation-modify-reason" : undefined} onClick={() => send({ type: "open-editor", operation: "MODIFY", row, expectedVersion: result.data.recordVersions[rowIndex] })}>修改</Button>
+                        <Button variant="ghost" icon={<Trash2 size={14} />} aria-label={`删除记录 ${row.id ?? "未知"}`} disabled={typeof row.id !== "string" || Boolean(capabilityReasons.DELETE)} title={typeof row.id !== "string" ? "记录缺少可用的 id" : capabilityReasons.DELETE} aria-describedby={capabilityReasons.DELETE ? "mutation-delete-reason" : undefined} onClick={() => send({ type: "review-delete", row, expectedVersion: result.data.recordVersions[rowIndex] })}>删除</Button>
                       </TableCell></TableRow>
                     ))}</TableBody>
                   </Table>
@@ -356,6 +356,11 @@ export function ManagedDataPage() {
         </>
       )}
           {editor && <ManagedRowEditor
+
+            recordConflict={changes.view.recordConflict}
+            latest={changes.view.latest}
+            onInspectLatest={() => changes.send({ type: "inspect-latest" })}
+            onRebuildLatest={() => changes.send({ type: "rebuild-latest" })}
             key={editor?.sequence}
             open={Boolean(editor) && !changeSet}
             error={changes.view.executionError}
@@ -371,6 +376,11 @@ export function ManagedDataPage() {
             onReview={(content) => changes.send({ type: "review-content", content })}
           />}
           <ChangeSetDialog
+
+            recordConflict={changes.view.recordConflict}
+            latest={changes.view.latest}
+            onInspectLatest={() => changes.send({ type: "inspect-latest" })}
+            onRebuildLatest={() => changes.send({ type: "rebuild-latest" })}
             changeSet={changeSet}
             error={changes.view.recheckError || changes.view.executionError}
             pending={changes.view.executionPending || changes.view.recheckingChange}

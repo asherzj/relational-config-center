@@ -54,13 +54,13 @@ pnpm build
 ## 边界
 
 - Web 不推断 generated、auto_increment、默认值或新增必填字段，Admin 仍以实时 Schema 做最终裁决。
-- Change Set 不做提交前并发刷新；当前管理语义保持 last-write-wins。
-- Managed Data 的编辑值只保存在当前页面内存中；取消离开提醒可继续编辑，明确允许刷新、关闭标签页或放弃后不会恢复，也没有自动保存、自动重放写入或并发版本控制。
+- Change Set 固定查询时的记录版本；冲突保留输入与差异，查看最新值后必须明确重建、再次确认，见 [记录版本契约](../docs/admin-record-versions.md)。
+- Managed Data 的编辑值只保存在当前页面内存中；取消离开提醒可继续编辑，明确允许刷新、关闭标签页或放弃后不会恢复，没有自动保存或自动重放写入；修改/删除必须携带记录版本。
 - `web/prototype/` 继续用于视觉参考，正式应用由 Vite/React 入口运行。
 
 ## 真实验收
 
-当前组合验收可从仓库根目录运行 `make test-browser`：它创建独立 MySQL、Admin、同源 Vite 和浏览器环境，依次验证账号注册与会话恢复、未保存编辑保护、规则效果说明，再销毁测试资源。需要已安装 Web 依赖、可用的 Docker 和 Chrome；也可通过 `RCC_BROWSER_EXECUTABLE` 指定 Chromium。该入口使用公开账号会话与 CSRF 流程，不依赖已移除的免认证模式。
+当前组合验收可从仓库根目录运行 `make test-browser`：它创建独立 MySQL、Admin、同源 Vite 和浏览器环境，依次验证账号注册与会话恢复、未保存编辑保护、规则效果说明、真实记录版本冲突及显式重建，再销毁测试资源。需要已安装 Web 依赖、可用的 Docker 和 Chrome；也可通过 `RCC_BROWSER_EXECUTABLE` 指定 Chromium。该入口使用公开账号会话与 CSRF 流程，不依赖已移除的免认证模式。
 
 完整流程、真实 MySQL 8.4 和浏览器验收见 [`docs/verification/2026-09-07-stage1-acceptance.md`](../docs/verification/2026-09-07-stage1-acceptance.md)。未保存保护见 [`docs/verification/2026-09-07-stage2-unsaved-changes.md`](../docs/verification/2026-09-07-stage2-unsaved-changes.md)，规则效果说明见 [`docs/verification/2026-09-07-stage3-rule-clarity.md`](../docs/verification/2026-09-07-stage3-rule-clarity.md)。浏览器脚本使用隔离 fixture，运行前先启动隔离 Admin、Web 和 MySQL；不要对生产环境运行脚本：
 

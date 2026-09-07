@@ -1,3 +1,4 @@
+import { withDefaultRecordVersions } from "./managed-data-fixture";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -13,7 +14,8 @@ const mutation = { ...audit, code: "mutation_v1", name: "变更基线", descript
 const assignment = { ...audit, table_name: "items", query_policy_code: "query_v1", mutation_policy_code: "mutation_v1", enabled: true };
 const columns = [{ name: "id", type: "uint64", nullable: false }, { name: "name", type: "string", nullable: false }, { name: "note", type: "string", nullable: true }];
 const row = { id: "1", name: "original", note: null };
-function json(value: unknown, status = 200) { return new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } }); }
+function json(value: unknown, status = 200) { value = withDefaultRecordVersions(value);
+  return new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } }); }
 const rejection = () => json({ error: { code: "invalid_mutation_content", message: "invalid", request_id: "req-preserved" } }, 400);
 
 function backend({ active = false, write }: { active?: boolean; write?: (url: string, init: RequestInit) => Promise<Response> } = {}) {

@@ -253,7 +253,7 @@ func TestConcurrentAccountsOwnTheirBusinessChanges(t *testing.T) {
 			checkActor(request("POST", path+"/"+table+"/enable", "", 200))
 			added := request("POST", "/api/v1/tables/"+table+"/rows", `{"content":{"value":"created"}}`, 201)
 			id := mutationResponseID(t, added)
-			request("PATCH", "/api/v1/tables/"+table+"/rows/"+id, `{"content":{"value":"modified"}}`, 200)
+			request("PATCH", "/api/v1/tables/"+table+"/rows/"+id, `{"content":{"value":"modified"},"expected_version":"1"}`, 200)
 			result := request("POST", "/api/v1/tables/"+table+"/query", `{}`, 200)
 			if !strings.Contains(result.Body.String(), actor) || strings.Contains(result.Body.String(), "integration-test") {
 				t.Fatalf("row identity: %s", result.Body.String())

@@ -1,3 +1,4 @@
+import { withDefaultRecordVersions } from "../../test/managed-data-fixture";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -11,6 +12,7 @@ const columns: ManagedDataColumn[] = [
 ];
 
 function json(value: unknown, status = 200) {
+  value = withDefaultRecordVersions(value);
   return new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } });
 }
 

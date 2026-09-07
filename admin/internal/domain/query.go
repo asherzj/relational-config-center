@@ -193,7 +193,8 @@ type Page struct {
 }
 
 type QueryResult struct {
-	Columns []Column
-	Rows    []Row
-	Page    Page
+	RecordVersions []string
+	Columns        []Column
+	Rows           []Row
+	Page           Page
 }

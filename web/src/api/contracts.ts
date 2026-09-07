@@ -117,6 +117,7 @@ export const managedDataQueryResponseDtoSchema = z.object({
     nullable: z.boolean(),
   })),
   rows: z.array(z.record(z.string(), z.string().nullable())),
+  record_versions: z.array(z.string().max(20).regex(/^(0|[1-9][0-9]*)$/).pipe(z.string().refine((v) => BigInt(v) <= 18446744073709551615n))),
   page: z.object({
     page_number: z.number().int().positive().refine(Number.isSafeInteger, "page_number must be a safe integer"),
     page_size: z.number().int().positive().refine(Number.isSafeInteger, "page_size must be a safe integer"),
@@ -124,6 +125,7 @@ export const managedDataQueryResponseDtoSchema = z.object({
     total_pages: z.number().int().nonnegative().refine(Number.isSafeInteger, "total_pages exceeds Web's lossless range"),
   }),
 }).superRefine((result, context) => {
+  if (result.record_versions.length !== result.rows.length) context.addIssue({ code: "custom", message: "Every row must have a record version", path: ["record_versions"] });
   const names = result.columns.map((column) => column.name);
   if (new Set(names).size !== names.length) {
     context.addIssue({ code: "custom", message: "Managed Data columns must be unique", path: ["columns"] });

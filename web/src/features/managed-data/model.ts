@@ -43,6 +43,7 @@ export type QuerySpec = {
 };
 
 export type ManagedDataResult = {
+  recordVersions: string[];
   columns: ManagedDataColumn[];
   rows: Record<string, string | null>[];
   page: {
@@ -74,6 +75,7 @@ export type ChangeSet = {
 };
 
 export type ManagedDataMutationOutcome = {
+  recordVersion?: string;
   operation: ChangeSetOperation;
   tableName: string;
   id: string;
