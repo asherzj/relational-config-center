@@ -1,10 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
-import { useBlocker } from "react-router-dom";
+import { useBlocker, useLocation } from "react-router-dom";
 import { Button } from "./Button";
 import { useModalFocus } from "./useModalFocus";
 
-type DraftStatus = { dirty: boolean; pending: boolean };
+type DraftStatus = { dirty: boolean; pending: boolean; locationKey: string };
 type Protection = {
   register: (status: RefObject<DraftStatus>) => () => void;
   requestLeave: (action: () => void) => void;
@@ -38,11 +38,16 @@ export function LeaveProtectionProvider({ children }: { children: ReactNode }) {
   const bypass = useRef(false);
   const [localLeave, setLocalLeave] = useState<(() => void) | null>(null);
   const [busyNotice, setBusyNotice] = useState(false);
-  const status = useCallback(() => ({
-    dirty: [...statuses.current].some((item) => item.current.dirty),
-    pending: [...statuses.current].some((item) => item.current.pending),
-  }), []);
-  const blocker = useBlocker(() => !bypass.current && (status().dirty || status().pending));
+  const status = useCallback((locationKey?: string) => {
+    const current = [...statuses.current].filter((item) => locationKey === undefined || item.current.locationKey === locationKey);
+    return { dirty: current.some((item) => item.current.dirty), pending: current.some((item) => item.current.pending) };
+  }, []);
+  const blocker = useBlocker(({ currentLocation }) => {
+    // The router advances before React unmounts the previous page. An outgoing
+    // draft must not block a second navigation from the new history entry.
+    const current = status(currentLocation.key);
+    return !bypass.current && (current.dirty || current.pending);
+  });
   const submissionSettled = useCallback(() => setBusyNotice(false), []);
   const afterSave = useCallback((action: () => void) => {
     setBusyNotice(false);
@@ -101,15 +106,16 @@ export function useLeaveProtection() {
 
 export function useDraftProtection(dirty: boolean, pending = false, inFlight?: RefObject<boolean>) {
   const protection = useLeaveProtection();
+  const location = useLocation();
   const wasPending = useRef(pending);
   useEffect(() => {
     if (wasPending.current && !pending) protection.submissionSettled();
     wasPending.current = pending;
   }, [pending, protection.submissionSettled]);
-  const status = useRef({ dirty, pending });
+  const status = useRef({ dirty, pending, locationKey: location.key });
   // Mutation observers publish pending asynchronously. Navigation and native
   // beforeunload must also see a request started in the current event turn.
-  status.current = { dirty, get pending() { return pending || Boolean(inFlight?.current); } };
+  status.current = { dirty, locationKey: location.key, get pending() { return pending || Boolean(inFlight?.current); } };
   useLayoutEffect(() => protection.register(status), [protection.register]);
   return protection;
 }

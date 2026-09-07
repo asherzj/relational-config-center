@@ -88,3 +88,6 @@ RCC_E2E_SUITE=write-recovery RCC_E2E_ARTIFACTS=<new-empty-output-directory> make
 本次锁和草稿属于当前 Web 会话，不提供刷新、新标签或其他客户端之间的服务端幂等保证；人工决定再次提交仍有重复写入风险。没有实现持久草稿、幂等平台、并发版本检查或账号功能。当前值相同、不存在或分页缺失都不被称为本次提交的成功/失败证明。
 
 真实浏览器验收使用锁定的 Playwright 1.62.1 / Chromium 151.0.7922.34；其他引擎、长结果与窄屏可达性由后续阶段专项覆盖。TCP body 截断是实际 HTTP 客户端边界测试，不冒充浏览器 → Admin → MySQL 全链路截流。Linux CI 由父代理提交本阶段后再验证，不能用本地通过替代。
+
+
+后续 CI 排查还修复了确认放弃后立即后退被旧草稿再次拦截的问题，详见[导航时间窗口报告](2026-09-07-reliability-stage2-navigation.md)。该问题已在确定性组件回路和真实 Chromium 复现，修复后相关 29 项与原生回路 20/20 通过。

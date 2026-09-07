@@ -89,3 +89,8 @@ created_at datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
 - 跨数据库引擎不属于本阶段；当前真实数据源为 MySQL 8.4。
 - 并发版本控制 #33、账号与审计身份 #34、Agent #21 未实现或扩展。
 - 本阶段单独运行 `operation-coverage`；`all` 的组合路径由 runner 条件和后续 CI 验证，不把本次单套件结果表述为组合套件已实跑。
+
+
+## Linux CI 跟进
+
+提交 `9f62a41` 的 [run 34092243061](https://github.com/asherzj/relational-config-center/actions/runs/34092243061) 四项全部通过，最后一项于 06:57:40Z 完成；Browser acceptance 于 06:48:39Z 成功，包含默认 all 下的阶段 1–3 组合。此前旧导航用例的偶发失败已继续定位为真实旧草稿注册时间窗口，修复依据见[导航报告](2026-09-07-reliability-stage2-navigation.md)。
