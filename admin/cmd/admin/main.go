@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	mysqladapter "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql"
 	"github.com/asherzj/relational-config-center/admin/internal/platform/config"
 )
 
@@ -22,7 +23,11 @@ func runMain(standardError *os.File) int {
 
 	application, err := newApplication(context.Background(), settings)
 	if err != nil {
-		fmt.Fprintln(standardError, "startup error: Managed Data Source is unavailable")
+		if errors.Is(err, mysqladapter.ErrAuthenticationSchemaIncomplete) {
+			fmt.Fprintln(standardError, "startup error: authentication schema is incomplete; apply migration 007 (see deploy/mysql/migrations/README.md)")
+		} else {
+			fmt.Fprintln(standardError, "startup error: Managed Data Source is unavailable")
+		}
 		return 1
 	}
 

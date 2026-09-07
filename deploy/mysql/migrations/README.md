@@ -69,6 +69,7 @@ not GORM AutoMigrate output. Never expose any `rcc_` table through generic polic
 
 Business requests now require local-account sessions and TMP-01 is removed by #37.
 Stop old Admin entry points before changing authentication; do not run Token-based
-instances in parallel with the new entry. The complete maintenance-window upgrade
-and required-schema startup checks remain assigned to #40.
+instances in parallel with the new entry. Normal startup/readiness verifies the required account schema and rejects missing
+structures with migration guidance. The complete maintenance-window sequence and
+proxy/script replacement are documented below.
 See [the account interface and development setup](../../../docs/admin-local-accounts.md).

@@ -1,4 +1,4 @@
-# Local Accounts, sessions, protected workspace and maintenance: T1–T5
+# Local Accounts, sessions, protected workspace and maintenance
 
 [#35](https://github.com/asherzj/relational-config-center/issues/35) implements the
 account-entry slice and [#36](https://github.com/asherzj/relational-config-center/issues/36)
@@ -13,8 +13,8 @@ or mail operation exists.
 business route and attributes every authored row/catalog change to the requesting
 account's permanent ID. TMP-01 has been removed: no shared Token, disabled-auth
 mode, proxy credential injection or normal fixed Operator remains. #38 adds
-interrupted in-memory edit recovery; #39 adds account maintenance commands; #40 owns final
-required-schema startup checks and complete release acceptance.
+interrupted in-memory edit recovery; #39 adds account maintenance commands; #40 completes
+required-schema startup checks and release acceptance. See the [31-AC evidence map](./admin-local-accounts-evidence.md).
 
 ## Start the development entry
 
@@ -285,30 +285,22 @@ the capacity lock, are excluded from discovery and generic policies/row operatio
 
 ## Script login and one business call
 
-The following example uses Python's hidden password input and a private temporary
-Cookie jar. Do not enable shell tracing. Run it against the configured public
-origin after registering an account. It performs no automatic write retry.
+The executable [account-session.py](../scripts/account-session.py) keeps its Cookie
+jar, password and both CSRF credentials only in process memory. It prepares CSRF,
+logs in, reads Table Policies, reports foreground activity, optionally queries a
+Managed Table, and logs out. It follows no redirects and retries no writes.
 
 ```bash
-umask 077
-ORIGIN=http://127.0.0.1:5173
-COOKIE_JAR=$(mktemp)
-SESSION_JSON=$(mktemp)
-trap 'rm -f "$COOKIE_JAR" "$SESSION_JSON"' EXIT
-CSRF=$(curl --fail --silent --show-error -c "$COOKIE_JAR" \
-  "$ORIGIN/api/v1/auth/csrf" | python3 -c 'import json,sys; print(json.load(sys.stdin)["csrf_token"])')
-python3 -c 'import getpass,json; print(json.dumps({"username":getpass.getpass("Username: "),"password":getpass.getpass("Password: ")}))' | \
-  curl --fail --silent --show-error -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
-    -H "Origin: $ORIGIN" -H "X-CSRF-Token: $CSRF" -H 'Content-Type: application/json' \
-    --data-binary @- "$ORIGIN/api/v1/auth/login" > "$SESSION_JSON"
-CSRF=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["csrf_token"])' < "$SESSION_JSON")
-curl --fail --silent --show-error -b "$COOKIE_JAR" "$ORIGIN/api/v1/table-policies"
-# Example non-read request: report actual foreground activity, no payload.
-curl --fail --silent --show-error -b "$COOKIE_JAR" -X POST \
-  -H "Origin: $ORIGIN" -H "X-CSRF-Token: $CSRF" "$ORIGIN/api/v1/auth/activity"
+python3 scripts/account-session.py --origin https://config.example.internal --username alice.one --table your_table
+# Noninteractive secret source must write exact UTF-8 through EOF without adding a newline:
+secret-source | python3 scripts/account-session.py --origin https://config.example.internal --username alice.one --password-stdin
 ```
 
-For business changes use the same Cookie jar, Origin and CSRF header with the
+Use the configured loopback origin for local HTTP. Do not enable shell tracing or
+HTTP debug logging. Passwords, Cookie and CSRF values never appear in command
+arguments. Do not print response bodies containing account details or configuration.
+
+For business changes use the same in-memory Cookie jar, Origin and CSRF header with the
 existing JSON contract. A 401 requires a new login; 403 is a rule/CSRF rejection.
 After a lost write response, query its outcome before deciding whether another
 write is necessary. Old `ADMIN_API_TOKEN`, `ADMIN_AUTH_DISABLED`, `ADMIN_OPERATOR`
@@ -326,7 +318,7 @@ environment. Neither command needs a running Admin, a Cookie, an HTTP origin, or
 Policy Catalog readiness. It needs the final account control tables from migration
 007 and database permission to read and update those tables. It does not migrate
 schemas implicitly. Stop old shared-Token Admin instances before the account
-cutover; final upgrade verification is tracked in #40.
+cutover; follow the maintenance-window sequence below.
 
 Choose exactly one immutable Account ID or username. Username lookup uses the same
 trimming and lowercase rule as login. The command prints JSON containing the
@@ -404,3 +396,64 @@ block before writing. Query, Mutation and Table Policy forms/commands keep the
 uncertain result after a failed 503/504 read check, including the normal safe-read
 retry, and only clear it after successful reads. Read-only checks never replay
 the original command. The three policy-page suites exercise these paths.
+
+## Maintenance-window upgrade and HTTPS entry
+
+1. Back up the database and the prior deployment configuration; verify that the
+   backup can be restored. Schedule an outage. Stop and remove **all** old Admin
+   instances from every proxy/load-balancer route, including script-only and
+   direct API entry points. Do not run old and new authentication concurrently.
+2. If the database still uses legacy Table Policies, follow
+   [migrations 001–005 and policy-migrate](../deploy/mysql/migrations/README.md).
+   The delivered maintenance connection works before normal Admin readiness.
+   Do not apply the destructive contraction until its preflight succeeds.
+3. On a final Policy Catalog that has no account tables, apply 007 once using a
+   maintenance connection. A client login path keeps database passwords out of
+   arguments (configure it interactively with `mysql_config_editor`).
+
+   ```bash
+   mysql --login-path=rcc-maintenance rcc < deploy/mysql/migrations/007-local-accounts.sql
+   ```
+
+   Fresh installations instead apply `deploy/mysql/init/001-schema.sql` once.
+   Do not use the development notification fixture in production. DDL is not
+   transactional: if migration fails, keep ingress closed, inspect the schema
+   and restore the backup or complete the failed migration under DBA control.
+4. Replace old settings and all clients: remove `ADMIN_API_TOKEN`,
+   `ADMIN_AUTH_DISABLED` (even false), `ADMIN_OPERATOR`, `ADMIN_CORS_ORIGINS`
+   and Vite `RCC_ADMIN_TOKEN`. These are rejected, not silently ignored.
+   Set `ADMIN_PUBLIC_ORIGIN=https://config.example.internal`, leave
+   `ADMIN_ALLOW_LOCAL_HTTP=false`, and bind `ADMIN_HTTP_ADDR=127.0.0.1:8080`.
+   Deploy the built `web/dist` with the [Nginx HTTPS example](../deploy/nginx/admin-https.conf).
+   Install a certificate trusted by clients and run `nginx -t` before reloading.
+   Set `ADMIN_TRUSTED_PROXIES=127.0.0.1/32,::1/128` only when those are the actual
+   proxy peers. In a container network use that proxy's exact address/CIDR and
+   firewall direct Admin access. The example overwrites forwarded client IP so
+   caller-supplied chains cannot defeat limits; never trust arbitrary networks.
+5. Start the new Admin while ingress remains restricted. Startup and readiness
+   inspect required authentication columns/types/collations, non-nullability,
+   InnoDB storage, identity uniqueness, expiry/account indexes, session FK and
+   admission-lock row. Missing structures stop startup with migration 007 guidance;
+   an empty account directory is healthy and has no default account.
+   Run maintenance lookup/reset if needed; it does not depend on Policy Catalog
+   or normal HTTP readiness. Register a test account through the intended public
+   origin, verify a permitted write's creator/modifier Account ID, and log out.
+6. Replace script clients with the Cookie/CSRF flow above and reopen ingress only
+   after validation. A normal restart preserves valid sessions and unfinished
+   limits; expiry/capacity cleanup never evicts valid state. If rollback is
+   required, close ingress and restore a consistent backup/configuration;
+   never reopen old shared-Token servers alongside the new account service.
+
+Formal HTTPS uses host-only `__Host-rcc-*`, Secure, HttpOnly, SameSite=Lax,
+Path=/ Cookies. Explicit loopback HTTP uses separate `rcc-session-dev` / `rcc-preauth-dev` names without
+Secure. Do not add a proxy Cookie Domain or log Cookie/CSRF/header/body contents.
+The local HTTP exception rejects non-loopback origins. This remains a single
+organization deployment on a trusted network; public deployment, roles, enterprise
+identity, audit, MFA and mail are separate work.
+
+`make test-browser` creates and cleans its own MySQL container, actual Admin binary,
+Vite same-origin proxy and temporary Chrome profile. It fails if prerequisites are
+missing. Set `RCC_BROWSER_EXECUTABLE` to a Chromium executable when Chrome is not
+installed. It verifies registration, reload/reopen restoration, a real configuration
+write and MySQL Account ID attribution, storage/URL secrecy and logout rejection.
+It sends no messages and uses only test-owned notification configuration rows.

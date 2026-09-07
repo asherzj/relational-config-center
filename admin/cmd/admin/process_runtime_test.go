@@ -75,9 +75,20 @@ func TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully(t *testing.T) {
 	}
 	for _, signal := range []os.Signal{os.Interrupt, syscall.SIGTERM} {
 		t.Run(signal.String(), func(t *testing.T) {
-			process, address := startAdminProcessHelper(t, "normal", 10*time.Second)
+			process, address := startAdminProcessHelper(t, "normal", productionShutdownTimeout)
+			// A connected client with an unfinished request header is real shutdown
+			// work: net/http may retain StateNew until the read-header deadline.
+			pending, err := net.Dial("tcp", address[len("http://"):])
+			if err != nil {
+				t.Fatalf("connect pending request: %v", err)
+			}
+			defer pending.Close()
+			if _, err := io.WriteString(pending, "GET /health/live HTTP/1.1\r\n"); err != nil {
+				t.Fatalf("write pending request header: %v", err)
+			}
 			assertProcessHTTP(t, address+"/health/live", "", http.StatusOK)
-			stopProcessAndAssertClose(t, process, signal, 5*time.Second)
+			// Allow the production shutdown window plus bounded process-exit overhead.
+			stopProcessAndAssertClose(t, process, signal, productionShutdownTimeout+2*time.Second)
 		})
 	}
 }

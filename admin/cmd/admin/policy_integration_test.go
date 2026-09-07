@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
+	mysqladapter "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql"
 )
 
 func TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite(t *testing.T) {
@@ -24,12 +25,12 @@ func TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite(t *testing.T
 		"../../../deploy/mysql/migrations/004-create-mutation-policies.sql",
 		"../../../deploy/mysql/migrations/005-expand-table-policy-code-references.sql",
 	)
-	app, err := newApplication(ctx, integrationConfig(driverConfig))
+	maintenance, err := mysqladapter.OpenMaintenance(ctx, integrationConfig(driverConfig).MySQL)
 	if err != nil {
-		t.Fatalf("start expanded Admin: %v", err)
+		t.Fatalf("open legacy maintenance connection: %v", err)
 	}
-	t.Cleanup(func() { _ = app.Close() })
-	if err := app.mysql.MigrateLegacyTablePolicies(ctx, "migration-test"); err != nil {
+	t.Cleanup(func() { _ = maintenance.Close() })
+	if err := maintenance.MigrateLegacyTablePolicies(ctx, "migration-test"); err != nil {
 		t.Fatalf("preflight and backfill legacy Catalog: %v", err)
 	}
 	database, err := sql.Open("mysql", driverConfig.FormatDSN())
@@ -193,7 +194,7 @@ func TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite(t *testing.T
 	if activeDefinitions != 2 {
 		t.Fatalf("expected both deterministic definitions Active, got %d", activeDefinitions)
 	}
-	if err := app.mysql.ContractLegacyTablePolicies(ctx); err != nil {
+	if err := maintenance.ContractLegacyTablePolicies(ctx); err != nil {
 		t.Fatalf("contract validated legacy Catalog: %v", err)
 	}
 
@@ -446,13 +447,13 @@ func TestLegacyPolicyPreflightRejectsUnsupportedAutoFillWithoutPartialRewrite(t 
 		"../../../deploy/mysql/migrations/005-expand-table-policy-code-references.sql",
 		"testdata/007-unsupported-legacy-policy-fixture.sql",
 	)
-	app, err := newApplication(ctx, integrationConfig(driverConfig))
+	maintenance, err := mysqladapter.OpenMaintenance(ctx, integrationConfig(driverConfig).MySQL)
 	if err != nil {
-		t.Fatalf("start expanded Admin: %v", err)
+		t.Fatalf("open legacy maintenance connection: %v", err)
 	}
-	t.Cleanup(func() { _ = app.Close() })
+	t.Cleanup(func() { _ = maintenance.Close() })
 
-	err = app.mysql.MigrateLegacyTablePolicies(ctx, "migration-test")
+	err = maintenance.MigrateLegacyTablePolicies(ctx, "migration-test")
 	if err == nil || !strings.Contains(err.Error(), "legacy_unsupported_table") || !strings.Contains(strings.ToLower(err.Error()), "literal") {
 		t.Fatalf("expected actionable unsupported Auto Fill diagnostic, got %v", err)
 	}
@@ -471,7 +472,7 @@ func TestLegacyPolicyPreflightRejectsUnsupportedAutoFillWithoutPartialRewrite(t 
 	if rewritten != 0 || definitions != 0 {
 		t.Fatalf("failed preflight partially rewrote Catalog: assignments=%d definitions=%d", rewritten, definitions)
 	}
-	contractErr := app.mysql.ContractLegacyTablePolicies(ctx)
+	contractErr := maintenance.ContractLegacyTablePolicies(ctx)
 	if contractErr == nil || !strings.Contains(contractErr.Error(), "legacy_unsupported_table") {
 		t.Fatalf("contraction must repeat the unsupported-config gate, got %v", contractErr)
 	}

@@ -533,10 +533,15 @@ describe("Managed Data mutation capability", () => {
     await user.click(screen.getByRole("checkbox", { name: "包含 body" }));
     await user.type(screen.getByRole("textbox", { name: "body 值" }), "operator-intent");
     await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
+    // Finish the visible dialog's animation-frame focus before interrupting it.
+    // jsdom otherwise allows that pending focus to target the hidden workspace.
+    await waitFor(() => expect(screen.getByRole("dialog", { name: "MODIFY Change Set" })).toHaveFocus());
     signedIn = false;
     act(() => window.dispatchEvent(new CustomEvent(businessSessionInvalid, { detail: { code: "session_invalid" } })));
     await user.type(await screen.findByLabelText("用户名"), "test.user");
     await user.type(screen.getByLabelText("密码"), "correct horse battery staple");
+    expect(screen.getByLabelText("用户名")).toHaveValue("test.user");
+    expect(screen.getByLabelText("密码")).toHaveValue("correct horse battery staple");
     await user.click(screen.getByRole("button", { name: "登录" }));
     await waitFor(() => expect(document.querySelector(".protected-workspace")).toHaveAttribute("data-session-status", "ready"));
     const changeSet = await screen.findByRole("dialog", { name: "MODIFY Change Set" });

@@ -98,7 +98,7 @@ The first iteration ships the Policy Catalog as runtime data (ADR 0005) and prov
 
 The original prototype packages (`httpapi`, `managedtable`, `mysqlstore`) were rewritten into the layout above rather than preserved; the compile-time `bootstrap` registry was deleted when the runtime Policy Catalog landed (issue #2).
 
-Relations, end-user identity and authorization, audit history, publishing workflows, runtime gRPC reads, and in-place schema upgrades belong to later iterations.
+Relations, role-based authorization, audit history, publishing workflows and runtime gRPC reads belong to later iterations. Local Account identity and explicit control-schema upgrades are delivered below.
 
 ## Local Accounts and business request identity
 
@@ -139,5 +139,8 @@ uses database authority and exposes no HTTP account-management route. Resets
 commit password and session-version changes with revocation; status changes share
 the authentication transaction lock and retain old session rows for disabled-client
 draft destruction until normal expiry cleanup. Enable never revives an old version.
-The normal build and Admin image distribute the executable. #40 covers final
-startup/readiness and release acceptance.
+The normal build and Admin image distribute the executable. Normal startup and
+readiness inspect required authentication columns, constraints, indexes and the
+admission-lock row through parameterized GORM Raw queries. Missing structures
+fail startup with migration guidance; an empty account directory remains ready.
+See [the complete release evidence](./admin-local-accounts-evidence.md).

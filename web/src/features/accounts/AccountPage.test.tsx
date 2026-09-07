@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
@@ -225,7 +225,7 @@ it("reports visible foreground interaction at most once per 60 seconds without a
     if (path.endsWith("/activity")) { activities++; return json(identity); }
     throw new Error(`unexpected ${path}`);
   }));
-  renderAccount("/account");
+  await act(async () => { renderAccount("/account"); });
   await screen.findByText("小爱");
   await new Promise((resolve) => setTimeout(resolve, 5));
   expect(activities).toBe(0);
@@ -255,10 +255,9 @@ it("serializes simultaneous activity reports from browser tabs", async () => {
     if (path.endsWith("/activity")) { activities++; return pendingActivity; }
     throw new Error(`unexpected ${path}`);
   }));
-  renderAccount("/account");
-  renderAccount("/account");
+  await act(async () => { renderAccount("/account"); renderAccount("/account"); });
   await screen.findAllByText("小爱");
-  fireEvent.pointerDown(document.body);
+  // Both mounted pages share this test document, so one event reaches both tabs.
   fireEvent.pointerDown(document.body);
   await waitFor(() => expect(requestLock).toHaveBeenCalledTimes(2));
   await waitFor(() => expect(activities).toBe(1));
@@ -293,7 +292,8 @@ it("does not restore a session from a late activity response after logout", asyn
     if (path.endsWith("/csrf")) return json({ csrf_token: "new-preauth" });
     throw new Error(`unexpected ${path}`);
   }));
-  renderAccount("/account");
+  // Flush the identity render and its activity listener before the single event.
+  await act(async () => { renderAccount("/account"); });
   await screen.findByText("小爱");
   fireEvent.pointerDown(document.body);
   await waitFor(() => expect(activityStarted).toBe(true));
@@ -432,7 +432,7 @@ it("ignores a stale activity failure after another tab selects a new account", a
     if (path.endsWith("/activity")) return pendingActivity;
     throw new Error(`unexpected ${path}`);
   }));
-  renderAccount("/account");
+  await act(async () => { renderAccount("/account"); });
   await screen.findByText("小爱");
   fireEvent.pointerDown(document.body);
   window.dispatchEvent(new StorageEvent("storage", { key: "rcc:session-event", newValue: JSON.stringify({ type: "changed", at: Date.now() }) }));
