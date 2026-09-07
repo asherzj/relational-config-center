@@ -36,7 +36,9 @@ pnpm install
 pnpm dev
 ```
 
-浏览器只请求同源 `/api/v1`，使用 HttpOnly 会话 Cookie 和仅存于内存的 CSRF 凭据。Vite 仅读取 `RCC_ADMIN_URL`，转发原请求；旧 `RCC_ADMIN_TOKEN` 会明确报错。Admin 的 `ADMIN_PUBLIC_ORIGIN` 必须与浏览器地址一致，本机 HTTP 显式启用 `ADMIN_ALLOW_LOCAL_HTTP=true`。生产部署使用同源 HTTPS 反向代理，不能继续注入共享 Token。
+浏览器只请求同源 `/api/v1`，使用 HttpOnly 会话 Cookie 和仅存于内存的 CSRF 凭据。Vite 通过 `RCC_ADMIN_URL` 选择后端并转发原请求，通过 `RCC_WEB_PORT` 固定页面端口（默认 `5173`）；端口被占用时停止启动，不会自动换端口。旧 `RCC_ADMIN_TOKEN` 会明确报错。Admin 的 `ADMIN_PUBLIC_ORIGIN` 必须与浏览器地址一致，本机 HTTP 显式启用 `ADMIN_ALLOW_LOCAL_HTTP=true`。生产部署使用同源 HTTPS 反向代理，不能继续注入共享 Token。
+
+并行运行预览页时，需成对配置页面地址与对应的 Admin。例如页面使用 `RCC_WEB_PORT=5174`、`RCC_ADMIN_URL=http://127.0.0.1:8081`，对应 Admin 应使用 `ADMIN_HTTP_ADDR=127.0.0.1:8081`、`ADMIN_PUBLIC_ORIGIN=http://127.0.0.1:5174`。如果页面连接到为其他端口配置的 Admin，即使刚获取登录凭据，登录和注册仍会返回 `403 csrf_invalid`；重新检查登录状态无法修复地址不匹配。
 
 工作区先检查真实当前身份；未登录时转到登录页并保留安全的站内目标，注册或登录成功后返回。规则或 CSRF 拒绝的 403 不跳登录；会话失效的 401 转登录，服务故障保留凭据并提供重新检查。工作区与账号页复用同一浏览器 Web Lock 活动协调，业务写入不自动重放。同账号重新登录后会重新读取当前规则和目标数据，再恢复内存中的编辑内容并要求重新确认；退出或切换账号时清除草稿。
 
@@ -48,6 +50,7 @@ pnpm dev
 pnpm install --frozen-lockfile
 pnpm typecheck
 pnpm test:run
+pnpm test:dev
 pnpm build
 ```
 

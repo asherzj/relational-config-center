@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:dev": "node --test scripts/dev-server-check.mjs",
     "prototype": "node prototype/config-center/server.mjs"
   },
   "dependencies": {
