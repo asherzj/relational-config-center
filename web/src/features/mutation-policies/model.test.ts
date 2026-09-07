@@ -37,6 +37,26 @@ describe("Mutation Policy Draft validation", () => {
     });
   });
 
+  it("rejects Auto Fill targets that differ only by letter case", () => {
+    expect(validateDraft({
+      ...valid,
+      createOperatorField: "created_by",
+      modifyOperatorField: "CREATED_BY",
+    })).toMatchObject({
+      createOperatorField: expect.stringContaining("重复"),
+      modifyOperatorField: expect.stringContaining("重复"),
+    });
+  });
+
+  it("rejects the id primary key as an Auto Fill target regardless of letter case", () => {
+    expect(validateDraft({ ...valid, createOperatorField: "ID" })).toMatchObject({
+      createOperatorField: expect.stringContaining("主键"),
+    });
+    expect(validateDraft({ ...valid, modifyOperatorField: "Id" })).toMatchObject({
+      modifyOperatorField: expect.stringContaining("主键"),
+    });
+  });
+
   it("enforces Auto Fill permission dependencies", () => {
     expect(validateDraft({ ...valid, allowAdd: false })).toMatchObject({
       createOperatorField: expect.stringContaining("ADD"),

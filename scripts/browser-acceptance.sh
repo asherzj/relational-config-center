@@ -19,7 +19,7 @@ if [[ -d "$artifact_root" && -n $(ls -A "$artifact_root" 2>/dev/null) ]]; then
   printf 'artifact directory must be new or empty: %s\n' "$artifact_root" >&2
   exit 2
 fi
-mkdir -p "$artifact_root/unsaved-changes" "$artifact_root/rule-clarity" "$artifact_root/write-recovery"
+mkdir -p "$artifact_root/unsaved-changes" "$artifact_root/rule-clarity" "$artifact_root/write-recovery" "$artifact_root/operation-coverage"
 umask 077
 
 for command in docker node pnpm go curl od tr grep sort cmp; do
@@ -30,7 +30,7 @@ for command in docker node pnpm go curl od tr grep sort cmp; do
 done
 
 case ${RCC_E2E_SUITE:-all} in
-  all|write-recovery) ;;
+  all|write-recovery|operation-coverage) ;;
   *) printf 'unknown browser suite: %s\n' "$RCC_E2E_SUITE" >&2; exit 2 ;;
 esac
 
@@ -399,7 +399,12 @@ run_browser_suite unsaved-changes "$repo_root/web/e2e/unsaved-changes.cjs" "$art
 run_browser_suite rule-clarity "$repo_root/web/e2e/rule-clarity.cjs" "$artifact_root/rule-clarity"
 
 fi
+if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == write-recovery ]]; then
 run_browser_suite write-recovery "$repo_root/web/e2e/write-recovery.cjs" "$artifact_root/write-recovery" 360
+fi
+if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == operation-coverage ]]; then
+run_browser_suite operation-coverage "$repo_root/web/e2e/operation-coverage.cjs" "$artifact_root/operation-coverage" 420
+fi
 
 expected='5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED'
 capture_mysql_state "$artifact_root/database-postcheck.txt"
