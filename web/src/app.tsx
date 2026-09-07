@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { LeaveProtectionProvider } from "./components/ui/LeaveProtection";
 import { AppShell } from "./components/AppShell";
 import { QueryPoliciesPage } from "./features/query-policies/QueryPoliciesPage";
 import { MutationPoliciesPage } from "./features/mutation-policies/MutationPoliciesPage";
@@ -7,7 +8,7 @@ import { ManagedDataPage } from "./features/managed-data/ManagedDataPage";
 
 export function AppRoutes() {
   return (
-    <Routes>
+    <LeaveProtectionProvider><Routes>
       <Route element={<AppShell />}>
         <Route index element={<Navigate to="/platform/query-policies" replace />} />
         <Route path="platform/query-policies" element={<QueryPoliciesPage />} />
@@ -19,6 +20,6 @@ export function AppRoutes() {
         <Route path="configuration/managed-data" element={<ManagedDataPage />} />
         <Route path="*" element={<Navigate to="/platform/query-policies" replace />} />
       </Route>
-    </Routes>
+    </Routes></LeaveProtectionProvider>
   );
 }

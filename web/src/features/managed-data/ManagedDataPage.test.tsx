@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { TestRouter } from "../../test/TestRouter";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
@@ -28,9 +28,9 @@ function renderPage(queryRetry: boolean | number = false) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: queryRetry, retryDelay: 0 }, mutations: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={["/configuration/managed-data"]}>
+      <TestRouter initialEntries={["/configuration/managed-data"]}>
         <ToastProvider><AppRoutes /></ToastProvider>
-      </MemoryRouter>
+      </TestRouter>
     </QueryClientProvider>,
   );
 }

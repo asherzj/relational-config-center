@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { TestRouter } from "../../test/TestRouter";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
@@ -105,9 +105,9 @@ function renderPage(initialEntry = "/platform/table-policies") {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[initialEntry]}>
+      <TestRouter initialEntries={[initialEntry]}>
         <ToastProvider><AppRoutes /></ToastProvider>
-      </MemoryRouter>
+      </TestRouter>
     </QueryClientProvider>,
   );
 }
@@ -175,6 +175,11 @@ describe("表规则分配页面", () => {
     await user.selectOptions(tableSelect, "message_templates");
     await user.selectOptions(screen.getByRole("combobox", { name: "Active 查询规则" }), "standard_page_query_v1");
     await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "standard_mutation_v1");
+    const preview = screen.getByRole("region", { name: "所选规则效果预览" });
+    expect(preview).toHaveTextContent("创建后保持未启用");
+    expect(preview).toHaveTextContent("按 id 降序排列");
+    expect(preview).toHaveTextContent("新增：规则允许");
+    expect(preview).toHaveTextContent("删除：规则禁止");
     await user.click(screen.getByRole("button", { name: "创建未启用分配" }));
 
     const createCall = fetchMock.mock.calls.find(([url, init]) => String(url).endsWith("/table-policies") && init?.method === "POST");
@@ -186,7 +191,7 @@ describe("表规则分配页面", () => {
     expect(await screen.findByText("表规则已创建并保持未启用")).toBeVisible();
   });
 
-  it("从可复制详情 URL 原子替换两个 Code，并警告 enabled 分配下一次请求立即生效", async () => {
+  it("从可复制详情 URL 一起替换两个 Code，并警告 enabled 分配下一次请求立即生效", async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: discoveryTables });
@@ -209,7 +214,7 @@ describe("表规则分配页面", () => {
     expect(await screen.findByRole("heading", { name: "表规则详情" })).toBeVisible();
     expect(fetchMock).toHaveBeenCalledWith("/api/v1/table-policies/notification_templates", expect.any(Object));
     expect(await screen.findByDisplayValue("notification_templates")).toBeDisabled();
-    await user.click(screen.getByRole("button", { name: "原子替换" }));
+    await user.click(screen.getByRole("button", { name: "替换所选规则" }));
     await user.selectOptions(await screen.findByRole("combobox", { name: "Active 查询规则" }), "strict_page_query_v2");
     await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "readonly_mutation_v2");
     await user.click(screen.getByRole("button", { name: "检查并替换" }));
@@ -217,7 +222,7 @@ describe("表规则分配页面", () => {
     const dialog = await screen.findByRole("alertdialog", { name: "替换已启用的表规则？" });
     expect(dialog).toHaveTextContent("下一次请求立即生效");
     expect(fetchMock.mock.calls.some(([url, init]) => String(url).endsWith("/notification_templates") && init?.method === "PUT")).toBe(false);
-    await user.click(screen.getByRole("button", { name: "确认原子替换" }));
+    await user.click(screen.getByRole("button", { name: "确认替换" }));
 
     const replaceCall = fetchMock.mock.calls.find(([url, init]) => String(url).endsWith("/notification_templates") && init?.method === "PUT");
     expect(JSON.parse(String(replaceCall?.[1]?.body))).toEqual({
@@ -225,10 +230,10 @@ describe("表规则分配页面", () => {
       query_policy_code: "strict_page_query_v2",
       mutation_policy_code: "readonly_mutation_v2",
     });
-    expect(await screen.findByText("表规则已原子替换")).toBeVisible();
+    expect(await screen.findByText("表规则已替换")).toBeVisible();
   });
 
-  it("已启用分配原子替换失败后呈现稳定错误和 Request ID", async () => {
+  it("已启用分配替换失败后呈现稳定错误和 Request ID", async () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: discoveryTables });
@@ -249,28 +254,31 @@ describe("表规则分配页面", () => {
     await user.selectOptions(await screen.findByRole("combobox", { name: "Active 查询规则" }), "strict_page_query_v2");
     await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "readonly_mutation_v2");
     await user.click(screen.getByRole("button", { name: "检查并替换" }));
-    await user.click(await screen.findByRole("button", { name: "确认原子替换" }));
+    await user.click(await screen.findByRole("button", { name: "确认替换" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("请选择 Active 且可分配的变更规则");
     expect(screen.getByRole("alert")).toHaveTextContent("req-replace-24");
     expect(screen.queryByRole("alertdialog", { name: "替换已启用的表规则？" })).not.toBeInTheDocument();
   });
 
-  it("详情只依赖专用详情端点，不因 Policy 候选目录不可用而阻塞查看", async () => {
+  it("规则目录不可用时仍显示表规则详情，并明确无法确认规则效果", async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: discoveryTables });
+      if (url.endsWith("/query-policy-types") || url.endsWith("/mutation-policy-types") || url.endsWith("/query-policies") || url.endsWith("/mutation-policies")) return json({ error: { code: "unavailable", message: "down" } }, 503);
       if (url.endsWith("/table-policies/notification_templates")) return json(tablePolicy);
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
-      throw new Error(`detail must not request assignment candidates: ${url}`);
+      throw new Error(`unexpected request ${url}`);
     });
     vi.stubGlobal("fetch", fetchMock);
 
     renderPage("/platform/table-policies/notification_templates");
 
     expect(await screen.findByDisplayValue("notification_templates")).toBeVisible();
-    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/query-policies"))).toBe(false);
-    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/mutation-policies"))).toBe(false);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/query-policies"))).toBe(true);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/mutation-policies"))).toBe(true);
+    expect(await screen.findByText("无法确认查询效果")).toBeVisible();
+    expect(screen.getByRole("region", { name: "当前已选规则效果" })).toHaveTextContent("无法确认变更效果");
   });
 
   it("详情读取失败时呈现稳定错误并可重试专用详情端点", async () => {

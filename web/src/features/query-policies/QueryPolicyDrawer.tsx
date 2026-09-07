@@ -1,11 +1,17 @@
 import { AlertCircle } from "lucide-react";
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useRef, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { Drawer } from "../../components/ui/Drawer";
 import { ErrorState, LoadingState } from "../../components/ui/Feedback";
-import { useToast } from "../../components/ui/Toast";
-import { allowedActions, supportedQueryPolicyTypes, type QueryPolicyDraft, type QueryPolicyMetadata } from "./model";
+import {
+  policyActionAvailability,
+  requestedPolicyFormMode,
+  resolvePolicyFormMode,
+  usePolicyFormSubmission,
+  type PolicyLifecycleCommand,
+} from "../policies/lifecycle";
+import { supportedQueryPolicyTypes, type QueryPolicyDraft, type QueryPolicyMetadata } from "./model";
 import {
   useCreateQueryPolicy,
   useQueryPolicy,
@@ -13,17 +19,21 @@ import {
   useReplaceQueryPolicy,
   useUpdateQueryPolicyMetadata,
 } from "./queries";
-import { QueryPolicyForm, type FormMode } from "./QueryPolicyForm";
+import { QueryPolicyForm } from "./QueryPolicyForm";
 
 type Props = {
   code?: string;
-  onRequestCommand: (command: "activate" | "deprecate" | "delete", code: string) => void;
+  onRequestCommand: (command: PolicyLifecycleCommand, code: string) => void;
 };
 
-export function QueryPolicyDrawer({ code, onRequestCommand }: Props) {
+export function QueryPolicyDrawer(props: Props) {
+  const [searchParams] = useSearchParams();
+  return <QueryPolicySession key={`${props.code}:${searchParams.get("mode")}`} {...props} />;
+}
+
+function QueryPolicySession({ code, onRequestCommand }: Props) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { showToast } = useToast();
   const creating = code === "new";
   const detail = useQueryPolicy(creating ? undefined : code);
   const types = useQueryPolicyTypes();
@@ -31,57 +41,53 @@ export function QueryPolicyDrawer({ code, onRequestCommand }: Props) {
   const replace = useReplaceQueryPolicy();
   const metadata = useUpdateQueryPolicyMetadata();
 
-  const requestedMode = searchParams.get("mode");
-  const requestedFormMode: FormMode = creating ? "create" : requestedMode === "edit" ? "replace" : requestedMode === "metadata" ? "metadata" : "view";
+  const requestedFormMode = requestedPolicyFormMode(creating, searchParams.get("mode"));
   const close = () => navigate("/platform/query-policies");
-  const policy = detail.data;
-  const supported = policy ? supportedQueryPolicyTypes.has(policy.typeCode) : true;
-  const requestedAction = requestedFormMode === "replace" ? "replace" : requestedFormMode === "metadata" ? "metadata" : null;
-  const requestedActionAllowed = !policy || !requestedAction || allowedActions[policy.status].includes(requestedAction);
-  const mode: FormMode = !creating && policy && (!supported || !requestedActionAllowed) ? "view" : requestedFormMode;
-  const pending = create.isPending || replace.isPending || metadata.isPending;
-  const serverError = create.error || replace.error || metadata.error;
+  const editingPolicy = useRef(detail.data);
+  if (!editingPolicy.current && detail.data) editingPolicy.current = detail.data;
+  const policy = requestedFormMode === "view" ? detail.data : editingPolicy.current;
+  const currentSupport = policy ? supportedQueryPolicyTypes.has(policy.typeCode) && Boolean(types.data?.includes(policy.typeCode)) : true;
+  const editingSupport = useRef<boolean | undefined>(undefined);
+  if (editingSupport.current === undefined && policy && types.data) editingSupport.current = currentSupport;
+  const supported = requestedFormMode === "view" ? currentSupport : editingSupport.current ?? currentSupport;
+  const mode = resolvePolicyFormMode(requestedFormMode, policy?.status, supported);
+  const actions = policy ? policyActionAvailability(policy.status, supported) : null;
+  const form = usePolicyFormSubmission<QueryPolicyDraft, QueryPolicyMetadata>({
+    mode,
+    code,
+    collectionPath: "/platform/query-policies",
+    copy: { created: "查询规则草稿已创建", replaced: "查询规则草稿已更新", metadataUpdated: "查询规则显示信息已更新" },
+    create: (value, onSuccess, onError) => create.mutate(value, { onSuccess: (created) => onSuccess(created.code), onError }),
+    replace: (target, value, onSuccess, onError) => replace.mutate({ code: target, draft: value }, { onSuccess, onError }),
+    updateMetadata: (target, value, onSuccess, onError) => metadata.mutate({ code: target, metadata: value }, { onSuccess, onError }),
+    pending: create.isPending || replace.isPending || metadata.isPending,
+    error: create.error || replace.error || metadata.error,
+  });
 
   const title = useMemo(() => {
     if (mode === "create") return "新建查询规则草稿";
     if (mode === "replace") return "编辑查询规则草稿";
-    if (mode === "metadata") return "更新查询规则信息";
+    if (mode === "metadata") return "修改查询规则名称和描述";
     return "查询规则详情";
   }, [mode]);
 
-  const submit = (value: QueryPolicyDraft | QueryPolicyMetadata) => {
-    if (mode === "create") {
-      create.mutate(value as QueryPolicyDraft, {
-        onSuccess(created) {
-          showToast("查询规则草稿已创建");
-          navigate(`/platform/query-policies/${encodeURIComponent(created.code)}`);
-        },
-      });
-    } else if (mode === "replace" && code) {
-      replace.mutate({ code, draft: value as QueryPolicyDraft }, {
-        onSuccess() { showToast("查询规则草稿已更新"); navigate(`/platform/query-policies/${encodeURIComponent(code)}`); },
-      });
-    } else if (mode === "metadata" && code) {
-      metadata.mutate({ code, metadata: value as QueryPolicyMetadata }, {
-        onSuccess() { showToast("查询规则显示信息已更新"); navigate(`/platform/query-policies/${encodeURIComponent(code)}`); },
-      });
-    }
-  };
-
   let content: ReactNode;
   if (!creating && detail.isPending) content = <LoadingState label="正在读取查询规则…" />;
-  else if (!creating && detail.isError) content = <ErrorState error={detail.error} onRetry={() => void detail.refetch()} />;
+  else if (!creating && detail.isError && !detail.data) content = <ErrorState error={detail.error} onRetry={() => void detail.refetch()} />;
   else content = (
     <>
       {!supported && (
-        <div className="inline-alert"><AlertCircle size={18} /><strong>Web 尚不支持类型 {policy?.typeCode}，当前仅可查看。</strong></div>
+        <div className="inline-alert"><AlertCircle size={18} /><strong>规则类型目录未确认 {policy?.typeCode} 的查询能力；无法确认执行规则，{actions?.metadata ? "仍可安全查看或修改名称和描述。" : "当前只能安全查看。"}</strong></div>
       )}
       <QueryPolicyForm
+        key={`${code}:${mode}`}
+        pending={form.pending}
         mode={mode}
         policy={policy}
         typeCodes={types.data ?? []}
-        serverError={serverError}
-        onSubmit={submit}
+        registryState={types.isPending ? "loading" : types.isError ? "error" : "ready"}
+        serverError={form.error}
+        onSubmit={form.submit}
       />
     </>
   );
@@ -90,20 +96,20 @@ export function QueryPolicyDrawer({ code, onRequestCommand }: Props) {
   if (mode === "create" || mode === "replace" || mode === "metadata") {
     footer = (
       <>
-        <Button variant="primary" type="submit" form="query-policy-form" disabled={pending || (mode === "create" && !types.data?.some((type) => supportedQueryPolicyTypes.has(type)))}>
-          {pending ? "正在保存…" : mode === "create" ? "创建草稿" : "保存"}
+        <Button variant="primary" type="submit" form="query-policy-form" disabled={form.pending || (mode === "create" && !types.data?.some((type) => supportedQueryPolicyTypes.has(type)))}>
+          {form.pending ? "正在保存…" : mode === "create" ? "创建草稿" : mode === "metadata" ? "保存名称和描述" : "保存执行规则"}
         </Button>
-        <Button onClick={close} disabled={pending}>取消</Button>
+        <Button onClick={close} disabled={form.pending}>取消</Button>
       </>
     );
-  } else if (policy && supported) {
+  } else if (policy && actions) {
     footer = (
       <>
-        {policy.status === "DRAFT" && supported && <Button variant="primary" onClick={() => navigate(`?mode=edit`)}>编辑草稿</Button>}
-        {policy.status === "DRAFT" && <Button variant="primary" onClick={() => onRequestCommand("activate", policy.code)}>激活</Button>}
-        {policy.status !== "DRAFT" && supported && <Button onClick={() => navigate(`?mode=metadata`)}>更新元数据</Button>}
-        {policy.status === "ACTIVE" && <Button variant="danger" onClick={() => onRequestCommand("deprecate", policy.code)}>弃用</Button>}
-        {policy.status === "DRAFT" && <Button variant="danger" onClick={() => onRequestCommand("delete", policy.code)}>删除</Button>}
+        {actions.replace && <Button variant="primary" onClick={() => navigate(`?mode=edit`)}>修改执行规则</Button>}
+        {actions.activate && <Button variant="primary" onClick={() => onRequestCommand("activate", policy.code)}>激活</Button>}
+        {actions.metadata && <Button onClick={() => navigate(`?mode=metadata`)}>修改名称和描述</Button>}
+        {actions.deprecate && <Button variant="danger" onClick={() => onRequestCommand("deprecate", policy.code)}>弃用</Button>}
+        {actions.delete && <Button variant="danger" onClick={() => onRequestCommand("delete", policy.code)}>删除</Button>}
         <Button className="drawer-close-action" onClick={close}>关闭</Button>
       </>
     );

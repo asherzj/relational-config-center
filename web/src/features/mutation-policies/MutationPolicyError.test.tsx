@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { TestRouter } from "../../test/TestRouter";
 import { afterEach, expect, it, vi } from "vitest";
 import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
@@ -23,7 +23,7 @@ it("keeps form input and presents stable Admin errors with Request ID", async ()
   vi.stubGlobal("fetch", fetchMock);
   const user = userEvent.setup();
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  render(<QueryClientProvider client={client}><MemoryRouter initialEntries={["/platform/mutation-policies/new"]}><ToastProvider><AppRoutes /></ToastProvider></MemoryRouter></QueryClientProvider>);
+  render(<QueryClientProvider client={client}><TestRouter initialEntries={["/platform/mutation-policies/new"]}><ToastProvider><AppRoutes /></ToastProvider></TestRouter></QueryClientProvider>);
 
   await user.type(await screen.findByLabelText(/规则编码/), "duplicate_mutation_v1");
   await user.type(screen.getByLabelText("显示名称"), "重复规则");

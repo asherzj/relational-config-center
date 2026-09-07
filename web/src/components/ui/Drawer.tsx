@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
+import { useModalFocus } from "./useModalFocus";
 
 type Props = {
   open: boolean;
@@ -12,28 +13,18 @@ type Props = {
 
 export function Drawer({ open, title, eyebrow, onClose, children, footer }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
-
+  useModalFocus({ open, dialogRef, onEscape: onClose });
   useEffect(() => {
     if (!open) return;
-    const previous = document.activeElement as HTMLElement | null;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
     document.body.classList.add("drawer-open");
-    window.addEventListener("keydown", onKeyDown);
-    requestAnimationFrame(() => dialogRef.current?.focus());
-    return () => {
-      document.body.classList.remove("drawer-open");
-      window.removeEventListener("keydown", onKeyDown);
-      previous?.focus();
-    };
-  }, [open, onClose]);
+    return () => document.body.classList.remove("drawer-open");
+  }, [open]);
 
   if (!open) return null;
   return (
     <div className="drawer-layer">
       <button className="drawer-scrim" aria-label="关闭抽屉" onClick={onClose} />
-      <div className="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" tabIndex={-1} ref={dialogRef}>
+      <div className="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" tabIndex={-1} ref={dialogRef} data-modal-surface="true">
         <header className="drawer-header">
           <div>
             <span className="drawer-eyebrow">{eyebrow}</span>

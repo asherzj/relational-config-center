@@ -1,0 +1,20 @@
+{
+  "browser": "151.0.7922.34",
+  "passed": [
+    "untouched Query create closes without a warning",
+    "actual browser POP back cancel retains input and route",
+    "actual browser POP back confirm and forward restore the intended route",
+    "native beforeunload reload cancellation preserves input",
+    "native tab-close cancellation preserves the editing document",
+    "discard confirmation owns keyboard focus and fits a 390px viewport",
+    "restored original Query values clear protection",
+    "actual browser forward navigation is canceled or confirmed at its original target",
+    "real duplicate Policy Code rejection preserves Query form input",
+    "real completed write with delayed response blocks POP, then shows success once",
+    "disposable Query draft cleaned up through the Admin API",
+    "Change Set cancel and return retain values, NULL and omitted fields",
+    "real Admin/MySQL validation rejection retains the row draft and request error",
+    "confirmed discard closes the editor with no browser storage draft"
+  ],
+  "errors": []
+}

@@ -4,6 +4,7 @@ CREATE TABLE mutation_add_items (
   label varchar(64) NOT NULL,
   defaulted_value varchar(64) NOT NULL DEFAULT 'database-default',
   nullable_value varchar(64) NULL,
+  lifecycle enum('active', 'paused') NOT NULL DEFAULT 'active',
   quantity int NULL,
   metadata json NULL,
   generated_value varchar(128) GENERATED ALWAYS AS (concat(code, ':generated')) STORED,

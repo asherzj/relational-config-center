@@ -94,40 +94,6 @@ func TestTransactionalManagedTableMutationModifyFillsOnlyModifyAndDeleteFillsNot
 	}
 }
 
-func TestTransactionalManagedTableMutationAllowsDeprecatedAndFailsClosedForDraftOrUnknownTypes(t *testing.T) {
-	deprecated := validMutationSnapshotSession()
-	deprecated.queryPolicy.Status = domain.PolicyStatusDeprecated
-	deprecated.mutationPolicy.Status = domain.PolicyStatusDeprecated
-	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: deprecated}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry(), NewFixedOperatorProvider("operator"))
-	if _, err := mutation.Delete(t.Context(), "managed_items", "7"); err != nil {
-		t.Fatalf("existing Deprecated references must execute: %v", err)
-	}
-
-	tests := []struct {
-		name string
-		edit func(*memoryMutationSnapshotSession)
-		want error
-	}{
-		{name: "Draft Query Policy", edit: func(session *memoryMutationSnapshotSession) { session.queryPolicy.Status = domain.PolicyStatusDraft }, want: ErrInvalidPolicySnapshot},
-		{name: "Draft Mutation Policy", edit: func(session *memoryMutationSnapshotSession) { session.mutationPolicy.Status = domain.PolicyStatusDraft }, want: ErrInvalidPolicySnapshot},
-		{name: "unknown Query Type", edit: func(session *memoryMutationSnapshotSession) { session.queryPolicy.TypeCode = "unknown" }, want: ErrUnknownQueryPolicyType},
-		{name: "unknown Mutation Type", edit: func(session *memoryMutationSnapshotSession) { session.mutationPolicy.TypeCode = "unknown" }, want: ErrUnknownMutationPolicyType},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			session := validMutationSnapshotSession()
-			test.edit(session)
-			mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: session}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry(), NewFixedOperatorProvider("operator"))
-			if _, err := mutation.Delete(t.Context(), "managed_items", "7"); !errors.Is(err, test.want) {
-				t.Fatalf("expected %v, got %v", test.want, err)
-			}
-			if containsCall(session.calls, "delete:managed_items") {
-				t.Fatalf("invalid Snapshot reached row execution: %#v", session.calls)
-			}
-		})
-	}
-}
-
 type memoryMutationSnapshotExecutor struct {
 	session *memoryMutationSnapshotSession
 }

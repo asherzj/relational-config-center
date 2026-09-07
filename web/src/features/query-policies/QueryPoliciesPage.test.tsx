@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { TestRouter } from "../../test/TestRouter";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
@@ -51,9 +51,9 @@ function renderPage(initialEntry = "/platform/query-policies") {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[initialEntry]}>
+      <TestRouter initialEntries={[initialEntry]}>
         <ToastProvider><AppRoutes /></ToastProvider>
-      </MemoryRouter>
+      </TestRouter>
     </QueryClientProvider>,
   );
 }
@@ -89,10 +89,14 @@ describe("查询规则页面", () => {
     renderPage("/platform/query-policies/standard_page_query_v1");
     expect(await screen.findByRole("heading", { name: "查询规则详情" })).toBeVisible();
     expect(await screen.findByDisplayValue("标准分页查询")).toBeDisabled();
+    expect(screen.getByRole("region", { name: "实际查询效果" })).toHaveTextContent("按 id 降序排列");
+    expect(screen.getByRole("region", { name: "实际查询效果" })).toHaveTextContent("默认每页数量为 20");
+    expect(screen.getByRole("region", { name: "实际查询效果" })).toHaveTextContent("不能超过 200");
+    expect(screen.getByRole("region", { name: "实际查询效果" })).toHaveTextContent("没有配置字段白名单");
     expect(fetchMock).toHaveBeenCalledWith("/api/v1/query-policies/standard_page_query_v1", expect.any(Object));
   });
 
-  it("keeps an unknown Policy Type read-only even through a direct edit URL", async () => {
+  it("blocks execution editing for an unknown Type but still offers safe metadata editing", async () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
@@ -102,13 +106,44 @@ describe("查询规则页面", () => {
     }));
 
     renderPage("/platform/query-policies/future_query_v1?mode=edit");
-    expect(await screen.findByText(/Web 尚不支持类型 future_page_query，当前仅可查看/)).toBeVisible();
+    expect(await screen.findByText("仅可修改名称和描述")).toBeVisible();
+    expect(screen.queryByText("仅可查看")).not.toBeInTheDocument();
+    expect(await screen.findByText(/无法确认执行规则，仍可安全查看或修改名称和描述/)).toBeVisible();
     expect(await screen.findByDisplayValue("标准分页查询")).toBeDisabled();
-    expect(screen.queryByRole("button", { name: "保存" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "更新元数据" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "保存执行规则" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "修改名称和描述" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "弃用" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "激活" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "删除" })).not.toBeInTheDocument();
+  });
+
+  it("keeps a known Active row's hint consistent when the Type registry is unavailable", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ error: { code: "unavailable", message: "down" } }, 503);
+      if (url.endsWith("/query-policies")) return json({ policies: [activePolicy] });
+      throw new Error(`unexpected request ${url}`);
+    }));
+
+    renderPage();
+    expect(await screen.findByText("仅可修改名称和描述")).toBeVisible();
+    expect(screen.getByRole("button", { name: "名称和描述" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "弃用" })).not.toBeInTheDocument();
+  });
+
+  it("allows an unknown active Type to update only its name and description", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.endsWith("/query-policies/future_query_v1")) return json(unknownPolicy);
+      if (url.endsWith("/query-policies")) return json({ policies: [unknownPolicy] });
+      throw new Error(`unexpected request ${url}`);
+    }));
+
+    renderPage("/platform/query-policies/future_query_v1?mode=metadata");
+    expect(await screen.findByDisplayValue("标准分页查询")).toBeEnabled();
+    expect(screen.getByDisplayValue("id")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "保存名称和描述" })).toBeVisible();
   });
 
   it.each([
@@ -127,7 +162,7 @@ describe("查询规则页面", () => {
     renderPage(`/platform/query-policies/${policy.code}?mode=${requestedMode}`);
     expect(await screen.findByRole("heading", { name: "查询规则详情" })).toBeVisible();
     expect(await screen.findByDisplayValue(policy.name)).toBeDisabled();
-    expect(screen.queryByRole("button", { name: "保存" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /保存/ })).not.toBeInTheDocument();
   });
 
   it("executes lifecycle commands only after confirmation", async () => {

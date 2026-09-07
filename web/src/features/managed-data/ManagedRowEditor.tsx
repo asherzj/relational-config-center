@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useDraftProtection } from "../../components/ui/LeaveProtection";
+import { ErrorState } from "../../components/ui/Feedback";
 import { Drawer } from "../../components/ui/Drawer";
 import { Button } from "../../components/ui/Button";
 import type { ManagedDataColumn, MutationContent } from "./model";
@@ -7,6 +9,7 @@ type FieldDraft = { included: boolean; value: string; isNull: boolean };
 
 type Props = {
   open: boolean;
+  error?: unknown;
   tableName: string;
   operation: "ADD" | "MODIFY";
   columns: readonly ManagedDataColumn[];
@@ -24,9 +27,13 @@ function initialFields(columns: readonly ManagedDataColumn[], original?: Record<
   }])) as Record<string, FieldDraft>;
 }
 
-export function ManagedRowEditor({ open, tableName, operation, columns, original, autoFillFields, onClose, onReview }: Props) {
+export function ManagedRowEditor({ open, error, tableName, operation, columns, original, autoFillFields, onClose, onReview }: Props) {
   const writableColumns = columns.filter((column) => column.name !== "id" && !autoFillFields.has(column.name));
-  const [fields, setFields] = useState<Record<string, FieldDraft>>(() => initialFields(writableColumns, original));
+  const [baseline] = useState(() => initialFields(writableColumns, original));
+  const [fields, setFields] = useState<Record<string, FieldDraft>>(baseline);
+  // Include the controls as well as values: omitted, NULL and empty are distinct,
+  // and temporarily omitted typed input still belongs to this draft.
+  useDraftProtection(JSON.stringify(fields) !== JSON.stringify(baseline));
 
   const update = (field: string, change: Partial<FieldDraft>) => {
     setFields((current) => ({ ...current, [field]: { ...current[field]!, ...change } }));
@@ -45,6 +52,7 @@ export function ManagedRowEditor({ open, tableName, operation, columns, original
       onClose={onClose}
       footer={<><Button className="drawer-close-action" onClick={onClose}>取消</Button><Button variant="primary" onClick={() => onReview(content)}>查看 Change Set</Button></>}
     >
+      {error != null && <ErrorState error={error} />}
       <p className="form-note">每个字段分别选择是否包含在请求中；NULL 与空字符串具有不同语义。</p>
       <div className="mutation-content-fields">
         {writableColumns.map((column) => {

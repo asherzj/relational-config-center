@@ -73,6 +73,15 @@ export type ChangeSet = {
   rows: ChangeSetRow[];
 };
 
+export type ManagedDataMutationOutcome = {
+  operation: ChangeSetOperation;
+  tableName: string;
+  id: string;
+  row?: Record<string, string | null>;
+  columns?: ManagedDataColumn[];
+  retrievalError?: unknown;
+};
+
 function cellForValue(value: string | null): ChangeSetCell {
   if (value === null) return { state: "null" };
   if (value === "") return { state: "empty" };
