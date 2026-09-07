@@ -143,6 +143,7 @@ export const managedDataQueryResponseDtoSchema = z.object({
 
 export const adminErrorDtoSchema = z.object({
   error: z.object({
+    item_index: z.number().int().nonnegative().optional(),
     code: z.string(),
     message: z.string(),
     request_id: z.string(),

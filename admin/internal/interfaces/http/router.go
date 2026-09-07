@@ -867,5 +867,9 @@ func tableResponse(table application.DatabaseTable) databaseTableResponse {
 }
 
 func writeError(context *gin.Context, status int, code, message string) {
-	context.JSON(status, gin.H{"error": gin.H{"code": code, "message": message, "request_id": requestID(context)}})
+	detail := gin.H{"code": code, "message": message, "request_id": requestID(context)}
+	if index, exists := context.Get("release_item_index"); exists {
+		detail["item_index"] = index
+	}
+	context.JSON(status, gin.H{"error": detail})
 }

@@ -1,10 +1,10 @@
-# Admin 发布结果契约（T5 / #52）
+# Admin 发布结果契约（T5 / #52，T6 / #53）
 
 已批准单通过 `POST /api/v1/release-orders/:id/execute` 执行，正文为 `{"expected_version":"3"}`，带原 `Idempotency-Key`。当前永久账号必须具有 PUBLISHER（ADMIN 含该能力）；合法审批不因审批人后来撤权失效。业务行、记录版本、Command、表进度、发布单 SUCCEEDED/EXECUTE 历史、目标释放、通知、成功请求结果在同一事务中提交。执行前重新核实冻结语义和基线；明确失败保持 APPROVED、版本和占用。COMMIT 错误一律待确认；原键重试在当前鉴权后、状态版本检查前重放持久结果。
 
 省略主键仅支持 AUTO_INCREMENT。非自增主键即使有 DEFAULT，也需在申请中显式提供 id；否则在准备前返回 publication_unsupported，不能用上次连接的 LAST_INSERT_ID 猜测实际记录。
 
-三个旧 `POST /tables/:table/rows`、`PATCH /tables/:table/rows/:id`、`DELETE /tables/:table/rows/:id` 路由已删除。数据页确认保存草稿。当前只接纳单明细，移除该限制归 T6 / #53。
+三个旧 `POST /tables/:table/rows`、`PATCH /tables/:table/rows/:id`、`DELETE /tables/:table/rows/:id` 路由已删除。数据页确认保存草稿。同一路径接受同表 1～1,000 项混合明细；全部校验与提交保持原子性。
 
 ## 最终行
 
@@ -40,4 +40,12 @@ T7 必须根据保存的 Command.before 与实际 ID/record_version 绑定反向
 
 升级在停写维护窗口依次应用 010、011、012；012 不更改业务表。FLOAT 主键精度及 FLOAT/DOUBLE 正负零权重修订属于身份代际切换，须先取消旧在途单并按[记录版本维护流程](../admin-record-versions.md#t5-浮点身份修订的升级门禁)推进整表维护基线；旧 key 与历史必须保留，不能静默切换到新 key 的版本 0。服务就绪检查验证三张新增表的 InnoDB、列类型与精确主键；旧客户端没有兼容直写开关。每表一条进度行在提交事务中加锁并推进 table_version/command_cursor，不使用全局自增顺序。独立表可独立提交。
 
-正式进程的发布期限为 `min(8s, MYSQL_CONNECT_TIMEOUT, MYSQL_READ_TIMEOUT, MYSQL_WRITE_TIMEOUT) × 4/5`，短于 socket 超时；默认 socket 5 秒对应实际发布期限 4 秒。直接 HTTP 组合未传值时回退 8 秒。期限覆盖执行请求，提交前明确超时返回 mutation_timeout；提交确认不确定返回 release_result_unknown。页面保留原 actor/action/key/input，允许查询详情及原键重试，不能因查不到立即换键。成功仅表示数据库生效；notification.status 固定 NOT_CONNECTED，没有投递 worker、远端调用或客户端已收敛的承诺。
+正式进程的发布期限为 `min(8s, MYSQL_CONNECT_TIMEOUT, MYSQL_READ_TIMEOUT, MYSQL_WRITE_TIMEOUT) × 4/5`，短于 socket 超时；默认 socket 5 秒对应实际发布期限 4 秒。直接 HTTP 组合未传值时回退 8 秒。期限覆盖发布单的全部 POST/PUT 请求，提交前明确超时返回 mutation_timeout；提交确认不确定返回 release_result_unknown。页面保留原 actor/action/key/input，允许查询详情及原键重试，不能因查不到立即换键。成功仅表示数据库生效；notification.status 固定 NOT_CONNECTED，没有投递 worker、远端调用或客户端已收敛的承诺。
+
+## 同表批量执行
+
+基线与发布前/最终行通过带原请求序号的同表批量读取关联回明细；记录身份仍使用相同的 live 主键类型转换和 MySQL 比较权重，FLOAT 仍提升 DOUBLE，无应用字符串匹配或 SELECT 返回顺序假设。执行先重验全部冻结内容与基线，再在同一事务读取/锁定全部发布前行、执行各项、读取完整最终行、校验实际身份/目标占用并锁定比较整个版本集合，统一推进版本与持久化 Command。任何后续失败回滚先前的业务操作。
+
+每次未知自增 ADD 使用自己 INSERT 的真实 `LAST_INSERT_ID()`（无符号十进制字符串），不从一条多行 INSERT 的首编号推算整组编号。非单位 increment/offset、唯一约束导致的号段空洞均不能改变对应项的实际 id。批量 Command 仍按明细顺序拥有各自游标，整单只推进一个 Table Version 和一条刷新通知。
+
+请求、字段、完整结果、终止空间与列表预算见 [混合草稿契约](../admin-release-drafts.md#混合批量与公开预算t6--53)。8 MiB 结果门禁在同一事务内检查，包含数据库实际默认/生成/支持触发器值以及永久原键成功结果，超限不会先提交配置再补历史。列表为有界摘要，详情与原键重放保留完整最终结果。没有新增迁移、通知 worker、跨表或文件导入。

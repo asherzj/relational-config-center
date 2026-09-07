@@ -1,6 +1,6 @@
 # 发布草稿
 
-T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供草稿创建、编辑、查询和取消。T5 已把数据页 Change Set 唯一确认改为“确认并保存草稿”，不会写业务记录、推进记录版本或占用目标。提交、独立审批后由 PUBLISHER [正式执行](design-notes/publication-contract.md)；旧记录写路由已删除，分发仍未接入。T6 #53 删除单条明细临时上限。
+T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供草稿创建、编辑、查询和取消。T5 已把数据页 Change Set 唯一确认改为“确认并保存草稿”，不会写业务记录、推进记录版本或占用目标。提交、独立审批后由 PUBLISHER [正式执行](design-notes/publication-contract.md)；旧记录写路由已删除，分发仍未接入。T6 [#53](https://github.com/asherzj/relational-config-center/issues/53) 将同一路径扩展为同表 1～1,000 项 ADD/MODIFY/DELETE；单项是集合长度为 1 的情况。
 
 ## HTTP
 
@@ -12,7 +12,7 @@ T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供�
 | `PUT /api/v1/release-orders/:id` | 整体替换草稿申请值，校验发布单 `expected_version` 和记录基线；返回 200 |
 | `POST /api/v1/release-orders/:id/cancel` | `{ "expected_version": "1", "reason": "调整计划" }`，保留已取消历史 |
 | `GET /api/v1/release-orders/:id` | 当前单据、全部字段差异、永久申请人及操作历史；不存在返回 404 |
-| `GET /api/v1/release-orders` | `table_name`、`applicant_id`、`state`、`id` 精确筛选；`limit` 为 1～100，默认 20；按不可变单号升序、`after` 游标分页，返回 `orders` / `next_cursor` |
+| `GET /api/v1/release-orders` | `table_name`、`applicant_id`、`state`、`id` 精确筛选；`limit` 为 1～100，默认 20；按不可变单号升序、`after` 游标分页，返回摘要 `orders` / `next_cursor`，完整明细通过详情读取 |
 | `POST /api/v1/release-orders/preview` | 只读核实当前申请目标，返回 `table_name` / `items`；不保存草稿或幂等记录。用于先查看最新基线，再由用户明确采用 |
 
 草稿输入只接受以下字段，客户端 `before`、差异字段、申请人、操作人及内部记录身份不能上传：
@@ -70,7 +70,7 @@ Web 在请求发送前将原键、路径和申请内容保存在当前标签页�
 - `rcc_release_orders` 保存不可变单号、申请人、状态/版本及完整草稿文档（含操作历史）。
 - `rcc_release_requests` 保存账号/操作/请求键、SHA-256 摘要与原结果，永久保留。
 
-`application.ReleaseOrderSession` 只公开控制数据写入和规则/记录基线读取，事务由 MySQL `ExecuteReleaseOrder` 拥有。T4 在此基础上增加提交、冻结及目标占用；不能另造记录版本或应用字符串身份。`ReadRecordBaseline` 复用 `recordIdentityMetadata` / `recordWeightExpression`，缺行已知 id 通过 live 主键类型转换和同一 MySQL collation 权重解析，读取统一墓碑及整表维护基线。返回的 `RecordKey` 只用于内部持久化/后续占用，不公开给 Web。身份算法/数据库版本改变仍遵循 [记录版本维护流程](admin-record-versions.md)。
+`application.ReleaseOrderSession` 只公开控制数据写入和规则/记录基线读取，事务由 MySQL `ExecuteReleaseOrder` 拥有。T4 在此基础上增加提交、冻结及目标占用；不能另造记录版本或应用字符串身份。`ReadRecordBaselines` 按同表成批读取，复用 `recordIdentityMetadata` / `recordWeightExpression`，缺行已知 id 通过 live 主键类型转换和同一 MySQL collation 权重解析，读取统一墓碑及整表维护基线。返回的 `RecordKey` 只用于内部持久化/后续占用，不公开给 Web。身份算法/数据库版本改变仍遵循 [记录版本维护流程](admin-record-versions.md)。
 
 `make test-browser` 可通过 `RCC_E2E_OUTPUT=/absolute/path` 保留各脚本的截图证据；默认仍写入测试临时目录。
 ## 自增主键 0 的实际身份（T4 补充）
@@ -80,3 +80,23 @@ Web 在请求发送前将原键、路径和申请内容保存在当前标签页�
 `422 release_auto_id_ambiguous`，请省略 id 后重建草稿；它不会占用虚构的目标 0。
 开启该 SQL mode 时 0 才是合法已知身份，照常读取记录版本并参与提交目标唯一性。
 此检查只用于 ADD，已有 0 记录的 MODIFY/DELETE 身份保持不变。
+
+## 混合批量与公开预算（T6 / #53）
+
+数据页的每次变更可以新建草稿，或选择本人同表已有 DRAFT；保存前重新读取目标草稿，并带其版本整体替换。多行删除必须逐行明确勾选，保存仍只修改草稿。详情的“添加明细”进入预选当前草稿/表的数据页；编辑器可选择任意明细修改或移除，至少保留一项。输入/记录冲突保留原意，任何非法项都不部分覆盖已保存草稿。
+
+同一已知 MySQL 记录身份只能出现一次，数值、字符排序规则及 PAD SPACE 等价表示不能借不同操作/顺序绕过。省略自增 id 的新增不按内容相似合并。明细可选 `table_name` 只能等于顶层表名；不同表返回 `422 release_cross_table`。重复已知目标为 `422 release_duplicate_target`，无效数量为 `422 release_item_limit`。明细错误附带从 0 开始的 `error.item_index`，Web 显示从 1 开始的明细编号，可在编辑器定位；目标占用冲突也定位原请求序号。
+
+| 预算 | 对外行为 |
+| --- | --- |
+| 单表明细 1～1,000 项 | 整单校验、冻结、审批、发布；不存在隐式分批提交 |
+| HTTP 请求体 1 MiB（1,048,576 字节） | 所有 API 沿用 `400 request_body_too_large`，含流式正文；不放宽账号/查询请求 |
+| 每个提交值或明细 id 64 KiB UTF-8，字段名 256 字节 | 超限 `422 release_field_limit`；表本身的类型、约束仍独立有效 |
+| 单据/完整结果 8 MiB 编码 JSON | `422 release_result_limit`，包含完整历史、基线、最终行与幂等成功结果；小请求也可能因默认值/历史扩张被拒绝 |
+| 后续动作空间 | DRAFT/PENDING_APPROVAL/APPROVED/SUCCEEDED 保留 64 KiB 终止/关联余量；取消、拒绝及最终回滚状态可使用该余量，始终为 HTTP 动作元数据再留 1 KiB。不能因一次获批耗尽空间而锁死取消；T7 原成功单的关联也使用这份余量 |
+| 全部发布单 POST/PUT 的事务/请求期限 | 正式值为 `min(8s, 正数 MYSQL_CONNECT_TIMEOUT / MYSQL_READ_TIMEOUT / MYSQL_WRITE_TIMEOUT) × 4/5`，默认 socket 5s 对应 4s；HTTP ReadTimeout/WriteTimeout 各 10s。超时整体回滚或返回提交待确认，不自动拆单 |
+| 列表 | 默认 20/最多 100 个摘要，每项仅 ID、表、申请人、状态/版本、时间、item_count、operation_counts 与 allowed_actions；按原单号稳定游标分页，不返回 items、Publication、冻结定义或历史 |
+
+持久文档逐张解码并验证已发布前后行，验证通过后才形成列表摘要；不会为降低列表体积跳过损坏检查。单据详情和原键恢复仍返回全部明细/最终结果；页面每次渲染 20 项且可定位任意序号，分页只影响展示。审批与执行明确包含整单。
+
+浏览器发送前必须成功保存完整原键与请求内容；若 sessionStorage 与既有待恢复请求合计超额，尚未发送的操作给出明确提示，保留输入和已有原请求，不覆盖或自动清理其他请求。公开预算不承诺任意字段规模的 1,000 项都可通过；代表样本与实际字节/时间见 [T6 验收](verification/2026-09-08-mixed-batch.md)。

@@ -1,3 +1,5 @@
+import {useState} from "react";
+import {ReleaseItemPager,releasePageSize} from "./ReleaseItemPager";
 import type { ReleaseOrder } from "../../api/release-orders";
 
 type Result = NonNullable<ReleaseOrder["publication"]>;
@@ -13,6 +15,8 @@ function fieldValue(field: Field) {
 }
 
 export function PublicationResult({ result }: { result: Result }) {
+  const [requestedPage,setPage]=useState(0);
+  const page=Math.min(requestedPage,Math.max(0,Math.ceil(result.commands.length/releasePageSize)-1));
   return (
     <section className="my-6 break-all" aria-label="发布结果">
       <h2 className="text-lg font-semibold">数据库发布结果</h2>
@@ -20,7 +24,8 @@ export function PublicationResult({ result }: { result: Result }) {
       <p>数据库执行时间：{result.executed_at}</p>
       <p>表发布版本：{result.table_version}</p>
       <p>刷新通知：{result.notification.id} · 分发尚未接入</p>
-      {result.commands.map(command => (
+      <ReleaseItemPager count={result.commands.length} page={page} onPage={setPage} label="结果"/>
+      {result.commands.slice(page*releasePageSize,(page+1)*releasePageSize).map(command => (
         <article key={command.sequence} className="my-4">
           <h3>{command.operation} · 记录 {command.id === "" ? '""（空字符串）' : command.id}</h3>
           <p>变更顺序：{command.sequence} · 记录并发版本：{command.record_version}</p>

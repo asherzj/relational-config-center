@@ -1,6 +1,11 @@
 import { ApiError } from "./client";
 
 const errorMessages: Record<string, string> = {
+  release_duplicate_target:"同一记录不能在一张发布单重复出现，请移除重复明细。",
+  release_cross_table:"所有明细必须属于发布单指定的同一张表。",
+  release_item_limit:"每张发布单必须包含 1～1,000 项明细。",
+  release_field_limit:"单字段不能超过 64 KiB，请缩减该明细的字段内容。",
+  release_result_limit:"完整草稿或发布结果超过 8 MiB，请调整整张申请后重新提交。",
   permission_denied: "当前账号没有执行此操作的角色，请联系管理员授权。",
   invalid_account_roles: "请至少选择一个角色，且不要重复选择。",
   account_roles_conflict: "角色已被其他管理员更新，请先查看最新角色。",
@@ -67,7 +72,7 @@ const errorMessages: Record<string, string> = {
 export function presentError(error: unknown): { message: string; requestId?: string } {
   if (!(error instanceof ApiError)) return { message: "发生未知错误，请重试。" };
   return {
-    message: errorMessages[error.code] ?? error.message,
+    message: `${error.itemIndex===undefined?"":`明细 ${error.itemIndex+1}：`}${errorMessages[error.code] ?? error.message}`,
     requestId: error.requestId,
   };
 }

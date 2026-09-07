@@ -17,7 +17,7 @@ import (
 // This intentionally separate system target requires installed Web dependencies
 // and Chromium. It fails (never skips) if that browser environment is unavailable.
 func TestAccountBrowserSystemPath(t *testing.T) {
-	_, driver := startIntegrationMySQLWithRequirement(t, true, "../../../deploy/mysql/init/001-schema.sql", localManagedTableFixture, "../../../docs/verification/fixtures/stage1_acceptance.sql")
+	_, driver := startIntegrationMySQLWithRequirement(t, true, "../../../deploy/mysql/init/001-schema.sql", localManagedTableFixture, "../../../docs/verification/fixtures/stage1_acceptance.sql", "testdata/014-batch-browser.sql")
 	db := deliveryDB(t, driver)
 	maintenance := filepath.Join(t.TempDir(), "account-maintain")
 	build := exec.Command("go", "build", "-o", maintenance, "../account-maintain")
@@ -34,7 +34,8 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 	listener.Close()
 	_, port, _ := net.SplitHostPort(address)
 	origin := "http://" + address
-	admin := accountProcessCommand(t, buildIntegrationAdmin(t), driver, "ADMIN_PUBLIC_ORIGIN="+origin)
+	// The combined browser scripts register more than ten independent actors.
+	admin := accountProcessCommand(t, buildIntegrationAdmin(t), driver, "ADMIN_PUBLIC_ORIGIN="+origin, "ADMIN_REGISTER_LIMIT=20")
 	admin.ready(t)
 	web, err := filepath.Abs("../../../web")
 	if err != nil {
@@ -89,7 +90,7 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 		t.Fatal("real database Operator/content did not match browser account")
 	}
 	prepareManagementBrowserPolicies(t, admin, maintenance, fixtureEnvironment)
-	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs", "release-drafts.cjs", "release-approvals.cjs"} {
+	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs", "release-drafts.cjs", "release-approvals.cjs", "release-batches.cjs"} {
 		t.Run(script, func(t *testing.T) {
 			command := exec.Command("node", filepath.Join(web, "e2e", script))
 			command.Dir = web

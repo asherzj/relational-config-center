@@ -445,3 +445,66 @@ it("空字符串主键的DELETE仍保存准确身份和版本",async()=>{
  await waitFor(()=>expect(writes).toHaveLength(1));
  expect(JSON.parse(String(writes[0].body)).items[0]).toEqual({operation:"DELETE",id:"",expected_record_version:"9007199254740993",content:{}});
 });
+
+it("明确勾选两行后加入本人同表已有草稿，保留原明细和各行版本",async()=>{
+ const existingID="bbbbbbbbccccccccddddddddeeeeeeee";
+ const existing={id:existingID,table_name:"notification_templates",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"4",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{operation:"ADD",id:null,expected_record_version:"",content:{template_key:"kept",body:"kept"},before:null,fields:[]}]};
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  const path=String(input);
+  if(path===`/api/v1/release-orders/${existingID}`){if(init?.method==="PUT")writes.push(init);return json(existing)}
+  if(path.startsWith("/api/v1/release-orders?"))return json({orders:[{...existing,item_count:1,operation_counts:{ADD:1}}],next_cursor:""});
+  if(path.endsWith("/tables/notification_templates/query"))return json({columns,rows:[row,{...row,id:"42"}],record_versions:["7","8"],page:{page_number:1,page_size:20,total_count:2,total_pages:1}});
+  return readFetch(input,init,{...mutationPolicy,allow_delete:true});
+ })));
+ const user=userEvent.setup();renderPage();
+ await user.click(await screen.findByRole("checkbox",{name:"选择记录 41"}));
+ await user.click(screen.getByRole("checkbox",{name:"选择记录 42"}));
+ await user.click(screen.getByRole("button",{name:"删除已选 2 项"}));
+ await user.click(screen.getByRole("button",{name:"选择已有草稿"}));
+ await user.selectOptions(await screen.findByLabelText("保存到草稿"),existingID);
+ await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
+ await waitFor(()=>expect(writes).toHaveLength(1));
+ expect(JSON.parse(String(writes[0]!.body))).toEqual({table_name:"notification_templates",expected_version:"4",items:[{operation:"ADD",expected_record_version:"",content:{template_key:"kept",body:"kept"}},{operation:"DELETE",id:"41",expected_record_version:"7",content:{}},{operation:"DELETE",id:"42",expected_record_version:"8",content:{}}]});
+});
+
+it("批量选择把原型属性名当作普通字符串记录 id",async()=>{
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  const path=String(input);
+  if(path.endsWith("/tables/notification_templates/query"))return json({columns:columns.map(column=>column.name==="id"?{...column,type:"string"}:column),rows:[{...row,id:"__proto__"},{...row,id:"constructor"}],record_versions:["7","8"],page:{page_number:1,page_size:20,total_count:2,total_pages:1}});
+  if(path==="/api/v1/release-orders"&&init?.method==="POST"){writes.push(init);return json({error:{code:"release_invalid",message:"retained"}},422)}
+  return readFetch(input,init,{...mutationPolicy,allow_delete:true});
+ })));
+ const user=userEvent.setup();renderPage();
+ const first=await screen.findByRole("checkbox",{name:"选择记录 __proto__"});
+ const second=screen.getByRole("checkbox",{name:"选择记录 constructor"});
+ expect(first).not.toBeChecked();expect(second).not.toBeChecked();
+ await user.click(first);await user.click(second);
+ await user.click(screen.getByRole("button",{name:"删除已选 2 项"}));
+ await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
+ await waitFor(()=>expect(writes).toHaveLength(1));
+ expect(JSON.parse(String(writes[0]!.body)).items).toEqual([{operation:"DELETE",id:"__proto__",expected_record_version:"7",content:{}},{operation:"DELETE",id:"constructor",expected_record_version:"8",content:{}}]);
+});
+
+it("批量删除核对每页20项，末页定位后仍保存全部选择",async()=>{
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  const path=String(input);
+  if(path.endsWith("/tables/notification_templates/query"))return json({columns,rows:Array.from({length:21},(_,index)=>({...row,id:String(index+1)})),record_versions:Array(21).fill("7"),page:{page_number:1,page_size:100,total_count:21,total_pages:1}});
+  if(path==="/api/v1/release-orders"&&init?.method==="POST"){writes.push(init);return json({error:{code:"release_invalid",message:"retained"}},422)}
+  return readFetch(input,init,{...mutationPolicy,allow_delete:true});
+ })));
+ const user=userEvent.setup();renderPage();
+ await screen.findByRole("checkbox",{name:"选择记录 21"});
+ for(let id=1;id<=21;id++)await user.click(screen.getByRole("checkbox",{name:`选择记录 ${id}`}));
+ await user.click(screen.getByRole("button",{name:"删除已选 21 项"}));
+ const dialog=screen.getByRole("dialog",{name:"删除所选记录"});
+ expect(within(dialog).getAllByRole("listitem")).toHaveLength(20);
+ await user.type(within(dialog).getByLabelText("定位待删除明细"),"21");
+ expect(within(dialog).getAllByRole("listitem")).toHaveLength(1);
+ expect(within(dialog).getByText("明细 21 · 记录 21 · 记录基线 7")).toBeVisible();
+ await user.click(within(dialog).getByRole("button",{name:"确认并保存草稿"}));
+ await waitFor(()=>expect(writes).toHaveLength(1));
+ expect(JSON.parse(String(writes[0]!.body)).items.map((item:{id:string})=>item.id)).toEqual(Array.from({length:21},(_,index)=>String(index+1)));
+});

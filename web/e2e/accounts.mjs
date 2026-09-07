@@ -87,6 +87,9 @@ try {
   await page.goto(`${origin}/configuration/managed-data`);
   await page.getByRole('heading', { name: '登录本地账号' }).waitFor();
   await page.getByRole('link', { name: '注册新账号' }).click();
+  // Wait for initial session reconciliation before entering registration data.
+  await page.getByRole('button', { name: '注册并登录', exact: true }).waitFor({ state: 'visible' });
+  await page.waitForFunction(() => [...document.querySelectorAll('button')].some(button => button.textContent === '注册并登录' && !button.disabled));
   await page.getByLabel('用户名', { exact: true }).fill('browser.user');
   await page.getByLabel('邮箱', { exact: true }).fill('browser.secret@example.com');
   await page.getByLabel('密码', { exact: true }).fill('browser password long enough');
@@ -303,7 +306,7 @@ try {
   assert.equal(concurrent.publication.commands[0].record_version, '2');
 
   await page.getByRole('button', { name: '确认并保存草稿', exact: true }).click();
-  await page.getByText('记录已被其他操作修改；你的输入已保留，请查看最新值并重新确认。', { exact: true }).waitFor();
+  await page.getByText('明细 1：记录已被其他操作修改；你的输入已保留，请查看最新值并重新确认。', { exact: true }).waitFor();
   assert.equal(await page.getByRole('button', { name: '确认并保存草稿', exact: true }).isDisabled(), true);
   await page.getByRole('button', { name: '查看最新值', exact: true }).click();
   const conflictReview = page.getByRole('region', { name: '记录版本冲突' });

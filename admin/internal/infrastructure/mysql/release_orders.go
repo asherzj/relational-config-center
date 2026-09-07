@@ -8,9 +8,7 @@ import (
 	"errors"
 	mysqldriver "github.com/go-sql-driver/mysql"
 	"sort"
-	"strconv"
 	"time"
-	"unicode/utf8"
 
 	"github.com/asherzj/relational-config-center/admin/internal/application"
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
@@ -59,56 +57,6 @@ func (s *releaseOrderSession) DatabaseTime(ctx context.Context) (time.Time, erro
 	return now, nil
 }
 
-func (s *releaseOrderSession) ReadRecordBaseline(ctx context.Context, schema domain.TableSchema, id any) (domain.RecordBaseline, error) {
-	if err := s.available(); err != nil {
-		return domain.RecordBaseline{}, err
-	}
-	for _, c := range schema.Columns {
-		if c.Type == domain.ColumnTypeUnsupported {
-			return domain.RecordBaseline{}, application.ErrReleaseSnapshotUnsupported
-		}
-	}
-	name, key, err := recordIdentity(ctx, s.database, schema.Name, id, false)
-	if errors.Is(err, sql.ErrNoRows) {
-		name, key, err = missingRecordIdentity(ctx, s.database, schema.Name, id)
-	}
-	if errors.Is(err, application.ErrInvalidMutation) || errors.Is(err, application.ErrIncompatibleTable) || errors.Is(err, application.ErrReleaseSnapshotUnsupported) {
-		return domain.RecordBaseline{}, err
-	}
-	if err != nil {
-		return domain.RecordBaseline{}, application.ErrReleaseUnavailable
-	}
-	rows, err := s.database.WithContext(ctx).Table(schema.Name).Clauses(selectColumns(schema.Columns)).Where("`id` = ?", id).Rows()
-	if err != nil {
-		return domain.RecordBaseline{}, application.ErrReleaseUnavailable
-	}
-	defer rows.Close()
-	data, err := scanJSONStringRows(rows, schema.Columns)
-	if err != nil {
-		return domain.RecordBaseline{}, application.ErrReleaseUnavailable
-	}
-	var row domain.Row
-	if len(data) == 1 {
-		row = data[0]
-	}
-	for _, value := range row {
-		if value != nil && !utf8.ValidString(string(*value)) {
-			return domain.RecordBaseline{}, application.ErrReleaseSnapshotUnsupported
-		}
-	}
-	version, err := recordVersion(ctx, s.database, name, key)
-	if err != nil {
-		return domain.RecordBaseline{}, application.ErrReleaseUnavailable
-	}
-	generatesID := false
-	if column, ok := schema.Column("id"); ok && column.AutoIncrement {
-		if err := s.database.WithContext(ctx).Raw("SELECT (?=0) AND FIND_IN_SET('NO_AUTO_VALUE_ON_ZERO',@@session.sql_mode)=0", id).Row().Scan(&generatesID); err != nil {
-			return domain.RecordBaseline{}, application.ErrReleaseUnavailable
-		}
-	}
-	return domain.RecordBaseline{TableName: name, Row: row, Key: key, Version: strconv.FormatUint(version, 10), GeneratesIDOnInsert: generatesID}, nil
-}
-
 func readReleaseOrder(ctx context.Context, db *gorm.DB, id string, lock bool) (domain.ReleaseOrder, error) {
 	query := "SELECT document FROM rcc_release_orders WHERE id=?"
 	if lock {
@@ -140,6 +88,9 @@ func (s *releaseOrderSession) SaveReleaseOrder(ctx context.Context, order domain
 	encoded, err := json.Marshal(order)
 	if err != nil {
 		return application.ErrReleaseUnavailable
+	}
+	if len(encoded) > releaseDocumentBudget(order.State) {
+		return application.ErrReleaseResultLimit
 	}
 	if create {
 		err = s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_orders(id,table_name,applicant_id,state,version,document) VALUES(?,?,?,?,?,?)`, order.ID, order.TableName, order.ApplicantID, order.State, order.Version, encoded).Error
@@ -182,12 +133,15 @@ func (s *releaseOrderSession) CompleteReleaseRequest(ctx context.Context, actor,
 	if err != nil {
 		return application.ErrReleaseUnavailable
 	}
+	if len(encoded) > releaseDocumentBudget(order.State) {
+		return application.ErrReleaseResultLimit
+	}
 	if err = s.database.WithContext(ctx).Exec(`UPDATE rcc_release_requests SET result=? WHERE actor_id=? AND operation=? AND request_key=?`, encoded, actor, operation, key).Error; err != nil {
 		return application.ErrReleaseUnavailable
 	}
 	return nil
 }
-func (a *Adapter) ListReleaseOrders(ctx context.Context, filter domain.ReleaseFilter) ([]domain.ReleaseOrder, error) {
+func (a *Adapter) ListReleaseOrders(ctx context.Context, filter domain.ReleaseFilter) ([]domain.ReleaseOrderSummary, error) {
 	query := a.gorm.WithContext(ctx).Table("rcc_release_orders").Select("document").Order("id ASC").Limit(filter.Limit)
 	for field, value := range map[string]string{"table_name": filter.TableName, "applicant_id": filter.ApplicantID, "state": filter.State, "id": filter.ID} {
 		if value != "" {
@@ -202,7 +156,7 @@ func (a *Adapter) ListReleaseOrders(ctx context.Context, filter domain.ReleaseFi
 		return nil, application.ErrReleaseUnavailable
 	}
 	defer rows.Close()
-	result := []domain.ReleaseOrder{}
+	result := []domain.ReleaseOrderSummary{}
 	for rows.Next() {
 		var encoded []byte
 		if rows.Scan(&encoded) != nil {
@@ -212,7 +166,7 @@ func (a *Adapter) ListReleaseOrders(ctx context.Context, filter domain.ReleaseFi
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, order)
+		result = append(result, order.Summary())
 	}
 	if rows.Err() != nil {
 		return nil, application.ErrReleaseUnavailable
@@ -237,7 +191,7 @@ func (s *releaseOrderSession) ReserveReleaseTargets(ctx context.Context, orderID
 		err := s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_targets(table_name,record_key,order_id) VALUES(?,?,?)`, target.TableName, target.RecordKey, orderID).Error
 		var mysqlError *mysqldriver.MySQLError
 		if errors.As(err, &mysqlError) && mysqlError.Number == 1062 {
-			return application.ErrReleaseTargetConflict
+			return &application.ReleaseItemError{Index: target.ItemIndex, Cause: application.ErrReleaseTargetConflict}
 		}
 		if err != nil {
 			return application.ErrReleaseUnavailable
@@ -261,4 +215,13 @@ func decodeStoredReleaseOrder(encoded []byte) (domain.ReleaseOrder, error) {
 		return domain.ReleaseOrder{}, application.ErrReleaseUnavailable
 	}
 	return order, nil
+}
+
+// Reserve enough room for required terminating actions and future rollback
+// linkage; a large approval/result must never make cancellation impossible.
+func releaseDocumentBudget(state string) int {
+	if state == "CANCELLED" || state == "REJECTED" || state == "ROLLED_BACK" {
+		return application.ReleaseResultBytes - application.ReleaseTransportHeadroom
+	}
+	return application.ReleaseResultBytes - application.ReleaseContinuationHeadroom
 }

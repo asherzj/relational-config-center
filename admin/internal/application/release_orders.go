@@ -16,7 +16,17 @@ import (
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
 )
 
+const ReleaseFieldBytes = 64 << 10
+const ReleaseResultBytes = 8 << 20
+const ReleaseContinuationHeadroom = 64 << 10
+const ReleaseTransportHeadroom = 1024
+
 var (
+	ErrReleaseCrossTable          = errors.New("release item belongs to another table")
+	ErrReleaseItemLimit           = errors.New("release must contain 1 to 1000 items")
+	ErrReleaseResultLimit         = errors.New("release result exceeds 8 MiB")
+	ErrReleaseFieldLimit          = errors.New("release field exceeds 64 KiB")
+	ErrReleaseDuplicateTarget     = errors.New("known record identity appears more than once")
 	ErrReleaseAutoIDAmbiguous     = errors.New("zero auto-increment id would generate a new identity; omit id instead")
 	ErrReleaseTargetConflict      = errors.New("release target is reserved by another order")
 	ErrReleaseNotFound            = errors.New("release order not found")
@@ -30,12 +40,23 @@ var (
 	ErrReleaseSnapshotUnsupported = errors.New("table contains fields unsupported by the draft snapshot format")
 )
 
+// ReleaseItemError locates an error in the original zero-based request order.
+type ReleaseItemError struct {
+	Index int
+	Cause error
+}
+
+func (e *ReleaseItemError) Error() string { return e.Cause.Error() }
+func (e *ReleaseItemError) Unwrap() error { return e.Cause }
+
+type ReleaseOrderSummary = domain.ReleaseOrderSummary
 type ReleaseOrder = domain.ReleaseOrder
 type ReleaseItem = domain.ReleaseItem
 type ReleaseField = domain.ReleaseField
 type ReleaseFilter = domain.ReleaseFilter
 
 type DraftItemInput struct {
+	TableName             string          `json:"table_name,omitempty"`
 	Operation             string          `json:"operation"`
 	ID                    *JSONString     `json:"id"`
 	ExpectedRecordVersion string          `json:"expected_record_version"`
@@ -52,7 +73,7 @@ type DraftInput struct {
 // reads. Preparing a draft cannot call business-row mutation methods.
 type ReleaseOrderSession interface {
 	PolicySnapshotReader
-	ReadRecordBaseline(context.Context, domain.TableSchema, any) (domain.RecordBaseline, error)
+	ReadRecordBaselines(context.Context, domain.TableSchema, []any) ([]domain.RecordBaseline, error)
 	LockAndReadTableExecutionSchema(context.Context, string) (domain.TableExecutionSchema, error)
 	ReserveReleaseTargets(context.Context, string, []domain.ActiveTarget) error
 	ReleaseTargets(context.Context, string) error
@@ -67,7 +88,7 @@ type ReleaseOrderStore interface {
 	ExecuteReleaseOrder(context.Context, func(ReleaseOrderSession) error) error
 	ExecutePublication(context.Context, func(PublicationSession) error) error
 	GetReleaseOrder(context.Context, string) (domain.ReleaseOrder, error)
-	ListReleaseOrders(context.Context, domain.ReleaseFilter) ([]domain.ReleaseOrder, error)
+	ListReleaseOrders(context.Context, domain.ReleaseFilter) ([]domain.ReleaseOrderSummary, error)
 }
 
 type ReleaseOrders struct {
@@ -194,8 +215,10 @@ func (r *ReleaseOrders) prepare(ctx context.Context, s ReleaseOrderSession, inpu
 	if protectedTable(input.TableName) {
 		return nil, ErrProtectedTable
 	}
-	// T6 (#53) removes this temporary single-item limit.
-	if input.TableName == "" || len(input.TableName) > 256 || len(input.Items) != 1 {
+	if len(input.Items) < 1 || len(input.Items) > 1000 {
+		return nil, ErrReleaseItemLimit
+	}
+	if input.TableName == "" || len(input.TableName) > 256 {
 		return nil, ErrReleaseInvalid
 	}
 	snapshot, err := r.snapshots.resolve(ctx, s, input.TableName, mutationPolicySnapshot)
@@ -203,8 +226,63 @@ func (r *ReleaseOrders) prepare(ctx context.Context, s ReleaseOrderSession, inpu
 		return nil, err
 	}
 
-	item := input.Items[0]
-	policy, schema := snapshot.mutationPolicy, snapshot.schema
+	ids := make([]any, len(input.Items))
+	idColumn, _ := snapshot.schema.Column("id")
+	for index, item := range input.Items {
+		if item.ID != nil && len(*item.ID) > ReleaseFieldBytes {
+			return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseFieldLimit}
+		}
+		if item.TableName != "" && item.TableName != input.TableName {
+			return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseCrossTable}
+		}
+		for name, value := range item.Content {
+			if len(name) > 256 || value != nil && len(*value) > ReleaseFieldBytes {
+				return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseFieldLimit}
+			}
+		}
+		id := item.ID
+		if item.Operation == "ADD" {
+			id = item.Content["id"]
+		}
+		if id != nil {
+			ids[index], err = domain.ParseColumnValue(idColumn, *id)
+			if err != nil {
+				return nil, &ReleaseItemError{Index: index, Cause: ErrInvalidMutation}
+			}
+		}
+	}
+	baselines, err := s.ReadRecordBaselines(ctx, snapshot.schema, ids)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]ReleaseItem, 0, len(input.Items))
+	seen := map[string]bool{}
+	for index, item := range input.Items {
+		prepared, err := prepareReleaseItem(snapshot.schema, snapshot.mutationPolicy, item, baselines[index], refreshBaseline)
+		if err != nil {
+			return nil, &ReleaseItemError{Index: index, Cause: err}
+		}
+		key := string(prepared[0].RecordKey)
+		if key != "" {
+			if seen[key] {
+				return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseDuplicateTarget}
+			}
+			seen[key] = true
+		}
+		items = append(items, prepared...)
+	}
+	encoded, err := json.Marshal(items)
+	if err != nil {
+		return nil, ErrReleaseUnavailable
+	}
+	if len(encoded) > ReleaseResultBytes-ReleaseContinuationHeadroom {
+		return nil, ErrReleaseResultLimit
+	}
+	return items, nil
+}
+
+func prepareReleaseItem(schema domain.TableSchema, policy domain.MutationPolicy, item DraftItemInput, baseline domain.RecordBaseline, refreshBaseline bool) ([]ReleaseItem, error) {
+	var err error
 	for _, column := range schema.Columns {
 		if column.Type == domain.ColumnTypeUnsupported {
 			return nil, ErrReleaseSnapshotUnsupported
@@ -274,18 +352,6 @@ func (r *ReleaseOrders) prepare(ctx context.Context, s ReleaseOrderSession, inpu
 		}
 	} else if item.ID == nil {
 		return nil, ErrInvalidMutation
-	}
-	baseline := domain.RecordBaseline{}
-	if item.ID != nil {
-		idColumn, _ := schema.Column("id")
-		id, parseErr := domain.ParseColumnValue(idColumn, *item.ID)
-		if parseErr != nil {
-			return nil, ErrInvalidMutation
-		}
-		baseline, err = s.ReadRecordBaseline(ctx, schema, id)
-		if err != nil {
-			return nil, err
-		}
 	}
 	if item.Operation == "ADD" {
 		if baseline.GeneratesIDOnInsert {
@@ -358,10 +424,10 @@ func (r *ReleaseOrders) Update(ctx context.Context, id string, input DraftInput,
 		if input.TableName != order.TableName {
 			return ErrReleaseInvalid
 		}
-		for _, item := range input.Items {
+		for index, item := range input.Items {
 			if item.Operation == "ADD" && item.Content["id"] != nil {
 				if err := ValidateRecordVersion(item.ExpectedRecordVersion); err != nil {
-					return err
+					return &ReleaseItemError{Index: index, Cause: err}
 				}
 			}
 		}
@@ -409,9 +475,9 @@ func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitRelea
 			Execution *domain.ReleaseExecutionSnapshot
 		}{items, order.Frozen}))
 		targets := []domain.ActiveTarget{}
-		for _, item := range items {
+		for index, item := range items {
 			if len(item.RecordKey) > 0 {
-				targets = append(targets, domain.ActiveTarget{TableName: item.RecordTable, RecordKey: item.RecordKey})
+				targets = append(targets, domain.ActiveTarget{ItemIndex: index, TableName: item.RecordTable, RecordKey: item.RecordKey})
 			}
 		}
 		if err := s.ReserveReleaseTargets(ctx, order.ID, targets); err != nil {
@@ -522,7 +588,7 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 	})
 	return result, err
 }
-func (r *ReleaseOrders) List(ctx context.Context, filter ReleaseFilter) ([]ReleaseOrder, error) {
+func (r *ReleaseOrders) List(ctx context.Context, filter ReleaseFilter) ([]domain.ReleaseOrderSummary, error) {
 	if _, err := requireRole(ctx, RoleViewer); err != nil {
 		return nil, err
 	}
@@ -604,10 +670,10 @@ func (r *ReleaseOrders) Copy(ctx context.Context, id string, input CopyReleaseIn
 			candidate := entry
 			candidate.ExpectedRecordVersion = ""
 			if !bytes.Equal(releaseDigest(candidate), releaseDigest(expected)) {
-				return ErrReleaseInvalid
+				return &ReleaseItemError{Index: i, Cause: ErrReleaseInvalid}
 			}
 			if saved.ID != nil && ValidateRecordVersion(entry.ExpectedRecordVersion) != nil {
-				return ErrReleaseInvalid
+				return &ReleaseItemError{Index: i, Cause: ErrReleaseInvalid}
 			}
 		}
 		items, err := r.prepare(ctx, s, DraftInput{TableName: source.TableName, Items: input.Items}, false)

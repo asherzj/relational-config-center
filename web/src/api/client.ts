@@ -16,6 +16,7 @@ export class ApiError extends Error {
     public readonly requestId?: string,
     options?: ErrorOptions,
     public readonly retryAfter?: number,
+    public readonly itemIndex?: number,
   ) {
     super(message, options);
     this.name = "ApiError";
@@ -100,6 +101,7 @@ export async function request<T>(path: string, options: RequestOptions<T> = {}):
         parsedError.data.error.request_id,
         undefined,
         response.headers.has("Retry-After") ? Number(response.headers.get("Retry-After")) : undefined,
+        parsedError.data.error.item_index,
       );
     }
     throw new ApiError(

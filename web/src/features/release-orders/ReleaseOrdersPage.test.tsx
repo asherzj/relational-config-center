@@ -9,7 +9,7 @@ import {testAdminIdentity,withAdminSession} from "../../test/account-session";
 
 const id="12345678123456781234567812345678";
 const order={id,table_name:"items",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-07T08:00:00Z",updated_at:"2026-09-07T08:00:00Z",history:[{action:"CREATE",actor_id:testAdminIdentity.account.id,version:"1",at:"2026-09-07T08:00:00Z",reason:""}],allowed_actions:["edit","cancel"],items:[{operation:"MODIFY",id:"1",expected_record_version:"0",before:{id:"1",label:"original"},content:{label:"proposal"},fields:[{name:"id",type:"uint64",nullable:false,editable:false,before_state:"value",before:"1",proposed_state:"omitted",proposed:null},{name:"label",type:"string",nullable:true,editable:true,before_state:"value",before:"original",proposed_state:"value",proposed:"proposal"}]}]};
-const json=(value:unknown,status=200)=>new Response(JSON.stringify(value),{status,headers:{"Content-Type":"application/json"}});
+const json=(value:unknown,status=200)=>new Response(JSON.stringify(value, (key,item)=>key==="orders"?item.map((order:{items:unknown[]})=>({...order,item_count:order.items.length,operation_counts:{MODIFY:order.items.length}})):item),{status,headers:{"Content-Type":"application/json"}});
 function mount(path="/configuration/release-orders"){
  const client=new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}});
  return render(<QueryClientProvider client={client}><ToastProvider><TestRouter initialEntries={[path]}><AppRoutes/></TestRouter></ToastProvider></QueryClientProvider>);
@@ -313,4 +313,59 @@ it("仅 PUBLISHER 执行原审批，丢响应后跨刷新使用原键确认并�
  expect(await screen.findByRole("heading",{name:"items · 已发布"})).toBeVisible();
  expect(screen.getByText("值：actual database value")).toBeVisible();expect(screen.getByText("SQL NULL")).toBeVisible();expect(screen.getByText("JSON：null")).toBeVisible();
  expect(screen.getByText("刷新通知：notice · 分发尚未接入")).toBeVisible();expect(sessionStorage.length).toBe(0);
+});
+
+it("编辑任意明细并移除另一项，保存仍提交整张草稿",async()=>{
+ const second={...order.items[0]!,id:"2",content:{label:"second"},fields:order.items[0]!.fields.map(field=>field.name==="label"?{...field,proposed:"second"}:field)};
+ const current={...order,items:[order.items[0]!,second]};const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(init?.method==="PUT"){writes.push(init);return json({...current,version:"2"})}return json(current)})));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"编辑草稿"}));
+ await user.selectOptions(screen.getByLabelText("编辑明细"),"1");
+ await user.clear(screen.getByLabelText("label 申请值"));await user.type(screen.getByLabelText("label 申请值"),"second edited");
+ await user.selectOptions(screen.getByLabelText("编辑明细"),"0");
+ await user.click(screen.getByRole("button",{name:"移除此明细"}));
+ await user.click(screen.getByRole("button",{name:"保存草稿修改"}));
+ await waitFor(()=>expect(writes).toHaveLength(1));expect(JSON.parse(String(writes[0]!.body))).toMatchObject({expected_version:"1",items:[{id:"2",content:{label:"second edited"}}]});
+ expect(JSON.parse(String(writes[0]!.body)).items).toHaveLength(1);
+});
+
+it("千项预览可定位最后一项，审批仍包含整单",async()=>{
+ const large={...order,state:"PENDING_APPROVAL",applicant_id:"another-account",allowed_actions:["approve"],items:Array.from({length:1000},(_,index)=>({...order.items[0]!,id:String(index+1),content:{label:`item-${index+1}`},fields:order.items[0]!.fields.map(field=>field.name==="label"?{...field,proposed:`item-${index+1}`}:field)}))};
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(String(input).endsWith("/approve")){writes.push(init);return json({...large,state:"APPROVED",version:"2"})}return json(large)})));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ const jump=await screen.findByLabelText("定位明细");await user.clear(jump);await user.type(jump,"1000");
+ expect(await screen.findByText("item-1000")).toBeVisible();expect(screen.queryByText("item-1")).not.toBeInTheDocument();
+ await user.click(screen.getByRole("button",{name:"批准发布单"}));
+ expect(await screen.findByText(/全部 1,000 项将一起/)).toBeVisible();
+ await user.type(screen.getByLabelText("审批意见"),"核对整单");await user.click(screen.getByRole("button",{name:"确认批准"}));
+ await waitFor(()=>expect(writes).toHaveLength(1));expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"1",reason:"核对整单"});
+});
+
+it("大单与待恢复请求超出浏览器保存容量时发送前拒绝并保留原请求",async()=>{
+ const key=`rcc:release-requests:${testAdminIdentity.account.id}`;
+ const previous=JSON.stringify([{scope:"create",path:"/api/v1/release-orders",method:"POST",body:JSON.stringify({table_name:"items",items:[{operation:"ADD",content:{label:"original intent"}}]}),key:"original-key",label:"已有原请求"}]);
+ sessionStorage.setItem(key,previous);
+ const large={...order,items:Array.from({length:1000},(_,index)=>({...order.items[0]!,id:String(index+1)}))};let writes=0;
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(init?.method==="PUT")writes++;return json(large)})));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"编辑草稿"}));
+ const set=vi.spyOn(Storage.prototype,"setItem").mockImplementation(()=>{throw new DOMException("quota","QuotaExceededError")});
+ try{await user.click(screen.getByRole("button",{name:"保存草稿修改"}));expect(await screen.findByText(/浏览器无法保存完整请求/)).toBeVisible();expect(writes).toBe(0);expect(sessionStorage.getItem(key)).toBe(previous)}finally{set.mockRestore()}
+});
+
+it("千项编辑器只列当前20项并能直接编辑第1000项",async()=>{
+ const large={...order,items:Array.from({length:1000},(_,index)=>({...order.items[0]!,id:String(index+1),content:{label:`item-${index+1}`}}))};const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(_input,init)=>{if(init?.method==="PUT")writes.push(init);return json(large)})));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"编辑草稿"}));
+ expect(screen.getByLabelText("编辑明细").querySelectorAll("option")).toHaveLength(20);
+ await user.type(screen.getByLabelText("定位编辑明细"),"1000");
+ expect(screen.getByLabelText("编辑明细")).toHaveValue("999");
+ expect(screen.getByLabelText("label 申请值")).toHaveValue("item-1000");
+ await user.clear(screen.getByLabelText("label 申请值"));await user.type(screen.getByLabelText("label 申请值"),"last edited");
+ await user.click(screen.getByRole("button",{name:"保存草稿修改"}));
+ await waitFor(()=>expect(writes).toHaveLength(1));
+ const items=JSON.parse(String(writes[0]!.body)).items;expect(items).toHaveLength(1000);expect(items[999].content.label).toBe("last edited");expect(items[0].content.label).toBe("item-1");
 });

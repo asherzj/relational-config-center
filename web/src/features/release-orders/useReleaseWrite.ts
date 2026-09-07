@@ -20,9 +20,10 @@ export function useReleaseWrite(scope:string){
   confirmedRebuild.current=undefined;
   const previous=stored?.rejection?undefined:stored;
   const intent=previous??{...input,scope,key:crypto.randomUUID()};
+  let recorded=false;
   try{
    // Persist before dispatch, so a refresh during the request is also recoverable.
-   rememberReleaseRequest(accountID,intent);
+   rememberReleaseRequest(accountID,intent);recorded=true;
    const order=await sendReleaseRequest(accountID,intent);
    forgetReleaseRequest(accountID,intent.key);setUnresolved(false);
    // A replay acknowledges the original write; mounted details must read current state.
@@ -31,6 +32,7 @@ export function useReleaseWrite(scope:string){
    void client.invalidateQueries({queryKey:["release-order",order.id]});
    return order;
   }catch(cause){
+   if(!recorded){setError(new ApiError("release_journal_unavailable","浏览器无法保存完整请求，尚未发送。当前输入和已有待恢复请求保留，请释放浏览器存储空间后重试。",0));setUnresolved(Boolean(previous));return;}
    setError(cause);
    // These write conflicts are returned only after original-key deduplication.
    // They prove no original success exists; authentication/read failures do not.

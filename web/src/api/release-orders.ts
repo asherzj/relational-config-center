@@ -16,9 +16,10 @@ export const releaseOrderSchema=z.object({
  history:z.array(z.object({action:z.string(),actor_id:z.string(),at:z.string(),version,reason:z.string()})),created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),
 });
 export type ReleaseOrder=z.infer<typeof releaseOrderSchema>;
+export const releaseSummarySchema=releaseOrderSchema.pick({id:true,table_name:true,applicant_id:true,state:true,version:true,created_at:true,updated_at:true,allowed_actions:true}).extend({item_count:z.number().int().min(1).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
 export type ReleaseField=z.infer<typeof releaseFieldSchema>;
 export const releaseOrders={
- list:(filters:Record<string,string>)=>request(`/api/v1/release-orders?${new URLSearchParams(filters)}`,{schema:z.object({orders:z.array(releaseOrderSchema),next_cursor:z.string()})}),
+ list:(filters:Record<string,string>)=>request(`/api/v1/release-orders?${new URLSearchParams(filters)}`,{schema:z.object({orders:z.array(releaseSummarySchema),next_cursor:z.string()})}),
  preview:(input:DraftInput)=>request("/api/v1/release-orders/preview",{method:"POST",body:JSON.stringify(input),schema:z.object({table_name:z.string(),items:releaseOrderSchema.shape.items})}),
  get:(id:string)=>request(`/api/v1/release-orders/${encodeURIComponent(id)}`,{schema:releaseOrderSchema}),
  write:(path:string,method:string,body:string,key:string)=>request(path,{method,body,headers:{"Idempotency-Key":key},schema:releaseOrderSchema}),

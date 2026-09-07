@@ -44,7 +44,7 @@ func publicationDeadline(timeout time.Duration) gin.HandlerFunc {
 		timeout = 8 * time.Second
 	}
 	return func(c *gin.Context) {
-		if c.FullPath() != "/api/v1/release-orders/:id/execute" {
+		if !strings.HasPrefix(c.FullPath(), "/api/v1/release-orders") || c.Request.Method == "GET" {
 			c.Next()
 			return
 		}

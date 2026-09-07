@@ -90,6 +90,7 @@ type ReleaseExecutionSnapshot struct {
 
 // ActiveTarget is a database comparison identity, never a request spelling.
 type ActiveTarget struct {
+	ItemIndex int
 	TableName string
 	RecordKey []byte
 }
@@ -97,4 +98,26 @@ type ActiveTarget struct {
 // NewReleaseMutationSemantics records only execution meaning, excluding display metadata.
 func NewReleaseMutationSemantics(policy MutationPolicy) ReleaseMutationSemantics {
 	return ReleaseMutationSemantics{TypeCode: policy.TypeCode, AllowAdd: policy.AllowAdd, AllowModify: policy.AllowModify, AllowDelete: policy.AllowDelete, CreateOperatorField: policy.CreateOperatorField, CreateTimeField: policy.CreateTimeField, ModifyOperatorField: policy.ModifyOperatorField, ModifyTimeField: policy.ModifyTimeField}
+}
+
+// ReleaseOrderSummary carries bounded catalog information; complete intent and
+// verified publication history are available through the order detail.
+type ReleaseOrderSummary struct {
+	ID              string         `json:"id"`
+	TableName       string         `json:"table_name"`
+	ApplicantID     string         `json:"applicant_id"`
+	State           string         `json:"state"`
+	Version         string         `json:"version"`
+	CreatedAt       string         `json:"created_at"`
+	UpdatedAt       string         `json:"updated_at"`
+	ItemCount       int            `json:"item_count"`
+	OperationCounts map[string]int `json:"operation_counts"`
+}
+
+func (order ReleaseOrder) Summary() ReleaseOrderSummary {
+	result := ReleaseOrderSummary{ID: order.ID, TableName: order.TableName, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
+	for _, item := range order.Items {
+		result.OperationCounts[item.Operation]++
+	}
+	return result
 }

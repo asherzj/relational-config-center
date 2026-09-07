@@ -3,9 +3,7 @@ package mysql
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"math"
 	"strconv"
 	"strings"
@@ -57,24 +55,21 @@ func (s *publicationSession) CommitPublication(ctx context.Context, plan applica
 	}
 	version++
 	result := domain.PublicationResult{TableVersion: strconv.FormatUint(version, 10), PublisherID: plan.PublisherID, ExecutedAt: plan.At.UTC().Format(time.RFC3339Nano), Commands: []domain.PublicationCommand{}, Notification: domain.RefreshNotification{ID: plan.OrderID, TableVersion: strconv.FormatUint(version, 10), Status: "NOT_CONNECTED"}}
-	for _, item := range plan.Items {
-		before, err := s.readCanonicalRow(ctx, plan, item.ID, true)
-		if err != nil {
-			return domain.PublicationResult{}, err
-		}
+	ids := make([]any, len(plan.Items))
+	for i, item := range plan.Items {
+		ids[i] = item.ID
+	}
+	beforeRows, err := s.readCanonicalRows(ctx, plan, ids)
+	if err != nil {
+		return domain.PublicationResult{}, err
+	}
+	for index, item := range plan.Items {
+		before := beforeRows[index]
 		if item.Intent.Operation == "ADD" && !before.Deleted {
-			return domain.PublicationResult{}, application.ErrDuplicateKey
+			return domain.PublicationResult{}, &application.ReleaseItemError{Index: index, Cause: application.ErrDuplicateKey}
 		}
 		if item.Intent.Operation != "ADD" && before.Deleted {
-			return domain.PublicationResult{}, application.ErrMutationRowNotFound
-		}
-		id := item.ID
-		// Lock/version the existing record before update/delete. ADD checks the
-		// tombstone/floor after the actual insert, still inside this transaction.
-		if item.Intent.Operation != "ADD" {
-			if err = compareAndAdvanceRecordVersion(ctx, s.database, plan.Schema.Name, id, item.Intent.ExpectedRecordVersion); err != nil {
-				return domain.PublicationResult{}, err
-			}
+			return domain.PublicationResult{}, &application.ReleaseItemError{Index: index, Cause: application.ErrMutationRowNotFound}
 		}
 		values := map[string]any{}
 		for _, value := range item.Values {
@@ -90,84 +85,84 @@ func (s *publicationSession) CommitPublication(ctx context.Context, plan applica
 				changed = db.Table(plan.Schema.Name).Create(values)
 			}
 		case "MODIFY":
-			changed = db.Table(plan.Schema.Name).Where("`id`=?", id).Updates(values)
+			changed = db.Table(plan.Schema.Name).Where("`id`=?", ids[index]).Updates(values)
 		case "DELETE":
-			changed = db.Table(plan.Schema.Name).Where("`id`=?", id).Delete(&map[string]any{})
+			changed = db.Table(plan.Schema.Name).Where("`id`=?", ids[index]).Delete(&map[string]any{})
 		default:
 			return domain.PublicationResult{}, application.ErrInvalidMutation
 		}
 		if changed.Error != nil {
-			return domain.PublicationResult{}, classifyMutationError(changed.Error, ctx.Err())
+			return domain.PublicationResult{}, &application.ReleaseItemError{Index: index, Cause: classifyMutationError(changed.Error, ctx.Err())}
 		}
 		if changed.RowsAffected != 1 {
-			return domain.PublicationResult{}, application.ErrMutationRowNotFound
+			return domain.PublicationResult{}, &application.ReleaseItemError{Index: index, Cause: application.ErrMutationRowNotFound}
 		}
-		if item.Intent.Operation == "ADD" {
-			if id == nil {
-				var actual string
-				if err := db.Raw("SELECT CAST(LAST_INSERT_ID() AS CHAR)").Row().Scan(&actual); err != nil {
-					return domain.PublicationResult{}, application.ErrReleaseUnavailable
-				}
-				id = actual
-			}
-			name, key, err := recordIdentity(ctx, s.database, plan.Schema.Name, id, true)
-			if err != nil {
-				return domain.PublicationResult{}, classifyMutationError(err, ctx.Err())
-			}
-			var owner string
-			err = s.database.WithContext(ctx).Raw(`SELECT order_id FROM rcc_release_targets WHERE table_name=? AND record_key=? FOR UPDATE`, name, key).Row().Scan(&owner)
-			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		if item.Intent.Operation == "ADD" && ids[index] == nil {
+			// Each INSERT has its own actual unsigned result; never infer an id range.
+			var actual string
+			if db.Raw("SELECT CAST(LAST_INSERT_ID() AS CHAR)").Row().Scan(&actual) != nil {
 				return domain.PublicationResult{}, application.ErrReleaseUnavailable
 			}
-			if err == nil && owner != plan.OrderID {
-				return domain.PublicationResult{}, application.ErrReleaseTargetConflict
-			}
-			var expected *string
-			if item.Intent.ID != nil {
-				if !bytes.Equal(item.Intent.RecordKey, key) || item.Intent.RecordTable != name {
-					return domain.PublicationResult{}, application.ErrRecordVersionConflict
-				}
-				expected = &item.Intent.ExpectedRecordVersion
-			}
-			if err = advanceRecordVersion(ctx, s.database, plan.Schema.Name, id, expected); err != nil {
-				return domain.PublicationResult{}, err
-			}
+			ids[index] = actual
 		}
-		name, key, err := recordIdentity(ctx, s.database, plan.Schema.Name, id, true)
+	}
+	finalRows, err := s.readCanonicalRows(ctx, plan, ids)
+	if err != nil {
+		return domain.PublicationResult{}, err
+	}
+	// A deleted row keeps its locked pre-publication identity as a tombstone.
+	// Read actual post-write identities only for rows that still exist.
+	identityIDs := append([]any(nil), ids...)
+	for index, item := range plan.Items {
 		if item.Intent.Operation == "DELETE" {
-			name = item.Intent.RecordTable
-			key = item.Intent.RecordKey
-			err = nil
+			identityIDs[index] = nil
 		}
-		if err != nil {
-			return domain.PublicationResult{}, application.ErrReleaseUnavailable
+	}
+	baselines, err := s.ReadRecordBaselines(ctx, plan.Schema, identityIDs)
+	if err != nil {
+		return domain.PublicationResult{}, err
+	}
+	for index, item := range plan.Items {
+		if item.Intent.Operation == "DELETE" {
+			baselines[index] = domain.RecordBaseline{TableName: item.Intent.RecordTable, Key: item.Intent.RecordKey, Version: item.Intent.ExpectedRecordVersion}
 		}
-		recordVersion, err := recordVersion(ctx, s.database, name, key)
-		if err != nil {
-			return domain.PublicationResult{}, application.ErrReleaseUnavailable
+		if item.Intent.ID != nil && (!bytes.Equal(item.Intent.RecordKey, baselines[index].Key) || item.Intent.RecordTable != baselines[index].TableName) {
+			return domain.PublicationResult{}, &application.ReleaseItemError{Index: index, Cause: application.ErrRecordVersionConflict}
 		}
-		final, err := s.readCanonicalRow(ctx, plan, id, true)
-		if err != nil {
-			return domain.PublicationResult{}, err
-		}
+	}
+	versions, err := s.advancePublicationVersions(ctx, plan, baselines)
+	if err != nil {
+		return domain.PublicationResult{}, err
+	}
+	placeholders := []string{}
+	commandBytes := 0
+	arguments := []any{}
+	for index, item := range plan.Items {
+		before, final := beforeRows[index], finalRows[index]
 		identityRow := final
 		if final.Deleted {
 			identityRow = before
 		}
 		actualID, err := identityRow.RecordID()
 		if err != nil || final.Deleted != (item.Intent.Operation == "DELETE") {
-			return domain.PublicationResult{}, application.ErrPublicationUnsupported
+			return domain.PublicationResult{}, &application.ReleaseItemError{Index: index, Cause: application.ErrPublicationUnsupported}
 		}
 		cursor++
-		command := domain.PublicationCommand{OrderID: plan.OrderID, Sequence: strconv.FormatUint(cursor, 10), TableName: plan.Execution.TableName, TableVersion: result.TableVersion, Operation: item.Intent.Operation, ID: actualID, RecordVersion: strconv.FormatUint(recordVersion, 10), Before: before, Final: final}
+		command := domain.PublicationCommand{OrderID: plan.OrderID, Sequence: strconv.FormatUint(cursor, 10), TableName: plan.Execution.TableName, TableVersion: result.TableVersion, Operation: item.Intent.Operation, ID: actualID, RecordVersion: versions[index], Before: before, Final: final}
 		encoded, err := json.Marshal(command)
 		if err != nil {
 			return domain.PublicationResult{}, application.ErrReleaseUnavailable
 		}
-		if err = s.database.WithContext(ctx).Exec(`INSERT INTO rcc_publication_commands(table_name,sequence,order_id,document) VALUES(?,?,?,?)`, command.TableName, command.Sequence, plan.OrderID, encoded).Error; err != nil {
-			return domain.PublicationResult{}, application.ErrReleaseUnavailable
+		commandBytes += len(encoded)
+		if commandBytes > application.ReleaseResultBytes {
+			return domain.PublicationResult{}, application.ErrReleaseResultLimit
 		}
+		placeholders = append(placeholders, "(?,?,?,?)")
+		arguments = append(arguments, command.TableName, command.Sequence, plan.OrderID, encoded)
 		result.Commands = append(result.Commands, command)
+	}
+	if err := s.database.WithContext(ctx).Exec("INSERT INTO rcc_publication_commands(table_name,sequence,order_id,document) VALUES"+strings.Join(placeholders, ","), arguments...).Error; err != nil {
+		return domain.PublicationResult{}, application.ErrReleaseUnavailable
 	}
 	if err := s.database.WithContext(ctx).Exec(`UPDATE rcc_table_publications SET table_version=?,command_cursor=? WHERE table_name=?`, version, cursor, plan.Execution.TableName).Error; err != nil {
 		return domain.PublicationResult{}, application.ErrReleaseUnavailable
@@ -182,65 +177,91 @@ func (s *publicationSession) CommitPublication(ctx context.Context, plan applica
 	return result, nil
 }
 
-func (s *publicationSession) readCanonicalRow(ctx context.Context, plan application.PublicationPlan, id any, lock bool) (domain.CanonicalRow, error) {
-	if id == nil {
-		return domain.NewCanonicalRow(plan.SchemaDigest, true, nil)
+func (s *publicationSession) readCanonicalRows(ctx context.Context, plan application.PublicationPlan, ids []any) ([]domain.CanonicalRow, error) {
+	result := make([]domain.CanonicalRow, len(ids))
+	knownID := false
+	for i, id := range ids {
+		result[i], _ = domain.NewCanonicalRow(plan.SchemaDigest, true, nil)
+		knownID = knownID || id != nil
+	}
+	if !knownID {
+		return result, nil
+	}
+	meta, err := recordIdentityMetadata(ctx, s.database, plan.Schema.Name)
+	if err != nil {
+		return nil, err
+	}
+	lookup, err := buildRecordLookup(meta, ids)
+	if err != nil {
+		return nil, err
 	}
 	// CAST keeps zero dates, signed TIME durations and unsigned BIGINT out of
 	// driver coercion. Text is explicitly transcoded by MySQL to UTF-8.
-	projections := []string{}
+	projections := []string{"requested.ordinal"}
 	types := map[string]string{}
 	for _, section := range plan.Execution.Sections {
 		if section.Name == "columns" {
 			for _, row := range section.Rows {
 				if len(row) != 10 || row[0] == nil || row[2] == nil {
-					return domain.CanonicalRow{}, application.ErrPublicationUnsupported
+					return nil, application.ErrPublicationUnsupported
 				}
 				types[*row[0]] = *row[2]
 			}
 		}
 	}
 	for _, column := range plan.Schema.Columns {
-		expression := s.database.Statement.Quote(column.Name)
+		expression := "b." + s.database.Statement.Quote(column.Name)
 		if column.Type == domain.ColumnTypeFloat64 {
 			expression = "CAST(" + expression + " AS DOUBLE)"
 		}
 		projections = append(projections, "CAST("+expression+" AS CHAR CHARACTER SET utf8mb4)")
 	}
-	query := "SELECT " + strings.Join(projections, ",") + " FROM " + s.database.Statement.Quote(plan.Schema.Name) + " WHERE `id`=?"
-	if lock {
-		query += " FOR UPDATE"
-	}
-	values := make([]*string, len(plan.Schema.Columns))
-	dest := make([]any, len(values))
-	for i := range values {
-		dest[i] = &values[i]
-	}
-	err := s.database.WithContext(ctx).Raw(query, id).Row().Scan(dest...)
-	if errors.Is(err, sql.ErrNoRows) {
-		return domain.NewCanonicalRow(plan.SchemaDigest, true, nil)
-	}
+	query := "SELECT " + strings.Join(projections, ",") + " FROM " + lookup.source + " JOIN " + s.database.Statement.Quote(plan.Schema.Name) + " b ON b.`id`=" + lookup.candidate + " FOR UPDATE"
+	rows, err := s.database.WithContext(ctx).Raw(query, lookup.arguments...).Rows()
 	if err != nil {
-		return domain.CanonicalRow{}, classifyMutationError(err, ctx.Err())
+		return nil, classifyMutationError(err, ctx.Err())
 	}
-	fields := []domain.CanonicalField{}
-	for i, column := range plan.Schema.Columns {
-		encoding := "text"
-		if column.Type == domain.ColumnTypeJSON {
-			encoding = "json"
+	defer rows.Close()
+	readBytes := 0
+	for rows.Next() {
+		var ordinal int
+		values := make([]*string, len(plan.Schema.Columns))
+		dest := []any{&ordinal}
+		for i := range values {
+			dest = append(dest, &values[i])
 		}
-		if values[i] == nil {
-			encoding = "sql_null"
-		} else if !utf8.ValidString(*values[i]) {
-			return domain.CanonicalRow{}, application.ErrPublicationUnsupported
+		if err := rows.Scan(dest...); err != nil || ordinal < 0 || ordinal >= len(result) {
+			return nil, application.ErrReleaseUnavailable
 		}
-		fields = append(fields, domain.CanonicalField{Name: column.Name, Type: types[column.Name], Encoding: encoding, Value: values[i]})
+		fields := []domain.CanonicalField{}
+		for i, column := range plan.Schema.Columns {
+			encoding := "text"
+			if column.Type == domain.ColumnTypeJSON {
+				encoding = "json"
+			}
+			if values[i] == nil {
+				encoding = "sql_null"
+			} else if !utf8.ValidString(*values[i]) {
+				return nil, application.ErrPublicationUnsupported
+			}
+			if values[i] != nil {
+				readBytes += len(*values[i])
+				if readBytes > application.ReleaseResultBytes {
+					return nil, application.ErrReleaseResultLimit
+				}
+			}
+			fields = append(fields, domain.CanonicalField{Name: column.Name, Type: types[column.Name], Encoding: encoding, Value: values[i]})
+		}
+		row, err := domain.NewCanonicalRow(plan.SchemaDigest, false, fields)
+		if err != nil {
+			return nil, application.ErrPublicationUnsupported
+		}
+		result[ordinal] = row
 	}
-	row, err := domain.NewCanonicalRow(plan.SchemaDigest, false, fields)
-	if err != nil {
-		return row, application.ErrPublicationUnsupported
+	if rows.Err() != nil {
+		return nil, application.ErrReleaseUnavailable
 	}
-	return row, nil
+	return result, nil
 }
 
 var _ application.PublicationSession = (*publicationSession)(nil)

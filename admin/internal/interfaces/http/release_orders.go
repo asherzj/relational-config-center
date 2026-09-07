@@ -42,7 +42,11 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 		}
 		response := make([]any, 0, len(list))
 		for _, order := range list {
-			response = append(response, releaseResponse(order, orders.AllowedActions(c.Request.Context(), order)))
+			summary := struct {
+				application.ReleaseOrderSummary
+				AllowedActions []string `json:"allowed_actions"`
+			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{ID: order.ID, State: order.State, ApplicantID: order.ApplicantID})}
+			response = append(response, summary)
 		}
 		next := ""
 		if len(list) == limit {
@@ -169,6 +173,10 @@ func writeReleaseError(c *gin.Context, err error) bool {
 	if err == nil {
 		return false
 	}
+	var itemError *application.ReleaseItemError
+	if errors.As(err, &itemError) {
+		c.Set("release_item_index", itemError.Index)
+	}
 	status, code, message := 503, "release_unavailable", "release order storage is unavailable"
 	switch {
 	case errors.Is(err, application.ErrPermissionDenied):
@@ -188,6 +196,16 @@ func writeReleaseError(c *gin.Context, err error) bool {
 		status, code, message = 422, "publication_metadata_permission", "deployment requires PROCESS to verify the complete InnoDB foreign-key dictionary"
 	case errors.Is(err, application.ErrReleaseNotFound):
 		status, code, message = 404, "release_not_found", "release order not found"
+	case errors.Is(err, application.ErrReleaseCrossTable):
+		status, code, message = 422, "release_cross_table", "all items must belong to the order table"
+	case errors.Is(err, application.ErrReleaseItemLimit):
+		status, code, message = 422, "release_item_limit", "a release order must contain 1 to 1000 items"
+	case errors.Is(err, application.ErrReleaseResultLimit):
+		status, code, message = 422, "release_result_limit", "the complete release document and result must fit the 8 MiB encoded JSON budget"
+	case errors.Is(err, application.ErrReleaseFieldLimit):
+		status, code, message = 422, "release_field_limit", "each submitted field must fit the 64 KiB UTF-8 limit"
+	case errors.Is(err, application.ErrReleaseDuplicateTarget):
+		status, code, message = 422, "release_duplicate_target", "a known record identity appears more than once in this order"
 	case errors.Is(err, application.ErrReleaseInvalid):
 		status, code, message = 422, "release_invalid", "release request content, version, reason or identifier is invalid"
 	case errors.Is(err, application.ErrReleaseAutoIDAmbiguous):

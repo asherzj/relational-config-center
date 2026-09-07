@@ -3,7 +3,6 @@ package mysql
 import (
 	"context"
 	"crypto/sha256"
-	"database/sql"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -19,7 +18,7 @@ const recordVersionsTable = "rcc_record_versions"
 // Identity is derived from the stored primary key with MySQL's own collation
 // weights. Resolving through WHERE id also respects numeric coercion. Tombstones
 // therefore survive spelling changes when an equivalent id is reinserted.
-func recordIdentity(ctx context.Context, db *gorm.DB, table string, id any, lock bool) (string, []byte, error) {
+func recordIdentity(ctx context.Context, db *gorm.DB, table string, id any) (string, []byte, error) {
 
 	meta, err := recordIdentityMetadata(ctx, db, table)
 	if err != nil {
@@ -27,9 +26,6 @@ func recordIdentity(ctx context.Context, db *gorm.DB, table string, id any, lock
 	}
 	expression := recordWeightExpression(meta, "`id`")
 	query := "SELECT WEIGHT_STRING(" + expression + ") FROM " + db.Statement.Quote(table) + " WHERE `id` = ?"
-	if lock {
-		query += " FOR UPDATE"
-	}
 	var identity []byte
 	if err := db.WithContext(ctx).Raw(query, id).Row().Scan(&identity); err != nil {
 		return "", nil, err
@@ -55,7 +51,7 @@ func queryRecordVersions(ctx context.Context, db *gorm.DB, table string, rows []
 		if id == nil {
 			return nil, fmt.Errorf("missing record identity")
 		}
-		name, key, err := recordIdentity(ctx, db, table, string(*id), false)
+		name, key, err := recordIdentity(ctx, db, table, string(*id))
 		if err != nil {
 			return nil, err
 		}
@@ -66,44 +62,6 @@ func queryRecordVersions(ctx context.Context, db *gorm.DB, table string, rows []
 		versions = append(versions, strconv.FormatUint(version, 10))
 	}
 	return versions, nil
-}
-
-func compareAndAdvanceRecordVersion(ctx context.Context, db *gorm.DB, table string, id any, expected string) error {
-	if err := application.ValidateRecordVersion(expected); err != nil {
-		return err
-	}
-	return advanceRecordVersion(ctx, db, table, id, &expected)
-}
-
-func advanceRecordVersion(ctx context.Context, db *gorm.DB, table string, id any, expected *string) error {
-	name, key, err := recordIdentity(ctx, db, table, id, true)
-	if err == sql.ErrNoRows {
-		return application.ErrMutationRowNotFound
-	}
-	if err != nil {
-		return classifyMutationError(err, ctx.Err())
-	}
-	var floor uint64
-	if err := db.WithContext(ctx).Raw(`SELECT COALESCE(MAX(lock_version),0) FROM rcc_record_versions WHERE table_name=? AND record_key=X''`, name).Row().Scan(&floor); err != nil {
-		return classifyMutationError(err, ctx.Err())
-	}
-	if err := db.WithContext(ctx).Exec(`INSERT INTO rcc_record_versions(table_name,record_key,lock_version) VALUES(?,?,?) ON DUPLICATE KEY UPDATE record_key=record_key`, name, key, floor).Error; err != nil {
-		return classifyMutationError(err, ctx.Err())
-	}
-	statement := `UPDATE rcc_record_versions SET lock_version=GREATEST(lock_version,?)+1 WHERE table_name=? AND record_key=? AND GREATEST(lock_version,?)<18446744073709551615`
-	args := []any{floor, name, key, floor}
-	if expected != nil {
-		statement += ` AND GREATEST(lock_version,?)=?`
-		args = append(args, floor, *expected)
-	}
-	result := db.WithContext(ctx).Exec(statement, args...)
-	if result.Error != nil {
-		return classifyMutationError(result.Error, ctx.Err())
-	}
-	if result.RowsAffected != 1 {
-		return application.ErrRecordVersionConflict
-	}
-	return nil
 }
 
 type identityMetadata struct {
@@ -143,22 +101,14 @@ func recordWeightExpression(meta identityMetadata, expression string) string {
 
 var identitySQLName = regexp.MustCompile(`^[a-zA-Z0-9_]+$`)
 
-// Missing ids use the very same stored-type and collation weight calculation as
-// existing rows. No temporary business row or control version is created.
-func missingRecordIdentity(ctx context.Context, db *gorm.DB, table string, id any) (string, []byte, error) {
-	meta, err := recordIdentityMetadata(ctx, db, table)
-	if err != nil {
-		return "", nil, err
-	}
+// Compare requested values using the stored key type in every batch join.
+// A missing ENUM still cannot supply a trusted insertion identity.
+func recordLookupExpression(meta identityMetadata) (string, error) {
 	var expression string
 	switch meta.DataType {
-	case "char", "varchar":
+	case "char", "varchar", "enum":
 		if !identitySQLName.MatchString(meta.CharsetName) || !identitySQLName.MatchString(meta.CollationName) {
-			return "", nil, application.ErrIncompatibleTable
-		}
-		text, ok := id.(string)
-		if !ok || len([]rune(text)) > meta.Capacity {
-			return "", nil, application.ErrInvalidMutation
+			return "", application.ErrIncompatibleTable
 		}
 		expression = "CAST(? AS CHAR CHARACTER SET " + meta.CharsetName + ") COLLATE " + meta.CollationName
 		if meta.DataType == "char" {
@@ -183,15 +133,37 @@ func missingRecordIdentity(ctx context.Context, db *gorm.DB, table string, id an
 	case "double":
 		expression = "CAST(? AS DOUBLE)"
 	default:
-		return "", nil, application.ErrReleaseSnapshotUnsupported
+		return "", application.ErrReleaseSnapshotUnsupported
 	}
-	var identity []byte
-	if err := db.WithContext(ctx).Raw("SELECT WEIGHT_STRING("+recordWeightExpression(meta, expression)+")", id).Row().Scan(&identity); err != nil {
-		return "", nil, err
+	return expression, nil
+}
+
+// One requested row source is shared by baseline and canonical-row reads. The
+// request ordinal survives SQL reordering; all candidate values remain bound.
+type recordLookup struct {
+	source, candidate string
+	arguments         []any
+}
+
+func buildRecordLookup(meta identityMetadata, ids []any) (recordLookup, error) {
+	expression, err := recordLookupExpression(meta)
+	if err != nil {
+		return recordLookup{}, err
 	}
-	if identity == nil {
-		return "", nil, application.ErrInvalidMutation
+	sources := []string{}
+	args := []any{}
+	for i, id := range ids {
+		if id == nil {
+			continue
+		}
+		if meta.DataType == "char" || meta.DataType == "varchar" {
+			value, ok := id.(string)
+			if !ok || len([]rune(value)) > meta.Capacity {
+				return recordLookup{}, &application.ReleaseItemError{Index: i, Cause: application.ErrInvalidMutation}
+			}
+		}
+		sources = append(sources, "SELECT ? AS ordinal, ? AS candidate")
+		args = append(args, i, id)
 	}
-	digest := sha256.Sum256(identity)
-	return meta.TableName, digest[:], nil
+	return recordLookup{source: "(" + strings.Join(sources, " UNION ALL ") + ") requested", candidate: strings.ReplaceAll(expression, "?", "requested.candidate"), arguments: args}, nil
 }
