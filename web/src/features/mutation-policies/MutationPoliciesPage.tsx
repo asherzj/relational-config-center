@@ -1,5 +1,7 @@
 import { getMutationPolicy } from "../../api/mutation-policies";
 import { WriteRecovery } from "../../components/ui/WriteRecovery";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/shadcn/table";
+import { Badge } from "../../components/shadcn/badge";
 import { FileCode2, Plus, RefreshCw } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { isUncertainWriteError } from "../../api/client";
@@ -48,12 +50,12 @@ function PolicyActions({ policy, supported, commandsBlocked, onCommand }: { poli
   const actions = policyActionAvailability(policy.status, supported);
   const open = (suffix = "") => navigate(`/platform/mutation-policies/${encodeURIComponent(policy.code)}${suffix}`);
   return <div className="row-actions">
-    <button onClick={() => open()}>查看</button>
-    {actions.replace && <button onClick={() => open("?mode=edit")}>修改执行规则</button>}
-    {actions.metadata && <button onClick={() => open("?mode=metadata")}>名称和描述</button>}
-    {!commandsBlocked && actions.activate && <button onClick={() => onCommand("activate", policy.code)}>激活</button>}
-    {!commandsBlocked && actions.deprecate && <button className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</button>}
-    {!commandsBlocked && actions.delete && <button className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</button>}
+    <Button variant="ghost" onClick={() => open()}>查看</Button>
+    {actions.replace && <Button variant="ghost" onClick={() => open("?mode=edit")}>修改执行规则</Button>}
+    {actions.metadata && <Button variant="ghost" onClick={() => open("?mode=metadata")}>名称和描述</Button>}
+    {!commandsBlocked && actions.activate && <Button variant="ghost" onClick={() => onCommand("activate", policy.code)}>激活</Button>}
+    {!commandsBlocked && actions.deprecate && <Button variant="ghost" className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</Button>}
+    {!commandsBlocked && actions.delete && <Button variant="ghost" className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</Button>}
   </div>;
 }
 
@@ -113,22 +115,22 @@ export function MutationPoliciesPage() {
           <ErrorState error={policies.error} onRetry={() => void policies.refetch()} />
         ) : !policies.data.length ? <EmptyState entity="变更规则" /> : (
           <div className="table-scroll">
-            <table className="policy-table mutation-policy-table">
-              <thead><tr><th>变更规则</th><th>新增</th><th>修改</th><th>删除</th><th>自动填写字段</th><th>状态</th><th>最近更新</th><th>操作</th></tr></thead>
-              <tbody>{policies.data.map((policy) => {
+            <Table className="policy-table mutation-policy-table">
+              <TableHeader><TableRow><TableHead>变更规则</TableHead><TableHead>新增</TableHead><TableHead>修改</TableHead><TableHead>删除</TableHead><TableHead>自动填写字段</TableHead><TableHead>状态</TableHead><TableHead>最近更新</TableHead><TableHead>操作</TableHead></TableRow></TableHeader>
+              <TableBody>{policies.data.map((policy) => {
                 const supported = supportsMutationPolicyType(types.data, policy.typeCode);
-                return <tr key={policy.code} className={code === policy.code ? "selected-row" : ""}>
-                  <td className="rule-identity"><strong title={policy.description}>{policy.name}</strong><code>{policy.code}</code><small>{policy.typeCode}</small><PolicyTypeAvailability policy={policy} supported={supported} /></td>
-                  <td><Capability allowed={policy.allowAdd} /></td>
-                  <td><Capability allowed={policy.allowModify} /></td>
-                  <td><Capability allowed={policy.allowDelete} /></td>
-                  <td><div className="auto-fill-targets">{autoFillTargets(policy).length ? autoFillTargets(policy).map((target) => <code key={target}>{target}</code>) : <span>无</span>}</div></td>
-                  <td><span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span></td>
-                  <td className="timestamp">{formatTimestamp(policy.modifiedAt)}</td>
-                  <td><PolicyActions policy={policy} supported={supported} commandsBlocked={uncertainCommand} onCommand={lifecycle.request} /></td>
-                </tr>;
-              })}</tbody>
-            </table>
+                return <TableRow key={policy.code} className={code === policy.code ? "selected-row" : ""}>
+                  <TableCell className="rule-identity"><strong title={policy.description}>{policy.name}</strong><code>{policy.code}</code><small>{policy.typeCode}</small><PolicyTypeAvailability policy={policy} supported={supported} /></TableCell>
+                  <TableCell><Capability allowed={policy.allowAdd} /></TableCell>
+                  <TableCell><Capability allowed={policy.allowModify} /></TableCell>
+                  <TableCell><Capability allowed={policy.allowDelete} /></TableCell>
+                  <TableCell><div className="auto-fill-targets">{autoFillTargets(policy).length ? autoFillTargets(policy).map((target) => <code key={target}>{target}</code>) : <span>无</span>}</div></TableCell>
+                  <TableCell><Badge variant="outline" className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</Badge></TableCell>
+                  <TableCell className="timestamp">{formatTimestamp(policy.modifiedAt)}</TableCell>
+                  <TableCell><PolicyActions policy={policy} supported={supported} commandsBlocked={uncertainCommand} onCommand={lifecycle.request} /></TableCell>
+                </TableRow>;
+              })}</TableBody>
+            </Table>
           </div>
         )}
         <footer className="catalog-footer">

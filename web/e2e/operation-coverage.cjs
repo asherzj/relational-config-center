@@ -99,7 +99,7 @@ function fixtureSQL() {
   const input = (name) => page.getByRole('textbox', { name, exact: true });
   const checkbox = (name) => page.getByRole('checkbox', { name, exact: true });
   const autoFillInput = (name) => page.locator('label.field', { has: page.getByText(name, { exact: true }) }).locator('input');
-  const operationToggle = (name) => page.locator('label.capability-toggle', { has: page.getByText(name, { exact: true }) }).locator('input');
+  const operationToggle = (name) => page.locator('label.capability-toggle', { has: page.getByText(name, { exact: true }) }).getByRole('checkbox');
   const catalogRows = () => page.getByRole('region', { name: '表规则目录' }).locator('tbody tr');
   async function managed(table) {
     await open('/configuration/managed-data');

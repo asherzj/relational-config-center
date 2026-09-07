@@ -1,6 +1,6 @@
 # 管理台可靠性工作包交付记录
 
-本记录汇总本轮六阶段工作，主要可靠性修复锚定合并提交 `24ee35239c5220f8072d21d0b096f4b60b019ec8`，随后同步 main 的 `1590d743f863c481da179f3c355cd55479bfaac3` 账号时间精度修复。分支为 `codex/management-reliability-20260907`，目标是 [MR #43 → main](https://github.com/asherzj/relational-config-center/pull/43)。运行状态以 [MR 检查](https://github.com/asherzj/relational-config-center/pull/43/checks)及 [Notion 项目交付记录](https://app.notion.com/p/3ca8544cc98980559f27e17f2c94cbaf)为准；本 MR 不自动合并。
+本记录汇总本轮六阶段工作，主要可靠性修复锚定合并提交 `24ee35239c5220f8072d21d0b096f4b60b019ec8`，随后同步 main 的 `1590d743f863c481da179f3c355cd55479bfaac3` 账号时间精度修复及 `cd5df5845ea9b978f07639d7ac5d88243e400517` 的 shadcn/ui 改造。分支为 `codex/management-reliability-20260907`，目标是 [MR #43 → main](https://github.com/asherzj/relational-config-center/pull/43)。运行状态以 [MR 检查](https://github.com/asherzj/relational-config-center/pull/43/checks)及 [Notion 项目交付记录](https://app.notion.com/p/3ca8544cc98980559f27e17f2c94cbaf)为准；本 MR 不自动合并。
 
 ## 交付内容
 
@@ -13,7 +13,7 @@
 
 阶段模型按任务复杂度选用：阶段 1、3、5 为 GPT-5.6-Sol/high；阶段 2、4 为 GPT-6-Astra/high；阶段 6 文档为 GPT-5.6-Luna/medium。各阶段按顺序启动 subagent，父代理负责衔接、实际故障补审、提交、推送及交付核验。具体记录见[工作包](2026-09-07-reliability-work-package.md)。
 
-## 本机最终验证
+## 账号合并时的本机检查点
 
 | 验证 | 结果 |
 | --- | --- |
@@ -29,9 +29,17 @@
 
 原始结果的 SHA256、各项用例、环境、源码树指纹和清理证据已写入[结构化报告](2026-09-07-reliability-final-delivery.json)。本机原始产物位于工作树相邻的 `.records-reliability-20260907/merged-cookie-verified/`。合并和故障修复细节见[账号合并验收](2026-09-07-reliability-account-merge.md)。
 
+## shadcn/ui 合并后的验证
+
+main 在收尾期间合入 [MR #46](https://github.com/asherzj/relational-config-center/pull/46)。本分支解决了 12 个冲突文件，采用新的中性主题、Radix 组件和 inline Sheet/Dialog，同时保留未知写结果锁、只读核对、原始 CR/CRLF、history entry 防护与原生 inert。抽屉仍保留 320px 下单列收缩及底部操作可达约束。Playwright 继续固定为本轮已验收的 1.62.1。
+
+Web 25 文件 / 243 项、typecheck、production build 通过；真实 Chrome 账号路径 47.76 秒通过。合并时修复了新 jsdom `matchMedia` mock 对 Node TCP 测试环境的假设；操作验收脚本改为定位可见的 checkbox 角色，避免命中 Radix 隐藏表单输入。两处都未放宽产品或写次数断言。
+
+浏览器组合的本次结果与源码检查点见结构化报告的 `shadcnMainFollowUp`；此前表格和 Linux 图片保留为其对应提交的历史证据。最终 HEAD 的 CI 以 MR/Notion 的明确结果为准，不把早期检查点写成新树验收。
+
 ## Linux 与事实边界
 
-Linux 每次提交独立运行 Web、Go unit and build、MySQL 8.4 integration、Browser acceptance 四项。产品提交 `24ee352` 的 [run 34109234808](https://github.com/asherzj/relational-config-center/actions/runs/34109234808) 已于 10:06:56Z 通过 Browser acceptance：131 项、三引擎各 7 项、fixture 及清理均通过。artifact `10013816450` 下载后的 SHA256 与 GitHub 元数据一致，为 `21d4d10f7bdfbb96ee5147af8e6604834ecf48c26dfeb4479e04ec5191731e3d`，结构化报告保留各套件结果摘要。最终交付时对应分支 HEAD 的四项 CI 结果另在 MR 正文及 Notion 确认。
+Linux 每次提交独立运行 Web、Go unit and build、MySQL 8.4 integration、Browser acceptance 四项。产品提交 `24ee352` 的 [run 34109234808](https://github.com/asherzj/relational-config-center/actions/runs/34109234808) 已于 10:06:56Z 通过 Browser acceptance：131 项、三引擎各 7 项、fixture 及清理均通过。artifact `10013816450` 下载后的 SHA256 与 GitHub 元数据一致，为 `21d4d10f7bdfbb96ee5147af8e6604834ecf48c26dfeb4479e04ec5191731e3d`，结构化报告保留各套件结果摘要。该 workflow 后因新推送取消，取消的 MySQL job 不计为通过。随后 `702f5e8` 的 [run 34111882098](https://github.com/asherzj/relational-config-center/actions/runs/34111882098) 四项全部通过，MySQL 耗时 20 分 16 秒；Browser 131 项的 artifact `10014847498` SHA256 为 `31b1926b9eed3417dcaad390e96a66783825234e22e6edb0bff0bb189d440ae8`，下载、数量、fixture 及清理均已核验。shadcn 合并后的最终 HEAD CI 另在 MR 正文及 Notion 确认。
 
 阶段 5 初次 Linux WebKit 在 320px 出现裁切，红图、修复与本次真实 [Linux 绿图](2026-09-07-reliability-stage5-linux-webkit-drawer-320-green.png)已保留在[阶段 5 报告](2026-09-07-reliability-stage5-browser-accessibility.md)。本次 artifact 已单独核对布局、各套件通过数量及清理，不以本机结果替代 Linux 结论。
 

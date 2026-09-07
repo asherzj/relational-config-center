@@ -458,5 +458,50 @@
     "isolatedMySQLContainersCleaned": 6,
     "integrationLogSHA256": "37ca0b0f3950a0ce1a3c67a411158dce155d84c5f8084426cb85d1cb6bba54ab",
     "note": "Earlier full local and browser checkpoints remain anchored to their recorded source versions; final HEAD CI is verified separately at delivery."
+  },
+  "precisionCheckpointLinux": {
+    "runID": 34111882098,
+    "headSHA": "702f5e843c5f3ba59079e05edb79202f5185921c",
+    "artifactID": 10014847498,
+    "sha256": "sha256:31b1926b9eed3417dcaad390e96a66783825234e22e6edb0bff0bb189d440ae8",
+    "passed": 131,
+    "suites": [
+      [
+        "operation-coverage/result.json",
+        20
+      ],
+      [
+        "write-recovery/result.json",
+        28
+      ],
+      [
+        "browser-accessibility/firefox/result.json",
+        7
+      ],
+      [
+        "browser-accessibility/webkit/result.json",
+        7
+      ],
+      [
+        "browser-accessibility/chromium/result.json",
+        7
+      ],
+      [
+        "complex-fields/result.json",
+        42
+      ],
+      [
+        "unsaved-changes/result.json",
+        14
+      ],
+      [
+        "rule-clarity/result.json",
+        6
+      ]
+    ],
+    "cleanupVerified": true,
+    "fixtureRowsEqual": true,
+    "allFourJobs": "success",
+    "mysqlSeconds": 1216
   }
 }

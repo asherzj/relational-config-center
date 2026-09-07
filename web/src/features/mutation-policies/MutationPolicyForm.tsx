@@ -1,3 +1,9 @@
+import { Input } from "../../components/shadcn/input";
+import { Checkbox } from "../../components/shadcn/checkbox";
+import { Textarea } from "../../components/shadcn/textarea";
+import { NativeSelect } from "../../components/shadcn/native-select";
+import { Label } from "../../components/shadcn/label";
+import { Badge } from "../../components/shadcn/badge";
 import { Info } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useDraftProtection } from "../../components/ui/LeaveProtection";
@@ -106,11 +112,11 @@ export function MutationPolicyForm({ mode, policy, typeCodes, registryTypes, reg
     "aria-describedby": errors[key] ? `${key}-error` : undefined,
   });
   const field = (key: "createOperatorField" | "createTimeField" | "modifyOperatorField" | "modifyTimeField", label: string, placeholder: string) => (
-    <label className="field">
+    <Label className="field">
       <span>{label}</span>
-      <input value={draft[key] ?? ""} onChange={(event) => update(key, event.target.value)} disabled={executionLocked} placeholder={placeholder} {...inputProps(key)} />
+      <Input value={draft[key] ?? ""} onChange={(event) => update(key, event.target.value)} disabled={executionLocked} placeholder={placeholder} {...inputProps(key)} />
       {errors[key] && <small id={`${key}-error`} className="field-error">{errors[key]}</small>}
-    </label>
+    </Label>
   );
   const supportedTypes = typeCodes.filter((type) => supportedMutationPolicyTypes.has(type));
   const options = [...new Set([...supportedTypes, draft.typeCode])];
@@ -120,16 +126,16 @@ export function MutationPolicyForm({ mode, policy, typeCodes, registryTypes, reg
     <form id="mutation-policy-form" className="policy-form" onSubmit={submit} noValidate>
       {presentedError && <div className="inline-alert" role="alert"><strong>{isUncertainWriteError(serverError) ? "提交结果尚未确认。系统不会自动重复此写入。" : presentedError.message}</strong>{presentedError.requestId && <span>请求编号：{presentedError.requestId}</span>}{isUncertainWriteError(serverError) && onVerify && <Button type="button" variant="secondary" onClick={onVerify}>只读查询当前状态</Button>}</div>}
       <fieldset className="form-controls" disabled={pending}>
-      {policy && <span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span>}
+      {policy && <Badge variant="outline" className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</Badge>}
 
       <section className="form-section" aria-labelledby="mutation-display-heading">
         <div className="form-section-heading">
           <h3 id="mutation-display-heading">名称和描述</h3>
           <p>用于在规则目录中识别这条规则，不改变新增、修改、删除或自动填写行为。</p>
         </div>
-      <label className="field field-wide"><span>规则编码 · 创建后不可变</span><input value={draft.code} onChange={(event) => update("code", event.target.value)} disabled={mode !== "create"} placeholder="standard_mutation_v2" {...inputProps("code")} />{errors.code && <small id="code-error" className="field-error">{errors.code}</small>}</label>
-      <label className="field field-wide"><span>显示名称</span><input value={draft.name} onChange={(event) => update("name", event.target.value)} disabled={fullyLocked} {...inputProps("name")} />{errors.name && <small id="name-error" className="field-error">{errors.name}</small>}</label>
-      <label className="field field-wide"><span>描述</span><textarea value={draft.description} onChange={(event) => update("description", event.target.value)} disabled={fullyLocked} rows={4} {...inputProps("description")} />{errors.description && <small id="description-error" className="field-error">{errors.description}</small>}</label>
+      <Label className="field field-wide"><span>规则编码 · 创建后不可变</span><Input value={draft.code} onChange={(event) => update("code", event.target.value)} disabled={mode !== "create"} placeholder="standard_mutation_v2" {...inputProps("code")} />{errors.code && <small id="code-error" className="field-error">{errors.code}</small>}</Label>
+      <Label className="field field-wide"><span>显示名称</span><Input value={draft.name} onChange={(event) => update("name", event.target.value)} disabled={fullyLocked} {...inputProps("name")} />{errors.name && <small id="name-error" className="field-error">{errors.name}</small>}</Label>
+      <Label className="field field-wide"><span>描述</span><Textarea value={draft.description} onChange={(event) => update("description", event.target.value)} disabled={fullyLocked} rows={4} {...inputProps("description")} />{errors.description && <small id="description-error" className="field-error">{errors.description}</small>}</Label>
       </section>
 
       <section className="form-panel" aria-labelledby="mutation-execution-heading">
@@ -137,16 +143,16 @@ export function MutationPolicyForm({ mode, policy, typeCodes, registryTypes, reg
           <h3 id="mutation-execution-heading">执行规则</h3>
           <p>{mode === "metadata" ? "当前状态不能修改执行规则。" : "草稿激活后，这些内容将锁定。"}</p>
         </div>
-        <label className="field field-wide"><span>规则类型</span><select value={draft.typeCode} onChange={(event) => update("typeCode", event.target.value)} disabled={executionLocked} {...inputProps("typeCode")}>{options.map((type) => <option key={type} value={type}>{type}</option>)}</select>{errors.typeCode && <small id="typeCode-error" className="field-error">{errors.typeCode}</small>}</label>
+        <Label className="field field-wide"><span>规则类型</span><NativeSelect value={draft.typeCode} onChange={(event) => update("typeCode", event.target.value)} disabled={executionLocked} {...inputProps("typeCode")}>{options.map((type) => <option key={type} value={type}>{type}</option>)}</NativeSelect>{errors.typeCode && <small id="typeCode-error" className="field-error">{errors.typeCode}</small>}</Label>
         <section className="mutation-form-section" aria-labelledby="operation-heading">
           <h3 id="operation-heading">操作授权</h3>
           <div className="capability-grid">
             {(["allowAdd", "allowModify", "allowDelete"] as const).map((key) => (
-              <label className="capability-toggle" key={key}>
+              <Label className="capability-toggle" key={key}>
                 <span>{key === "allowAdd" ? "ADD" : key === "allowModify" ? "MODIFY" : "DELETE"}</span>
-                <input type="checkbox" checked={draft[key]} onChange={(event) => update(key, event.target.checked)} disabled={executionLocked} />
+                <Checkbox checked={draft[key]} onCheckedChange={(checked) => update(key, checked === true)} disabled={executionLocked} />
                 <strong>{draft[key] ? "允许" : "禁止"}</strong>
-              </label>
+              </Label>
             ))}
           </div>
         </section>

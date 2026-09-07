@@ -2,7 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useLayoutEffect, use
 import { createPortal } from "react-dom";
 import { useBlocker, useLocation } from "react-router-dom";
 import { Button } from "./Button";
-import { useModalFocus } from "./useModalFocus";
+import { ModalSurface } from "./ModalSurface";
+import { DialogTitle, DialogDescription } from "../shadcn/dialog";
 
 type DraftStatus = { dirty: boolean; pending: boolean; locationKey: string };
 type Protection = {
@@ -14,21 +15,16 @@ type Protection = {
 const Context = createContext<Protection | null>(null);
 
 function LeaveDialog({ busy, onStay, onLeave }: { busy: boolean; onStay: () => void; onLeave: () => void }) {
-  const dialogRef = useRef<HTMLDivElement>(null);
   const stayRef = useRef<HTMLButtonElement>(null);
-  useModalFocus({ open: true, dialogRef, initialFocusRef: stayRef, onEscape: onStay });
   return createPortal(
-    <div className="modal-layer leave-protection-layer">
-      <button className="drawer-scrim" aria-label="关闭离开提示" onClick={onStay} />
-      <div ref={dialogRef} tabIndex={-1} className="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="leave-title" aria-describedby="leave-description" data-modal-surface="true">
-        <h2 id="leave-title">{busy ? "正在提交，请稍候" : "放弃未保存的修改？"}</h2>
-        <p id="leave-description">{busy ? "请求已发出，请等待结果后再离开。此次离开已取消，不会重复提交。" : "离开后，本次输入和字段选择将丢失。继续编辑可保留当前内容。"}</p>
+    <ModalSurface open role="alertdialog" labelledBy="leave-title" describedBy="leave-description" onClose={onStay} initialFocusRef={stayRef} dismissLabel="关闭离开提示" className="confirm-dialog leave-protection-layer">
+        <DialogTitle id="leave-title">{busy ? "正在提交，请稍候" : "放弃未保存的修改？"}</DialogTitle>
+        <DialogDescription id="leave-description" className="leading-7">{busy ? "请求已发出，请等待结果后再离开。此次离开已取消，不会重复提交。" : "离开后，本次输入和字段选择将丢失。继续编辑可保留当前内容。"}</DialogDescription>
         <div className="confirm-actions">
           <Button ref={stayRef} onClick={onStay}>{busy ? "留在此页" : "继续编辑"}</Button>
           {!busy && <Button variant="danger" onClick={onLeave}>放弃修改并离开</Button>}
         </div>
-      </div>
-    </div>, document.body,
+    </ModalSurface>, document.body,
   );
 }
 

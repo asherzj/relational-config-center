@@ -109,3 +109,13 @@ RCC_E2E_OUTPUT=/tmp/rcc-stage4-rule-clarity \
 两个脚本都支持 `RCC_WEB_URL` 和 `RCC_E2E_OUTPUT`；只有 `unsaved-changes.cjs` 支持 `RCC_E2E_TABLE`。阶段 1 的完整重建和 fixture 加载方式见其报告。正常停止自建 Compose 环境时，从仓库根目录执行 `docker compose --env-file <env-file> -f deploy/docker-compose.yml -p <isolated-project> down`，将环境文件路径和项目名替换为启动时使用的值。原生 Admin 与 Web 在各自启动终端用 Ctrl+C 停止。
 
 手动运行这些脚本前，须按[本地账号运行手册](../docs/admin-local-accounts.md)配置当前认证与数据库结构；历史阶段报告中的 Token 或免认证启动方式不适用于当前版本。每个脚本通过公开 API 注册随机测试账号，邮箱使用 `@example.invalid` 且不执行邮件操作，清理规则草稿时携带当前会话的 CSRF。测试账号随隔离数据库销毁，不应在共享数据库运行这些脚本。
+
+## UI 组件与视觉规范
+
+正式应用采用 shadcn/ui（`new-york` / `neutral`）、Radix、Tailwind CSS 4 和 Sonner。完整规范见 [`DESIGN.md`](./DESIGN.md)。颜色、布局和状态变量集中在 `src/styles.css`；官方组件源码在 `src/components/shadcn/`，业务组合在 `src/components/ui/`。新增基础组件使用：
+
+```sh
+pnpm dlx shadcn@latest add <component>
+```
+
+升级 Dialog / Sheet 时保留 `inline` 挂载与业务焦点保护，避免会话失效时浮层脱离隐藏的工作区。Table 的密度、NativeSelect 的全宽布局和 Toaster 的浅色主题也是项目定制项。组件使用 `cn` 合并工具类，`@/` 指向 `src/`。

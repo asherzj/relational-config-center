@@ -1,4 +1,9 @@
 import { ManagedTextInput } from "./ManagedTextInput";
+import { Input } from "../../components/shadcn/input";
+import { Checkbox } from "../../components/shadcn/checkbox";
+import { NativeSelect } from "../../components/shadcn/native-select";
+import { Label } from "../../components/shadcn/label";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/shadcn/table";
 import { ChevronLeft, ChevronRight, Database, Pencil, Plus, RefreshCw, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -43,10 +48,10 @@ function CellValue({ value }: { value: string | null }) {
 function ScalarInput({ column, label, value, onChange }: { column: ManagedDataColumn; label: string; value: string; onChange: (value: string) => void }) {
   if (column.type === "boolean") {
     return (
-      <select aria-label={label} value={value} onChange={(event) => onChange(event.target.value)}>
+      <NativeSelect aria-label={label} value={value} onChange={(event) => onChange(event.target.value)}>
         <option value="0">0（false）</option>
         <option value="1">1（true）</option>
-      </select>
+      </NativeSelect>
     );
   }
   if (column.type === "string" || column.type === "json") {
@@ -54,7 +59,7 @@ function ScalarInput({ column, label, value, onChange }: { column: ManagedDataCo
   }
   const inputType = column.type === "date" ? "date" : column.type === "time" ? "time" : "text";
   const inputMode = ["uint64", "int64", "decimal", "float64"].includes(column.type) ? "decimal" : undefined;
-  return <input aria-label={label} type={inputType} inputMode={inputMode} step={column.type === "time" ? "0.000001" : undefined} value={value} onChange={(event) => onChange(event.target.value)} />;
+  return <Input aria-label={label} type={inputType} inputMode={inputMode} step={column.type === "time" ? "0.000001" : undefined} value={value} onChange={(event) => onChange(event.target.value)} />;
 }
 
 function ConditionValueEditor({ index, condition, column, update }: {
@@ -69,13 +74,13 @@ function ConditionValueEditor({ index, condition, column, update }: {
   if (condition.operator === "open_range" || condition.operator === "closed_range") {
     return (
       <div className="range-inputs">
-        <label className="range-boundary-toggle">
-          <input type="checkbox" aria-label={`条件 ${index} 使用下界`} checked={condition.fromEnabled} onChange={(event) => update({ fromEnabled: event.target.checked })} />下界
-        </label>
+        <Label className="range-boundary-toggle">
+          <Checkbox aria-label={`条件 ${index} 使用下界`} checked={condition.fromEnabled} onCheckedChange={(checked) => update({ fromEnabled: checked === true })} />下界
+        </Label>
         {condition.fromEnabled && <ScalarInput column={column} label={`条件 ${index} 下界`} value={condition.from} onChange={(from) => update({ from })} />}
-        <label className="range-boundary-toggle">
-          <input type="checkbox" aria-label={`条件 ${index} 使用上界`} checked={condition.toEnabled} onChange={(event) => update({ toEnabled: event.target.checked })} />上界
-        </label>
+        <Label className="range-boundary-toggle">
+          <Checkbox aria-label={`条件 ${index} 使用上界`} checked={condition.toEnabled} onCheckedChange={(checked) => update({ toEnabled: checked === true })} />上界
+        </Label>
         {condition.toEnabled && <ScalarInput column={column} label={`条件 ${index} 上界`} value={condition.to} onChange={(to) => update({ to })} />}
       </div>
     );
@@ -91,7 +96,7 @@ function ConditionValueEditor({ index, condition, column, update }: {
               value={value}
               onChange={(next) => update({ values: condition.values.map((item, itemIndex) => itemIndex === valueIndex ? next : item) })}
             />
-            {condition.values.length > 1 && <button className="icon-button" aria-label={`条件 ${index} 删除集合值 ${valueIndex + 1}`} onClick={() => update({ values: condition.values.filter((_, itemIndex) => itemIndex !== valueIndex) })}><Trash2 size={14} /></button>}
+            {condition.values.length > 1 && <Button variant="ghost" className="icon-button" aria-label={`条件 ${index} 删除集合值 ${valueIndex + 1}`} onClick={() => update({ values: condition.values.filter((_, itemIndex) => itemIndex !== valueIndex) })}><Trash2 size={14} /></Button>}
           </div>
         ))}
         <Button aria-label={`条件 ${index} 添加集合值`} variant="ghost" disabled={condition.values.length >= 100} onClick={() => update({ values: [...condition.values, ""] })}>添加集合值</Button>
@@ -170,9 +175,9 @@ export function ManagedDataPage() {
       ) : (
         <>
           <section className="managed-data-toolbar" aria-label="Managed Table 选择">
-            <label className="field managed-table-select">
+            <Label className="field managed-table-select">
               <span>Managed Table</span>
-              <select
+              <NativeSelect
                 aria-label="Managed Table"
                 value={selectedTable}
                 onChange={(event) => {
@@ -191,8 +196,8 @@ export function ManagedDataPage() {
                 }}
               >
                 {enabledPolicies.map((policy) => <option key={policy.tableName} value={policy.tableName}>{policy.tableName}</option>)}
-              </select>
-            </label>
+              </NativeSelect>
+            </Label>
             <span className="managed-table-status"><i className="ready-dot" />已启用表规则</span>
           </section>
 
@@ -226,9 +231,9 @@ export function ManagedDataPage() {
                   const update = (change: Partial<QueryConditionDraft>) => setConditions((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...change } : item));
                   return (
                   <fieldset key={index} className="condition-row" aria-label={`条件 ${index + 1}`}>
-                    <label className="field">
+                    <Label className="field">
                       <span>字段</span>
-                      <select
+                      <NativeSelect
                         aria-label={`条件 ${index + 1} 字段`}
                         value={condition.field}
                         onChange={(event) => {
@@ -236,45 +241,45 @@ export function ManagedDataPage() {
                           const nextOperators = allowedOperators(nextColumn);
                           update({ field: event.target.value, operator: nextOperators.includes(condition.operator) ? condition.operator : "exact" });
                         }}
-                      >{result.data.columns.map((column) => <option key={column.name} value={column.name}>{column.name}</option>)}</select>
-                    </label>
-                    <label className="field">
+                      >{result.data.columns.map((column) => <option key={column.name} value={column.name}>{column.name}</option>)}</NativeSelect>
+                    </Label>
+                    <Label className="field">
                       <span>操作符</span>
-                      <select aria-label={`条件 ${index + 1} 操作符`} value={condition.operator} onChange={(event) => update({ operator: event.target.value as QueryOperator })}>
+                      <NativeSelect aria-label={`条件 ${index + 1} 操作符`} value={condition.operator} onChange={(event) => update({ operator: event.target.value as QueryOperator })}>
                         {operators.map((operator) => <option key={operator} value={operator}>{queryOperatorLabels[operator]}</option>)}
-                      </select>
-                    </label>
+                      </NativeSelect>
+                    </Label>
                     <div className="field condition-value">
                       <span>值</span>
                       <ConditionValueEditor index={index + 1} condition={condition} column={column} update={update} />
                     </div>
-                    <button
+                    <Button variant="ghost"
                       className="icon-button condition-remove"
                       aria-label={`删除条件 ${index + 1}`}
                       onClick={() => setConditions((current) => current.filter((_, itemIndex) => itemIndex !== index))}
-                    ><Trash2 size={16} /></button>
+                    ><Trash2 size={16} /></Button>
                   </fieldset>
                 )})}</div>
               )}
               <div className="query-options">
-                <label className="field">
+                <Label className="field">
                   <span>排序字段</span>
-                  <select aria-label="排序字段" value={orderField} onChange={(event) => setOrderField(event.target.value)}>
+                  <NativeSelect aria-label="排序字段" value={orderField} onChange={(event) => setOrderField(event.target.value)}>
                     <option value="">使用查询规则默认排序</option>
                     {result.data.columns.map((column) => <option key={column.name} value={column.name}>{column.name}</option>)}
-                  </select>
-                </label>
-                <label className="field">
+                  </NativeSelect>
+                </Label>
+                <Label className="field">
                   <span>排序方向</span>
-                  <select aria-label="排序方向" value={orderDirection} disabled={!orderField} onChange={(event) => setOrderDirection(event.target.value as "ASC" | "DESC")}>
+                  <NativeSelect aria-label="排序方向" value={orderDirection} disabled={!orderField} onChange={(event) => setOrderDirection(event.target.value as "ASC" | "DESC")}>
                     <option value="ASC">ASC</option>
                     <option value="DESC">DESC</option>
-                  </select>
-                </label>
-                <label className="field">
+                  </NativeSelect>
+                </Label>
+                <Label className="field">
                   <span>每页数量</span>
-                  <input aria-label="每页数量" type="number" min="1" max={queryPolicy.data?.maxPageSize ?? 200} placeholder={queryPolicy.data ? `规则默认 ${queryPolicy.data.defaultPageSize}，最多 ${queryPolicy.data.maxPageSize}` : `规则默认（当前 ${result.data.page.pageSize}）`} value={pageSize} onChange={(event) => setPageSize(event.target.value)} />
-                </label>
+                  <Input aria-label="每页数量" type="number" min="1" max={queryPolicy.data?.maxPageSize ?? 200} placeholder={queryPolicy.data ? `规则默认 ${queryPolicy.data.defaultPageSize}，最多 ${queryPolicy.data.maxPageSize}` : `规则默认（当前 ${result.data.page.pageSize}）`} value={pageSize} onChange={(event) => setPageSize(event.target.value)} />
+                </Label>
               </div>
               {validationError && <div className="inline-alert query-validation" role="alert">{validationError}</div>}
               <footer>
@@ -307,24 +312,24 @@ export function ManagedDataPage() {
             ) : (
               <>
                 <div className="table-scroll">
-                  <table className="policy-table managed-data-table">
-                    <thead><tr>{result.data.columns.map((column) => (
-                      <th key={column.name} scope="col">
+                  <Table className="policy-table managed-data-table">
+                    <TableHeader><TableRow>{result.data.columns.map((column) => (
+                      <TableHead key={column.name} scope="col">
                         <strong>{column.name}</strong>
                         <small>{column.type} · {column.nullable ? "可为 NULL" : "非 NULL"}</small>
-                      </th>
-                    ))}<th scope="col">操作</th></tr></thead>
-                    <tbody>{result.data.rows.length === 0 ? (
-                      <tr><td className="managed-data-no-rows" colSpan={result.data.columns.length + 1}>没有符合条件的配置内容</td></tr>
+                      </TableHead>
+                    ))}<TableHead scope="col">操作</TableHead></TableRow></TableHeader>
+                    <TableBody>{result.data.rows.length === 0 ? (
+                      <TableRow><TableCell className="managed-data-no-rows" colSpan={result.data.columns.length + 1}>没有符合条件的配置内容</TableCell></TableRow>
                     ) : result.data.rows.map((row, rowIndex) => (
-                      <tr key={String(row.id ?? rowIndex)}>{result.data.columns.map((column) => (
-                        <td key={column.name}><CellValue value={row[column.name] ?? null} /></td>
-                      ))}<td className="managed-data-actions">
+                      <TableRow key={String(row.id ?? rowIndex)}>{result.data.columns.map((column) => (
+                        <TableCell key={column.name}><CellValue value={row[column.name] ?? null} /></TableCell>
+                      ))}<TableCell className="managed-data-actions">
                         <Button variant="ghost" icon={<Pencil size={14} />} aria-label={`修改记录 ${row.id ?? "未知"}`} disabled={typeof row.id !== "string" || Boolean(capabilityReasons.MODIFY)} title={typeof row.id !== "string" ? "记录缺少可用的 id" : capabilityReasons.MODIFY} aria-describedby={capabilityReasons.MODIFY ? "mutation-modify-reason" : undefined} onClick={() => send({ type: "open-editor", operation: "MODIFY", row })}>修改</Button>
                         <Button variant="ghost" icon={<Trash2 size={14} />} aria-label={`删除记录 ${row.id ?? "未知"}`} disabled={typeof row.id !== "string" || Boolean(capabilityReasons.DELETE)} title={typeof row.id !== "string" ? "记录缺少可用的 id" : capabilityReasons.DELETE} aria-describedby={capabilityReasons.DELETE ? "mutation-delete-reason" : undefined} onClick={() => send({ type: "review-delete", row })}>删除</Button>
-                      </td></tr>
-                    ))}</tbody>
-                  </table>
+                      </TableCell></TableRow>
+                    ))}</TableBody>
+                  </Table>
                 </div>
                 <footer className="catalog-footer">
                   <span>共 {result.data.page.totalCount} 条</span>

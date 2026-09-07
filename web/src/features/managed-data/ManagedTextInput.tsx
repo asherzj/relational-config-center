@@ -1,3 +1,4 @@
+import { Textarea } from "../../components/shadcn/textarea";
 import { useId } from "react";
 import { Button } from "../../components/ui/Button";
 
@@ -16,7 +17,7 @@ export function ManagedTextInput({ label, value, onChange, disabled, rows = 3 }:
   const protectedCR = value.includes("\r");
   return (
     <div className="managed-text-input">
-      <textarea
+      <Textarea
         aria-label={label}
         aria-describedby={protectedCR ? explanationId : undefined}
         rows={rows}

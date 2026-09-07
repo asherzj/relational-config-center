@@ -1,7 +1,8 @@
 import { AlertTriangle } from "lucide-react";
-import { useRef } from "react";
+import { useId, useRef } from "react";
+import { DialogDescription, DialogTitle } from "../shadcn/dialog";
 import { Button } from "./Button";
-import { useModalFocus } from "./useModalFocus";
+import { ModalSurface } from "./ModalSurface";
 
 type Props = {
   open: boolean;
@@ -28,25 +29,25 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: Props) {
-  const dialogRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
-  useModalFocus({ open, dialogRef, initialFocusRef: cancelRef, onEscape: pending ? undefined : onCancel });
-  if (!open) return null;
+  const titleId = useId();
+  const descriptionId = useId();
   return (
-    <div className="modal-layer">
-      <button className="drawer-scrim" aria-label="取消操作" disabled={pending} onClick={onCancel} />
-      <div ref={dialogRef} tabIndex={-1} className="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-description" data-modal-surface="true">
-        <AlertTriangle className={destructive ? "danger-color" : "accent-color"} aria-hidden="true" />
-        <h2 id="confirm-title">{title}</h2>
-        <p id="confirm-description">{description}</p>
-        {children}
-        <div className="confirm-actions">
-          <Button ref={cancelRef} onClick={onCancel} disabled={pending}>取消</Button>
-          <Button variant={destructive ? "danger" : "primary"} onClick={onConfirm} disabled={pending || confirmDisabled}>
-            {pending ? "正在处理…" : confirmLabel}
-          </Button>
-        </div>
+    <ModalSurface
+      open={open} onClose={onCancel} pending={pending} role="alertdialog"
+      labelledBy={titleId} describedBy={descriptionId} initialFocusRef={cancelRef}
+      dismissLabel="取消操作" className="confirm-dialog"
+    >
+      <AlertTriangle className={destructive ? "text-destructive" : "text-muted-foreground"} size={24} aria-hidden="true" />
+      <DialogTitle id={titleId}>{title}</DialogTitle>
+      <DialogDescription id={descriptionId} className="leading-7">{description}</DialogDescription>
+      {children}
+      <div className="confirm-actions">
+        <Button ref={cancelRef} onClick={onCancel} disabled={pending}>取消</Button>
+        <Button variant={destructive ? "danger" : "primary"} onClick={onConfirm} disabled={pending || confirmDisabled}>
+          {pending ? "正在处理…" : confirmLabel}
+        </Button>
       </div>
-    </div>
+    </ModalSurface>
   );
 }

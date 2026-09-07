@@ -115,7 +115,7 @@ describe("rule drafts and navigation protection", () => {
     const discardAndNavigate = async (pathname: string, heading: string) => {
       await act(async () => { await user.click(screen.getByRole("button", { name: "放弃修改并离开" })); });
       expect(router.state.location.pathname).toBe(pathname);
-      expect(await screen.findByRole("heading", { name: heading })).toBeVisible();
+      expect(await screen.findByRole("heading", { name: heading, level: 1 })).toBeVisible();
       expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
     };
     await user.click(screen.getByRole("link", { name: "变更规则定义" }));

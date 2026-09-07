@@ -1,5 +1,7 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "RCC_");
@@ -9,7 +11,22 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [react()],
+    plugins: [react(), tailwindcss()],
+    resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
+    build: {
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [{
+              name: (id) => {
+                if (!id.includes("node_modules")) return null;
+                return /\/node_modules\/(react|react-dom|scheduler)\//.test(id) ? "react" : "vendor";
+              },
+            }],
+          },
+        },
+      },
+    },
     server: {
       host: "127.0.0.1",
       port: 5173,
@@ -17,7 +34,6 @@ export default defineConfig(({ mode }) => {
         "/api": {
           target: adminTarget,
           changeOrigin: true,
-
         },
       },
     },
@@ -25,6 +41,8 @@ export default defineConfig(({ mode }) => {
       environment: "jsdom",
       setupFiles: "./src/test/setup.ts",
       css: true,
+      // Full-page user-event flows mount many Radix controls under parallel CI workers.
+      testTimeout: 10_000,
     },
   };
 });
