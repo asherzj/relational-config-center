@@ -1,0 +1,450 @@
+{
+  "adminIntegration": {
+    "passedTestsIncludingSubtests": 372,
+    "passedTopLevelTests": 165,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "packages": [
+      {
+        "package": "github.com/asherzj/relational-config-center/admin/cmd/account-maintain",
+        "action": "skip",
+        "seconds": 0
+      },
+      {
+        "package": "github.com/asherzj/relational-config-center/admin/cmd/policy-migrate",
+        "action": "skip",
+        "seconds": 0
+      },
+      {
+        "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/password",
+        "action": "skip",
+        "seconds": 0
+      },
+      {
+        "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+        "action": "pass",
+        "seconds": 2.753
+      },
+      {
+        "package": "github.com/asherzj/relational-config-center/admin/internal/domain",
+        "action": "pass",
+        "seconds": 4.977
+      },
+      {
+        "package": "github.com/asherzj/relational-config-center/admin/internal/platform/config",
+        "action": "pass",
+        "seconds": 5.237
+      },
+      {
+        "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+        "action": "pass",
+        "seconds": 82.187
+      },
+      {
+        "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+        "action": "pass",
+        "seconds": 155.028
+      },
+      {
+        "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+        "action": "pass",
+        "seconds": 1060.897
+      }
+    ],
+    "startedAt": "2026-09-07T17:26:09.605247+08:00",
+    "lastEventAt": "2026-09-07T17:43:52.040091+08:00"
+  },
+  "sourceState": {
+    "preMergeHead": "175fa25a1f692c348043ae5cbdde4ddab036eee1",
+    "mergedMain": "a9f583002fad3b5670cfb9905bf49c38c147d6fd",
+    "mergeCommit": "24ee35239c5220f8072d21d0b096f4b60b019ec8",
+    "sourceAndTestTreeSHA256": "44f2f19924abe022133b31a78951b1e51c191f8bf74a56a882974547ec8634e0"
+  },
+  "web": {
+    "typecheck": "passed",
+    "files": 25,
+    "tests": 243,
+    "failed": 0,
+    "logSHA256": "71f92e489af9c48563c74d3c9405ed66ea9a15fd874a1b467806b9aeca33014f"
+  },
+  "goModules": {
+    "test": "passed",
+    "build": "passed"
+  },
+  "accountChromeSystem": {
+    "status": "passed",
+    "seconds": 41.752
+  },
+  "complexFields": {
+    "status": "passed",
+    "cases": 42,
+    "fixtureRowsEqual": true,
+    "cleanupVerified": true,
+    "authSQLPersisted": 0
+  },
+  "browserAcceptance": {
+    "platform": "macOS arm64",
+    "runner": "scripts/browser-acceptance.sh",
+    "runMeta": [
+      "run id: rcc-browser-1788775251-11512",
+      "container name: rcc-browser-1788775251-11512-mysql",
+      "volume name: rcc-browser-1788775251-11512-mysql-data",
+      "started at: 2026-09-07T10:00:51Z",
+      "docker client=29.7.2 server=29.5.2",
+      "v24.19.0",
+      "10.28.2",
+      "go version go1.27.0 darwin/arm64",
+      "exit status: 0",
+      "finished at: 2026-09-07T10:03:38Z",
+      "cleanup verified: true",
+      "container name: rcc-browser-1788775251-11512-mysql",
+      "volume name: rcc-browser-1788775251-11512-mysql-data"
+    ],
+    "passed": 131,
+    "authentication": {
+      "ok": true,
+      "anonymous": 401,
+      "registered": 201,
+      "authenticatedRead": 200,
+      "missingCSRF": 403,
+      "authenticatedQuery": 200,
+      "logout": 204,
+      "afterLogout": 401,
+      "credentialsPersisted": false
+    },
+    "fixtureFullRowsEqual": true,
+    "fixtureSHA256": "5a03d3117b74fc69e00a14a711e43d2a5e4a53eb4c5a0293681738b67ab20d8e",
+    "authSQLPersisted": 0,
+    "suites": [
+      {
+        "name": "unsaved-changes",
+        "passed": 14,
+        "failed": 0,
+        "resultSHA256": "5079de36c2f73a96b3f5d88b4de3f815fb1b6b1820e0d1e05b61cb8fa67310b7",
+        "cases": [
+          "untouched Query create closes without a warning",
+          "actual browser POP back cancel retains input and route",
+          "actual browser POP back confirm and forward restore the intended route",
+          "native beforeunload reload cancellation preserves input",
+          "native tab-close cancellation preserves the editing document",
+          "discard confirmation owns keyboard focus and fits a 390px viewport",
+          "restored original Query values clear protection",
+          "actual browser forward navigation is canceled or confirmed at its original target",
+          "real duplicate Policy Code rejection preserves Query form input",
+          "real completed write with delayed response blocks POP, then shows success once",
+          "disposable Query draft cleaned up through the Admin API",
+          "Change Set cancel and return retain values, NULL and omitted fields",
+          "real Admin/MySQL validation rejection retains the row draft and request error",
+          "confirmed discard closes the editor with no browser storage draft"
+        ]
+      },
+      {
+        "name": "rule-clarity",
+        "passed": 6,
+        "failed": 0,
+        "resultSHA256": "9974a3c509636a61e02e77ba8a399e093b5b5ab05ecd297772dd6056c77f9315",
+        "cases": [
+          "query detail explains default order and pagination",
+          "metadata editing is separate from execution rules",
+          "deprecated mutation remains effective for its existing assignment",
+          "table detail and replacement preview show selected effects",
+          "managed data explains live schema and current capabilities",
+          "390px layout has no page overflow and remains readable"
+        ]
+      },
+      {
+        "name": "write-recovery",
+        "passed": 28,
+        "failed": 0,
+        "resultSHA256": "5ac7ad97e18114b691a19c65250e60560cc71661ef592a6f2d112ede70106622",
+        "cases": [
+          "ADD abort: committed once, draft retained, check is read-only",
+          "ADD json: committed once, draft retained, check is read-only",
+          "ADD contract: committed once, draft retained, check is read-only",
+          "ADD 503: committed once, draft retained, check is read-only",
+          "MODIFY response lost: actual final row and exact-id check",
+          "DELETE response lost: actual final row and exact-id check",
+          "explicit resume retains draft; the next unknown attempt needs a fresh read under max page size 5",
+          "known success followed by readback failure recovers without a second write",
+          "double-click + Enter + back/close during pending executes one ADD",
+          "real ENUM rejection keeps input editable and corrected submission writes once",
+          "actual database outage and recovery: failed reads stay locked, only reads are retried",
+          "query create: saved state retained after response failure",
+          "query replace: saved state retained after response failure",
+          "query metadata: saved state retained after response failure",
+          "query activate: lifecycle response loss is recoverable by reads",
+          "query deprecate: lifecycle response loss is recoverable by reads",
+          "query delete: lost response, missing-resource check never repeats deletion",
+          "mutation create: saved state retained after response failure",
+          "mutation replace: saved state retained after response failure",
+          "mutation metadata: saved state retained after response failure",
+          "mutation activate: lifecycle response loss is recoverable by reads",
+          "mutation deprecate: lifecycle response loss is recoverable by reads",
+          "mutation delete: lost response, missing-resource check never repeats deletion",
+          "rapid lifecycle confirmation and pending back navigation update once",
+          "table assignment create: persisted change and read-only recovery",
+          "table assignment replace: persisted change and read-only recovery",
+          "table assignment enable: persisted change and read-only recovery",
+          "table assignment disable: persisted change and read-only recovery"
+        ]
+      },
+      {
+        "name": "operation-coverage",
+        "passed": 20,
+        "failed": 0,
+        "resultSHA256": "0e7b0c0ffa771b4ff000d1eceb0852c086b40920a4983a442d1563aa6008494c",
+        "cases": [
+          "browser creates a complete Mutation Draft through Admin",
+          "permission conflict is retained and blocks the HTTP write",
+          "unsafe Auto Fill column is retained and blocks the HTTP write",
+          "case-insensitive id Auto Fill target is retained and blocks the HTTP write",
+          "exact duplicate Auto Fill columns block the HTTP write",
+          "case-insensitive duplicate Auto Fill columns block the HTTP write",
+          "Mutation Draft PUT survives close and reopen with all execution fields",
+          "Mutation Draft is deleted by the visible UI command",
+          "query Active metadata saves without changing execution fields",
+          "mutation Active metadata saves without changing execution fields",
+          "query is deprecated through the real lifecycle UI",
+          "mutation is deprecated through the real lifecycle UI",
+          "query Deprecated metadata saves without changing execution fields",
+          "mutation Deprecated metadata saves without changing execution fields",
+          "existing assignment keeps querying and mutating with Deprecated definitions",
+          "new assignment choices include only Active definitions",
+          "Table Policy Catalog filters full loaded data without writes",
+          "browser submits exactly 20 AND conditions and never emits a 21-condition query",
+          "all three unauthorized operation controls stay visible, disabled, and explained",
+          "real Table Policy replacement governs the next UI capability and write request"
+        ],
+        "cleanup": {
+          "fixtureRowsEqual": true,
+          "tablePolicies": 0,
+          "queryPolicies": 0,
+          "mutationPolicies": 0,
+          "physicalTables": 0
+        }
+      },
+      {
+        "name": "complex-fields",
+        "passed": 42,
+        "failed": 0,
+        "resultSHA256": "7f04b04c5a830d72a21377e6ab98a74a546a92b6a7dd361a35a5148c9ee77728",
+        "cases": [
+          "TEXT and JSON browser ADD, PATCH, SQL byte comparison, readback and reopened editor",
+          "multiline TEXT query uses the exact browser input without removing LF",
+          "SQL NULL, JSON null literal and string, empty and omitted values stay distinct",
+          "uint64 auto ID 9007199254740993 survives browser create, query, PATCH and reopen",
+          "uint64 auto ID 9223372036854775808 survives browser create, query, PATCH and reopen",
+          "uint64 auto ID 18446744073709551614 survives browser create, query, PATCH and reopen",
+          "explicit auto ID zero returns the actual inserted identity through browser ADD and PATCH",
+          "non-auto default ID stage4_default_id_constant requires explicit identity before inserting",
+          "non-auto default ID stage4_default_id_expression requires explicit identity before inserting",
+          "identity review: explicit numeric ID returns the stored canonical identity",
+          "identity matrix: signed integer keeps a usable stored key or rolls back",
+          "identity matrix: decimal equal value keeps a usable stored key or rolls back",
+          "identity matrix: decimal rounding keeps a usable stored key or rolls back",
+          "identity matrix: CHAR trailing spaces keeps a usable stored key or rolls back",
+          "identity matrix: VARCHAR trailing spaces keeps a usable stored key or rolls back",
+          "identity matrix: VARCHAR URI delimiters keeps a usable stored key or rolls back",
+          "identity matrix: ENUM case normalization keeps a usable stored key or rolls back",
+          "identity matrix: TIME equal value keeps a usable stored key or rolls back",
+          "identity matrix: TIME rounding keeps a usable stored key or rolls back",
+          "identity matrix: DATETIME equal value keeps a usable stored key or rolls back",
+          "identity matrix: DATETIME rounding keeps a usable stored key or rolls back",
+          "identity matrix: TIMESTAMP equal value keeps a usable stored key or rolls back",
+          "identity matrix: TIMESTAMP rounding keeps a usable stored key or rolls back",
+          "identity matrix: FLOAT exact keeps a usable stored key or rolls back",
+          "identity matrix: FLOAT precision boundary keeps a usable stored key or rolls back",
+          "identity matrix: DOUBLE keeps a usable stored key or rolls back",
+          "identity matrix: DATE keeps a usable stored key or rolls back",
+          "identity review: response-lost explicit zero ADD checks without guessing a generated ID",
+          "identity preflight read denial prevents INSERT and preserves the draft",
+          "identity guard: nontransactional decimal rounding rejects without persisting a row",
+          "identity guard: empty string rejects without persisting a row",
+          "identity guard: single dot rejects without persisting a row",
+          "identity guard: double dot rejects without persisting a row",
+          "CRLF and standalone CR stay protected through unrelated writes and explicit normalization",
+          "raw CR clipboard selection is preserved in record and query inputs before conversion",
+          "ordinary expression defaults allow explicit values and omission defaults",
+          "Auto Fill writes expression-default audit columns with one UTC database time",
+          "stored_value remains rejected as a real generated column",
+          "virtual_value remains rejected as a real generated column",
+          "generated fields calculate on omitted ADD and stay unwritable on PATCH",
+          "VARCHAR length is editable rejection with rollback and corrected browser retry",
+          "TINYINT range is editable rejection with rollback and corrected browser retry"
+        ],
+        "cleanup": {
+          "fixtureRowsEqual": true,
+          "remainingTables": "0",
+          "remainingTablePolicies": "0",
+          "remainingPolicies": "0"
+        }
+      },
+      {
+        "name": "browser-accessibility/chromium",
+        "passed": 7,
+        "failed": 0,
+        "resultSHA256": "57755b8e2bad78b710e1b80ee44e9794d703da40f03f0c0fd785ad955312fc7e",
+        "cases": [
+          "drawer background is inert and actual Shift+Tab/Tab loops inside the drawer",
+          "native back cancel/confirm and forward preserve the intended history entry",
+          "320px long drawer scroll keeps the action footer reachable",
+          "320px Change Set owns horizontal/vertical overflow and keeps actions reachable",
+          "only the top nested leave dialog handles Tab/Escape and focus returns to Change Set",
+          "real MySQL rejection retains raw CR and explicit LF conversion unlocks editing",
+          "390px unknown-write recovery stays locked and performs one real write plus read-only verification"
+        ],
+        "engine": "chromium",
+        "browserVersion": "151.0.7922.34",
+        "coverageBoundaries": {
+          "safari": "Playwright WebKit engine; not an installed Safari release",
+          "clipboard": "synthetic paste Event with injected DataTransfer; not the OS clipboard",
+          "unknownWrite": "Playwright API response fault injection after a real MySQL commit",
+          "beforeUnload": "This suite checks a cancelable browser event; the existing Chromium unsaved-changes suite separately observes the native user-agent prompt."
+        },
+        "cleanup": {
+          "remainingRows": 0
+        },
+        "faultEvidence": {
+          "actualStatus": 201,
+          "requestId": "rcc-7b6aec6c9986212aa626d61aee555cfe",
+          "injectedStatus": 503
+        }
+      },
+      {
+        "name": "browser-accessibility/firefox",
+        "passed": 7,
+        "failed": 0,
+        "resultSHA256": "c0c71baf8cfd8e3d8109448b883c16396a8a24c22f05ce1e700bbf88d0fefd8e",
+        "cases": [
+          "drawer background is inert and actual Shift+Tab/Tab loops inside the drawer",
+          "native back cancel/confirm and forward preserve the intended history entry",
+          "320px long drawer scroll keeps the action footer reachable",
+          "320px Change Set owns horizontal/vertical overflow and keeps actions reachable",
+          "only the top nested leave dialog handles Tab/Escape and focus returns to Change Set",
+          "real MySQL rejection retains raw CR and explicit LF conversion unlocks editing",
+          "390px unknown-write recovery stays locked and performs one real write plus read-only verification"
+        ],
+        "engine": "firefox",
+        "browserVersion": "153.0",
+        "coverageBoundaries": {
+          "safari": "Playwright WebKit engine; not an installed Safari release",
+          "clipboard": "synthetic paste Event with injected DataTransfer; not the OS clipboard",
+          "unknownWrite": "Playwright API response fault injection after a real MySQL commit",
+          "beforeUnload": "Cancelable browser event only; Playwright did not claim native user-agent prompt coverage for this engine."
+        },
+        "cleanup": {
+          "remainingRows": 0
+        },
+        "faultEvidence": {
+          "actualStatus": 201,
+          "requestId": "rcc-ea5070459ae0b1e0d0a411f52d371d49",
+          "injectedStatus": 503
+        }
+      },
+      {
+        "name": "browser-accessibility/webkit",
+        "passed": 7,
+        "failed": 0,
+        "resultSHA256": "2900048313813976ea5c5fd817e5d0b3f0bfeac742d13798710194e54bb1b1e8",
+        "cases": [
+          "drawer background is inert and actual Shift+Tab/Tab loops inside the drawer",
+          "native back cancel/confirm and forward preserve the intended history entry",
+          "320px long drawer scroll keeps the action footer reachable",
+          "320px Change Set owns horizontal/vertical overflow and keeps actions reachable",
+          "only the top nested leave dialog handles Tab/Escape and focus returns to Change Set",
+          "real MySQL rejection retains raw CR and explicit LF conversion unlocks editing",
+          "390px unknown-write recovery stays locked and performs one real write plus read-only verification"
+        ],
+        "engine": "webkit",
+        "browserVersion": "26.5",
+        "coverageBoundaries": {
+          "safari": "Playwright WebKit engine; not an installed Safari release",
+          "clipboard": "synthetic paste Event with injected DataTransfer; not the OS clipboard",
+          "unknownWrite": "Playwright API response fault injection after a real MySQL commit",
+          "beforeUnload": "Cancelable browser event only; Playwright did not claim native user-agent prompt coverage for this engine."
+        },
+        "cleanup": {
+          "remainingRows": 0
+        },
+        "faultEvidence": {
+          "actualStatus": 201,
+          "requestId": "rcc-167e9053a5d3a6e51539e515b27c5223",
+          "injectedStatus": 503
+        }
+      }
+    ]
+  },
+  "linuxEvidence": {
+    "authoritativeChecks": "https://github.com/asherzj/relational-config-center/pull/43/checks",
+    "deliveryRecord": "https://app.notion.com/p/3ca8544cc98980559f27e17f2c94cbaf",
+    "note": "Linux conclusions, run ID, artifact ID and SHA256 are verified separately at delivery; macOS results do not stand in for Linux.",
+    "verifiedBrowserCheckpoint": {
+      "runID": 34109234808,
+      "headSHA": "24ee35239c5220f8072d21d0b096f4b60b019ec8",
+      "browserConclusion": "success",
+      "completedAt": "2026-09-07T10:06:56Z",
+      "artifactID": 10013816450,
+      "artifactSHA256": "sha256:21d4d10f7bdfbb96ee5147af8e6604834ecf48c26dfeb4479e04ec5191731e3d",
+      "passed": 131,
+      "suites": [
+        {
+          "suite": "unsaved-changes",
+          "passed": 14,
+          "resultSHA256": "433d9dfd964d18a9bd662f1e245b83a455c5eb82550dd8d61f4208b03211ba02"
+        },
+        {
+          "suite": "rule-clarity",
+          "passed": 6,
+          "resultSHA256": "923c9cbb94bbf8b423a4d1e51da898eb7381f48422eadd4a6bddff0fbc826eb5"
+        },
+        {
+          "suite": "write-recovery",
+          "passed": 28,
+          "resultSHA256": "7660e34f81c6dbcb8b6145dbbf69476830c40be71798de89ebd4c0b19404a496"
+        },
+        {
+          "suite": "operation-coverage",
+          "passed": 20,
+          "resultSHA256": "6ab865dc365bff7138943c6aeb31f7702d99250efaf51dec4da0da1cb6b30bf2"
+        },
+        {
+          "suite": "complex-fields",
+          "passed": 42,
+          "resultSHA256": "e8f7b7ce970fdc5af9ae60c08fa255d6daf22314a39b43622b165c3bd01f051e"
+        },
+        {
+          "suite": "browser-accessibility/chromium",
+          "passed": 7,
+          "resultSHA256": "95ce7e1839a9193e1c877ae64ac35f17cdfbb34082cdb27312fe28f6cf1732a4"
+        },
+        {
+          "suite": "browser-accessibility/firefox",
+          "passed": 7,
+          "resultSHA256": "b52477b2eae67344e48dc46f3dba6efae979c2ed932d0adf5630e37175a54e53"
+        },
+        {
+          "suite": "browser-accessibility/webkit",
+          "passed": 7,
+          "resultSHA256": "6df9e906b600d4045320fdeb9332fc23d64a0b372dede96eee4cb7f84e247c5c"
+        }
+      ],
+      "fixtureRowsEqual": true,
+      "cleanupVerified": true,
+      "runMeta": [
+        "run id: rcc-browser-1788775339-2135",
+        "container name: rcc-browser-1788775339-2135-mysql",
+        "volume name: rcc-browser-1788775339-2135-mysql-data",
+        "started at: 2026-09-07T10:02:19Z",
+        "docker client=28.0.4 server=28.0.4",
+        "v24.19.0",
+        "10.28.2",
+        "go version go1.27.0 linux/amd64",
+        "exit status: 0",
+        "finished at: 2026-09-07T10:06:51Z",
+        "cleanup verified: true",
+        "container name: rcc-browser-1788775339-2135-mysql",
+        "volume name: rcc-browser-1788775339-2135-mysql-data"
+      ]
+    }
+  }
+}

@@ -60,6 +60,8 @@ pnpm build
 
 ## 真实验收
 
+最近一轮可靠性验收、账号兼容合并及 131 项生产构建浏览器证据见[交付记录](../docs/verification/2026-09-07-reliability-final-delivery.md)。
+
 从仓库根目录执行以下命令；它会从干净 checkout 启动一次性的 MySQL 8.4、Admin 和 Web preview，加载隔离 fixture，注册临时账号，并运行未保存保护、规则说明、写入恢复、操作覆盖、复杂字段及浏览器可访问性验收：
 
 ```sh

@@ -22,8 +22,8 @@
 | 2 | 写入故障、恢复及重复提交验收与修复 | 90 分钟 | GPT-6-Astra / high | 已推送 PM-060；两个导航时间窗口均已复现并修复 |
 | 3 | 真实操作覆盖缺口 | 60 分钟 | GPT-5.6-Sol / high | 已推送 PM-061，Linux 四项 CI 全部通过 |
 | 4 | 复杂字段端到端往返 | 60 分钟 | GPT-6-Astra / high | 已推送；补审扩展为 42 项复杂字段，账号合并后专项全通过 |
-| 5 | 浏览器、键盘与窄屏验收 | 45 分钟 | GPT-5.6-Sol / high | macOS 三引擎通过；Linux WebKit 窄屏修复已推送，待合并后复验 |
-| 6 | 纠正时间记录、同步交付与 Notion | 15 分钟 | GPT-5.6-Luna / medium | 进行中；等待父代理补齐最终事实 |
+| 5 | 浏览器、键盘与窄屏验收 | 45 分钟 | GPT-5.6-Sol / high | macOS 与 Linux 三引擎通过；Linux WebKit 窄屏修复已有独立绿图和 artifact 校验 |
+| 6 | 纠正时间记录、同步交付与 Notion | 15 分钟 | GPT-5.6-Luna / medium | 已整理最终本机证据；交付时 CI 与 Notion 状态见下方入口 |
 
 安排用于指导本轮有效投入；实际各项时间由记录核对。某项提前完成时，继续处理同一范围内有证据支持的薄弱点或将时间转用于后续较复杂阶段，并记明调整。
 
@@ -37,7 +37,7 @@
 
 ## 实际投入与交付
 
-工作进行中，尚未声称本轮六项完成或已投入 6 小时。实际计时从 04:08:58Z 开始；文档收尾时以记录中的真实时间为准，不按阶段预算相加。
+实际计时从 04:08:58Z 开始，不按阶段预算或并行代理时间相加。以下保留各阶段检查点，最终本机组合于 10:03:38Z 通过；交付证据和时间边界见[最终交付记录](2026-09-07-reliability-final-delivery.md)，Linux 与项目状态以 [MR #43](https://github.com/asherzj/relational-config-center/pull/43) 和 [Notion](https://app.notion.com/p/3ca8544cc98980559f27e17f2c94cbaf) 的最终核验记录为准。
 
 - 阶段 1：本机冷依赖/构建、带空格路径、14 + 6 项浏览器验收、正常 Bearer 认证、种子行完整内容及进程/容器/卷清理通过；对依赖缺失、构建失败、Docker 不可用、非空证据目录、浏览器超时、外层取消及抗终止子进程逐项验证。详见[阶段 1 报告](2026-09-07-reliability-stage1-ci.md)。实现 `12eb0ee` 与 Go 退出测试时限修正 `7c0266a` 已推送至草稿 [MR #43](https://github.com/asherzj/relational-config-center/pull/43)。新 run `34085403122` 的 Web、Go unit/build、MySQL 8.4 integration 和 Browser acceptance 全部成功，最后一项于 05:16:05Z 完成。Notion PM-059 已更新并回读；父任务 PM-058 保持进行中。
 - 基线 `439fa33` 的既有 CI run `34081770150` 已核实 Web、Go unit/build、MySQL integration 全部通过；这是基线证据，不替代本轮新增浏览器 CI 的实跑。

@@ -23,6 +23,7 @@
 | 账号系统浏览器路径 | `make test-browser` 通过，41.752 秒；真实 Chrome 覆盖注册、刷新、重开、会话丢失、同账号草稿恢复、隐藏抽屉键盘隔离、业务写入、退出及存储检查 |
 | Web 全量 | 生命周期导航修复后 typecheck 通过；25 个文件、243 项全量测试通过 |
 | 复杂字段浏览器专项 | `RCC_E2E_SUITE=complex-fields make test-browser-acceptance` 的 42 项通过，原 fixture 全字段相等、临时资源清理通过 |
+| 最终生产构建组合 | 10:00:51Z–10:03:38Z，六套件与三个浏览器共 131 项通过，认证、fixture 和资源清理均通过；见[交付记录](2026-09-07-reliability-final-delivery.md) |
 
 三个没有测试文件的 Go package 会产生 package 级 `skip` 事件；它们不属于上表的测试跳过。完整 integration 为实际执行，不以入口编译代替数据库验证。
 
