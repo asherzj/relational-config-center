@@ -1,3 +1,4 @@
+import { Skeleton } from "../shadcn/skeleton";
 import { AlertCircle, RefreshCw, Search } from "lucide-react";
 import { presentError } from "../../api/error-messages";
 import { Button } from "./Button";
@@ -5,7 +6,7 @@ import { Button } from "./Button";
 export function LoadingState({ label = "正在加载…" }: { label?: string }) {
   return (
     <div className="feedback-state" role="status">
-      <span className="spinner" aria-hidden="true" />
+      <div className="grid w-full max-w-sm gap-3" aria-hidden="true"><Skeleton className="h-4 w-3/5" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-4/5" /></div>
       <strong>{label}</strong>
     </div>
   );

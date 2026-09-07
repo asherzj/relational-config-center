@@ -1,3 +1,7 @@
+import { Input } from "../../components/shadcn/input";
+import { NativeSelect } from "../../components/shadcn/native-select";
+import { Label } from "../../components/shadcn/label";
+import { Badge } from "../../components/shadcn/badge";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -195,10 +199,10 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
   }} />;
   else if (!creating && !replacing && detail.data) content = (
     <div className="policy-form">
-      <span className={`status-badge ${detail.data.enabled ? "status-active" : "status-draft"}`}>{detail.data.enabled ? "已启用" : "未启用"}</span>
-      <label className="field"><span>真实数据库表</span><input value={detail.data.tableName} disabled readOnly /></label>
-      <label className="field"><span>查询规则编码</span><input value={detail.data.queryPolicyCode} disabled readOnly /></label>
-      <label className="field"><span>变更规则编码</span><input value={detail.data.mutationPolicyCode} disabled readOnly /></label>
+      <Badge variant="outline" className={`status-badge ${detail.data.enabled ? "status-active" : "status-draft"}`}>{detail.data.enabled ? "已启用" : "未启用"}</Badge>
+      <Label className="field"><span>真实数据库表</span><Input value={detail.data.tableName} disabled readOnly /></Label>
+      <Label className="field"><span>查询规则编码</span><Input value={detail.data.queryPolicyCode} disabled readOnly /></Label>
+      <Label className="field"><span>变更规则编码</span><Input value={detail.data.mutationPolicyCode} disabled readOnly /></Label>
       {effects({ tableName: detail.data.tableName, queryPolicyCode: detail.data.queryPolicyCode, mutationPolicyCode: detail.data.mutationPolicyCode }, false, detail.data.enabled)}
       <dl className="audit-grid"><div><dt>创建人</dt><dd>{detail.data.creator}</dd></div><div><dt>修改人</dt><dd>{detail.data.modifier}</dd></div><div><dt>创建时间</dt><dd>{detail.data.createdAt}</dd></div><div><dt>修改时间</dt><dd>{detail.data.modifiedAt}</dd></div></dl>
       {writeError}
@@ -208,21 +212,21 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
     <form id="table-policy-form" className="policy-form" onSubmit={submit}>
       <fieldset className="form-controls" disabled={pending}>
       <div className="form-note"><AlertCircle size={17} /><span>{creating ? "新分配始终创建为未启用；启用前 Admin 会再次校验实时 Schema 与两条规则引用。" : "查询规则和变更规则会一起校验、一起替换；任何一项失败，当前分配都保持不变。"}</span></div>
-      {creating ? <label className="field"><span>真实数据库表</span><select aria-label="真实数据库表" value={assignment.tableName} onChange={(event) => setAssignment((current) => ({ ...current, tableName: event.target.value }))}>
+      {creating ? <Label className="field"><span>真实数据库表</span><NativeSelect aria-label="真实数据库表" value={assignment.tableName} onChange={(event) => setAssignment((current) => ({ ...current, tableName: event.target.value }))}>
           <option value="">请选择兼容且未分配的表</option>
           {assignment.tableName && !candidates.some((table) => table.tableName === assignment.tableName) && <option value={assignment.tableName} disabled>{assignment.tableName} · 当前选择已不可新分配</option>}
           {candidates.map((table) => <option key={table.tableName} value={table.tableName}>{table.tableName}{table.tableComment ? ` · ${table.tableComment}` : ""}</option>)}
-        </select></label> : <label className="field"><span>真实数据库表</span><input value={assignment.tableName} disabled readOnly /></label>}
-      <label className="field"><span>Active 查询规则</span><select aria-label="Active 查询规则" value={assignment.queryPolicyCode} onChange={(event) => setAssignment((current) => ({ ...current, queryPolicyCode: event.target.value }))}>
+        </NativeSelect></Label> : <Label className="field"><span>真实数据库表</span><Input value={assignment.tableName} disabled readOnly /></Label>}
+      <Label className="field"><span>Active 查询规则</span><NativeSelect aria-label="Active 查询规则" value={assignment.queryPolicyCode} onChange={(event) => setAssignment((current) => ({ ...current, queryPolicyCode: event.target.value }))}>
         <option value="">请选择 Active 查询规则</option>
         {assignment.queryPolicyCode && !activeQueryPolicies.some((policy) => policy.code === assignment.queryPolicyCode) && <option value={assignment.queryPolicyCode} disabled>{assignment.queryPolicyCode} · 当前引用或选择</option>}
         {activeQueryPolicies.map((policy) => <option key={policy.code} value={policy.code}>{policy.code} · {policy.name}</option>)}
-      </select></label>
-      <label className="field"><span>Active 变更规则</span><select aria-label="Active 变更规则" value={assignment.mutationPolicyCode} onChange={(event) => setAssignment((current) => ({ ...current, mutationPolicyCode: event.target.value }))}>
+      </NativeSelect></Label>
+      <Label className="field"><span>Active 变更规则</span><NativeSelect aria-label="Active 变更规则" value={assignment.mutationPolicyCode} onChange={(event) => setAssignment((current) => ({ ...current, mutationPolicyCode: event.target.value }))}>
         <option value="">请选择 Active 变更规则</option>
         {assignment.mutationPolicyCode && !activeMutationPolicies.some((policy) => policy.code === assignment.mutationPolicyCode) && <option value={assignment.mutationPolicyCode} disabled>{assignment.mutationPolicyCode} · 当前引用或选择</option>}
         {activeMutationPolicies.map((policy) => <option key={policy.code} value={policy.code}>{policy.code} · {policy.name}</option>)}
-      </select></label>
+      </NativeSelect></Label>
       {(assignment.queryPolicyCode || assignment.mutationPolicyCode) && effects(assignment, true)}
       {creating && !candidates.length && <div className="inline-alert"><AlertCircle size={17} /><span>没有兼容且未分配的真实数据库表。</span></div>}
       {writeError}
