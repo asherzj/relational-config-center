@@ -1,0 +1,24 @@
+{
+  "tickets": {
+    "T2": 33,
+    "T1": 49,
+    "T3": 50,
+    "T4": 51,
+    "T5": 52,
+    "T6": 53,
+    "T7": 54,
+    "T8": 55
+  },
+  "parent": 48,
+  "updated": {
+    "T1": true,
+    "T2": true,
+    "T3": true,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": true,
+    "T8": true
+  },
+  "relationships_verified": true
+}
