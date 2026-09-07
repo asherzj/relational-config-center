@@ -72,9 +72,32 @@ make test-integration
 
 ## 持续集成
 
-GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行三个稳定检查：`Web`、`Go unit and build`、`MySQL 8.4 integration`。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
+GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行四个检查：`Web`、`Go unit and build`、`MySQL 8.4 integration` 和 `Browser acceptance`。浏览器检查在 Linux runner 上使用 Playwright 的 Chromium、Firefox 和 WebKit；每个引擎单独写入 artifact 子目录。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
 
-工作流当前只在推送到 `main` 和目标为 `main` 的 Pull Request 上运行三个检查；推送到其他分支不会自动触发这套 CI。是否配置 branch protection、rulesets 或 required checks 由仓库设置决定，不能从本地文档推断为合并保证。
+工作流当前只在推送到 `main` 和目标为 `main` 的 Pull Request 上运行这四个检查；推送到其他分支不会自动触发这套 CI。是否配置 branch protection、rulesets 或 required checks 由仓库设置决定，不能从本地文档推断为合并保证。
+
+浏览器检查也可以在本地按套件或引擎运行。`all` 包含 `unsaved-changes`、`rule-clarity`、`write-recovery`、`operation-coverage`、`complex-fields` 和 `browser-accessibility`；后一个套件按 `RCC_E2E_ENGINES` 逐引擎运行。每次运行都应使用独立的空 artifact 目录：
+
+```bash
+RCC_E2E_ARTIFACTS=/tmp/rcc-browser-acceptance-$(date +%s) \
+RCC_E2E_ENGINES=chromium,firefox,webkit \
+  make test-browser-acceptance
+
+RCC_E2E_SUITE=browser-accessibility \
+RCC_E2E_ENGINE=firefox \
+RCC_E2E_ARTIFACTS=/tmp/rcc-browser-accessibility-firefox \
+  make test-browser-acceptance
+```
+
+本地阶段 5 的三引擎证据是在 macOS 上由 Playwright Chromium 151.0.7922.34、Firefox 153.0 和 WebKit 26.5 运行得到的；WebKit 结果代表 Playwright WebKit 构建，不代表系统 Safari 的所有发行版。Linux CI 是另一条实际环境边界，不能由 macOS 结果替代。使用 Colima 时，Admin integration 需要让 Docker client 和 Ryuk 都连接到 VM 内的 socket，例如：
+
+```bash
+DOCKER_HOST=unix://$HOME/.colima/default/docker.sock \
+TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
+  go -C admin test -count=1 -timeout=20m -tags=integration ./...
+```
+
+只设置 `DOCKER_HOST` 会让 Ryuk 尝试把 macOS socket 路径挂载进 VM 并失败；本次环境在 provider 健康检查未通过时会跳过 integration，其他 Docker provider 可能自动发现 daemon，不能据此泛化。其他 provider 的 daemon 与 VM socket 仍需按本机环境核实。
 
 ## 项目结构
 

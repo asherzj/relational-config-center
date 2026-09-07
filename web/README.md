@@ -64,7 +64,26 @@ pnpm build
 make test-browser-acceptance
 ```
 
-该命令要求本机已有 Docker、Go、Node.js 和 pnpm；它会安装锁定的 Web 依赖、Chromium，并构建 Web。MySQL、Admin 和 Web 均使用动态宿主端口；正常或失败退出时只删除本次创建的进程、容器和数据卷。日志、截图与结构化结果写入命令最后显示的临时目录，可通过 `RCC_E2E_ARTIFACTS` 指定一个新的空目录。CI 执行同一命令，并在成功或失败时上传证据。
+该命令要求本机已有 Docker、Go、Node.js 和 pnpm；它会安装锁定的 Web 依赖、默认使用 Chromium，并构建 Web。MySQL、Admin 和 Web 均使用动态宿主端口；正常或失败退出时只删除本次创建的进程、容器和数据卷。日志、截图与结构化结果写入命令最后显示的临时目录，可通过 `RCC_E2E_ARTIFACTS` 指定一个新的空目录。CI 执行同一命令并设置 `RCC_E2E_ENGINES=chromium,firefox,webkit`，每个引擎使用独立的 artifact 子目录，成功或失败时均上传证据。
+
+runner 支持按套件和引擎缩小范围。`RCC_E2E_SUITE` 可选 `all`、`unsaved-changes`、`rule-clarity`、`write-recovery`、`operation-coverage`、`complex-fields` 或 `browser-accessibility`；`RCC_E2E_ENGINES` 是逗号分隔的 `chromium`、`firefox`、`webkit`，也可用 `RCC_E2E_ENGINE` 选择单个引擎。默认 `all` 包含前五个 Chromium 套件以及 `browser-accessibility` 的所选引擎。每次本地运行请指定新的空输出目录，例如：
+
+```sh
+RCC_E2E_SUITE=browser-accessibility \
+RCC_E2E_ENGINES=firefox,webkit \
+RCC_E2E_ARTIFACTS=/tmp/rcc-browser-accessibility-firefox-webkit \
+  make test-browser-acceptance
+```
+
+本地 macOS 阶段 5 已分别验证 Chromium 151.0.7922.34、Firefox 153.0 和 Playwright WebKit 26.5；WebKit 结果代表 Playwright 构建，不代表系统 Safari 的所有发行版。Linux CI 的三引擎运行是独立的环境证据，不能由 macOS 结果替代。使用 Colima 时，Admin integration 需要同时指定 Docker daemon 和 VM 内的 Ryuk socket：
+
+```sh
+DOCKER_HOST=unix://$HOME/.colima/default/docker.sock \
+TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
+  go -C admin test -count=1 -timeout=20m -tags=integration ./...
+```
+
+只设置 `DOCKER_HOST` 会让 Ryuk 尝试把 macOS socket 路径挂载进 VM 并失败；本次环境在 provider 健康检查未通过时会跳过 integration，其他 Docker provider 可能自动发现 daemon，不能据此泛化。其他 provider 的路径需要按本机环境核实。
 
 完整流程、真实 MySQL 8.4 和浏览器验收见 [`docs/verification/2026-09-07-stage1-acceptance.md`](../docs/verification/2026-09-07-stage1-acceptance.md)。未保存保护见 [`docs/verification/2026-09-07-stage2-unsaved-changes.md`](../docs/verification/2026-09-07-stage2-unsaved-changes.md)，规则效果说明见 [`docs/verification/2026-09-07-stage3-rule-clarity.md`](../docs/verification/2026-09-07-stage3-rule-clarity.md)。浏览器脚本使用隔离 fixture，运行前先启动隔离 Admin、Web 和 MySQL；不要对生产环境运行脚本：
 
