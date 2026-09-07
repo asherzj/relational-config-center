@@ -89,11 +89,18 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 		t.Fatal("real database Operator/content did not match browser account")
 	}
 	prepareManagementBrowserPolicies(t, admin, maintenance, fixtureEnvironment)
-	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs"} {
+	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs", "release-drafts.cjs"} {
 		t.Run(script, func(t *testing.T) {
 			command := exec.Command("node", filepath.Join(web, "e2e", script))
 			command.Dir = web
-			command.Env = append(fixtureEnvironment, "RCC_WEB_URL="+origin, "RCC_E2E_OUTPUT="+t.TempDir())
+			output := t.TempDir()
+			if root := os.Getenv("RCC_E2E_OUTPUT"); root != "" {
+				output = filepath.Join(root, script)
+				if err := os.MkdirAll(output, 0755); err != nil {
+					t.Fatal(err)
+				}
+			}
+			command.Env = append(fixtureEnvironment, "RCC_WEB_URL="+origin, "RCC_E2E_OUTPUT="+output)
 			result, err := command.CombinedOutput()
 			if err != nil {
 				t.Fatalf("authenticated management acceptance %s: %v %s", script, err, result)

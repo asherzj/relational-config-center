@@ -754,3 +754,22 @@ it("preserves a stale change, reads latest separately, and requires an explicit 
   await waitFor(() => expect(writes).toHaveLength(2));
   expect(writes[1]).toEqual({ content: { body: "my pending input" }, expected_version: "9007199254740994" });
 });
+
+it("从现有 Change Set 保存发布草稿，不调用记录写接口",async()=>{
+ const writes:RequestInit[]=[];const releaseID="11111111222222223333333344444444";
+ const saved={id:releaseID,table_name:"notification_templates",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-07T08:00:00Z",updated_at:"2026-09-07T08:00:00Z",history:[],allowed_actions:["edit","cancel"],items:[{operation:"MODIFY",id:"41",expected_record_version:"0",content:{body:"draft only"},before:row,fields:[]}]};
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  if(String(input)==="/api/v1/release-orders"&&init?.method==="POST"){writes.push(init);return json(saved,201)}
+  if(String(input)===`/api/v1/release-orders/${releaseID}`)return json(saved);
+  if(String(input).includes("/rows"))throw new Error("draft must not write business data");
+  return readFetch(input,init,{...mutationPolicy,allow_modify:true});
+ })));
+ const user=userEvent.setup();renderPage();
+ await user.click(await screen.findByRole("button",{name:"修改记录 41"}));
+ await user.click(screen.getByLabelText("包含 body"));await user.type(screen.getByLabelText("body 值"),"draft only");
+ await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
+ await user.click(screen.getByRole("button",{name:"保存为发布草稿"}));
+ expect(await screen.findByRole("heading",{name:"notification_templates · 草稿"})).toBeVisible();
+ expect(writes).toHaveLength(1);
+ expect(JSON.parse(String(writes[0].body))).toEqual({table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",expected_record_version:"0",content:{body:"draft only"}}]});
+});

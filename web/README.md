@@ -5,7 +5,7 @@
 ## 当前能力
 
 - 中文化应用壳和正式 URL 路由。
-- 四个正式页面：Query Policies、Mutation Policies、Table Policies 和 Managed Data，默认入口重定向到 Query Policies。
+- 正式页面：Query Policies、Mutation Policies、Table Policies、Managed Data 和发布单列表/详情，默认入口重定向到 Query Policies。
 - 类型化 Admin API Client，HTTP DTO 只停留在 `src/api` 边界。
 - Zod 运行时响应校验与稳定错误码映射。
 - 查询规则的列表、详情、创建草稿、替换草稿、激活、弃用、更新元数据和删除草稿。
@@ -21,7 +21,7 @@
 - 规则详情把名称和描述与执行规则分开；执行规则区块解释查询排序/分页、变更授权和 Auto Fill 的实际效果，修改名称和描述不会改变执行内容。
 - 未知规则类型或不完整的变更类型能力失败关闭：未知 Draft 只能安全查看，Active 或 Deprecated 只能更新名称和描述等元数据。
 - GET 仅对网络错误、503、504 自动重试一次；写命令不自动重试。
-- 规则和数据编辑均有未保存退出保护；提交失败保留内存草稿，提交成功才清除草稿。草稿不写入 `localStorage`、`sessionStorage` 或 URL。
+- 规则和数据编辑均有未保存退出保护；提交失败保留内存草稿，提交成功才清除草稿。普通编辑草稿不写入浏览器存储或 URL；发布单写请求在发送前按永久账号保存到 `sessionStorage`，用于刷新后保留原标识/原内容恢复未知结果，明确冲突的申请也保留到核对重建。完整发布单内容持久化于 Admin 控制表。
 
 ## 本地开发
 

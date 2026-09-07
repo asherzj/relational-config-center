@@ -38,6 +38,7 @@ func newApplicationWithClock(ctx context.Context, settings config.Config, now fu
 		handler: httpinterface.NewRouter(discovery, mysql, queryPolicies, mutationPolicies, policies, queries, mutations, httpinterface.RouterOptions{
 			Authentication: application.NewAuthentication(mysql, passwordadapter.NewArgon2id(), now, mysql, application.AuthenticationLimits{Registration: settings.AccountRegisterLimit, LoginIP: settings.AccountLoginIPLimit, LoginFailures: settings.AccountLoginFailureLimit}),
 			AccountRoles:   application.NewAccountRoleManagement(mysql),
+			ReleaseOrders:  application.NewReleaseOrders(mysql),
 			AccountHTTP:    httpinterface.AccountHTTPOptions{RequestTimeout: accountRequestTimeout(settings.MySQL), PublicOrigin: settings.AccountPublicOrigin, InsecureLocalHTTP: settings.AccountInsecureHTTP, TrustedProxies: settings.AccountTrustedProxies},
 			AccessLog:      os.Stdout,
 		}),

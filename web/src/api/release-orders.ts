@@ -1,0 +1,42 @@
+import {z} from "zod";
+import {request} from "./client";
+
+const version=z.string().regex(/^(0|[1-9][0-9]*)$/);
+const content=z.record(z.string(),z.string().nullable());
+export const draftItemSchema=z.object({operation:z.enum(["ADD","MODIFY","DELETE"]),id:z.string().nullable().optional(),expected_record_version:z.string().optional(),content});
+export type DraftItem=z.infer<typeof draftItemSchema>;
+export type DraftInput={table_name:string;items:DraftItem[];expected_version?:string};
+export const releaseFieldSchema=z.object({name:z.string(),type:z.string(),nullable:z.boolean(),editable:z.boolean(),before_state:z.enum(["value","sql_null","absent"]),before:z.string().nullable(),proposed_state:z.enum(["value","sql_null","omitted","absent","automatic","generated"]),proposed:z.string().nullable()});
+export const releaseOrderSchema=z.object({
+ id:z.string(),table_name:z.string(),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","APPROVED","SUCCEEDED","REJECTED","CANCELLED","ROLLED_BACK"]),version,
+ items:z.array(draftItemSchema.extend({id:z.string().nullable(),expected_record_version:z.string(),before:content.nullable(),fields:z.array(releaseFieldSchema)})),
+ history:z.array(z.object({action:z.string(),actor_id:z.string(),at:z.string(),version,reason:z.string()})),created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),
+});
+export type ReleaseOrder=z.infer<typeof releaseOrderSchema>;
+export type ReleaseField=z.infer<typeof releaseFieldSchema>;
+export const releaseOrders={
+ list:(filters:Record<string,string>)=>request(`/api/v1/release-orders?${new URLSearchParams(filters)}`,{schema:z.object({orders:z.array(releaseOrderSchema),next_cursor:z.string()})}),
+ preview:(input:DraftInput)=>request("/api/v1/release-orders/preview",{method:"POST",body:JSON.stringify(input),schema:z.object({table_name:z.string(),items:releaseOrderSchema.shape.items})}),
+ get:(id:string)=>request(`/api/v1/release-orders/${encodeURIComponent(id)}`,{schema:releaseOrderSchema}),
+ write:(path:string,method:string,body:string,key:string)=>request(path,{method,body,headers:{"Idempotency-Key":key},schema:releaseOrderSchema}),
+};
+export function draftFromOrder(order:ReleaseOrder):DraftInput{
+ return {table_name:order.table_name,expected_version:order.version,items:order.items.map(item=>({operation:item.operation,...(item.operation!=="ADD"?{id:item.id}:{}),expected_record_version:item.expected_record_version,content:{...item.content}}))};
+}
+
+// Transport envelopes are serialized here once and retained unchanged for retries.
+export type ReleaseRequestEnvelope={path:string;method:"POST"|"PUT";body:string};
+const draftInputSchema=z.object({table_name:z.string(),items:z.array(draftItemSchema),expected_version:z.string().optional()});
+const cancelInputSchema=z.object({expected_version:z.string(),reason:z.string()});
+export const releaseRequests={
+ create:(input:DraftInput):ReleaseRequestEnvelope=>({path:"/api/v1/release-orders",method:"POST",body:JSON.stringify(input)}),
+ edit:(id:string,input:DraftInput):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}`,method:"PUT",body:JSON.stringify(input)}),
+ cancel:(id:string,expectedVersion:string,reason:string):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/cancel`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,reason})}),
+};
+export function decodeReleaseRequest(value:ReleaseRequestEnvelope){
+ const id=value.path.split("/")[4];
+ const body:unknown=JSON.parse(value.body);
+ if(value.path.endsWith("/cancel")&&id)return {action:"cancel" as const,id,input:cancelInputSchema.parse(body)};
+ const input=draftInputSchema.parse(body);
+ return id?{action:"edit" as const,id,input}:{action:"create" as const,input};
+}

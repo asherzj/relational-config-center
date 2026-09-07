@@ -220,9 +220,8 @@ func (mutation *ManagedTableMutation) effectiveRelationalContent(ctx context.Con
 		}
 		for _, field := range operatorFields {
 			if field != nil {
-				column, found := schema.Column(*field)
-				if !found || column.Type != domain.ColumnTypeString || column.TextCapacity < 36 {
-					return nil, ErrOperatorFieldIncompatible
+				if err := validateOperatorField(schema, *field); err != nil {
+					return nil, err
 				}
 				value := domain.JSONString(operator)
 				effective[*field] = &value
@@ -320,6 +319,14 @@ func ValidateRecordVersion(version string) error {
 	value, err := strconv.ParseUint(version, 10, 64)
 	if err != nil || strconv.FormatUint(value, 10) != version {
 		return ErrRecordVersionInvalid
+	}
+	return nil
+}
+
+func validateOperatorField(schema domain.TableSchema, field string) error {
+	column, found := schema.Column(field)
+	if !found || column.Type != domain.ColumnTypeString || column.TextCapacity < 36 {
+		return ErrOperatorFieldIncompatible
 	}
 	return nil
 }

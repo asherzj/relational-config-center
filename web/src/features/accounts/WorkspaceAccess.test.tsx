@@ -202,6 +202,7 @@ it("clears an in-memory rule draft when another tab ends the session", async () 
  await user.type(screen.getByLabelText("用户名"),"alice");
  await user.type(screen.getByLabelText("密码"),"correct horse battery staple");
  await user.click(screen.getByRole("button",{name:"登录"}));
+ await waitFor(()=>expect(screen.getByLabelText("current path")).toHaveTextContent("/platform/query-policies/new"));
  expect(await screen.findByLabelText("显示名称")).toHaveValue("");
 });
 

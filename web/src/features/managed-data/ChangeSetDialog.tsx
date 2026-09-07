@@ -1,3 +1,4 @@
+import type {ReactNode} from "react";
 import { RecordConflictReview, type RecordConflictReviewProps } from "./RecordConflictReview";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/shadcn/table";
 import { ErrorState } from "../../components/ui/Feedback";
@@ -19,6 +20,9 @@ function Cell({ cell, autoFill }: { cell: ChangeSetCell; autoFill?: boolean }) {
 
 type Props = RecordConflictReviewProps & {
   changeSet: ChangeSet | null;
+ draftAction?:ReactNode;
+ draftFeedback?:ReactNode;
+ draftLocked?:boolean;
   error?: unknown;
   pending: boolean;
   confirmDisabled?: boolean;
@@ -29,7 +33,7 @@ type Props = RecordConflictReviewProps & {
   onRetryRecheck?: () => void;
 };
 
-export function ChangeSetDialog({ changeSet, error, pending, confirmDisabled, onEdit, onCancel, onConfirm, onVerify, onRetryRecheck, ...conflictReview }: Props) {
+export function ChangeSetDialog({ changeSet, error, pending, confirmDisabled, onEdit, onCancel, onConfirm, onVerify, onRetryRecheck, draftAction,draftFeedback,draftLocked,...conflictReview }: Props) {
   const operation = changeSet?.operation;
   if (!changeSet) return null;
   const uncertain = isUncertainWriteError(error);
@@ -50,16 +54,18 @@ export function ChangeSetDialog({ changeSet, error, pending, confirmDisabled, on
         </div>
         <div className="change-set-feedback">
         {uncertain ? <div className="inline-alert" role="alert"><strong>提交结果尚未确认。系统不会自动重复此写入。</strong><span>请只重新查询当前表和目标记录。</span></div> : error !== undefined && error !== null && <ErrorState error={error} onRetry={onRetryRecheck} />}
-        <RecordConflictReview {...conflictReview} pending={pending} />
+        {draftFeedback}
+ <RecordConflictReview {...conflictReview} pending={pending} />
         </div>
         <footer>
           {uncertain ? <>
             <Button variant="primary" onClick={onVerify}>只读查询当前状态</Button>
             <Button onClick={onCancel}>关闭</Button>
           </> : <>
-            <Button onClick={onCancel} disabled={pending}>{operation === "DELETE" ? "取消删除" : "放弃本次编辑"}</Button>
-            {operation !== "DELETE" && <Button onClick={onEdit} disabled={pending}>返回修改</Button>}
-            <Button variant={changeSet.operation === "DELETE" ? "danger" : "primary"} onClick={onConfirm} disabled={pending || confirmDisabled}>{pending ? "正在执行…" : "确认并执行"}</Button>
+            <Button onClick={onCancel} disabled={pending||draftLocked}>{operation === "DELETE" ? "取消删除" : "放弃本次编辑"}</Button>
+            {operation !== "DELETE" && <Button onClick={onEdit} disabled={pending||draftLocked}>返回修改</Button>}
+            {draftAction}
+ <Button variant={changeSet.operation === "DELETE" ? "danger" : "primary"} onClick={onConfirm} disabled={pending || confirmDisabled||draftLocked}>{pending ? "正在执行…" : "确认并执行"}</Button>
           </>}
         </footer>
     </ModalSurface>

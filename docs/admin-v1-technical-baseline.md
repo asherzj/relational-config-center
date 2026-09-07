@@ -405,3 +405,6 @@ Admin V1 的 Definition of Done：
 - 已部署 Schema 升级：原历史建议是引入迁移框架；当前实现按 [`deploy/mysql/migrations/README.md`](../deploy/mysql/migrations/README.md) 使用显式 SQL migration，未引入 Goose。
 - 多租户、公网访问或真实用户审计：重新设计身份、授权与隔离。
 - 规则/Data 并发控制、缓存、发布、审批、关系查询和 Secret 管理：作为独立能力设计，不隐式扩展当前规则。
+
+
+当前发布草稿 API、权限、字段差异及幂等恢复见[发布草稿契约](admin-release-drafts.md)。本文中的旧记录写路由处于 T5 #52 负责删除的过渡期，不表示已强制审批。

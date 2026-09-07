@@ -43,7 +43,8 @@ export function AppShell() {
           </section>
           <section className="nav-group">
             <div className="nav-group-title">配置管理</div>
-            <NavLink to="/configuration/managed-data" onClick={() => setMobileNavOpen(false)}><Table2 size={18} />配置内容管理</NavLink>
+            <NavLink to="/configuration/release-orders" onClick={() => setMobileNavOpen(false)}><FileSearch size={18} />发布单</NavLink>
+ <NavLink to="/configuration/managed-data" onClick={() => setMobileNavOpen(false)}><Table2 size={18} />配置内容管理</NavLink>
           </section>
         </nav>
         <div className="sidebar-account">

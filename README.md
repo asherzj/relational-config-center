@@ -103,4 +103,4 @@ docs/    跨模块设计与项目文档
 - Go package 使用简短、清晰的小写名称。
 - 引入新能力时同步补充测试和文档。
 
-记录并发保护、Admin/Web 请求迁移与数据库维护窗口见 [记录版本契约](docs/admin-record-versions.md)。发布单的草稿、审批和正式执行仍按 [交付计划](docs/design-notes/release-order-ticket-plan.md) 继续推进。
+记录并发保护、Admin/Web 请求迁移与数据库维护窗口见 [记录版本契约](docs/admin-record-versions.md)。发布草稿已提供[保存、编辑、查询与取消](docs/admin-release-drafts.md)，升级需迁移 010。审批和正式执行仍按 [交付计划](docs/design-notes/release-order-ticket-plan.md) 继续推进。

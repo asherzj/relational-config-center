@@ -1,3 +1,7 @@
+import {releaseRequests} from "../../api/release-orders";
+import {useReleaseWrite} from "../release-orders/useReleaseWrite";
+import {ReleaseRecovery} from "../release-orders/ReleaseRecovery";
+import {ApiError} from "../../api/client";
 import { useAccountRole } from "../accounts/roles";
 import { Input } from "../../components/shadcn/input";
 import { Checkbox } from "../../components/shadcn/checkbox";
@@ -6,7 +10,7 @@ import { Label } from "../../components/shadcn/label";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/shadcn/table";
 import { ChevronLeft, ChevronRight, Database, Pencil, Plus, RefreshCw, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { Button } from "../../components/ui/Button";
 import { ErrorState, LoadingState } from "../../components/ui/Feedback";
@@ -106,6 +110,8 @@ function ConditionValueEditor({ index, condition, column, update }: {
 
 export function ManagedDataPage() {
   const canEdit = useAccountRole("EDITOR");
+ const draftWrite=useReleaseWrite("create");
+ const navigate=useNavigate();
   const policies = useTablePolicies();
   const [requestedTable, setRequestedTable] = useState("");
   const [querySpec, setQuerySpec] = useState<QuerySpec>(initialQuerySpec);
@@ -128,9 +134,10 @@ export function ManagedDataPage() {
     mutationPolicyCode: selectedPolicy?.mutationPolicyCode,
     columns: result.data?.columns,
   });
-  const { editor, changeSet, outcome, capabilityReasons, mutationPolicy, mutationRegistry, mutationRegistryState } = changes.view;
+  const draftRecordConflict=draftWrite.error instanceof ApiError&&draftWrite.error.code==="record_version_conflict";
+ const { editor, changeSet, outcome, capabilityReasons, mutationPolicy, mutationRegistry, mutationRegistryState } = changes.view;
   const queryRegistryState = queryPolicyTypes.isPending ? "loading" : queryPolicyTypes.isError ? "error" : "ready";
-  const protection = useDraftProtection(false, changes.view.executionPending);
+  const protection = useDraftProtection(draftWrite.unresolved, changes.view.executionPending||draftWrite.pending);
   const send = (intent: ManagedDataMutationIntent) => {
     if (["open-editor", "review-delete", "cancel-pending"].includes(intent.type)) {
       protection.requestLeave(() => changes.send(intent));
@@ -151,7 +158,8 @@ export function ManagedDataPage() {
 
   return (
     <main className="workspace managed-data-workspace">
-      <div className="page-heading">
+      <ReleaseRecovery scopeFilter="create"/>
+ <div className="page-heading">
         <div>
           <h1>配置内容管理</h1>
           <p>查找和维护配置记录，按当前表规则核对每一次变更。</p>
@@ -357,10 +365,10 @@ export function ManagedDataPage() {
       )}
           {editor && <ManagedRowEditor
 
-            recordConflict={changes.view.recordConflict}
+            recordConflict={changes.view.recordConflict||(draftWrite.error instanceof ApiError&&draftWrite.error.code==="record_version_conflict")}
             latest={changes.view.latest}
             onInspectLatest={() => changes.send({ type: "inspect-latest" })}
-            onRebuildLatest={() => changes.send({ type: "rebuild-latest" })}
+            onRebuildLatest={() => {changes.send({ type: "rebuild-latest" });draftWrite.confirmRebuild();draftWrite.clearError()}}
             key={editor?.sequence}
             open={Boolean(editor) && !changeSet}
             error={changes.view.executionError}
@@ -376,15 +384,22 @@ export function ManagedDataPage() {
             onReview={(content) => changes.send({ type: "review-content", content })}
           />}
           <ChangeSetDialog
+            draftAction={<Button disabled={!canEdit||changes.view.reviewDisabled||draftWrite.pending||draftRecordConflict} onClick={async()=>{
+              if(!changes.view.draftInput)return;
+              const saved=await draftWrite.send({...releaseRequests.create(changes.view.draftInput),label:`创建 ${selectedTable} 草稿`});
+              if(saved)protection.afterSave(()=>{changes.send({type:"cancel-pending"});navigate(`/configuration/release-orders/${saved.id}`)});
+            }}>{draftWrite.pending?"正在保存草稿…":draftWrite.unresolved?"使用原请求重试":"保存为发布草稿"}</Button>}
+            draftLocked={draftWrite.pending||draftWrite.unresolved}
+            draftFeedback={<>{Boolean(draftWrite.error)&&<ErrorState error={draftWrite.error}/>} {draftWrite.unresolved&&<p role="alert">草稿保存结果待确认。原请求已保留，刷新后仍可找回。</p>}</>}
 
-            recordConflict={changes.view.recordConflict}
+            recordConflict={changes.view.recordConflict||(draftWrite.error instanceof ApiError&&draftWrite.error.code==="record_version_conflict")}
             latest={changes.view.latest}
             onInspectLatest={() => changes.send({ type: "inspect-latest" })}
-            onRebuildLatest={() => changes.send({ type: "rebuild-latest" })}
+            onRebuildLatest={() => {changes.send({ type: "rebuild-latest" });draftWrite.confirmRebuild();draftWrite.clearError()}}
             changeSet={changeSet}
             error={changes.view.recheckError || changes.view.executionError}
             pending={changes.view.executionPending || changes.view.recheckingChange}
-            confirmDisabled={changes.view.reviewDisabled}
+            confirmDisabled={changes.view.reviewDisabled||draftRecordConflict}
             onRetryRecheck={changes.view.recheckError ? () => changes.send({ type: "retry-recheck" }) : undefined}
             onVerify={() => protection.requestLeave(() => {
               changes.send({ type: "cancel-pending" });

@@ -1,0 +1,61 @@
+package mysql
+
+import (
+	"context"
+	"errors"
+)
+
+var ErrReleaseSchemaIncomplete = errors.New("release order schema is incomplete; apply migration 010")
+
+func (a *Adapter) releaseSchemaReady(ctx context.Context) error {
+	for table, required := range map[string]map[string]string{
+		"rcc_release_orders":   {"id": "varbinary(32)", "table_name": "varbinary(256)", "applicant_id": "varbinary(36)", "state": "varchar(32)", "version": "bigint unsigned", "document": "json"},
+		"rcc_release_requests": {"actor_id": "varbinary(36)", "operation": "varbinary(96)", "request_key": "varbinary(64)", "digest": "binary(32)", "result": "json"},
+	} {
+		var columns []struct{ Name, Type, Nullable, Engine, Collation string }
+		err := a.gorm.WithContext(ctx).Raw(`SELECT c.COLUMN_NAME AS name,c.COLUMN_TYPE AS type,c.IS_NULLABLE AS nullable,t.ENGINE AS engine,COALESCE(c.COLLATION_NAME,'') AS collation FROM information_schema.COLUMNS c JOIN information_schema.TABLES t ON t.TABLE_SCHEMA=c.TABLE_SCHEMA AND t.TABLE_NAME=c.TABLE_NAME WHERE c.TABLE_SCHEMA=? AND c.TABLE_NAME=?`, a.database, table).Scan(&columns).Error
+		if err != nil {
+			return err
+		}
+		if len(columns) != len(required) {
+			return ErrReleaseSchemaIncomplete
+		}
+		for _, c := range columns {
+			nullable := "NO"
+			if c.Name == "result" {
+				nullable = "YES"
+			}
+			if required[c.Name] != c.Type || c.Nullable != nullable || c.Engine != "InnoDB" || c.Name == "state" && c.Collation != "ascii_bin" {
+				return ErrReleaseSchemaIncomplete
+			}
+		}
+		var indexes []struct {
+			Name, Columns      string
+			NonUnique, Partial int
+		}
+		err = a.gorm.WithContext(ctx).Raw(`SELECT INDEX_NAME AS name,GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) AS columns,NON_UNIQUE AS non_unique,COALESCE(MAX(SUB_PART),0) AS partial FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=? AND TABLE_NAME=? GROUP BY INDEX_NAME,NON_UNIQUE`, a.database, table).Scan(&indexes).Error
+		if err != nil {
+			return err
+		}
+		primary := "id"
+		if table == "rcc_release_requests" {
+			primary = "actor_id,operation,request_key"
+		}
+		found := false
+		for _, index := range indexes {
+			if index.Partial != 0 {
+				return ErrReleaseSchemaIncomplete
+			}
+			if index.NonUnique == 0 {
+				if index.Name != "PRIMARY" || index.Columns != primary {
+					return ErrReleaseSchemaIncomplete
+				}
+				found = true
+			}
+		}
+		if !found {
+			return ErrReleaseSchemaIncomplete
+		}
+	}
+	return nil
+}
