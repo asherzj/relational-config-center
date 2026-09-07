@@ -100,7 +100,7 @@ The original prototype packages (`httpapi`, `managedtable`, `mysqlstore`) were r
 
 Relations, end-user identity and authorization, audit history, publishing workflows, runtime gRPC reads, and in-place schema upgrades belong to later iterations.
 
-## Local Account entry (T1)
+## Local Accounts and business request identity
 
 The account entry uses `interfaces/http/authentication.go` →
 `application/Authentication` → Domain-owned account and rate-state contracts.
@@ -116,8 +116,22 @@ session issuance rechecks the verified account under a database lock. Password
 computation happens outside database transactions. Control-table admission uses
 one MySQL lock row so capacity and rate decisions work across Admin processes.
 
-TMP-01 is an explicit development exception to ADR-0017/0018 until #37: existing
-business routes still use deployment authentication and fixed Operator while
-`/api/v1/auth/*` exclusively uses Local Account credentials. The account slice
-must not be released as full business authentication. #37 removes this exception;
-#36 adds profile/session lifecycle, and #40 verifies the final deployment.
+Every business route now requires the account session and every non-GET/HEAD
+request requires same-origin CSRF. Authentication produces an immutable
+`AuthenticatedOperator` with a private Account ID, bound to one request context;
+shared business services never store account state. Query/Mutation/Table Policy
+writes and configuration Auto Fill read the same request identity. Revocation
+blocks new authentication while allowing already-authenticated writes to finish.
+Live metadata supplies unrestricted text capacity for 36-character Account IDs;
+short columns and ENUM reject affected writes without changing historical text.
+
+HTTP consumes Application contracts only, checked by
+`TestHTTPDependsOnApplicationRatherThanDomainOrInfrastructure`. A second source
+check rejects actor/account fields on shared business service structs. Concurrent
+HTTP/MySQL tests verify actual attribution and revocation outcomes. The full
+repository does not yet have a general layer dependency graph checker.
+
+TMP-01 is removed. `OpenMaintenance` and `LoadMySQL` initialize maintenance
+connections independently from normal Admin HTTP and required-schema readiness.
+#38 continues draft recovery, #39 account maintenance commands, and #40 final
+startup/readiness and release acceptance.

@@ -15,7 +15,7 @@ func TestAdminProcessRejectsInvalidConfiguration(t *testing.T) {
 	binaryPath := buildAdminProcess(t)
 
 	process := exec.Command(binaryPath)
-	process.Env = []string{"PATH=" + os.Getenv("PATH"), "ADMIN_API_TOKEN=process-token"}
+	process.Env = []string{"PATH=" + os.Getenv("PATH")}
 	output, err := process.CombinedOutput()
 	if err == nil {
 		t.Fatalf("expected invalid configuration to stop startup, got success with output %q", output)
@@ -32,7 +32,6 @@ func TestAdminProcessRejectsUnavailableRequiredDatabase(t *testing.T) {
 	process.Env = []string{
 		"PATH=" + os.Getenv("PATH"),
 		"ADMIN_HTTP_ADDR=127.0.0.1:0",
-		"ADMIN_API_TOKEN=process-token",
 		"ADMIN_PUBLIC_ORIGIN=https://config.example.test",
 		"MYSQL_HOST=127.0.0.1",
 		"MYSQL_PORT=1",
@@ -56,29 +55,20 @@ func TestAdminProcessRejectsUnavailableRequiredDatabase(t *testing.T) {
 	}
 }
 
-func TestAdminProcessRejectsMissingAuthenticationToken(t *testing.T) {
-	t.Parallel()
-
-	process := exec.Command(buildAdminProcess(t))
-	process.Env = []string{
-		"PATH=" + os.Getenv("PATH"),
-		"ADMIN_HTTP_ADDR=127.0.0.1:0",
-		"MYSQL_HOST=127.0.0.1",
-		"MYSQL_PORT=1",
-		"MYSQL_DATABASE=rcc_test",
-		"MYSQL_USER=rcc_admin",
-		"MYSQL_PASSWORD=database-secret",
-		"MYSQL_TLS_MODE=false",
-	}
-	output, err := process.CombinedOutput()
-	if err == nil {
-		t.Fatalf("expected missing authentication token to stop startup, got success with output %q", output)
-	}
-	if !strings.Contains(string(output), "configuration error: ADMIN_API_TOKEN is required") {
-		t.Fatalf("expected a safe authentication configuration error, got %q", output)
-	}
-	if strings.Contains(string(output), "database-secret") {
-		t.Fatalf("configuration error exposed database credentials: %q", output)
+func TestAdminProcessRejectsRemovedAuthenticationConfiguration(t *testing.T) {
+	binary := buildAdminProcess(t)
+	for _, setting := range []string{"ADMIN_API_TOKEN=secret", "ADMIN_AUTH_DISABLED=true", "ADMIN_AUTH_DISABLED=false", "ADMIN_OPERATOR=old-operator", "ADMIN_CORS_ORIGINS=https://old.example"} {
+		t.Run(strings.SplitN(setting, "=", 2)[0]+setting, func(t *testing.T) {
+			process := exec.Command(binary)
+			process.Env = []string{"PATH=" + os.Getenv("PATH"), setting}
+			output, err := process.CombinedOutput()
+			if err == nil || !strings.Contains(string(output), strings.SplitN(setting, "=", 2)[0]+" has been removed") {
+				t.Fatalf("old setting did not fail clearly: %v %s", err, output)
+			}
+			if strings.Contains(string(output), "secret") {
+				t.Fatalf("old credential leaked: %s", output)
+			}
+		})
 	}
 }
 

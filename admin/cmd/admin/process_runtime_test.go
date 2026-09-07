@@ -61,7 +61,7 @@ func TestAdminExternalProcessServesHealthAndEnforcesAuthDefault(t *testing.T) {
 	assertProcessHTTP(t, address+"/health/live", "", http.StatusOK)
 	assertProcessHTTP(t, address+"/health/ready", "", http.StatusOK)
 	assertProcessHTTP(t, address+"/api/v1/database-tables", "", http.StatusUnauthorized)
-	assertProcessHTTP(t, address+"/api/v1/database-tables", "Bearer process-token", http.StatusOK)
+	assertProcessHTTP(t, address+"/api/v1/database-tables", "Bearer process-token", http.StatusUnauthorized)
 
 	// The helper still has the production-shaped 10 second shutdown bound.
 	// Match the harness wait to that bound so multi-package integration runs do
@@ -246,7 +246,6 @@ func processTestRouter(t *testing.T) http.Handler {
 	t.Helper()
 	metadata := processMetadata{}
 	return httpinterface.NewRouter(application.NewDatabaseTableDiscovery(metadata), processReadiness{}, nil, nil, nil, nil, nil, httpinterface.RouterOptions{
-		APIToken:  "process-token",
 		AccessLog: io.Discard,
 	})
 }

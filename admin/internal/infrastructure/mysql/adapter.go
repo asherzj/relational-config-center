@@ -30,6 +30,20 @@ type Adapter struct {
 }
 
 func Open(ctx context.Context, settings config.MySQL) (*Adapter, error) {
+	adapter, err := OpenMaintenance(ctx, settings)
+	if err != nil {
+		return nil, err
+	}
+	if err := adapter.Ready(ctx); err != nil {
+		_ = adapter.Close()
+		return nil, fmt.Errorf("Managed Data Source is unavailable: %w", err)
+	}
+	return adapter, nil
+}
+
+// OpenMaintenance opens only the configured database connection. Maintenance
+// tools must work before normal Admin's required control schemas are installed.
+func OpenMaintenance(ctx context.Context, settings config.MySQL) (*Adapter, error) {
 	driverConfig := driver.Config{
 		User:              settings.User,
 		Passwd:            settings.Password,
@@ -72,7 +86,7 @@ func Open(ctx context.Context, settings config.MySQL) (*Adapter, error) {
 	pool.SetConnMaxIdleTime(settings.ConnectionMaxIdle)
 
 	adapter := &Adapter{database: settings.Database, gorm: database, pool: pool}
-	if err := adapter.Ready(ctx); err != nil {
+	if err := pool.PingContext(ctx); err != nil {
 		_ = pool.Close()
 		return nil, fmt.Errorf("Managed Data Source is unavailable: %w", err)
 	}
@@ -139,6 +153,7 @@ type schemaTableRow struct {
 }
 
 type schemaColumnRow struct {
+	TextCapacity         sql.NullInt64  `gorm:"column:text_capacity"`
 	Name                 string         `gorm:"column:column_name"`
 	DataType             string         `gorm:"column:data_type"`
 	ColumnType           string         `gorm:"column:column_type"`
@@ -175,6 +190,7 @@ SELECT
   COLUMN_NAME AS column_name,
   DATA_TYPE AS data_type,
   COLUMN_TYPE AS column_type,
+  CHARACTER_MAXIMUM_LENGTH AS text_capacity,
   IS_NULLABLE AS is_nullable,
   COLUMN_KEY AS column_key,
   COLUMN_DEFAULT AS column_default,
@@ -192,6 +208,7 @@ ORDER BY ORDINAL_POSITION`, adapter.database, tableName).Scan(&rows).Error; err 
 		extra := strings.ToLower(row.Extra)
 		columns = append(columns, domain.Column{
 			Name:          row.Name,
+			TextCapacity:  liveTextCapacity(row.DataType, row.TextCapacity),
 			Type:          liveColumnType(row.DataType, row.ColumnType),
 			Nullable:      row.Nullable == "YES",
 			Generated:     row.GenerationExpression != "" || strings.Contains(extra, "generated"),
@@ -1418,3 +1435,13 @@ var _ application.MutationExecutor = (*Adapter)(nil)
 var _ domain.TablePolicyCatalog = (*Adapter)(nil)
 var _ domain.QueryPolicyCatalog = (*Adapter)(nil)
 var _ domain.MutationPolicyCatalog = (*Adapter)(nil)
+
+func liveTextCapacity(dataType string, capacity sql.NullInt64) uint64 {
+	switch strings.ToLower(dataType) {
+	case "char", "varchar", "tinytext", "text", "mediumtext", "longtext":
+		if capacity.Valid && capacity.Int64 > 0 {
+			return uint64(capacity.Int64)
+		}
+	}
+	return 0
+}

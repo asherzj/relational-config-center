@@ -1,3 +1,4 @@
+import { withAccountSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -91,7 +92,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("Managed Data mutation capability", () => {
   it("fails closed by capability and excludes id plus every server-managed Auto Fill field from ADD", async () => {
-    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => Promise.resolve(readFetch(input, init))));
+    vi.stubGlobal("fetch", withAccountSession(vi.fn((input: RequestInfo | URL, init?: RequestInit) => Promise.resolve(readFetch(input, init)))));
     const user = userEvent.setup();
 
     renderPage();
@@ -116,7 +117,7 @@ describe("Managed Data mutation capability", () => {
 
   it("fails closed when an applicable Auto Fill target is absent from the live dynamic Schema", async () => {
     const invalidPolicy = { ...mutationPolicy, create_operator_field: "missing_creator", allow_modify: true, allow_delete: true };
-    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => Promise.resolve(readFetch(input, init, invalidPolicy))));
+    vi.stubGlobal("fetch", withAccountSession(vi.fn((input: RequestInfo | URL, init?: RequestInit) => Promise.resolve(readFetch(input, init, invalidPolicy)))));
 
     renderPage();
 
@@ -156,7 +157,7 @@ describe("Managed Data mutation capability", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
     renderPage();
 
@@ -217,7 +218,7 @@ describe("Managed Data mutation capability", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
     renderPage();
 
@@ -266,7 +267,7 @@ describe("Managed Data mutation capability", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
     renderPage();
 
@@ -304,7 +305,7 @@ describe("Managed Data mutation capability", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
     renderPage();
 
@@ -330,7 +331,7 @@ describe("Managed Data mutation capability", () => {
       if (url.endsWith("/tables/notification_templates/query")) return json({ columns, rows: [row], page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 } });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
     renderPage();
 
@@ -376,7 +377,7 @@ describe("Managed Data mutation capability", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
     renderPage();
 

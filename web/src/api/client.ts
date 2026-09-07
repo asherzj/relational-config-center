@@ -1,3 +1,4 @@
+import { businessSession, businessSessionInvalid } from "./business-session";
 import type { ZodType } from "zod";
 import { adminErrorDtoSchema } from "./contracts";
 
@@ -43,14 +44,19 @@ async function parseJson(response: Response): Promise<unknown> {
 
 export async function request<T>(path: string, options: RequestOptions<T> = {}): Promise<T> {
   const { schema, headers, ...init } = options;
+  const business = path.startsWith("/api/v1/") && !path.startsWith("/api/v1/auth/");
+  const session = businessSession();
+  const change = !["GET", "HEAD"].includes(init.method ?? "GET");
   let response: Response;
 
   try {
     response = await fetch(path, {
       ...init,
+      credentials: "same-origin",
       headers: {
         Accept: "application/json",
         ...(init.body ? { "Content-Type": "application/json" } : {}),
+        ...(business && change && session.credentials ? { "X-CSRF-Token": session.credentials.csrf } : {}),
         ...headers,
       },
     });
@@ -59,6 +65,10 @@ export async function request<T>(path: string, options: RequestOptions<T> = {}):
   }
 
   const payload = await parseJson(response);
+  if (business && session.generation !== businessSession().generation) {
+    throw new ApiError("stale_session", "登录状态已变化，请重新查询。", 0);
+  }
+  if (business && response.status === 401) window.dispatchEvent(new Event(businessSessionInvalid));
   if (!response.ok) {
     const parsedError = adminErrorDtoSchema.safeParse(payload);
     if (parsedError.success) {

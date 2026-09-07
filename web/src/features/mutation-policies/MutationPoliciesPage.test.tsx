@@ -1,3 +1,4 @@
+import { withAccountSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -57,14 +58,14 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("变更规则页面", () => {
   it("在空目录中使用变更规则的领域文案", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/mutation-policy-types")) {
         return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       }
       if (url.endsWith("/mutation-policies")) return json({ policies: [] });
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
 
     renderPage();
     expect(await screen.findByText("还没有变更规则")).toBeVisible();
@@ -72,14 +73,14 @@ describe("变更规则页面", () => {
   });
 
   it("is a formal route that renders Type operations and the real catalog", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/mutation-policy-types")) {
         return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       }
       if (url.endsWith("/mutation-policies")) return json({ policies: [activePolicy] });
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
 
     renderPage();
     expect(await screen.findByRole("heading", { name: "变更规则定义" })).toBeVisible();
@@ -98,7 +99,7 @@ describe("变更规则页面", () => {
       if (url.endsWith("/mutation-policies")) return json({ policies: [activePolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
 
     renderPage("/platform/mutation-policies/standard_mutation_v1");
     expect(await screen.findByRole("heading", { name: "变更规则详情" })).toBeVisible();
@@ -118,7 +119,7 @@ describe("变更规则页面", () => {
       if (url.endsWith("/mutation-policies")) return json({ policies: [] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/mutation-policies/new");
@@ -160,7 +161,7 @@ describe("变更规则页面", () => {
       if (url.endsWith("/mutation-policies")) return json({ policies: [] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/mutation-policies/new");
@@ -181,13 +182,13 @@ describe("变更规则页面", () => {
   });
 
   it("fails an unknown Type closed while allowing only safe metadata updates", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/future_mutation_v1")) return json(unknownPolicy);
       if (url.endsWith("/mutation-policies")) return json({ policies: [unknownPolicy] });
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
 
     renderPage("/platform/mutation-policies/future_mutation_v1?mode=metadata");
     expect(await screen.findByText(/执行规则失败关闭/)).toBeVisible();
@@ -198,13 +199,13 @@ describe("变更规则页面", () => {
   });
 
   it("fails a known Type closed when its registry capabilities are incomplete", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD"] }] });
       if (url.endsWith("/mutation-policies/editable_mutation_v2")) return json(draftPolicy);
       if (url.endsWith("/mutation-policies")) return json({ policies: [draftPolicy] });
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
 
     renderPage("/platform/mutation-policies/editable_mutation_v2");
     expect(await screen.findByText("执行规则失败关闭", { exact: false })).toBeVisible();
@@ -222,7 +223,7 @@ describe("变更规则页面", () => {
       if (url.endsWith("/mutation-policies")) return json({ policies: [draftPolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/mutation-policies/editable_mutation_v2");
@@ -247,7 +248,7 @@ describe("变更规则页面", () => {
       if (url.endsWith("/mutation-policies")) return json({ policies: [draftPolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/mutation-policies/editable_mutation_v2?mode=edit");
@@ -280,7 +281,7 @@ describe("变更规则页面", () => {
       if (url.endsWith("/mutation-policies")) return json({ policies: [activePolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/mutation-policies/standard_mutation_v1?mode=metadata");
@@ -308,7 +309,7 @@ describe("变更规则页面", () => {
       if (url.endsWith("/mutation-policies")) return json({ policies: [policy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage(`/platform/mutation-policies/${policy.code}`);

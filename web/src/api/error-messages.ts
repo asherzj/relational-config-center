@@ -30,6 +30,8 @@ const errorMessages: Record<string, string> = {
   invalid_policy_snapshot: "当前规则快照无法执行，请检查规则分配和实时 Schema。",
   query_timeout: "Managed Table 查询超时，请缩小条件或分页范围后重试。",
   query_unavailable: "Managed Table 查询暂时不可用，请稍后重试。",
+  operator_field_incompatible: "操作人字段必须是可完整保存 36 字符账号 ID 的普通文本列，请联系表维护者调整结构。",
+  session_invalid: "登录会话已失效，请重新登录。",
   mutation_not_allowed: "当前变更规则不允许该写入操作。",
   mutation_row_not_found: "目标记录不存在或已被删除。",
   invalid_mutation_content: "写入内容不符合实时字段 Schema。",

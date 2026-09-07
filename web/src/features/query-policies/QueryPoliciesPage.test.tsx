@@ -1,3 +1,4 @@
+import { withAccountSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -62,12 +63,12 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("查询规则页面", () => {
   it("renders localized policies from the real Admin contract shape", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies")) return json({ policies: [activePolicy] });
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
 
     renderPage();
     expect(await screen.findByRole("heading", { name: "查询规则定义" })).toBeVisible();
@@ -84,7 +85,7 @@ describe("查询规则页面", () => {
       if (url.endsWith("/query-policies")) return json({ policies: [activePolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
 
     renderPage("/platform/query-policies/standard_page_query_v1");
     expect(await screen.findByRole("heading", { name: "查询规则详情" })).toBeVisible();
@@ -93,13 +94,13 @@ describe("查询规则页面", () => {
   });
 
   it("keeps an unknown Policy Type read-only even through a direct edit URL", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/future_query_v1")) return json(unknownPolicy);
       if (url.endsWith("/query-policies")) return json({ policies: [unknownPolicy] });
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
 
     renderPage("/platform/query-policies/future_query_v1?mode=edit");
     expect(await screen.findByText(/Web 尚不支持类型 future_page_query，当前仅可查看/)).toBeVisible();
@@ -116,13 +117,13 @@ describe("查询规则页面", () => {
     ["DEPRECATED", "edit", deprecatedPolicy],
     ["DRAFT", "metadata", draftPolicy],
   ])("downgrades a disallowed %s direct mode to read-only", async (_status, requestedMode, policy) => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith(`/query-policies/${policy.code}`)) return json(policy);
       if (url.endsWith("/query-policies")) return json({ policies: [policy] });
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
 
     renderPage(`/platform/query-policies/${policy.code}?mode=${requestedMode}`);
     expect(await screen.findByRole("heading", { name: "查询规则详情" })).toBeVisible();
@@ -141,7 +142,7 @@ describe("查询规则页面", () => {
       if (url.endsWith("/query-policies")) return json({ policies: [draftPolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/query-policies/compact_page_query_v1");
@@ -152,7 +153,7 @@ describe("查询规则页面", () => {
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
       "/api/v1/query-policies/compact_page_query_v1/activate",
-      expect.objectContaining({ method: "POST" }),
+      expect.objectContaining({ method: "POST", credentials: "same-origin", headers: expect.objectContaining({ "X-CSRF-Token": "test-session-csrf" }) }),
     ));
     expect(await screen.findByText("查询规则已激活")).toBeVisible();
   });
@@ -166,7 +167,7 @@ describe("查询规则页面", () => {
       if (url.endsWith("/query-policies")) return json({ policies: [activePolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/query-policies/standard_page_query_v1");
@@ -189,7 +190,7 @@ describe("查询规则页面", () => {
       if (url.endsWith("/query-policies")) return json({ policies: [draftPolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/query-policies/compact_page_query_v1");

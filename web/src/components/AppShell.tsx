@@ -1,8 +1,10 @@
+import { useWorkspaceIdentity } from "../features/accounts/ProtectedWorkspace";
 import { Box, ChevronDown, Database, Menu, Settings, X } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
 export function AppShell() {
+  const identity = useWorkspaceIdentity();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   return (
     <div className="app-shell">
@@ -41,7 +43,7 @@ export function AppShell() {
         <NavLink to="/account">本地账号入口</NavLink>
         <div className="operator">
           <span className="operator-avatar">OP</span>
-          <span><strong>Admin Operator</strong><small>由服务端配置</small></span>
+          <span><strong>{identity?.account.display_name}</strong><small>{identity?.account.username}</small></span>
         </div>
       </aside>
       {mobileNavOpen && <button className="mobile-scrim" aria-label="关闭导航" onClick={() => setMobileNavOpen(false)} />}

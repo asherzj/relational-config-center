@@ -24,7 +24,7 @@
 
 Web 固定使用 Node.js 24.19.0 与 pnpm 10.28.2；`package.json` 同时声明两者，确保本地开发与持续集成使用相同工具链。
 
-Admin 默认运行在 `http://127.0.0.1:8080`。复制环境变量示例并填入部署级 Token：
+Admin 默认运行在 `http://127.0.0.1:8080`。复制环境变量示例并确认 Admin 代理地址：
 
 ```bash
 cd web
@@ -33,7 +33,9 @@ pnpm install
 pnpm dev
 ```
 
-浏览器只请求同源 `/api/v1`。Vite 开发代理读取 `RCC_ADMIN_URL` 和 `RCC_ADMIN_TOKEN`，并在代理层注入 `Authorization`；变量没有 `VITE_` 前缀，因此不会进入浏览器包。生产部署也应由同源反向代理持有 Token。
+浏览器只请求同源 `/api/v1`，使用 HttpOnly 会话 Cookie 和仅存于内存的 CSRF 凭据。Vite 仅读取 `RCC_ADMIN_URL`，转发原请求；旧 `RCC_ADMIN_TOKEN` 会明确报错。Admin 的 `ADMIN_PUBLIC_ORIGIN` 必须与浏览器地址一致，本机 HTTP 显式启用 `ADMIN_ALLOW_LOCAL_HTTP=true`。生产部署使用同源 HTTPS 反向代理，不能继续注入共享 Token。
+
+工作区先检查真实当前身份；未登录时转到登录页并保留安全的站内目标，注册或登录成功后返回。规则或 CSRF 拒绝的 403 不跳登录；会话失效的 401 转登录，服务故障保留凭据并提供重新检查。工作区与账号页复用同一浏览器 Web Lock 活动协调，业务写入不自动重放。草稿中断恢复由 #38 继续实现。
 
 ## 验证
 

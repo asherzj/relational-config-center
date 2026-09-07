@@ -1,4 +1,4 @@
-# Local Account entry and sessions: T1–T2
+# Local Accounts, sessions and protected workspace: T1–T3
 
 [#35](https://github.com/asherzj/relational-config-center/issues/35) implements the
 account-entry slice and [#36](https://github.com/asherzj/relational-config-center/issues/36)
@@ -9,14 +9,12 @@ the account and logs it in. Current identity shows the real display name,
 username and unverified email. Login uses username, never email. No mail service
 or mail operation exists.
 
-**TMP-01:** only the account entry is authenticated by these sessions during T1–T2.
-The existing business workspace still uses its previous deployment Token and
-fixed Operator. #37 owns connecting the protected workspace, migrating its tests
-and removing those old paths. T1/T2 are development slices, not a complete release
-of local-account protection. The account entry now has final profile forms,
-foreground activity reporting and session cleanup. #37 connects the protected
-workspace to this identity and removes TMP-01. The final upgrade, required-schema
-startup checks and real browser path belong to #40.
+[#37](https://github.com/asherzj/relational-config-center/issues/37) protects every
+business route and attributes every authored row/catalog change to the requesting
+account's permanent ID. TMP-01 has been removed: no shared Token, disabled-auth
+mode, proxy credential injection or normal fixed Operator remains. #38 owns
+interrupted draft recovery; #39 owns account maintenance commands; #40 owns final
+required-schema startup checks and complete release acceptance.
 
 ## Start the development entry
 
@@ -24,7 +22,7 @@ Fresh MySQL installations use `deploy/mysql/init/001-schema.sql`. An existing
 final Policy Catalog uses `deploy/mysql/migrations/007-local-accounts.sql` once.
 The account table can be empty. Do not replay this migration on a fresh schema.
 
-Keep the existing development database and TMP-01 settings, and add:
+Remove old deployment Token, disabled-auth and fixed Operator settings, and set:
 
 ```dotenv
 ADMIN_PUBLIC_ORIGIN=http://127.0.0.1:5173
@@ -32,7 +30,7 @@ ADMIN_ALLOW_LOCAL_HTTP=true
 ```
 
 Run Web at that exact loopback origin and proxy `/api` to Admin using the existing
-Vite setup. The account routes ignore a proxy-injected deployment Token. Cookie
+Vite setup. No business or account route accepts a deployment Token. Cookie
 or CSRF data never goes in a URL or Web persistent storage. For HTTPS set the exact
 public `https://...` origin and omit the local HTTP exception. The public origin
 is required; it is never inferred from Host or forwarding headers.
@@ -41,7 +39,7 @@ is required; it is never inferred from Host or forwarding headers.
 only the socket peer supplies the source IP. A trusted peer permits walking
 `X-Forwarded-For` from right to left until the first untrusted address; malformed
 chains fall back to the peer. `X-Real-IP` and `Forwarded` are not used. Public API
-and Web must share an origin; account routes do not offer cross-origin CORS access.
+and Web must share an origin; the API does not offer cross-origin CORS access.
 
 ## HTTP contract
 
@@ -214,3 +212,64 @@ go test -v -count=1 -timeout=20m -tags=integration ./admin/...
 
 On other hosts use that host's Docker provider settings. Confirm integration tests
 actually ran rather than treating Testcontainers provider skips as success.
+
+## Protected business requests and Operator attribution
+
+Every business endpoint under `/api/v1` requires a current enabled account and
+valid Login Session. Non-GET/HEAD requests additionally require the session CSRF
+credential and configured Origin (or same-origin Referer), including POST queries.
+Health endpoints remain public and an empty account directory accepts registration.
+Missing or revoked sessions return `401 session_invalid`; authenticated rule
+rejections and CSRF failures remain stable 403 responses, and Web does not treat
+those as login failures. Business responses use `Cache-Control: no-store`.
+
+HTTP authenticates once before entering a business use case. The immutable
+`AuthenticatedOperator` result binds its private Account ID to that request's
+context. Shared services never store a mutable actor. Configuration Auto Fill and
+all Query, Mutation and Table Policy creation/updates use that account ID. A
+revocation prevents subsequent authentication; a write already authenticated may
+finish and retains the original account attribution. Authentication lookup has
+its own deadline and does not impose that deadline on a later business transaction.
+
+Historical Operator text stays unchanged. Each ADD/MODIFY checks the live metadata
+of the Operator slots it actually fills: an unrestricted text column must hold
+at least 36 characters. Short CHAR/VARCHAR and ENUM return
+`422 operator_field_incompatible` before the row changes. Reads preserve historical
+text, unaffected slots do not block a write, and DELETE fills no Operator slots.
+Admin never alters business Schema; the table maintainer must correct incompatible
+columns. All `rcc_` tables, including accounts, sessions, preauth, rate windows and
+the capacity lock, are excluded from discovery and generic policies/row operations.
+
+## Script login and one business call
+
+The following example uses Python's hidden password input and a private temporary
+Cookie jar. Do not enable shell tracing. Run it against the configured public
+origin after registering an account. It performs no automatic write retry.
+
+```bash
+umask 077
+ORIGIN=http://127.0.0.1:5173
+COOKIE_JAR=$(mktemp)
+SESSION_JSON=$(mktemp)
+trap 'rm -f "$COOKIE_JAR" "$SESSION_JSON"' EXIT
+CSRF=$(curl --fail --silent --show-error -c "$COOKIE_JAR" \
+  "$ORIGIN/api/v1/auth/csrf" | python3 -c 'import json,sys; print(json.load(sys.stdin)["csrf_token"])')
+python3 -c 'import getpass,json; print(json.dumps({"username":getpass.getpass("Username: "),"password":getpass.getpass("Password: ")}))' | \
+  curl --fail --silent --show-error -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
+    -H "Origin: $ORIGIN" -H "X-CSRF-Token: $CSRF" -H 'Content-Type: application/json' \
+    --data-binary @- "$ORIGIN/api/v1/auth/login" > "$SESSION_JSON"
+CSRF=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["csrf_token"])' < "$SESSION_JSON")
+curl --fail --silent --show-error -b "$COOKIE_JAR" "$ORIGIN/api/v1/table-policies"
+# Example non-read request: report actual foreground activity, no payload.
+curl --fail --silent --show-error -b "$COOKIE_JAR" -X POST \
+  -H "Origin: $ORIGIN" -H "X-CSRF-Token: $CSRF" "$ORIGIN/api/v1/auth/activity"
+```
+
+For business changes use the same Cookie jar, Origin and CSRF header with the
+existing JSON contract. A 401 requires a new login; 403 is a rule/CSRF rejection.
+After a lost write response, query its outcome before deciding whether another
+write is necessary. Old `ADMIN_API_TOKEN`, `ADMIN_AUTH_DISABLED`, `ADMIN_OPERATOR`
+and `ADMIN_CORS_ORIGINS` settings now produce a configuration error. The Vite
+proxy also rejects `RCC_ADMIN_TOKEN`. Maintenance `policy-migrate` reads only
+`MYSQL_*` plus explicit `POLICY_MIGRATION_OPERATOR` for historical attribution;
+its connection is independent of normal Admin HTTP configuration and readiness.

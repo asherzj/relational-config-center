@@ -1,6 +1,6 @@
 # 关系型配置中心
 
-本地账号的 T1 开发切片提供 `/register`、`/login` 和 `/account`，使用真实 MySQL Cookie 会话。启动需显式配置 `ADMIN_PUBLIC_ORIGIN`；本机 HTTP 还需 `ADMIN_ALLOW_LOCAL_HTTP=true`。参见[账号入口与 HTTP 契约](docs/admin-local-accounts.md)。TMP-01 暂保留旧业务工作区认证，#37 负责删除；当前切片不代表完整账号功能已交付。
+本地账号提供 `/register`、`/login` 和 `/account`，所有业务页面及 API 均要求真实 MySQL Cookie 会话，配置行和规则目录写入归属当前账号的永久 Account ID。启动需显式配置 `ADMIN_PUBLIC_ORIGIN`；本机 HTTP 还需 `ADMIN_ALLOW_LOCAL_HTTP=true`。参见[账号入口与 HTTP 契约](docs/admin-local-accounts.md)。旧共享 Token、免认证和固定 Operator 已移除；草稿恢复、账号维护工具及最终发布验收继续由 #38–#40 完成。
 
 Relational Configuration Center 是一个面向实体、字段和关系建模的配置管理系统。
 它旨在为具有 Schema、约束、引用和关联查询需求的配置数据提供统一管理能力，区别于以独立键值或配置文件为主要管理单元的传统配置中心。
@@ -21,7 +21,7 @@ Relational Configuration Center 是一个面向实体、字段和关系建模的
 
 ## 本地运行
 
-Admin 默认监听 `127.0.0.1:8080`。认证默认开启，所有 `/api/v1/**` 请求都必须携带部署级 Bearer Token；`/health/live` 和 `/health/ready` 不需要认证。
+Admin 默认监听 `127.0.0.1:8080`。业务 `/api/v1/**` 请求必须携带有效会话，非 GET/HEAD 请求还需 CSRF 及同源来源；登录前准备、注册和登录入口公开；`/health/live` 和 `/health/ready` 不需要认证。
 
 使用 Docker Compose 启动 MySQL 8.4 和 Admin：
 
@@ -30,7 +30,7 @@ cp deploy/.env.example deploy/.env
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml up --build
 ```
 
-请先修改 `deploy/.env` 中的密码和 `ADMIN_API_TOKEN`。该文件不应提交到仓库。Compose 会在全新 MySQL 数据卷中自动执行 `deploy/mysql/init/001-schema.sql` 初始化 Policy Catalog，并在每次启动时幂等应用仅供本地开发使用的 `deploy/mysql/local-fixture/002-notification-templates.sql`。fresh volume，以及尚未包含同名资源或已包含完全相同 fixture 的已有 volume，会获得：
+请先修改 `deploy/.env` 中的数据库密码。该文件不应提交到仓库。Compose 会在全新 MySQL 数据卷中自动执行 `deploy/mysql/init/001-schema.sql` 初始化 Policy Catalog，并在每次启动时幂等应用仅供本地开发使用的 `deploy/mysql/local-fixture/002-notification-templates.sql`。fresh volume，以及尚未包含同名资源或已包含完全相同 fixture 的已有 volume，会获得：
 
 - 带 3 条可辨识样例数据的 `notification_templates`；
 - Active 的 `notification_page_query_v1` Query Policy；
@@ -42,7 +42,8 @@ fixture 位于独立的 `mysql/local-fixture` 路径，只由本地 Compose 的�
 直接运行 Admin 时至少需要配置以下变量：
 
 ```bash
-ADMIN_API_TOKEN='replace-me' \
+ADMIN_PUBLIC_ORIGIN=http://127.0.0.1:5173 \
+ADMIN_ALLOW_LOCAL_HTTP=true \
 MYSQL_HOST=127.0.0.1 \
 MYSQL_DATABASE=rcc \
 MYSQL_USER=rcc_admin \
@@ -51,7 +52,7 @@ MYSQL_TLS_MODE=false \
 go run ./admin/cmd/admin
 ```
 
-可选配置包括 `ADMIN_HTTP_ADDR`、`ADMIN_OPERATOR`、`ADMIN_CORS_ORIGINS` 及技术基线中列出的 MySQL 连接池和超时变量。仅当 `ADMIN_AUTH_DISABLED=true` 且监听地址是显式 loopback IP 时才能关闭认证；不能在通配或内网地址上关闭。
+可选配置包括 `ADMIN_HTTP_ADDR`、`ADMIN_TRUSTED_PROXIES`、账号限速参数及技术基线中的 MySQL 连接池和超时变量。`ADMIN_API_TOKEN`、`ADMIN_AUTH_DISABLED`、`ADMIN_OPERATOR` 和旧跨源 `ADMIN_CORS_ORIGINS` 配置均已移除；提供非空旧配置会明确拒绝启动。自动化脚本也使用公开 Cookie/CSRF 登录流程，见账号契约。
 
 ## 测试
 

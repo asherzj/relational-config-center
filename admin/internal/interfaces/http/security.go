@@ -1,9 +1,8 @@
 package http
 
 import (
+	"context"
 	"crypto/rand"
-	"crypto/sha256"
-	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
 	"io"
@@ -34,9 +33,6 @@ var (
 type RouterOptions struct {
 	Authentication *application.Authentication
 	AccountHTTP    AccountHTTPOptions
-	APIToken       string
-	AuthDisabled   bool
-	CORSOrigins    []string
 	AccessLog      io.Writer
 }
 
@@ -112,70 +108,6 @@ func structuredAccessLog(destination io.Writer) gin.HandlerFunc {
 	}
 }
 
-func exactCORS(options RouterOptions) gin.HandlerFunc {
-	allowedOrigins := make(map[string]struct{}, len(options.CORSOrigins))
-	for _, origin := range options.CORSOrigins {
-		allowedOrigins[origin] = struct{}{}
-	}
-	allowedMethods := map[string]struct{}{
-		stdhttp.MethodGet: {}, stdhttp.MethodPost: {}, stdhttp.MethodPut: {},
-		stdhttp.MethodPatch: {}, stdhttp.MethodDelete: {},
-	}
-	allowedHeaders := map[string]struct{}{
-		"authorization": {}, "content-type": {}, "x-request-id": {},
-	}
-	return func(context *gin.Context) {
-		if !isAPIRequest(context.Request.URL.Path) {
-			context.Next()
-			return
-		}
-		if isAccountRequest(context.Request.URL.Path) {
-			context.Next()
-			return
-		}
-		origin := context.GetHeader("Origin")
-		if origin == "" {
-			context.Next()
-			return
-		}
-		if _, allowed := allowedOrigins[origin]; !allowed {
-			writeError(context, stdhttp.StatusForbidden, "cors_origin_forbidden", "request origin is not allowed")
-			context.Abort()
-			return
-		}
-		context.Header("Access-Control-Allow-Origin", origin)
-		context.Header("Vary", "Origin")
-
-		requestedMethod := context.GetHeader("Access-Control-Request-Method")
-		if context.Request.Method != stdhttp.MethodOptions || requestedMethod == "" {
-			context.Next()
-			return
-		}
-		if _, allowed := allowedMethods[requestedMethod]; !allowed || !validRequestedHeaders(context.GetHeader("Access-Control-Request-Headers"), allowedHeaders) {
-			writeError(context, stdhttp.StatusForbidden, "cors_preflight_forbidden", "CORS preflight is not allowed")
-			context.Abort()
-			return
-		}
-		context.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE")
-		context.Header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Request-ID")
-		context.Header("Vary", "Origin, Access-Control-Request-Method, Access-Control-Request-Headers")
-		context.Status(stdhttp.StatusNoContent)
-		context.Abort()
-	}
-}
-
-func validRequestedHeaders(header string, allowed map[string]struct{}) bool {
-	if strings.TrimSpace(header) == "" {
-		return true
-	}
-	for _, requested := range strings.Split(header, ",") {
-		if _, found := allowed[strings.ToLower(strings.TrimSpace(requested))]; !found {
-			return false
-		}
-	}
-	return true
-}
-
 func requestIdentity() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		if !isAPIRequest(context.Request.URL.Path) {
@@ -196,22 +128,38 @@ func requestIdentity() gin.HandlerFunc {
 	}
 }
 
-func bearerAuthentication(options RouterOptions) gin.HandlerFunc {
-	expected := sha256.Sum256([]byte(options.APIToken))
-	return func(context *gin.Context) {
-		if !isAPIRequest(context.Request.URL.Path) || isAccountRequest(context.Request.URL.Path) || options.AuthDisabled {
-			context.Next()
+func sessionAuthentication(options RouterOptions) gin.HandlerFunc {
+	h := accountHandler{options: options.AccountHTTP}
+	return func(c *gin.Context) {
+		if !isAPIRequest(c.Request.URL.Path) || isAccountRequest(c.Request.URL.Path) {
+			c.Next()
 			return
 		}
-		authorization := context.GetHeader("Authorization")
-		provided, found := strings.CutPrefix(authorization, "Bearer ")
-		providedHash := sha256.Sum256([]byte(provided))
-		if !found || provided == "" || subtle.ConstantTimeCompare(providedHash[:], expected[:]) != 1 {
-			writeError(context, stdhttp.StatusUnauthorized, "unauthorized", "valid Bearer authentication is required")
-			context.Abort()
+		c.Header("Cache-Control", "no-store")
+		if options.Authentication == nil {
+			writeAuthError(c, application.ErrSession)
+			c.Abort()
 			return
 		}
-		context.Next()
+		timeout := options.AccountHTTP.RequestTimeout
+		if timeout <= 0 {
+			timeout = 4 * time.Second
+		}
+		ctx, cancel := context.WithTimeout(c.Request.Context(), timeout)
+		change := c.Request.Method != stdhttp.MethodGet && c.Request.Method != stdhttp.MethodHead
+		operator, err := options.Authentication.AuthenticateRequest(ctx, h.cookie(c, false), c.GetHeader("X-CSRF-Token"), change)
+		if err == nil && change && !h.sameOrigin(c) {
+			err = application.ErrCSRF
+		}
+
+		cancel()
+		if err != nil {
+			writeAuthError(c, err)
+			c.Abort()
+			return
+		}
+		c.Request = c.Request.WithContext(operator.Bind(c.Request.Context()))
+		c.Next()
 	}
 }
 

@@ -29,18 +29,15 @@ func newApplicationWithClock(ctx context.Context, settings config.Config, now fu
 	}
 
 	discovery := application.NewDatabaseTableDiscovery(mysql)
-	queryPolicies := application.NewQueryPolicyManagement(mysql, application.NewQueryPolicyTypeRegistry(), settings.Operator)
-	mutationPolicies := application.NewMutationPolicyManagement(mysql, application.NewMutationPolicyTypeRegistry(), settings.Operator)
-	policies := application.NewTablePolicyManagement(mysql, mysql, queryPolicies, mutationPolicies, settings.Operator)
+	queryPolicies := application.NewQueryPolicyManagement(mysql, application.NewQueryPolicyTypeRegistry())
+	mutationPolicies := application.NewMutationPolicyManagement(mysql, application.NewMutationPolicyTypeRegistry())
+	policies := application.NewTablePolicyManagement(mysql, mysql, queryPolicies, mutationPolicies)
 	queries := application.NewManagedTableQuery(mysql, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
-	mutations := application.NewManagedTableMutation(mysql, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry(), application.NewFixedOperatorProvider(settings.Operator))
+	mutations := application.NewManagedTableMutation(mysql, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
 	return &adminApplication{
 		handler: httpinterface.NewRouter(discovery, mysql, queryPolicies, mutationPolicies, policies, queries, mutations, httpinterface.RouterOptions{
 			Authentication: application.NewAuthentication(mysql, passwordadapter.NewArgon2id(), now, mysql, application.AuthenticationLimits{Registration: settings.AccountRegisterLimit, LoginIP: settings.AccountLoginIPLimit, LoginFailures: settings.AccountLoginFailureLimit}),
 			AccountHTTP:    httpinterface.AccountHTTPOptions{RequestTimeout: accountRequestTimeout(settings.MySQL), PublicOrigin: settings.AccountPublicOrigin, InsecureLocalHTTP: settings.AccountInsecureHTTP, TrustedProxies: settings.AccountTrustedProxies},
-			APIToken:       settings.APIToken,
-			AuthDisabled:   settings.AuthDisabled,
-			CORSOrigins:    settings.CORSOrigins,
 			AccessLog:      os.Stdout,
 		}),
 		mysql: mysql,

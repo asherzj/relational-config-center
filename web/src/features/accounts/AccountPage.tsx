@@ -1,30 +1,12 @@
+import { accountEntryLockName, sessionEventStorageKey, withBrowserLock, publishSessionEvent } from "./sessionCoordination";
+import { useForegroundActivity } from "./useForegroundActivity";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { safeReturnDestination } from "./returnDestination";
 import { accounts, type CurrentIdentity } from "../../api/accounts";
 import { ApiError } from "../../api/client";
 import { Button } from "../../components/ui/Button";
 
-const activityStorageKey = "rcc:last-activity-report";
-const activityLockName = "rcc:activity-report";
-const accountEntryLockName = "rcc:account-entry";
-const sessionEventStorageKey = "rcc:session-event";
-
-type ActivityLockManager = {
-  request<T>(name: string, callback: () => Promise<T>): Promise<T>;
-};
-
-function withBrowserLock<T>(name: string, callback: () => Promise<T>): Promise<T> {
-  const locks = (navigator as Navigator & { locks?: ActivityLockManager }).locks;
-  if (!locks) return Promise.reject(new Error("browser coordination is unavailable"));
-  return locks.request(name, callback);
-}
-
-function publishSessionEvent(type: "changed" | "ended") {
-  try {
-    localStorage.removeItem(activityStorageKey);
-    localStorage.setItem(sessionEventStorageKey, JSON.stringify({ type, at: Date.now(), nonce: Math.random() }));
-  } catch { /* session state remains correct even when cross-tab storage is unavailable */ }
-}
 function formatSessionTime(value: string) {
   return `${new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(value))} UTC`;
 }
@@ -47,7 +29,10 @@ function errorMessage(error: unknown, context: ErrorContext): string {
   return "账号服务暂时不可用，原登录凭据已保留，请稍后重新检查登录状态。";
 }
 
-export function AccountPage({ mode }: { mode: "login" | "register" | "account" }) {
+export function AccountPage({ mode, onSignedIn }: { mode: "login" | "register" | "account"; onSignedIn?: (identity: CurrentIdentity) => void }) {
+  const [searchParams] = useSearchParams();
+  const destination = safeReturnDestination(searchParams.get("returnTo"));
+  const returnQuery = `?returnTo=${encodeURIComponent(destination)}`;
   const [identity, setIdentity] = useState<CurrentIdentity | null>(null);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
@@ -138,45 +123,13 @@ export function AccountPage({ mode }: { mode: "login" | "register" | "account" }
     window.addEventListener("storage", synchronize);
     return () => window.removeEventListener("storage", synchronize);
   }, []);
-  useEffect(() => {
-    if (!identity) return;
-    const report = () => {
-      if (document.visibilityState === "hidden") return;
-      const generation = sessionGeneration.current;
-      const sessionCSRF = identity.csrf_token;
-      void withBrowserLock(activityLockName, async () => {
-        if (document.visibilityState === "hidden" || !stillCurrent(generation, sessionCSRF)) return;
-        const now = Date.now();
-        let previous = 0;
-        try { previous = Number(localStorage.getItem(activityStorageKey) ?? 0); } catch { /* storage may be unavailable */ }
-        if (Number.isFinite(previous) && now - previous < 60_000) return;
-        const reservation = String(now);
-        try { localStorage.setItem(activityStorageKey, reservation); } catch { /* this tab still reports */ }
-        try {
-          const current = await accounts.activity(sessionCSRF);
-          if (stillCurrent(generation, sessionCSRF)) refreshIdentity(current);
-        } catch (cause) {
-          try { if (localStorage.getItem(activityStorageKey) === reservation) localStorage.removeItem(activityStorageKey); } catch { /* retry on the next interaction */ }
-          if (!stillCurrent(generation, sessionCSRF)) return;
-          if (cause instanceof ApiError && cause.status === 401) {
-            clearAccountState();
-            return;
-          }
-          setError(errorMessage(cause, "read"));
-        }
-      }).catch((cause) => {
-        if (stillCurrent(generation, sessionCSRF)) setError(errorMessage(cause, "read"));
-      });
-    };
-    document.addEventListener("pointerdown", report, { passive: true });
-    document.addEventListener("keydown", report);
-    document.addEventListener("touchstart", report, { passive: true });
-    return () => {
-      document.removeEventListener("pointerdown", report);
-      document.removeEventListener("keydown", report);
-      document.removeEventListener("touchstart", report);
-    };
-  }, [identity]);
+  useForegroundActivity(identity, {
+    generation: () => sessionGeneration.current,
+    isCurrent: stillCurrent,
+    onCurrent: refreshIdentity,
+    onInvalid: clearAccountState,
+    onError: (cause) => setError(errorMessage(cause, "read")),
+  });
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (busy) return;
@@ -193,6 +146,7 @@ export function AccountPage({ mode }: { mode: "login" | "register" | "account" }
       });
       if (!current || sessionGeneration.current !== generation) return;
       establishIdentity(current); publishSessionEvent("changed");
+      onSignedIn?.(current);
     } catch (cause) { setError(errorMessage(cause, "entry-write")); }
     finally { if (sessionGeneration.current === generation) setBusy(false); }
   }
@@ -254,6 +208,7 @@ export function AccountPage({ mode }: { mode: "login" | "register" | "account" }
       {identity ? <>
         <dl className="account-details"><dt>显示名称</dt><dd>{identity.account.display_name}</dd><dt>用户名</dt><dd>{identity.account.username}</dd><dt>邮箱</dt><dd>{identity.account.email}</dd><dt>闲置到期</dt><dd><time dateTime={identity.idle_expires_at}>{formatSessionTime(identity.idle_expires_at)}</time></dd><dt>最晚到期</dt><dd><time dateTime={identity.expires_at}>{formatSessionTime(identity.expires_at)}</time></dd></dl>
         <p className="account-help">邮箱未验证，不用于登录或找回密码。</p>
+        <Link to={destination}>进入管理工作区</Link>
         <form className="account-action" onSubmit={updateDisplayName}>
           <h2>个人资料</h2>
           <label>显示名称<input name="display_name" autoComplete="nickname" value={displayName} onChange={(event) => setDisplayName(event.target.value)} required /></label>
@@ -286,7 +241,7 @@ export function AccountPage({ mode }: { mode: "login" | "register" | "account" }
         <label>密码<input name="password" type="password" autoComplete={mode === "register" ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
         <p className="account-help">15–128 个字符；空格和大小写都会保留。</p>
         <Button type="submit" variant="primary" disabled={busy}>{busy ? "正在处理…" : mode === "register" ? "注册并登录" : "登录"}</Button>
-        <p className="account-link">{mode === "register" ? <Link to="/login">已有账号，去登录</Link> : <Link to="/register">注册新账号</Link>}</p>
+        <p className="account-link">{mode === "register" ? <Link to={`/login${returnQuery}`}>已有账号，去登录</Link> : <Link to={`/register${returnQuery}`}>注册新账号</Link>}</p>
       </form>}
     </section>
   </main>;

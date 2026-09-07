@@ -1,14 +1,16 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { AppRoutes } from "../../app";
+import { AccountPage } from "./AccountPage";
 
 const identity = { account: { id: "ab09850e-ef9a-4317-a000-d67465416b5b", username: "alice", display_name: "小爱", email: "alice@example.com", email_verified: false, status: "enabled" }, csrf_token: "session-csrf", expires_at: "2026-09-07T08:00:00Z", idle_expires_at: "2026-09-07T00:30:00Z" };
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } });
 const failure = (code: string, status: number) => json({ error: { code, message: "safe failure", request_id: "request-1" } }, status);
-function renderAccount(path = "/register") { return render(<MemoryRouter initialEntries={[path]}><AppRoutes /></MemoryRouter>); }
+function TestAccountRoutes() { return <Routes><Route path="/register" element={<AccountPage key="register" mode="register" />} /><Route path="/login" element={<AccountPage key="login" mode="login" />} /><Route path="*" element={<AccountPage key="account" mode="account" />} /></Routes>; }
+function renderAccount(path = "/register") { return render(<MemoryRouter initialEntries={[path]}><TestAccountRoutes /></MemoryRouter>); }
+
 beforeEach(() => {
   const request = (_name: string, callback: () => Promise<unknown>) => callback();
   vi.stubGlobal("navigator", Object.assign(Object.create(navigator), { locks: { request } }));
@@ -436,7 +438,7 @@ it("does not mint duplicate pre-login credentials under StrictMode", async () =>
     preparations++;
     return json({ csrf_token: "strict-mode-preauth" });
   }));
-  render(<StrictMode><MemoryRouter initialEntries={["/register"]}><AppRoutes /></MemoryRouter></StrictMode>);
+  render(<StrictMode><MemoryRouter initialEntries={["/register"]}><AccountPage mode="register" /></MemoryRouter></StrictMode>);
   await waitFor(() => expect(screen.getByRole("button", { name: "注册并登录" })).toBeEnabled());
   expect(preparations).toBe(0);
 });

@@ -1,5 +1,7 @@
+import { safeReturnDestination } from "./features/accounts/returnDestination";
+import { ProtectedWorkspace } from "./features/accounts/ProtectedWorkspace";
 import { AccountPage } from "./features/accounts/AccountPage";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useNavigate, useSearchParams } from "react-router-dom";
 import { AppShell } from "./components/AppShell";
 import { QueryPoliciesPage } from "./features/query-policies/QueryPoliciesPage";
 import { MutationPoliciesPage } from "./features/mutation-policies/MutationPoliciesPage";
@@ -9,9 +11,10 @@ import { ManagedDataPage } from "./features/managed-data/ManagedDataPage";
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path="login" element={<AccountPage key="login" mode="login" />} />
-      <Route path="register" element={<AccountPage key="register" mode="register" />} />
+      <Route path="login" element={<AccountEntry key="login" mode="login" />} />
+      <Route path="register" element={<AccountEntry key="register" mode="register" />} />
       <Route path="account" element={<AccountPage key="account" mode="account" />} />
+      <Route element={<ProtectedWorkspace />}>
       <Route element={<AppShell />}>
         <Route index element={<Navigate to="/platform/query-policies" replace />} />
         <Route path="platform/query-policies" element={<QueryPoliciesPage />} />
@@ -23,6 +26,13 @@ export function AppRoutes() {
         <Route path="configuration/managed-data" element={<ManagedDataPage />} />
         <Route path="*" element={<Navigate to="/platform/query-policies" replace />} />
       </Route>
+      </Route>
     </Routes>
   );
+}
+
+function AccountEntry({ mode }: { mode: "login" | "register" }) {
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  return <AccountPage mode={mode} onSignedIn={() => navigate(safeReturnDestination(params.get("returnTo")), { replace: true })} />;
 }

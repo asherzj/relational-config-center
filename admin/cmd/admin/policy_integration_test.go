@@ -276,24 +276,24 @@ func policyCatalogSchemaSignature(t *testing.T, ctx context.Context, database *s
 func TestQueryPolicyHTTPLifecyclePersistsAndFailsClosed(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
 
-	types := policyIntegrationRequest(app, http.MethodGet, "/api/v1/query-policy-types", "")
+	types := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/query-policy-types", "")
 	if types.Code != http.StatusOK || !strings.Contains(types.Body.String(), `"code":"page_query"`) {
 		t.Fatalf("page_query Type is not exposed: HTTP %d %s", types.Code, types.Body.String())
 	}
 
 	invalidDraft := `{"code":"standard_page_query_v1","name":"Standard page query","description":"Draft may be completed before activation","type_code":"unknown_type","default_order_field":"id","default_order_direction":"DESC","default_page_size":20,"max_page_size":200}`
-	created := policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies", invalidDraft)
+	created := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/query-policies", invalidDraft)
 	if created.Code != http.StatusCreated || !strings.Contains(created.Body.String(), `"status":"DRAFT"`) {
 		t.Fatalf("create Draft: HTTP %d %s", created.Code, created.Body.String())
 	}
-	duplicate := policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies", invalidDraft)
+	duplicate := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/query-policies", invalidDraft)
 	assertIntegrationErrorCode(t, duplicate, http.StatusConflict, "query_policy_exists")
-	unknownType := policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies/standard_page_query_v1/activate", "")
+	unknownType := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/query-policies/standard_page_query_v1/activate", "")
 	assertIntegrationErrorCode(t, unknownType, http.StatusUnprocessableEntity, "unknown_policy_type")
 
 	unsafeOrder := `{"code":"unsafe_order_v1","name":"Unsafe order","description":"","type_code":"page_query","default_order_field":"id;drop","default_order_direction":"DESC","default_page_size":20,"max_page_size":200}`
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies", unsafeOrder), http.StatusUnprocessableEntity, "invalid_query_policy_rules")
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodGet, "/api/v1/query-policies/unsafe_order_v1", ""), http.StatusNotFound, "query_policy_not_found")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/query-policies", unsafeOrder), http.StatusUnprocessableEntity, "invalid_query_policy_rules")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/query-policies/unsafe_order_v1", ""), http.StatusNotFound, "query_policy_not_found")
 
 	invalidPersistentScalars := []struct {
 		code      string
@@ -309,54 +309,54 @@ func TestQueryPolicyHTTPLifecyclePersistsAndFailsClosed(t *testing.T) {
 	}
 	for _, test := range invalidPersistentScalars {
 		body := fmt.Sprintf(`{"code":%q,"name":"Invalid rules","description":"","type_code":"page_query","default_order_field":%q,"default_order_direction":%q,"default_page_size":%d,"max_page_size":%d}`, test.code, test.field, test.direction, test.pageSize, test.maxSize)
-		assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies", body), http.StatusUnprocessableEntity, "invalid_query_policy_rules")
-		assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodGet, "/api/v1/query-policies/"+test.code, ""), http.StatusNotFound, "query_policy_not_found")
+		assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/query-policies", body), http.StatusUnprocessableEntity, "invalid_query_policy_rules")
+		assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/query-policies/"+test.code, ""), http.StatusNotFound, "query_policy_not_found")
 	}
 
 	validDraft := `{"code":"standard_page_query_v1","name":"Standard page query","description":"Reusable defaults","type_code":"page_query","default_order_field":"id","default_order_direction":"DESC","default_page_size":20,"max_page_size":200}`
-	replaced := policyIntegrationRequest(app, http.MethodPut, "/api/v1/query-policies/standard_page_query_v1", validDraft)
+	replaced := policyIntegrationRequest(t, app, http.MethodPut, "/api/v1/query-policies/standard_page_query_v1", validDraft)
 	if replaced.Code != http.StatusOK || !strings.Contains(replaced.Body.String(), `"type_code":"page_query"`) {
 		t.Fatalf("replace Draft: HTTP %d %s", replaced.Code, replaced.Body.String())
 	}
-	activated := policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies/standard_page_query_v1/activate", "")
+	activated := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/query-policies/standard_page_query_v1/activate", "")
 	if activated.Code != http.StatusOK || !strings.Contains(activated.Body.String(), `"status":"ACTIVE"`) {
 		t.Fatalf("activate: HTTP %d %s", activated.Code, activated.Body.String())
 	}
 
 	immutable := strings.Replace(validDraft, `"default_page_size":20`, `"default_page_size":10`, 1)
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPut, "/api/v1/query-policies/standard_page_query_v1", immutable), http.StatusConflict, "invalid_policy_transition")
-	metadata := policyIntegrationRequest(app, http.MethodPatch, "/api/v1/query-policies/standard_page_query_v1/metadata", `{"name":"Standard pagination","description":"Display-only update"}`)
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPut, "/api/v1/query-policies/standard_page_query_v1", immutable), http.StatusConflict, "invalid_policy_transition")
+	metadata := policyIntegrationRequest(t, app, http.MethodPatch, "/api/v1/query-policies/standard_page_query_v1/metadata", `{"name":"Standard pagination","description":"Display-only update"}`)
 	if metadata.Code != http.StatusOK || !strings.Contains(metadata.Body.String(), `"name":"Standard pagination"`) || !strings.Contains(metadata.Body.String(), `"default_page_size":20`) {
 		t.Fatalf("metadata update changed execution fields: HTTP %d %s", metadata.Code, metadata.Body.String())
 	}
 
-	deprecated := policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies/standard_page_query_v1/deprecate", "")
+	deprecated := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/query-policies/standard_page_query_v1/deprecate", "")
 	if deprecated.Code != http.StatusOK || !strings.Contains(deprecated.Body.String(), `"status":"DEPRECATED"`) {
 		t.Fatalf("deprecate: HTTP %d %s", deprecated.Code, deprecated.Body.String())
 	}
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies/standard_page_query_v1/activate", ""), http.StatusConflict, "invalid_policy_transition")
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodDelete, "/api/v1/query-policies/standard_page_query_v1", ""), http.StatusConflict, "invalid_policy_transition")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/query-policies/standard_page_query_v1/activate", ""), http.StatusConflict, "invalid_policy_transition")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodDelete, "/api/v1/query-policies/standard_page_query_v1", ""), http.StatusConflict, "invalid_policy_transition")
 
 	draftToDelete := strings.Replace(validDraft, "standard_page_query_v1", "temporary_page_query_v2", 1)
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies", draftToDelete); response.Code != http.StatusCreated {
+	if response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/query-policies", draftToDelete); response.Code != http.StatusCreated {
 		t.Fatalf("create disposable Draft: HTTP %d %s", response.Code, response.Body.String())
 	}
-	if response := policyIntegrationRequest(app, http.MethodDelete, "/api/v1/query-policies/temporary_page_query_v2", ""); response.Code != http.StatusNoContent {
+	if response := policyIntegrationRequest(t, app, http.MethodDelete, "/api/v1/query-policies/temporary_page_query_v2", ""); response.Code != http.StatusNoContent {
 		t.Fatalf("delete Draft: HTTP %d %s", response.Code, response.Body.String())
 	}
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodGet, "/api/v1/query-policies/temporary_page_query_v2", ""), http.StatusNotFound, "query_policy_not_found")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/query-policies/temporary_page_query_v2", ""), http.StatusNotFound, "query_policy_not_found")
 
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies", strings.Replace(validDraft, "standard_page_query_v1", "mysql_page_query_v2", 1)), http.StatusBadRequest, "invalid_policy_code")
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies", strings.Replace(validDraft, "standard_page_query_v1", "Unversioned", 1)), http.StatusBadRequest, "invalid_policy_code")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/query-policies", strings.Replace(validDraft, "standard_page_query_v1", "mysql_page_query_v2", 1)), http.StatusBadRequest, "invalid_policy_code")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/query-policies", strings.Replace(validDraft, "standard_page_query_v1", "Unversioned", 1)), http.StatusBadRequest, "invalid_policy_code")
 
-	protectedTable := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", tablePolicyCodePayload("rcc_query_policies", "unused_query_v1", "unused_mutation_v1"))
+	protectedTable := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/table-policies", tablePolicyCodePayload("rcc_query_policies", "unused_query_v1", "unused_mutation_v1"))
 	assertIntegrationErrorCode(t, protectedTable, http.StatusForbidden, "protected_table")
-	protectedQuery := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/rcc_query_policies/query", `{}`)
+	protectedQuery := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/rcc_query_policies/query", `{}`)
 	assertIntegrationErrorCode(t, protectedQuery, http.StatusForbidden, "protected_table")
 
-	listed := policyIntegrationRequest(app, http.MethodGet, "/api/v1/query-policies", "")
+	listed := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/query-policies", "")
 	if listed.Code != http.StatusOK || strings.Contains(listed.Body.String(), `"id":`) ||
-		!strings.Contains(listed.Body.String(), `"creator":"integration-test"`) ||
+		!strings.Contains(listed.Body.String(), `"creator":"`+integrationAccountID(t, app)+`"`) ||
 		!strings.Contains(listed.Body.String(), `"gmt_created":`) ||
 		!strings.Contains(listed.Body.String(), `"gmt_modified":`) ||
 		strings.Contains(listed.Body.String(), `"created_at":`) ||
@@ -374,7 +374,7 @@ func TestTablePolicyCodeAssignmentsValidateActiveDefinitionsAndReplaceAtomically
 	createAndActivateQueryDefinition(t, app, "assignable_page_query_v1", "id")
 	createAndActivateMutationDefinition(t, app, "assignable_mutation_v1", nil)
 
-	created := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", `{"table_name":"policy_alpha","query_policy_code":"assignable_page_query_v1","mutation_policy_code":"assignable_mutation_v1"}`)
+	created := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/table-policies", `{"table_name":"policy_alpha","query_policy_code":"assignable_page_query_v1","mutation_policy_code":"assignable_mutation_v1"}`)
 	if created.Code != http.StatusCreated {
 		t.Fatalf("create Code assignment: HTTP %d %s", created.Code, created.Body.String())
 	}
@@ -395,44 +395,44 @@ func TestTablePolicyCodeAssignmentsValidateActiveDefinitionsAndReplaceAtomically
 	if string(contract["enabled"]) != "false" {
 		t.Fatalf("new Table Policy must start disabled: %s", created.Body.String())
 	}
-	legacyJSON := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", legacyTablePolicyPayload("policy_beta", "mysql_page_query_v1", `{}`, "mysql_single_table_mutation_v1", `{}`))
+	legacyJSON := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/table-policies", legacyTablePolicyPayload("policy_beta", "mysql_page_query_v1", `{}`, "mysql_single_table_mutation_v1", `{}`))
 	assertIntegrationErrorCode(t, legacyJSON, http.StatusBadRequest, "invalid_request")
 
-	enabled := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies/policy_alpha/enable", "")
+	enabled := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/table-policies/policy_alpha/enable", "")
 	if enabled.Code != http.StatusOK || !strings.Contains(enabled.Body.String(), `"enabled":true`) {
 		t.Fatalf("enable assignment: HTTP %d %s", enabled.Code, enabled.Body.String())
 	}
 
 	createAndActivateQueryDefinition(t, app, "next_page_query_v2", "id")
 	createAndActivateQueryDefinition(t, app, "missing_order_query_v1", "missing_column")
-	invalid := policyIntegrationRequest(app, http.MethodPut, "/api/v1/table-policies/policy_alpha", `{"table_name":"policy_alpha","query_policy_code":"missing_order_query_v1","mutation_policy_code":"assignable_mutation_v1"}`)
+	invalid := policyIntegrationRequest(t, app, http.MethodPut, "/api/v1/table-policies/policy_alpha", `{"table_name":"policy_alpha","query_policy_code":"missing_order_query_v1","mutation_policy_code":"assignable_mutation_v1"}`)
 	assertIntegrationErrorCode(t, invalid, http.StatusUnprocessableEntity, "incompatible_policy_definition")
-	unchanged := policyIntegrationRequest(app, http.MethodGet, "/api/v1/table-policies/policy_alpha", "")
+	unchanged := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/table-policies/policy_alpha", "")
 	if unchanged.Code != http.StatusOK || !strings.Contains(unchanged.Body.String(), `"query_policy_code":"assignable_page_query_v1"`) || !strings.Contains(unchanged.Body.String(), `"enabled":true`) {
 		t.Fatalf("invalid replacement changed assignment: HTTP %d %s", unchanged.Code, unchanged.Body.String())
 	}
 
-	replaced := policyIntegrationRequest(app, http.MethodPut, "/api/v1/table-policies/policy_alpha", `{"table_name":"policy_alpha","query_policy_code":"next_page_query_v2","mutation_policy_code":"assignable_mutation_v1"}`)
+	replaced := policyIntegrationRequest(t, app, http.MethodPut, "/api/v1/table-policies/policy_alpha", `{"table_name":"policy_alpha","query_policy_code":"next_page_query_v2","mutation_policy_code":"assignable_mutation_v1"}`)
 	if replaced.Code != http.StatusOK || !strings.Contains(replaced.Body.String(), `"query_policy_code":"next_page_query_v2"`) || !strings.Contains(replaced.Body.String(), `"enabled":true`) {
 		t.Fatalf("valid replacement was not atomic/preserving enabled: HTTP %d %s", replaced.Code, replaced.Body.String())
 	}
-	visible := policyIntegrationRequest(app, http.MethodGet, "/api/v1/table-policies/policy_alpha", "")
+	visible := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/table-policies/policy_alpha", "")
 	if !strings.Contains(visible.Body.String(), `"query_policy_code":"next_page_query_v2"`) {
 		t.Fatalf("replacement was not immediately visible: HTTP %d %s", visible.Code, visible.Body.String())
 	}
 
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies/next_page_query_v2/deprecate", ""); response.Code != http.StatusOK {
+	if response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/query-policies/next_page_query_v2/deprecate", ""); response.Code != http.StatusOK {
 		t.Fatalf("deprecate assigned Query Policy: HTTP %d %s", response.Code, response.Body.String())
 	}
-	readable := policyIntegrationRequest(app, http.MethodGet, "/api/v1/table-policies/policy_alpha", "")
+	readable := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/table-policies/policy_alpha", "")
 	if readable.Code != http.StatusOK {
 		t.Fatalf("existing Deprecated reference must remain readable: HTTP %d %s", readable.Code, readable.Body.String())
 	}
-	rejectedDeprecated := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", `{"table_name":"policy_beta","query_policy_code":"next_page_query_v2","mutation_policy_code":"assignable_mutation_v1"}`)
+	rejectedDeprecated := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/table-policies", `{"table_name":"policy_beta","query_policy_code":"next_page_query_v2","mutation_policy_code":"assignable_mutation_v1"}`)
 	assertIntegrationErrorCode(t, rejectedDeprecated, http.StatusUnprocessableEntity, "query_policy_not_assignable")
 
 	createAndActivateMutationDefinition(t, app, "missing_audit_mutation_v1", stringPointer("missing_column"))
-	incompatibleMutation := policyIntegrationRequest(app, http.MethodPut, "/api/v1/table-policies/policy_alpha", `{"table_name":"policy_alpha","query_policy_code":"assignable_page_query_v1","mutation_policy_code":"missing_audit_mutation_v1"}`)
+	incompatibleMutation := policyIntegrationRequest(t, app, http.MethodPut, "/api/v1/table-policies/policy_alpha", `{"table_name":"policy_alpha","query_policy_code":"assignable_page_query_v1","mutation_policy_code":"missing_audit_mutation_v1"}`)
 	assertIntegrationErrorCode(t, incompatibleMutation, http.StatusUnprocessableEntity, "incompatible_policy_definition")
 }
 
@@ -489,10 +489,10 @@ func TestLegacyPolicyPreflightRejectsUnsupportedAutoFillWithoutPartialRewrite(t 
 func createAndActivateQueryDefinition(t *testing.T, app *adminApplication, code, orderField string) {
 	t.Helper()
 	body := fmt.Sprintf(`{"code":%q,"name":"Assignable query","description":"integration","type_code":"page_query","default_order_field":%q,"default_order_direction":"DESC","default_page_size":20,"max_page_size":200}`, code, orderField)
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies", body); response.Code != http.StatusCreated {
+	if response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/query-policies", body); response.Code != http.StatusCreated {
 		t.Fatalf("create Query Policy %s: HTTP %d %s", code, response.Code, response.Body.String())
 	}
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/query-policies/"+code+"/activate", ""); response.Code != http.StatusOK {
+	if response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/query-policies/"+code+"/activate", ""); response.Code != http.StatusOK {
 		t.Fatalf("activate Query Policy %s: HTTP %d %s", code, response.Code, response.Body.String())
 	}
 }
@@ -505,10 +505,10 @@ func createAndActivateMutationDefinition(t *testing.T, app *adminApplication, co
 		operatorJSON = string(encoded)
 	}
 	body := fmt.Sprintf(`{"code":%q,"name":"Assignable mutation","description":"integration","type_code":"single_table_mutation","allow_add":true,"allow_modify":true,"allow_delete":false,"create_operator_field":%s,"create_time_field":null,"modify_operator_field":null,"modify_time_field":null}`, code, operatorJSON)
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies", body); response.Code != http.StatusCreated {
+	if response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/mutation-policies", body); response.Code != http.StatusCreated {
 		t.Fatalf("create Mutation Policy %s: HTTP %d %s", code, response.Code, response.Body.String())
 	}
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies/"+code+"/activate", ""); response.Code != http.StatusOK {
+	if response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/mutation-policies/"+code+"/activate", ""); response.Code != http.StatusOK {
 		t.Fatalf("activate Mutation Policy %s: HTTP %d %s", code, response.Code, response.Body.String())
 	}
 }
@@ -518,19 +518,19 @@ func stringPointer(value string) *string { return &value }
 func TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
 
-	types := policyIntegrationRequest(app, http.MethodGet, "/api/v1/mutation-policy-types", "")
+	types := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/mutation-policy-types", "")
 	if types.Code != http.StatusOK || !strings.Contains(types.Body.String(), `"code":"single_table_mutation"`) ||
 		!strings.Contains(types.Body.String(), `"operations":["ADD","MODIFY","DELETE"]`) {
 		t.Fatalf("single_table_mutation Type contract is not exposed: HTTP %d %s", types.Code, types.Body.String())
 	}
 
 	unknownType := mutationPolicyPayload("standard_mutation_v1", "unknown_type", true, true, false, `"creator"`, `"created_at"`, `"modifier"`, `"updated_at"`)
-	created := policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies", unknownType)
+	created := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/mutation-policies", unknownType)
 	if created.Code != http.StatusCreated || !strings.Contains(created.Body.String(), `"status":"DRAFT"`) {
 		t.Fatalf("create incomplete Draft: HTTP %d %s", created.Code, created.Body.String())
 	}
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies/standard_mutation_v1/activate", ""), http.StatusUnprocessableEntity, "unknown_policy_type")
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies", unknownType), http.StatusConflict, "mutation_policy_exists")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/mutation-policies/standard_mutation_v1/activate", ""), http.StatusUnprocessableEntity, "unknown_policy_type")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/mutation-policies", unknownType), http.StatusConflict, "mutation_policy_exists")
 
 	invalidRules := []struct {
 		code string
@@ -542,30 +542,30 @@ func TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed(t *tes
 		{code: "modify_without_operation_v1", body: mutationPolicyPayload("modify_without_operation_v1", "single_table_mutation", false, false, false, `null`, `null`, `"modifier"`, `"updated_at"`)},
 	}
 	for _, test := range invalidRules {
-		assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies", test.body), http.StatusUnprocessableEntity, "invalid_mutation_policy_rules")
-		assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodGet, "/api/v1/mutation-policies/"+test.code, ""), http.StatusNotFound, "mutation_policy_not_found")
+		assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/mutation-policies", test.body), http.StatusUnprocessableEntity, "invalid_mutation_policy_rules")
+		assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/mutation-policies/"+test.code, ""), http.StatusNotFound, "mutation_policy_not_found")
 	}
 
 	validDraft := mutationPolicyPayload("standard_mutation_v1", "single_table_mutation", true, true, false, `"creator"`, `"created_at"`, `"modifier"`, `"updated_at"`)
-	replaced := policyIntegrationRequest(app, http.MethodPut, "/api/v1/mutation-policies/standard_mutation_v1", validDraft)
+	replaced := policyIntegrationRequest(t, app, http.MethodPut, "/api/v1/mutation-policies/standard_mutation_v1", validDraft)
 	if replaced.Code != http.StatusOK || !strings.Contains(replaced.Body.String(), `"allow_add":true`) ||
 		!strings.Contains(replaced.Body.String(), `"create_operator_field":"creator"`) || strings.Contains(replaced.Body.String(), "config") {
 		t.Fatalf("replace Draft did not persist typed relational rules: HTTP %d %s", replaced.Code, replaced.Body.String())
 	}
 
-	activated := policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies/standard_mutation_v1/activate", "")
+	activated := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/mutation-policies/standard_mutation_v1/activate", "")
 	if activated.Code != http.StatusOK || !strings.Contains(activated.Body.String(), `"status":"ACTIVE"`) {
 		t.Fatalf("activate: HTTP %d %s", activated.Code, activated.Body.String())
 	}
 	immutable := strings.Replace(validDraft, `"allow_delete":false`, `"allow_delete":true`, 1)
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPut, "/api/v1/mutation-policies/standard_mutation_v1", immutable), http.StatusConflict, "invalid_policy_transition")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPut, "/api/v1/mutation-policies/standard_mutation_v1", immutable), http.StatusConflict, "invalid_policy_transition")
 
-	metadata := policyIntegrationRequest(app, http.MethodPatch, "/api/v1/mutation-policies/standard_mutation_v1/metadata", `{"name":"Standard mutation","description":"Display-only update"}`)
+	metadata := policyIntegrationRequest(t, app, http.MethodPatch, "/api/v1/mutation-policies/standard_mutation_v1/metadata", `{"name":"Standard mutation","description":"Display-only update"}`)
 	if metadata.Code != http.StatusOK || !strings.Contains(metadata.Body.String(), `"name":"Standard mutation"`) || !strings.Contains(metadata.Body.String(), `"allow_delete":false`) {
 		t.Fatalf("metadata update changed execution fields: HTTP %d %s", metadata.Code, metadata.Body.String())
 	}
 
-	got := policyIntegrationRequest(app, http.MethodGet, "/api/v1/mutation-policies/standard_mutation_v1", "")
+	got := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/mutation-policies/standard_mutation_v1", "")
 	if got.Code != http.StatusOK || !strings.Contains(got.Body.String(), `"modify_time_field":"updated_at"`) ||
 		!strings.Contains(got.Body.String(), `"gmt_created":`) || !strings.Contains(got.Body.String(), `"gmt_modified":`) ||
 		strings.Contains(got.Body.String(), `"id":`) || strings.Contains(got.Body.String(), `"supports_`) ||
@@ -573,29 +573,29 @@ func TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed(t *tes
 		t.Fatalf("unexpected persisted Mutation Policy response: HTTP %d %s", got.Code, got.Body.String())
 	}
 
-	deprecated := policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies/standard_mutation_v1/deprecate", "")
+	deprecated := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/mutation-policies/standard_mutation_v1/deprecate", "")
 	if deprecated.Code != http.StatusOK || !strings.Contains(deprecated.Body.String(), `"status":"DEPRECATED"`) {
 		t.Fatalf("deprecate: HTTP %d %s", deprecated.Code, deprecated.Body.String())
 	}
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies/standard_mutation_v1/activate", ""), http.StatusConflict, "invalid_policy_transition")
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodDelete, "/api/v1/mutation-policies/standard_mutation_v1", ""), http.StatusConflict, "invalid_policy_transition")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/mutation-policies/standard_mutation_v1/activate", ""), http.StatusConflict, "invalid_policy_transition")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodDelete, "/api/v1/mutation-policies/standard_mutation_v1", ""), http.StatusConflict, "invalid_policy_transition")
 
 	draftToDelete := mutationPolicyPayload("temporary_mutation_v2", "single_table_mutation", false, false, false, `null`, `null`, `null`, `null`)
-	if response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies", draftToDelete); response.Code != http.StatusCreated {
+	if response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/mutation-policies", draftToDelete); response.Code != http.StatusCreated {
 		t.Fatalf("create disposable Draft: HTTP %d %s", response.Code, response.Body.String())
 	}
-	if response := policyIntegrationRequest(app, http.MethodDelete, "/api/v1/mutation-policies/temporary_mutation_v2", ""); response.Code != http.StatusNoContent {
+	if response := policyIntegrationRequest(t, app, http.MethodDelete, "/api/v1/mutation-policies/temporary_mutation_v2", ""); response.Code != http.StatusNoContent {
 		t.Fatalf("delete Draft: HTTP %d %s", response.Code, response.Body.String())
 	}
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodGet, "/api/v1/mutation-policies/temporary_mutation_v2", ""), http.StatusNotFound, "mutation_policy_not_found")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/mutation-policies/temporary_mutation_v2", ""), http.StatusNotFound, "mutation_policy_not_found")
 
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies", strings.Replace(validDraft, "standard_mutation_v1", "mysql_mutation_v2", 1)), http.StatusBadRequest, "invalid_policy_code")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/mutation-policies", strings.Replace(validDraft, "standard_mutation_v1", "mysql_mutation_v2", 1)), http.StatusBadRequest, "invalid_policy_code")
 	withJSON := strings.TrimSuffix(validDraft, "}") + `,"config":{}}`
-	assertIntegrationErrorCode(t, policyIntegrationRequest(app, http.MethodPost, "/api/v1/mutation-policies", withJSON), http.StatusBadRequest, "invalid_request")
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/mutation-policies", withJSON), http.StatusBadRequest, "invalid_request")
 
-	protectedTable := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", tablePolicyCodePayload("rcc_mutation_policies", "unused_query_v1", "unused_mutation_v1"))
+	protectedTable := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/table-policies", tablePolicyCodePayload("rcc_mutation_policies", "unused_query_v1", "unused_mutation_v1"))
 	assertIntegrationErrorCode(t, protectedTable, http.StatusForbidden, "protected_table")
-	protectedMutation := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/rcc_mutation_policies/rows", `{"content":{}}`)
+	protectedMutation := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/rcc_mutation_policies/rows", `{"content":{}}`)
 	assertIntegrationErrorCode(t, protectedMutation, http.StatusForbidden, "protected_table")
 }
 
@@ -613,7 +613,7 @@ func TestTablePolicyCreationPersistsDisabledCodeReferencesForHTTPInspection(t *t
 	createAndActivateMutationDefinition(t, app, "inspect_mutation_v1", nil)
 
 	requestBody := tablePolicyCodePayload("policy_alpha", "inspect_page_query_v1", "inspect_mutation_v1")
-	created := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", requestBody)
+	created := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/table-policies", requestBody)
 	if created.Code != http.StatusCreated {
 		t.Fatalf("expected HTTP 201, got %d: %s", created.Code, created.Body.String())
 	}
@@ -623,12 +623,12 @@ func TestTablePolicyCreationPersistsDisabledCodeReferencesForHTTPInspection(t *t
 		t.Fatalf("unexpected create response: %s", created.Body.String())
 	}
 
-	got := policyIntegrationRequest(app, http.MethodGet, "/api/v1/table-policies/policy_alpha", "")
+	got := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/table-policies/policy_alpha", "")
 	if got.Code != http.StatusOK || !strings.Contains(got.Body.String(), `"query_policy_code":"inspect_page_query_v1"`) {
 		t.Fatalf("unexpected get response: HTTP %d %s", got.Code, got.Body.String())
 	}
 
-	listed := policyIntegrationRequest(app, http.MethodGet, "/api/v1/table-policies", "")
+	listed := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/table-policies", "")
 	if listed.Code != http.StatusOK {
 		t.Fatalf("expected HTTP 200, got %d: %s", listed.Code, listed.Body.String())
 	}
@@ -677,20 +677,20 @@ func TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence(t 
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", test.body)
+			response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/table-policies", test.body)
 			assertIntegrationErrorCode(t, response, test.wantStatus, test.wantCode)
-			got := policyIntegrationRequest(app, http.MethodGet, "/api/v1/table-policies/"+test.tableName, "")
+			got := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/table-policies/"+test.tableName, "")
 			if got.Code != http.StatusNotFound && got.Code != http.StatusForbidden {
 				t.Fatalf("failed creation partially persisted a Policy: HTTP %d %s", got.Code, got.Body.String())
 			}
 		})
 	}
 
-	created := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", valid("policy_beta"))
+	created := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/table-policies", valid("policy_beta"))
 	if created.Code != http.StatusCreated {
 		t.Fatalf("create Policy for duplicate check: HTTP %d %s", created.Code, created.Body.String())
 	}
-	duplicate := policyIntegrationRequest(app, http.MethodPost, "/api/v1/table-policies", valid("policy_beta"))
+	duplicate := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/table-policies", valid("policy_beta"))
 	assertIntegrationErrorCode(t, duplicate, http.StatusConflict, "table_policy_exists")
 }
 
@@ -731,7 +731,7 @@ func createPolicyAssignment(t *testing.T, app *adminApplication, tableName strin
 func replacePolicyAssignment(t *testing.T, app *adminApplication, tableName string, query queryPolicyFixture, mutation mutationPolicyFixture) {
 	t.Helper()
 	queryCode, mutationCode := createPolicyDefinitions(t, app, tableName, query, mutation, 2)
-	replaced := policyIntegrationRequest(app, http.MethodPut, "/api/v1/table-policies/"+tableName, tablePolicyCodePayload(tableName, queryCode, mutationCode))
+	replaced := policyIntegrationRequest(t, app, http.MethodPut, "/api/v1/table-policies/"+tableName, tablePolicyCodePayload(tableName, queryCode, mutationCode))
 	if replaced.Code != http.StatusOK {
 		t.Fatalf("replace relational Policy assignment: HTTP %d %s", replaced.Code, replaced.Body.String())
 	}
@@ -817,12 +817,8 @@ func assertIntegrationErrorCode(t *testing.T, response *httptest.ResponseRecorde
 	}
 }
 
-func policyIntegrationRequest(app *adminApplication, method, path, body string) *httptest.ResponseRecorder {
-	recorder := httptest.NewRecorder()
-	request := httptest.NewRequest(method, path, strings.NewReader(body))
-	if body != "" {
-		request.Header.Set("Content-Type", "application/json")
-	}
-	app.Handler().ServeHTTP(recorder, request)
-	return recorder
+func policyIntegrationRequest(t *testing.T, app *adminApplication, method, path, body string) *httptest.ResponseRecorder {
+	t.Helper()
+	session := integrationSession(t, app)
+	return accountRequest(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session))
 }

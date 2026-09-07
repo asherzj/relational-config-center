@@ -41,10 +41,6 @@ services:
       dockerfile: deploy/Dockerfile.admin
     environment:
       ADMIN_HTTP_ADDR: 0.0.0.0:8080
-      ADMIN_API_TOKEN: ${ADMIN_API_TOKEN}
-      ADMIN_AUTH_DISABLED: "false"
-      ADMIN_OPERATOR: ${ADMIN_OPERATOR:-local-admin}
-      ADMIN_CORS_ORIGINS: ${ADMIN_CORS_ORIGINS:-}
       ADMIN_PUBLIC_ORIGIN: ${ADMIN_PUBLIC_ORIGIN}
       ADMIN_ALLOW_LOCAL_HTTP: ${ADMIN_ALLOW_LOCAL_HTTP:-false}
       ADMIN_TRUSTED_PROXIES: ${ADMIN_TRUSTED_PROXIES:-}

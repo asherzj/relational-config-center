@@ -30,9 +30,7 @@ func TestDatabaseTableListDiscoversOnlyOrdinaryBaseTables(t *testing.T) {
 		"testdata/002-discovery-fixture.sql",
 	)
 
-	recorder := httptest.NewRecorder()
-	request := httptest.NewRequest(http.MethodGet, "/api/v1/database-tables", nil)
-	app.Handler().ServeHTTP(recorder, request)
+	recorder := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/database-tables", "")
 
 	if recorder.Code != http.StatusOK {
 		t.Fatalf("expected HTTP 200, got %d: %s", recorder.Code, recorder.Body.String())
@@ -83,9 +81,7 @@ func TestDatabaseTableDetailReturnsLiveMetadataAndStableNotFoundError(t *testing
 		"testdata/002-discovery-fixture.sql",
 	)
 
-	recorder := httptest.NewRecorder()
-	request := httptest.NewRequest(http.MethodGet, "/api/v1/database-tables/managed_alpha", nil)
-	app.Handler().ServeHTTP(recorder, request)
+	recorder := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/database-tables/managed_alpha", "")
 
 	if recorder.Code != http.StatusOK {
 		t.Fatalf("expected HTTP 200, got %d: %s", recorder.Code, recorder.Body.String())
@@ -95,9 +91,7 @@ func TestDatabaseTableDetailReturnsLiveMetadataAndStableNotFoundError(t *testing
 		t.Fatalf("unexpected table detail: %s", recorder.Body.String())
 	}
 
-	recorder = httptest.NewRecorder()
-	request = httptest.NewRequest(http.MethodGet, "/api/v1/database-tables/does_not_exist", nil)
-	app.Handler().ServeHTTP(recorder, request)
+	recorder = policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/database-tables/does_not_exist", "")
 	if recorder.Code != http.StatusNotFound {
 		t.Fatalf("expected HTTP 404, got %d: %s", recorder.Code, recorder.Body.String())
 	}
@@ -256,8 +250,6 @@ func integrationConfig(driverConfig *mysqldriver.Config) config.Config {
 		AccountPublicOrigin: "http://127.0.0.1:5173",
 		AccountInsecureHTTP: true,
 		HTTPAddr:            "127.0.0.1:0",
-		AuthDisabled:        true,
-		Operator:            "integration-test",
 		MySQL: config.MySQL{
 			Network:            driverConfig.Net,
 			Address:            driverConfig.Addr,
@@ -280,10 +272,8 @@ func integrationEnvironment(driverConfig *mysqldriver.Config, httpAddress string
 	host, port, _ := net.SplitHostPort(driverConfig.Addr)
 	return []string{
 		"ADMIN_HTTP_ADDR=" + httpAddress,
-		"ADMIN_API_TOKEN=integration-token",
 		"ADMIN_PUBLIC_ORIGIN=http://127.0.0.1:5173",
 		"ADMIN_ALLOW_LOCAL_HTTP=true",
-		"ADMIN_OPERATOR=integration-test",
 		"MYSQL_HOST=" + host,
 		"MYSQL_PORT=" + port,
 		"MYSQL_DATABASE=" + driverConfig.DBName,

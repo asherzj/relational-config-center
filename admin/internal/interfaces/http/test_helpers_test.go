@@ -1,8 +1,18 @@
+//go:build integration
+
 package http_test
 
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	mysqladapter "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql"
+	passwordadapter "github.com/asherzj/relational-config-center/admin/internal/infrastructure/password"
+	"github.com/asherzj/relational-config-center/admin/internal/platform/config"
+	driver "github.com/go-sql-driver/mysql"
+	"github.com/testcontainers/testcontainers-go"
+	tcmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"net/http"
 	"net/http/httptest"
 	"sort"
@@ -27,12 +37,20 @@ func newPolicyHTTPHandlerWithOptionsAndMutationExecutor(t *testing.T, options ht
 func newPolicyHTTPHandlerWithExecutors(t *testing.T, options httpinterface.RouterOptions, queryExecutor application.QueryExecutor, mutationExecutor application.MutationExecutor) http.Handler {
 	t.Helper()
 	adapter := newMemorySnapshotAdapter(queryExecutor, mutationExecutor)
-	queryPolicies := application.NewQueryPolicyManagement(adapter, application.NewQueryPolicyTypeRegistry(), "test-operator")
-	mutationPolicies := application.NewMutationPolicyManagement(adapter, application.NewMutationPolicyTypeRegistry(), "test-operator")
-	policies := application.NewTablePolicyManagement(adapter, adapter, queryPolicies, mutationPolicies, "test-operator")
+	queryPolicies := application.NewQueryPolicyManagement(adapter, application.NewQueryPolicyTypeRegistry())
+	mutationPolicies := application.NewMutationPolicyManagement(adapter, application.NewMutationPolicyTypeRegistry())
+	policies := application.NewTablePolicyManagement(adapter, adapter, queryPolicies, mutationPolicies)
 	queries := application.NewManagedTableQuery(adapter, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
-	mutations := application.NewManagedTableMutation(adapter, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry(), application.NewFixedOperatorProvider("test-operator"))
-	return httpinterface.NewRouter(application.NewDatabaseTableDiscovery(adapter), readyAdapter{}, queryPolicies, mutationPolicies, policies, queries, mutations, options)
+	mutations := application.NewManagedTableMutation(adapter, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
+	authStore := securityAccountStore(t)
+	options.Authentication = application.NewAuthentication(authStore, passwordadapter.NewArgon2id(), nil, authStore, application.AuthenticationLimits{})
+	options.AccountHTTP = httpinterface.AccountHTTPOptions{PublicOrigin: "http://127.0.0.1:5173", InsecureLocalHTTP: true}
+	handler := httpinterface.NewRouter(application.NewDatabaseTableDiscovery(adapter), readyAdapter{}, queryPolicies, mutationPolicies, policies, queries, mutations, options)
+	client := registerSecurityClient(t, handler)
+	if log, ok := options.AccessLog.(*bytes.Buffer); ok {
+		log.Reset()
+	}
+	return client
 }
 
 func validPolicyPayload(tableName string) string {
@@ -40,7 +58,6 @@ func validPolicyPayload(tableName string) string {
 }
 
 func performRequest(handler http.Handler, method, path, body string) *httptest.ResponseRecorder {
-	recorder := httptest.NewRecorder()
 	var request *http.Request
 	if body == "" {
 		request = httptest.NewRequest(method, path, nil)
@@ -48,8 +65,7 @@ func performRequest(handler http.Handler, method, path, body string) *httptest.R
 		request = httptest.NewRequest(method, path, bytes.NewBufferString(body))
 		request.Header.Set("Content-Type", "application/json")
 	}
-	handler.ServeHTTP(recorder, request)
-	return recorder
+	return performHTTP(handler, request)
 }
 
 type memorySnapshotAdapter struct {
@@ -318,3 +334,77 @@ var _ application.MutationSnapshotExecutor = (*memorySnapshotAdapter)(nil)
 var _ domain.TablePolicyCatalog = (*memorySnapshotAdapter)(nil)
 var _ domain.QueryPolicyCatalog = (*memorySnapshotAdapter)(nil)
 var _ domain.MutationPolicyCatalog = (*memorySnapshotAdapter)(nil)
+
+// This test client obtains and sends actual public Cookie/CSRF credentials.
+// The embedded server handler itself never injects or bypasses authentication.
+type authenticatedTestHandler struct {
+	http.Handler
+	cookies []*http.Cookie
+	csrf    string
+}
+
+func registerSecurityClient(t *testing.T, handler http.Handler) *authenticatedTestHandler {
+	t.Helper()
+	send := func(method, path, body string, cookies []*http.Cookie, csrf string) *httptest.ResponseRecorder {
+		request := httptest.NewRequest(method, path, strings.NewReader(body))
+		request.Header.Set("Content-Type", "application/json")
+		request.Header.Set("Origin", "http://127.0.0.1:5173")
+		request.Header.Set("X-CSRF-Token", csrf)
+		for _, cookie := range cookies {
+			if cookie.MaxAge >= 0 {
+				request.AddCookie(cookie)
+			}
+		}
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		return response
+	}
+	prepare := send("GET", "/api/v1/auth/csrf", "", nil, "")
+	var challenge struct {
+		CSRF string `json:"csrf_token"`
+	}
+	if err := json.Unmarshal(prepare.Body.Bytes(), &challenge); err != nil {
+		t.Fatal(err)
+	}
+	registered := send("POST", "/api/v1/auth/register", `{"username":"security.user","email":"security@example.com","password":"correct horse battery staple"}`, prepare.Result().Cookies(), challenge.CSRF)
+	if registered.Code != 201 {
+		t.Fatalf("register real security test account: %d %s", registered.Code, registered.Body.String())
+	}
+	// Normal test clients authenticate with the public login flow as scripts do.
+	prepare = send("GET", "/api/v1/auth/csrf", "", nil, "")
+	if err := json.Unmarshal(prepare.Body.Bytes(), &challenge); err != nil {
+		t.Fatal(err)
+	}
+	login := send("POST", "/api/v1/auth/login", `{"username":"security.user","password":"correct horse battery staple"}`, prepare.Result().Cookies(), challenge.CSRF)
+	if login.Code != 200 {
+		t.Fatalf("login security test account: %d %s", login.Code, login.Body.String())
+	}
+	if err := json.Unmarshal(login.Body.Bytes(), &challenge); err != nil {
+		t.Fatal(err)
+	}
+	return &authenticatedTestHandler{Handler: handler, cookies: login.Result().Cookies(), csrf: challenge.CSRF}
+}
+
+func securityAccountStore(t *testing.T) *mysqladapter.Adapter {
+	t.Helper()
+	ctx := t.Context()
+	container, err := tcmysql.Run(ctx, "mysql:8.4", tcmysql.WithDatabase("rcc_test"), tcmysql.WithUsername("rcc_admin"), tcmysql.WithPassword("rcc_password"), tcmysql.WithScripts("../../../../deploy/mysql/init/001-schema.sql"))
+	if err != nil {
+		t.Fatalf("real authentication MySQL: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := testcontainers.TerminateContainer(container); err != nil {
+			t.Error(err)
+		}
+	})
+	parsed, err := driver.ParseDSN(container.MustConnectionString(ctx, "parseTime=true"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	store, err := mysqladapter.Open(ctx, config.MySQL{Network: parsed.Net, Address: parsed.Addr, Database: parsed.DBName, User: parsed.User, Password: parsed.Passwd, TLSMode: "false", MaxOpenConnections: 4, MaxIdleConnections: 4, ConnectTimeout: 5 * time.Second, ReadTimeout: 5 * time.Second, WriteTimeout: 5 * time.Second})
+	if err != nil {
+		t.Fatal(fmt.Errorf("open auth store: %w", err))
+	}
+	t.Cleanup(func() { _ = store.Close() })
+	return store
+}

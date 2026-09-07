@@ -160,11 +160,10 @@ type PutMutationPolicy struct {
 type MutationPolicyManagement struct {
 	catalog  domain.MutationPolicyCatalog
 	registry *MutationPolicyTypeRegistry
-	operator string
 }
 
-func NewMutationPolicyManagement(catalog domain.MutationPolicyCatalog, registry *MutationPolicyTypeRegistry, operator string) *MutationPolicyManagement {
-	return &MutationPolicyManagement{catalog: catalog, registry: registry, operator: operator}
+func NewMutationPolicyManagement(catalog domain.MutationPolicyCatalog, registry *MutationPolicyTypeRegistry) *MutationPolicyManagement {
+	return &MutationPolicyManagement{catalog: catalog, registry: registry}
 }
 
 func (management *MutationPolicyManagement) Types() []MutationPolicyType {
@@ -172,6 +171,10 @@ func (management *MutationPolicyManagement) Types() []MutationPolicyType {
 }
 
 func (management *MutationPolicyManagement) Create(ctx context.Context, candidate PutMutationPolicy) (domain.MutationPolicy, error) {
+	operator, identityErr := requestOperator(ctx)
+	if identityErr != nil {
+		return domain.MutationPolicy{}, identityErr
+	}
 	policy, err := draftMutationPolicy(candidate)
 	if err != nil {
 		return domain.MutationPolicy{}, err
@@ -179,7 +182,7 @@ func (management *MutationPolicyManagement) Create(ctx context.Context, candidat
 	if err := management.registry.validatePersistentRules(policy); err != nil {
 		return domain.MutationPolicy{}, err
 	}
-	return management.catalog.CreateMutationPolicy(ctx, policy, management.operator)
+	return management.catalog.CreateMutationPolicy(ctx, policy, operator)
 }
 
 func (management *MutationPolicyManagement) List(ctx context.Context) ([]domain.MutationPolicy, error) {
@@ -208,6 +211,10 @@ func (management *MutationPolicyManagement) ValidateForTable(policy domain.Mutat
 }
 
 func (management *MutationPolicyManagement) ReplaceDraft(ctx context.Context, code string, candidate PutMutationPolicy) (domain.MutationPolicy, error) {
+	operator, identityErr := requestOperator(ctx)
+	if identityErr != nil {
+		return domain.MutationPolicy{}, identityErr
+	}
 	if candidate.Code != code {
 		return domain.MutationPolicy{}, ErrInvalidPolicyCode
 	}
@@ -218,10 +225,14 @@ func (management *MutationPolicyManagement) ReplaceDraft(ctx context.Context, co
 	if err := management.registry.validatePersistentRules(policy); err != nil {
 		return domain.MutationPolicy{}, err
 	}
-	return management.catalog.ReplaceDraftMutationPolicy(ctx, policy, management.operator)
+	return management.catalog.ReplaceDraftMutationPolicy(ctx, policy, operator)
 }
 
 func (management *MutationPolicyManagement) Activate(ctx context.Context, code string) (domain.MutationPolicy, error) {
+	operator, identityErr := requestOperator(ctx)
+	if identityErr != nil {
+		return domain.MutationPolicy{}, identityErr
+	}
 	policy, err := management.catalog.GetMutationPolicy(ctx, code)
 	if err != nil {
 		return domain.MutationPolicy{}, err
@@ -232,10 +243,14 @@ func (management *MutationPolicyManagement) Activate(ctx context.Context, code s
 	if err := management.registry.Validate(policy); err != nil {
 		return domain.MutationPolicy{}, err
 	}
-	return management.catalog.SetMutationPolicyStatus(ctx, code, domain.PolicyStatusDraft, domain.PolicyStatusActive, management.operator)
+	return management.catalog.SetMutationPolicyStatus(ctx, code, domain.PolicyStatusDraft, domain.PolicyStatusActive, operator)
 }
 
 func (management *MutationPolicyManagement) Deprecate(ctx context.Context, code string) (domain.MutationPolicy, error) {
+	operator, identityErr := requestOperator(ctx)
+	if identityErr != nil {
+		return domain.MutationPolicy{}, identityErr
+	}
 	policy, err := management.catalog.GetMutationPolicy(ctx, code)
 	if err != nil {
 		return domain.MutationPolicy{}, err
@@ -243,10 +258,14 @@ func (management *MutationPolicyManagement) Deprecate(ctx context.Context, code 
 	if policy.Status != domain.PolicyStatusActive {
 		return domain.MutationPolicy{}, ErrInvalidPolicyTransition
 	}
-	return management.catalog.SetMutationPolicyStatus(ctx, code, domain.PolicyStatusActive, domain.PolicyStatusDeprecated, management.operator)
+	return management.catalog.SetMutationPolicyStatus(ctx, code, domain.PolicyStatusActive, domain.PolicyStatusDeprecated, operator)
 }
 
 func (management *MutationPolicyManagement) UpdateMetadata(ctx context.Context, code, name, description string) (domain.MutationPolicy, error) {
+	operator, identityErr := requestOperator(ctx)
+	if identityErr != nil {
+		return domain.MutationPolicy{}, identityErr
+	}
 	name = strings.TrimSpace(name)
 	description = strings.TrimSpace(description)
 	if name == "" || utf8.RuneCountInString(name) > 100 || utf8.RuneCountInString(description) > 500 {
@@ -259,10 +278,13 @@ func (management *MutationPolicyManagement) UpdateMetadata(ctx context.Context, 
 	if policy.Status != domain.PolicyStatusActive && policy.Status != domain.PolicyStatusDeprecated {
 		return domain.MutationPolicy{}, ErrInvalidPolicyTransition
 	}
-	return management.catalog.UpdateMutationPolicyMetadata(ctx, code, name, description, management.operator)
+	return management.catalog.UpdateMutationPolicyMetadata(ctx, code, name, description, operator)
 }
 
 func (management *MutationPolicyManagement) DeleteDraft(ctx context.Context, code string) error {
+	if _, identityErr := requestOperator(ctx); identityErr != nil {
+		return identityErr
+	}
 	policy, err := management.catalog.GetMutationPolicy(ctx, code)
 	if err != nil {
 		return err
