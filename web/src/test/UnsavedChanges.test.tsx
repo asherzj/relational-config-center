@@ -113,6 +113,9 @@ describe("rule drafts and navigation protection", () => {
     await user.click(screen.getByRole("link", { name: "变更规则定义" }));
     await user.click(screen.getByRole("button", { name: "放弃修改并离开" }));
     expect(router.state.location.pathname).toBe("/platform/mutation-policies");
+    // Router state advances before React commits the route and unregisters the old draft.
+    // Start the next POP only after the destination page is actually visible.
+    await screen.findByRole("heading", { name: "变更规则定义", level: 1 });
     await act(() => router.navigate(-1));
     const restored = await screen.findByRole("textbox", { name: "显示名称" });
     expect(restored).toHaveValue("查询基线");
@@ -120,6 +123,9 @@ describe("rule drafts and navigation protection", () => {
     await act(() => router.navigate(1));
     await user.click(screen.getByRole("button", { name: "放弃修改并离开" }));
     expect(router.state.location.pathname).toBe("/platform/mutation-policies");
+    // Router state advances before React commits the route and unregisters the old draft.
+    // Start the next POP only after the destination page is actually visible.
+    await screen.findByRole("heading", { name: "变更规则定义", level: 1 });
     await act(() => router.navigate(-1));
     await user.type(await screen.findByRole("textbox", { name: "显示名称" }), "back");
     await act(() => router.navigate(-1));

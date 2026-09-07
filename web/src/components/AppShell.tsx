@@ -2,6 +2,10 @@ import { useWorkspaceIdentity } from "../features/accounts/ProtectedWorkspace";
 import { ArrowLeftRight, ChevronRight, Database, FileSearch, Layers3, Menu, ShieldCheck, Table2, X } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { Button } from "./ui/Button";
+import { Badge } from "./shadcn/badge";
+import { Separator } from "./shadcn/separator";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./shadcn/dropdown-menu";
 
 export function AppShell() {
   const identity = useWorkspaceIdentity();
@@ -12,22 +16,20 @@ export function AppShell() {
     <div className="app-shell">
       <header className="app-header">
         <div className="brand">
-          <button className="icon-button mobile-menu" aria-label="打开导航" aria-expanded={mobileNavOpen} aria-controls="primary-navigation" onClick={() => setMobileNavOpen(true)}>
+          <Button variant="ghost" className="icon-button mobile-menu" aria-label="打开导航" aria-expanded={mobileNavOpen} aria-controls="primary-navigation" onClick={() => setMobileNavOpen(true)}>
             <Menu size={20} />
-          </button>
+          </Button>
           <span className="brand-mark"><Database size={20} strokeWidth={1.8} /></span>
           <strong>关系型配置中心</strong>
         </div>
         <div className="header-breadcrumb"><span>工作空间</span><ChevronRight size={14} /><strong>{section}</strong></div>
-        <div className="header-status">
-          <Database size={14} /><span>单数据源</span>
-        </div>
+        <Badge variant="outline" className="header-status"><Database size={14} />单数据源</Badge>
       </header>
 
       <aside id="primary-navigation" className={`sidebar ${mobileNavOpen ? "sidebar-open" : ""}`} aria-label="主导航">
         <div className="sidebar-mobile-head">
           <strong>导航</strong>
-          <button className="icon-button" aria-label="关闭导航" onClick={() => setMobileNavOpen(false)}><X size={20} /></button>
+          <Button variant="ghost" className="icon-button" aria-label="关闭导航" onClick={() => setMobileNavOpen(false)}><X size={20} /></Button>
         </div>
         <nav>
           <section className="nav-group">
@@ -41,10 +43,21 @@ export function AppShell() {
             <NavLink to="/configuration/managed-data" onClick={() => setMobileNavOpen(false)}><Table2 size={18} />配置内容管理</NavLink>
           </section>
         </nav>
-        <NavLink to="/account">本地账号入口</NavLink>
-        <div className="operator">
-          <span className="operator-avatar"><ShieldCheck size={19} /></span>
-          <span><strong>{identity?.account.display_name}</strong><small>{identity?.account.username}</small></span>
+        <div className="sidebar-account">
+          <Separator />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="operator w-full justify-start" aria-label="本地账号入口">
+                <span className="operator-avatar"><ShieldCheck size={19} /></span>
+                <span><strong>{identity?.account.display_name}</strong><small>{identity?.account.username}</small></span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="start" className="w-56">
+              <DropdownMenuLabel>当前账号</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild><NavLink to="/account">本地账号入口</NavLink></DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </aside>
       {mobileNavOpen && <button className="mobile-scrim" aria-label="关闭导航" onClick={() => setMobileNavOpen(false)} />}

@@ -1,3 +1,6 @@
+import { Database } from "lucide-react";
+import { Input } from "../../components/shadcn/input";
+import { Label } from "../../components/shadcn/label";
 import { accountEntryLockName, withBrowserLock, publishSessionEvent, subscribeSessionEvents } from "./sessionCoordination";
 import { useForegroundActivity } from "./useForegroundActivity";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -216,31 +219,31 @@ export function AccountPage({ mode, onSignedIn, onSessionInvalid }: { mode: "log
     finally { if (sessionGeneration.current === generation) setBusy(false); }
   }
 
-  return <main className="account-page">
+  return <main className={`account-page account-page-${identity ? "settings" : mode}`}>
     <section className="account-card" aria-busy={busy}>
-      <Link className="account-brand" to="/account">关系型配置中心</Link>
+      <Link className="account-brand" to="/account"><span className="account-brand-mark"><Database size={22} strokeWidth={1.6} /></span>关系型配置中心</Link>
       <h1>{identity ? "当前账号" : mode === "register" ? "注册本地账号" : "登录本地账号"}</h1>
       {error && <div className="account-error" role="alert">{error}<Button onClick={() => void inspect()} disabled={busy}>重新检查登录状态</Button></div>}
       {notice && <p className="account-notice" role="status">{notice}</p>}
       {identity ? <>
         <dl className="account-details"><dt>显示名称</dt><dd>{identity.account.display_name}</dd><dt>用户名</dt><dd>{identity.account.username}</dd><dt>邮箱</dt><dd>{identity.account.email}</dd><dt>闲置到期</dt><dd><time dateTime={identity.idle_expires_at}>{formatSessionTime(identity.idle_expires_at)}</time></dd><dt>最晚到期</dt><dd><time dateTime={identity.expires_at}>{formatSessionTime(identity.expires_at)}</time></dd></dl>
         <p className="account-help">邮箱未验证，不用于登录或找回密码。</p>
-        <Link to={destination}>进入管理工作区</Link>
+        <Link className="account-workspace-link" to={destination}>进入管理工作区</Link>
         <form className="account-action" onSubmit={updateDisplayName}>
           <h2>个人资料</h2>
-          <label>显示名称<input name="display_name" autoComplete="nickname" value={displayName} onChange={(event) => setDisplayName(event.target.value)} required /></label>
+          <Label>显示名称<Input name="display_name" autoComplete="nickname" value={displayName} onChange={(event) => setDisplayName(event.target.value)} required /></Label>
           <Button type="submit" disabled={busy || writeUncertain}>保存显示名称</Button>
         </form>
         <form className="account-action" onSubmit={updateEmail}>
           <h2>修改未验证邮箱</h2>
-          <label>新邮箱<input name="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
-          <label htmlFor="email-current-password">当前密码<input id="email-current-password" type="password" autoComplete="current-password" value={emailCurrentPassword} onChange={(event) => setEmailCurrentPassword(event.target.value)} required /></label>
+          <Label>新邮箱<Input name="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></Label>
+          <Label htmlFor="email-current-password">当前密码<Input id="email-current-password" type="password" autoComplete="current-password" value={emailCurrentPassword} onChange={(event) => setEmailCurrentPassword(event.target.value)} required /></Label>
           <Button type="submit" disabled={busy || writeUncertain}>修改邮箱</Button>
         </form>
         <form className="account-action" onSubmit={changePassword}>
           <h2>修改密码</h2>
-          <label htmlFor="password-current-password">当前密码<input id="password-current-password" type="password" autoComplete="current-password" value={passwordCurrent} onChange={(event) => setPasswordCurrent(event.target.value)} required /></label>
-          <label>新密码<input type="password" autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} required /></label>
+          <Label htmlFor="password-current-password">当前密码<Input id="password-current-password" type="password" autoComplete="current-password" value={passwordCurrent} onChange={(event) => setPasswordCurrent(event.target.value)} required /></Label>
+          <Label>新密码<Input type="password" autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} required /></Label>
           <p className="account-help">成功后所有设备都需要用新密码重新登录。</p>
           <Button type="submit" disabled={busy || writeUncertain}>修改密码并退出全部设备</Button>
         </form>
@@ -249,13 +252,13 @@ export function AccountPage({ mode, onSignedIn, onSessionInvalid }: { mode: "log
         <Button variant="danger" onClick={() => void logoutAll()} disabled={busy || writeUncertain}>退出全部设备</Button>
         </div>
       </> : <form onSubmit={submit}>
-        <label>用户名<input name="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required /></label>
+        <Label>用户名<Input name="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required /></Label>
         {mode === "register" && <><p className="account-help">3–32 个 ASCII 字符，以字母开头，可含数字、点、下划线和连字符；忽略首尾空白及大小写。</p>
-          <label>邮箱<input name="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
+          <Label>邮箱<Input name="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></Label>
           <p className="account-help">必填且唯一。邮箱未验证，本轮不发送邮件，不用于登录或找回密码。</p>
-          <label>显示名称（可选）<input name="display_name" autoComplete="nickname" value={displayName} onChange={(event) => setDisplayName(event.target.value)} /></label>
+          <Label>显示名称（可选）<Input name="display_name" autoComplete="nickname" value={displayName} onChange={(event) => setDisplayName(event.target.value)} /></Label>
           <p className="account-help">省略时使用用户名；填写时为 1–64 个字符，不含控制字符。</p></>}
-        <label>密码<input name="password" type="password" autoComplete={mode === "register" ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
+        <Label>密码<Input name="password" type="password" autoComplete={mode === "register" ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} required /></Label>
         <p className="account-help">15–128 个字符；空格和大小写都会保留。</p>
         <Button type="submit" variant="primary" disabled={busy || writeUncertain}>{busy ? "正在处理…" : mode === "register" ? "注册并登录" : "登录"}</Button>
         <p className="account-link">{mode === "register" ? <Link to={`/login${returnQuery}`}>已有账号，去登录</Link> : <Link to={`/register${returnQuery}`}>注册新账号</Link>}</p>

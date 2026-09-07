@@ -1,3 +1,6 @@
+import { Input } from "../../components/shadcn/input";
+import { Checkbox } from "../../components/shadcn/checkbox";
+import { Label } from "../../components/shadcn/label";
 import { useState } from "react";
 import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { Drawer } from "../../components/ui/Drawer";
@@ -64,9 +67,9 @@ export function ManagedRowEditor({ open, error, tableName, operation, columns, o
           return (
             <fieldset key={column.name} className="mutation-content-field">
               <legend>{column.name}<small>{column.type} · {column.nullable ? "可为 NULL" : "非 NULL"}</small></legend>
-              <label className="include-field"><input type="checkbox" aria-label={`包含 ${column.name}`} checked={draft.included} onChange={(event) => update(column.name, { included: event.target.checked })} />包含在请求中</label>
-              <label className="field"><span>值</span><input aria-label={`${column.name} 值`} disabled={!draft.included || draft.isNull} value={draft.value} onChange={(event) => update(column.name, { value: event.target.value })} /></label>
-              <label className="include-field"><input type="checkbox" aria-label={`${column.name} 使用 NULL`} disabled={!draft.included || !column.nullable} checked={draft.isNull} onChange={(event) => update(column.name, { isNull: event.target.checked })} />NULL</label>
+              <Label className="include-field"><Checkbox aria-label={`包含 ${column.name}`} checked={draft.included} onCheckedChange={(checked) => update(column.name, { included: checked === true })} />包含在请求中</Label>
+              <Label className="field"><span>值</span><Input aria-label={`${column.name} 值`} disabled={!draft.included || draft.isNull} value={draft.value} onChange={(event) => update(column.name, { value: event.target.value })} /></Label>
+              <Label className="include-field"><Checkbox aria-label={`${column.name} 使用 NULL`} disabled={!draft.included || !column.nullable} checked={draft.isNull} onCheckedChange={(checked) => update(column.name, { isNull: checked === true })} />NULL</Label>
             </fieldset>
           );
         })}
