@@ -73,6 +73,8 @@ make test-integration
 
 集成测试使用 Testcontainers 和真实 MySQL 8.4；`make test-integration` 禁用 Go 测试缓存。本机没有可用 Docker provider 时测试会明确跳过，不会以数据库 mock 替代；持续集成会先执行 Docker 健康检查，因此 Docker 不可用时整个检查失败，不会跳过后假绿。
 
+整组集成测试的进程上限为 25 分钟，以容纳隔离 MySQL 容器启动时间的波动；CI 任务另有 30 分钟总上限。各请求、数据库等待和进程停止的独立超时仍由对应测试验证。
+
 ## 持续集成
 
 GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行三个稳定检查：`Web`、`Go unit and build`、`MySQL 8.4 integration`。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
