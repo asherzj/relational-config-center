@@ -6,6 +6,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	mysqldriver "github.com/go-sql-driver/mysql"
+	"sort"
 	"strconv"
 	"time"
 	"unicode/utf8"
@@ -87,7 +89,13 @@ func (s *releaseOrderSession) ReadRecordBaseline(ctx context.Context, schema dom
 	if err != nil {
 		return domain.RecordBaseline{}, application.ErrReleaseUnavailable
 	}
-	return domain.RecordBaseline{Row: row, Key: key, Version: strconv.FormatUint(version, 10)}, nil
+	generatesID := false
+	if column, ok := schema.Column("id"); ok && column.AutoIncrement {
+		if err := s.database.WithContext(ctx).Raw("SELECT (?=0) AND FIND_IN_SET('NO_AUTO_VALUE_ON_ZERO',@@session.sql_mode)=0", id).Row().Scan(&generatesID); err != nil {
+			return domain.RecordBaseline{}, application.ErrReleaseUnavailable
+		}
+	}
+	return domain.RecordBaseline{TableName: name, Row: row, Key: key, Version: strconv.FormatUint(version, 10), GeneratesIDOnInsert: generatesID}, nil
 }
 
 func readReleaseOrder(ctx context.Context, db *gorm.DB, id string, lock bool) (domain.ReleaseOrder, error) {
@@ -200,4 +208,39 @@ func (a *Adapter) ListReleaseOrders(ctx context.Context, filter domain.ReleaseFi
 		return nil, application.ErrReleaseUnavailable
 	}
 	return result, nil
+}
+
+// Sorted target locks make a whole submitted set atomic and avoid opposite lock
+// order for overlapping sets. Unknown auto-increment ids contribute no target.
+func (s *releaseOrderSession) ReserveReleaseTargets(ctx context.Context, orderID string, targets []domain.ActiveTarget) error {
+	if err := s.available(); err != nil {
+		return err
+	}
+	targets = append([]domain.ActiveTarget(nil), targets...)
+	sort.Slice(targets, func(i, j int) bool {
+		if targets[i].TableName != targets[j].TableName {
+			return targets[i].TableName < targets[j].TableName
+		}
+		return bytes.Compare(targets[i].RecordKey, targets[j].RecordKey) < 0
+	})
+	for _, target := range targets {
+		err := s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_targets(table_name,record_key,order_id) VALUES(?,?,?)`, target.TableName, target.RecordKey, orderID).Error
+		var mysqlError *mysqldriver.MySQLError
+		if errors.As(err, &mysqlError) && mysqlError.Number == 1062 {
+			return application.ErrReleaseTargetConflict
+		}
+		if err != nil {
+			return application.ErrReleaseUnavailable
+		}
+	}
+	return nil
+}
+func (s *releaseOrderSession) ReleaseTargets(ctx context.Context, orderID string) error {
+	if err := s.available(); err != nil {
+		return err
+	}
+	if err := s.database.WithContext(ctx).Exec(`DELETE FROM rcc_release_targets WHERE order_id=?`, orderID).Error; err != nil {
+		return application.ErrReleaseUnavailable
+	}
+	return nil
 }

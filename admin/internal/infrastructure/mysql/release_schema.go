@@ -5,10 +5,11 @@ import (
 	"errors"
 )
 
-var ErrReleaseSchemaIncomplete = errors.New("release order schema is incomplete; apply migration 010")
+var ErrReleaseSchemaIncomplete = errors.New("release order schema is incomplete; apply migrations 010 and 011")
 
 func (a *Adapter) releaseSchemaReady(ctx context.Context) error {
 	for table, required := range map[string]map[string]string{
+		"rcc_release_targets":  {"table_name": "varbinary(256)", "record_key": "binary(32)", "order_id": "varbinary(32)"},
 		"rcc_release_orders":   {"id": "varbinary(32)", "table_name": "varbinary(256)", "applicant_id": "varbinary(36)", "state": "varchar(32)", "version": "bigint unsigned", "document": "json"},
 		"rcc_release_requests": {"actor_id": "varbinary(36)", "operation": "varbinary(96)", "request_key": "varbinary(64)", "digest": "binary(32)", "result": "json"},
 	} {
@@ -38,6 +39,9 @@ func (a *Adapter) releaseSchemaReady(ctx context.Context) error {
 			return err
 		}
 		primary := "id"
+		if table == "rcc_release_targets" {
+			primary = "table_name,record_key"
+		}
 		if table == "rcc_release_requests" {
 			primary = "actor_id,operation,request_key"
 		}

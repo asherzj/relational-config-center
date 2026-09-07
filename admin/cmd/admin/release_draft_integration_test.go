@@ -246,7 +246,7 @@ func TestReleaseDraftCurrentAuthorizationAndListing(t *testing.T) {
 		Actions     []string `json:"allowed_actions"`
 	}
 	_ = json.Unmarshal(saved.Body.Bytes(), &order)
-	if order.ApplicantID != accountID(t, editor) || len(order.Actions) != 2 {
+	if order.ApplicantID != accountID(t, editor) || len(order.Actions) != 3 {
 		t.Fatal(saved.Body)
 	}
 	path := "/api/v1/release-orders/" + order.ID
@@ -521,7 +521,7 @@ func TestReleaseDraftReplayUsesCurrentActionsAndRejectsChangedDigest(t *testing.
 		t.Fatal(cancelled.Body)
 	}
 	replay := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "draft-replay-current")
-	if replay.Code != 201 || !strings.Contains(replay.Body.String(), `"version":"1"`) || !strings.Contains(replay.Body.String(), `"allowed_actions":[]`) {
+	if replay.Code != 201 || !strings.Contains(replay.Body.String(), `"version":"1"`) || !strings.Contains(replay.Body.String(), `"allowed_actions":["copy"]`) {
 		t.Fatalf("original business result must not offer stale actions: %s", replay.Body)
 	}
 	changed := strings.Replace(body, `"table_name":`, `"expected_version":"unexpected","table_name":`, 1)

@@ -33,10 +33,10 @@ export function useReleaseWrite(scope:string){
    setError(cause);
    // These write conflicts are returned only after original-key deduplication.
    // They prove no original success exists; authentication/read failures do not.
-   const rejected=cause instanceof ApiError&&["release_version_conflict","record_version_conflict","release_state_invalid"].includes(cause.code);
+   const rejected=cause instanceof ApiError&&["release_version_conflict","record_version_conflict","release_state_invalid","release_target_conflict"].includes(cause.code);
    const keep=Boolean(previous)&&!rejected||uncertainReleaseError(cause);
    setUnresolved(keep);
-   if(stored&&rejected)rememberReleaseRequest(accountID,{...intent,rejection:cause.code as PendingReleaseRequest["rejection"]});
+   if(rejected)rememberReleaseRequest(accountID,{...intent,rejection:cause.code as PendingReleaseRequest["rejection"]});
    else if(stored?.rejection&&!keep)rememberReleaseRequest(accountID,{...intent,rejection:stored.rejection});
    else if(!keep)forgetReleaseRequest(accountID,intent.key);
   }finally{busy.current=false;setPending(false)}

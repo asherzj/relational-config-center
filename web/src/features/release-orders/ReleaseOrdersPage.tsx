@@ -1,19 +1,17 @@
 import {shouldRetryQuery} from "../../api/client";
+import {ReleaseActionDialog,CopyDraftDialog} from "./ReleaseActionDialog";
 import {ReleaseRecovery} from "./ReleaseRecovery";
 import {ReleaseDraftEditor} from "./ReleaseDraftEditor";
 import {useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {Link,useParams} from "react-router-dom";
-import {releaseOrders,releaseRequests,type ReleaseOrder} from "../../api/release-orders";
+import {releaseOrders,type ReleaseStateAction} from "../../api/release-orders";
 import {Button} from "../../components/ui/Button";
 import {Input} from "../../components/shadcn/input";
 import {NativeSelect} from "../../components/shadcn/native-select";
 import {Table,TableHeader,TableBody,TableRow,TableHead,TableCell} from "../../components/shadcn/table";
 import {ErrorState,LoadingState} from "../../components/ui/Feedback";
-import {Drawer} from "../../components/ui/Drawer";
-import {useDraftProtection} from "../../components/ui/LeaveProtection";
 import {useAccountRole} from "../accounts/roles";
-import {useReleaseWrite} from "./useReleaseWrite";
 import {ReleaseDiff} from "./ReleaseDiff";
 
 export const releaseStateLabels={DRAFT:"草稿",PENDING_APPROVAL:"待审批",APPROVED:"已批准",SUCCEEDED:"已发布",REJECTED:"已拒绝",CANCELLED:"已取消",ROLLED_BACK:"已回滚"};
@@ -39,25 +37,18 @@ function ReleaseList(){
 }
 function ReleaseDetail({id}:{id:string}){
  const query=useQuery({queryKey:["release-order",id],queryFn:()=>releaseOrders.get(id),retry:shouldRetryQuery});
- const [cancel,setCancel]=useState(false);
+ const [action,setAction]=useState<ReleaseStateAction>();
+ const [copy,setCopy]=useState(false);
  const [editing,setEditing]=useState(false);
  const canEdit=useAccountRole("EDITOR");
+ const canApprove=useAccountRole("APPROVER");
  if(query.isPending)return <LoadingState/>;
  if(query.isError)return <ErrorState error={query.error} onRetry={()=>void query.refetch()}/>;
  const order=query.data;
- return <><Link to="/configuration/release-orders">返回发布单列表</Link><section className="my-6 break-all"><h2 className="text-xl font-semibold">{order.table_name} · {releaseStateLabels[order.state]}</h2><p>单号：{order.id}</p><p>申请人：{order.applicant_id}</p><p>发布单版本：{order.version}</p><div className="flex gap-3 mt-4"><Button onClick={()=>void query.refetch()}>重新读取发布单</Button>{canEdit&&order.allowed_actions.includes("edit")&&<Button onClick={()=>setEditing(true)}>编辑草稿</Button>}{canEdit&&order.allowed_actions.includes("cancel")&&<Button onClick={()=>setCancel(true)}>取消草稿</Button>}</div></section>
+ return <><Link to="/configuration/release-orders">返回发布单列表</Link><section className="my-6 break-all"><h2 className="text-xl font-semibold">{order.table_name} · {releaseStateLabels[order.state]}</h2><p>单号：{order.id}</p><p>申请人：{order.applicant_id}</p><p>发布单版本：{order.version}</p><div className="flex gap-3 mt-4"><Button onClick={()=>void query.refetch()}>重新读取发布单</Button>{canEdit&&order.allowed_actions.includes("edit")&&<Button onClick={()=>setEditing(true)}>编辑草稿</Button>}{canEdit&&order.allowed_actions.includes("submit")&&<Button variant="primary" onClick={()=>setAction("submit")}>提交审批</Button>}{canApprove&&order.allowed_actions.includes("approve")&&<Button variant="primary" onClick={()=>setAction("approve")}>批准发布单</Button>}{canApprove&&order.allowed_actions.includes("reject")&&<Button onClick={()=>setAction("reject")}>拒绝发布单</Button>}{canEdit&&order.allowed_actions.includes("cancel")&&<Button onClick={()=>setAction("cancel")}>{order.state==="DRAFT"?"取消草稿":"取消发布单"}</Button>}{canEdit&&order.allowed_actions.includes("copy")&&<Button onClick={()=>setCopy(true)}>复制新草稿</Button>}</div></section>
+ {order.frozen_digest&&<p className="mb-4">提交内容已冻结，审批和发布以这份差异为准。</p>}{order.copied_from_id&&<p className="mb-4">复制自 <Link to={`/configuration/release-orders/${order.copied_from_id}`}>{order.copied_from_id}</Link></p>}
  <ReleaseDiff order={order}/><h2 className="text-lg font-semibold mb-3">操作历史</h2><ol className="grid gap-3">{order.history.map(event=><li key={event.version} className="border-b pb-3 break-all">{event.action} · 版本 {event.version}<p>账号：{event.actor_id}</p><time>{event.at}</time>{event.reason&&<p>{event.reason}</p>}</li>)}</ol>
  {editing&&<ReleaseDraftEditor order={order} onClose={()=>setEditing(false)}/>}
- {cancel&&<CancelDraft order={order} onClose={()=>setCancel(false)}/>}</>;
-}
-function CancelDraft({order,onClose}:{order:ReleaseOrder;onClose:()=>void}){
- const [reason,setReason]=useState("");const write=useReleaseWrite(`cancel:${order.id}`);const allowed=useAccountRole("EDITOR");
- const protection=useDraftProtection(Boolean(reason)||write.unresolved,write.pending);
- return <Drawer open eyebrow="发布单" title="取消草稿" onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>关闭</Button><Button variant="danger" disabled={!allowed||write.pending||!reason.trim()&&!write.unresolved} onClick={async()=>{
-  const result=await write.send({...releaseRequests.cancel(order.id,order.version,reason),label:`取消 ${order.id}`});
-  if(result){protection.afterSave(onClose)}
- }}>{write.pending?"正在取消…":write.unresolved?"使用原请求重试":"确认取消草稿"}</Button></>}>
- <label>取消原因<Input value={reason} maxLength={2000} disabled={write.pending||write.unresolved} onChange={e=>setReason(e.target.value)}/></label>
- {Boolean(write.error)&&<ErrorState error={write.error}/>} {write.unresolved&&<p role="alert">结果待确认。原请求与原因已保留，请使用原请求重试。</p>}
- </Drawer>;
+ {action&&<ReleaseActionDialog order={order} action={action} onClose={()=>setAction(undefined)}/>}
+ {copy&&<CopyDraftDialog order={order} onClose={()=>setCopy(false)}/>}</>;
 }

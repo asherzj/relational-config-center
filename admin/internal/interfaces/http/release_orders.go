@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"errors"
 	"strconv"
 
@@ -21,6 +22,7 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 		}
 		for i := range items {
 			items[i].RecordKey = nil
+			items[i].RecordTable = ""
 		}
 		c.JSON(200, gin.H{"table_name": input.TableName, "items": items})
 	})
@@ -55,6 +57,44 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 			return
 		}
 		order, err := orders.Update(c.Request.Context(), c.Param("id"), input, c.GetHeader("Idempotency-Key"))
+		if writeReleaseError(c, err) {
+			return
+		}
+		respondReleaseWrite(c, orders, order, 200)
+	})
+	for action, decide := range map[string]func(context.Context, string, application.ReleaseDecisionInput, string) (application.ReleaseOrder, error){"approve": orders.Approve, "reject": orders.Reject} {
+		router.POST("/api/v1/release-orders/:id/"+action, func(c *gin.Context) {
+			var input application.ReleaseDecisionInput
+			if err := decodeRequest(c, &input); err != nil {
+				writeRequestDecodeError(c, err)
+				return
+			}
+			order, err := decide(c.Request.Context(), c.Param("id"), input, c.GetHeader("Idempotency-Key"))
+			if writeReleaseError(c, err) {
+				return
+			}
+			respondReleaseWrite(c, orders, order, 200)
+		})
+	}
+	router.POST("/api/v1/release-orders/:id/copy", func(c *gin.Context) {
+		var input application.CopyReleaseInput
+		if err := decodeRequest(c, &input); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		order, err := orders.Copy(c.Request.Context(), c.Param("id"), input, c.GetHeader("Idempotency-Key"))
+		if writeReleaseError(c, err) {
+			return
+		}
+		respondReleaseWrite(c, orders, order, 201)
+	})
+	router.POST("/api/v1/release-orders/:id/submit", func(c *gin.Context) {
+		var input application.SubmitReleaseInput
+		if err := decodeRequest(c, &input); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		order, err := orders.Submit(c.Request.Context(), c.Param("id"), input, c.GetHeader("Idempotency-Key"))
 		if writeReleaseError(c, err) {
 			return
 		}
@@ -102,9 +142,11 @@ func respondReleaseWrite(c *gin.Context, orders *application.ReleaseOrders, resu
 	c.JSON(status, releaseResponse(result, orders.AllowedActions(c.Request.Context(), current)))
 }
 func releaseResponse(order application.ReleaseOrder, actions []string) any {
-	// Internal database identity is never a client-supplied or public key.
+	// Internal execution metadata and database identity are persisted, not client input.
+	order.Frozen = nil
 	for i := range order.Items {
 		order.Items[i].RecordKey = nil
+		order.Items[i].RecordTable = ""
 	}
 	return struct {
 		application.ReleaseOrder
@@ -129,13 +171,19 @@ func writeReleaseError(c *gin.Context, err error) bool {
 	case errors.Is(err, application.ErrReleaseNotFound):
 		status, code, message = 404, "release_not_found", "release order not found"
 	case errors.Is(err, application.ErrReleaseInvalid):
-		status, code, message = 422, "release_invalid", "invalid release request; exactly one item and a request identifier are required"
+		status, code, message = 422, "release_invalid", "release request content, version, reason or identifier is invalid"
+	case errors.Is(err, application.ErrReleaseAutoIDAmbiguous):
+		status, code, message = 422, "release_auto_id_ambiguous", "zero would generate an auto-increment id in the current database mode; omit id instead"
+	case errors.Is(err, application.ErrReleaseTargetConflict):
+		status, code, message = 409, "release_target_conflict", "a known record is reserved by another submitted release order"
 	case errors.Is(err, application.ErrReleaseVersionConflict):
 		status, code, message = 409, "release_version_conflict", "release order changed; read the latest version and explicitly rebuild"
 	case errors.Is(err, application.ErrReleaseIdempotencyConflict):
 		status, code, message = 409, "idempotency_conflict", "request identifier was already used with different content"
 	case errors.Is(err, application.ErrReleaseState):
 		status, code, message = 422, "release_state_invalid", "release order state does not allow this action"
+	case errors.Is(err, application.ErrReleaseMetadataPermission):
+		status, code, message = 422, "release_metadata_permission", "deployment requires an explicit TRIGGER metadata grant to verify execution semantics"
 	case errors.Is(err, application.ErrReleaseSnapshotUnsupported):
 		status, code, message = 422, "release_snapshot_unsupported", "table contains a field the draft snapshot cannot represent losslessly"
 	case errors.Is(err, application.ErrReleaseUnknown):

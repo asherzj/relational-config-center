@@ -73,3 +73,10 @@ Web 在请求发送前将原键、路径和申请内容保存在当前标签页�
 `application.ReleaseOrderSession` 只公开控制数据写入和规则/记录基线读取，事务由 MySQL `ExecuteReleaseOrder` 拥有。T4 在此基础上增加提交、冻结及目标占用；不能另造记录版本或应用字符串身份。`ReadRecordBaseline` 复用 `recordIdentityMetadata` / `recordWeightExpression`，缺行已知 id 通过 live 主键类型转换和同一 MySQL collation 权重解析，读取统一墓碑及整表维护基线。返回的 `RecordKey` 只用于内部持久化/后续占用，不公开给 Web。身份算法/数据库版本改变仍遵循 [记录版本维护流程](admin-record-versions.md)。
 
 `make test-browser` 可通过 `RCC_E2E_OUTPUT=/absolute/path` 保留各脚本的截图证据；默认仍写入测试临时目录。
+## 自增主键 0 的实际身份（T4 补充）
+
+显式 `content.id` 通常是已知 ADD 身份，但 MySQL 自增列在未开启
+`NO_AUTO_VALUE_ON_ZERO` 时会把 0 作为“生成新编号”。该输入返回
+`422 release_auto_id_ambiguous`，请省略 id 后重建草稿；它不会占用虚构的目标 0。
+开启该 SQL mode 时 0 才是合法已知身份，照常读取记录版本并参与提交目标唯一性。
+此检查只用于 ADD，已有 0 记录的 MODIFY/DELETE 身份保持不变。

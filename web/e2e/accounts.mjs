@@ -46,7 +46,17 @@ try {
   await page.setViewportSize({width:390,height:844});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'role catalog overflows mobile viewport');
   await page.getByRole('button',{name:'管理 roles.member 的角色'}).click();
-  await page.getByRole('dialog',{name:'管理 roles.member 的角色'}).evaluate(async element=>{await Promise.all(element.getAnimations({subtree:true}).map(animation=>animation.finished));});
+  await page.getByRole('dialog',{name:'管理 roles.member 的角色'}).evaluate(async element=>{
+    // Resizing can replace an opening transition. Its cancelled promise is not
+    // a failed drawer; wait for replacement animations before checking layout.
+    for (;;) {
+      const active=element.getAnimations({subtree:true}).filter(animation=>animation.pending||animation.playState==='running');
+      if(active.length===0)break;
+      await Promise.all(active.map(animation=>animation.finished.catch(error=>{
+        if(error.name!=='AbortError')throw error;
+      })));
+    }
+  });
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'role drawer overflows mobile viewport');
   if(process.env.RCC_E2E_OUTPUT)await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'account-roles-mobile.png')});
   await page.setViewportSize({width:1280,height:900});

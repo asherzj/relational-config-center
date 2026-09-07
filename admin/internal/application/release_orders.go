@@ -1,6 +1,7 @@
 package application
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -16,6 +17,8 @@ import (
 )
 
 var (
+	ErrReleaseAutoIDAmbiguous     = errors.New("zero auto-increment id would generate a new identity; omit id instead")
+	ErrReleaseTargetConflict      = errors.New("release target is reserved by another order")
 	ErrReleaseNotFound            = errors.New("release order not found")
 	ErrReleaseInvalid             = errors.New("invalid release order")
 	ErrReleaseVersionConflict     = errors.New("release order version conflict")
@@ -23,6 +26,7 @@ var (
 	ErrReleaseIdempotencyConflict = errors.New("release request identifier already used with different content")
 	ErrReleaseUnavailable         = errors.New("release order storage unavailable")
 	ErrReleaseUnknown             = errors.New("release result is pending confirmation")
+	ErrReleaseMetadataPermission  = errors.New("explicit TRIGGER metadata permission is required")
 	ErrReleaseSnapshotUnsupported = errors.New("table contains fields unsupported by the draft snapshot format")
 )
 
@@ -49,6 +53,9 @@ type DraftInput struct {
 type ReleaseOrderSession interface {
 	PolicySnapshotReader
 	ReadRecordBaseline(context.Context, domain.TableSchema, any) (domain.RecordBaseline, error)
+	LockAndReadTableExecutionSchema(context.Context, string) (domain.TableExecutionSchema, error)
+	ReserveReleaseTargets(context.Context, string, []domain.ActiveTarget) error
+	ReleaseTargets(context.Context, string) error
 	GetReleaseOrder(context.Context, string) (domain.ReleaseOrder, error)
 	SaveReleaseOrder(context.Context, domain.ReleaseOrder, bool) error
 	BeginReleaseRequest(context.Context, string, string, string, []byte) (*domain.ReleaseOrder, error)
@@ -130,18 +137,51 @@ func (r *ReleaseOrders) Get(ctx context.Context, id string) (ReleaseOrder, error
 
 func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) []string {
 	actions := []string{}
-	if order.State != "DRAFT" {
-		return actions
-	}
-	actor, err := requireRole(ctx, RoleEditor)
-	if err == nil && actor == order.ApplicantID {
-		actions = append(actions, "edit", "cancel")
-		return actions
-	}
-	if _, err := requireRole(ctx, RoleAdmin); err == nil {
-		actions = append(actions, "cancel")
+	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy"} {
+		if releaseActionState(order.State, action) && authorizeReleaseAction(ctx, order, action) == nil {
+			actions = append(actions, action)
+		}
 	}
 	return actions
+}
+func releaseActionRole(action string) AccountRoles {
+	if action == "approve" || action == "reject" {
+		return RoleApprover
+	}
+	return RoleEditor
+}
+func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action string) error {
+	actor, err := requireRole(ctx, releaseActionRole(action))
+	if err != nil {
+		return err
+	}
+	if action == "approve" || action == "reject" {
+		if actor == order.ApplicantID {
+			return ErrPermissionDenied
+		}
+		return nil
+	}
+	if action == "copy" || actor == order.ApplicantID {
+		return nil
+	}
+	if action == "cancel" {
+		_, err := requireRole(ctx, RoleAdmin)
+		return err
+	}
+	return ErrPermissionDenied
+}
+func releaseActionState(state, action string) bool {
+	switch action {
+	case "copy":
+		return state == "REJECTED" || state == "CANCELLED"
+	case "edit", "submit":
+		return state == "DRAFT"
+	case "approve", "reject":
+		return state == "PENDING_APPROVAL"
+	case "cancel":
+		return state == "DRAFT" || state == "PENDING_APPROVAL" || state == "APPROVED"
+	}
+	return false
 }
 
 func (r *ReleaseOrders) prepare(ctx context.Context, s ReleaseOrderSession, input DraftInput, refreshBaseline bool) ([]ReleaseItem, error) {
@@ -236,6 +276,9 @@ func (r *ReleaseOrders) prepare(ctx context.Context, s ReleaseOrderSession, inpu
 		}
 	}
 	if item.Operation == "ADD" {
+		if baseline.GeneratesIDOnInsert {
+			return nil, ErrReleaseAutoIDAmbiguous
+		}
 		if baseline.Row != nil {
 			return nil, ErrDuplicateKey
 		}
@@ -261,7 +304,7 @@ func (r *ReleaseOrders) prepare(ctx context.Context, s ReleaseOrderSession, inpu
 			return nil, ErrRecordVersionConflict
 		}
 	}
-	result := ReleaseItem{Operation: item.Operation, ID: item.ID, ExpectedRecordVersion: baseline.Version, Content: item.Content, Before: baseline.Row, RecordKey: baseline.Key, Fields: []ReleaseField{}}
+	result := ReleaseItem{Operation: item.Operation, ID: item.ID, ExpectedRecordVersion: baseline.Version, Content: item.Content, Before: baseline.Row, RecordKey: baseline.Key, RecordTable: baseline.TableName, Fields: []ReleaseField{}}
 	if result.Content == nil {
 		result.Content = MutationContent{}
 	}
@@ -299,7 +342,7 @@ type CancelReleaseInput struct {
 }
 
 func (r *ReleaseOrders) Update(ctx context.Context, id string, input DraftInput, key string) (ReleaseOrder, error) {
-	return r.changeDraft(ctx, id, input.ExpectedVersion, "edit", key, input, func(s ReleaseOrderSession, order *ReleaseOrder) error {
+	return r.changeOrder(ctx, id, input.ExpectedVersion, "edit", key, input, func(s ReleaseOrderSession, order *ReleaseOrder) error {
 		if input.TableName != order.TableName {
 			return ErrReleaseInvalid
 		}
@@ -319,17 +362,90 @@ func (r *ReleaseOrders) Update(ctx context.Context, id string, input DraftInput,
 		return nil
 	})
 }
+
+type SubmitReleaseInput struct {
+	ExpectedVersion string `json:"expected_version"`
+}
+
+func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitReleaseInput, key string) (ReleaseOrder, error) {
+	return r.changeOrder(ctx, id, input.ExpectedVersion, "submit", key, input, func(s ReleaseOrderSession, order *ReleaseOrder) error {
+		schema, err := s.LockAndReadTableExecutionSchema(ctx, order.TableName)
+		if err != nil {
+			return err
+		}
+		draft := DraftInput{TableName: order.TableName}
+		for _, item := range order.Items {
+			entry := DraftItemInput{Operation: item.Operation, ID: item.ID, ExpectedRecordVersion: item.ExpectedRecordVersion, Content: item.Content}
+			if entry.Operation == "ADD" {
+				entry.ID = nil
+			}
+			draft.Items = append(draft.Items, entry)
+		}
+		items, err := r.prepare(ctx, s, draft, false)
+		if err != nil {
+			return err
+		}
+		snapshot, err := r.snapshots.resolve(ctx, s, order.TableName, mutationPolicySnapshot)
+		if err != nil {
+			return err
+		}
+		p := snapshot.mutationPolicy
+		order.Items = items
+		order.Frozen = &domain.ReleaseExecutionSnapshot{Schema: schema, Mutation: domain.ReleaseMutationSemantics{TypeCode: p.TypeCode, AllowAdd: p.AllowAdd, AllowModify: p.AllowModify, AllowDelete: p.AllowDelete, CreateOperatorField: p.CreateOperatorField, CreateTimeField: p.CreateTimeField, ModifyOperatorField: p.ModifyOperatorField, ModifyTimeField: p.ModifyTimeField}}
+		order.FrozenDigest = hex.EncodeToString(releaseDigest(struct {
+			Items     []ReleaseItem
+			Execution *domain.ReleaseExecutionSnapshot
+		}{items, order.Frozen}))
+		targets := []domain.ActiveTarget{}
+		for _, item := range items {
+			if len(item.RecordKey) > 0 {
+				targets = append(targets, domain.ActiveTarget{TableName: item.RecordTable, RecordKey: item.RecordKey})
+			}
+		}
+		if err := s.ReserveReleaseTargets(ctx, order.ID, targets); err != nil {
+			return err
+		}
+		order.State = "PENDING_APPROVAL"
+		return nil
+	})
+}
+
 func (r *ReleaseOrders) Cancel(ctx context.Context, id string, input CancelReleaseInput, key string) (ReleaseOrder, error) {
-	return r.changeDraft(ctx, id, input.ExpectedVersion, "cancel", key, input, func(s ReleaseOrderSession, order *ReleaseOrder) error {
+	return r.changeOrder(ctx, id, input.ExpectedVersion, "cancel", key, input, func(s ReleaseOrderSession, order *ReleaseOrder) error {
 		if strings.TrimSpace(input.Reason) == "" || len(input.Reason) > 2000 {
 			return ErrReleaseInvalid
 		}
 		order.State = "CANCELLED"
+		return s.ReleaseTargets(ctx, order.ID)
+	})
+}
+
+// An approval records a current independent decision; later role changes do not
+// rewrite that history. Publication checks its own current actor in T5.
+type ReleaseDecisionInput = CancelReleaseInput
+
+func (r *ReleaseOrders) Approve(ctx context.Context, id string, input ReleaseDecisionInput, key string) (ReleaseOrder, error) {
+	return r.decide(ctx, id, "approve", input, key)
+}
+func (r *ReleaseOrders) Reject(ctx context.Context, id string, input ReleaseDecisionInput, key string) (ReleaseOrder, error) {
+	return r.decide(ctx, id, "reject", input, key)
+}
+func (r *ReleaseOrders) decide(ctx context.Context, id, action string, input ReleaseDecisionInput, key string) (ReleaseOrder, error) {
+	return r.changeOrder(ctx, id, input.ExpectedVersion, action, key, input, func(s ReleaseOrderSession, order *ReleaseOrder) error {
+		if strings.TrimSpace(input.Reason) == "" || len(input.Reason) > 2000 {
+			return ErrReleaseInvalid
+		}
+		order.State = "APPROVED"
+		if action == "reject" {
+			order.State = "REJECTED"
+			return s.ReleaseTargets(ctx, order.ID)
+		}
 		return nil
 	})
 }
-func (r *ReleaseOrders) changeDraft(ctx context.Context, id, version, action, key string, input any, change func(ReleaseOrderSession, *ReleaseOrder) error) (ReleaseOrder, error) {
-	actor, err := requireRole(ctx, RoleEditor)
+
+func (r *ReleaseOrders) changeOrder(ctx context.Context, id, version, action, key string, input any, change func(ReleaseOrderSession, *ReleaseOrder) error) (ReleaseOrder, error) {
+	actor, err := requireRole(ctx, releaseActionRole(action))
 	if err != nil {
 		return ReleaseOrder{}, err
 	}
@@ -348,13 +464,8 @@ func (r *ReleaseOrders) changeDraft(ctx context.Context, id, version, action, ke
 		if err != nil {
 			return err
 		}
-		if actor != order.ApplicantID {
-			if action != "cancel" {
-				return ErrPermissionDenied
-			}
-			if _, err = requireRole(ctx, RoleAdmin); err != nil {
-				return err
-			}
+		if err := authorizeReleaseAction(ctx, order, action); err != nil {
+			return err
 		}
 		if previous != nil {
 			result = *previous
@@ -363,11 +474,11 @@ func (r *ReleaseOrders) changeDraft(ctx context.Context, id, version, action, ke
 		if ValidateRecordVersion(version) != nil || version == "0" {
 			return ErrReleaseInvalid
 		}
-		if order.State != "DRAFT" {
-			return ErrReleaseState
-		}
 		if order.Version != version {
 			return ErrReleaseVersionConflict
+		}
+		if !releaseActionState(order.State, action) {
+			return ErrReleaseState
 		}
 		next, err := strconv.ParseUint(version, 10, 64)
 		if err != nil || next == math.MaxUint64 {
@@ -423,4 +534,84 @@ func (r *ReleaseOrders) Preview(ctx context.Context, input DraftInput) ([]Releas
 		return err
 	})
 	return items, err
+}
+
+// Copy preserves the rejected/cancelled source and creates an independent draft.
+// The caller must explicitly confirm every newly reviewed record baseline.
+type CopyReleaseInput struct {
+	ExpectedVersion string           `json:"expected_version"`
+	Confirmed       bool             `json:"confirmed"`
+	Items           []DraftItemInput `json:"items"`
+}
+
+func (r *ReleaseOrders) Copy(ctx context.Context, id string, input CopyReleaseInput, key string) (ReleaseOrder, error) {
+	actor, err := requireRole(ctx, RoleEditor)
+	if err != nil {
+		return ReleaseOrder{}, err
+	}
+	if !roleRequestKey.MatchString(key) {
+		return ReleaseOrder{}, ErrReleaseInvalid
+	}
+	var result ReleaseOrder
+	err = r.store.ExecuteReleaseOrder(ctx, func(s ReleaseOrderSession) error {
+		operation := "copy:" + id
+		previous, err := s.BeginReleaseRequest(ctx, actor, operation, key, releaseDigest(input))
+		if err != nil {
+			return err
+		}
+		source, err := s.GetReleaseOrder(ctx, id)
+		if err != nil {
+			return err
+		}
+		if previous != nil {
+			result = *previous
+			return nil
+		}
+		if !input.Confirmed || ValidateRecordVersion(input.ExpectedVersion) != nil || input.ExpectedVersion == "0" {
+			return ErrReleaseInvalid
+		}
+		if source.Version != input.ExpectedVersion {
+			return ErrReleaseVersionConflict
+		}
+		if !releaseActionState(source.State, "copy") {
+			return ErrReleaseState
+		}
+		if len(input.Items) != len(source.Items) {
+			return ErrReleaseInvalid
+		}
+		for i, entry := range input.Items {
+			saved := source.Items[i]
+			expected := DraftItemInput{Operation: saved.Operation, ID: saved.ID, Content: saved.Content}
+			if expected.Operation == "ADD" {
+				expected.ID = nil
+			}
+			candidate := entry
+			candidate.ExpectedRecordVersion = ""
+			if !bytes.Equal(releaseDigest(candidate), releaseDigest(expected)) {
+				return ErrReleaseInvalid
+			}
+			if saved.ID != nil && ValidateRecordVersion(entry.ExpectedRecordVersion) != nil {
+				return ErrReleaseInvalid
+			}
+		}
+		items, err := r.prepare(ctx, s, DraftInput{TableName: source.TableName, Items: input.Items}, false)
+		if err != nil {
+			return err
+		}
+		now, err := s.DatabaseTime(ctx)
+		if err != nil {
+			return err
+		}
+		idBytes := make([]byte, 16)
+		if _, err = rand.Read(idBytes); err != nil {
+			return ErrReleaseUnavailable
+		}
+		stamp := now.UTC().Format(time.RFC3339Nano)
+		result = ReleaseOrder{ID: hex.EncodeToString(idBytes), CopiedFromID: source.ID, TableName: source.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "COPY", ActorID: actor, At: stamp, Version: "1"}}}
+		if err := s.SaveReleaseOrder(ctx, result, true); err != nil {
+			return err
+		}
+		return s.CompleteReleaseRequest(ctx, actor, operation, key, result)
+	})
+	return result, err
 }

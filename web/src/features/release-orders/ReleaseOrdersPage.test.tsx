@@ -253,3 +253,37 @@ it("取消请求刷新恢复冲突后，明确显示真实取消动作并保留�
  expect(JSON.parse(String(writes[2]!.body))).toEqual({expected_version:"2",reason:"retained cancellation"});
  expect(await screen.findByRole("heading",{name:"items · 已取消"})).toBeVisible();
 });
+
+it("仅有审批角色的人填写意见批准冻结单据",async()=>{
+ let current={...order,applicant_id:"other-applicant",state:"PENDING_APPROVAL",version:"2",allowed_actions:["approve","reject"],frozen_digest:"a".repeat(64)};
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",vi.fn(async(input,init)=>{
+  if(String(input).startsWith("/api/v1/auth/"))return json({...testAdminIdentity,account:{...testAdminIdentity.account,roles:["APPROVER"]}});
+  if(String(input).endsWith("/approve")){writes.push(init!);current={...current,state:"APPROVED",version:"3",allowed_actions:[]};return json(current)}
+  if(String(input)===`/api/v1/release-orders/${id}`)return json(current);
+  return json({orders:[current],next_cursor:""});
+ }));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"批准发布单"}));
+ expect(screen.getByRole("button",{name:"确认批准"})).toBeDisabled();
+ await user.type(screen.getByLabelText("审批意见"),"已核对变更范围");
+ await user.click(screen.getByRole("button",{name:"确认批准"}));
+ expect(await screen.findByRole("heading",{name:"items · 已批准"})).toBeVisible();
+ expect(writes).toHaveLength(1);expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"2",reason:"已核对变更范围"});
+});
+
+it("审批状态冲突跨刷新保留原意见，查看最新后才显式重建",async()=>{
+ let current={...order,applicant_id:"other-applicant",state:"PENDING_APPROVAL",version:"2",allowed_actions:["approve","reject"]};const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",vi.fn(async(input,init)=>{
+  if(String(input).startsWith("/api/v1/auth/"))return json({...testAdminIdentity,account:{...testAdminIdentity.account,roles:["APPROVER"]}});
+  if(String(input).endsWith("/approve")){writes.push(init!);if(writes.length===1){current={...current,version:"3"};return json({error:{code:"release_version_conflict",message:"changed",request_id:"cas"}},409)}current={...current,state:"APPROVED",version:"4",allowed_actions:[]};return json(current)}
+  if(String(input)===`/api/v1/release-orders/${id}`)return json(current);return json({orders:[current],next_cursor:""});
+ }));
+ const user=userEvent.setup();let page=mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"批准发布单"}));await user.type(screen.getByLabelText("审批意见"),"保留这条意见");await user.click(screen.getByRole("button",{name:"确认批准"}));
+ await waitFor(()=>expect(writes).toHaveLength(1));page.unmount();page=mount();
+ await user.click(await screen.findByText("查看原申请内容"));expect(await screen.findByText("审批意见：保留这条意见")).toBeVisible();
+ await user.click(screen.getByRole("button",{name:"查看最新状态与配置"}));await user.click(await screen.findByRole("button",{name:"确认按最新状态批准发布单"}));
+ expect(await screen.findByRole("heading",{name:"items · 已批准"})).toBeVisible();expect(writes).toHaveLength(2);
+ expect(JSON.parse(String(writes[1]!.body))).toEqual({expected_version:"3",reason:"保留这条意见"});expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).not.toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
+});
