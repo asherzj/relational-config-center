@@ -43,6 +43,14 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     const rect = node.getBoundingClientRect();
     return rect.left >= -1 && rect.right <= innerWidth + 1 && rect.top >= -1 && rect.bottom <= innerHeight + 1;
   });
+  const viewportRect = (locator) => locator.evaluate((node) => {
+    const { left, right, top, bottom, width, height } = node.getBoundingClientRect();
+    return { left, right, top, bottom, width, height, innerWidth, innerHeight };
+  });
+  const boundedSurface = (locator) => locator.evaluate((node) => {
+    const { left, right, width } = node.getBoundingClientRect();
+    return { left, right, width, clientWidth: node.clientWidth, scrollWidth: node.scrollWidth, innerWidth };
+  });
   async function open(pathname, viewport = { width: 1440, height: 1000 }) {
     if (page) await page.close();
     page = await browser.newPage({ viewport });
@@ -179,12 +187,26 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await page.mouse.wheel(0, 360);
     await page.waitForFunction(({ selector, before }) => document.querySelector(selector).scrollTop > before, { selector: '.drawer-body', before: drawerScrollBefore });
     const drawerScrollAfter = await drawerBody.evaluate((node) => node.scrollTop);
-    await note.scrollIntoViewIfNeeded();
-    assert.equal(await visibleInViewport(drawerFooter.getByRole('button', { name: '取消', exact: true })), true);
-    assert.equal(await visibleInViewport(drawerFooter.getByRole('button', { name: '查看 Change Set', exact: true })), true);
-    assert.ok((await pageOverflow()) <= 1);
+    const drawerSurfaces = [];
+    for (const selector of ['.drawer', '.drawer-header', '.drawer-body', '.drawer-footer']) {
+      const metrics = await boundedSurface(page.locator(selector));
+      drawerSurfaces.push({ selector, metrics });
+      assert.ok(metrics.left >= -1 && metrics.right <= metrics.innerWidth + 1, `${selector} must stay inside the 320px viewport: ${JSON.stringify(metrics)}`);
+      assert.ok(metrics.scrollWidth <= metrics.clientWidth + 1, `${selector} must not own unintended horizontal overflow: ${JSON.stringify(metrics)}`);
+    }
+    const noteRect = await viewportRect(note);
+    assert.ok(noteRect.left >= -1 && noteRect.right <= noteRect.innerWidth + 1, `note textarea must stay inside the 320px viewport: ${JSON.stringify(noteRect)}`);
+    const drawerFooterActions = [];
+    for (const action of ['取消', '查看 Change Set']) {
+      const actionButton = drawerFooter.getByRole('button', { name: action, exact: true });
+      await actionButton.scrollIntoViewIfNeeded();
+      const rect = await viewportRect(actionButton);
+      drawerFooterActions.push({ action, rect });
+      assert.equal(await visibleInViewport(actionButton), true, `${action} must be fully visible at 320px: ${JSON.stringify(rect)}`);
+      assert.ok((await pageOverflow()) <= 1, `${action} must not require document horizontal scrolling`);
+    }
     await page.screenshot({ path: `${output}/drawer-320.png`, fullPage: true });
-    pass('320px long drawer scroll keeps the action footer reachable', { viewport: '320x568 CSS pixels', documentOverflow: await pageOverflow(), optionalIdIncluded: false, actualMouseWheel: { before: drawerScrollBefore, after: drawerScrollAfter } });
+    pass('320px long drawer scroll keeps the action footer reachable', { viewport: '320x568 CSS pixels', documentOverflow: await pageOverflow(), optionalIdIncluded: false, actualMouseWheel: { before: drawerScrollBefore, after: drawerScrollAfter }, surfaces: drawerSurfaces, noteRect, footerActions: drawerFooterActions });
 
     await button('查看 Change Set').click();
     const changeSet = page.getByRole('dialog', { name: 'ADD Change Set', exact: true });
@@ -197,12 +219,18 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     const changeScroll = page.locator('.change-set-scroll');
     assert.ok(await changeScroll.evaluate((node) => node.scrollWidth > node.clientWidth));
     await changeScroll.evaluate((node) => { node.scrollLeft = node.scrollWidth; node.scrollTop = node.scrollHeight; });
+    const changeSetActions = [];
     for (const action of ['放弃本次编辑', '返回修改', '确认并执行']) {
-      assert.equal(await visibleInViewport(button(action)), true, `${action} must remain reachable at 320px`);
+      const actionButton = button(action);
+      await actionButton.scrollIntoViewIfNeeded();
+      const rect = await viewportRect(actionButton);
+      changeSetActions.push({ action, rect });
+      assert.equal(await visibleInViewport(actionButton), true, `${action} must remain reachable at 320px: ${JSON.stringify(rect)}`);
+      assert.ok((await pageOverflow()) <= 1, `${action} must not require document horizontal scrolling`);
     }
     assert.ok((await pageOverflow()) <= 1);
     await page.screenshot({ path: `${output}/change-set-320.png` });
-    pass('320px Change Set owns horizontal/vertical overflow and keeps actions reachable', { keyboardPath: ['Shift+Tab -> 确认并执行', 'Tab -> 放弃本次编辑'], documentOverflow: await pageOverflow() });
+    pass('320px Change Set owns horizontal/vertical overflow and keeps actions reachable', { keyboardPath: ['Shift+Tab -> 确认并执行', 'Tab -> 放弃本次编辑'], documentOverflow: await pageOverflow(), footerActions: changeSetActions });
 
     await page.keyboard.press('Escape');
     const nestedLeave = page.getByRole('alertdialog', { name: '放弃未保存的修改？', exact: true });

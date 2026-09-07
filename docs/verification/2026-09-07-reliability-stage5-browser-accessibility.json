@@ -123,7 +123,28 @@
       "webkit"
     ],
     "installer": "Playwright official installer with --with-deps on Linux CI",
-    "statusAtReportTime": "pending; the 21 passing engine checks in this file are from macOS arm64"
+    "firstRun": {
+      "run": 34101408974,
+      "artifactId": 10010788674,
+      "artifactSha256": "02de9180e41a47eee3561cd72a4081b63766b849ba38df13a1a048b81a64b7d0",
+      "chromiumChecks": 7,
+      "firefoxChecks": 7,
+      "webkitChecksBeforeFailure": 2,
+      "failure": "At 320 CSS pixels, the Linux WebKit screenshot showed the drawer header control, textarea and View Change Set action clipped by the right viewport edge. The drawer now uses a minmax(0, 1fr) grid column and shrinkable content; narrow footer actions can wrap."
+    },
+    "localFixVerification": {
+      "engine": "webkit",
+      "browserVersion": "26.5",
+      "checks": 7,
+      "documentOverflow": 0,
+      "drawerSurfaceWidths": "drawer, header, body and footer each clientWidth=scrollWidth=320",
+      "drawerActionEdges": [[18, 156], [164, 302]],
+      "changeSetActionBounds": [28, 308.796875],
+      "mysqlPostcheck": true,
+      "cleanupVerified": true,
+      "records": "stage5-linux-drawer-fix-webkit-green"
+    },
+    "statusAtReportTime": "local WebKit fix verification passed; Linux verification pending"
   },
   "staticVerification": [
     "bash -n scripts/browser-acceptance.sh",
@@ -135,7 +156,9 @@
   "portableScreenshots": [
     "2026-09-07-reliability-stage5-chromium-drawer-320.png",
     "2026-09-07-reliability-stage5-firefox-change-set-320.png",
-    "2026-09-07-reliability-stage5-webkit-write-recovery-390.png"
+    "2026-09-07-reliability-stage5-webkit-write-recovery-390.png",
+    "2026-09-07-reliability-stage5-linux-webkit-drawer-320-red.png",
+    "2026-09-07-reliability-stage5-webkit-drawer-320-green.png"
   ],
   "rootBaselineVerification": {
     "suite": "unsaved-changes",
