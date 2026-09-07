@@ -109,9 +109,9 @@ function readFetch(input: RequestInfo | URL, init: RequestInit | undefined, poli
   throw new Error(`unexpected request ${url}`);
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {vi.unstubAllGlobals();sessionStorage.clear()});
 
-describe("Managed Data mutation capability", () => {
+describe("Managed Data draft confirmation", () => {
   it("fails closed by capability and excludes id plus every server-managed Auto Fill field from ADD", async () => {
     vi.stubGlobal("fetch", withAdminSession(vi.fn((input: RequestInfo | URL, init?: RequestInit) => Promise.resolve(readFetch(input, init)))));
     const user = userEvent.setup();
@@ -155,281 +155,6 @@ describe("Managed Data mutation capability", () => {
     expect(screen.getByRole("button", { name: "删除记录 41" })).toBeEnabled();
   });
 
-  it("ADD uses the shared all-field Change Set once, then exact-id refetches the database row", async () => {
-    const fullPolicy = { ...mutationPolicy, allow_modify: true, allow_delete: true };
-    const createdColumns = [...columns, { name: "server_default", type: "string", nullable: false }] as const;
-    const created = {
-      ...row,
-      id: "42",
-      template_key: "new-template",
-      subject: null,
-      body: "",
-      creator: "server-operator",
-      modifier: "server-operator",
-      server_default: "filled-after-write",
-    };
-    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
-      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
-      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
-      if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
-      if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
-      if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
-      if (url.endsWith("/tables/notification_templates/rows") && init?.method === "POST") return json({ id: "42" }, 201);
-      if (url.endsWith("/tables/notification_templates/query") && init?.method === "POST") {
-        const spec = JSON.parse(String(init.body));
-        return json({
-          columns: spec.conditions?.[0]?.field === "id" ? createdColumns : columns,
-          rows: spec.conditions?.[0]?.field === "id" ? [created] : [row],
-          page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 },
-        });
-      }
-      throw new Error(`unexpected request ${url}`);
-    });
-    vi.stubGlobal("fetch", withAdminSession(fetchMock));
-    const user = userEvent.setup();
-    renderPage();
-
-    const add = await screen.findByRole("button", { name: "新增记录" });
-    await vi.waitFor(() => expect(add).toBeEnabled());
-    await user.click(add);
-    await user.click(screen.getByRole("checkbox", { name: "包含 template_key" }));
-    await user.type(screen.getByRole("textbox", { name: "template_key 值" }), "new-template");
-    await user.click(screen.getByRole("checkbox", { name: "包含 subject" }));
-    await user.click(screen.getByRole("checkbox", { name: "subject 使用 NULL" }));
-    await user.click(screen.getByRole("checkbox", { name: "包含 body" }));
-    await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
-
-    const changeSet = screen.getByRole("dialog", { name: "ADD Change Set" });
-    expect(within(changeSet).getAllByRole("row")).toHaveLength(columns.length + 1);
-    const idRow = within(changeSet).getByRole("row", { name: /id/ });
-    expect(within(idRow).getByText("不存在")).toHaveClass("cell-missing");
-    expect(within(idRow).getByText("未提交")).toHaveClass("cell-unsubmitted");
-    const subjectRow = within(changeSet).getByRole("row", { name: /subject/ });
-    expect(within(subjectRow).getByText("NULL")).toBeVisible();
-    const bodyRow = within(changeSet).getByRole("row", { name: /body/ });
-    expect(within(bodyRow).getByText('""')).toBeVisible();
-    expect(within(changeSet).getAllByText("Auto Fill").length).toBeGreaterThan(0);
-    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/query"))).toHaveLength(1);
-
-    await user.click(within(changeSet).getByRole("button", { name: "确认并执行" }));
-
-    expect(await screen.findByRole("heading", { name: "ADD 已完成" })).toBeVisible();
-    expect(screen.getAllByText("server-operator")).toHaveLength(2);
-    expect(screen.getByText("server_default")).toBeVisible();
-    expect(screen.getByText("filled-after-write")).toBeVisible();
-    const writeCall = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/rows"));
-    expect(JSON.parse(String(writeCall?.[1]?.body))).toEqual({ content: { template_key: "new-template", subject: null, body: "" } });
-    const exactQuery = fetchMock.mock.calls.find(([, init]) => init?.method === "POST" && String(init.body).includes('"field":"id"'));
-    expect(JSON.parse(String(exactQuery?.[1]?.body))).toEqual({ conditions: [{ field: "id", operator: "exact", value: "42" }], page_number: 1, page_size: 1 });
-  });
-
-  it("MODIFY highlights only changed fields, preserves raw typed values, and exact-id refetches", async () => {
-    const fullPolicy = { ...mutationPolicy, allow_modify: true, allow_delete: true };
-    const richColumns = [
-      ...columns.slice(0, 4),
-      { name: "price", type: "decimal", nullable: false },
-      { name: "scheduled_on", type: "date", nullable: false },
-      { name: "metadata", type: "json", nullable: true },
-      ...columns.slice(4),
-    ] as const;
-    const richRow = { ...row, price: "10.2300", scheduled_on: "2026-08-26", metadata: "{\"enabled\":true}" };
-    const modified = { ...richRow, body: "changed", modifier: "server-operator" };
-    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
-      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
-      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
-      if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
-      if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
-      if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
-      if (url.endsWith("/tables/notification_templates/rows/41") && init?.method === "PATCH") return json({ affected: 1 });
-      if (url.endsWith("/tables/notification_templates/query") && init?.method === "POST") {
-        const exact = String(init.body).includes('"field":"id"');
-        return json({ columns: richColumns, rows: [exact ? modified : richRow], page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 } });
-      }
-      throw new Error(`unexpected request ${url}`);
-    });
-    vi.stubGlobal("fetch", withAdminSession(fetchMock));
-    const user = userEvent.setup();
-    renderPage();
-
-    const modify = await screen.findByRole("button", { name: "修改记录 41" });
-    await vi.waitFor(() => expect(modify).toBeEnabled());
-    await user.click(modify);
-    await user.click(screen.getByRole("checkbox", { name: "包含 body" }));
-    await user.clear(screen.getByRole("textbox", { name: "body 值" }));
-    await user.type(screen.getByRole("textbox", { name: "body 值" }), "changed");
-    await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
-
-    const changeSet = screen.getByRole("dialog", { name: "MODIFY Change Set" });
-    expect(within(changeSet).getAllByRole("row")).toHaveLength(richColumns.length + 1);
-    const bodyRow = within(changeSet).getByRole("row", { name: /body/ });
-    expect(within(bodyRow).getByText('""').closest("td")).toHaveClass("change-original");
-    expect(within(bodyRow).getByText("changed").closest("td")).toHaveClass("change-next");
-    const priceRow = within(changeSet).getByRole("row", { name: /price/ });
-    expect(within(priceRow).getAllByText("10.2300")).toHaveLength(2);
-    expect(within(priceRow).getAllByRole("cell")[0]).not.toHaveClass("change-original");
-    expect(within(changeSet).getAllByText("2026-08-26")).toHaveLength(2);
-    expect(within(changeSet).getAllByText('{"enabled":true}')).toHaveLength(2);
-    const creatorRow = within(changeSet).getByRole("row", { name: /^creator/ });
-    expect(within(creatorRow).getAllByText("fixture")).toHaveLength(2);
-    expect(within(creatorRow).queryByText("未提交")).not.toBeInTheDocument();
-    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/query"))).toHaveLength(1);
-
-    await user.click(within(changeSet).getByRole("button", { name: "确认并执行" }));
-
-    expect(await screen.findByRole("heading", { name: "MODIFY 已完成" })).toBeVisible();
-    expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST" && String(init.body).includes('"field":"id"'))).toBe(true);
-    const patchCall = fetchMock.mock.calls.find(([, init]) => init?.method === "PATCH");
-    expect(JSON.parse(String(patchCall?.[1]?.body))).toEqual({ content: { body: "changed" }, expected_version: "0" });
-  });
-
-  it("DELETE shows every original value struck out against a missing record and finishes with a summary", async () => {
-    const fullPolicy = { ...mutationPolicy, allow_modify: true, allow_delete: true };
-    let deleted = false;
-    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
-      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
-      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
-      if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
-      if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
-      if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
-      if (url.endsWith("/tables/notification_templates/rows/41") && init?.method === "DELETE") { deleted = true; return json({ affected: 1 }); }
-      if (url.endsWith("/tables/notification_templates/query") && init?.method === "POST") {
-        return json({ columns, rows: deleted ? [] : [row], page: { page_number: 1, page_size: 20, total_count: deleted ? 0 : 1, total_pages: deleted ? 0 : 1 } });
-      }
-      throw new Error(`unexpected request ${url}`);
-    });
-    vi.stubGlobal("fetch", withAdminSession(fetchMock));
-    const user = userEvent.setup();
-    renderPage();
-
-    const remove = await screen.findByRole("button", { name: "删除记录 41" });
-    await vi.waitFor(() => expect(remove).toBeEnabled());
-    await user.click(remove);
-    const changeSet = screen.getByRole("dialog", { name: "DELETE Change Set" });
-    const rows = within(changeSet).getAllByRole("row").slice(1);
-    expect(rows).toHaveLength(columns.length);
-    for (const changeRow of rows) {
-      expect(within(changeRow).getAllByRole("cell")[0]).toHaveClass("change-original");
-      expect(within(changeRow).getByText("不存在").closest("td")).toHaveClass("change-next");
-    }
-    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/query"))).toHaveLength(1);
-
-    await user.click(within(changeSet).getByRole("button", { name: "确认并执行" }));
-
-    expect(await screen.findByRole("heading", { name: "DELETE 已完成" })).toBeVisible();
-    expect(screen.getByText(/已删除记录 id/)).toHaveTextContent("41");
-    expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "DELETE")).toHaveLength(1);
-    expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST" && String(init.body).includes('"field":"id"'))).toBe(false);
-  });
-
-  it("preserves an empty JSON String row id when executing DELETE", async () => {
-    const fullPolicy = { ...mutationPolicy, allow_modify: true, allow_delete: true };
-    const emptyIDRow = { ...row, id: "" };
-    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
-      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
-      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
-      if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
-      if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
-      if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
-      if (url.endsWith("/tables/notification_templates/rows/") && init?.method === "DELETE") return json({ affected: 1 });
-      if (url.endsWith("/tables/notification_templates/query") && init?.method === "POST") {
-        return json({ columns, rows: [emptyIDRow], page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 } });
-      }
-      throw new Error(`unexpected request ${url}`);
-    });
-    vi.stubGlobal("fetch", withAdminSession(fetchMock));
-    const user = userEvent.setup();
-    renderPage();
-
-    const remove = await screen.findByRole("button", { name: /删除记录/ });
-    await vi.waitFor(() => expect(remove).toBeEnabled());
-    await user.click(remove);
-    await user.click(screen.getByRole("button", { name: "确认并执行" }));
-
-    expect(await screen.findByRole("heading", { name: "DELETE 已完成" })).toBeVisible();
-    expect(fetchMock.mock.calls.filter(([url, init]) => String(url).endsWith("/rows/") && init?.method === "DELETE")).toHaveLength(1);
-  });
-
-  it("keeps the Change Set and editor values after a stable Admin rejection with Request ID", async () => {
-    const fullPolicy = { ...mutationPolicy, allow_modify: true, allow_delete: true };
-    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
-      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
-      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
-      if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
-      if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
-      if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
-      if (url.endsWith("/tables/notification_templates/rows") && init?.method === "POST") {
-        return json({ error: { code: "duplicate_key", message: "duplicate", request_id: "req-duplicate-26" } }, 409, "req-duplicate-26");
-      }
-      if (url.endsWith("/tables/notification_templates/query")) return json({ columns, rows: [row], page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 } });
-      throw new Error(`unexpected request ${url}`);
-    });
-    vi.stubGlobal("fetch", withAdminSession(fetchMock));
-    const user = userEvent.setup();
-    renderPage();
-
-    const add = await screen.findByRole("button", { name: "新增记录" });
-    await vi.waitFor(() => expect(add).toBeEnabled());
-    await user.click(add);
-    await user.click(screen.getByRole("checkbox", { name: "包含 template_key" }));
-    await user.type(screen.getByRole("textbox", { name: "template_key 值" }), "duplicate-template");
-    await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
-    const changeSet = screen.getByRole("dialog", { name: "ADD Change Set" });
-    await user.click(within(changeSet).getByRole("button", { name: "确认并执行" }));
-
-    const alert = await within(changeSet).findByRole("alert");
-    expect(alert).toHaveTextContent("唯一键已存在，请修改字段值后重试");
-    expect(alert).toHaveTextContent("req-duplicate-26");
-    expect(within(changeSet).getByText("duplicate-template")).toBeVisible();
-    expect(within(changeSet).getByRole("button", { name: "确认并执行" })).toBeEnabled();
-    await user.click(within(changeSet).getByRole("button", { name: "返回修改" }));
-    expect(screen.getByRole("textbox", { name: "template_key 值" })).toHaveValue("duplicate-template");
-    expect(screen.getByRole("checkbox", { name: "包含 template_key" })).toBeChecked();
-  });
-
-  it("does not replay a Managed Data write whose response was lost and offers an exact read path", async () => {
-    const fullPolicy = { ...mutationPolicy, allow_modify: true, allow_delete: true };
-    let writes = 0;
-    let reads = 0;
-    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
-      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
-      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
-      if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
-      if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
-      if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
-      if (url.endsWith("/tables/notification_templates/rows") && init?.method === "POST") {
-        writes += 1;
-        throw new TypeError("response lost after commit");
-      }
-      if (url.endsWith("/tables/notification_templates/query") && init?.method === "POST") {
-        reads += 1;
-        return json({ columns, rows: [row], page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 } });
-      }
-      throw new Error(`unexpected request ${url}`);
-    });
-    vi.stubGlobal("fetch", withAdminSession(fetchMock));
-    const user = userEvent.setup();
-    renderPage();
-    await user.click(await screen.findByRole("button", { name: "新增记录" }));
-    await user.click(screen.getByRole("checkbox", { name: "包含 template_key" }));
-    await user.type(screen.getByRole("textbox", { name: "template_key 值" }), "possibly-committed");
-    await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
-    await user.click(screen.getByRole("button", { name: "确认并执行" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
-    expect(screen.queryByRole("button", { name: "确认并执行" })).not.toBeInTheDocument();
-    expect(writes).toBe(1);
-    const readsBeforeCheck = reads;
-    await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
-    await user.click(screen.getByRole("button", { name: "放弃修改并离开" }));
-    await vi.waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
-    expect(writes).toBe(1);
-  });
-
   it("keeps a Change Set across same-account login, refetches rules and schema, and requires confirmation again", async () => {
     const fullPolicy = { ...mutationPolicy, allow_modify: true, allow_delete: true };
     let signedIn = true;
@@ -445,7 +170,7 @@ describe("Managed Data mutation capability", () => {
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
-      if (url.endsWith("/tables/notification_templates/rows") && init?.method === "POST") { writes += 1; return json({ id: "42" }, 201); }
+      if (url.endsWith("/release-orders") && init?.method === "POST") { writes += 1; throw new Error("draft save requires another confirmation"); }
       if (url.endsWith("/tables/notification_templates/query") && init?.method === "POST") {
         reads += 1;
         return json({ columns, rows: [row], page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 } });
@@ -468,55 +193,9 @@ describe("Managed Data mutation capability", () => {
     await waitFor(() => expect(screen.queryByRole("heading", { name: "登录本地账号" })).not.toBeInTheDocument());
     const changeSet = screen.getByRole("dialog", { name: "ADD Change Set" });
     expect(within(changeSet).getByText("recover-intent")).toBeVisible();
-    expect(within(changeSet).getByRole("button", { name: "确认并执行" })).toBeEnabled();
+    expect(within(changeSet).getByRole("button", { name: "确认并保存草稿" })).toBeEnabled();
     expect(reads).toBeGreaterThanOrEqual(2);
     expect(writes).toBe(0);
-  });
-
-  it.each([false, true])("keeps an unresolved write read-only after same-account recovery (delayed response: %s)", async (delayed) => {
-    let signedIn = true;
-    let writes = 0;
-    let settleWrite: (() => void) | undefined;
-    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
-      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
-      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
-      if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired" } }, 401);
-      if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
-      if (url.endsWith("/auth/login")) { signedIn = true; return json(testAdminIdentity); }
-      if (url.endsWith("/tables/notification_templates/rows") && init?.method === "POST") {
-        writes++;
-        if (delayed) return new Promise<Response>((resolve) => { settleWrite = () => resolve(json({ id: "42" }, 201)); });
-        throw new TypeError("response lost after commit");
-      }
-      return readFetch(input, init);
-    });
-    vi.stubGlobal("fetch", fetchMock);
-    const user = userEvent.setup();
-    renderPage();
-    await user.click(await screen.findByRole("button", { name: "新增记录" }));
-    await user.click(screen.getByRole("checkbox", { name: "包含 template_key" }));
-    await user.type(screen.getByRole("textbox", { name: "template_key 值" }), "unresolved-intent");
-    await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
-    await user.click(screen.getByRole("button", { name: "确认并执行" }));
-    if (!delayed) expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
-    signedIn = false;
-    act(() => window.dispatchEvent(new CustomEvent(businessSessionInvalid, { detail: { code: "session_invalid" } })));
-    await user.type(await screen.findByLabelText("用户名"), "test.user");
-    await user.type(screen.getByLabelText("密码"), "correct horse battery staple");
-    await user.click(screen.getByRole("button", { name: "登录" }));
-    await waitFor(() => expect(document.querySelector(".protected-workspace")).toHaveAttribute("data-session-status", "ready"));
-    const changeSet = screen.getByRole("dialog", { name: "ADD Change Set" });
-    if (delayed) {
-      expect(within(changeSet).getByRole("button", { name: "正在执行…" })).toBeDisabled();
-      await act(async () => settleWrite!());
-      expect(await within(changeSet).findByRole("alert")).toHaveTextContent("提交结果尚未确认");
-    }
-    expect(within(changeSet).getByText("unresolved-intent")).toBeVisible();
-    expect(within(changeSet).getByRole("alert")).toHaveTextContent("提交结果尚未确认");
-    expect(within(changeSet).queryByRole("button", { name: "确认并执行" })).not.toBeInTheDocument();
-    expect(within(changeSet).getByRole("button", { name: "只读查询当前状态" })).toBeEnabled();
-    expect(writes).toBe(1);
   });
 
   it("keeps MODIFY input but rechecks the exact current target before rebuilding its Change Set", async () => {
@@ -536,7 +215,7 @@ describe("Managed Data mutation capability", () => {
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
-      if (url.endsWith("/tables/notification_templates/rows/41") && init?.method === "PATCH") { writes += 1; return json({ affected: 1 }); }
+      if (url.endsWith("/release-orders") && init?.method === "POST") { writes += 1; return json({ affected: 1 }); }
       if (url.endsWith("/tables/notification_templates/query") && init?.method === "POST") {
         const exact = String(init.body).includes('"field":"id"');
         if (exact) exactReads += 1;
@@ -611,7 +290,7 @@ describe("Managed Data mutation capability", () => {
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
       if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
-      if (url.endsWith("/tables/notification_templates/rows/41") && init?.method === "PATCH") { writes += 1; return json({ affected: 1 }); }
+      if (url.endsWith("/release-orders") && init?.method === "POST") { writes += 1; return json({ affected: 1 }); }
       if (url.endsWith("/tables/notification_templates/query") && init?.method === "POST") {
         const exact = String(init.body).includes('"field":"id"');
         if (exact && recovered && (++exactReads === 1 || (versionChanged && exactReads === 3))) return json({ error: { code: "query_unavailable", message: "down", request_id: "req-recheck" } }, 503);
@@ -639,84 +318,33 @@ describe("Managed Data mutation capability", () => {
     await waitFor(() => expect(document.querySelector(".protected-workspace")).toHaveAttribute("data-session-status", "ready"));
     const changeSet = await screen.findByRole("dialog", { name: "MODIFY Change Set" });
     expect(await within(changeSet).findByRole("alert")).toHaveTextContent("req-recheck");
-    expect(within(changeSet).getByRole("button", { name: "确认并执行" })).toBeDisabled();
+    expect(within(changeSet).getByRole("button", { name: "确认并保存草稿" })).toBeDisabled();
     expect(within(changeSet).getByRole("button", { name: "返回修改" })).toBeEnabled();
     await user.click(within(changeSet).getByRole("button", { name: "重试" }));
     if (versionChanged) {
       await within(changeSet).findByRole("button", { name: "基于最新值重建差异" });
-      expect(within(changeSet).getByRole("button", { name: "确认并执行" })).toBeDisabled();
+      expect(within(changeSet).getByRole("button", { name: "确认并保存草稿" })).toBeDisabled();
       await user.click(within(changeSet).getByRole("button", { name: "查看最新值" }));
       expect(await within(changeSet).findByRole("alert")).toHaveTextContent("req-recheck");
-      expect(within(changeSet).getByRole("button", { name: "确认并执行" })).toBeDisabled();
+      expect(within(changeSet).getByRole("button", { name: "确认并保存草稿" })).toBeDisabled();
       expect(within(changeSet).getByText("operator-intent")).toBeVisible();
       expect(writes).toBe(0);
       await user.click(within(changeSet).getByRole("button", { name: "重试" }));
       await user.click(await within(changeSet).findByRole("button", { name: "基于最新值重建差异" }));
     }
-    await waitFor(() => expect(within(changeSet).getByRole("button", { name: "确认并执行" })).toBeEnabled());
+    await waitFor(() => expect(within(changeSet).getByRole("button", { name: "确认并保存草稿" })).toBeEnabled());
     expect(within(changeSet).getByText("current-after-retry")).toBeVisible();
     expect(within(changeSet).getByText("operator-intent")).toBeVisible();
     expect(exactReads).toBe(versionChanged ? 4 : 2);
     expect(writes).toBe(0);
   });
 
-  it("pins the table identity and never repeats a completed ADD when exact-id readback fails", async () => {
-    const fullPolicy = { ...mutationPolicy, allow_modify: true, allow_delete: true };
-    const secondPolicy = { ...tablePolicy, table_name: "audit_events" };
-    let exactAttempts = 0;
-    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
-      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
-      if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
-      if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy, secondPolicy] });
-      if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
-      if (url.endsWith("/mutation-policies/notification_full_mutation_v1")) return json(fullPolicy);
-      if (url.endsWith("/tables/notification_templates/rows") && init?.method === "POST") return json({ id: "42" }, 201);
-      if (url.endsWith("/tables/notification_templates/query") && init?.method === "POST") {
-        if (String(init.body).includes('"field":"id"')) {
-          exactAttempts += 1;
-          if (exactAttempts === 1) return json({ error: { code: "query_unavailable", message: "unavailable", request_id: "req-readback-26" } }, 503, "req-readback-26");
-          return json({ columns, rows: [{ ...row, id: "42", template_key: "readback" }], page: { page_number: 1, page_size: 1, total_count: 1, total_pages: 1 } });
-        }
-        return json({ columns, rows: [row], page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 } });
-      }
-      if (url.endsWith("/tables/audit_events/query") && init?.method === "POST") {
-        return json({ columns, rows: [], page: { page_number: 1, page_size: 20, total_count: 0, total_pages: 0 } });
-      }
-      throw new Error(`unexpected request ${url}`);
-    });
-    vi.stubGlobal("fetch", withAdminSession(fetchMock));
-    const user = userEvent.setup();
-    renderPage();
-
-    const add = await screen.findByRole("button", { name: "新增记录" });
-    await vi.waitFor(() => expect(add).toBeEnabled());
-    await user.click(add);
-    await user.click(screen.getByRole("checkbox", { name: "包含 template_key" }));
-    await user.type(screen.getByRole("textbox", { name: "template_key 值" }), "readback");
-    await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
-    await user.selectOptions(screen.getByRole("combobox", { name: "Managed Table" }), "audit_events");
-    await user.click(screen.getByRole("button", { name: "继续编辑" }));
-    expect(screen.getByRole("combobox", { name: "Managed Table" })).toHaveValue("notification_templates");
-    await user.click(screen.getByRole("button", { name: "确认并执行" }));
-
-    expect(await screen.findByRole("heading", { name: "ADD 已执行，回查未完成" })).toBeVisible();
-    expect(screen.getByRole("alert")).toHaveTextContent("req-readback-26");
-    expect(screen.queryByRole("button", { name: "确认并执行" })).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "重新回查" }));
-
-    expect(await screen.findByRole("heading", { name: "ADD 已完成" })).toBeVisible();
-    expect(fetchMock.mock.calls.filter(([url, init]) => String(url).endsWith("/rows") && init?.method === "POST")).toHaveLength(1);
-    expect(exactAttempts).toBe(2);
-  });
-});
-
 it("preserves a stale change, reads latest separately, and requires an explicit rebuild before retry", async () => {
   const writes: unknown[] = [];
   let latestReads = 0;
   vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
-    if (init?.method === "PATCH") {
+    if (url.endsWith("/release-orders") && init?.method === "POST") {
       writes.push(JSON.parse(String(init.body)));
       return json({ error: { code: "record_version_conflict", message: "record changed", request_id: "stale-33" } }, 409);
     }
@@ -735,24 +363,24 @@ it("preserves a stale change, reads latest separately, and requires an explicit 
   await user.click(screen.getByRole("checkbox", { name: "包含 body" }));
   await user.type(screen.getByRole("textbox", { name: "body 值" }), "my pending input");
   await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
-  await user.click(screen.getByRole("button", { name: "确认并执行" }));
+  await user.click(screen.getByRole("button", { name: "确认并保存草稿" }));
   await screen.findByText("stale-33", { exact: false });
-  expect(writes).toEqual([{ content: { body: "my pending input" }, expected_version: "9007199254740993" }]);
-  expect(screen.getByRole("button", { name: "确认并执行" })).toBeDisabled();
+  expect(writes).toEqual([{table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",content:{body:"my pending input"},expected_record_version:"9007199254740993"}]}]);
+  expect(screen.getByRole("button", { name: "确认并保存草稿" })).toBeDisabled();
   expect(latestReads).toBe(0);
   await user.click(screen.getByRole("button", { name: "查看最新值" }));
   await screen.findByText("other editor");
   expect(screen.getByText("my pending input")).toBeVisible();
   expect(writes).toHaveLength(1);
-  expect(screen.getByRole("button", { name: "确认并执行" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "确认并保存草稿" })).toBeDisabled();
   await user.click(screen.getByRole("button", { name: "基于最新值重建差异" }));
   const dialog = screen.getByRole("dialog", { name: "MODIFY Change Set" });
   expect(within(dialog).getByText("other editor")).toBeVisible();
   expect(within(dialog).getByText("my pending input")).toBeVisible();
   expect(writes).toHaveLength(1);
-  await user.click(screen.getByRole("button", { name: "确认并执行" }));
+  await user.click(screen.getByRole("button", { name: "确认并保存草稿" }));
   await waitFor(() => expect(writes).toHaveLength(2));
-  expect(writes[1]).toEqual({ content: { body: "my pending input" }, expected_version: "9007199254740994" });
+  expect(writes[1]).toEqual({table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",content:{body:"my pending input"},expected_record_version:"9007199254740994"}]});
 });
 
 it("从现有 Change Set 保存发布草稿，不调用记录写接口",async()=>{
@@ -768,8 +396,52 @@ it("从现有 Change Set 保存发布草稿，不调用记录写接口",async()=
  await user.click(await screen.findByRole("button",{name:"修改记录 41"}));
  await user.click(screen.getByLabelText("包含 body"));await user.type(screen.getByLabelText("body 值"),"draft only");
  await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
- await user.click(screen.getByRole("button",{name:"保存为发布草稿"}));
+ await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
  expect(await screen.findByRole("heading",{name:"notification_templates · 草稿"})).toBeVisible();
  expect(writes).toHaveLength(1);
  expect(JSON.parse(String(writes[0].body))).toEqual({table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",expected_record_version:"0",content:{body:"draft only"}}]});
+});
+});
+
+it.each(["ADD","MODIFY","DELETE"] as const)("%s 的唯一确认保存草稿并保留字段三态与记录版本",async(operation)=>{
+ const writes:RequestInit[]=[];const savedID="aaaaaaaabbbbbbbbccccccccdddddddd";let saved:unknown;
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  const path=String(input);
+  if(path==="/api/v1/release-orders"&&init?.method==="POST"){
+   writes.push(init);const intent=JSON.parse(String(init.body));saved={id:savedID,table_name:intent.table_name,applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:intent.items.map((item:object)=>({...item,id:operation==="ADD"?null:"41",expected_record_version:operation==="ADD"?"":"0",before:operation==="ADD"?null:row,fields:[]}))};return json(saved,201)
+  }
+  if(path===`/api/v1/release-orders/${savedID}`)return json(saved);
+  if(path.includes("/rows"))throw new Error("removed row API must never be called");
+  return readFetch(input,init,{...mutationPolicy,allow_modify:true,allow_delete:true});
+ })));
+ const user=userEvent.setup();renderPage();
+ if(operation==="DELETE")await user.click(await screen.findByRole("button",{name:"删除记录 41"}));
+ else {
+  await user.click(await screen.findByRole("button",{name:operation==="ADD"?"新增记录":"修改记录 41"}));
+  await user.click(screen.getByLabelText("包含 body"));
+  if(operation==="ADD"){await user.click(screen.getByLabelText("包含 template_key"));await user.type(screen.getByLabelText("template_key 值"),"new-key")}
+  await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
+ }
+ const dialog=screen.getByRole("dialog",{name:`${operation} Change Set`});
+ expect(within(dialog).queryByRole("button",{name:"确认并执行"})).not.toBeInTheDocument();
+ expect(within(dialog).getByRole("row",{name:/body/})).toBeVisible();
+ await user.click(within(dialog).getByRole("button",{name:"确认并保存草稿"}));
+ expect(await screen.findByRole("heading",{name:"notification_templates · 草稿"})).toBeVisible();
+ const item=JSON.parse(String(writes[0]!.body)).items[0];expect(writes).toHaveLength(1);expect(item.operation).toBe(operation);
+ expect(item.content).toEqual(operation==="DELETE"?{}:operation==="ADD"?{body:"",template_key:"new-key"}:{body:""});
+ if(operation!=="ADD"){expect(item.id).toBe("41");expect(item.expected_record_version).toBe("0")}
+});
+
+it("空字符串主键的DELETE仍保存准确身份和版本",async()=>{
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  if(String(input)==="/api/v1/release-orders"&&init?.method==="POST") {writes.push(init);return json({error:{code:"release_invalid",message:"fixture end",request_id:"empty-id-proof"}},422)}
+  if(String(input).endsWith("/tables/notification_templates/query"))return json({columns:columns.map(c=>c.name==="id"?{...c,type:"string"}:c),rows:[{...row,id:""}],record_versions:["9007199254740993"],page:{page_number:1,page_size:20,total_count:1,total_pages:1}});
+  return readFetch(input,init,{...mutationPolicy,allow_delete:true});
+ })));
+ const user=userEvent.setup();renderPage();
+ await user.click(await screen.findByRole("button",{name:/^删除记录/}));
+ await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
+ await waitFor(()=>expect(writes).toHaveLength(1));
+ expect(JSON.parse(String(writes[0].body)).items[0]).toEqual({operation:"DELETE",id:"",expected_record_version:"9007199254740993",content:{}});
 });

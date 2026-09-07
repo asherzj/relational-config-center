@@ -859,8 +859,7 @@ func installQuerySnapshotExecutor(t *testing.T, app *adminApplication, executor 
 	mutationPolicies := application.NewMutationPolicyManagement(app.mysql, application.NewMutationPolicyTypeRegistry())
 	policies := application.NewTablePolicyManagement(app.mysql, app.mysql, queryPolicies, mutationPolicies)
 	queries := application.NewManagedTableQuery(executor, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
-	mutations := application.NewManagedTableMutation(app.mysql, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
-	app.handler = httpinterface.NewRouter(discovery, app.mysql, queryPolicies, mutationPolicies, policies, queries, mutations, integrationRouterOptions(app))
+	app.handler = httpinterface.NewRouter(discovery, app.mysql, queryPolicies, mutationPolicies, policies, queries, integrationRouterOptions(app))
 }
 
 func waitForSnapshotBarrier(t *testing.T, barrier <-chan struct{}, description string) {

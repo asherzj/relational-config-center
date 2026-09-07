@@ -27,25 +27,20 @@ import (
 )
 
 func newPolicyHTTPHandlerWithRouterOptions(t *testing.T, options httpinterface.RouterOptions) http.Handler {
-	return newPolicyHTTPHandlerWithOptionsAndMutationExecutor(t, options, memoryMutationExecutor{})
+	return newPolicyHTTPHandlerWithExecutors(t, options, memoryQueryExecutor{})
 }
 
-func newPolicyHTTPHandlerWithOptionsAndMutationExecutor(t *testing.T, options httpinterface.RouterOptions, mutationExecutor application.MutationExecutor) http.Handler {
-	return newPolicyHTTPHandlerWithExecutors(t, options, memoryQueryExecutor{}, mutationExecutor)
-}
-
-func newPolicyHTTPHandlerWithExecutors(t *testing.T, options httpinterface.RouterOptions, queryExecutor application.QueryExecutor, mutationExecutor application.MutationExecutor) http.Handler {
+func newPolicyHTTPHandlerWithExecutors(t *testing.T, options httpinterface.RouterOptions, queryExecutor application.QueryExecutor) http.Handler {
 	t.Helper()
-	adapter := newMemorySnapshotAdapter(queryExecutor, mutationExecutor)
+	adapter := newMemorySnapshotAdapter(queryExecutor)
 	queryPolicies := application.NewQueryPolicyManagement(adapter, application.NewQueryPolicyTypeRegistry())
 	mutationPolicies := application.NewMutationPolicyManagement(adapter, application.NewMutationPolicyTypeRegistry())
 	policies := application.NewTablePolicyManagement(adapter, adapter, queryPolicies, mutationPolicies)
 	queries := application.NewManagedTableQuery(adapter, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
-	mutations := application.NewManagedTableMutation(adapter, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
 	authStore := securityAccountStore(t)
 	options.Authentication = application.NewAuthentication(authStore, passwordadapter.NewArgon2id(), nil, authStore, application.AuthenticationLimits{})
 	options.AccountHTTP = httpinterface.AccountHTTPOptions{PublicOrigin: "http://127.0.0.1:5173", InsecureLocalHTTP: true}
-	handler := httpinterface.NewRouter(application.NewDatabaseTableDiscovery(adapter), readyAdapter{}, queryPolicies, mutationPolicies, policies, queries, mutations, options)
+	handler := httpinterface.NewRouter(application.NewDatabaseTableDiscovery(adapter), readyAdapter{}, queryPolicies, mutationPolicies, policies, queries, options)
 	client := registerSecurityAdminClient(t, handler, authStore)
 	if log, ok := options.AccessLog.(*bytes.Buffer); ok {
 		log.Reset()
@@ -75,10 +70,9 @@ type memorySnapshotAdapter struct {
 	queryPolicies    map[string]domain.QueryPolicy
 	mutationPolicies map[string]domain.MutationPolicy
 	queryExecutor    application.QueryExecutor
-	mutationExecutor application.MutationExecutor
 }
 
-func newMemorySnapshotAdapter(queryExecutor application.QueryExecutor, mutationExecutor application.MutationExecutor) *memorySnapshotAdapter {
+func newMemorySnapshotAdapter(queryExecutor application.QueryExecutor) *memorySnapshotAdapter {
 	return &memorySnapshotAdapter{
 		tables: map[string]domain.DatabaseTable{
 			"managed_alpha": domain.DescribeDatabaseTable("managed_alpha", "Alpha configuration", []string{"id"}, false, false),
@@ -91,7 +85,7 @@ func newMemorySnapshotAdapter(queryExecutor application.QueryExecutor, mutationE
 		mutationPolicies: map[string]domain.MutationPolicy{
 			"test_mutation_v1": {Code: "test_mutation_v1", Name: "Test mutation", TypeCode: application.SingleTableMutationPolicyType, AllowAdd: true, AllowModify: true, AllowDelete: true, Status: domain.PolicyStatusActive},
 		},
-		queryExecutor: queryExecutor, mutationExecutor: mutationExecutor,
+		queryExecutor: queryExecutor,
 	}
 }
 
@@ -261,9 +255,6 @@ func (adapter *memorySnapshotAdapter) DeleteDraftMutationPolicy(_ context.Contex
 func (adapter *memorySnapshotAdapter) ExecuteQuerySnapshot(ctx context.Context, execute func(application.QuerySnapshotSession) (domain.QueryResult, error)) (domain.QueryResult, error) {
 	return execute((*memorySnapshotSession)(adapter))
 }
-func (adapter *memorySnapshotAdapter) ExecuteMutationSnapshot(ctx context.Context, execute func(application.MutationSnapshotSession) error) error {
-	return execute((*memorySnapshotSession)(adapter))
-}
 
 type memorySnapshotSession memorySnapshotAdapter
 
@@ -282,18 +273,6 @@ func (session *memorySnapshotSession) GetTableSchema(ctx context.Context, name s
 func (session *memorySnapshotSession) ExecutePageQuery(ctx context.Context, query domain.PageQuery) (domain.QueryResult, error) {
 	return session.queryExecutor.ExecutePageQuery(ctx, query)
 }
-func (session *memorySnapshotSession) DatabaseTime(context.Context) (time.Time, error) {
-	return time.Now().UTC(), nil
-}
-func (session *memorySnapshotSession) InsertRow(ctx context.Context, insert domain.RowInsert) (string, error) {
-	return session.mutationExecutor.InsertRow(ctx, insert)
-}
-func (session *memorySnapshotSession) UpdateRow(ctx context.Context, update domain.RowUpdate) (int64, error) {
-	return session.mutationExecutor.UpdateRow(ctx, update)
-}
-func (session *memorySnapshotSession) DeleteRow(ctx context.Context, deletion domain.RowDelete) (int64, error) {
-	return session.mutationExecutor.DeleteRow(ctx, deletion)
-}
 
 type readyAdapter struct{}
 
@@ -305,32 +284,7 @@ func (memoryQueryExecutor) ExecutePageQuery(context.Context, domain.PageQuery) (
 	return domain.QueryResult{}, nil
 }
 
-type memoryMutationExecutor struct{}
-
-func (memoryMutationExecutor) InsertRow(context.Context, domain.RowInsert) (string, error) {
-	return "42", nil
-}
-func (memoryMutationExecutor) UpdateRow(context.Context, domain.RowUpdate) (int64, error) {
-	return 1, nil
-}
-func (memoryMutationExecutor) DeleteRow(context.Context, domain.RowDelete) (int64, error) {
-	return 1, nil
-}
-
-type panicMutationExecutor struct{}
-
-func (panicMutationExecutor) InsertRow(context.Context, domain.RowInsert) (string, error) {
-	panic("mutation executor panic")
-}
-func (panicMutationExecutor) UpdateRow(context.Context, domain.RowUpdate) (int64, error) {
-	panic("mutation executor panic")
-}
-func (panicMutationExecutor) DeleteRow(context.Context, domain.RowDelete) (int64, error) {
-	panic("mutation executor panic")
-}
-
 var _ application.QuerySnapshotExecutor = (*memorySnapshotAdapter)(nil)
-var _ application.MutationSnapshotExecutor = (*memorySnapshotAdapter)(nil)
 var _ domain.TablePolicyCatalog = (*memorySnapshotAdapter)(nil)
 var _ domain.QueryPolicyCatalog = (*memorySnapshotAdapter)(nil)
 var _ domain.MutationPolicyCatalog = (*memorySnapshotAdapter)(nil)

@@ -27,13 +27,14 @@ export function useReleaseWrite(scope:string){
    forgetReleaseRequest(accountID,intent.key);setUnresolved(false);
    // A replay acknowledges the original write; mounted details must read current state.
    void client.invalidateQueries({queryKey:["release-orders"]});
+   if(order.publication)void client.invalidateQueries({queryKey:["managed-data"]});
    void client.invalidateQueries({queryKey:["release-order",order.id]});
    return order;
   }catch(cause){
    setError(cause);
    // These write conflicts are returned only after original-key deduplication.
    // They prove no original success exists; authentication/read failures do not.
-   const rejected=cause instanceof ApiError&&["release_version_conflict","record_version_conflict","release_state_invalid","release_target_conflict"].includes(cause.code);
+   const rejected=cause instanceof ApiError&&["release_version_conflict","record_version_conflict","release_state_invalid","release_target_conflict","release_frozen_changed"].includes(cause.code);
    const keep=Boolean(previous)&&!rejected||uncertainReleaseError(cause);
    setUnresolved(keep);
    if(rejected)rememberReleaseRequest(accountID,{...intent,rejection:cause.code as PendingReleaseRequest["rejection"]});

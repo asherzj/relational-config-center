@@ -34,6 +34,7 @@ type ReleaseEvent struct {
 }
 
 type ReleaseOrder struct {
+	Publication  *PublicationResult        `json:"publication,omitempty"`
 	CopiedFromID string                    `json:"copied_from_id,omitempty"`
 	Frozen       *ReleaseExecutionSnapshot `json:"frozen,omitempty"`
 	FrozenDigest string                    `json:"frozen_digest,omitempty"`
@@ -91,4 +92,9 @@ type ReleaseExecutionSnapshot struct {
 type ActiveTarget struct {
 	TableName string
 	RecordKey []byte
+}
+
+// NewReleaseMutationSemantics records only execution meaning, excluding display metadata.
+func NewReleaseMutationSemantics(policy MutationPolicy) ReleaseMutationSemantics {
+	return ReleaseMutationSemantics{TypeCode: policy.TypeCode, AllowAdd: policy.AllowAdd, AllowModify: policy.AllowModify, AllowDelete: policy.AllowDelete, CreateOperatorField: policy.CreateOperatorField, CreateTimeField: policy.CreateTimeField, ModifyOperatorField: policy.ModifyOperatorField, ModifyTimeField: policy.ModifyTimeField}
 }

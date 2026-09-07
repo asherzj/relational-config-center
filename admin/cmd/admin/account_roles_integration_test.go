@@ -169,9 +169,12 @@ func TestCurrentSessionUsesRolePermissionMatrix(t *testing.T) {
 			{"GET", "/api/v1/query-policies", true},
 			{"GET", "/api/v1/account-roles", role == "ADMIN"},
 			{"POST", "/api/v1/tables/not_managed/query", true},
-			{"POST", "/api/v1/tables/not_managed/rows", role == "EDITOR" || role == "ADMIN"},
-			{"PATCH", "/api/v1/tables/not_managed/rows/1", role == "EDITOR" || role == "ADMIN"},
-			{"DELETE", "/api/v1/tables/not_managed/rows/1", role == "EDITOR" || role == "ADMIN"},
+			{"POST", "/api/v1/release-orders", role == "EDITOR" || role == "ADMIN"},
+			{"PUT", "/api/v1/release-orders/missing", role == "EDITOR" || role == "ADMIN"},
+			{"POST", "/api/v1/release-orders/missing/submit", role == "EDITOR" || role == "ADMIN"},
+			{"POST", "/api/v1/release-orders/missing/approve", role == "APPROVER" || role == "ADMIN"},
+			{"POST", "/api/v1/release-orders/missing/reject", role == "APPROVER" || role == "ADMIN"},
+			{"POST", "/api/v1/release-orders/missing/execute", role == "PUBLISHER" || role == "ADMIN"},
 		}
 		for _, resource := range []string{"query-policies", "mutation-policies", "table-policies"} {
 			for _, action := range []struct{ method, suffix string }{{"POST", ""}, {"PUT", "/missing_v1"}} {
@@ -204,7 +207,7 @@ func TestCurrentSessionUsesRolePermissionMatrix(t *testing.T) {
 			}{"POST", "/api/v1/table-policies/missing/" + suffix, role == "ADMIN"})
 		}
 		for _, test := range tests {
-			response := accountRequestFrom(f.app, test.method, test.path, `{}`, target.Result().Cookies(), sessionCSRF(t, target), "192.0.2.1:1234", map[string]string{"X-RCC-Roles": "ADMIN", "X-RCC-Account-ID": accountID(t, admin)})
+			response := accountRequestFrom(f.app, test.method, test.path, `{}`, target.Result().Cookies(), sessionCSRF(t, target), "192.0.2.1:1234", map[string]string{"X-RCC-Roles": "ADMIN", "X-RCC-Account-ID": accountID(t, admin), "Idempotency-Key": fmt.Sprintf("matrix-request-%d", publicationFixtureSequence.Add(1))})
 			denied := response.Code == 403 && strings.Contains(response.Body.String(), "permission_denied")
 			if denied == test.allowed || response.Code >= 500 {
 				t.Fatalf("%s %s %s: %d %s", role, test.method, test.path, response.Code, response.Body)
@@ -215,8 +218,8 @@ func TestCurrentSessionUsesRolePermissionMatrix(t *testing.T) {
 	if discovered.Code != 200 || strings.Contains(discovered.Body.String(), "rcc_account_role_history") {
 		t.Fatalf("control discovery: %d %s", discovered.Code, discovered.Body)
 	}
-	for _, path := range []string{"/api/v1/tables/rcc_account_role_history/query", "/api/v1/tables/rcc_account_role_history/rows"} {
-		response := accountRequest(f.app, "POST", path, `{}`, admin.Result().Cookies(), sessionCSRF(t, admin))
+	for _, path := range []string{"/api/v1/tables/rcc_account_role_history/query", "/api/v1/release-orders"} {
+		response := releaseActorRequest(t, f.app, admin, "POST", path, `{"table_name":"rcc_account_role_history","items":[{"operation":"ADD","content":{}}]}`, "matrix-protected-release")
 		if response.Code < 400 || response.Code >= 500 {
 			t.Fatalf("control access: %d %s", response.Code, response.Body)
 		}

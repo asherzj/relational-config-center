@@ -14,11 +14,11 @@ export function ReleaseActionDialog({order,action,onClose}:{order:ReleaseOrder;a
  const [reason,setReason]=useState("");const write=useReleaseWrite(`${action}:${order.id}`);
  const allowed=useAccountRole(releaseActionRole(action))&&order.allowed_actions.includes(action);
  const protection=useDraftProtection(Boolean(reason)||write.unresolved,write.pending);
- const labels={submit:["提交审批","确认提交审批"],approve:["批准发布单","确认批准"],reject:["拒绝发布单","确认拒绝"],cancel:order.state==="DRAFT"?["取消草稿","确认取消草稿"]:["取消发布单","确认取消发布单"]};
- return <Drawer open eyebrow="发布单" title={labels[action][0]!} onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>关闭</Button><Button variant={action==="cancel"||action==="reject"?"danger":"primary"} disabled={!allowed||write.pending||(action!=="submit"&&!reason.trim()&&!write.unresolved)} onClick={async()=>{
+ const labels={execute:["执行发布","确认发布到数据库"],submit:["提交审批","确认提交审批"],approve:["批准发布单","确认批准"],reject:["拒绝发布单","确认拒绝"],cancel:order.state==="DRAFT"?["取消草稿","确认取消草稿"]:["取消发布单","确认取消发布单"]};
+ return <Drawer open eyebrow="发布单" title={labels[action][0]!} onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>关闭</Button><Button variant={action==="cancel"||action==="reject"?"danger":"primary"} disabled={!allowed||write.pending||(action!=="submit"&&action!=="execute"&&!reason.trim()&&!write.unresolved)} onClick={async()=>{
   const result=await write.send({...releaseRequests.action(action,order.id,order.version,reason),label:`${labels[action][0]} ${order.id}`});if(result)protection.afterSave(onClose);
  }}>{write.pending?"正在处理…":write.unresolved?"使用原请求重试":labels[action][1]}</Button></>}>
- {action==="submit"?<p>请核对以下差异。提交后内容将被冻结，已知记录会被此单占用，等待其他审批人确认。</p>:<label>{action==="cancel"?"取消原因":"审批意见"}<Input value={reason} maxLength={2000} disabled={write.pending||write.unresolved} onChange={event=>setReason(event.target.value)}/></label>}
+ {action==="execute"?<p>发布将在一个事务中提交全部配置、版本和历史。成功仅表示数据库生效，分发尚未接入。</p>:action==="submit"?<p>请核对以下差异。提交后内容将被冻结，已知记录会被此单占用，等待其他审批人确认。</p>:<label>{action==="cancel"?"取消原因":"审批意见"}<Input value={reason} maxLength={2000} disabled={write.pending||write.unresolved} onChange={event=>setReason(event.target.value)}/></label>}
  <ReleaseDiff order={order}/>
  {Boolean(write.error)&&<ErrorState error={write.error}/>} {write.unresolved&&<p role="alert">结果待确认。原请求与意见已保留，请使用原请求重试。</p>}
  </Drawer>;

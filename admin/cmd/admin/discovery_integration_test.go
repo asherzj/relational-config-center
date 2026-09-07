@@ -249,6 +249,7 @@ func startIntegrationMySQLWithRequirement(t *testing.T, required bool, scripts .
 	options := []testcontainers.ContainerCustomizer{
 		tcmysql.WithDatabase("rcc_test"),
 		tcmysql.WithUsername("rcc_admin"),
+		tcmysql.WithScripts("testdata/013-publication-grants.sql"),
 		tcmysql.WithPassword("rcc_password"),
 	}
 	if len(scripts) > 0 {

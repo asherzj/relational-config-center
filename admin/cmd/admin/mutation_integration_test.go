@@ -9,13 +9,11 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/asherzj/relational-config-center/admin/internal/application"
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
-	httpinterface "github.com/asherzj/relational-config-center/admin/internal/interfaces/http"
 )
 
 func TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOneSnapshot(t *testing.T) {
@@ -39,7 +37,7 @@ func TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOne
 	if err := database.QueryRowContext(ctx, "SELECT UTC_TIMESTAMP(6)").Scan(&before); err != nil {
 		t.Fatalf("read database time before ADD: %v", err)
 	}
-	added := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_snapshot_items/rows", `{"content":{"code":"full-lifecycle","label":"created"}}`)
+	added := publicationFixtureRequest(t, app, "ADD", "mutation_snapshot_items", "", `{"content":{"code":"full-lifecycle","label":"created"}}`)
 	id := mutationResponseID(t, added)
 	var after, createdAt, updatedAt time.Time
 	var creator, modifier, label string
@@ -54,11 +52,11 @@ func TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOne
 		t.Fatalf("ADD did not use one database-time value for Create and Modify: before=%s created=%s updated=%s after=%s", before, createdAt, updatedAt, after)
 	}
 
-	clientManaged := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_snapshot_items/rows", `{"content":{"code":"client-managed","label":"bad","creator":"client"}}`)
-	assertIntegrationErrorCode(t, clientManaged, http.StatusBadRequest, "invalid_mutation_content")
+	clientManaged := publicationFixtureRequest(t, app, "ADD", "mutation_snapshot_items", "", `{"content":{"code":"client-managed","label":"bad","creator":"client"}}`)
+	assertIntegrationErrorCode(t, clientManaged, http.StatusUnprocessableEntity, "invalid_mutation_content")
 	assertDirectMutationCodeCount(t, ctx, database, "client-managed", 0)
 
-	modified := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_snapshot_items/rows/"+id, `{"content":{"label":"modified"}}`)
+	modified := versionedPublicationFixture(t, app, "MODIFY", "mutation_snapshot_items", id, `{"content":{"label":"modified"}}`)
 	assertMutationAffected(t, modified)
 	var modifiedCreator, modifiedModifier, modifiedLabel string
 	var modifiedCreatedAt, modifiedUpdatedAt time.Time
@@ -69,10 +67,10 @@ func TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOne
 	if modifiedCreator != creator || !modifiedCreatedAt.Equal(createdAt) || modifiedModifier != integrationAccountID(t, app) || modifiedLabel != "modified" || modifiedUpdatedAt.Before(updatedAt) {
 		t.Fatalf("MODIFY changed Create fields or missed Modify fields: creator=%q created=%s modifier=%q updated=%s label=%q", modifiedCreator, modifiedCreatedAt, modifiedModifier, modifiedUpdatedAt, modifiedLabel)
 	}
-	clientModified := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_snapshot_items/rows/"+id, `{"content":{"updated_at":"2000-01-01 00:00:00"}}`)
-	assertIntegrationErrorCode(t, clientModified, http.StatusBadRequest, "invalid_mutation_content")
+	clientModified := versionedPublicationFixture(t, app, "MODIFY", "mutation_snapshot_items", id, `{"content":{"updated_at":"2000-01-01 00:00:00"}}`)
+	assertIntegrationErrorCode(t, clientModified, http.StatusUnprocessableEntity, "invalid_mutation_content")
 
-	deleted := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/mutation_snapshot_items/rows/"+id, "")
+	deleted := versionedPublicationFixture(t, app, "DELETE", "mutation_snapshot_items", id, "")
 	assertMutationAffected(t, deleted)
 	assertDirectMutationCodeCount(t, ctx, database, "full-lifecycle", 0)
 }
@@ -89,15 +87,15 @@ func TestRelationalMutationPolicyIsSoleAuthorizationSourceAndDeprecatedExecutes(
 	t.Cleanup(func() { _ = app.Close() })
 	assignRelationalMutationPolicy(t, app, "snapshot_read_only_mutation_v1", false, false, false, false)
 
-	denied := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_snapshot_items/rows", `{"content":{"code":"read-only","label":"must-deny"}}`)
+	denied := publicationFixtureRequest(t, app, "ADD", "mutation_snapshot_items", "", `{"content":{"code":"read-only","label":"must-deny"}}`)
 	assertIntegrationErrorCode(t, denied, http.StatusForbidden, "mutation_not_allowed")
 
 	replaceRelationalMutationPolicy(t, app, "snapshot_deprecated_mutation_v2", true, false, false, true)
 	if _, err := app.mysql.SetMutationPolicyStatus(ctx, "snapshot_deprecated_mutation_v2", domain.PolicyStatusActive, domain.PolicyStatusDeprecated, "integration-test"); err != nil {
 		t.Fatalf("deprecate assigned Mutation Policy: %v", err)
 	}
-	added := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_snapshot_items/rows", `{"content":{"code":"deprecated","label":"still-executes"}}`)
-	if added.Code != http.StatusCreated {
+	added := publicationFixtureRequest(t, app, "ADD", "mutation_snapshot_items", "", `{"content":{"code":"deprecated","label":"still-executes"}}`)
+	if added.Code != http.StatusOK {
 		t.Fatalf("assigned Deprecated Mutation Policy did not execute: HTTP %d %s", added.Code, added.Body.String())
 	}
 }
@@ -119,7 +117,7 @@ func TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically(t *testing.T)
 	}
 	t.Cleanup(func() { _ = database.Close() })
 
-	failed := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_snapshot_items/rows", `{"content":{"code":"atomic-rollback","label":"rollback"}}`)
+	failed := publicationFixtureRequest(t, app, "ADD", "mutation_snapshot_items", "", `{"content":{"code":"atomic-rollback","label":"rollback"}}`)
 	assertIntegrationErrorCode(t, failed, http.StatusServiceUnavailable, "mutation_unavailable")
 	assertDirectMutationCodeCount(t, ctx, database, "atomic-rollback", 0)
 
@@ -141,62 +139,42 @@ func TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically(t *testing.T)
 			if _, err := database.ExecContext(ctx, test.corrupt); err != nil {
 				t.Fatalf("corrupt Mutation Policy: %v", err)
 			}
-			response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_snapshot_items/rows", `{"content":{"code":"corrupt-`+test.name+`","label":"x"}}`)
+			response := publicationFixtureRequest(t, app, "ADD", "mutation_snapshot_items", "", `{"content":{"code":"corrupt-`+test.name+`","label":"x"}}`)
 			assertIntegrationErrorCode(t, response, test.wantStatus, test.wantCode)
 		})
 	}
 }
 
-func TestInFlightMutationKeepsOnePolicySnapshotWhileReplacementAffectsNextRequest(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/008-mutation-policy-snapshot-fixture.sql",
-	)
+func TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement(t *testing.T) {
+	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/008-mutation-policy-snapshot-fixture.sql")
 	assignRelationalMutationPolicy(t, app, "snapshot_allowed_mutation_v1", true, false, false, true)
-	createRelationalMutationDefinition(t, app, "snapshot_denied_mutation_v2", false, false, false, false)
-
-	tableRead := make(chan struct{})
-	resume := make(chan struct{})
-	barrier := &mutationSnapshotBarrier{delegate: app.mysql, tableRead: tableRead, resumeTable: resume}
-	installMutationSnapshotExecutor(t, app, barrier)
-
-	responseChannel := make(chan *httptest.ResponseRecorder, 1)
-	go func() {
-		responseChannel <- policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_snapshot_items/rows", `{"content":{"code":"in-flight","label":"old-snapshot"}}`)
-	}()
-	waitForSnapshotBarrier(t, tableRead, "Mutation Table Policy read")
-	replaced := versionedMutationRequest(t, app, http.MethodPut, "/api/v1/table-policies/mutation_snapshot_items", tablePolicyCodePayload("mutation_snapshot_items", "snapshot_mutation_query_v1", "snapshot_denied_mutation_v2"))
-	if replaced.Code != http.StatusOK {
-		t.Fatalf("replace in-flight Mutation Policy: HTTP %d %s", replaced.Code, replaced.Body.String())
-	}
-	close(resume)
-	select {
-	case response := <-responseChannel:
-		if response.Code != http.StatusCreated {
-			t.Fatalf("in-flight mutation lost its original Snapshot: HTTP %d %s", response.Code, response.Body.String())
-		}
-	case <-time.After(10 * time.Second):
-		t.Fatal("in-flight mutation did not finish")
-	}
-	next := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_snapshot_items/rows", `{"content":{"code":"next","label":"new-snapshot"}}`)
-	assertIntegrationErrorCode(t, next, http.StatusForbidden, "mutation_not_allowed")
+	reviewer := publicationFixtureReviewer(t, app)
+	path := approvePublication(t, app, reviewer, `{"table_name":"mutation_snapshot_items","items":[{"operation":"ADD","content":{"code":"in-flight","label":"old-snapshot"}}]}`, "policy-approved")
+	replaceRelationalMutationPolicy(t, app, "snapshot_denied_mutation_v2", false, false, false, false)
+	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "policy-execute")
+	assertIntegrationErrorCode(t, response, 409, "release_frozen_changed")
+	next := publicationFixtureRequest(t, app, "ADD", "mutation_snapshot_items", "", `{"content":{"code":"next","label":"new-snapshot"}}`)
+	assertIntegrationErrorCode(t, next, 403, "mutation_not_allowed")
 }
 
-func TestMutationSnapshotSessionCannotBeReusedAfterTransaction(t *testing.T) {
+func TestPublicationSessionCannotBeReusedAfterTransaction(t *testing.T) {
 	app := startIntegrationApplication(t,
 		"../../../deploy/mysql/init/001-schema.sql",
 		"testdata/008-mutation-policy-snapshot-fixture.sql",
 	)
-	var captured application.MutationSnapshotSession
-	err := app.mysql.ExecuteMutationSnapshot(t.Context(), func(session application.MutationSnapshotSession) error {
+	var captured application.PublicationSession
+	err := app.mysql.ExecutePublication(t.Context(), func(session application.PublicationSession) error {
 		captured = session
 		return errors.New("force rollback")
 	})
 	if err == nil {
-		t.Fatal("expected callback error to roll back Mutation Snapshot")
+		t.Fatal("expected callback error to roll back Publication")
 	}
-	if _, err := captured.GetTablePolicy(t.Context(), "mutation_snapshot_items"); !errors.Is(err, application.ErrMutationUnavailable) {
-		t.Fatalf("Mutation Snapshot session remained reusable: %v", err)
+	if _, err := captured.GetTablePolicy(t.Context(), "mutation_snapshot_items"); !errors.Is(err, application.ErrQueryUnavailable) {
+		t.Fatalf("Publication session remained reusable: %v", err)
+	}
+	if _, err := captured.CommitPublication(t.Context(), application.PublicationPlan{}); !errors.Is(err, application.ErrQueryUnavailable) {
+		t.Fatalf("publication commit remained reusable: %v", err)
 	}
 }
 
@@ -223,7 +201,7 @@ func assignRelationalMutationPolicy(t *testing.T, app *adminApplication, mutatio
 func replaceRelationalMutationPolicy(t *testing.T, app *adminApplication, code string, allowAdd, allowModify, allowDelete, autoFill bool) {
 	t.Helper()
 	createRelationalMutationDefinition(t, app, code, allowAdd, allowModify, allowDelete, autoFill)
-	response := versionedMutationRequest(t, app, http.MethodPut, "/api/v1/table-policies/mutation_snapshot_items", tablePolicyCodePayload("mutation_snapshot_items", "snapshot_mutation_query_v1", code))
+	response := policyIntegrationRequest(t, app, http.MethodPut, "/api/v1/table-policies/mutation_snapshot_items", tablePolicyCodePayload("mutation_snapshot_items", "snapshot_mutation_query_v1", code))
 	if response.Code != http.StatusOK {
 		t.Fatalf("replace relational Mutation Policy: HTTP %d %s", response.Code, response.Body.String())
 	}
@@ -259,51 +237,6 @@ func assertDirectMutationCodeCount(t *testing.T, ctx context.Context, database *
 	}
 }
 
-type mutationSnapshotBarrier struct {
-	delegate    application.MutationSnapshotExecutor
-	tableRead   chan struct{}
-	resumeTable <-chan struct{}
-	tableOnce   sync.Once
-}
-
-func (barrier *mutationSnapshotBarrier) ExecuteMutationSnapshot(ctx context.Context, execute func(application.MutationSnapshotSession) error) error {
-	return barrier.delegate.ExecuteMutationSnapshot(ctx, func(session application.MutationSnapshotSession) error {
-		return execute(&mutationSnapshotBarrierSession{MutationSnapshotSession: session, barrier: barrier})
-	})
-}
-
-type mutationSnapshotBarrierSession struct {
-	application.MutationSnapshotSession
-	barrier *mutationSnapshotBarrier
-}
-
-func (session *mutationSnapshotBarrierSession) GetTablePolicy(ctx context.Context, tableName string) (domain.TablePolicy, error) {
-	policy, err := session.MutationSnapshotSession.GetTablePolicy(ctx, tableName)
-	if err == nil {
-		session.barrier.tableOnce.Do(func() {
-			close(session.barrier.tableRead)
-			select {
-			case <-session.barrier.resumeTable:
-			case <-ctx.Done():
-			}
-		})
-	}
-	return policy, err
-}
-
-func installMutationSnapshotExecutor(t *testing.T, app *adminApplication, executor application.MutationSnapshotExecutor) {
-	t.Helper()
-	discovery := application.NewDatabaseTableDiscovery(app.mysql)
-	queryPolicies := application.NewQueryPolicyManagement(app.mysql, application.NewQueryPolicyTypeRegistry())
-	mutationPolicies := application.NewMutationPolicyManagement(app.mysql, application.NewMutationPolicyTypeRegistry())
-	policies := application.NewTablePolicyManagement(app.mysql, app.mysql, queryPolicies, mutationPolicies)
-	queries := application.NewManagedTableQuery(app.mysql, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
-	mutations := application.NewManagedTableMutation(executor, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
-	app.handler = httpinterface.NewRouter(discovery, app.mysql, queryPolicies, mutationPolicies, policies, queries, mutations, integrationRouterOptions(app))
-}
-
-var _ application.MutationSnapshotExecutor = (*mutationSnapshotBarrier)(nil)
-
 func TestMutationPolicyAddsRowAndReturnsJSONStringID(t *testing.T) {
 	app := startIntegrationApplication(t,
 		"../../../deploy/mysql/init/001-schema.sql",
@@ -311,18 +244,13 @@ func TestMutationPolicyAddsRowAndReturnsJSONStringID(t *testing.T) {
 	)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 
-	added := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", `{
+	added := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{
 		"content":{"code":"first","label":"created through Admin"}
 	}`)
-	if added.Code != http.StatusCreated {
+	if added.Code != http.StatusOK {
 		t.Fatalf("add row: expected HTTP 201, got %d: %s", added.Code, added.Body.String())
 	}
-	var created struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(added.Body.Bytes(), &created); err != nil {
-		t.Fatalf("decode add response: %v", err)
-	}
+	created := publishedFixtureCommand(t, added)
 	if created.ID != "1" {
 		t.Fatalf("expected lossless string id 1, got %q", created.ID)
 	}
@@ -352,18 +280,13 @@ func TestMutationPolicyReturnsExplicitAutoIncrementID(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 
 	const explicitID = "9007199254740993"
-	added := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", `{
+	added := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{
 		"content":{"id":"`+explicitID+`","code":"explicit-auto-id","label":"client supplied id"}
 	}`)
-	if added.Code != http.StatusCreated {
+	if added.Code != http.StatusOK {
 		t.Fatalf("add row with explicit auto-increment id: HTTP %d %s", added.Code, added.Body.String())
 	}
-	var response struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(added.Body.Bytes(), &response); err != nil {
-		t.Fatalf("decode add response: %v", err)
-	}
+	response := publishedFixtureCommand(t, added)
 	if response.ID != explicitID {
 		t.Fatalf("expected explicit lossless id %q, got %q", explicitID, response.ID)
 	}
@@ -379,18 +302,13 @@ func TestMutationPolicyReturnsARequiredNonAutoIncrementID(t *testing.T) {
 	)
 	enableMutationPolicy(t, app, "mutation_supplied_id_items", mutationPolicyFixture{AllowAdd: true})
 
-	added := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_supplied_id_items/rows", `{
+	added := publicationFixtureRequest(t, app, "ADD", "mutation_supplied_id_items", "", `{
 		"content":{"id":"external-9007199254740993","label":"supplied identity"}
 	}`)
-	if added.Code != http.StatusCreated {
+	if added.Code != http.StatusOK {
 		t.Fatalf("add row with supplied id: HTTP %d %s", added.Code, added.Body.String())
 	}
-	var response struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(added.Body.Bytes(), &response); err != nil {
-		t.Fatalf("decode add response: %v", err)
-	}
+	response := publishedFixtureCommand(t, added)
 	if response.ID != "external-9007199254740993" {
 		t.Fatalf("expected supplied lossless id, got %q", response.ID)
 	}
@@ -403,10 +321,10 @@ func TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields(t 
 	)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 
-	added := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", `{
+	added := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{
 		"content":{"code":"schema-rules","label":"valid","nullable_value":null,"quantity":"7","metadata":"{\"enabled\":true}"}
 	}`)
-	if added.Code != http.StatusCreated {
+	if added.Code != http.StatusOK {
 		t.Fatalf("add row using default and NULL semantics: HTTP %d %s", added.Code, added.Body.String())
 	}
 
@@ -436,8 +354,12 @@ func TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields(t 
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", test.body)
-			assertIntegrationErrorCode(t, response, http.StatusBadRequest, test.code)
+			response := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", test.body)
+			status := http.StatusUnprocessableEntity
+			if test.code == "invalid_request" {
+				status = http.StatusBadRequest
+			}
+			assertIntegrationErrorCode(t, response, status, test.code)
 		})
 	}
 }
@@ -452,14 +374,14 @@ func TestMutationPolicyAutoFillUsesAccountOperatorAndDatabaseTimeAndRejectsManag
 	})
 
 	before := time.Now().UTC().Add(-time.Second)
-	added := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_auto_fill_items/rows", `{
+	added := publicationFixtureRequest(t, app, "ADD", "mutation_auto_fill_items", "", `{
 		"content":{
 			"code":"auto-fill",
 			"status":"client",
 			"quantity":"1"
 		}
 	}`)
-	if added.Code != http.StatusCreated {
+	if added.Code != http.StatusOK {
 		t.Fatalf("add row with Auto Fill: HTTP %d %s", added.Code, added.Body.String())
 	}
 	after := time.Now().UTC().Add(time.Second)
@@ -475,10 +397,10 @@ func TestMutationPolicyAutoFillUsesAccountOperatorAndDatabaseTimeAndRejectsManag
 	if err != nil || occurredAt.Before(before) || occurredAt.After(after) {
 		t.Fatalf("Auto Fill now value %q is outside request window [%s, %s]: %v", *row["occurred_at"], before, after, err)
 	}
-	rejected := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_auto_fill_items/rows", `{
+	rejected := publicationFixtureRequest(t, app, "ADD", "mutation_auto_fill_items", "", `{
 		"content":{"code":"managed-input","creator":"client","status":"client","quantity":"1"}
 	}`)
-	assertIntegrationErrorCode(t, rejected, http.StatusBadRequest, "invalid_mutation_content")
+	assertIntegrationErrorCode(t, rejected, http.StatusUnprocessableEntity, "invalid_mutation_content")
 }
 
 func TestMutationPolicyRejectsMissingRequiredFieldsAndRollsBackDatabaseFailures(t *testing.T) {
@@ -488,13 +410,13 @@ func TestMutationPolicyRejectsMissingRequiredFieldsAndRollsBackDatabaseFailures(
 	)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 
-	missing := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", `{
+	missing := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{
 		"content":{"code":"missing-label"}
 	}`)
-	assertIntegrationErrorCode(t, missing, http.StatusBadRequest, "missing_required_field")
+	assertIntegrationErrorCode(t, missing, http.StatusUnprocessableEntity, "missing_required_field")
 	assertMutationRowAbsent(t, app, "mutation_add_items", "missing-label")
 
-	failed := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", `{
+	failed := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{
 		"content":{"code":"rollback","label":"rollback"}
 	}`)
 	assertIntegrationErrorCode(t, failed, http.StatusServiceUnavailable, "mutation_unavailable")
@@ -508,13 +430,13 @@ func TestMutationPolicyMapsMySQLUniqueKeyViolationsToConflict(t *testing.T) {
 	)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 
-	first := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", `{
+	first := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{
 		"content":{"code":"duplicate","label":"first"}
 	}`)
-	if first.Code != http.StatusCreated {
+	if first.Code != http.StatusOK {
 		t.Fatalf("create first unique row: HTTP %d %s", first.Code, first.Body.String())
 	}
-	duplicate := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", `{
+	duplicate := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{
 		"content":{"code":"duplicate","label":"second"}
 	}`)
 	assertIntegrationErrorCode(t, duplicate, http.StatusConflict, "duplicate_key")
@@ -530,7 +452,7 @@ func TestMutationPolicyPatchesOnlySubmittedFieldsWithJSONStringSemantics(t *test
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true})
 	id := addMutationPatchFixtureRow(t, app, "patch-semantics", "original")
 
-	modified := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/"+id, `{
+	modified := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", id, `{
 		"content":{"label":"changed"}
 	}`)
 	assertMutationAffected(t, modified)
@@ -540,7 +462,7 @@ func TestMutationPolicyPatchesOnlySubmittedFieldsWithJSONStringSemantics(t *test
 	assertMutationString(t, row, "quantity", "7")
 	assertMutationString(t, row, "defaulted_value", "database-default")
 
-	nulled := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/"+id, `{
+	nulled := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", id, `{
 		"content":{"nullable_value":null}
 	}`)
 	assertMutationAffected(t, nulled)
@@ -548,14 +470,14 @@ func TestMutationPolicyPatchesOnlySubmittedFieldsWithJSONStringSemantics(t *test
 		t.Fatalf("PATCH JSON null did not become SQL NULL: %#v", row)
 	}
 
-	emptied := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/"+id, `{
+	emptied := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", id, `{
 		"content":{"label":""}
 	}`)
 	assertMutationAffected(t, emptied)
 	row = queryMutationRow(t, app, "patch-semantics")
 	assertMutationString(t, row, "label", "")
 
-	unchanged := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/"+id, `{
+	unchanged := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", id, `{
 		"content":{"label":""}
 	}`)
 	assertMutationAffected(t, unchanged)
@@ -589,8 +511,12 @@ func TestMutationPolicyPatchRejectsInvalidAndNonWritableFields(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			response := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/"+id, test.body)
-			assertIntegrationErrorCode(t, response, http.StatusBadRequest, test.code)
+			response := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", id, test.body)
+			status := http.StatusUnprocessableEntity
+			if test.code == "invalid_request" {
+				status = http.StatusBadRequest
+			}
+			assertIntegrationErrorCode(t, response, status, test.code)
 			row := queryMutationRow(t, app, "patch-invalid")
 			assertMutationString(t, row, "label", "original")
 			assertMutationString(t, row, "quantity", "7")
@@ -605,7 +531,7 @@ func TestMutationPolicyPatchRejectsInvalidAndNonWritableFields(t *testing.T) {
 	if _, err := database.ExecContext(ctx, "ALTER TABLE `mutation_add_items` ADD COLUMN `unsupported_value` blob NULL"); err != nil {
 		t.Fatalf("add unsupported live field: %v", err)
 	}
-	unsupported := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/"+id, `{"content":{"unsupported_value":"bytes"}}`)
+	unsupported := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", id, `{"content":{"unsupported_value":"bytes"}}`)
 	assertIntegrationErrorCode(t, unsupported, http.StatusUnprocessableEntity, "incompatible_table")
 }
 
@@ -622,7 +548,7 @@ func TestMutationPolicyPatchUsesLatestPolicyAndLiveSchema(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	id := addMutationPatchFixtureRow(t, app, "patch-latest", "original")
 
-	forbidden := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/"+id, `{"content":{"label":"forbidden"}}`)
+	forbidden := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", id, `{"content":{"label":"forbidden"}}`)
 	assertIntegrationErrorCode(t, forbidden, http.StatusForbidden, "mutation_not_allowed")
 
 	replacePolicyAssignment(t, app, "mutation_add_items", queryPolicyFixture{}, mutationPolicyFixture{AllowAdd: true, AllowModify: true})
@@ -635,20 +561,20 @@ func TestMutationPolicyPatchUsesLatestPolicyAndLiveSchema(t *testing.T) {
 		t.Fatalf("add supported live field: %v", err)
 	}
 
-	modified := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/"+id, `{"content":{"label":"latest"}}`)
+	modified := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", id, `{"content":{"label":"latest"}}`)
 	assertMutationAffected(t, modified)
 	row := queryMutationRow(t, app, "patch-latest")
 	assertMutationString(t, row, "label", "latest")
 	assertMutationString(t, row, "future_note", "future-default")
 	assertMutationString(t, row, "defaulted_value", "database-default")
 
-	newField := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/"+id, `{"content":{"future_note":"live-schema"}}`)
+	newField := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", id, `{"content":{"future_note":"live-schema"}}`)
 	assertMutationAffected(t, newField)
 	row = queryMutationRow(t, app, "patch-latest")
 	assertMutationString(t, row, "future_note", "live-schema")
 	assertMutationString(t, row, "defaulted_value", "database-default")
 
-	missing := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/999999", `{"content":{"label":"missing"}}`)
+	missing := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", "999999", `{"content":{"label":"missing"}}`)
 	assertIntegrationErrorCode(t, missing, http.StatusNotFound, "mutation_row_not_found")
 }
 
@@ -661,7 +587,7 @@ func TestMutationPolicyPatchAutoFillUsesModifySlotsAndRejectsManagedInput(t *tes
 		AllowAdd: true, AllowModify: true,
 		ModifyOperatorField: stringPointer("creator"), ModifyTimeField: stringPointer("occurred_at"),
 	})
-	added := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_auto_fill_items/rows", `{
+	added := publicationFixtureRequest(t, app, "ADD", "mutation_auto_fill_items", "", `{
 		"content":{"code":"patch-auto-fill","status":"initial","quantity":"1"}
 	}`)
 	id := mutationResponseID(t, added)
@@ -672,7 +598,7 @@ func TestMutationPolicyPatchAutoFillUsesModifySlotsAndRejectsManagedInput(t *tes
 	}
 
 	before := time.Now().UTC().Add(-time.Second)
-	modified := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_auto_fill_items/rows/"+id, `{
+	modified := versionedPublicationFixture(t, app, "MODIFY", "mutation_auto_fill_items", id, `{
 		"content":{"status":"client","quantity":"2"}
 	}`)
 	assertMutationAffected(t, modified)
@@ -689,8 +615,8 @@ func TestMutationPolicyPatchAutoFillUsesModifySlotsAndRejectsManagedInput(t *tes
 	if err != nil || occurredAt.Before(before) || occurredAt.After(after) {
 		t.Fatalf("MODIFY Auto Fill now value %q is outside request window [%s, %s]: %v", *row["occurred_at"], before, after, err)
 	}
-	rejected := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_auto_fill_items/rows/"+id, `{"content":{"creator":"client"}}`)
-	assertIntegrationErrorCode(t, rejected, http.StatusBadRequest, "invalid_mutation_content")
+	rejected := versionedPublicationFixture(t, app, "MODIFY", "mutation_auto_fill_items", id, `{"content":{"creator":"client"}}`)
+	assertIntegrationErrorCode(t, rejected, http.StatusUnprocessableEntity, "invalid_mutation_content")
 }
 
 func TestMutationPolicyPatchRollsBackDatabaseFailures(t *testing.T) {
@@ -701,7 +627,7 @@ func TestMutationPolicyPatchRollsBackDatabaseFailures(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true})
 	id := addMutationPatchFixtureRow(t, app, "patch-rollback", "original")
 
-	failed := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/"+id, `{"content":{"label":"rollback","quantity":"99"}}`)
+	failed := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", id, `{"content":{"label":"rollback","quantity":"99"}}`)
 	assertIntegrationErrorCode(t, failed, http.StatusServiceUnavailable, "mutation_unavailable")
 	row := queryMutationRow(t, app, "patch-rollback")
 	assertMutationString(t, row, "label", "original")
@@ -717,7 +643,7 @@ func TestMutationPolicyPatchMapsUniqueKeyConflictsAndRollsBack(t *testing.T) {
 	addMutationPatchFixtureRow(t, app, "patch-unique-first", "first")
 	secondID := addMutationPatchFixtureRow(t, app, "patch-unique-second", "second")
 
-	conflict := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/"+secondID, `{"content":{"code":"patch-unique-first","label":"changed"}}`)
+	conflict := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", secondID, `{"content":{"code":"patch-unique-first","label":"changed"}}`)
 	assertIntegrationErrorCode(t, conflict, http.StatusConflict, "duplicate_key")
 	row := queryMutationRow(t, app, "patch-unique-second")
 	assertMutationString(t, row, "label", "second")
@@ -734,15 +660,15 @@ func TestMutationPolicyPatchFailsClosedForCurrentPolicyAndSchema(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = app.Close() })
 
-	missing := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/1", `{"content":{"label":"missing"}}`)
+	missing := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", "1", `{"content":{"label":"missing"}}`)
 	assertIntegrationErrorCode(t, missing, http.StatusNotFound, "table_policy_not_found")
 	createPolicyAssignment(t, app, "mutation_add_items", queryPolicyFixture{}, mutationPolicyFixture{AllowAdd: true, AllowModify: true})
-	disabled := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/1", `{"content":{"label":"disabled"}}`)
+	disabled := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", "1", `{"content":{"label":"disabled"}}`)
 	assertIntegrationErrorCode(t, disabled, http.StatusForbidden, "table_policy_disabled")
 	setPolicyAssignmentEnabled(t, app, "mutation_add_items", true)
 	id := addMutationPatchFixtureRow(t, app, "patch-fail-closed", "original")
 
-	protected := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/rcc_table_policies/rows/1", `{"content":{"modifier":"x"}}`)
+	protected := versionedPublicationFixture(t, app, "MODIFY", "rcc_table_policies", "1", `{"content":{"modifier":"x"}}`)
 	assertIntegrationErrorCode(t, protected, http.StatusForbidden, "protected_table")
 
 	database, err := sql.Open("mysql", driverConfig.FormatDSN())
@@ -757,7 +683,7 @@ func TestMutationPolicyPatchFailsClosedForCurrentPolicyAndSchema(t *testing.T) {
 	if _, err := database.ExecContext(ctx, "UPDATE `rcc_mutation_policies` SET `type_code` = 'unknown_mutation' WHERE `code` = ?", assignment.MutationPolicyCode); err != nil {
 		t.Fatalf("make current Mutation Type invalid: %v", err)
 	}
-	unknown := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/"+id, `{"content":{"label":"unknown"}}`)
+	unknown := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", id, `{"content":{"label":"unknown"}}`)
 	assertIntegrationErrorCode(t, unknown, http.StatusUnprocessableEntity, "unknown_policy_type")
 
 	if _, err := database.ExecContext(ctx, "UPDATE `rcc_mutation_policies` SET `type_code` = 'single_table_mutation' WHERE `code` = ?", assignment.MutationPolicyCode); err != nil {
@@ -766,7 +692,7 @@ func TestMutationPolicyPatchFailsClosedForCurrentPolicyAndSchema(t *testing.T) {
 	if _, err := database.ExecContext(ctx, "ALTER TABLE `mutation_add_items` MODIFY `id` bigint unsigned NOT NULL, DROP PRIMARY KEY"); err != nil {
 		t.Fatalf("make live Schema incompatible: %v", err)
 	}
-	incompatible := versionedMutationRequest(t, app, http.MethodPatch, "/api/v1/tables/mutation_add_items/rows/"+id, `{"content":{"label":"incompatible"}}`)
+	incompatible := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", id, `{"content":{"label":"incompatible"}}`)
 	assertIntegrationErrorCode(t, incompatible, http.StatusUnprocessableEntity, "incompatible_table")
 }
 
@@ -778,13 +704,13 @@ func TestMutationPolicyDeleteDefaultsToDeniedThenUsesTheCurrentReplacement(t *te
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	id := addMutationPatchFixtureRow(t, app, "delete-current", "preserved until permitted")
 
-	denied := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/mutation_add_items/rows/"+id, "")
+	denied := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", id, "")
 	assertIntegrationErrorCode(t, denied, http.StatusForbidden, "mutation_not_allowed")
 	assertMutationString(t, queryMutationRow(t, app, "delete-current"), "label", "preserved until permitted")
 
 	replacePolicyAssignment(t, app, "mutation_add_items", queryPolicyFixture{}, mutationPolicyFixture{AllowAdd: true, AllowDelete: true})
 
-	deleted := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/mutation_add_items/rows/"+id, "")
+	deleted := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", id, "")
 	assertMutationAffected(t, deleted)
 	assertMutationRowAbsent(t, app, "mutation_add_items", "delete-current")
 }
@@ -795,20 +721,20 @@ func TestMutationPolicyDeleteFailsClosedBeforeExecution(t *testing.T) {
 		"testdata/006-mutation-fixture.sql",
 	)
 
-	missingPolicy := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/mutation_add_items/rows/1", "")
+	missingPolicy := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", "1", "")
 	assertIntegrationErrorCode(t, missingPolicy, http.StatusNotFound, "table_policy_not_found")
 
 	createPolicyAssignment(t, app, "mutation_add_items", queryPolicyFixture{}, mutationPolicyFixture{AllowAdd: true, AllowDelete: true})
-	disabled := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/mutation_add_items/rows/1", "")
+	disabled := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", "1", "")
 	assertIntegrationErrorCode(t, disabled, http.StatusForbidden, "table_policy_disabled")
 	setPolicyAssignmentEnabled(t, app, "mutation_add_items", true)
 	id := addMutationPatchFixtureRow(t, app, "delete-invalid-id", "must remain")
 
-	invalidID := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/mutation_add_items/rows/not-an-integer", "")
-	assertIntegrationErrorCode(t, invalidID, http.StatusBadRequest, "invalid_mutation_content")
+	invalidID := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", "not-an-integer", "")
+	assertIntegrationErrorCode(t, invalidID, http.StatusUnprocessableEntity, "invalid_mutation_content")
 	assertMutationString(t, queryMutationRow(t, app, "delete-invalid-id"), "id", id)
 
-	protected := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/rcc_table_policies/rows/1", "")
+	protected := versionedPublicationFixture(t, app, "DELETE", "rcc_table_policies", "1", "")
 	assertIntegrationErrorCode(t, protected, http.StatusForbidden, "protected_table")
 }
 
@@ -819,7 +745,7 @@ func TestMutationPolicyDeleteMapsMissingRowsToNotFound(t *testing.T) {
 	)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowDelete: true})
 
-	missing := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/mutation_add_items/rows/999999", "")
+	missing := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", "999999", "")
 	assertIntegrationErrorCode(t, missing, http.StatusNotFound, "mutation_row_not_found")
 }
 
@@ -830,7 +756,7 @@ func TestMutationPolicyDeleteRollsBackDatabaseFailures(t *testing.T) {
 	)
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowDelete: true})
 
-	failed := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/mutation_delete_parents/rows/1", "")
+	failed := versionedPublicationFixture(t, app, "DELETE", "mutation_delete_parents", "1", "")
 	assertIntegrationErrorCode(t, failed, http.StatusServiceUnavailable, "mutation_unavailable")
 	row := queryMutationTableRow(t, app, "mutation_delete_parents", "delete-rollback")
 	assertMutationString(t, row, "id", "1")
@@ -860,7 +786,7 @@ func TestMutationPolicyDeleteFailsClosedForUnsupportedLiveColumns(t *testing.T) 
 
 	queryRejected := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/query", `{}`)
 	assertIntegrationErrorCode(t, queryRejected, http.StatusUnprocessableEntity, "incompatible_table")
-	deleted := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/mutation_add_items/rows/"+id, "")
+	deleted := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", id, "")
 	assertIntegrationErrorCode(t, deleted, http.StatusUnprocessableEntity, "incompatible_table")
 
 	var count int
@@ -900,7 +826,7 @@ VALUES (1, 'delete-stale-autofill', 'initial', '2026-01-01 00:00:00', 'initial',
 		t.Fatalf("remove now-unrelated Auto Fill column: %v", err)
 	}
 
-	deleted := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/mutation_auto_fill_items/rows/1", "")
+	deleted := versionedPublicationFixture(t, app, "DELETE", "mutation_auto_fill_items", "1", "")
 	assertIntegrationErrorCode(t, deleted, http.StatusUnprocessableEntity, "invalid_policy_snapshot")
 	assertDirectMutationRowCount(t, ctx, database, "mutation_auto_fill_items", "1", 1)
 }
@@ -931,14 +857,14 @@ func TestMutationPolicyDeleteFailsClosedForInvalidCurrentPolicyAndLiveTable(t *t
 	if _, err := database.ExecContext(ctx, "UPDATE `rcc_mutation_policies` SET `type_code` = 'unknown_mutation' WHERE `code` = ?", assignment.MutationPolicyCode); err != nil {
 		t.Fatalf("make current Mutation Type unknown: %v", err)
 	}
-	unknown := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/mutation_add_items/rows/"+id, "")
+	unknown := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", id, "")
 	assertIntegrationErrorCode(t, unknown, http.StatusUnprocessableEntity, "unknown_policy_type")
 	assertDirectMutationRowCount(t, ctx, database, "mutation_add_items", id, 1)
 
 	if _, err := database.ExecContext(ctx, "UPDATE `rcc_mutation_policies` SET `type_code` = 'single_table_mutation', `modify_operator_field` = 'missing_column' WHERE `code` = ?", assignment.MutationPolicyCode); err != nil {
 		t.Fatalf("make current Auto Fill target invalid: %v", err)
 	}
-	malformed := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/mutation_add_items/rows/"+id, "")
+	malformed := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", id, "")
 	assertIntegrationErrorCode(t, malformed, http.StatusUnprocessableEntity, "invalid_policy_snapshot")
 	assertDirectMutationRowCount(t, ctx, database, "mutation_add_items", id, 1)
 
@@ -949,7 +875,7 @@ func TestMutationPolicyDeleteFailsClosedForInvalidCurrentPolicyAndLiveTable(t *t
 	if _, err := database.ExecContext(ctx, "ALTER TABLE `mutation_supplied_id_items` DROP PRIMARY KEY"); err != nil {
 		t.Fatalf("make live Schema incompatible: %v", err)
 	}
-	incompatible := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/mutation_supplied_id_items/rows/incompatible-id", "")
+	incompatible := versionedPublicationFixture(t, app, "DELETE", "mutation_supplied_id_items", "incompatible-id", "")
 	assertIntegrationErrorCode(t, incompatible, http.StatusUnprocessableEntity, "incompatible_table")
 	assertDirectMutationRowCount(t, ctx, database, "mutation_supplied_id_items", "incompatible-id", 1)
 
@@ -957,7 +883,7 @@ func TestMutationPolicyDeleteFailsClosedForInvalidCurrentPolicyAndLiveTable(t *t
 	if _, err := database.ExecContext(ctx, "DROP TABLE `mutation_auto_fill_items`"); err != nil {
 		t.Fatalf("drop current physical table: %v", err)
 	}
-	missingTable := versionedMutationRequest(t, app, http.MethodDelete, "/api/v1/tables/mutation_auto_fill_items/rows/1", "")
+	missingTable := versionedPublicationFixture(t, app, "DELETE", "mutation_auto_fill_items", "1", "")
 	assertIntegrationErrorCode(t, missingTable, http.StatusNotFound, "database_table_not_found")
 }
 
@@ -967,23 +893,23 @@ func TestMutationAddFailsClosedAndUsesTheLatestPolicySnapshot(t *testing.T) {
 		"testdata/006-mutation-fixture.sql",
 	)
 
-	missing := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", `{"content":{"code":"missing","label":"x"}}`)
+	missing := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"code":"missing","label":"x"}}`)
 	assertIntegrationErrorCode(t, missing, http.StatusNotFound, "table_policy_not_found")
 
 	createPolicyAssignment(t, app, "mutation_add_items", queryPolicyFixture{}, mutationPolicyFixture{})
-	disabled := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", `{"content":{"code":"disabled","label":"x"}}`)
+	disabled := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"code":"disabled","label":"x"}}`)
 	assertIntegrationErrorCode(t, disabled, http.StatusForbidden, "table_policy_disabled")
 	setPolicyAssignmentEnabled(t, app, "mutation_add_items", true)
-	forbidden := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", `{"content":{"code":"forbidden","label":"x"}}`)
+	forbidden := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"code":"forbidden","label":"x"}}`)
 	assertIntegrationErrorCode(t, forbidden, http.StatusForbidden, "mutation_not_allowed")
 
 	replacePolicyAssignment(t, app, "mutation_add_items", queryPolicyFixture{}, mutationPolicyFixture{AllowAdd: true})
-	added := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", `{"content":{"code":"current","label":"latest Policy"}}`)
-	if added.Code != http.StatusCreated {
+	added := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"code":"current","label":"latest Policy"}}`)
+	if added.Code != http.StatusOK {
 		t.Fatalf("latest Policy Snapshot did not permit ADD: HTTP %d %s", added.Code, added.Body.String())
 	}
 
-	protected := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/rcc_table_policies/rows", `{"content":{}}`)
+	protected := publicationFixtureRequest(t, app, "ADD", "rcc_table_policies", "", `{"content":{}}`)
 	assertIntegrationErrorCode(t, protected, http.StatusForbidden, "protected_table")
 }
 
@@ -1011,7 +937,7 @@ func TestMutationAddFailsClosedForInvalidLivePolicyAndSchema(t *testing.T) {
 	if _, err := database.ExecContext(ctx, "UPDATE `rcc_mutation_policies` SET `type_code` = 'unknown_mutation' WHERE `code` = ?", assignment.MutationPolicyCode); err != nil {
 		t.Fatalf("make current Mutation Type invalid: %v", err)
 	}
-	unknown := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", `{"content":{"code":"unknown-policy","label":"x"}}`)
+	unknown := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"code":"unknown-policy","label":"x"}}`)
 	assertIntegrationErrorCode(t, unknown, http.StatusUnprocessableEntity, "unknown_policy_type")
 
 	if _, err := database.ExecContext(ctx, "UPDATE `rcc_mutation_policies` SET `type_code` = 'single_table_mutation' WHERE `code` = ?", assignment.MutationPolicyCode); err != nil {
@@ -1020,7 +946,7 @@ func TestMutationAddFailsClosedForInvalidLivePolicyAndSchema(t *testing.T) {
 	if _, err := database.ExecContext(ctx, "ALTER TABLE `mutation_add_items` MODIFY `id` bigint unsigned NOT NULL, DROP PRIMARY KEY"); err != nil {
 		t.Fatalf("make live Schema incompatible: %v", err)
 	}
-	incompatible := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", `{"content":{"code":"incompatible","label":"x"}}`)
+	incompatible := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"code":"incompatible","label":"x"}}`)
 	assertIntegrationErrorCode(t, incompatible, http.StatusUnprocessableEntity, "incompatible_table")
 }
 
@@ -1044,7 +970,7 @@ func TestMutationAddFailsClosedWhenPolicyCatalogIsUnavailable(t *testing.T) {
 		t.Fatalf("make Policy Catalog unavailable: %v", err)
 	}
 
-	rejected := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", `{"content":{"code":"unavailable","label":"x"}}`)
+	rejected := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"code":"unavailable","label":"x"}}`)
 	assertIntegrationErrorCode(t, rejected, http.StatusServiceUnavailable, "policy_catalog_unavailable")
 }
 
@@ -1065,41 +991,29 @@ func addMutationPatchFixtureRow(t *testing.T, app *adminApplication, code, label
 	if err != nil {
 		t.Fatalf("encode mutation fixture row: %v", err)
 	}
-	response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/mutation_add_items/rows", string(body))
+	response := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", string(body))
 	return mutationResponseID(t, response)
 }
 
 func mutationResponseID(t *testing.T, response *httptest.ResponseRecorder) string {
 	t.Helper()
-	if response.Code != http.StatusCreated {
-		t.Fatalf("add mutation fixture row: HTTP %d %s", response.Code, response.Body.String())
-	}
-	var body struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
-		t.Fatalf("decode mutation fixture id: %v", err)
-	}
-	if body.ID == "" {
-		t.Fatalf("mutation fixture returned empty id: %s", response.Body.String())
-	}
-	return body.ID
+	return publishedFixtureCommand(t, response).ID
 }
-
 func assertMutationAffected(t *testing.T, response *httptest.ResponseRecorder) {
 	t.Helper()
-	if response.Code != http.StatusOK {
-		t.Fatalf("modify row: expected HTTP 200, got %d: %s", response.Code, response.Body.String())
+	publishedFixtureCommand(t, response)
+}
+func publishedFixtureCommand(t *testing.T, response *httptest.ResponseRecorder) domain.PublicationCommand {
+	t.Helper()
+	var order domain.ReleaseOrder
+	if response.Code != 200 || json.Unmarshal(response.Body.Bytes(), &order) != nil || order.State != "SUCCEEDED" || order.Publication == nil || len(order.Publication.Commands) != 1 {
+		t.Fatalf("expected one committed publication: %d %s", response.Code, response.Body)
 	}
-	var body struct {
-		Affected int64 `json:"affected"`
+	command := order.Publication.Commands[0]
+	if command.Final.Deleted != (command.Operation == "DELETE") || command.Final.Verify(command.Final.SchemaDigest) != nil || order.Publication.Notification.Status != "NOT_CONNECTED" {
+		t.Fatal("invalid committed command")
 	}
-	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
-		t.Fatalf("decode modify response: %v", err)
-	}
-	if body.Affected != 1 {
-		t.Fatalf("modify row: expected affected 1, got %d: %s", body.Affected, response.Body.String())
-	}
+	return command
 }
 
 func queryMutationTableRow(t *testing.T, app *adminApplication, tableName, code string) map[string]*string {

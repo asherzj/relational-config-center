@@ -596,7 +596,7 @@ func TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed(t *tes
 
 	protectedTable := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/table-policies", tablePolicyCodePayload("rcc_mutation_policies", "unused_query_v1", "unused_mutation_v1"))
 	assertIntegrationErrorCode(t, protectedTable, http.StatusForbidden, "protected_table")
-	protectedMutation := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/rcc_mutation_policies/rows", `{"content":{}}`)
+	protectedMutation := publicationFixtureRequest(t, app, "ADD", "rcc_mutation_policies", "", `{"content":{}}`)
 	assertIntegrationErrorCode(t, protectedMutation, http.StatusForbidden, "protected_table")
 }
 

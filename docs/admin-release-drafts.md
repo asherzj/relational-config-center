@@ -1,6 +1,6 @@
 # 发布草稿
 
-T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供草稿创建、编辑、查询和取消。数据页 Change Set 的“保存为发布草稿”不会写入业务记录、推进记录版本或占用目标。旧“确认并执行”和记录写路由仍由 T5 #52 统一切换与删除；当前阶段没有审批、正式发布或分发成功承诺。T6 #53 删除单条明细临时上限。
+T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供草稿创建、编辑、查询和取消。T5 已把数据页 Change Set 唯一确认改为“确认并保存草稿”，不会写业务记录、推进记录版本或占用目标。提交、独立审批后由 PUBLISHER [正式执行](design-notes/publication-contract.md)；旧记录写路由已删除，分发仍未接入。T6 #53 删除单条明细临时上限。
 
 ## HTTP
 
@@ -48,7 +48,7 @@ T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供�
 | `automatic` | 实际发布时才由 PUBLISHER Account ID / 数据库执行时间填充 |
 | `generated` | 数据库生成列；实际最终值待正式发布读取 |
 
-原值、差异类型及历史从持久草稿读取，不依赖之后的实时 Schema/Policy。当前草稿格式沿用受支持列的 JSON String 表示；不支持的 BINARY/BLOB 等列在准备前由规则/Schema 检查拒绝，非法 UTF-8 快照也拒绝，绝不静默替换后保存。最终态二进制 Codec 与正式执行由 T5 实现。
+原值、差异类型及历史从持久草稿读取，不依赖之后的实时 Schema/Policy。当前草稿格式沿用受支持列的 JSON String 表示；不支持的 BINARY/BLOB 等列在准备前由规则/Schema 检查拒绝，非法 UTF-8 快照也拒绝，绝不静默替换后保存。T5 的[最终行格式](design-notes/publication-contract.md)可编码二进制固定样例，但实时发布仍保留上述不支持字段的准备前拒绝。
 
 ## 幂等与恢复
 

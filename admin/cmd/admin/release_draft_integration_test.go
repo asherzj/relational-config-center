@@ -5,7 +5,6 @@ package main
 import (
 	"encoding/json"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -183,11 +182,11 @@ func TestReleaseDraftMissingIdentityAndTombstone(t *testing.T) {
 				t.Fatalf("draft allocated versions: %d %v", count, err)
 			}
 			addBody, _ := json.Marshal(map[string]any{"content": map[string]string{"id": test.first, "label": "real"}})
-			add := policyIntegrationRequest(t, app, "POST", "/api/v1/tables/"+test.table+"/rows", string(addBody))
-			if add.Code != 201 {
+			add := publicationFixtureRequest(t, app, "ADD", test.table, "", string(addBody))
+			if add.Code != 200 {
 				t.Fatal(add.Body)
 			}
-			deleted := policyIntegrationRequest(t, app, "DELETE", "/api/v1/tables/"+test.table+"/rows/"+url.PathEscape(test.equivalent), `{"expected_version":"1"}`)
+			deleted := publicationFixtureRequest(t, app, "DELETE", test.table, test.equivalent, `{"expected_version":"1"}`)
 			assertMutationAffected(t, deleted)
 			body, _ = json.Marshal(map[string]any{"table_name": test.table, "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"id": test.equivalent, "label": "recreated draft"}}}})
 			draft = releaseRequest(t, app, "POST", "/api/v1/release-orders", string(body), "draft-identity-tombstone-"+test.table)
@@ -334,11 +333,11 @@ func TestReleaseDraftKnownAddUpdateRequiresOriginalBaseline(t *testing.T) {
 	}
 	var order struct{ ID string }
 	_ = json.Unmarshal(saved.Body.Bytes(), &order)
-	add := policyIntegrationRequest(t, app, "POST", "/api/v1/tables/mutation_add_items/rows", `{"content":{"id":"7","code":"other","label":"other"}}`)
-	if add.Code != 201 {
+	add := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"id":"7","code":"other","label":"other"}}`)
+	if add.Code != 200 {
 		t.Fatal(add.Body)
 	}
-	assertMutationAffected(t, policyIntegrationRequest(t, app, "DELETE", "/api/v1/tables/mutation_add_items/rows/7", `{"expected_version":"1"}`))
+	assertMutationAffected(t, publicationFixtureRequest(t, app, "DELETE", "mutation_add_items", "7", `{"expected_version":"1"}`))
 	update := `{"table_name":"mutation_add_items","expected_version":"1","items":[{"operation":"ADD","content":{"id":"7","code":"draft","label":"edited"}}]}`
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", "/api/v1/release-orders/"+order.ID, update, "draft-add-missing"), 422, "record_version_required")
 	update = strings.Replace(update, `"operation":"ADD"`, `"operation":"ADD","expected_record_version":"0"`, 1)

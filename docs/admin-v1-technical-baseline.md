@@ -284,10 +284,13 @@ Query/Mutation Draft 可完整替换或删除，Active/Deprecated 仅允许更�
 
 ```text
 POST   /api/v1/tables/{table_name}/query
-POST   /api/v1/tables/{table_name}/rows
-PATCH  /api/v1/tables/{table_name}/rows/{id}
-DELETE /api/v1/tables/{table_name}/rows/{id}
+POST   /api/v1/release-orders
+POST   /api/v1/release-orders/{id}/submit
+POST   /api/v1/release-orders/{id}/approve
+POST   /api/v1/release-orders/{id}/execute
 ```
+
+数据确认只保存草稿；独立审批后的正式执行才写配置，旧三条 rows 写路由已删除。完整控制事务、最终行与恢复见 [发布结果契约](design-notes/publication-contract.md)。
 
 所有数据 API 必须先加载 enabled Policy。Compiler 的表名来自 Policy，字段来自实时 Schema，方向和操作符是封闭枚举，所有值通过参数绑定；Handler 不能传入 SQL 片段。
 

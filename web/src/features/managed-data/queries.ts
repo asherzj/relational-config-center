@@ -1,8 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { ApiError } from "../../api/client";
-import { addManagedRow, deleteManagedRow, modifyManagedRow, queryManagedTable } from "../../api/managed-data";
-import { businessSession } from "../../api/business-session";
-import type { ChangeSetOperation, ManagedDataMutationOutcome, MutationContent, QuerySpec } from "./model";
+import { queryManagedTable } from "../../api/managed-data";
+import type { ChangeSetOperation, ManagedDataMutationOutcome, QuerySpec } from "./model";
 
 export const managedDataKeys = {
   root: ["managed-data"] as const,
@@ -18,14 +17,6 @@ export function useManagedDataQuery(tableName: string, querySpec: QuerySpec) {
   });
 }
 
-export type ManagedDataMutationCommand = {
-  operation: ChangeSetOperation;
-  tableName: string;
-  id?: string;
-  expectedVersion?: string;
-  content: MutationContent;
-};
-
 async function readManagedRow(tableName: string, id: string) {
   const result = await queryManagedTable(tableName, {
     conditions: [{ field: "id", operator: "exact", value: id }],
@@ -37,27 +28,6 @@ async function readManagedRow(tableName: string, id: string) {
   return { row, columns: result.columns, recordVersion: result.recordVersions[0]! };
 }
 
-async function executeMutation(command: ManagedDataMutationCommand): Promise<ManagedDataMutationOutcome> {
-  const sessionGeneration = businessSession().generation;
-  let id = command.id;
-  if (command.operation === "ADD") {
-    id = (await addManagedRow(command.tableName, command.content)).id;
-  } else {
-    if (id === undefined) throw new ApiError("invalid_request", "Managed Table row id is required.", 400);
-    if (command.expectedVersion === undefined) throw new ApiError("record_version_required", "请重新查询记录版本。", 422);
-    if (command.operation === "MODIFY") await modifyManagedRow(command.tableName, id, command.content, command.expectedVersion);
-    else await deleteManagedRow(command.tableName, id, command.expectedVersion);
-  }
-
-  if (command.operation === "DELETE") return { operation: command.operation, tableName: command.tableName, id: id! };
-  try {
-    if (businessSession().generation !== sessionGeneration) throw new ApiError("stale_session", "登录状态已变化，请重新查询。", 0);
-    return { operation: command.operation, tableName: command.tableName, id: id!, ...await readManagedRow(command.tableName, id!) };
-  } catch (retrievalError) {
-    return { operation: command.operation, tableName: command.tableName, id: id!, retrievalError };
-  }
-}
-
 export function useManagedDataRowRefetch() {
   return useMutation({
     mutationFn: async ({ operation, tableName, id }: { operation: ChangeSetOperation; tableName: string; id: string }): Promise<ManagedDataMutationOutcome> => ({
@@ -66,15 +36,5 @@ export function useManagedDataRowRefetch() {
       id,
       ...await readManagedRow(tableName, id),
     }),
-  });
-}
-
-export function useManagedDataMutation() {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: executeMutation,
-    onSuccess() {
-      void client.invalidateQueries({ queryKey: managedDataKeys.root });
-    },
   });
 }

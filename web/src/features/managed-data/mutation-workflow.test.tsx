@@ -26,8 +26,7 @@ function createWrapper() {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Managed Data mutation workflow", () => {
-  it("pins table identity, writes once, and retries only exact-id readback", async () => {
-    let readbacks = 0;
+  it("pins reviewed table and field intent for draft saving without a row write", async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/mutation-policy-types")) {
@@ -41,12 +40,6 @@ describe("Managed Data mutation workflow", () => {
           status: "ACTIVE", creator: "fixture", modifier: "fixture",
           gmt_created: "2026-08-28T00:00:00Z", gmt_modified: "2026-08-28T00:00:00Z",
         });
-      }
-      if (url.endsWith("/tables/managed_items/rows") && init?.method === "POST") return json({ id: "41" }, 201);
-      if (url.endsWith("/tables/managed_items/query") && init?.method === "POST") {
-        readbacks += 1;
-        if (readbacks === 1) return json({ error: { code: "query_unavailable", message: "暂时无法回查", request_id: "req-1" } }, 503);
-        return json({ columns, rows: [{ id: "41", name: "created" }], page: { page_number: 1, page_size: 1, total_count: 1, total_pages: 1 } });
       }
       throw new Error(`unexpected request ${url}`);
     });
@@ -64,16 +57,7 @@ describe("Managed Data mutation workflow", () => {
     act(() => hook.result.current.send({ type: "review-content", content: { name: "created" } }));
     expect(hook.result.current.view.changeSet?.operation).toBe("ADD");
 
-    act(() => {
-      hook.result.current.send({ type: "confirm-pending" });
-      hook.result.current.send({ type: "confirm-pending" });
-    });
-    await waitFor(() => expect(hook.result.current.view.outcome?.retrievalError).toBeDefined());
-    expect(fetchMock.mock.calls.filter(([url, init]) => String(url).endsWith("/tables/managed_items/rows") && init?.method === "POST")).toHaveLength(1);
-
-    act(() => hook.result.current.send({ type: "retry-readback" }));
-    await waitFor(() => expect(hook.result.current.view.outcome?.row).toEqual({ id: "41", name: "created" }));
-    expect(fetchMock.mock.calls.filter(([url, init]) => String(url).endsWith("/tables/managed_items/rows") && init?.method === "POST")).toHaveLength(1);
-    expect(readbacks).toBe(2);
+    expect(hook.result.current.view.draftInput).toEqual({table_name:"managed_items",items:[{operation:"ADD",content:{name:"created"}}]});
+    expect(fetchMock.mock.calls.some(([url])=>String(url).includes("/tables/"))).toBe(false);
   });
 });

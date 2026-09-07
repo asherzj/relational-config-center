@@ -31,11 +31,28 @@ var (
 // RouterOptions is the deployment-owned interface of the HTTP safety module.
 // Request-scoped safety behavior remains behind NewRouter.
 type RouterOptions struct {
-	Authentication *application.Authentication
-	AccountRoles   *application.AccountRoleManagement
-	ReleaseOrders  *application.ReleaseOrders
-	AccountHTTP    AccountHTTPOptions
-	AccessLog      io.Writer
+	Authentication     *application.Authentication
+	AccountRoles       *application.AccountRoleManagement
+	ReleaseOrders      *application.ReleaseOrders
+	PublicationTimeout time.Duration
+	AccountHTTP        AccountHTTPOptions
+	AccessLog          io.Writer
+}
+
+func publicationDeadline(timeout time.Duration) gin.HandlerFunc {
+	if timeout <= 0 {
+		timeout = 8 * time.Second
+	}
+	return func(c *gin.Context) {
+		if c.FullPath() != "/api/v1/release-orders/:id/execute" {
+			c.Next()
+			return
+		}
+		ctx, cancel := context.WithTimeout(c.Request.Context(), timeout)
+		defer cancel()
+		c.Request = c.Request.WithContext(ctx)
+		c.Next()
+	}
 }
 
 func limitRequestBody() gin.HandlerFunc {
@@ -164,8 +181,11 @@ func sessionAuthentication(options RouterOptions) gin.HandlerFunc {
 		required := application.RoleViewer
 		if change && c.FullPath() != "/api/v1/tables/:table_name/query" {
 			required = application.RoleAdmin
-			if c.FullPath() == "/api/v1/release-orders/:id/copy" || c.FullPath() == "/api/v1/release-orders/:id/submit" || c.FullPath() == "/api/v1/release-orders/preview" || c.FullPath() == "/api/v1/release-orders" || c.FullPath() == "/api/v1/release-orders/:id" || c.FullPath() == "/api/v1/release-orders/:id/cancel" || c.FullPath() == "/api/v1/tables/:table_name/rows" || c.FullPath() == "/api/v1/tables/:table_name/rows/:id" {
+			if c.FullPath() == "/api/v1/release-orders/:id/copy" || c.FullPath() == "/api/v1/release-orders/:id/submit" || c.FullPath() == "/api/v1/release-orders/preview" || c.FullPath() == "/api/v1/release-orders" || c.FullPath() == "/api/v1/release-orders/:id" || c.FullPath() == "/api/v1/release-orders/:id/cancel" {
 				required = application.RoleEditor
+			}
+			if c.FullPath() == "/api/v1/release-orders/:id/execute" {
+				required = application.RolePublisher
 			}
 			if c.FullPath() == "/api/v1/release-orders/:id/approve" || c.FullPath() == "/api/v1/release-orders/:id/reject" {
 				required = application.RoleApprover

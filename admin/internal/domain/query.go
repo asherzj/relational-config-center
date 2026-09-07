@@ -31,7 +31,10 @@ const (
 type Column struct {
 	// TextCapacity is the live character capacity of unrestricted text columns.
 	// Zero means the column cannot hold arbitrary Operator identifiers (e.g. ENUM).
-	TextCapacity  uint64
+	TextCapacity uint64
+	// FloatBits distinguishes a live 32-bit FLOAT from DOUBLE. Zero retains
+	// the default 64-bit parser for callers without floating-point metadata.
+	FloatBits     int
 	Name          string
 	Type          ColumnType
 	Nullable      bool
@@ -88,7 +91,11 @@ func ParseColumnValue(column Column, value JSONString) (any, error) {
 		}
 		return text, nil
 	case ColumnTypeFloat64:
-		parsed, err := strconv.ParseFloat(text, 64)
+		bits := 64
+		if column.FloatBits == 32 {
+			bits = 32
+		}
+		parsed, err := strconv.ParseFloat(text, bits)
 		if err != nil || math.IsInf(parsed, 0) || math.IsNaN(parsed) {
 			return nil, errors.New("invalid float")
 		}

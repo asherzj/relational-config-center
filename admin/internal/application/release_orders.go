@@ -65,6 +65,7 @@ type ReleaseOrderSession interface {
 
 type ReleaseOrderStore interface {
 	ExecuteReleaseOrder(context.Context, func(ReleaseOrderSession) error) error
+	ExecutePublication(context.Context, func(PublicationSession) error) error
 	GetReleaseOrder(context.Context, string) (domain.ReleaseOrder, error)
 	ListReleaseOrders(context.Context, domain.ReleaseFilter) ([]domain.ReleaseOrder, error)
 }
@@ -137,7 +138,7 @@ func (r *ReleaseOrders) Get(ctx context.Context, id string) (ReleaseOrder, error
 
 func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) []string {
 	actions := []string{}
-	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy"} {
+	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute"} {
 		if releaseActionState(order.State, action) && authorizeReleaseAction(ctx, order, action) == nil {
 			actions = append(actions, action)
 		}
@@ -145,6 +146,9 @@ func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) 
 	return actions
 }
 func releaseActionRole(action string) AccountRoles {
+	if action == "execute" {
+		return RolePublisher
+	}
 	if action == "approve" || action == "reject" {
 		return RoleApprover
 	}
@@ -161,7 +165,7 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
 		}
 		return nil
 	}
-	if action == "copy" || actor == order.ApplicantID {
+	if action == "execute" || action == "copy" || actor == order.ApplicantID {
 		return nil
 	}
 	if action == "cancel" {
@@ -172,6 +176,8 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
 }
 func releaseActionState(state, action string) bool {
 	switch action {
+	case "execute":
+		return state == "APPROVED"
 	case "copy":
 		return state == "REJECTED" || state == "CANCELLED"
 	case "edit", "submit":
@@ -259,6 +265,12 @@ func (r *ReleaseOrders) prepare(ctx context.Context, s ReleaseOrderSession, inpu
 			if _, supplied := item.Content[column.Name]; column.RequiredForInsert() && !supplied && !automatic[column.Name] {
 				return nil, ErrMissingRequiredField
 			}
+		}
+		idColumn, _ := schema.Column("id")
+		if item.ID == nil && !idColumn.AutoIncrement {
+			// LAST_INSERT_ID identifies only auto-increment inserts. A default
+			// expression on another primary key cannot supply a trusted identity.
+			return nil, ErrPublicationUnsupported
 		}
 	} else if item.ID == nil {
 		return nil, ErrInvalidMutation
@@ -391,7 +403,7 @@ func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitRelea
 		}
 		p := snapshot.mutationPolicy
 		order.Items = items
-		order.Frozen = &domain.ReleaseExecutionSnapshot{Schema: schema, Mutation: domain.ReleaseMutationSemantics{TypeCode: p.TypeCode, AllowAdd: p.AllowAdd, AllowModify: p.AllowModify, AllowDelete: p.AllowDelete, CreateOperatorField: p.CreateOperatorField, CreateTimeField: p.CreateTimeField, ModifyOperatorField: p.ModifyOperatorField, ModifyTimeField: p.ModifyTimeField}}
+		order.Frozen = &domain.ReleaseExecutionSnapshot{Schema: schema, Mutation: domain.NewReleaseMutationSemantics(p)}
 		order.FrozenDigest = hex.EncodeToString(releaseDigest(struct {
 			Items     []ReleaseItem
 			Execution *domain.ReleaseExecutionSnapshot
@@ -445,6 +457,10 @@ func (r *ReleaseOrders) decide(ctx context.Context, id, action string, input Rel
 }
 
 func (r *ReleaseOrders) changeOrder(ctx context.Context, id, version, action, key string, input any, change func(ReleaseOrderSession, *ReleaseOrder) error) (ReleaseOrder, error) {
+	return r.changeOrderUsing(ctx, id, version, action, key, input, r.store.ExecuteReleaseOrder, change)
+}
+
+func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, action, key string, input any, execute func(context.Context, func(ReleaseOrderSession) error) error, change func(ReleaseOrderSession, *ReleaseOrder) error) (ReleaseOrder, error) {
 	actor, err := requireRole(ctx, releaseActionRole(action))
 	if err != nil {
 		return ReleaseOrder{}, err
@@ -453,7 +469,7 @@ func (r *ReleaseOrders) changeOrder(ctx context.Context, id, version, action, ke
 		return ReleaseOrder{}, ErrReleaseInvalid
 	}
 	var result ReleaseOrder
-	err = r.store.ExecuteReleaseOrder(ctx, func(s ReleaseOrderSession) error {
+	err = execute(ctx, func(s ReleaseOrderSession) error {
 		// Lock request identity before the order consistently, including retries.
 		operation := action + ":" + id
 		previous, err := s.BeginReleaseRequest(ctx, actor, operation, key, releaseDigest(input))

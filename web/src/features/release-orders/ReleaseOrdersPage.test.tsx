@@ -287,3 +287,30 @@ it("审批状态冲突跨刷新保留原意见，查看最新后才显式重建"
  expect(await screen.findByRole("heading",{name:"items · 已批准"})).toBeVisible();expect(writes).toHaveLength(2);
  expect(JSON.parse(String(writes[1]!.body))).toEqual({expected_version:"3",reason:"保留这条意见"});expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).not.toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
 });
+
+it("仅 PUBLISHER 执行原审批，丢响应后跨刷新使用原键确认并显示最终值",async()=>{
+ const identity={...testAdminIdentity,account:{...testAdminIdentity.account,roles:["PUBLISHER"]}};
+ const approved={...order,state:"APPROVED",version:"3",allowed_actions:["execute"]};
+ const final={...approved,state:"SUCCEEDED",version:"4",allowed_actions:[],publication:{table_version:"7",publisher_id:identity.account.id,executed_at:"2026-09-08T01:00:00Z",notification:{id:"notice",table_version:"7",status:"NOT_CONNECTED"},commands:[{order_id:id,sequence:"9",table_name:"items",table_version:"7",operation:"MODIFY",id:"1",record_version:"2",before:{format:"rcc-admin-mysql-row-v1",schema_digest:"a".repeat(64),deleted:false,fields:[{name:"label",type:"varchar(40)",encoding:"text",value:"original"}],checksum:"b".repeat(64)},final:{format:"rcc-admin-mysql-row-v1",schema_digest:"a".repeat(64),deleted:false,fields:[{name:"label",type:"varchar(40)",encoding:"text",value:"actual database value"},{name:"empty",type:"text",encoding:"text",value:""},{name:"nil",type:"json",encoding:"sql_null",value:null},{name:"json",type:"json",encoding:"json",value:"null"}],checksum:"c".repeat(64)}}]}};
+ let current:typeof approved|typeof final=approved;
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",vi.fn(async(input,init)=>{
+  const path=String(input);
+  if(path.endsWith("/auth/session")||path.endsWith("/auth/activity"))return json(identity);
+  if(path.endsWith("/execute")){writes.push(init!);current=final;if(writes.length===1)throw new TypeError("lost response");return json(final)}
+  if(path===`/api/v1/release-orders/${id}`)return json(current);
+  return json({orders:[current],next_cursor:""});
+ }));
+ const user=userEvent.setup();const first=mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"执行发布"}));
+ await user.click(screen.getByRole("button",{name:"确认发布到数据库"}));
+ expect(await screen.findByText(/结果待确认。原请求与意见已保留/)).toBeVisible();
+ first.unmount();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"恢复原发布请求"}));
+ await waitFor(()=>expect(writes).toHaveLength(2));
+ expect(writes[0]!.body).toBe('{"expected_version":"3"}');expect(writes[1]!.body).toBe(writes[0]!.body);
+ expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
+ expect(await screen.findByRole("heading",{name:"items · 已发布"})).toBeVisible();
+ expect(screen.getByText("值：actual database value")).toBeVisible();expect(screen.getByText("SQL NULL")).toBeVisible();expect(screen.getByText("JSON：null")).toBeVisible();
+ expect(screen.getByText("刷新通知：notice · 分发尚未接入")).toBeVisible();expect(sessionStorage.length).toBe(0);
+});

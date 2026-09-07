@@ -99,5 +99,15 @@ See [role bootstrap, recovery and HTTP contracts](../../../docs/admin-account-ro
 完整前不恢复业务服务；新安装的 001 已包含相同定义。
 
 提交审批还要求可证明的目标表/Schema TRIGGER 元数据权限，否则明确拒绝冻结。
-没有占用过期清理任务。当前 T4 分支仍保留旧记录直写入口，由 T5 统一删除后才完成强制审批切换，
-不可将此中间版本当作正式发布闭环部署。详见 [审批、冻结与恢复契约](../../../docs/admin-release-approvals.md)。
+没有占用过期清理任务。T5 已删除旧记录直写路由，继续应用下面的 012 后使用正式执行入口。详见 [审批、冻结与恢复契约](../../../docs/admin-release-approvals.md)。
+
+## 原子发布结果（012）
+
+停写维护窗口内，在 011 后执行 `012-publication.sql`。该幂等迁移仅建立 `rcc_table_publications`、`rcc_publication_commands`、`rcc_refresh_notifications`，不改变业务表；新安装 001 包含完全相同定义。Ready 要求精确列/主键与 InnoDB，不允许清空记录或重置游标。
+
+部署维护账号需按实际 Admin 登录身份显式授予 `GRANT PROCESS ON *.* TO '<admin-user>'@'<host>'`；目标表的 TRIGGER 元数据授权仍必须可证明。PROCESS 用于读取隐藏跨 schema 外键的完整 InnoDB 字典，无法读取时发布在业务写入前明确拒绝。该全局授权不在迁移中自动执行，不能仅靠目标 schema 的 SELECT 推断没有外部级联。详见[能力边界与持久结果](../../../docs/design-notes/publication-contract.md)。
+
+成功只表示数据库提交，通知状态 NOT_CONNECTED；不运行投递器。全部 Admin/Web 应一同切换，旧 rows 客户端会明确拒绝，不提供兼容开关。后续批量和反向发布按工单计划继续交付。
+
+
+T5 同时修正 FLOAT 主键的有损短文本权重与 FLOAT/DOUBLE 的正负零等价。应用新二进制前，须取消受影响表的旧在途单并停写，按 [记录版本维护门禁](../../../docs/admin-record-versions.md#t5-浮点身份修订的升级门禁) 为全部 FLOAT/DOUBLE 主键表推进维护基线、保留旧 key。012 不自动完成这项维护，也不能据其可重跑而跳过代际切换。

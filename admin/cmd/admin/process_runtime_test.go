@@ -256,7 +256,7 @@ func (application *processTestApplication) Close() error {
 func processTestRouter(t *testing.T) http.Handler {
 	t.Helper()
 	metadata := processMetadata{}
-	return httpinterface.NewRouter(application.NewDatabaseTableDiscovery(metadata), processReadiness{}, nil, nil, nil, nil, nil, httpinterface.RouterOptions{
+	return httpinterface.NewRouter(application.NewDatabaseTableDiscovery(metadata), processReadiness{}, nil, nil, nil, nil, httpinterface.RouterOptions{
 		AccessLog: io.Discard,
 	})
 }

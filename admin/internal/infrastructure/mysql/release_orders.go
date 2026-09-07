@@ -20,6 +20,14 @@ import (
 type releaseOrderSession struct{ *querySnapshotSession }
 
 func (a *Adapter) ExecuteReleaseOrder(ctx context.Context, execute func(application.ReleaseOrderSession) error) error {
+	return a.executeReleaseTransaction(ctx, func(s *releaseOrderSession) error { return execute(s) })
+}
+
+func (a *Adapter) ExecutePublication(ctx context.Context, execute func(application.PublicationSession) error) error {
+	return a.executeReleaseTransaction(ctx, func(s *releaseOrderSession) error { return execute(&publicationSession{s}) })
+}
+
+func (a *Adapter) executeReleaseTransaction(ctx context.Context, execute func(*releaseOrderSession) error) error {
 	tx := a.gorm.WithContext(ctx).Begin(&sql.TxOptions{Isolation: sql.LevelRepeatableRead})
 	if tx.Error != nil {
 		return application.ErrReleaseUnavailable
@@ -28,6 +36,9 @@ func (a *Adapter) ExecuteReleaseOrder(ctx context.Context, execute func(applicat
 	s.active.Store(true)
 	defer func() { s.active.Store(false); _ = tx.Rollback().Error }()
 	if err := execute(s); err != nil {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			return application.ErrMutationTimeout
+		}
 		return err
 	}
 	if err := tx.Commit().Error; err != nil {
@@ -67,7 +78,7 @@ func (s *releaseOrderSession) ReadRecordBaseline(ctx context.Context, schema dom
 	if err != nil {
 		return domain.RecordBaseline{}, application.ErrReleaseUnavailable
 	}
-	rows, err := s.database.WithContext(ctx).Table(schema.Name).Select("*").Where("`id` = ?", id).Rows()
+	rows, err := s.database.WithContext(ctx).Table(schema.Name).Clauses(selectColumns(schema.Columns)).Where("`id` = ?", id).Rows()
 	if err != nil {
 		return domain.RecordBaseline{}, application.ErrReleaseUnavailable
 	}
@@ -111,11 +122,7 @@ func readReleaseOrder(ctx context.Context, db *gorm.DB, id string, lock bool) (d
 	if err != nil {
 		return domain.ReleaseOrder{}, application.ErrReleaseUnavailable
 	}
-	var order domain.ReleaseOrder
-	if json.Unmarshal(encoded, &order) != nil {
-		return order, application.ErrReleaseUnavailable
-	}
-	return order, nil
+	return decodeStoredReleaseOrder(encoded)
 }
 func (a *Adapter) GetReleaseOrder(ctx context.Context, id string) (domain.ReleaseOrder, error) {
 	return readReleaseOrder(ctx, a.gorm, id, false)
@@ -161,9 +168,9 @@ func (s *releaseOrderSession) BeginReleaseRequest(ctx context.Context, actor, op
 	if result == nil {
 		return nil, nil
 	}
-	var order domain.ReleaseOrder
-	if json.Unmarshal(result, &order) != nil {
-		return nil, application.ErrReleaseUnavailable
+	order, err := decodeStoredReleaseOrder(result)
+	if err != nil {
+		return nil, err
 	}
 	return &order, nil
 }
@@ -198,9 +205,12 @@ func (a *Adapter) ListReleaseOrders(ctx context.Context, filter domain.ReleaseFi
 	result := []domain.ReleaseOrder{}
 	for rows.Next() {
 		var encoded []byte
-		var order domain.ReleaseOrder
-		if rows.Scan(&encoded) != nil || json.Unmarshal(encoded, &order) != nil {
+		if rows.Scan(&encoded) != nil {
 			return nil, application.ErrReleaseUnavailable
+		}
+		order, err := decodeStoredReleaseOrder(encoded)
+		if err != nil {
+			return nil, err
 		}
 		result = append(result, order)
 	}
@@ -243,4 +253,12 @@ func (s *releaseOrderSession) ReleaseTargets(ctx context.Context, orderID string
 		return application.ErrReleaseUnavailable
 	}
 	return nil
+}
+
+func decodeStoredReleaseOrder(encoded []byte) (domain.ReleaseOrder, error) {
+	var order domain.ReleaseOrder
+	if json.Unmarshal(encoded, &order) != nil || order.VerifyPublication() != nil {
+		return domain.ReleaseOrder{}, application.ErrReleaseUnavailable
+	}
+	return order, nil
 }

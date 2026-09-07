@@ -32,7 +32,6 @@ import { useManagedDataQuery } from "./queries";
 import { useManagedDataMutationWorkflow, type ManagedDataMutationIntent } from "./mutation-workflow";
 import { ManagedRowEditor } from "./ManagedRowEditor";
 import { ChangeSetDialog } from "./ChangeSetDialog";
-import { MutationSuccessDialog } from "./MutationSuccessDialog";
 
 const initialQuerySpec: QuerySpec = { conditions: [], pageNumber: 1 };
 
@@ -130,14 +129,15 @@ export function ManagedDataPage() {
   const queryPolicyTypes = useQueryPolicyTypes(Boolean(selectedPolicy));
   const changes = useManagedDataMutationWorkflow({
     canEdit,
+    writeError:draftWrite.error,pending:draftWrite.pending,
     tableName: selectedTable,
     mutationPolicyCode: selectedPolicy?.mutationPolicyCode,
     columns: result.data?.columns,
   });
   const draftRecordConflict=draftWrite.error instanceof ApiError&&draftWrite.error.code==="record_version_conflict";
- const { editor, changeSet, outcome, capabilityReasons, mutationPolicy, mutationRegistry, mutationRegistryState } = changes.view;
+ const { editor, changeSet, capabilityReasons, mutationPolicy, mutationRegistry, mutationRegistryState } = changes.view;
   const queryRegistryState = queryPolicyTypes.isPending ? "loading" : queryPolicyTypes.isError ? "error" : "ready";
-  const protection = useDraftProtection(draftWrite.unresolved, changes.view.executionPending||draftWrite.pending);
+  const protection = useDraftProtection(draftWrite.unresolved, draftWrite.pending);
   const send = (intent: ManagedDataMutationIntent) => {
     if (["open-editor", "review-delete", "cancel-pending"].includes(intent.type)) {
       protection.requestLeave(() => changes.send(intent));
@@ -371,7 +371,7 @@ export function ManagedDataPage() {
             onRebuildLatest={() => {changes.send({ type: "rebuild-latest" });draftWrite.confirmRebuild();draftWrite.clearError()}}
             key={editor?.sequence}
             open={Boolean(editor) && !changeSet}
-            error={changes.view.executionError}
+            error={draftWrite.error}
             tableName={editor.tableName}
             operation={editor.operation}
             columns={editor.columns}
@@ -388,32 +388,21 @@ export function ManagedDataPage() {
               if(!changes.view.draftInput)return;
               const saved=await draftWrite.send({...releaseRequests.create(changes.view.draftInput),label:`创建 ${selectedTable} 草稿`});
               if(saved)protection.afterSave(()=>{changes.send({type:"cancel-pending"});navigate(`/configuration/release-orders/${saved.id}`)});
-            }}>{draftWrite.pending?"正在保存草稿…":draftWrite.unresolved?"使用原请求重试":"保存为发布草稿"}</Button>}
+            }}>{draftWrite.pending?"正在保存草稿…":draftWrite.unresolved?"使用原请求重试":"确认并保存草稿"}</Button>}
             draftLocked={draftWrite.pending||draftWrite.unresolved}
-            draftFeedback={<>{Boolean(draftWrite.error)&&<ErrorState error={draftWrite.error}/>} {draftWrite.unresolved&&<p role="alert">草稿保存结果待确认。原请求已保留，刷新后仍可找回。</p>}</>}
+            draftFeedback={<>{draftWrite.unresolved&&<p role="alert">草稿保存结果待确认。原请求已保留，刷新后仍可找回。</p>}</>}
 
             recordConflict={changes.view.recordConflict||(draftWrite.error instanceof ApiError&&draftWrite.error.code==="record_version_conflict")}
             latest={changes.view.latest}
             onInspectLatest={() => changes.send({ type: "inspect-latest" })}
             onRebuildLatest={() => {changes.send({ type: "rebuild-latest" });draftWrite.confirmRebuild();draftWrite.clearError()}}
             changeSet={changeSet}
-            error={changes.view.recheckError || changes.view.executionError}
-            pending={changes.view.executionPending || changes.view.recheckingChange}
+            error={changes.view.recheckError || draftWrite.error}
+            pending={draftWrite.pending || changes.view.recheckingChange}
             confirmDisabled={changes.view.reviewDisabled||draftRecordConflict}
             onRetryRecheck={changes.view.recheckError ? () => changes.send({ type: "retry-recheck" }) : undefined}
-            onVerify={() => protection.requestLeave(() => {
-              changes.send({ type: "cancel-pending" });
-              void result.refetch();
-            })}
             onEdit={() => changes.send({ type: "edit-pending" })}
             onCancel={() => send({ type: "cancel-pending" })}
-            onConfirm={() => changes.send({ type: "confirm-pending" })}
-          />
-          <MutationSuccessDialog
-            outcome={outcome}
-            retryPending={changes.view.retryPending}
-            onRetry={() => changes.send({ type: "retry-readback" })}
-            onClose={() => send({ type: "close-outcome" })}
           />
     </main>
   );

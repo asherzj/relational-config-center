@@ -88,6 +88,18 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 		}
 		respondReleaseWrite(c, orders, order, 201)
 	})
+	router.POST("/api/v1/release-orders/:id/execute", func(c *gin.Context) {
+		var input application.SubmitReleaseInput
+		if err := decodeRequest(c, &input); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		order, err := orders.Execute(c.Request.Context(), c.Param("id"), input, c.GetHeader("Idempotency-Key"))
+		if writeReleaseError(c, err) {
+			return
+		}
+		respondReleaseWrite(c, orders, order, 200)
+	})
 	router.POST("/api/v1/release-orders/:id/submit", func(c *gin.Context) {
 		var input application.SubmitReleaseInput
 		if err := decodeRequest(c, &input); err != nil {
@@ -168,6 +180,12 @@ func writeReleaseError(c *gin.Context, err error) bool {
 	case errors.Is(err, application.ErrMissingRequiredField):
 		status, code, message = 422, "missing_required_field", "required mutation field is missing"
 
+	case errors.Is(err, application.ErrReleaseFrozenChanged):
+		status, code, message = 409, "release_frozen_changed", "approved execution semantics changed; cancel and rebuild the proposal"
+	case errors.Is(err, application.ErrPublicationUnsupported):
+		status, code, message = 422, "publication_unsupported", "publication cannot track all fields, identities or implicit writes for this table"
+	case errors.Is(err, application.ErrPublicationMetadataPermission):
+		status, code, message = 422, "publication_metadata_permission", "deployment requires PROCESS to verify the complete InnoDB foreign-key dictionary"
 	case errors.Is(err, application.ErrReleaseNotFound):
 		status, code, message = 404, "release_not_found", "release order not found"
 	case errors.Is(err, application.ErrReleaseInvalid):

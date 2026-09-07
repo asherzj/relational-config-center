@@ -42,7 +42,9 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
   try{
    const intent=decodeReleaseRequest(item);
    const latest=intent.action==="create"?undefined:await releaseOrders.get(intent.id);setCurrent(latest);
-   if(intent.action==="cancel"||intent.action==="approve"||intent.action==="reject"){
+   if(intent.action==="execute"){
+    if(latest?.allowed_actions.includes("execute"))setRebuilt(releaseRequests.action("execute",intent.id,latest.version));
+   }else if(intent.action==="cancel"||intent.action==="approve"||intent.action==="reject"){
     if(latest?.allowed_actions.includes(intent.action))setRebuilt(releaseRequests.action(intent.action,intent.id,latest.version,intent.input.reason));
    }else if(intent.action==="submit"){
     if(latest?.allowed_actions.includes("submit")){
@@ -78,6 +80,7 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
 function PendingIntent({item}:{item:PendingReleaseRequest}){
  let intent:ReturnType<typeof decodeReleaseRequest>;
  try{intent=decodeReleaseRequest(item)}catch{return <p>原申请内容无法读取；原请求标识仍保留。</p>}
+ if(intent.action==="execute")return <details className="my-2"><summary>查看原申请内容</summary><p>发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
  if(intent.action==="submit")return <details className="my-2"><summary>查看原申请内容</summary><p>提交单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
  if(intent.action==="cancel"||intent.action==="approve"||intent.action==="reject")return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="cancel"?"取消原因":"审批意见"}：{intent.input.reason}</p></details>;
  return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="copy"?`复制原单 ${intent.id}`:intent.input.table_name}</p>{intent.input.items.map((entry,index)=><div key={index}><strong>{entry.operation} · {entry.id??entry.content.id??"待生成 id"}</strong><dl>{Object.entries(entry.content).map(([field,value])=><div key={field} className="break-all"><dt>{field}</dt><dd className="whitespace-pre-wrap">{value===null?"SQL NULL":value===""?"空字符串（\"\"）":<>值：{value}</>}</dd></div>)}</dl></div>)}</details>;

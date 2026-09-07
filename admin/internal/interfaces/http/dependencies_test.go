@@ -41,7 +41,7 @@ func TestSharedBusinessServicesDoNotStoreRequestIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Shared business services must never regain mutable per-account fields.
-	protected := map[string]bool{"ManagedTableMutation": true, "QueryPolicyManagement": true, "MutationPolicyManagement": true, "TablePolicyManagement": true, "AccountRoleManagement": true, "ReleaseOrders": true}
+	protected := map[string]bool{"QueryPolicyManagement": true, "MutationPolicyManagement": true, "TablePolicyManagement": true, "AccountRoleManagement": true, "ReleaseOrders": true}
 	for _, pkg := range files {
 		for filename, file := range pkg.Files {
 			ast.Inspect(file, func(node ast.Node) bool {
@@ -81,12 +81,12 @@ func TestReleaseDraftSessionCannotWriteBusinessRows(t *testing.T) {
 		found = true
 		seam := spec.Type.(*ast.InterfaceType)
 		for _, field := range seam.Methods.List {
-			if embedded, ok := field.Type.(*ast.Ident); ok && (embedded.Name == "MutationExecutor" || embedded.Name == "MutationSnapshotSession") {
+			if embedded, ok := field.Type.(*ast.Ident); ok && (embedded.Name == "PublicationSession" || embedded.Name == "MutationExecutor" || embedded.Name == "MutationSnapshotSession") {
 				t.Errorf("draft session embeds business write capability %s", embedded.Name)
 			}
 			for _, name := range field.Names {
 				switch name.Name {
-				case "InsertRow", "UpdateRow", "DeleteRow":
+				case "InsertRow", "UpdateRow", "DeleteRow", "CommitPublication":
 					t.Errorf("draft session exposes business write %s", name.Name)
 				}
 			}

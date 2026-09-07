@@ -75,7 +75,7 @@ make test-integration
 
 集成测试使用 Testcontainers 和真实 MySQL 8.4；`make test-integration` 禁用 Go 测试缓存。本机没有可用 Docker provider 时测试会明确跳过，不会以数据库 mock 替代；持续集成会先执行 Docker 健康检查，因此 Docker 不可用时整个检查失败，不会跳过后假绿。
 
-整组集成测试的进程上限为 25 分钟，以容纳隔离 MySQL 容器启动时间的波动；CI 任务另有 30 分钟总上限。各请求、数据库等待和进程停止的独立超时仍由对应测试验证。
+整组集成测试的进程上限为 40 分钟，以容纳隔离 MySQL 容器启动时间的波动；CI 任务另有 45 分钟总上限。各请求、数据库等待和进程停止的独立超时仍由对应测试验证。
 
 ## 持续集成
 
@@ -103,4 +103,4 @@ docs/    跨模块设计与项目文档
 - Go package 使用简短、清晰的小写名称。
 - 引入新能力时同步补充测试和文档。
 
-记录并发保护、Admin/Web 请求迁移与数据库维护窗口见 [记录版本契约](docs/admin-record-versions.md)。发布草稿已提供[保存、编辑、查询与取消](docs/admin-release-drafts.md)，升级需迁移 010。审批和正式执行仍按 [交付计划](docs/design-notes/release-order-ticket-plan.md) 继续推进。
+记录并发保护、Admin/Web 请求迁移与数据库维护窗口见 [记录版本契约](docs/admin-record-versions.md)。发布草稿、独立审批与单条正式执行已接通，见[发布结果契约](docs/design-notes/publication-contract.md)。升级需依次迁移 010、011、012，并显式授予 TRIGGER 元数据与 PROCESS 权限；旧记录写路由已删除，分发尚未接入。批量与反向发布继续按[交付计划](docs/design-notes/release-order-ticket-plan.md)推进。

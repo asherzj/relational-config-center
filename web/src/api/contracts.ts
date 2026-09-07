@@ -140,13 +140,6 @@ export const managedDataQueryResponseDtoSchema = z.object({
   });
 });
 
-export const managedDataAddResponseDtoSchema = z.object({
-  id: z.string().min(1),
-});
-
-export const managedDataMutationResponseDtoSchema = z.object({
-  affected: z.literal(1),
-});
 
 export const adminErrorDtoSchema = z.object({
   error: z.object({
@@ -163,8 +156,6 @@ export type MutationPolicyTypeDto = z.infer<typeof mutationPolicyTypeListDtoSche
 export type DatabaseTableDto = z.infer<typeof databaseTableDtoSchema>;
 export type TablePolicyDto = z.infer<typeof tablePolicyDtoSchema>;
 export type ManagedDataQueryResponseDto = z.infer<typeof managedDataQueryResponseDtoSchema>;
-export type ManagedDataAddResponseDto = z.infer<typeof managedDataAddResponseDtoSchema>;
-export type ManagedDataMutationResponseDto = z.infer<typeof managedDataMutationResponseDtoSchema>;
 
 export type PutQueryPolicyDto = {
   code: string;

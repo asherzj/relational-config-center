@@ -193,7 +193,7 @@ func TestReleaseRejectedCopyRechecksBaseline(t *testing.T) {
 	if rejected.Code != 200 {
 		t.Fatal(rejected.Body)
 	}
-	updated := policyIntegrationRequest(t, app, "PATCH", "/api/v1/tables/mutation_delete_parents/rows/1", `{"expected_version":"0","content":{"code":"new baseline"}}`)
+	updated := publicationFixtureRequest(t, app, "MODIFY", "mutation_delete_parents", "1", `{"expected_version":"0","content":{"code":"new baseline"}}`)
 	assertMutationAffected(t, updated)
 	body := `{"expected_version":"3","confirmed":true,"items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposal"}}]}`
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/copy", body, "copy-request-01"), 409, "record_version_conflict")
@@ -504,7 +504,7 @@ func TestReleaseSubmitRevalidatesBaselineAndRules(t *testing.T) {
 	if enabled.Code != 200 {
 		t.Fatal(enabled.Body)
 	}
-	assertMutationAffected(t, policyIntegrationRequest(t, app, "PATCH", "/api/v1/tables/mutation_delete_parents/rows/1", `{"expected_version":"0","content":{"code":"later"}}`))
+	assertMutationAffected(t, publicationFixtureRequest(t, app, "MODIFY", "mutation_delete_parents", "1", `{"expected_version":"0","content":{"code":"later"}}`))
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"1"}`, "revalidate-submit-01"), 409, "record_version_conflict")
 	read := releaseRequest(t, app, "GET", path, "", "")
 	if read.Body.String() != created.Body.String() {
@@ -621,6 +621,17 @@ func TestReleaseAutoIncrementZeroIdentity(t *testing.T) {
 	if err := exactDB.QueryRow("SELECT COUNT(*) FROM mutation_add_items WHERE id=0").Scan(&actualZero); err != nil || actualZero != 1 {
 		t.Fatalf("literal zero proof: %d %v", actualZero, err)
 	}
+	// Remove the external identity proof, then publish the frozen literal zero.
+	deliveryExec(t, exactDB, `DELETE FROM mutation_add_items WHERE id=0`)
+	approved := releaseActorRequest(t, exact, publicationFixtureReviewer(t, exact), "POST", paths[0]+"/approve", `{"expected_version":"2","reason":"literal zero is the verified identity"}`, "literal-zero-approve")
+	if approved.Code != 200 {
+		t.Fatal(approved.Body)
+	}
+	command := publishedFixtureCommand(t, releaseRequest(t, exact, "POST", paths[0]+"/execute", `{"expected_version":"3"}`, "literal-zero-execute"))
+	if command.ID != "0" || command.RecordVersion != "1" {
+		t.Fatal("literal zero was treated as a generated id")
+	}
+
 }
 
 // A grant on a different case-sensitive object cannot prove trigger visibility.

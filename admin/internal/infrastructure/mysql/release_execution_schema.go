@@ -23,7 +23,7 @@ func (s *releaseOrderSession) LockAndReadTableExecutionSchema(ctx context.Contex
 		}
 		return domain.TableExecutionSchema{}, application.ErrReleaseUnavailable
 	}
-	rows, err := s.database.WithContext(ctx).Raw("SELECT `id` FROM " + s.database.Statement.Quote(meta.TableName) + " LIMIT 0").Rows()
+	rows, err := s.database.WithContext(ctx).Raw("SELECT `id` FROM " + s.database.Statement.Quote(meta.TableName) + " LIMIT 0 FOR UPDATE").Rows()
 	if err != nil {
 		return domain.TableExecutionSchema{}, application.ErrReleaseUnavailable
 	}

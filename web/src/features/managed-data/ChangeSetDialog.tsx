@@ -4,7 +4,6 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from ".
 import { ErrorState } from "../../components/ui/Feedback";
 import { Button } from "../../components/ui/Button";
 import type { ChangeSet, ChangeSetCell } from "./model";
-import { isUncertainWriteError } from "../../api/client";
 
 import { ModalSurface } from "../../components/ui/ModalSurface";
 import { DialogTitle } from "../../components/shadcn/dialog";
@@ -28,17 +27,14 @@ type Props = RecordConflictReviewProps & {
   confirmDisabled?: boolean;
   onEdit: () => void;
   onCancel: () => void;
-  onConfirm: () => void;
-  onVerify: () => void;
   onRetryRecheck?: () => void;
 };
 
-export function ChangeSetDialog({ changeSet, error, pending, confirmDisabled, onEdit, onCancel, onConfirm, onVerify, onRetryRecheck, draftAction,draftFeedback,draftLocked,...conflictReview }: Props) {
+export function ChangeSetDialog({ changeSet, error, pending, onEdit, onCancel, onRetryRecheck, draftAction,draftFeedback,draftLocked,...conflictReview }: Props) {
   const operation = changeSet?.operation;
   if (!changeSet) return null;
-  const uncertain = isUncertainWriteError(error);
   return (
-    <ModalSurface open onClose={onCancel} pending={pending} label={`${changeSet.operation} Change Set`} dismissLabel="取消 Change Set" className={`change-set-dialog change-set-${changeSet.operation.toLowerCase()} gap-0 overflow-hidden p-0 sm:max-w-[980px]`}>
+    <ModalSurface open onClose={onCancel} pending={pending||draftLocked} label={`${changeSet.operation} Change Set`} dismissLabel="取消 Change Set" className={`change-set-dialog change-set-${changeSet.operation.toLowerCase()} gap-0 overflow-hidden p-0 sm:max-w-[980px]`}>
         <header><span>{operation === "DELETE" ? "尚未执行删除；取消删除会直接关闭此预览。" : "请确认以下变更内容："}</span><DialogTitle>{changeSet.operation} Change Set</DialogTitle></header>
         <div className="change-set-scroll">
           <Table className="change-set-table">
@@ -53,20 +49,15 @@ export function ChangeSetDialog({ changeSet, error, pending, confirmDisabled, on
           </Table>
         </div>
         <div className="change-set-feedback">
-        {uncertain ? <div className="inline-alert" role="alert"><strong>提交结果尚未确认。系统不会自动重复此写入。</strong><span>请只重新查询当前表和目标记录。</span></div> : error !== undefined && error !== null && <ErrorState error={error} onRetry={onRetryRecheck} />}
+        {error !== undefined && error !== null && <ErrorState error={error} onRetry={onRetryRecheck} />}
         {draftFeedback}
  <RecordConflictReview {...conflictReview} pending={pending} />
         </div>
         <footer>
-          {uncertain ? <>
-            <Button variant="primary" onClick={onVerify}>只读查询当前状态</Button>
-            <Button onClick={onCancel}>关闭</Button>
-          </> : <>
             <Button onClick={onCancel} disabled={pending||draftLocked}>{operation === "DELETE" ? "取消删除" : "放弃本次编辑"}</Button>
             {operation !== "DELETE" && <Button onClick={onEdit} disabled={pending||draftLocked}>返回修改</Button>}
             {draftAction}
- <Button variant={changeSet.operation === "DELETE" ? "danger" : "primary"} onClick={onConfirm} disabled={pending || confirmDisabled||draftLocked}>{pending ? "正在执行…" : "确认并执行"}</Button>
-          </>}
+
         </footer>
     </ModalSurface>
   );

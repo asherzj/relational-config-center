@@ -126,6 +126,12 @@ func recordIdentityMetadata(ctx context.Context, db *gorm.DB, table string) (ide
 	return meta, nil
 }
 func recordWeightExpression(meta identityMetadata, expression string) string {
+	if meta.DataType == "float" || meta.DataType == "double" {
+		// MySQL compares signed zero as one primary-key identity. Other FLOAT
+		// values must be promoted before text conversion to avoid six-digit
+		// collisions. Missing-row identities use this same expression.
+		return "COALESCE(CAST(CAST(NULLIF(" + expression + ",0) AS DOUBLE) AS CHAR CHARACTER SET ascii),CAST('0' AS CHAR CHARACTER SET ascii))"
+	}
 	if meta.CollationName == "" {
 		return "CAST(" + expression + " AS CHAR CHARACTER SET ascii)"
 	}

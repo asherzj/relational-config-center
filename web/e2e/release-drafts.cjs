@@ -27,7 +27,7 @@ const base=process.env.RCC_WEB_URL;
    if(route.request().method()!=='POST')return route.continue();
    const response=await route.fetch();assert.equal(response.status(),201);committed=await response.json();await route.abort('failed');
   });
-  await page.getByRole('button',{name:'保存为发布草稿',exact:true}).click();
+  await page.getByRole('button',{name:'确认并保存草稿',exact:true}).click();
   await page.getByRole('button',{name:'使用原请求重试',exact:true}).waitFor();
   assert.ok(committed?.id);assert.equal(committed.applicant_id,identity.account.id);
   await page.unroute('**/api/v1/release-orders');

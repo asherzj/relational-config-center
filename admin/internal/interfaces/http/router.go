@@ -14,11 +14,11 @@ import (
 	"github.com/asherzj/relational-config-center/admin/internal/application"
 )
 
-func NewRouter(discovery *application.DatabaseTableDiscovery, readiness application.Readiness, queryPolicies *application.QueryPolicyManagement, mutationPolicies *application.MutationPolicyManagement, policies *application.TablePolicyManagement, queries *application.ManagedTableQuery, mutations *application.ManagedTableMutation, options RouterOptions) stdhttp.Handler {
+func NewRouter(discovery *application.DatabaseTableDiscovery, readiness application.Readiness, queryPolicies *application.QueryPolicyManagement, mutationPolicies *application.MutationPolicyManagement, policies *application.TablePolicyManagement, queries *application.ManagedTableQuery, options RouterOptions) stdhttp.Handler {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.HandleMethodNotAllowed = true
-	router.Use(requestIdentity(), structuredAccessLog(options.AccessLog), safeRecovery(), limitRequestBody(), sessionAuthentication(options))
+	router.Use(requestIdentity(), structuredAccessLog(options.AccessLog), safeRecovery(), limitRequestBody(), publicationDeadline(options.PublicationTimeout), sessionAuthentication(options))
 	if options.Authentication != nil {
 		registerAccountRoutes(router, options.Authentication, options.AccountHTTP)
 	}
@@ -156,53 +156,6 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 			return
 		}
 		context.JSON(stdhttp.StatusOK, queryResponse(result))
-	})
-
-	router.POST("/api/v1/tables/:table_name/rows", func(context *gin.Context) {
-		var request tableAddRequest
-		if err := decodeRequest(context, &request); err != nil {
-			writeRequestDecodeError(context, err)
-			return
-		}
-		id, err := mutations.Add(context.Request.Context(), context.Param("table_name"), request.Content)
-		if writeManagedMutationError(context, err) {
-			return
-		}
-		context.JSON(stdhttp.StatusCreated, gin.H{"id": id})
-	})
-
-	router.PATCH("/api/v1/tables/:table_name/rows/:id", func(context *gin.Context) {
-		var request tablePatchRequest
-		if err := decodeRequest(context, &request); err != nil {
-			writeRequestDecodeError(context, err)
-			return
-		}
-		if request.Content == nil {
-			writeError(context, stdhttp.StatusBadRequest, "invalid_request", "request body must be valid JSON with only supported fields")
-			return
-		}
-		affected, err := mutations.Modify(context.Request.Context(), context.Param("table_name"), application.JSONString(context.Param("id")), *request.Content, request.ExpectedVersion)
-		if writeManagedMutationError(context, err) {
-			return
-		}
-		context.JSON(stdhttp.StatusOK, gin.H{"affected": affected})
-	})
-
-	router.DELETE("/api/v1/tables/:table_name/rows/:id", func(context *gin.Context) {
-		var request struct {
-			ExpectedVersion string `json:"expected_version"`
-		}
-		if context.Request.ContentLength != 0 {
-			if err := decodeRequest(context, &request); err != nil {
-				writeRequestDecodeError(context, err)
-				return
-			}
-		}
-		affected, err := mutations.Delete(context.Request.Context(), context.Param("table_name"), application.JSONString(context.Param("id")), request.ExpectedVersion)
-		if writeManagedMutationError(context, err) {
-			return
-		}
-		context.JSON(stdhttp.StatusOK, gin.H{"affected": affected})
 	})
 
 	return router
@@ -541,15 +494,6 @@ type tableQueryRequest struct {
 	Order      *tableQueryOrder      `json:"order,omitempty"`
 	PageNumber int                   `json:"page_number,omitempty"`
 	PageSize   int                   `json:"page_size,omitempty"`
-}
-
-type tableAddRequest struct {
-	Content application.MutationContent `json:"content"`
-}
-
-type tablePatchRequest struct {
-	ExpectedVersion string                       `json:"expected_version"`
-	Content         *application.MutationContent `json:"content"`
 }
 
 type tableQueryCondition struct {

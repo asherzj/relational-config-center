@@ -164,12 +164,15 @@ const table = process.env.RCC_E2E_TABLE || 'stage1_acceptance_items';
     assert.equal(await page.getByRole('checkbox', { name: 'category 使用 NULL', exact: true }).isChecked(), true);
     assert.equal(await page.getByRole('checkbox', { name: '包含 priority', exact: true }).isChecked(), false);
     check('Change Set cancel and return retain values, NULL and omitted fields');
+    // Saving a draft does not execute the ENUM constraint. Omit the required
+    // name instead so real draft preparation rejects this request.
+    await page.getByRole('checkbox', { name: '包含 name', exact: true }).uncheck();
     await button('查看 Change Set').click();
-    await button('确认并执行').click();
-    await page.getByRole('alert').filter({ hasText: '写入内容不符合实时字段 Schema' }).waitFor();
+    await button('确认并保存草稿').click();
+    await page.getByRole('alert').filter({ hasText: '新增内容缺少实时 Schema 要求的字段' }).waitFor();
     await button('返回修改').click();
     assert.equal(await page.getByRole('textbox', { name: 'state 值', exact: true }).inputValue(), 'not-valid-state');
-    await page.getByRole('alert').filter({ hasText: '写入内容不符合实时字段 Schema' }).waitFor();
+    await page.getByRole('alert').filter({ hasText: '新增内容缺少实时 Schema 要求的字段' }).waitFor();
     await page.screenshot({ path: `${output}/failed-row-retained.png`, fullPage: true, mask: [page.locator('.operator')] });
     check('real Admin/MySQL validation rejection retains the row draft and request error');
     await button('取消').click();

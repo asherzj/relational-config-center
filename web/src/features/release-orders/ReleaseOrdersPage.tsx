@@ -12,12 +12,13 @@ import {NativeSelect} from "../../components/shadcn/native-select";
 import {Table,TableHeader,TableBody,TableRow,TableHead,TableCell} from "../../components/shadcn/table";
 import {ErrorState,LoadingState} from "../../components/ui/Feedback";
 import {useAccountRole} from "../accounts/roles";
+import {PublicationResult} from "./PublicationResult";
 import {ReleaseDiff} from "./ReleaseDiff";
 
 export const releaseStateLabels={DRAFT:"草稿",PENDING_APPROVAL:"待审批",APPROVED:"已批准",SUCCEEDED:"已发布",REJECTED:"已拒绝",CANCELLED:"已取消",ROLLED_BACK:"已回滚"};
 export function ReleaseOrdersPage(){
  const {id}=useParams();
- return <main className="workspace"><ReleaseRecovery/><div className="page-heading"><div><h1>发布单</h1><p>草稿仅保存变更意图，实际配置尚未改变。</p></div><Link to="/configuration/managed-data" className="button">编辑配置</Link></div>{id?<ReleaseDetail key={id} id={id}/>:<ReleaseList/>}</main>;
+ return <main className="workspace"><ReleaseRecovery/><div className="page-heading"><div><h1>发布单</h1><p>配置经独立审批后发布；发布成功表示数据库已提交，分发尚未接入。</p></div><Link to="/configuration/managed-data" className="button">编辑配置</Link></div>{id?<ReleaseDetail key={id} id={id}/>:<ReleaseList/>}</main>;
 }
 function ReleaseList(){
  const [input,setInput]=useState({table_name:"",applicant_id:"",state:"",id:""});
@@ -41,13 +42,14 @@ function ReleaseDetail({id}:{id:string}){
  const [copy,setCopy]=useState(false);
  const [editing,setEditing]=useState(false);
  const canEdit=useAccountRole("EDITOR");
+ const canPublish=useAccountRole("PUBLISHER");
  const canApprove=useAccountRole("APPROVER");
  if(query.isPending)return <LoadingState/>;
  if(query.isError)return <ErrorState error={query.error} onRetry={()=>void query.refetch()}/>;
  const order=query.data;
- return <><Link to="/configuration/release-orders">返回发布单列表</Link><section className="my-6 break-all"><h2 className="text-xl font-semibold">{order.table_name} · {releaseStateLabels[order.state]}</h2><p>单号：{order.id}</p><p>申请人：{order.applicant_id}</p><p>发布单版本：{order.version}</p><div className="flex gap-3 mt-4"><Button onClick={()=>void query.refetch()}>重新读取发布单</Button>{canEdit&&order.allowed_actions.includes("edit")&&<Button onClick={()=>setEditing(true)}>编辑草稿</Button>}{canEdit&&order.allowed_actions.includes("submit")&&<Button variant="primary" onClick={()=>setAction("submit")}>提交审批</Button>}{canApprove&&order.allowed_actions.includes("approve")&&<Button variant="primary" onClick={()=>setAction("approve")}>批准发布单</Button>}{canApprove&&order.allowed_actions.includes("reject")&&<Button onClick={()=>setAction("reject")}>拒绝发布单</Button>}{canEdit&&order.allowed_actions.includes("cancel")&&<Button onClick={()=>setAction("cancel")}>{order.state==="DRAFT"?"取消草稿":"取消发布单"}</Button>}{canEdit&&order.allowed_actions.includes("copy")&&<Button onClick={()=>setCopy(true)}>复制新草稿</Button>}</div></section>
+ return <><Link to="/configuration/release-orders">返回发布单列表</Link><section className="my-6 break-all"><h2 className="text-xl font-semibold">{order.table_name} · {releaseStateLabels[order.state]}</h2><p>单号：{order.id}</p><p>申请人：{order.applicant_id}</p><p>发布单版本：{order.version}</p><div className="flex gap-3 mt-4"><Button onClick={()=>void query.refetch()}>重新读取发布单</Button>{canEdit&&order.allowed_actions.includes("edit")&&<Button onClick={()=>setEditing(true)}>编辑草稿</Button>}{canEdit&&order.allowed_actions.includes("submit")&&<Button variant="primary" onClick={()=>setAction("submit")}>提交审批</Button>}{canApprove&&order.allowed_actions.includes("approve")&&<Button variant="primary" onClick={()=>setAction("approve")}>批准发布单</Button>}{canApprove&&order.allowed_actions.includes("reject")&&<Button onClick={()=>setAction("reject")}>拒绝发布单</Button>}{canEdit&&order.allowed_actions.includes("cancel")&&<Button onClick={()=>setAction("cancel")}>{order.state==="DRAFT"?"取消草稿":"取消发布单"}</Button>}{canPublish&&order.allowed_actions.includes("execute")&&<Button variant="primary" onClick={()=>setAction("execute")}>执行发布</Button>}{canEdit&&order.allowed_actions.includes("copy")&&<Button onClick={()=>setCopy(true)}>复制新草稿</Button>}</div></section>
  {order.frozen_digest&&<p className="mb-4">提交内容已冻结，审批和发布以这份差异为准。</p>}{order.copied_from_id&&<p className="mb-4">复制自 <Link to={`/configuration/release-orders/${order.copied_from_id}`}>{order.copied_from_id}</Link></p>}
- <ReleaseDiff order={order}/><h2 className="text-lg font-semibold mb-3">操作历史</h2><ol className="grid gap-3">{order.history.map(event=><li key={event.version} className="border-b pb-3 break-all">{event.action} · 版本 {event.version}<p>账号：{event.actor_id}</p><time>{event.at}</time>{event.reason&&<p>{event.reason}</p>}</li>)}</ol>
+ <ReleaseDiff order={order}/>{order.publication&&<PublicationResult result={order.publication}/>}<h2 className="text-lg font-semibold mb-3">操作历史</h2><ol className="grid gap-3">{order.history.map(event=><li key={event.version} className="border-b pb-3 break-all">{event.action} · 版本 {event.version}<p>账号：{event.actor_id}</p><time>{event.at}</time>{event.reason&&<p>{event.reason}</p>}</li>)}</ol>
  {editing&&<ReleaseDraftEditor order={order} onClose={()=>setEditing(false)}/>}
  {action&&<ReleaseActionDialog order={order} action={action} onClose={()=>setAction(undefined)}/>}
  {copy&&<CopyDraftDialog order={order} onClose={()=>setCopy(false)}/>}</>;

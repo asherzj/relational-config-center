@@ -15,7 +15,7 @@ test:
 	done
 
 test-integration:
-	@cd admin && go test -count=1 -timeout=30m -tags=integration ./...
+	@cd admin && go test -count=1 -timeout=40m -tags=integration ./...
 
 build:
 	@for module in $(GO_LIBRARY_MODULES); do \
