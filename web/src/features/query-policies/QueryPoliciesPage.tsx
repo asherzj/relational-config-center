@@ -1,3 +1,5 @@
+import { getQueryPolicy } from "../../api/query-policies";
+import { WriteRecovery } from "../../components/ui/WriteRecovery";
 import { FileCode2, Plus, RefreshCw } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
@@ -143,6 +145,7 @@ export function QueryPoliciesPage() {
       </section>
 
       <QueryPolicyDrawer code={code} onRequestCommand={lifecycle.request} />
+      {!confirm && <WriteRecovery onResume={() => { lifecycle.finishCheck(); void policies.refetch(); }} resumeLabel="我已核对，结束本次核对" error={lifecycle.recovery.error} onCheck={() => getQueryPolicy(lifecycle.targetCode!)} />}
       {confirm && (
         <ConfirmDialog
           open
@@ -151,6 +154,8 @@ export function QueryPoliciesPage() {
           confirmLabel={confirm.label}
           destructive={confirm.destructive}
           pending={lifecycle.pending}
+          confirmDisabled={lifecycle.recovery.blocked.current}
+          children={<WriteRecovery onResume={() => { lifecycle.finishCheck(); void policies.refetch(); }} resumeLabel="我已核对，结束本次核对" error={lifecycle.recovery.error} onCheck={() => getQueryPolicy(lifecycle.targetCode!)} />}
           onCancel={lifecycle.cancel}
           onConfirm={lifecycle.execute}
         />

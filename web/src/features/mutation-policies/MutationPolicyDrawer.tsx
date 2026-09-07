@@ -1,3 +1,5 @@
+import { getMutationPolicy } from "../../api/mutation-policies";
+import { WriteRecovery } from "../../components/ui/WriteRecovery";
 import { AlertCircle } from "lucide-react";
 import { useMemo, useRef, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -78,8 +80,8 @@ function MutationPolicySession({ code, onRequestCommand }: Props) {
   else content = <>{!supported && <div className="inline-alert"><AlertCircle size={18} /><strong>规则类型目录未确认 {policy?.typeCode} 的完整新增、修改和删除能力；无法确认执行规则，{actions?.metadata ? "仍可安全查看或修改名称和描述。" : "当前只能安全查看。"}</strong></div>}<MutationPolicyForm key={`${code}:${mode}`} pending={form.pending} mode={mode} policy={policy} typeCodes={(types.data ?? []).map((type) => type.code)} registryTypes={types.data} registryState={types.isPending ? "loading" : types.isError ? "error" : "ready"} serverError={form.error} onSubmit={form.submit} /></>;
 
   let footer: ReactNode = <Button onClick={close}>关闭</Button>;
-  if (mode === "create" || mode === "replace" || mode === "metadata") footer = <><Button variant="primary" type="submit" form="mutation-policy-form" disabled={form.pending || (mode === "create" && !types.data?.some((type) => supportedMutationPolicyTypes.has(type.code)))}>{form.pending ? "正在保存…" : mode === "create" ? "创建草稿" : mode === "metadata" ? "保存名称和描述" : "保存执行规则"}</Button><Button onClick={close} disabled={form.pending}>取消</Button></>;
+  if (mode === "create" || mode === "replace" || mode === "metadata") footer = <><Button variant="primary" type="submit" form="mutation-policy-form" disabled={form.pending || form.recovery.blocked.current || (mode === "create" && !types.data?.some((type) => supportedMutationPolicyTypes.has(type.code)))}>{form.pending ? "正在保存…" : mode === "create" ? "创建草稿" : mode === "metadata" ? "保存名称和描述" : "保存执行规则"}</Button><Button onClick={close} disabled={form.pending}>取消</Button></>;
   else if (policy && actions) footer = <>{actions.replace && <Button variant="primary" onClick={() => navigate("?mode=edit")}>修改执行规则</Button>}{actions.activate && <Button variant="primary" onClick={() => onRequestCommand("activate", policy.code)}>激活</Button>}{actions.metadata && <Button onClick={() => navigate("?mode=metadata")}>修改名称和描述</Button>}{actions.deprecate && <Button variant="danger" onClick={() => onRequestCommand("deprecate", policy.code)}>弃用</Button>}{actions.delete && <Button variant="danger" onClick={() => onRequestCommand("delete", policy.code)}>删除</Button>}<Button className="drawer-close-action" onClick={close}>关闭</Button></>;
 
-  return <Drawer open={Boolean(code)} title={title} eyebrow="变更规则" onClose={close} footer={footer}>{content}</Drawer>;
+  return <Drawer open={Boolean(code)} title={title} eyebrow="变更规则" onClose={close} footer={footer}>{content}<WriteRecovery onResume={form.recovery.reset} error={form.recovery.error} onCheck={() => getMutationPolicy(form.submittedCode!)} /></Drawer>;
 }

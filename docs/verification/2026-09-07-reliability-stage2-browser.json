@@ -1,0 +1,671 @@
+{
+  "ok": true,
+  "passed": [
+    "ADD abort: committed once, draft retained, check is read-only",
+    "ADD json: committed once, draft retained, check is read-only",
+    "ADD contract: committed once, draft retained, check is read-only",
+    "ADD 503: committed once, draft retained, check is read-only",
+    "MODIFY response lost: actual final row and exact-id check",
+    "DELETE response lost: actual final row and exact-id check",
+    "explicit resume retains draft; the next unknown attempt needs a fresh read under max page size 5",
+    "known success followed by readback failure recovers without a second write",
+    "double-click + Enter + back/close during pending executes one ADD",
+    "real ENUM rejection keeps input editable and corrected submission writes once",
+    "actual database outage and recovery: failed reads stay locked, only reads are retried",
+    "query create: saved state retained after response failure",
+    "query replace: saved state retained after response failure",
+    "query metadata: saved state retained after response failure",
+    "query activate: lifecycle response loss is recoverable by reads",
+    "query deprecate: lifecycle response loss is recoverable by reads",
+    "query delete: lost response, missing-resource check never repeats deletion",
+    "mutation create: saved state retained after response failure",
+    "mutation replace: saved state retained after response failure",
+    "mutation metadata: saved state retained after response failure",
+    "mutation activate: lifecycle response loss is recoverable by reads",
+    "mutation deprecate: lifecycle response loss is recoverable by reads",
+    "mutation delete: lost response, missing-resource check never repeats deletion",
+    "rapid lifecycle confirmation and pending back navigation update once",
+    "table assignment create: persisted change and read-only recovery",
+    "table assignment replace: persisted change and read-only recovery",
+    "table assignment enable: persisted change and read-only recovery",
+    "table assignment disable: persisted change and read-only recovery"
+  ],
+  "evidence": [
+    {
+      "case": "ADD abort: committed once, draft retained, check is read-only",
+      "requests": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST",
+          "actualStatus": 201,
+          "requestId": "rcc-2ec48bc7fd885ed4e3caa4fbae559deb"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/query",
+          "method": "POST",
+          "query": {
+            "conditions": [],
+            "page_number": 1
+          }
+        }
+      ]
+    },
+    {
+      "case": "ADD json: committed once, draft retained, check is read-only",
+      "requests": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST",
+          "actualStatus": 201,
+          "requestId": "rcc-c98074f3acc959fc6ca51cc1d7cf4ec3"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/query",
+          "method": "POST",
+          "query": {
+            "conditions": [],
+            "page_number": 1
+          }
+        }
+      ]
+    },
+    {
+      "case": "ADD contract: committed once, draft retained, check is read-only",
+      "requests": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST",
+          "actualStatus": 201,
+          "requestId": "rcc-10b8e9bedb4be7f296112537b339bd49"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/query",
+          "method": "POST",
+          "query": {
+            "conditions": [],
+            "page_number": 1
+          }
+        }
+      ]
+    },
+    {
+      "case": "ADD 503: committed once, draft retained, check is read-only",
+      "requests": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST",
+          "actualStatus": 201,
+          "requestId": "rcc-132b73c631e740e1b688b7cc7c69fbb9"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/query",
+          "method": "POST",
+          "query": {
+            "conditions": [],
+            "page_number": 1
+          }
+        }
+      ]
+    },
+    {
+      "case": "MODIFY response lost: actual final row and exact-id check",
+      "requests": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows/10",
+          "method": "PATCH"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows/10",
+          "method": "PATCH",
+          "actualStatus": 200,
+          "requestId": "rcc-31d834066037c2217b1b4f561462f5e3"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/query",
+          "method": "POST",
+          "query": {
+            "conditions": [
+              {
+                "field": "id",
+                "operator": "exact",
+                "value": "10"
+              }
+            ],
+            "page_number": 1,
+            "page_size": 1
+          }
+        }
+      ]
+    },
+    {
+      "case": "DELETE response lost: actual final row and exact-id check",
+      "requests": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows/11",
+          "method": "DELETE"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows/11",
+          "method": "DELETE",
+          "actualStatus": 200,
+          "requestId": "rcc-1b19a0b8b8b2ffafdb4df7f7541f157b"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/query",
+          "method": "POST",
+          "query": {
+            "conditions": [
+              {
+                "field": "id",
+                "operator": "exact",
+                "value": "11"
+              }
+            ],
+            "page_number": 1,
+            "page_size": 1
+          }
+        }
+      ]
+    },
+    {
+      "case": "explicit resume retains draft; the next unknown attempt needs a fresh read under max page size 5",
+      "requests": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST"
+        },
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 2,
+      "finalRows": [
+        1,
+        1
+      ]
+    },
+    {
+      "case": "known success followed by readback failure recovers without a second write",
+      "writes": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1
+    },
+    {
+      "case": "double-click + Enter + back/close during pending executes one ADD",
+      "writes": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1
+    },
+    {
+      "case": "real ENUM rejection keeps input editable and corrected submission writes once",
+      "requests": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST"
+        },
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1
+    },
+    {
+      "case": "actual database outage and recovery: failed reads stay locked, only reads are retried",
+      "writes": [
+        {
+          "path": "/api/v1/tables/stage1_acceptance_items/rows",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 0,
+      "recoveryReadStatuses": [
+        503,
+        503,
+        503,
+        503,
+        200
+      ],
+      "finalRowCount": 0
+    },
+    {
+      "case": "query create: saved state retained after response failure",
+      "requests": [
+        {
+          "path": "/api/v1/query-policies",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/query-policies",
+          "method": "POST",
+          "actualStatus": 201,
+          "requestId": "rcc-e9f149f621746ac580125972562feac0"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_create_v1",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "case": "query replace: saved state retained after response failure",
+      "requests": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_replace_v1",
+          "method": "PUT"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_replace_v1",
+          "method": "PUT",
+          "actualStatus": 200,
+          "requestId": "rcc-9ef043fce23c80b3816098007e3b2725"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_replace_v1",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "case": "query metadata: saved state retained after response failure",
+      "requests": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_metadata_v1/metadata",
+          "method": "PATCH"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_metadata_v1/metadata",
+          "method": "PATCH",
+          "actualStatus": 200,
+          "requestId": "rcc-74968f93583cf22783bb96e86b19e4e8"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_metadata_v1",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "case": "query activate: lifecycle response loss is recoverable by reads",
+      "requests": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_activate_v1/activate",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_activate_v1/activate",
+          "method": "POST",
+          "actualStatus": 200,
+          "requestId": "rcc-b716caf90c9de1b4026c0eebc8b07b32"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_activate_v1",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "case": "query deprecate: lifecycle response loss is recoverable by reads",
+      "requests": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_deprecate_v1/deprecate",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_deprecate_v1/deprecate",
+          "method": "POST",
+          "actualStatus": 200,
+          "requestId": "rcc-d330ca8f2fe331685b57e41c31cbf288"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_deprecate_v1",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "case": "query delete: lost response, missing-resource check never repeats deletion",
+      "writes": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_delete_v1",
+          "method": "DELETE"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/query-policies/stage2_query_delete_v1",
+          "method": "DELETE",
+          "actualStatus": 204,
+          "requestId": "rcc-ee82255622a9a304a4247099b0b9115e"
+        }
+      ]
+    },
+    {
+      "case": "mutation create: saved state retained after response failure",
+      "requests": [
+        {
+          "path": "/api/v1/mutation-policies",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/mutation-policies",
+          "method": "POST",
+          "actualStatus": 201,
+          "requestId": "rcc-28b90dda89fd39793002960071a405a2"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_create_v1",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "case": "mutation replace: saved state retained after response failure",
+      "requests": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_replace_v1",
+          "method": "PUT"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_replace_v1",
+          "method": "PUT",
+          "actualStatus": 200,
+          "requestId": "rcc-07af30922e1c6ac3936f69e35b901925"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_replace_v1",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "case": "mutation metadata: saved state retained after response failure",
+      "requests": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_metadata_v1/metadata",
+          "method": "PATCH"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_metadata_v1/metadata",
+          "method": "PATCH",
+          "actualStatus": 200,
+          "requestId": "rcc-e363ef05f863f66905b6caa5436a0a57"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_metadata_v1",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "case": "mutation activate: lifecycle response loss is recoverable by reads",
+      "requests": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_activate_v1/activate",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_activate_v1/activate",
+          "method": "POST",
+          "actualStatus": 200,
+          "requestId": "rcc-f3802a9fd8f0354b0732409f7e46804f"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_activate_v1",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "case": "mutation deprecate: lifecycle response loss is recoverable by reads",
+      "requests": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_deprecate_v1/deprecate",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_deprecate_v1/deprecate",
+          "method": "POST",
+          "actualStatus": 200,
+          "requestId": "rcc-d9d1afd3cff57ded6a35c6710ad4d02d"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_deprecate_v1",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "case": "mutation delete: lost response, missing-resource check never repeats deletion",
+      "writes": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_delete_v1",
+          "method": "DELETE"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/mutation-policies/stage2_mutation_delete_v1",
+          "method": "DELETE",
+          "actualStatus": 204,
+          "requestId": "rcc-356ffb6a37747d990609fd512f32fa75"
+        }
+      ]
+    },
+    {
+      "case": "rapid lifecycle confirmation and pending back navigation update once",
+      "writes": [
+        {
+          "path": "/api/v1/query-policies/stage2_rapid_lifecycle_v1/activate",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1
+    },
+    {
+      "case": "table assignment create: persisted change and read-only recovery",
+      "requests": [
+        {
+          "path": "/api/v1/table-policies",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/table-policies",
+          "method": "POST",
+          "actualStatus": 201,
+          "requestId": "rcc-59c36f323a1aadf45c2ffe1fe07a9e0b"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/table-policies/stage2_assignment_items",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "case": "table assignment replace: persisted change and read-only recovery",
+      "requests": [
+        {
+          "path": "/api/v1/table-policies/stage2_assignment_items",
+          "method": "PUT"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/table-policies/stage2_assignment_items",
+          "method": "PUT",
+          "actualStatus": 200,
+          "requestId": "rcc-9b3dfc04a7b9ac4c4c5ad1b86749b933"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/table-policies/stage2_assignment_items",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "case": "table assignment enable: persisted change and read-only recovery",
+      "requests": [
+        {
+          "path": "/api/v1/table-policies/stage2_assignment_items/enable",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/table-policies/stage2_assignment_items/enable",
+          "method": "POST",
+          "actualStatus": 200,
+          "requestId": "rcc-7175d157c83ff5074d253c06fdf119b3"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/table-policies/stage2_assignment_items",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "case": "table assignment disable: persisted change and read-only recovery",
+      "requests": [
+        {
+          "path": "/api/v1/table-policies/stage2_assignment_items/disable",
+          "method": "POST"
+        }
+      ],
+      "actualWrites": 1,
+      "faults": [
+        {
+          "path": "/api/v1/table-policies/stage2_assignment_items/disable",
+          "method": "POST",
+          "actualStatus": 200,
+          "requestId": "rcc-487c2ee6c63a96f96ca108c486d1853d"
+        }
+      ],
+      "readonlyRequests": [
+        {
+          "path": "/api/v1/table-policies/stage2_assignment_items",
+          "method": "GET"
+        }
+      ]
+    }
+  ],
+  "routeErrors": [],
+  "pageErrors": []
+}

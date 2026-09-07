@@ -7,7 +7,8 @@
 - 开始：2026-09-07 12:08:58 Asia/Shanghai（04:08:58 UTC）。
 - 基线：`439fa33c5ec0d20be97c9c3efe04e35683f406cf`，已合并 MR #42 的 `main`。
 - 分支：`codex/management-reliability-20260907`。
-- worktree：`/private/tmp/rcc-management-reliability-20260907`。
+- 当前 worktree：`/Users/asher/Projects/relational-config-center/.worktrees/management-reliability-20260907`。
+- 原 worktree 位于 `/private/tmp/rcc-management-reliability-20260907`。05:25:50Z 继续任务时发现临时目录已消失，已从已推送提交恢复同一分支到项目内，并从本任务操作记录恢复阶段 2 未提交修改。后续检查点和验收产物保存在项目内的持久记录目录。
 - 原工作区的未提交内容及其他账号任务的 worktree 保持原状。
 - 本轮范围是下表六项。并发版本控制 #33、账号 #34、Agent #21 不属于本轮新功能实现；需要协调的已有能力在验收记录中标明。
 - 每项在独立 subagent 中按顺序推进。父代理负责审查、阶段间衔接、额度、commit + push、Notion 和最终交付。
@@ -17,8 +18,8 @@
 
 | 顺序 | 交付 | 投入安排 | 模型 / 思考强度 | 状态 |
 | --- | --- | --- | --- | --- |
-| 1 | 可复现真实浏览器验收入口及 CI | 90 分钟 | GPT-5.6-Sol / high | 本地及 Linux 浏览器通过，Go CI 时限修正收尾 |
-| 2 | 写入故障、恢复及重复提交验收与修复 | 90 分钟 | GPT-6-Astra / high | 待开始 |
+| 1 | 可复现真实浏览器验收入口及 CI | 90 分钟 | GPT-5.6-Sol / high | 已推送，Linux 四项 CI 全部通过 |
+| 2 | 写入故障、恢复及重复提交验收与修复 | 90 分钟 | GPT-6-Astra / high | 已实现并完成本地验收，进入提交与项目记录交付 |
 | 3 | 真实操作覆盖缺口 | 60 分钟 | GPT-5.6-Sol / high | 待开始 |
 | 4 | 复杂字段端到端往返 | 60 分钟 | GPT-6-Astra / high | 待开始 |
 | 5 | 浏览器、键盘与窄屏验收 | 45 分钟 | GPT-5.6-Sol / high | 待开始 |
@@ -38,5 +39,6 @@
 
 工作进行中，尚未声称本轮六项完成或已投入 6 小时。
 
-- 阶段 1：本机冷依赖/构建、带空格路径、14 + 6 项浏览器验收、正常 Bearer 认证、种子行完整内容及进程/容器/卷清理通过；对依赖缺失、构建失败、Docker 不可用、非空证据目录、浏览器超时、外层取消及抗终止子进程逐项验证。详见[阶段 1 报告](2026-09-07-reliability-stage1-ci.md)。已推送实现 `12eb0ee` 并创建到 main 的草稿 [MR #43](https://github.com/asherzj/relational-config-center/pull/43)，新增 Browser job 在 run `34084805003` 通过。另修正同轮 Go CI 暴露的外层等待短于生产退出上限的问题，本地真实 TCP 回归及全 Go 测试通过，正在推送收尾。
+- 阶段 1：本机冷依赖/构建、带空格路径、14 + 6 项浏览器验收、正常 Bearer 认证、种子行完整内容及进程/容器/卷清理通过；对依赖缺失、构建失败、Docker 不可用、非空证据目录、浏览器超时、外层取消及抗终止子进程逐项验证。详见[阶段 1 报告](2026-09-07-reliability-stage1-ci.md)。实现 `12eb0ee` 与 Go 退出测试时限修正 `7c0266a` 已推送至草稿 [MR #43](https://github.com/asherzj/relational-config-center/pull/43)。新 run `34085403122` 的 Web、Go unit/build、MySQL 8.4 integration 和 Browser acceptance 全部成功，最后一项于 05:16:05Z 完成。Notion PM-059 已更新并回读；父任务 PM-058 保持进行中。
 - 基线 `439fa33` 的既有 CI run `34081770150` 已核实 Web、Go unit/build、MySQL integration 全部通过；这是基线证据，不替代本轮新增浏览器 CI 的实跑。
+- 阶段 2：05:05:38Z 启动。修复写入结果未知时仍可直接重复确认、响应正文中断丢失状态码/请求编号，以及生命周期同批次重复确认问题；核对证据与当前提交绑定，目录和表启停的明确结束动作关闭旧详情。最后组合运行于 05:59:48Z 完成：14 + 6 + 28 项真实浏览器验收、完整种子行对比、认证边界和资源清理通过，Web 20 文件 / 158 测试及类型检查通过。真实停库后只读核对经历四次 503 再恢复 200，原写请求仍为 1、数据库写入为 0。详见[阶段 2 报告](2026-09-07-reliability-stage2-write-recovery.md)。提交、推送、Linux CI 与 Notion 由父代理继续办理，不以本地通过冒充 Linux 结果。

@@ -19,7 +19,7 @@ if [[ -d "$artifact_root" && -n $(ls -A "$artifact_root" 2>/dev/null) ]]; then
   printf 'artifact directory must be new or empty: %s\n' "$artifact_root" >&2
   exit 2
 fi
-mkdir -p "$artifact_root/unsaved-changes" "$artifact_root/rule-clarity"
+mkdir -p "$artifact_root/unsaved-changes" "$artifact_root/rule-clarity" "$artifact_root/write-recovery"
 umask 077
 
 for command in docker node pnpm go curl od tr grep sort cmp; do
@@ -28,6 +28,11 @@ for command in docker node pnpm go curl od tr grep sort cmp; do
     exit 2
   fi
 done
+
+case ${RCC_E2E_SUITE:-all} in
+  all|write-recovery) ;;
+  *) printf 'unknown browser suite: %s\n' "$RCC_E2E_SUITE" >&2; exit 2 ;;
+esac
 
 runtime_dir=$(mktemp -d "${TMPDIR:-/tmp}/rcc-browser-runtime.XXXXXX")
 
@@ -263,10 +268,11 @@ printf 'Starting disposable MySQL 8.4 container %s...\n' "$mysql_container"
 docker_resources_started=true
 run_timeout 60 docker volume create --label rcc.browser-acceptance="$run_id" "$mysql_volume" \
   > "$artifact_root/mysql-volume.txt"
+mysql_bind_port=$(free_port)
 run_timeout 300 docker run --detach --name "$mysql_container" \
   --label rcc.browser-acceptance="$run_id" \
   --env-file "$mysql_env" \
-  --publish 127.0.0.1::3306 \
+  --publish "127.0.0.1:$mysql_bind_port:3306" \
   --mount "type=volume,source=$mysql_volume,target=/var/lib/mysql" \
   mysql:8.4 > "$artifact_root/mysql-container-id.txt" 2> "$artifact_root/mysql-start.log"
 wait_for_mysql
@@ -366,11 +372,12 @@ run_browser_suite() {
   local name=$1
   local script=$2
   local output=$3
+  local suite_timeout=${4:-180}
   local status
   printf 'Running %s...\n' "$name"
   if RCC_PLAYWRIGHT_MODULE="$repo_root/web/node_modules/playwright" \
-  RCC_WEB_URL="$web_url" RCC_E2E_OUTPUT="$output" RCC_E2E_TABLE=stage1_acceptance_items \
-    run_timeout "${RCC_E2E_TIMEOUT_SECONDS:-180}" node "$script" \
+  RCC_E2E_MYSQL_CONTAINER="$mysql_container" RCC_WEB_URL="$web_url" RCC_E2E_OUTPUT="$output" RCC_E2E_TABLE=stage1_acceptance_items \
+    run_timeout "${RCC_E2E_TIMEOUT_SECONDS:-$suite_timeout}" node "$script" \
       > "$output/runner.log" 2>&1; then status=0; else status=$?; fi
   cat "$output/runner.log"
   if [[ $status != 0 && ! -f "$output/result.json" ]]; then
@@ -387,8 +394,12 @@ run_browser_suite() {
   return "$status"
 }
 
+if [[ ${RCC_E2E_SUITE:-all} == all ]]; then
 run_browser_suite unsaved-changes "$repo_root/web/e2e/unsaved-changes.cjs" "$artifact_root/unsaved-changes"
 run_browser_suite rule-clarity "$repo_root/web/e2e/rule-clarity.cjs" "$artifact_root/rule-clarity"
+
+fi
+run_browser_suite write-recovery "$repo_root/web/e2e/write-recovery.cjs" "$artifact_root/write-recovery" 360
 
 expected='5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED'
 capture_mysql_state "$artifact_root/database-postcheck.txt"

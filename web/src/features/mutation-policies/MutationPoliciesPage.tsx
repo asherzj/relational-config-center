@@ -1,3 +1,5 @@
+import { getMutationPolicy } from "../../api/mutation-policies";
+import { WriteRecovery } from "../../components/ui/WriteRecovery";
 import { FileCode2, Plus, RefreshCw } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
@@ -132,7 +134,8 @@ export function MutationPoliciesPage() {
         </footer>
       </section>
       <MutationPolicyDrawer code={code} onRequestCommand={lifecycle.request} />
-      {confirm && <ConfirmDialog open title={confirm.title} description={confirm.description} confirmLabel={confirm.label} destructive={confirm.destructive} pending={lifecycle.pending} onCancel={lifecycle.cancel} onConfirm={lifecycle.execute} />}
+      {!confirm && <WriteRecovery onResume={() => { lifecycle.finishCheck(); void policies.refetch(); }} resumeLabel="我已核对，结束本次核对" error={lifecycle.recovery.error} onCheck={() => getMutationPolicy(lifecycle.targetCode!)} />}
+      {confirm && <ConfirmDialog open title={confirm.title} description={confirm.description} confirmLabel={confirm.label} destructive={confirm.destructive} pending={lifecycle.pending} confirmDisabled={lifecycle.recovery.blocked.current} children={<WriteRecovery onResume={() => { lifecycle.finishCheck(); void policies.refetch(); }} resumeLabel="我已核对，结束本次核对" error={lifecycle.recovery.error} onCheck={() => getMutationPolicy(lifecycle.targetCode!)} />} onCancel={lifecycle.cancel} onConfirm={lifecycle.execute} />}
     </main>
   );
 }

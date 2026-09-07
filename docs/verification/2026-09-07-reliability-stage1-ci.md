@@ -26,7 +26,7 @@
 make test-browser-acceptance
 ```
 
-可用 `RCC_E2E_ARTIFACTS` 指定新的空证据目录。脚本拒绝非空目录，不覆盖既有证据。每个运行名包含时间和 PID；MySQL 容器、命名卷及 Docker label 都使用该运行名。MySQL 使用 Docker 随机发布端口，Admin 与 Web 使用动态 loopback 端口并启用严格端口绑定；严格端口绑定与本次随机凭据的认证探测共同防止端口冲突时误报成功。
+可用 `RCC_E2E_ARTIFACTS` 指定新的空证据目录。脚本拒绝非空目录，不覆盖既有证据。每个运行名包含时间和 PID；MySQL 容器、命名卷及 Docker label 都使用该运行名。MySQL、Admin 与 Web 启动前各自选择空闲 loopback 端口并严格绑定；严格端口绑定与本次随机凭据的认证探测共同防止端口冲突时误报成功。阶段 2 的真实停库恢复验证发现 Docker 随机发布端口会在容器重启后改变，因此 MySQL 改为显式绑定本次选择的端口，确保 Admin 可在同一地址恢复连接。
 
 SQL 不依赖宿主目录 bind mount，而是经容器标准输入加载，因此可用于没有共享 `/private/tmp` 的 Colima。MySQL readiness 同时要求容器 PID 1 已进入正式 `mysqld` 和带本次 root 密码的 ping 成功，避免连接镜像初始化期间的临时 server。SQL 命令显式继承 stdin，fixture 加载后立即读取 5 行种子数据作为基线。
 
@@ -73,7 +73,9 @@ Admin 使用本次生成的随机 Bearer Token，浏览器不持有 Token。Toke
 
 新增真实 TCP 回归 `TestAdminExternalProcessWaitsForIncompleteRequestHeadersOnShutdown`：保持一条未完成 HTTP 请求头的连接，再发 SIGINT。旧 5 秒等待下出现同样的 `signal: killed`（5.03 秒）；按生产 10 秒上限加 2 秒进程清理余量等待后，服务自行退出且 application close marker 正确（5.26 秒）。生产 `serveAdmin`、ReadHeaderTimeout 和 shutdown deadline 均未改变。原 100 毫秒强制退出测试仍通过（0.10 秒）。这是对外层测试时限缺陷的证明，不表示已证明原 CI 中未完成连接的具体来源。
 
-独立审查后另加入保守耗时下界，避免连接未参与时快速误报成功；最终针对性回归和 `make test` 全部通过。红/绿日志保存在本轮外部记录目录 `shutdown-incomplete-headers-red.log`、`shutdown-incomplete-headers-green.log` 和 `stage1-go-test.log`、`shutdown-incomplete-headers-final.log`。本次修正会随阶段 1 收尾提交推送，以新一轮 Linux CI 核对。
+独立审查后另加入保守耗时下界，避免连接未参与时快速误报成功；最终针对性回归和 `make test` 全部通过。修正已以 `7c0266a` 推送，新一轮 Linux CI [`34085403122`](https://github.com/asherzj/relational-config-center/actions/runs/34085403122) 的 Web、Go unit/build、MySQL 8.4 integration 和 Browser acceptance 全部成功，最后一项于 2026-09-07T05:16:05Z 完成。
+
+本地红/绿日志最初保存为 `shutdown-incomplete-headers-red.log`、`shutdown-incomplete-headers-green.log`、`stage1-go-test.log` 和 `shutdown-incomplete-headers-final.log`；05:25:50Z 恢复任务时临时目录已消失，因此这些路径仅保留为历史运行记录，不能继续声称文件仍可访问。GitHub CI 证据仍可访问，原 Browser artifact 已重新下载到项目内 `.worktrees/.records-reliability-20260907/stage1-linux-ci-artifact`。后续阶段的证据改用项目内持久目录。
 
 ## 证据内容
 

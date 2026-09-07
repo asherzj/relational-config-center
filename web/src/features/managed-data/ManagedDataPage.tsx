@@ -365,6 +365,8 @@ export function ManagedDataPage() {
             pending={changes.view.executionPending}
             onEdit={() => changes.send({ type: "edit-pending" })}
             onCancel={() => send({ type: "cancel-pending" })}
+            onCheck={changes.checkCurrent}
+            onResume={() => { changes.send({ type: "resume-after-check" }); void result.refetch(); }}
             onConfirm={() => changes.send({ type: "confirm-pending" })}
           />
           <MutationSuccessDialog

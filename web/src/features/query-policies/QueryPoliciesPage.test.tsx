@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TestRouter } from "../../test/TestRouter";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -240,4 +240,33 @@ describe("查询规则页面", () => {
       expect.objectContaining({ method: "DELETE" }),
     ));
   });
+});
+
+
+it("ends an uncertain lifecycle check in the refreshed directory instead of leaving stale detail actions", async () => {
+  const user = userEvent.setup();
+  let storedPolicy = { ...draftPolicy };
+  let writes = 0;
+  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+    if (url.endsWith(`/query-policies/${draftPolicy.code}/activate`) && init?.method === "POST") {
+      writes++; storedPolicy = { ...storedPolicy, status: "ACTIVE" };
+      throw new TypeError("response lost after activation");
+    }
+    if (url.endsWith(`/query-policies/${draftPolicy.code}`)) return json(storedPolicy);
+    if (url.endsWith("/query-policies")) return json({ policies: [storedPolicy] });
+    throw new Error(`unexpected request ${url}`);
+  }));
+  renderPage(`/platform/query-policies/${draftPolicy.code}`);
+  const drawer = await screen.findByRole("dialog", { name: "查询规则详情" });
+  await user.click(await within(drawer).findByRole("button", { name: "激活" }));
+  await user.click(screen.getByRole("button", { name: "确认激活" }));
+  await screen.findByRole("alert", { name: "提交结果尚未确认" });
+  await user.click(screen.getByRole("button", { name: "只读核对当前状态" }));
+  await screen.findByText("ACTIVE");
+  await user.click(screen.getByRole("button", { name: "我已核对，结束本次核对" }));
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: "查询规则详情" })).not.toBeInTheDocument());
+  expect(await screen.findByText("已激活")).toBeVisible();
+  expect(writes).toBe(1);
 });

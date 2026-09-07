@@ -1,3 +1,5 @@
+import { getQueryPolicy } from "../../api/query-policies";
+import { WriteRecovery } from "../../components/ui/WriteRecovery";
 import { AlertCircle } from "lucide-react";
 import { useMemo, useRef, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -96,7 +98,7 @@ function QueryPolicySession({ code, onRequestCommand }: Props) {
   if (mode === "create" || mode === "replace" || mode === "metadata") {
     footer = (
       <>
-        <Button variant="primary" type="submit" form="query-policy-form" disabled={form.pending || (mode === "create" && !types.data?.some((type) => supportedQueryPolicyTypes.has(type)))}>
+        <Button variant="primary" type="submit" form="query-policy-form" disabled={form.pending || form.recovery.blocked.current || (mode === "create" && !types.data?.some((type) => supportedQueryPolicyTypes.has(type)))}>
           {form.pending ? "正在保存…" : mode === "create" ? "创建草稿" : mode === "metadata" ? "保存名称和描述" : "保存执行规则"}
         </Button>
         <Button onClick={close} disabled={form.pending}>取消</Button>
@@ -115,5 +117,5 @@ function QueryPolicySession({ code, onRequestCommand }: Props) {
     );
   }
 
-  return <Drawer open={Boolean(code)} title={title} eyebrow="查询规则" onClose={close} footer={footer}>{content}</Drawer>;
+  return <Drawer open={Boolean(code)} title={title} eyebrow="查询规则" onClose={close} footer={footer}>{content}<WriteRecovery onResume={form.recovery.reset} error={form.recovery.error} onCheck={() => getQueryPolicy(form.submittedCode!)} /></Drawer>;
 }

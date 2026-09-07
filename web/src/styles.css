@@ -259,7 +259,7 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 .confirm-actions { margin-top: 24px; display: flex; justify-content: flex-end; gap: 9px; }
 .change-set-layer { padding: 24px; }
 .change-set-dialog, .mutation-success-dialog { position: relative; z-index: 1; width: min(980px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: hidden; border-radius: 16px; display: grid; background: #fff; box-shadow: var(--shadow); }
-.change-set-dialog { grid-template-rows: auto minmax(0, 1fr) auto auto; }
+.change-set-dialog { grid-template-rows: auto minmax(0, 1fr) auto; }
 .change-set-dialog > header { padding: 22px 26px 16px; border-bottom: 1px solid var(--line); }
 .change-set-dialog > header span { color: var(--muted); font-size: 13px; }
 .change-set-dialog > header h2 { margin: 7px 0 0; font-size: 20px; }
@@ -397,3 +397,10 @@ input::placeholder, textarea::placeholder { color: #6d7884; opacity: 1; }
 /* A discard confirmation must remain above drawers and Change Set dialogs. */
 .leave-protection-layer { z-index: 80; }
 .form-controls { display: contents; border: 0; padding: 0; margin: 0; min-width: 0; }
+
+.write-recovery { padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.write-recovery p { line-height: 1.6; }
+.write-recovery-snapshot { max-height: 280px; overflow: auto; margin-top: 12px; }
+.write-recovery-snapshot pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.confirm-dialog { max-height: calc(100vh - 32px); overflow: auto; }

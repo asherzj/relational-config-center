@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TestRouter } from "../../test/TestRouter";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -415,4 +415,35 @@ describe("表规则分配页面", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("实时表结构");
     expect(screen.getByRole("alert")).toHaveTextContent("req-schema-24");
   });
+});
+
+
+it("ends an uncertain enable/disable check in the refreshed table directory", async () => {
+  let enabled = true;
+  let writes = 0;
+  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.endsWith("/table-policies/notification_templates/disable") && init?.method === "POST") {
+      writes++; enabled = false; throw new TypeError("response lost after disabling");
+    }
+    if (url.endsWith("/table-policies/notification_templates")) return json({ ...tablePolicy, enabled });
+    if (url.endsWith("/table-policies")) return json({ policies: [{ ...tablePolicy, enabled }] });
+    if (url.endsWith("/database-tables")) return json({ tables: discoveryTables.map(table => table.table_name === "notification_templates" ? { ...table, policy_enabled: enabled } : table) });
+    if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+    if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
+    if (url.endsWith("/query-policies")) return json({ policies: queryPolicies });
+    if (url.endsWith("/mutation-policies")) return json({ policies: mutationPolicies });
+    throw new Error(`unexpected request ${url}`);
+  }));
+  renderPage("/platform/table-policies/notification_templates");
+  const drawer = await screen.findByRole("dialog", { name: "表规则详情" });
+  await userEvent.click(await within(drawer).findByRole("button", { name: "停用" }));
+  await userEvent.click(screen.getByRole("button", { name: "确认停用" }));
+  await screen.findByRole("alert", { name: "提交结果尚未确认" });
+  await userEvent.click(screen.getByRole("button", { name: "只读核对当前状态" }));
+  await screen.findByText("当前查询结果（仅供核对）");
+  await userEvent.click(screen.getByRole("button", { name: "我已核对，结束本次核对" }));
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: "表规则详情" })).not.toBeInTheDocument());
+  expect(await within(screen.getByRole("region", { name: "表规则目录" })).findByText("未启用")).toBeVisible();
+  expect(writes).toBe(1);
 });

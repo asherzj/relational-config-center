@@ -1,3 +1,5 @@
+import { isUncertainWriteError } from "../../api/client";
+import { queryManagedTable } from "../../api/managed-data";
 import { useRef, useState } from "react";
 import { supportsMutationPolicyType } from "../mutation-policies/model";
 import { useMutationPolicy, useMutationPolicyTypes } from "../mutation-policies/queries";
@@ -40,7 +42,8 @@ export type ManagedDataMutationIntent =
   | { type: "cancel-pending" }
   | { type: "confirm-pending" }
   | { type: "retry-readback" }
-  | { type: "close-outcome" };
+  | { type: "close-outcome" }
+  | { type: "resume-after-check" };
 
 type Options = {
   tableName: string;
@@ -53,6 +56,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
   const mutationTypes = useMutationPolicyTypes(Boolean(mutationPolicyCode));
   const mutation = useManagedDataMutation();
   const inFlight = useRef(false);
+  const uncertain = useRef(false);
   const rowRefetch = useManagedDataRowRefetch();
   const [editorSequence, setEditorSequence] = useState(0);
   const [editor, setEditor] = useState<ManagedDataEditorState | null>(null);
@@ -110,6 +114,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
         if (!columns) return;
         const sequence = editorSequence + 1;
         setEditorSequence(sequence);
+        uncertain.current = false;
         mutation.reset();
         setPendingChange(null);
         setEditor({
@@ -125,6 +130,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
       }
       case "review-delete":
         if (!columns || typeof intent.row.id !== "string") return;
+        uncertain.current = false;
         mutation.reset();
         setEditor(null);
         setPendingChange({
@@ -144,16 +150,23 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
           changeSetAutoFillFields: editor.changeSetAutoFillFields,
         });
         return;
+      case "resume-after-check":
+        uncertain.current = false;
+        mutation.reset();
+        setPendingChange(null);
+        return;
       case "edit-pending":
+        if (uncertain.current) return;
         setPendingChange(null);
         return;
       case "cancel-pending":
+        uncertain.current = false;
         mutation.reset();
         setPendingChange(null);
         setEditor(null);
         return;
       case "confirm-pending":
-        if (!pendingChange) return;
+        if (!pendingChange || uncertain.current) return;
         inFlight.current = true;
         mutation.mutate({
           operation: pendingChange.operation,
@@ -166,6 +179,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
             setPendingChange(null);
             setEditor(null);
           },
+          onError(error) { uncertain.current = isUncertainWriteError(error); },
           onSettled() { inFlight.current = false; },
         });
         return;
@@ -197,6 +211,15 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
       executionError: mutation.error,
       executionPending: mutation.isPending,
       retryPending: rowRefetch.isPending,
+    },
+    checkCurrent: async () => {
+      if (!pendingChange) return;
+      // An ADD whose generated id was lost cannot be uniquely located. Never guess it.
+      const id = pendingChange.id ?? pendingChange.content.id;
+      return queryManagedTable(pendingChange.tableName, {
+        conditions: typeof id === "string" ? [{ field: "id", operator: "exact", value: id }] : [],
+        pageNumber: 1, ...(typeof id === "string" ? { pageSize: 1 } : {}),
+      });
     },
     send,
   };
