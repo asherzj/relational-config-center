@@ -15,7 +15,7 @@ test:
 	done
 
 test-integration:
-	@cd admin && go test -count=1 -timeout=20m -tags=integration ./...
+	@cd admin && go test -count=1 -timeout=25m -tags=integration ./...
 
 test-browser-acceptance:
 	@./scripts/browser-acceptance.sh

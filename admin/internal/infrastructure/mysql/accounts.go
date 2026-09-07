@@ -52,6 +52,9 @@ func authError(err error) error {
 	return domain.ErrAuthUnavailable
 }
 func (a *Adapter) authTransaction(ctx context.Context, now time.Time, fn func(*gorm.DB) error) error {
+	// Maintenance callers also trigger expiry cleanup without using the
+	// Authentication clock. Keep their cleanup comparisons at storage precision.
+	now = now.UTC().Truncate(time.Microsecond)
 	return authError(a.gorm.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var lock struct{ ID int }
 		if err := tx.Table("rcc_auth_control_lock").Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = 1").Take(&lock).Error; err != nil {

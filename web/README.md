@@ -86,7 +86,7 @@ RCC_E2E_ARTIFACTS=/tmp/rcc-browser-accessibility-firefox-webkit \
 ```sh
 DOCKER_HOST=unix://$HOME/.colima/default/docker.sock \
 TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
-  go -C admin test -count=1 -timeout=20m -tags=integration ./...
+  go -C admin test -count=1 -timeout=25m -tags=integration ./...
 ```
 
 只设置 `DOCKER_HOST` 会让 Ryuk 尝试把 macOS socket 路径挂载进 VM 并失败；本次环境在 provider 健康检查未通过时会跳过 integration，其他 Docker provider 可能自动发现 daemon，不能据此泛化。其他 provider 的路径需要按本机环境核实。

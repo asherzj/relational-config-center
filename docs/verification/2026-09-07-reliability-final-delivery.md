@@ -1,6 +1,6 @@
 # 管理台可靠性工作包交付记录
 
-本记录汇总本轮六阶段工作，产品与测试源码锚定合并提交 `24ee35239c5220f8072d21d0b096f4b60b019ec8`。分支为 `codex/management-reliability-20260907`，目标是 [MR #43 → main](https://github.com/asherzj/relational-config-center/pull/43)。运行状态以 [MR 检查](https://github.com/asherzj/relational-config-center/pull/43/checks)及 [Notion 项目交付记录](https://app.notion.com/p/3ca8544cc98980559f27e17f2c94cbaf)为准；本 MR 不自动合并。
+本记录汇总本轮六阶段工作，主要可靠性修复锚定合并提交 `24ee35239c5220f8072d21d0b096f4b60b019ec8`，随后同步 main 的 `1590d743f863c481da179f3c355cd55479bfaac3` 账号时间精度修复。分支为 `codex/management-reliability-20260907`，目标是 [MR #43 → main](https://github.com/asherzj/relational-config-center/pull/43)。运行状态以 [MR 检查](https://github.com/asherzj/relational-config-center/pull/43/checks)及 [Notion 项目交付记录](https://app.notion.com/p/3ca8544cc98980559f27e17f2c94cbaf)为准；本 MR 不自动合并。
 
 ## 交付内容
 
@@ -38,6 +38,8 @@ Linux 每次提交独立运行 Web、Go unit and build、MySQL 8.4 integration�
 Playwright WebKit 代表该构建，不代表系统 Safari 全版本。CR/CRLF 剪贴板场景使用合成 DataTransfer/ClipboardEvent；Firefox/WebKit 的 beforeunload 验证为浏览器事件，不宣称覆盖原生提示。故障注入在真实数据库提交后破坏响应，并核对实际写次数；跨客户端并发仍使用现有 last-write-wins 语义。
 
 ## 时间、Issue 与资源
+
+收尾时发现 main 已通过 MR #45 修复账号到期精度：应用时钟与 MySQL `DATETIME(6)` 统一到 UTC 微秒精度，避免存储取整延长会话寿命；完整 integration 的进程上限从 20 调整为 25 分钟，CI 总上限仍为 30 分钟。旧 main 的 20 分钟超时和两项到期边界失败有独立日志，不能解释为本轮浏览器回归失败。该修复已同步到工作树，6 个账号组与 2 个纳秒边界子例在真实 MySQL 上全部通过（52.382 秒、0 失败、0 跳过），6 个容器已清理；普通 application/mysql 检查也通过。最终 HEAD 完整 CI 另在 MR/Notion 确认；上表 372 项仍表示此前本机检查点，不篡改为新树全量计数。
 
 本轮开始于 04:08:58Z，本机最终组合结束于 10:03:38Z，至此历时 5 小时 54 分 40 秒。该跨度包含验证运行、CI 等待和任务恢复，不能全部记为纯编码时间；最终交付时间与额度在 Notion 收尾记录中确认。原一轮约 1 小时 57 分不等于 8 小时，也不与并行 subagent 时间相加。本轮没有通过空等或无新风险的重复测试补足时长。
 

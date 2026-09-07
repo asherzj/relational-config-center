@@ -73,6 +73,8 @@ make test-integration
 
 集成测试使用 Testcontainers 和真实 MySQL 8.4；`make test-integration` 禁用 Go 测试缓存。本机没有可用 Docker provider 时测试会明确跳过，不会以数据库 mock 替代；持续集成会先执行 Docker 健康检查，因此 Docker 不可用时整个检查失败，不会跳过后假绿。
 
+整组集成测试的进程上限为 25 分钟，以容纳隔离 MySQL 容器启动时间的波动；CI 任务另有 30 分钟总上限。各请求、数据库等待和进程停止的独立超时仍由对应测试验证。
+
 ## 持续集成
 
 GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行四个检查：`Web`、`Go unit and build`、`MySQL 8.4 integration` 和 `Browser acceptance`。浏览器检查在 Linux runner 上使用 Playwright 的 Chromium、Firefox 和 WebKit；每个引擎单独写入 artifact 子目录。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
@@ -99,7 +101,7 @@ RCC_E2E_ARTIFACTS=/tmp/rcc-browser-accessibility-firefox \
 ```bash
 DOCKER_HOST=unix://$HOME/.colima/default/docker.sock \
 TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
-  go -C admin test -count=1 -timeout=20m -tags=integration ./...
+  go -C admin test -count=1 -timeout=25m -tags=integration ./...
 ```
 
 只设置 `DOCKER_HOST` 会让 Ryuk 尝试把 macOS socket 路径挂载进 VM 并失败；本次环境在 provider 健康检查未通过时会跳过 integration，其他 Docker provider 可能自动发现 daemon，不能据此泛化。其他 provider 的 daemon 与 VM socket 仍需按本机环境核实。

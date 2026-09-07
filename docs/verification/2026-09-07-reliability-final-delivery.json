@@ -446,5 +446,17 @@
         "volume name: rcc-browser-1788775339-2135-mysql-data"
       ]
     }
+  },
+  "mainPrecisionFollowUp": {
+    "mainSHA": "1590d743f863c481da179f3c355cd55479bfaac3",
+    "sourceAndTestTreeSHA256AfterMerge": "e85382ce6176b9eaa93238028b5b5ad6e99894322d7de72752d927cb1c50517b",
+    "accountGroupsPassed": 6,
+    "nanosecondSubtestsPassed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 52.382,
+    "isolatedMySQLContainersCleaned": 6,
+    "integrationLogSHA256": "37ca0b0f3950a0ce1a3c67a411158dce155d84c5f8084426cb85d1cb6bba54ab",
+    "note": "Earlier full local and browser checkpoints remain anchored to their recorded source versions; final HEAD CI is verified separately at delivery."
   }
 }

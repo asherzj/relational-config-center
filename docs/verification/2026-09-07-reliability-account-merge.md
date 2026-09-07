@@ -46,6 +46,8 @@
 
 ## 复验与记录
 
+后续 main 的 [MR #45](https://github.com/asherzj/relational-config-center/pull/45)（`1590d74`）也已同步到当前工作树，统一账号时钟与到期清理的微秒精度，并将完整 integration 上限调整为 25 分钟。本文上面的 372 项全量和 131 项本机组合是此前检查点；新增账号期限专项及最终分支 CI 见[最终交付记录](2026-09-07-reliability-final-delivery.md)与 MR 检查，避免将不同源码版本的结果混为一条记录。
+
 ```sh
 pnpm --dir web typecheck
 pnpm --dir web test:run
