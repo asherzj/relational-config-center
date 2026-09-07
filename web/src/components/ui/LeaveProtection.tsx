@@ -99,7 +99,7 @@ export function useLeaveProtection() {
   return value;
 }
 
-export function useDraftProtection(dirty: boolean, pending = false) {
+export function useDraftProtection(dirty: boolean, pending = false, inFlight?: RefObject<boolean>) {
   const protection = useLeaveProtection();
   const wasPending = useRef(pending);
   useEffect(() => {
@@ -107,7 +107,9 @@ export function useDraftProtection(dirty: boolean, pending = false) {
     wasPending.current = pending;
   }, [pending, protection.submissionSettled]);
   const status = useRef({ dirty, pending });
-  status.current = { dirty, pending };
+  // Mutation observers publish pending asynchronously. Navigation and native
+  // beforeunload must also see a request started in the current event turn.
+  status.current = { dirty, get pending() { return pending || Boolean(inFlight?.current); } };
   useLayoutEffect(() => protection.register(status), [protection.register]);
   return protection;
 }

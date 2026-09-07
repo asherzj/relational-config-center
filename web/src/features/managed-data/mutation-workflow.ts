@@ -1,6 +1,7 @@
 import { isUncertainWriteError } from "../../api/client";
 import { queryManagedTable } from "../../api/managed-data";
 import { useRef, useState } from "react";
+import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { supportsMutationPolicyType } from "../mutation-policies/model";
 import { useMutationPolicy, useMutationPolicyTypes } from "../mutation-policies/queries";
 import {
@@ -56,6 +57,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
   const mutationTypes = useMutationPolicyTypes(Boolean(mutationPolicyCode));
   const mutation = useManagedDataMutation();
   const inFlight = useRef(false);
+  const protection = useDraftProtection(false, mutation.isPending, inFlight);
   const uncertain = useRef(false);
   const rowRefetch = useManagedDataRowRefetch();
   const [editorSequence, setEditorSequence] = useState(0);
@@ -180,7 +182,7 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
             setEditor(null);
           },
           onError(error) { uncertain.current = isUncertainWriteError(error); },
-          onSettled() { inFlight.current = false; },
+          onSettled() { inFlight.current = false; protection.submissionSettled(); },
         });
         return;
       case "retry-readback":

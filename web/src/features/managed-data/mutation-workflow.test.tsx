@@ -1,3 +1,5 @@
+import { LeaveProtectionProvider } from "../../components/ui/LeaveProtection";
+import { TestRouter } from "../../test/TestRouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -17,7 +19,7 @@ function json(value: unknown, status = 200) {
 function createWrapper() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+    return <QueryClientProvider client={client}><TestRouter initialEntries={["/configuration/managed-data"]}><LeaveProtectionProvider>{children}</LeaveProtectionProvider></TestRouter></QueryClientProvider>;
   };
 }
 

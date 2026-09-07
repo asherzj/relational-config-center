@@ -50,7 +50,7 @@ function TablePolicySession({ tableName }: Props) {
   const recovery = useWriteRecovery();
   const submittedTable = useRef(tableName);
   const pending = create.isPending || replace.isPending || enable.isPending || disable.isPending;
-  const protection = useDraftProtection(selectingAssignment && baseline !== null && JSON.stringify(assignment) !== JSON.stringify(baseline), pending);
+  const protection = useDraftProtection(selectingAssignment && baseline !== null && JSON.stringify(assignment) !== JSON.stringify(baseline), pending, inFlight);
   const [confirmReplace, setConfirmReplace] = useState(false);
   const [pendingStateCommand, setPendingStateCommand] = useState<"enable" | "disable" | null>(null);
   const close = () => navigate("/platform/table-policies");
@@ -116,7 +116,7 @@ function TablePolicySession({ tableName }: Props) {
         protection.afterSave(() => navigate(`/platform/table-policies/${encodeURIComponent(tableName)}`));
       },
       onError(error) { recovery.fail(error); setConfirmReplace(false); },
-      onSettled() { inFlight.current = false; },
+      onSettled() { inFlight.current = false; protection.submissionSettled(); },
     });
   };
 
@@ -132,7 +132,7 @@ function TablePolicySession({ tableName }: Props) {
         setPendingStateCommand(null);
       },
       onError(error) { recovery.fail(error); setPendingStateCommand(null); },
-      onSettled() { inFlight.current = false; },
+      onSettled() { inFlight.current = false; protection.submissionSettled(); },
     });
   };
 
@@ -148,7 +148,7 @@ function TablePolicySession({ tableName }: Props) {
           protection.afterSave(() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}`));
         },
         onError: recovery.fail,
-        onSettled() { inFlight.current = false; },
+        onSettled() { inFlight.current = false; protection.submissionSettled(); },
       });
     } else if (detail.data?.enabled) setConfirmReplace(true);
     else executeReplace();

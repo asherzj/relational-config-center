@@ -95,7 +95,7 @@ export function usePolicyLifecycleCommands({
   const confirm = pendingCommand ? copy[pendingCommand.command] : null;
   const pending = pendingCommand ? runners[pendingCommand.command].pending : false;
 
-  useDraftProtection(false, pending);
+  const protection = useDraftProtection(false, pending, inFlight);
 
   const execute = () => {
     if (!pendingCommand || inFlight.current || pending || recovery.blocked.current) return;
@@ -106,12 +106,14 @@ export function usePolicyLifecycleCommands({
       code,
       () => {
         inFlight.current = false;
+        protection.submissionSettled();
         showToast(copy[command].success);
         setPendingCommand(null);
-        if (command === "delete" && selectedCode === code) navigate(collectionPath);
+        if (command === "delete" && selectedCode === code) protection.afterSave(() => navigate(collectionPath));
       },
       (error) => {
         inFlight.current = false;
+        protection.submissionSettled();
         recovery.fail(error);
         if (recovery.blocked.current) { uncertainTargets.current.set(code, error); return; }
         const shown = presentError(error);
@@ -153,10 +155,10 @@ export function usePolicyFormSubmission<TDraft, TMetadata>({
   const navigate = useNavigate();
   const { showToast } = useToast();
   const inFlight = useRef(false);
-  const protection = useDraftProtection(false, pending);
+  const protection = useDraftProtection(false, pending, inFlight);
   const recovery = useWriteRecovery();
   const submittedCode = useRef(code);
-  const unlock = () => { inFlight.current = false; };
+  const unlock = () => { inFlight.current = false; protection.submissionSettled(); };
   const fail = (cause: unknown) => { recovery.fail(cause); unlock(); };
   const openDetail = (targetCode: string) => {
     unlock();

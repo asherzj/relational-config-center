@@ -71,6 +71,18 @@ RCC_E2E_SUITE=write-recovery RCC_E2E_ARTIFACTS=<new-empty-output-directory> make
 
 仓库内保留[本阶段 28 项请求与 SQL 证据](2026-09-07-reliability-stage2-browser.json)和[成功响应丢失后的恢复界面](2026-09-07-reliability-stage2-response-lost.png)。最终实际停机用例的只读状态序列是 `[503, 503, 503, 503, 200]`；原写请求数为 1、实际写入数为 0，Admin 未重启。
 
+## Linux CI 发现的提交与导航时间窗口
+
+提交 `93e6436` 的 Linux run [`34089085562`](https://github.com/asherzj/relational-config-center/actions/runs/34089085562) 中，Web 和 Go 成功，Browser 在生命周期快速确认后的后退验证失败。失败工件为 `browser-acceptance-34089085562-1`（ID `10006254189`，SHA-256 `c3dc96e5aa6abd8c73a2a54b8203eb036466dbdca5022fada2a4f78f9e8ebba5`），已下载到持久记录目录 `stage2-linux-failure`。截图中详情已经关闭，而写请求仍在等待响应；写请求为 1，未出现离开提示。
+
+根代理使用当前生产构建、真实 Chromium 和延迟响应替身建立了约 3 秒的紧凑回路。同样的原生双击与后退在第三次尝试复现；去掉 Enter 后第二次仍复现，历史索引正常。浏览器记录表明，请求已发出时按钮仍显示“确认激活”，React Query 尚未发布 pending 状态。离开保护此前只读取这一异步状态，所以存在短暂空档。
+
+离开保护现在同时读取各写入入口已有的同步 in-flight 标记，从发出请求的同一事件开始生效；完成回调明确清除提交提示。修复后同一原生浏览器回路 20 次全部拦截，始终只有 1 个写请求。对应组件回归固定 mutation observer 的 pending=false，直接验证请求发出后后退必须被阻止，保留红/绿日志。
+
+阶段 3 的真实 Mutation Draft 删除还发现另一端的时间窗口：DELETE 已返回 204、SQL 已不存在，但成功导航可能被尚未清除的旧 pending 拦住。成功删除现在沿用表单已有的 `afterSave` 导航机制，避免对已完成的操作再次弹出离开确认。回归先固定 observer pending=true 并复现导航失败，再验证成功后直接回到目录。测试路由包装器也改为传递当前 children，避免 `rerender` 后仍使用初始 pending 值而误报通过。
+
+修复后的 `stage2-navigation-recovery` 于 06:24:03Z 完成：28 项真实故障矩阵全部通过，pageErrors 为空，种子内容逐字节一致，资源清理通过。相关生命周期、数据工作流和未保存回归 28 项通过，生产构建通过；共享工作树当时完整 Web 回归为 161 项，其中包含阶段 3 尚未提交的 1 项新增模型测试，不能把这个数量当成此补丁独立提交的测试数量。修复提交后的 Linux CI 继续由父代理核验。
+
 ## 边界
 
 本次锁和草稿属于当前 Web 会话，不提供刷新、新标签或其他客户端之间的服务端幂等保证；人工决定再次提交仍有重复写入风险。没有实现持久草稿、幂等平台、并发版本检查或账号功能。当前值相同、不存在或分页缺失都不被称为本次提交的成功/失败证明。
