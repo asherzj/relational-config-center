@@ -232,7 +232,7 @@ modify_time_field = "updated_at"
 - Driver 启用 ClientFoundRows；写入原值仍返回匹配行，零行表示 `id` 不存在。
 - 每次 Mutation 在 MySQL Adapter 内的独立事务中执行。
 
-Auto Fill 只支持上述四个固定槽：ADD 填 Create 与 Modify 槽，MODIFY 只填 Modify 槽，DELETE 不填。Operator 槽取 `ADMIN_OPERATOR`，Time 槽取同一事务的数据库时间。客户端提交任一服务端管理字段会被拒绝，而不是覆盖；literal 与任意规则不在最终模型中。
+Auto Fill 只支持上述四个固定槽：ADD 填 Create 与 Modify 槽，MODIFY 只填 Modify 槽，DELETE 不填。Operator 槽取当前请求已认证账号的永久 Account ID，Time 槽取同一事务的数据库时间。客户端提交任一服务端管理字段会被拒绝，而不是覆盖；literal 与任意规则不在最终模型中。
 
 ## 10. HTTP API
 
@@ -304,7 +304,7 @@ DELETE /api/v1/tables/{table_name}/rows/{id}
 | HTTP | 类别 |
 |---|---|
 | 400 | JSON、分页、条件和值格式错误 |
-| 401 | Bearer Token 错误 |
+| 401 | 会话失效或登录失败 |
 | 403 | `rcc_*` 或禁止目标 |
 | 404 | Policy、物理表或目标行不存在 |
 | 409 | Policy 已存在、唯一键冲突 |
@@ -321,10 +321,12 @@ DELETE /api/v1/tables/{table_name}/rows/{id}
 
 ```text
 ADMIN_HTTP_ADDR
-ADMIN_API_TOKEN
-ADMIN_AUTH_DISABLED
-ADMIN_OPERATOR
-ADMIN_CORS_ORIGINS
+ADMIN_PUBLIC_ORIGIN
+ADMIN_ALLOW_LOCAL_HTTP
+ADMIN_TRUSTED_PROXIES
+ADMIN_REGISTER_LIMIT
+ADMIN_LOGIN_IP_LIMIT
+ADMIN_LOGIN_FAILURE_LIMIT
 
 MYSQL_HOST
 MYSQL_PORT
@@ -348,8 +350,8 @@ MYSQL_WRITE_TIMEOUT
 ## 13. HTTP 安全与进程基线
 
 - 默认监听 `127.0.0.1:8080`。
-- 只有绑定 loopback 且显式设置 `ADMIN_AUTH_DISABLED=true` 时才能关闭 Token。
-- `/api/v1/**` 使用 Bearer Token、Request ID、1 MiB Body Limit、Recovery、精确 CORS Allowlist 和结构化访问日志。
+- 业务 API 始终需要当前账号会话；非 GET/HEAD 请求需要会话 CSRF 与配置同源 Origin/Referer。旧 Token、免认证和正常固定 Operator 配置明确拒绝。
+- `/api/v1/**` 使用 Cookie 会话、Request ID、1 MiB Body Limit、Recovery 和结构化访问日志；注册、登录与登录前 CSRF 准备入口遵循[账号契约](admin-local-accounts.md)。不提供跨源 CORS 访问。
 - `/health/live` 与 `/health/ready` 无认证；Readiness 检查 MySQL 与 Catalog，不受单个业务表影响。
 - 日志为 stdout JSON，只记录 Request ID、方法、稳定路由模板、状态码和耗时；不记录 Token、DSN、动态 table/row path 值、查询值、Mutation Content、返回数据、完整 SQL 或绑定参数。未知路由使用固定安全占位。
 - 配置、注册表、MySQL 或 Catalog 错误会阻止启动；不在启动时遍历全部 Policy。

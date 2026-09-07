@@ -1,3 +1,4 @@
+import { businessSession, businessSessionInvalid } from "./business-session";
 import type { ZodType } from "zod";
 import { adminErrorDtoSchema } from "./contracts";
 
@@ -14,6 +15,7 @@ export class ApiError extends Error {
     public readonly status: number,
     public readonly requestId?: string,
     options?: ErrorOptions,
+    public readonly retryAfter?: number,
   ) {
     super(message, options);
     this.name = "ApiError";
@@ -48,30 +50,61 @@ async function parseJson(response: Response): Promise<unknown> {
 
 export async function request<T>(path: string, options: RequestOptions<T> = {}): Promise<T> {
   const { schema, headers, ...init } = options;
+  const business = path.startsWith("/api/v1/") && !path.startsWith("/api/v1/auth/");
+  const session = businessSession();
+  const change = !["GET", "HEAD"].includes(init.method ?? "GET");
   let response: Response;
 
   try {
     response = await fetch(path, {
       ...init,
+      credentials: "same-origin",
       headers: {
         Accept: "application/json",
         ...(init.body ? { "Content-Type": "application/json" } : {}),
+        ...(business && change && session.credentials ? { "X-CSRF-Token": session.credentials.csrf } : {}),
         ...headers,
       },
     });
   } catch (cause) {
+    if (business && session.generation !== businessSession().generation) {
+      throw new ApiError("stale_session", "登录状态已变化，请重新查询。", 0);
+    }
     throw new ApiError("network_error", "无法连接 Admin，请检查服务状态后重试。", 0, undefined, { cause });
   }
 
-  const payload = await parseJson(response);
+  const responseAccountID = response.headers.get("X-RCC-Account-ID");
+  if (business && session.generation !== businessSession().generation) {
+    throw new ApiError("stale_session", "登录状态已变化，请重新查询。", 0);
+  }
+  if (business && session.credentials && responseAccountID && responseAccountID !== session.credentials.accountID) {
+    window.dispatchEvent(new CustomEvent(businessSessionInvalid, { detail: { code: "account_changed" } }));
+    throw new ApiError("stale_session", "登录账号已变化，请重新查询。", 0);
+  }
+  let payload: unknown;
+  try {
+    payload = await parseJson(response);
+  } catch (cause) {
+    if (business && session.generation !== businessSession().generation) {
+      throw new ApiError("stale_session", "登录状态已变化，请重新查询。", 0);
+    }
+    if (cause instanceof ApiError) throw cause;
+    throw new ApiError("network_error", "读取 Admin 响应时连接中断，请重新查询。", response.status, response.headers.get("X-Request-ID") ?? undefined, { cause });
+  }
+  if (business && session.generation !== businessSession().generation) {
+    throw new ApiError("stale_session", "登录状态已变化，请重新查询。", 0);
+  }
   if (!response.ok) {
     const parsedError = adminErrorDtoSchema.safeParse(payload);
     if (parsedError.success) {
+      if (business && response.status === 401) window.dispatchEvent(new CustomEvent(businessSessionInvalid, { detail: { code: parsedError.data.error.code } }));
       throw new ApiError(
         parsedError.data.error.code,
         parsedError.data.error.message,
         response.status,
         parsedError.data.error.request_id,
+        undefined,
+        response.headers.has("Retry-After") ? Number(response.headers.get("Retry-After")) : undefined,
       );
     }
     throw new ApiError(
@@ -113,10 +146,16 @@ const definiteWriteRejections = new Set([
   "protected_table", "table_policy_disabled", "invalid_policy_snapshot", "mutation_not_allowed", "mutation_row_not_found",
   "invalid_mutation_content", "missing_required_field", "duplicate_key", "request_body_too_large", "invalid_request",
   "unauthorized", "cors_origin_forbidden", "cors_preflight_forbidden",
+  "session_invalid", "account_disabled", "csrf_invalid",
 ]);
 
 export function isUncertainWriteError(error: unknown): boolean {
   if (error === null || error === undefined) return false;
   return !(error instanceof ApiError && error.status >= 400 && error.status < 500
     && definiteWriteRejections.has(error.code));
+}
+
+// An earlier explicit rejection must never hide a later unresolved write.
+export function prioritizeUncertainWriteError<T>(errors: readonly T[]): T | undefined {
+  return errors.find(isUncertainWriteError) ?? errors.find(Boolean);
 }

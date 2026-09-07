@@ -1,15 +1,15 @@
 import { isUncertainWriteError } from "../../api/client";
-import { WriteRecovery } from "../../components/ui/WriteRecovery";
-import { ErrorState } from "../../components/ui/Feedback";
 import { Button } from "../../components/ui/Button";
-import type { ChangeSet, ChangeSetCell } from "./model";
-import { useRef } from "react";
+import { ErrorState } from "../../components/ui/Feedback";
 import { useModalFocus } from "../../components/ui/useModalFocus";
+import { WriteRecovery } from "../../components/ui/WriteRecovery";
+import { useRef } from "react";
+import type { ChangeSet, ChangeSetCell } from "./model";
 
 function Cell({ cell, autoFill }: { cell: ChangeSetCell; autoFill?: boolean }) {
   const content = cell.state === "value" ? cell.value
     : cell.state === "null" ? "NULL"
-      : cell.state === "empty" ? '""'
+      : cell.state === "empty" ? '\"\"'
         : cell.state === "unsubmitted" ? "未提交"
           : "不存在";
   return <><span className={`change-cell-value cell-${cell.state}`}>{content}</span>{autoFill && cell.state === "unsubmitted" && <small className="auto-fill-label">Auto Fill</small>}</>;
@@ -18,15 +18,18 @@ function Cell({ cell, autoFill }: { cell: ChangeSetCell; autoFill?: boolean }) {
 type Props = {
   changeSet: ChangeSet | null;
   error?: unknown;
+  recheckError?: unknown;
   pending: boolean;
+  confirmDisabled?: boolean;
   onEdit: () => void;
   onCancel: () => void;
   onConfirm: () => void;
   onCheck: () => Promise<unknown>;
   onResume: () => void;
+  onRetryRecheck?: () => void;
 };
 
-export function ChangeSetDialog({ changeSet, error, pending, onEdit, onCancel, onConfirm, onCheck, onResume }: Props) {
+export function ChangeSetDialog({ changeSet, error, recheckError, pending, confirmDisabled, onEdit, onCancel, onConfirm, onCheck, onResume, onRetryRecheck }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const operation = changeSet?.operation;
   const uncertain = isUncertainWriteError(error);
@@ -48,13 +51,14 @@ export function ChangeSetDialog({ changeSet, error, pending, onEdit, onCancel, o
               </tr>
             ))}</tbody>
           </table>
-        <WriteRecovery onResume={onResume} resumeLabel={operation === "DELETE" ? "我已核对，关闭并重新查询" : "我已核对，返回修改"} error={error} onCheck={onCheck}>{operation === "ADD" && <p>如果新增记录的 id 未返回，只能查询当前第一页供核对，不能据此判断新增失败或推测自增 id。</p>}</WriteRecovery>
-        {!uncertain && error !== undefined && error !== null && <ErrorState error={error} />}
+          <WriteRecovery onResume={onResume} resumeLabel={operation === "DELETE" ? "我已核对，关闭并重新查询" : "我已核对，返回修改"} error={error} onCheck={onCheck}>{operation === "ADD" && <p>如果新增记录的 id 未返回，只能查询当前第一页供核对，不能据此判断新增失败或推测自增 id。</p>}</WriteRecovery>
+          {!uncertain && error !== undefined && error !== null && <ErrorState error={error} />}
+          {recheckError !== undefined && recheckError !== null && <ErrorState error={recheckError} onRetry={onRetryRecheck} />}
         </div>
         <footer>
           <Button onClick={onCancel} disabled={pending}>{uncertain ? "关闭本次预览" : operation === "DELETE" ? "取消删除" : "放弃本次编辑"}</Button>
           {operation !== "DELETE" && <Button onClick={onEdit} disabled={pending || uncertain}>返回修改</Button>}
-          <Button variant={changeSet.operation === "DELETE" ? "danger" : "primary"} onClick={onConfirm} disabled={pending || uncertain}>{pending ? "正在执行…" : "确认并执行"}</Button>
+          <Button variant={changeSet.operation === "DELETE" ? "danger" : "primary"} onClick={onConfirm} disabled={pending || confirmDisabled || uncertain}>{pending ? "正在执行…" : "确认并执行"}</Button>
         </footer>
       </div>
     </div>

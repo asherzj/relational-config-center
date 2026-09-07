@@ -1,5 +1,7 @@
 # 关系型配置中心
 
+本地账号提供 `/register`、`/login` 和 `/account`，所有业务页面及 API 均要求真实 MySQL Cookie 会话，配置行和规则目录写入归属当前账号的永久 Account ID。启动需显式配置 `ADMIN_PUBLIC_ORIGIN`；本机 HTTP 还需 `ADMIN_ALLOW_LOCAL_HTTP=true`。参见[账号入口与 HTTP 契约](docs/admin-local-accounts.md)。旧共享 Token、免认证和固定 Operator 已移除；已包含草稿恢复、账号维护工具、缺结构启动检查和真实浏览器验收；参见[完整验收证据](docs/admin-local-accounts-evidence.md)。
+
 Relational Configuration Center 是一个面向实体、字段和关系建模的配置管理系统。
 它旨在为具有 Schema、约束、引用和关联查询需求的配置数据提供统一管理能力，区别于以独立键值或配置文件为主要管理单元的传统配置中心。
 
@@ -20,17 +22,17 @@ Relational Configuration Center 是一个面向实体、字段和关系建模的
 
 ## 本地运行
 
-Admin 是提供 HTTP API 的管理端后端，默认监听 `127.0.0.1:8080`；认证默认开启，所有 `/api/v1/**` 请求都必须携带部署级 Bearer Token。Web 管理台通过 Admin 的 API 和 Table Policy 治理表数据，Web 本身不直接连接 MySQL。`/health/live` 和 `/health/ready` 不需要认证。
+Admin 是提供 HTTP API 的管理端后端，默认监听 `127.0.0.1:8080`；业务 `/api/v1/**` 请求必须携带有效会话，非 GET/HEAD 请求还需 CSRF 及同源来源；登录前准备、注册和登录入口公开。Web 管理台通过 Admin 的 API 和 Table Policy 治理表数据，Web 本身不直接连接 MySQL。`/health/live` 和 `/health/ready` 不需要认证。
 
 使用 Docker Compose 启动 MySQL 8.4 和 Admin：
 
 ```bash
 test -e deploy/.env || cp deploy/.env.example deploy/.env
-# 编辑 deploy/.env，至少替换 MYSQL_ROOT_PASSWORD、MYSQL_PASSWORD 和 ADMIN_API_TOKEN
+# 编辑 deploy/.env，至少替换 MYSQL_ROOT_PASSWORD 和 MYSQL_PASSWORD
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml up --build
 ```
 
-请在启动前修改 `deploy/.env` 中的密码和 `ADMIN_API_TOKEN`。该文件不应提交到仓库；不要把上面的复制命令当作覆盖已有 `.env` 的更新方式。Compose 会在全新 MySQL 数据卷中自动执行 `deploy/mysql/init/001-schema.sql` 初始化 Policy Catalog，并在每次启动时幂等应用仅供本地开发使用的 `deploy/mysql/local-fixture/002-notification-templates.sql`。fresh volume，以及尚未包含同名资源或已包含完全相同 fixture 的已有 volume，会获得：
+请在启动前修改 `deploy/.env` 中的数据库密码。该文件不应提交到仓库；不要把上面的复制命令当作覆盖已有 `.env` 的更新方式。Compose 会在全新 MySQL 数据卷中自动执行 `deploy/mysql/init/001-schema.sql` 初始化 Policy Catalog，并在每次启动时幂等应用仅供本地开发使用的 `deploy/mysql/local-fixture/002-notification-templates.sql`。fresh volume，以及尚未包含同名资源或已包含完全相同 fixture 的已有 volume，会获得：
 
 - 带 3 条可辨识样例数据的 `notification_templates`；
 - Active 的 `notification_page_query_v1` Query Policy；
@@ -42,7 +44,8 @@ fixture 位于独立的 `mysql/local-fixture` 路径，只由本地 Compose 的�
 直接运行 Admin 时至少需要配置以下变量：
 
 ```bash
-ADMIN_API_TOKEN='replace-me' \
+ADMIN_PUBLIC_ORIGIN=http://127.0.0.1:5173 \
+ADMIN_ALLOW_LOCAL_HTTP=true \
 MYSQL_HOST=127.0.0.1 \
 MYSQL_DATABASE=rcc \
 MYSQL_USER=rcc_admin \
@@ -51,7 +54,7 @@ MYSQL_TLS_MODE=false \
 go run ./admin/cmd/admin
 ```
 
-可选配置包括 `ADMIN_HTTP_ADDR`、`ADMIN_OPERATOR`、`ADMIN_CORS_ORIGINS` 及技术基线中列出的 MySQL 连接池和超时变量。仅当 `ADMIN_AUTH_DISABLED=true` 且监听地址是显式 loopback IP 时才能关闭认证；不能在通配或内网地址上关闭。
+可选配置包括 `ADMIN_HTTP_ADDR`、`ADMIN_TRUSTED_PROXIES`、账号限速参数及技术基线中的 MySQL 连接池和超时变量。`ADMIN_API_TOKEN`、`ADMIN_AUTH_DISABLED`、`ADMIN_OPERATOR` 和旧跨源 `ADMIN_CORS_ORIGINS` 配置均已移除；提供非空旧配置会明确拒绝启动。自动化脚本也使用公开 Cookie/CSRF 登录流程，见账号契约。
 
 ## 测试
 
@@ -73,6 +76,8 @@ make test-integration
 ## 持续集成
 
 GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行四个检查：`Web`、`Go unit and build`、`MySQL 8.4 integration` 和 `Browser acceptance`。浏览器检查在 Linux runner 上使用 Playwright 的 Chromium、Firefox 和 WebKit；每个引擎单独写入 artifact 子目录。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
+
+浏览器验收通过公开 Cookie 会话及 CSRF 流程进入管理台；未登录的 Admin 和 Web 代理都拒绝业务请求。临时账号、规则和业务数据只存在于本次创建的独立 MySQL 中，结束后连同数据库一起清理。
 
 工作流当前只在推送到 `main` 和目标为 `main` 的 Pull Request 上运行这四个检查；推送到其他分支不会自动触发这套 CI。是否配置 branch protection、rulesets 或 required checks 由仓库设置决定，不能从本地文档推断为合并保证。
 

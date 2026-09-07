@@ -13,6 +13,7 @@ import (
 
 	"github.com/asherzj/relational-config-center/admin/internal/application"
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
+	passwordadapter "github.com/asherzj/relational-config-center/admin/internal/infrastructure/password"
 	driver "github.com/go-sql-driver/mysql"
 	"github.com/testcontainers/testcontainers-go"
 	tcmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
@@ -26,7 +27,7 @@ func TestExplicitIdentityRejectsUnusableKeysBeforeWriting(t *testing.T) {
 	if err := adapter.gorm.Exec("CREATE TABLE guard_text_ids (id VARCHAR(16) PRIMARY KEY) ENGINE=InnoDB").Error; err != nil {
 		t.Fatal(err)
 	}
-	mutation := identityGuardApplication(t, adapter, "guard_text_ids", "guard_padded_ids")
+	mutation, ctx := identityGuardApplication(t, ctx, adapter, "guard_text_ids", "guard_padded_ids")
 	for _, id := range []string{"", ".", ".."} {
 		t.Run("id="+id, func(t *testing.T) {
 			text := domain.JSONString(id)
@@ -71,7 +72,7 @@ func TestExplicitIdentityRejectsNontransactionalTableBeforeWriting(t *testing.T)
 		if err := adapter.gorm.Exec("CREATE TABLE guard_myisam_auto_ids (id TINYINT(1) AUTO_INCREMENT PRIMARY KEY) ENGINE=MyISAM").Error; err != nil {
 			t.Fatal(err)
 		}
-		mutation := identityGuardApplication(t, adapter, "guard_myisam_auto_ids")
+		mutation, ctx := identityGuardApplication(t, ctx, adapter, "guard_myisam_auto_ids")
 		_, err := mutation.Add(ctx, "guard_myisam_auto_ids", domain.MutationContent{})
 		if !errors.Is(err, application.ErrIncompatibleTable) {
 			t.Errorf("generated ADD to MyISAM: got %v, want incompatible table", err)
@@ -85,7 +86,7 @@ func TestExplicitIdentityReturnedAutoIDMustRemainSchemaAddressable(t *testing.T)
 	if _, err := admin.ExecContext(ctx, "CREATE TABLE guard_boolean_auto_ids (id TINYINT(1) AUTO_INCREMENT PRIMARY KEY, label VARCHAR(16)) ENGINE=InnoDB"); err != nil {
 		t.Fatal(err)
 	}
-	mutation := identityGuardApplication(t, adapter, "guard_boolean_auto_ids")
+	mutation, ctx := identityGuardApplication(t, ctx, adapter, "guard_boolean_auto_ids")
 	first, err := mutation.Add(ctx, "guard_boolean_auto_ids", domain.MutationContent{})
 	if err != nil || first != "1" {
 		t.Fatalf("first boolean auto identity: id=%q error=%v", first, err)
@@ -359,7 +360,7 @@ func TestExplicitIdentityAutoResultBelongsToThisInsert(t *testing.T) {
 			}
 		}
 	}
-	mutation := identityGuardApplication(t, adapter, tables...)
+	mutation, ctx := identityGuardApplication(t, ctx, adapter, tables...)
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
 			if err := adapter.gorm.Exec("SET SESSION sql_mode=?", test.mode).Error; err != nil {
@@ -442,7 +443,7 @@ func identityGuardDatabase(t *testing.T) (context.Context, *Adapter, *sql.DB, *d
 	return ctx, adapter, admin, settings
 }
 
-func identityGuardApplication(t *testing.T, adapter *Adapter, tables ...string) *application.ManagedTableMutation {
+func identityGuardApplication(t *testing.T, ctx context.Context, adapter *Adapter, tables ...string) (*application.ManagedTableMutation, context.Context) {
 	t.Helper()
 	for _, statement := range []string{
 		"INSERT INTO rcc_query_policies(code,name,type_code,default_order_field,default_order_direction,default_page_size,max_page_size,status,creator,modifier) VALUES ('guard_query_v1','Guard query','page_query','id','ASC',5,20,'ACTIVE','test','test')",
@@ -457,7 +458,25 @@ func identityGuardApplication(t *testing.T, adapter *Adapter, tables ...string) 
 			t.Fatal(err)
 		}
 	}
-	return application.NewManagedTableMutation(adapter, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry(), application.NewFixedOperatorProvider("test"))
+	// Obtain a real authenticated request identity through the current Account
+	// flow. The identity regression must not bypass Login Session or CSRF checks.
+	auth := application.NewAuthentication(adapter, passwordadapter.NewArgon2id(), nil, adapter, application.AuthenticationLimits{})
+	preauth, csrf, err := auth.Prepare(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := auth.CheckPreauth(ctx, preauth, csrf); err != nil {
+		t.Fatal(err)
+	}
+	registered, err := auth.Register(ctx, application.Registration{Username: "identity.guard", Email: "identity.guard@example.com", Password: "correct horse battery staple"}, preauth, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	operator, err := auth.AuthenticateRequest(ctx, registered.Token, registered.CSRF, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return application.NewManagedTableMutation(adapter, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry()), operator.Bind(ctx)
 }
 
 func identityGuardAdapter(t *testing.T, settings *driver.Config) *Adapter {

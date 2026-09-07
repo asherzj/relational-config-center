@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { ManagedTextInput } from "./ManagedTextInput";
 import { useDraftProtection } from "../../components/ui/LeaveProtection";
-import { ErrorState } from "../../components/ui/Feedback";
 import { Drawer } from "../../components/ui/Drawer";
 import { Button } from "../../components/ui/Button";
+import { ErrorState } from "../../components/ui/Feedback";
 import type { ManagedDataColumn, MutationContent } from "./model";
 
 type FieldDraft = { included: boolean; value: string; isNull: boolean };
@@ -16,6 +16,9 @@ type Props = {
   columns: readonly ManagedDataColumn[];
   original?: Record<string, string | null>;
   autoFillFields: ReadonlySet<string>;
+  reviewDisabled?: boolean;
+  recheckError?: unknown;
+  onRetryRecheck?: () => void;
   onClose: () => void;
   onReview: (content: MutationContent) => void;
 };
@@ -28,7 +31,7 @@ function initialFields(columns: readonly ManagedDataColumn[], original?: Record<
   }])) as Record<string, FieldDraft>;
 }
 
-export function ManagedRowEditor({ open, error, tableName, operation, columns, original, autoFillFields, onClose, onReview }: Props) {
+export function ManagedRowEditor({ open, error, tableName, operation, columns, original, autoFillFields, reviewDisabled, recheckError, onRetryRecheck, onClose, onReview }: Props) {
   const writableColumns = columns.filter((column) => (operation === "ADD" || column.name !== "id") && !autoFillFields.has(column.name));
   const [baseline] = useState(() => initialFields(writableColumns, original));
   const [fields, setFields] = useState<Record<string, FieldDraft>>(baseline);
@@ -51,11 +54,12 @@ export function ManagedRowEditor({ open, error, tableName, operation, columns, o
       title={`${operation === "ADD" ? "新增" : "修改"} ${tableName} 记录`}
       eyebrow="Mutation Content"
       onClose={onClose}
-      footer={<><Button className="drawer-close-action" onClick={onClose}>取消</Button><Button variant="primary" onClick={() => onReview(content)}>查看 Change Set</Button></>}
+      footer={<><Button className="drawer-close-action" onClick={onClose}>取消</Button><Button variant="primary" disabled={reviewDisabled} onClick={() => onReview(content)}>查看 Change Set</Button></>}
     >
       {error != null && <ErrorState error={error} />}
       <p className="form-note">每个字段分别选择是否包含在请求中；NULL 与空字符串具有不同语义。</p>
       {operation === "ADD" && <p className="form-note">id 由数据库自增生成时，请保持不包含；非自增主键需要填写 id。</p>}
+      {recheckError !== undefined && recheckError !== null && <ErrorState error={recheckError} onRetry={onRetryRecheck} />}
       <div className="mutation-content-fields">
         {writableColumns.map((column) => {
           const draft = fields[column.name] ?? { included: false, value: "", isNull: false };

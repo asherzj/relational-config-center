@@ -1,9 +1,12 @@
+//go:build integration
+
 package http_test
 
 import (
 	"context"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 
@@ -15,7 +18,7 @@ const textIDTable = "managed_text_ids"
 
 func TestManagedMutationRoutesDecodeRowIDExactlyOnce(t *testing.T) {
 	executor := &recordingMutationExecutor{}
-	handler := newTextIDHTTPHandler(t, httpinterface.RouterOptions{AuthDisabled: true, AccessLog: io.Discard}, executor)
+	handler := newTextIDHTTPHandler(t, httpinterface.RouterOptions{AccessLog: io.Discard}, executor)
 	enableTextIDTable(t, handler)
 
 	complexID := "键/值 ?#%"
@@ -47,15 +50,24 @@ func TestManagedMutationRoutesDecodeRowIDExactlyOnce(t *testing.T) {
 
 func TestRawPathMutationRoutingPreservesAPIGuards(t *testing.T) {
 	encodedID := url.PathEscape("键/值 ?#%")
-	authenticatedHandler := newTextIDHTTPHandler(t, httpinterface.RouterOptions{APIToken: "deployment-secret", AccessLog: io.Discard}, &recordingMutationExecutor{})
-	response := performRequest(authenticatedHandler, http.MethodPatch, "/api/v1/tables/"+textIDTable+"/rows/"+encodedID, `{"content":{"value":"updated"}}`)
-	assertSafeErrorEnvelope(t, response, http.StatusUnauthorized, "unauthorized")
+	authenticatedHandler := newTextIDHTTPHandler(t, httpinterface.RouterOptions{AccessLog: io.Discard}, &recordingMutationExecutor{})
+	client := authenticatedHandler.(*authenticatedTestHandler)
+	response := performRequest(client.Handler, http.MethodPatch, "/api/v1/tables/"+textIDTable+"/rows/"+encodedID, `{"content":{"value":"updated"}}`)
+	assertSafeErrorEnvelope(t, response, http.StatusUnauthorized, "session_invalid")
+	request := httptest.NewRequest(http.MethodDelete, "/api/v1/tables/"+textIDTable+"/rows/"+encodedID, nil)
+	for _, cookie := range client.cookies {
+		if cookie.MaxAge >= 0 {
+			request.AddCookie(cookie)
+		}
+	}
+	request.Header.Set("Origin", "http://127.0.0.1:5173")
+	response = performHTTP(client.Handler, request)
+	assertSafeErrorEnvelope(t, response, http.StatusForbidden, "csrf_invalid")
 
-	openHandler := newTextIDHTTPHandler(t, httpinterface.RouterOptions{AuthDisabled: true, AccessLog: io.Discard}, &recordingMutationExecutor{})
-	response = performRequest(openHandler, http.MethodGet, "/api/v1/not-a-route/"+url.PathEscape("a/b"), "")
+	response = performRequest(authenticatedHandler, http.MethodGet, "/api/v1/not-a-route/"+url.PathEscape("a/b"), "")
 	assertSafeErrorEnvelope(t, response, http.StatusNotFound, "route_not_found")
 
-	response = performRequest(openHandler, http.MethodDelete, "/api/v1/tables/rcc_catalog/rows/"+encodedID, "")
+	response = performRequest(authenticatedHandler, http.MethodDelete, "/api/v1/tables/rcc_catalog/rows/"+encodedID, "")
 	assertSafeErrorEnvelope(t, response, http.StatusForbidden, "protected_table")
 }
 

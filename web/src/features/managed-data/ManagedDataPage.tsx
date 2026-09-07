@@ -360,13 +360,19 @@ export function ManagedDataPage() {
             columns={editor.columns}
             original={editor.row}
             autoFillFields={new Set(editor.allAutoFillFields)}
+            reviewDisabled={changes.view.reviewDisabled}
+            recheckError={changes.view.recheckError}
+            onRetryRecheck={() => changes.send({ type: "retry-recheck" })}
             onClose={() => send({ type: "cancel-pending" })}
             onReview={(content) => changes.send({ type: "review-content", content })}
           />}
           <ChangeSetDialog
             changeSet={changeSet}
             error={changes.view.executionError}
-            pending={changes.view.executionPending}
+            recheckError={changes.view.recheckError}
+            pending={changes.view.executionPending || changes.view.recheckingChange}
+            confirmDisabled={changes.view.reviewDisabled}
+            onRetryRecheck={changes.view.recheckError ? () => changes.send({ type: "retry-recheck" }) : undefined}
             onEdit={() => changes.send({ type: "edit-pending" })}
             onCancel={() => send({ type: "cancel-pending" })}
             onCheck={changes.checkCurrent}

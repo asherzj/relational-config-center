@@ -2,7 +2,7 @@ GO_MODULES := admin client server shared
 GO_COMMAND_MODULES := admin server
 GO_LIBRARY_MODULES := client shared
 
-.PHONY: fmt test test-integration test-browser-acceptance build
+.PHONY: fmt test test-integration test-browser-acceptance test-browser build
 
 fmt:
 	@for module in $(GO_MODULES); do \
@@ -28,3 +28,8 @@ build:
 		mkdir -p bin/$$module || exit $$?; \
 		(cd $$module && go build -o ../bin/$$module/$$module ./cmd/$$module) || exit $$?; \
 	done
+	@cd admin && go build -o ../bin/admin/account-maintain ./cmd/account-maintain
+
+# Requires pnpm --dir web install and Chrome (or RCC_BROWSER_EXECUTABLE).
+test-browser:
+	@cd admin && go test -v -count=1 -timeout=5m -tags=integration,browser ./cmd/admin -run '^TestAccountBrowserSystemPath$$'

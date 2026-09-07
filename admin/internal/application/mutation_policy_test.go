@@ -12,8 +12,8 @@ import (
 
 func TestMutationPolicyLifecycleAndAssignmentRules(t *testing.T) {
 	catalog := &memoryMutationPolicyCatalog{policies: make(map[string]domain.MutationPolicy)}
-	management := NewMutationPolicyManagement(catalog, NewMutationPolicyTypeRegistry(), "test-operator")
-	ctx := context.Background()
+	management := NewMutationPolicyManagement(catalog, NewMutationPolicyTypeRegistry())
+	ctx := (AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(context.Background())
 	candidate := validPutMutationPolicy("standard_mutation_v1")
 
 	created, err := management.Create(ctx, candidate)
@@ -97,13 +97,13 @@ func TestMutationPolicyActivationValidatesTypeAutoFillAndAuthorization(t *testin
 
 func TestMutationPolicyDraftWithUnknownTypeCanBeCompletedBeforeActivation(t *testing.T) {
 	catalog := &memoryMutationPolicyCatalog{policies: make(map[string]domain.MutationPolicy)}
-	management := NewMutationPolicyManagement(catalog, NewMutationPolicyTypeRegistry(), "operator")
+	management := NewMutationPolicyManagement(catalog, NewMutationPolicyTypeRegistry())
 	candidate := validPutMutationPolicy("draft_mutation_v1")
 	candidate.TypeCode = "unknown_type"
-	if _, err := management.Create(context.Background(), candidate); err != nil {
+	if _, err := management.Create((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(context.Background()), candidate); err != nil {
 		t.Fatalf("Draft should preserve an unknown Type for later completion: %v", err)
 	}
-	if _, err := management.Activate(context.Background(), candidate.Code); !errors.Is(err, ErrUnknownMutationPolicyType) {
+	if _, err := management.Activate((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(context.Background()), candidate.Code); !errors.Is(err, ErrUnknownMutationPolicyType) {
 		t.Fatalf("activation should fail closed on unknown Type, got %v", err)
 	}
 }
@@ -128,10 +128,10 @@ func TestMutationPolicyDraftRejectsValuesBlockedByCatalogConstraints(t *testing.
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			catalog := &memoryMutationPolicyCatalog{policies: make(map[string]domain.MutationPolicy)}
-			management := NewMutationPolicyManagement(catalog, NewMutationPolicyTypeRegistry(), "operator")
+			management := NewMutationPolicyManagement(catalog, NewMutationPolicyTypeRegistry())
 			candidate := validPutMutationPolicy("constrained_mutation_v1")
 			test.change(&candidate)
-			if _, err := management.Create(context.Background(), candidate); !errors.Is(err, ErrInvalidMutationPolicyRules) {
+			if _, err := management.Create((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(context.Background()), candidate); !errors.Is(err, ErrInvalidMutationPolicyRules) {
 				t.Fatalf("expected stable persistent-rule validation error, got %v", err)
 			}
 			if len(catalog.policies) != 0 {
@@ -148,11 +148,11 @@ func TestMutationPolicyTableValidationRejectsMissingGeneratedAndTypeIncompatible
 		Name: "managed_items", Compatible: true,
 		Columns: []domain.Column{
 			{Name: "id", Type: domain.ColumnTypeUInt64, AutoIncrement: true},
-			{Name: "creator", Type: domain.ColumnTypeString},
+			{Name: "creator", Type: domain.ColumnTypeString, TextCapacity: 100},
 			{Name: "created_at", Type: domain.ColumnTypeDateTime},
-			{Name: "modifier", Type: domain.ColumnTypeString},
+			{Name: "modifier", Type: domain.ColumnTypeString, TextCapacity: 100},
 			{Name: "updated_at", Type: domain.ColumnTypeTimestamp},
-			{Name: "generated_text", Type: domain.ColumnTypeString, Generated: true},
+			{Name: "generated_text", Type: domain.ColumnTypeString, TextCapacity: 100, Generated: true},
 			{Name: "numeric_value", Type: domain.ColumnTypeInt64},
 		},
 	}

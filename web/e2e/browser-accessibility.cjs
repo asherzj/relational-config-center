@@ -1,7 +1,8 @@
-// Real browser -> production Web proxy -> Bearer Admin -> disposable MySQL 8.4.
+// Real browser -> production Web proxy -> Cookie-authenticated Admin -> disposable MySQL 8.4.
 // RCC_E2E_ENGINE chooses one Playwright engine; the runner records each separately.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
+const { registerFixtureAccount } = require('./local-account.cjs');
 const fs = require('node:fs/promises');
 const { execFileSync } = require('node:child_process');
 
@@ -28,6 +29,8 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
   const requests = [];
   const cleanupNames = new Set();
   let browser;
+  let context;
+  let account;
   let page;
   let failure = null;
   let browserVersion = null;
@@ -53,18 +56,19 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
   });
   async function open(pathname, viewport = { width: 1440, height: 1000 }) {
     if (page) await page.close();
-    page = await browser.newPage({ viewport });
+    page = await context.newPage();
+    await page.setViewportSize(viewport);
     page.setDefaultTimeout(15000);
     page.setDefaultNavigationTimeout(20000);
     page.on('pageerror', (error) => pageErrors.push({ url: page.url(), message: error.message }));
     page.on('request', (request) => {
       const url = new URL(request.url());
-      if (url.pathname.startsWith('/api/')) requests.push({ method: request.method(), path: url.pathname });
+      if (url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/v1/auth/')) requests.push({ method: request.method(), path: url.pathname });
     });
     page.on('response', (response) => {
       const request = response.request();
       const url = new URL(response.url());
-      if (!url.pathname.startsWith('/api/')) return;
+      if (!url.pathname.startsWith('/api/') || url.pathname.startsWith('/api/v1/auth/')) return;
       let body;
       if (!['GET', 'HEAD'].includes(request.method())) {
         try { body = request.postDataJSON(); } catch { body = request.postData() || undefined; }
@@ -95,6 +99,8 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
 
   try {
     browser = await engine.launch({ headless: true });
+    context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    account = await registerFixtureAccount(context, base);
     browserVersion = browser.version();
 
     // Rule editing, native browser history and modal ownership.

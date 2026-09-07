@@ -66,7 +66,7 @@ func TestAdminExternalProcessServesHealthAndEnforcesAuthDefault(t *testing.T) {
 	assertProcessHTTP(t, address+"/health/live", "", http.StatusOK)
 	assertProcessHTTP(t, address+"/health/ready", "", http.StatusOK)
 	assertProcessHTTP(t, address+"/api/v1/database-tables", "", http.StatusUnauthorized)
-	assertProcessHTTP(t, address+"/api/v1/database-tables", "Bearer process-token", http.StatusOK)
+	assertProcessHTTP(t, address+"/api/v1/database-tables", "Bearer process-token", http.StatusUnauthorized)
 
 	stopProcessAndAssertClose(t, process, os.Interrupt, normalProcessShutdownWait)
 }
@@ -78,7 +78,18 @@ func TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully(t *testing.T) {
 	for _, signal := range []os.Signal{os.Interrupt, syscall.SIGTERM} {
 		t.Run(signal.String(), func(t *testing.T) {
 			process, address := startAdminProcessHelper(t, "normal", productionShutdownTimeout)
+			// A connected client with an unfinished request header is real shutdown
+			// work: net/http may retain StateNew until the read-header deadline.
+			pending, err := net.Dial("tcp", address[len("http://"):])
+			if err != nil {
+				t.Fatalf("connect pending request: %v", err)
+			}
+			defer pending.Close()
+			if _, err := io.WriteString(pending, "GET /health/live HTTP/1.1\r\n"); err != nil {
+				t.Fatalf("write pending request header: %v", err)
+			}
 			assertProcessHTTP(t, address+"/health/live", "", http.StatusOK)
+			// Allow the production shutdown window plus bounded process-exit overhead.
 			stopProcessAndAssertClose(t, process, signal, normalProcessShutdownWait)
 		})
 	}
@@ -272,7 +283,6 @@ func processTestRouter(t *testing.T) http.Handler {
 	t.Helper()
 	metadata := processMetadata{}
 	return httpinterface.NewRouter(application.NewDatabaseTableDiscovery(metadata), processReadiness{}, nil, nil, nil, nil, nil, httpinterface.RouterOptions{
-		APIToken:  "process-token",
 		AccessLog: io.Discard,
 	})
 }

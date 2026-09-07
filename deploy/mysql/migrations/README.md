@@ -11,11 +11,12 @@ After `005-expand-table-policy-code-references.sql`, run the set-wide preflight
 and backfill from the `admin` module:
 
 ```bash
-go run ./cmd/policy-migrate
+POLICY_MIGRATION_OPERATOR=historical-maintainer go run ./cmd/policy-migrate
 ```
 
-The command uses the same `MYSQL_*` and `ADMIN_OPERATOR` environment settings as
-Admin. It first locks and backfills the legacy set only when every row is
+The command uses `MYSQL_*` and requires the separate historical attribution
+setting `POLICY_MIGRATION_OPERATOR`. It opens a maintenance connection without
+normal Admin HTTP configuration or account-schema readiness. It first locks and backfills the legacy set only when every row is
 representable. It then repeats a contraction preflight that requires both
 non-null, valid technology-neutral Codes, existing executable
 Active/Deprecated definitions of registered Types, valid relational scalar
@@ -57,3 +58,18 @@ more precise, but direct execution of 006 is independently fail closed.
 The final `rcc_table_policies` columns are exactly `id`, `table_name`, both
 Policy Codes, `enabled`, `creator`, `modifier`, `gmt_created`, and
 `gmt_modified`. No foreign keys or optimistic-lock columns are added.
+
+## Local Account control tables
+
+After completing the existing Policy Catalog migration, apply
+[`007-local-accounts.sql`](./007-local-accounts.sql) once with database maintenance
+permissions. Fresh installations already include the same tables in
+`init/001-schema.sql`; do not replay 007 there. These are explicit InnoDB tables,
+not GORM AutoMigrate output. Never expose any `rcc_` table through generic policies.
+
+Business requests now require local-account sessions and TMP-01 is removed by #37.
+Stop old Admin entry points before changing authentication; do not run Token-based
+instances in parallel with the new entry. Normal startup/readiness verifies the required account schema and rejects missing
+structures with migration guidance. The complete maintenance-window sequence and
+proxy/script replacement are documented below.
+See [the account interface and development setup](../../../docs/admin-local-accounts.md).

@@ -1,7 +1,8 @@
-// Real Chromium -> production Web proxy -> Bearer-protected Admin -> isolated MySQL.
+// Real Chromium -> production Web proxy -> Cookie-authenticated Admin -> isolated MySQL.
 // SQL is used only to arrange disposable fixtures and to verify browser actions.
 const { chromium } = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
+const { registerFixtureAccount } = require('./local-account.cjs');
 const fs = require('node:fs/promises');
 const { execFileSync } = require('node:child_process');
 
@@ -61,6 +62,8 @@ function fixtureSQL() {
   const http = [];
   const pageErrors = [];
   let browser;
+  let context;
+  let account;
   let browserVersion = null;
   let page;
   let failure = null;
@@ -75,7 +78,7 @@ function fixtureSQL() {
   const writes = () => http.filter((entry) => !['GET', 'HEAD'].includes(entry.method) && !entry.path.endsWith('/query'));
   async function open(pathname) {
     if (page) await page.close();
-    page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    page = await context.newPage();
     page.setDefaultTimeout(12000);
     page.setDefaultNavigationTimeout(15000);
     const pageName = `page-${++sequence}`;
@@ -83,7 +86,7 @@ function fixtureSQL() {
     page.on('response', async (response) => {
       const request = response.request();
       const url = new URL(response.url());
-      if (!url.pathname.startsWith('/api/')) return;
+      if (!url.pathname.startsWith('/api/') || url.pathname.startsWith('/api/v1/auth/')) return;
       let body;
       if (!['GET', 'HEAD'].includes(request.method())) {
         try { body = request.postDataJSON(); } catch { body = request.postData() || undefined; }
@@ -108,6 +111,8 @@ function fixtureSQL() {
   try {
     sql(fixtureSQL());
     browser = await chromium.launch({ headless: true });
+    context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    account = await registerFixtureAccount(context, base);
     browserVersion = browser.version();
 
     const draftCode = 'stage3_ui_mutation_v1';
@@ -264,8 +269,8 @@ function fixtureSQL() {
     await button('确认并执行').click();
     assert.equal((await addResponse).status(), 201);
     await page.getByRole('dialog', { name: 'ADD 写入结果' }).waitFor();
-    assert.equal(sql(`SELECT CONCAT_WS('|',name,created_by,updated_by) FROM stage3_active_items WHERE name='DeprecatedStillRuns';`), 'DeprecatedStillRuns|browser-acceptance|browser-acceptance');
-    check('existing assignment keeps querying and mutating with Deprecated definitions', { query: responseFor('POST', '/api/v1/tables/stage3_active_items/query'), mutation: responseFor('POST', addPath), sql: 'DeprecatedStillRuns|browser-acceptance|browser-acceptance' });
+    assert.equal(sql(`SELECT CONCAT_WS('|',name,created_by,updated_by) FROM stage3_active_items WHERE name='DeprecatedStillRuns';`), `DeprecatedStillRuns|${account.accountID}|${account.accountID}`);
+    check('existing assignment keeps querying and mutating with Deprecated definitions', { query: responseFor('POST', '/api/v1/tables/stage3_active_items/query'), mutation: responseFor('POST', addPath), sql: `DeprecatedStillRuns|${account.accountID}|${account.accountID}` });
 
     await open('/platform/table-policies?mode=create');
     const candidate = page.getByRole('combobox', { name: '真实数据库表', exact: true });
@@ -280,6 +285,8 @@ function fixtureSQL() {
 
     await open('/platform/table-policies');
     await page.getByText(/共 \d+ 个表规则/).waitFor();
+    await catalogRows().filter({ hasText: 'stage3_catalog_alpha' }).waitFor();
+    const unfilteredCount = await catalogRows().count();
     const initialWrites = writes().length;
     const filter = page.getByRole('searchbox', { name: '筛选表规则' });
     for (const [value, expected] of [
@@ -290,12 +297,15 @@ function fixtureSQL() {
     ]) {
       await filter.fill(value);
       const rows = catalogRows();
+      await page.getByText(`显示 ${expected.length} 个`, { exact: true }).waitFor();
+      for (const name of expected) await rows.filter({ hasText: name }).waitFor();
       assert.equal(await rows.count(), expected.length);
       for (const name of expected) assert.ok((await rows.allInnerTexts()).some((text) => text.includes(name)));
     }
     await filter.fill('stage3-no-such-policy');
     await page.getByText('没有匹配的表规则', { exact: true }).waitFor();
     await filter.fill('');
+    await page.getByText(`显示 ${unfilteredCount} 个`, { exact: true }).waitFor();
     assert.ok(await catalogRows().count() >= 5);
     assert.equal(writes().length, initialWrites);
     check('Table Policy Catalog filters full loaded data without writes', { cases: ['table/trim/case', 'query code', 'mutation code', 'modifier', 'no match', 'clear'], writeCount: 0 });

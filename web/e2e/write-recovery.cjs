@@ -2,6 +2,7 @@
 // route.fetch executes real writes; only delivery of selected responses is changed.
 const { chromium } = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
+const { registerFixtureAccount } = require('./local-account.cjs');
 const fs = require('node:fs/promises');
 const { writeFileSync } = require('node:fs');
 const { execFileSync } = require('node:child_process');
@@ -38,15 +39,14 @@ async function waitDatabase() {
   const seed = name => sql(`INSERT INTO ${table}(name,created_by,created_at,updated_by,updated_at) VALUES(${literal(name)},'fixture',NOW(6),'fixture',NOW(6)); SELECT LAST_INSERT_ID();`);
   const writes = () => requests.filter(r => !['GET', 'HEAD'].includes(r.method) && !r.path.endsWith('/query'));
   async function open(path) {
-    if (context) await context.close();
-    context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    if (page) await page.close();
     page = await context.newPage();
     page.setDefaultTimeout(10000);
     page.on('pageerror', error => pageErrors.push(error.message));
     requests = []; faults = [];
     page.on('request', request => {
       const path = new URL(request.url()).pathname;
-      if (path.startsWith('/api/')) requests.push({ path, method: request.method(), ...(path.endsWith('/query') ? { query: request.postDataJSON() } : {}) });
+      if (path.startsWith('/api/') && !path.startsWith('/api/v1/auth/')) requests.push({ path, method: request.method(), ...(path.endsWith('/query') ? { query: request.postDataJSON() } : {}) });
     });
     await page.goto(`${base}${path}`);
   }
@@ -103,6 +103,8 @@ async function waitDatabase() {
       }
     }
     browser = await chromium.launch({ headless: true });
+    context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    await registerFixtureAccount(context, base);
     for (const kind of ['abort', 'json', 'contract', '503']) {
       const name = `stage2_add_${kind}`;
       await managed(); await addEditor(name); resetAudit();
@@ -216,26 +218,48 @@ async function waitDatabase() {
     await managed(); await addEditor('stage2_database_down'); resetAudit();
     const databaseEndpointBefore = docker('port', container, '3306/tcp');
     stopped = true; docker('stop', '--time', '1', container);
-    await button('确认并执行').click(); await uncertain().waitFor({ timeout: 40000 });
+    await button('确认并执行').click();
+    // The same outage can also hide the workspace when a real foreground
+    // activity report fails. Observe retained state without bypassing that UI.
+    await page.getByRole('alert', { name: '提交结果尚未确认', exact: true, includeHidden: true }).waitFor({ state: 'attached', timeout: 40000 });
     assert.equal(await button('确认并执行').isDisabled(), true);
     docker('start', container); await waitDatabase(); stopped = false;
     assert.equal(docker('port', container, '3306/tcp'), databaseEndpointBefore, 'database recovery must retain the Admin-configured TCP endpoint');
     assert.equal(rowCount('stage2_database_down'), 0);
+    const accountRecoveryStatuses = [];
+    for (let attempt = 0; attempt < 6 && await page.locator('.session-interruption').count(); attempt++) {
+      await button('重新检查登录状态').waitFor();
+      const [response] = await Promise.all([
+        page.waitForResponse(response => new URL(response.url()).pathname === '/api/v1/auth/session'),
+        button('重新检查登录状态').click(),
+      ]);
+      accountRecoveryStatuses.push(response.status());
+      await page.waitForFunction(() => {
+        const overlay = document.querySelector('.session-interruption');
+        return !overlay || Boolean(overlay.querySelector('button'));
+      });
+    }
+    await uncertain().waitFor();
     const recoveryReads = [];
+    const recoveryReadErrors = [];
     for (let attempt = 0; attempt < 6; attempt++) {
       const responsePromise = page.waitForResponse(response => new URL(response.url()).pathname === `/api/v1/tables/${table}/query`);
       await button('只读核对当前状态').click();
       const response = await responsePromise;
       recoveryReads.push(response.status());
       if (response.ok()) break;
-      await page.getByRole('alert').filter({ hasText: 'Managed Table 查询暂时不可用' }).last().waitFor();
+      const { error } = await response.json();
+      assert.equal(response.status(), 503);
+      assert.ok(['query_unavailable', 'auth_unavailable'].includes(error.code), JSON.stringify(error));
+      recoveryReadErrors.push({ code: error.code, requestId: error.request_id });
+      await uncertain().getByRole('alert').filter({ hasText: error.request_id }).waitFor();
       assert.equal(await button('我已核对，返回修改').count(), 0);
       assert.equal(writes().length, 1); assert.equal(auditCount(), 0);
     }
     await page.getByText('当前查询结果（仅供核对）', { exact: true }).waitFor();
     assert.equal(recoveryReads.at(-1), 200);
     assert.equal(writes().length, 1); assert.equal(auditCount(), 0);
-    check('actual database outage and recovery: failed reads stay locked, only reads are retried', { writes: writes(), actualWrites: auditCount(), recoveryReadStatuses: recoveryReads, finalRowCount: rowCount('stage2_database_down') });
+    check('actual database outage and recovery: failed reads stay locked, only reads are retried', { writes: writes(), actualWrites: auditCount(), recoveryReadStatuses: recoveryReads, recoveryReadErrors, accountRecoveryStatuses, finalRowCount: rowCount('stage2_database_down') });
     assert.equal(await button('确认并执行').isDisabled(), true);
 
     // Catalog scenarios are appended below; each uses a fresh browser document and audit baseline.
@@ -267,6 +291,8 @@ async function waitDatabase() {
           await verifyUnknown(`${kind} ${operation}: saved state retained after response failure`, entity);
           if (operation === 'create') {
             await button('我已核对，返回修改').click();
+            // Mutation.reset publishes through its observer after this click.
+            await button(label).and(page.locator(':enabled')).waitFor({ state: 'attached' });
             assert.equal(await button(label).isDisabled(), false);
             assert.equal(await page.getByRole('textbox', { name: '显示名称', exact: true }).inputValue(), `Saved ${code}`);
             assert.equal(writes().length, 1);
@@ -276,7 +302,11 @@ async function waitDatabase() {
           await page.getByRole('dialog').getByRole('button', { name: label, exact: true }).click();
           resetAudit(); await fault(path, method);
           await button(`确认${label}`).click(); await uncertain().waitFor();
-          assert.equal(await button(`确认${label}`).isDisabled(), true);
+          // The accepted command is settled before recovery is shown. Its modal
+          // and every lifecycle write entry disappear until the read-only check
+          // is acknowledged, so the same command cannot be submitted again.
+          assert.equal(await button(`确认${label}`).count(), 0);
+          assert.equal(await button(label).count(), 0);
           assert.equal(sql(`SELECT ${operation === 'delete' ? 'COUNT(*)' : 'status'} FROM ${entity} WHERE code='${code}';`), operation === 'delete' ? '0' : operation === 'activate' ? 'ACTIVE' : 'DEPRECATED');
           if (operation === 'delete') {
             await button('只读核对当前状态').click();
@@ -337,6 +367,8 @@ async function waitDatabase() {
         await page.getByRole('dialog').waitFor({ state: 'detached' });
         await page.getByRole('region', { name: '表规则目录', exact: true }).getByRole('row').filter({ hasText: assignmentTable }).getByText(operation === 'enable' ? '已启用' : '未启用', { exact: true }).waitFor();
       }
+      // Reset clears the mutation observer asynchronously after explicit resume.
+      await uncertain().waitFor({ state: 'detached' });
       assert.equal(await uncertain().count(), 0); assert.equal(writes().length, 1);
     }
     assert.deepEqual(routeErrors, []);

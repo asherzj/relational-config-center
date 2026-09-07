@@ -1,5 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const { browserOptions, registerFixtureAccount } = require("./local-account.cjs");
 
 const playwrightModule = process.env.RCC_PLAYWRIGHT_MODULE || "playwright";
 const { chromium } = require(playwrightModule);
@@ -17,6 +18,7 @@ function check(condition, message) {
   let browser;
   let browserVersion = null;
   let page;
+  let context;
   let failure = null;
   const pageErrors = [];
   const checks = [];
@@ -26,9 +28,11 @@ function check(condition, message) {
   };
 
   try {
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch(browserOptions());
     browserVersion = browser.version();
-    page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    page = await context.newPage();
+    const account = await registerFixtureAccount(context, baseURL);
     page.setDefaultTimeout(10000);
     page.setDefaultNavigationTimeout(15000);
     page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -57,9 +61,9 @@ function check(condition, message) {
       await effect.waitFor();
       const text = await effect.innerText();
       check(text.includes("新增：规则允许") && text.includes("修改：规则允许") && text.includes("删除：规则允许"), "mutation permissions were not explained");
-      check(text.includes("created_by（部署配置中的 Operator）"), "ADD operator Auto Fill was not explained");
-      check(text.includes("updated_by（部署配置中的 Operator）"), "MODIFY operator Auto Fill was not explained");
-      check(text.includes("Operator 来自部署配置，不代表当前登录用户"), "Operator source was not explained");
+      check(text.includes("created_by（当前账号的永久 Account ID）"), "ADD operator Auto Fill was not explained");
+      check(text.includes("updated_by（当前账号的永久 Account ID）"), "MODIFY operator Auto Fill was not explained");
+      check(text.includes("操作人字段填写当前登录账号的永久 Account ID；历史值保持原样。"), "Operator source was not explained");
       check(await page.getByText("对已有分配仍然有效，但不能用于新分配", { exact: false }).isVisible(), "Deprecated lifecycle behavior was not explained");
     });
 
@@ -97,18 +101,16 @@ function check(condition, message) {
       await page.getByRole("region", { name: "当前已选规则效果" }).waitFor();
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       check(overflow <= 1, `page overflowed horizontally by ${overflow}px`);
-      await page.screenshot({ path: screenshotPath, fullPage: true });
+      await page.screenshot({ path: screenshotPath, fullPage: true, mask: [page.locator('.operator')] });
     });
 
+    await account.assertMemoryOnly(page);
     check(pageErrors.length === 0, `browser page errors: ${pageErrors.join("; ")}`);
     console.log(JSON.stringify({ ok: true, checks: checks.length, resultPath, screenshotPath }));
   } catch (error) {
     failure = { name: error.name, message: error.message, stack: error.stack };
     if (page) {
-      await page.screenshot({ path: path.join(outputDir, "failure.png"), fullPage: true }).catch(() => {});
-      const body = await page.locator("body").innerText().catch(() => "page unavailable");
-      fs.writeFileSync(path.join(outputDir, "failure-body.txt"), body);
-      console.error(body);
+      await page.screenshot({ path: path.join(outputDir, "failure.png"), fullPage: true, mask: [page.locator(".operator")] }).catch(() => {});
     }
     throw error;
   } finally {

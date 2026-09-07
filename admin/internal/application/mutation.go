@@ -11,13 +11,14 @@ import (
 )
 
 var (
-	ErrMutationNotAllowed   = errors.New("mutation operation is not allowed")
-	ErrInvalidMutation      = errors.New("invalid mutation content")
-	ErrMissingRequiredField = errors.New("required mutation field is missing")
-	ErrDuplicateKey         = errors.New("duplicate key")
-	ErrMutationRowNotFound  = errors.New("mutation row not found")
-	ErrMutationUnavailable  = errors.New("mutation unavailable")
-	ErrMutationTimeout      = errors.New("mutation timeout")
+	ErrOperatorFieldIncompatible = errors.New("operator field cannot store a complete Account ID")
+	ErrMutationNotAllowed        = errors.New("mutation operation is not allowed")
+	ErrInvalidMutation           = errors.New("invalid mutation content")
+	ErrMissingRequiredField      = errors.New("required mutation field is missing")
+	ErrDuplicateKey              = errors.New("duplicate key")
+	ErrMutationRowNotFound       = errors.New("mutation row not found")
+	ErrMutationUnavailable       = errors.New("mutation unavailable")
+	ErrMutationTimeout           = errors.New("mutation timeout")
 )
 
 // MutationExecutor is the single deep execution interface exposed by the
@@ -46,38 +47,21 @@ type MutationSnapshotExecutor interface {
 	ExecuteMutationSnapshot(context.Context, func(MutationSnapshotSession) error) error
 }
 
-// OperatorProvider supplies the deployment-attributed Operator used by
-// server-owned Auto Fill rules. V1 wires a fixed implementation, while the
-// interface leaves the attribution source replaceable.
-type OperatorProvider interface {
-	Operator(context.Context) (domain.JSONString, error)
-}
-
-type fixedOperatorProvider struct {
-	value domain.JSONString
-}
-
-func NewFixedOperatorProvider(value string) OperatorProvider {
-	return fixedOperatorProvider{value: domain.JSONString(value)}
-}
-
-func (provider fixedOperatorProvider) Operator(context.Context) (domain.JSONString, error) {
-	return provider.value, nil
-}
-
 // ManagedTableMutation owns Policy Snapshot loading, live Schema validation,
 // and fresh Mutation Policy construction for every request.
 type ManagedTableMutation struct {
-	operator         OperatorProvider
 	snapshotExecutor MutationSnapshotExecutor
 	snapshots        *policySnapshotResolver
 }
 
-func NewManagedTableMutation(executor MutationSnapshotExecutor, queryTypes *QueryPolicyTypeRegistry, mutationTypes *MutationPolicyTypeRegistry, operator OperatorProvider) *ManagedTableMutation {
-	return &ManagedTableMutation{snapshotExecutor: executor, snapshots: newPolicySnapshotResolver(queryTypes, mutationTypes), operator: operator}
+func NewManagedTableMutation(executor MutationSnapshotExecutor, queryTypes *QueryPolicyTypeRegistry, mutationTypes *MutationPolicyTypeRegistry) *ManagedTableMutation {
+	return &ManagedTableMutation{snapshotExecutor: executor, snapshots: newPolicySnapshotResolver(queryTypes, mutationTypes)}
 }
 
 func (mutation *ManagedTableMutation) Add(ctx context.Context, tableName string, content domain.MutationContent) (string, error) {
+	if _, err := requestOperator(ctx); err != nil {
+		return "", err
+	}
 	if protectedTable(tableName) {
 		return "", ErrProtectedTable
 	}
@@ -97,6 +81,9 @@ func (mutation *ManagedTableMutation) Add(ctx context.Context, tableName string,
 }
 
 func (mutation *ManagedTableMutation) Modify(ctx context.Context, tableName string, id domain.JSONString, content domain.MutationContent) (int64, error) {
+	if _, err := requestOperator(ctx); err != nil {
+		return 0, err
+	}
 	if protectedTable(tableName) {
 		return 0, ErrProtectedTable
 	}
@@ -116,6 +103,9 @@ func (mutation *ManagedTableMutation) Modify(ctx context.Context, tableName stri
 }
 
 func (mutation *ManagedTableMutation) Delete(ctx context.Context, tableName string, id domain.JSONString) (int64, error) {
+	if _, err := requestOperator(ctx); err != nil {
+		return 0, err
+	}
 	if protectedTable(tableName) {
 		return 0, ErrProtectedTable
 	}
@@ -239,13 +229,17 @@ func (mutation *ManagedTableMutation) effectiveRelationalContent(ctx context.Con
 	}
 
 	if nonNilFieldCount(operatorFields) > 0 {
-		operator, err := mutation.operator.Operator(ctx)
+		operator, err := requestOperator(ctx)
 		if err != nil {
-			return nil, ErrMutationUnavailable
+			return nil, err
 		}
 		for _, field := range operatorFields {
 			if field != nil {
-				value := operator
+				column, found := schema.Column(*field)
+				if !found || column.Type != domain.ColumnTypeString || column.TextCapacity < 36 {
+					return nil, ErrOperatorFieldIncompatible
+				}
+				value := domain.JSONString(operator)
 				effective[*field] = &value
 			}
 		}

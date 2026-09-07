@@ -1,10 +1,12 @@
+import { testIdentity, withAccountSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TestRouter } from "../../test/TestRouter";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
+import { businessSessionInvalid } from "../../api/business-session";
 
 const tablePolicy = {
   table_name: "notification_templates",
@@ -102,7 +104,7 @@ function json(value: unknown, status = 200) {
 }
 
 function renderPage(initialEntry = "/platform/table-policies") {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 }, mutations: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
       <TestRouter initialEntries={[initialEntry]}>
@@ -116,12 +118,12 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("表规则分配页面", () => {
   it("通过正式路由展示真实表发现状态、表规则目录并在客户端筛选", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: discoveryTables });
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
     const user = userEvent.setup();
 
     renderPage();
@@ -155,7 +157,7 @@ describe("表规则分配页面", () => {
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/table-policies?mode=create");
@@ -191,6 +193,170 @@ describe("表规则分配页面", () => {
     expect(await screen.findByText("表规则已创建并保持未启用")).toBeVisible();
   });
 
+  it("does not replay a table-rule assignment whose response was lost and offers a read-only check", async () => {
+    let writes = 0;
+    let reads = 0;
+    let failedCheckStatus = 0;
+    let failedReads = 0;
+    let finishCheck: ((response: Response) => void) | undefined;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/database-tables")) { reads += 1; return json({ tables: discoveryTables }); }
+      if (url.endsWith("/query-policy-types")) return json(queryPolicyTypes);
+      if (url.endsWith("/mutation-policy-types")) return json(mutationPolicyTypes);
+      if (url.endsWith("/query-policies")) return json({ policies: queryPolicies });
+      if (url.endsWith("/mutation-policies")) return json({ policies: mutationPolicies });
+      if (url.endsWith("/table-policies") && init?.method === "POST") {
+        writes += 1;
+        throw new TypeError("response lost after commit");
+      }
+      if (url.endsWith("/table-policies/message_templates")) {
+        reads += 1;
+        if (failedCheckStatus) {
+          failedReads += 1;
+          if (!finishCheck) return new Promise<Response>((resolve) => { finishCheck = resolve; });
+          return json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, failedCheckStatus);
+        }
+        return json({ ...tablePolicy, table_name: "message_templates", enabled: false });
+      }
+      if (url.endsWith("/table-policies")) {
+        reads += 1;
+        return json({ policies: [tablePolicy] });
+      }
+      throw new Error(`unexpected request ${url}`);
+    });
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    const user = userEvent.setup();
+    renderPage("/platform/table-policies?mode=create");
+    await user.selectOptions(await screen.findByRole("combobox", { name: "真实数据库表" }), "message_templates");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Active 查询规则" }), "standard_page_query_v1");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "standard_mutation_v1");
+    await user.click(screen.getByRole("button", { name: "创建未启用分配" }));
+    expect(await screen.findByLabelText("提交结果尚未确认")).toHaveTextContent("提交结果尚未确认");
+    expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeDisabled();
+    expect(writes).toBe(1);
+    for (const status of [503, 504]) {
+      failedCheckStatus = status;
+      failedReads = 0;
+      finishCheck = undefined;
+      await user.click(screen.getByRole("button", { name: "只读核对当前状态" }));
+      await waitFor(() => expect(finishCheck).toBeTypeOf("function"));
+      await act(async () => { finishCheck!(json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, status)); });
+      await waitFor(() => expect(failedReads).toBe(1));
+      expect(await screen.findByLabelText("提交结果尚未确认")).toHaveTextContent("提交结果尚未确认");
+      expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeDisabled();
+      expect(writes).toBe(1);
+    }
+    failedCheckStatus = 0;
+    const readsBeforeCheck = reads;
+    await user.click(screen.getByRole("button", { name: "只读核对当前状态" }));
+    await vi.waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
+    expect(await screen.findByText("当前查询结果（仅供核对）")).toBeVisible();
+    expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "我已核对，返回修改" }));
+    await waitFor(() => expect(screen.queryByLabelText("提交结果尚未确认")).not.toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeEnabled();
+    expect(writes).toBe(1);
+  });
+
+  it("blocks a table-rule state command after its response is lost until a read-only check", async () => {
+    let writes = 0;
+    let reads = 0;
+    let failedCheckStatus = 0;
+    let failedReads = 0;
+    let finishCheck: ((response: Response) => void) | undefined;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/database-tables")) { reads += 1; return json({ tables: discoveryTables }); }
+      if (url.endsWith("/table-policies/notification_templates/disable") && init?.method === "POST") {
+        writes += 1;
+        throw new TypeError("response lost after commit");
+      }
+      if (url.endsWith("/table-policies/notification_templates")) {
+        reads += 1;
+        if (failedCheckStatus) {
+          failedReads += 1;
+          if (!finishCheck) return new Promise<Response>((resolve) => { finishCheck = resolve; });
+          return json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, failedCheckStatus);
+        }
+        return json(tablePolicy);
+      }
+      if (url.endsWith("/table-policies")) { reads += 1; return json({ policies: [tablePolicy] }); }
+      throw new Error(`unexpected request ${url}`);
+    });
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    const user = userEvent.setup();
+    renderPage("/platform/table-policies/notification_templates");
+    await user.click(await screen.findByRole("button", { name: "停用" }));
+    await user.click(screen.getByRole("button", { name: "确认停用" }));
+    expect(await screen.findByLabelText("提交结果尚未确认")).toHaveTextContent("提交结果尚未确认");
+    expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
+    expect(writes).toBe(1);
+    await user.click(screen.getByRole("button", { name: "关闭抽屉" }));
+    await user.click(screen.getByRole("button", { name: "查看" }));
+    expect(await screen.findByRole("dialog", { name: "表规则详情" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
+    for (const status of [503, 504]) {
+      failedCheckStatus = status;
+      failedReads = 0;
+      finishCheck = undefined;
+      await user.click(screen.getByRole("button", { name: "只读核对当前状态" }));
+      await waitFor(() => expect(finishCheck).toBeTypeOf("function"));
+      await act(async () => { finishCheck!(json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, status)); });
+      await waitFor(() => expect(failedReads).toBe(1));
+      expect(await screen.findByLabelText("提交结果尚未确认")).toHaveTextContent("提交结果尚未确认");
+      expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
+      expect(writes).toBe(1);
+    }
+    failedCheckStatus = 0;
+    const readsBeforeCheck = reads;
+    await user.click(screen.getByRole("button", { name: "只读核对当前状态" }));
+    await waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
+    expect(await screen.findByText("当前查询结果（仅供核对）")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "我已核对，结束本次核对" }));
+    await waitFor(() => expect(screen.queryByLabelText("提交结果尚未确认")).not.toBeInTheDocument());
+    expect(await screen.findByRole("button", { name: "查看" })).toBeEnabled();
+    expect(writes).toBe(1);
+  });
+
+  it("keeps a table-rule assignment across same-account login and revalidates its candidates", async () => {
+    let signedIn = true;
+    let discoveryReads = 0;
+    let writes = 0;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/auth/session")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
+      if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
+      if (url.endsWith("/auth/login")) { signedIn = true; return json(testIdentity); }
+      if (url.endsWith("/database-tables")) { discoveryReads += 1; return json({ tables: discoveryTables }); }
+      if (url.endsWith("/query-policy-types")) return json(queryPolicyTypes);
+      if (url.endsWith("/mutation-policy-types")) return json(mutationPolicyTypes);
+      if (url.endsWith("/query-policies")) return json({ policies: queryPolicies });
+      if (url.endsWith("/mutation-policies")) return json({ policies: mutationPolicies });
+      if (url.endsWith("/table-policies") && init?.method === "POST") { writes += 1; return json(tablePolicy, 201); }
+      if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
+      throw new Error(`unexpected request ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    renderPage("/platform/table-policies?mode=create");
+    await user.selectOptions(await screen.findByRole("combobox", { name: "真实数据库表" }), "message_templates");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Active 查询规则" }), "standard_page_query_v1");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "standard_mutation_v1");
+    signedIn = false;
+    act(() => window.dispatchEvent(new CustomEvent(businessSessionInvalid, { detail: { code: "session_invalid" } })));
+    await user.type(await screen.findByLabelText("用户名"), "test.user");
+    await user.type(screen.getByLabelText("密码"), "correct horse battery staple");
+    await user.click(screen.getByRole("button", { name: "登录" }));
+    await waitFor(() => expect(screen.queryByRole("heading", { name: "登录本地账号" })).not.toBeInTheDocument());
+    expect(screen.getByRole("combobox", { name: "真实数据库表" })).toHaveValue("message_templates");
+    expect(screen.getByRole("combobox", { name: "Active 查询规则" })).toHaveValue("standard_page_query_v1");
+    expect(screen.getByRole("combobox", { name: "Active 变更规则" })).toHaveValue("standard_mutation_v1");
+    expect(discoveryReads).toBeGreaterThanOrEqual(2);
+    expect(writes).toBe(0);
+  });
+
   it("从可复制详情 URL 一起替换两个 Code，并警告 enabled 分配下一次请求立即生效", async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
@@ -206,14 +372,14 @@ describe("表规则分配页面", () => {
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/table-policies/notification_templates");
 
     expect(await screen.findByRole("heading", { name: "表规则详情" })).toBeVisible();
-    expect(fetchMock).toHaveBeenCalledWith("/api/v1/table-policies/notification_templates", expect.any(Object));
     expect(await screen.findByDisplayValue("notification_templates")).toBeDisabled();
+    expect(fetchMock).toHaveBeenCalledWith("/api/v1/table-policies/notification_templates", expect.any(Object));
     await user.click(screen.getByRole("button", { name: "替换所选规则" }));
     await user.selectOptions(await screen.findByRole("combobox", { name: "Active 查询规则" }), "strict_page_query_v2");
     await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "readonly_mutation_v2");
@@ -233,8 +399,8 @@ describe("表规则分配页面", () => {
     expect(await screen.findByText("表规则已替换")).toBeVisible();
   });
 
-  it("已启用分配替换失败后呈现稳定错误和 Request ID", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+  it("已启用分配一起替换失败后呈现稳定错误和 Request ID", async () => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: discoveryTables });
       if (url.endsWith("/query-policy-types")) return json(queryPolicyTypes);
@@ -247,7 +413,7 @@ describe("表规则分配页面", () => {
       if (url.endsWith("/table-policies/notification_templates")) return json(tablePolicy);
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
     const user = userEvent.setup();
 
     renderPage("/platform/table-policies/notification_templates?mode=replace");
@@ -270,7 +436,7 @@ describe("表规则分配页面", () => {
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
 
     renderPage("/platform/table-policies/notification_templates");
 
@@ -283,7 +449,7 @@ describe("表规则分配页面", () => {
 
   it("详情读取失败时呈现稳定错误并可重试专用详情端点", async () => {
     let detailAttempts = 0;
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: discoveryTables });
       if (url.endsWith("/table-policies/notification_templates")) {
@@ -293,7 +459,7 @@ describe("表规则分配页面", () => {
       }
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
     const user = userEvent.setup();
 
     renderPage("/platform/table-policies/notification_templates");
@@ -307,13 +473,13 @@ describe("表规则分配页面", () => {
 
   it("真实表名为 new 时仍使用可复制详情 URL，而不是打开创建页", async () => {
     const namedNewPolicy = { ...tablePolicy, table_name: "new" };
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: [] });
       if (url.endsWith("/table-policies/new")) return json(namedNewPolicy);
       if (url.endsWith("/table-policies")) return json({ policies: [namedNewPolicy] });
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
 
     renderPage("/platform/table-policies/new");
 
@@ -323,12 +489,12 @@ describe("表规则分配页面", () => {
   });
 
   it("Discovery 成功但没有真实表时展示明确空态", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: [] });
       if (url.endsWith("/table-policies")) return json({ policies: [] });
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
 
     renderPage();
 
@@ -336,7 +502,7 @@ describe("表规则分配页面", () => {
   });
 
   it("关闭详情后进入新建会清空旧分配，不能提交已分配表", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: discoveryTables });
       if (url.endsWith("/query-policy-types")) return json(queryPolicyTypes);
@@ -346,7 +512,7 @@ describe("表规则分配页面", () => {
       if (url.endsWith("/table-policies/notification_templates")) return json(tablePolicy);
       if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
     const user = userEvent.setup();
 
     renderPage("/platform/table-policies/notification_templates");
@@ -377,7 +543,7 @@ describe("表规则分配页面", () => {
       if (url.endsWith("/table-policies")) return json({ policies: [currentPolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/table-policies/notification_templates");
@@ -394,7 +560,7 @@ describe("表规则分配页面", () => {
 
   it("清晰呈现 Admin 的实时 Schema 稳定错误和 Request ID", async () => {
     const disabledPolicy = { ...tablePolicy, enabled: false };
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) return json({ tables: discoveryTables });
       if (url.endsWith("/query-policies")) return json({ policies: queryPolicies });
@@ -405,7 +571,7 @@ describe("表规则分配页面", () => {
       if (url.endsWith("/table-policies/notification_templates")) return json(disabledPolicy);
       if (url.endsWith("/table-policies")) return json({ policies: [disabledPolicy] });
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
     const user = userEvent.setup();
 
     renderPage("/platform/table-policies/notification_templates");
@@ -421,7 +587,7 @@ describe("表规则分配页面", () => {
 it("ends an uncertain enable/disable check in the refreshed table directory", async () => {
   let enabled = true;
   let writes = 0;
-  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+  vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.endsWith("/table-policies/notification_templates/disable") && init?.method === "POST") {
       writes++; enabled = false; throw new TypeError("response lost after disabling");
@@ -434,12 +600,12 @@ it("ends an uncertain enable/disable check in the refreshed table directory", as
     if (url.endsWith("/query-policies")) return json({ policies: queryPolicies });
     if (url.endsWith("/mutation-policies")) return json({ policies: mutationPolicies });
     throw new Error(`unexpected request ${url}`);
-  }));
+  })));
   renderPage("/platform/table-policies/notification_templates");
   const drawer = await screen.findByRole("dialog", { name: "表规则详情" });
   await userEvent.click(await within(drawer).findByRole("button", { name: "停用" }));
   await userEvent.click(screen.getByRole("button", { name: "确认停用" }));
-  await screen.findByRole("alert", { name: "提交结果尚未确认" });
+  await screen.findByLabelText("提交结果尚未确认");
   await userEvent.click(screen.getByRole("button", { name: "只读核对当前状态" }));
   await screen.findByText("当前查询结果（仅供核对）");
   await userEvent.click(screen.getByRole("button", { name: "我已核对，结束本次核对" }));

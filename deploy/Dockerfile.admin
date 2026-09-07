@@ -4,13 +4,15 @@ WORKDIR /src/admin
 COPY admin/go.mod admin/go.sum ./
 RUN go mod download
 COPY admin/ ./
-RUN CGO_ENABLED=0 go build -trimpath -o /out/admin ./cmd/admin
+RUN CGO_ENABLED=0 go build -trimpath -o /out/admin ./cmd/admin \
+    && CGO_ENABLED=0 go build -trimpath -o /out/account-maintain ./cmd/account-maintain
 
 FROM alpine:3.23
 RUN apk add --no-cache ca-certificates \
     && addgroup -S admin \
     && adduser -S -G admin admin
 COPY --from=build /out/admin /usr/local/bin/admin
+COPY --from=build /out/account-maintain /usr/local/bin/account-maintain
 USER admin
 EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/admin"]

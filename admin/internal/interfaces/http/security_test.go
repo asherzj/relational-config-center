@@ -1,3 +1,5 @@
+//go:build integration
+
 package http_test
 
 import (
@@ -17,36 +19,28 @@ import (
 	httpinterface "github.com/asherzj/relational-config-center/admin/internal/interfaces/http"
 )
 
-func TestAPIRequiresExactBearerTokenWhileHealthRemainsUnauthenticated(t *testing.T) {
-	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{
-		APIToken:  "deployment-secret",
-		AccessLog: io.Discard,
-	})
-
-	if response := performRequest(handler, http.MethodGet, "/health/live", ""); response.Code != http.StatusOK {
-		t.Fatalf("liveness must remain unauthenticated, got HTTP %d: %s", response.Code, response.Body.String())
+func TestAPIRejectsOldBearerCredentialsWhileHealthRemainsPublic(t *testing.T) {
+	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{AccessLog: io.Discard})
+	for _, token := range []string{"", "Bearer deployment-secret"} {
+		request := newRequest("GET", "/api/v1/database-tables", "")
+		request.Header.Set("Authorization", token)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assertSafeErrorEnvelope(t, response, 401, "session_invalid")
 	}
-
-	for _, authorization := range []string{"", "Bearer wrong", "bearer deployment-secret", "Bearer deployment-secret extra"} {
-		request := newRequest(http.MethodGet, "/api/v1/database-tables", "")
-		if authorization != "" {
-			request.Header.Set("Authorization", authorization)
-		}
-		response := performHTTP(handler, request)
-		assertSafeErrorEnvelope(t, response, http.StatusUnauthorized, "unauthorized")
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, newRequest("GET", "/health/live", ""))
+	if response.Code != 200 {
+		t.Fatalf("public health: %d", response.Code)
 	}
-
-	request := newRequest(http.MethodGet, "/api/v1/database-tables", "")
-	request.Header.Set("Authorization", "Bearer deployment-secret")
-	if response := performHTTP(handler, request); response.Code != http.StatusOK {
-		t.Fatalf("exact Bearer token should authorize request, got HTTP %d: %s", response.Code, response.Body.String())
+	if response := performRequest(handler, "GET", "/api/v1/database-tables", ""); response.Code != 200 {
+		t.Fatalf("real session: %d %s", response.Code, response.Body.String())
 	}
 }
 
 func TestAPIAccessLogIsStructuredAndRedactsRequestDetails(t *testing.T) {
 	var logOutput bytes.Buffer
 	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{
-		APIToken:  "deployment-secret",
 		AccessLog: &logOutput,
 	})
 	request := newRequest(http.MethodPost, "/api/v1/tables/managed_alpha/query?query_secret=do-not-log", `{"conditions":[{"field":"value","operator":"exact","value":"row-secret"}]}`)
@@ -80,7 +74,7 @@ func TestAPIAccessLogIsStructuredAndRedactsRequestDetails(t *testing.T) {
 
 func TestAPIAccessLogUsesRouteTemplatesWithoutDynamicTableOrRowValues(t *testing.T) {
 	var logOutput bytes.Buffer
-	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{AuthDisabled: true, AccessLog: &logOutput})
+	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{AccessLog: &logOutput})
 	response := performRequest(handler, http.MethodDelete, "/api/v1/tables/managed_alpha/rows/sensitive-row-id", "")
 	if response.Code != http.StatusNotFound {
 		t.Fatalf("expected Policy lookup result, got HTTP %d: %s", response.Code, response.Body.String())
@@ -110,7 +104,7 @@ func TestAPIAccessLogUsesRouteTemplatesWithoutDynamicTableOrRowValues(t *testing
 }
 
 func TestAPIRequestIDAcceptsOnlyTightlyValidatedValues(t *testing.T) {
-	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{AuthDisabled: true, AccessLog: io.Discard})
+	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{AccessLog: io.Discard})
 
 	valid := newRequest(http.MethodGet, "/api/v1/database-tables", "")
 	valid.Header.Set("X-Request-ID", "client_ABC-123.9")
@@ -132,7 +126,7 @@ func TestAPIRequestIDAcceptsOnlyTightlyValidatedValues(t *testing.T) {
 }
 
 func TestAPIBodyLimitRejectsOversizedJSONWithStableError(t *testing.T) {
-	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{AuthDisabled: true, AccessLog: io.Discard})
+	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{AccessLog: io.Discard})
 	body := `{"conditions":[],"padding":"` + strings.Repeat("x", (1<<20)+1) + `"}`
 	response := performHTTP(handler, newRequest(http.MethodPost, "/api/v1/tables/managed_alpha/query", body))
 	assertSafeErrorEnvelope(t, response, http.StatusBadRequest, "request_body_too_large")
@@ -142,44 +136,21 @@ func TestAPIBodyLimitRejectsOversizedJSONWithStableError(t *testing.T) {
 	assertSafeErrorEnvelope(t, readOnlyResponse, http.StatusBadRequest, "request_body_too_large")
 }
 
-func TestAPICORSUsesExactOriginsAndPreflightDoesNotWeakenAuthentication(t *testing.T) {
-	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{
-		APIToken:    "deployment-secret",
-		CORSOrigins: []string{"https://admin.example.test"},
-		AccessLog:   io.Discard,
-	})
-
-	preflight := newRequest(http.MethodOptions, "/api/v1/database-tables", "")
-	preflight.Header.Set("Origin", "https://admin.example.test")
-	preflight.Header.Set("Access-Control-Request-Method", http.MethodGet)
-	preflight.Header.Set("Access-Control-Request-Headers", "Authorization, Content-Type, X-Request-ID")
-	preflightResponse := performHTTP(handler, preflight)
-	if preflightResponse.Code != http.StatusNoContent || preflightResponse.Header().Get("Access-Control-Allow-Origin") != "https://admin.example.test" {
-		t.Fatalf("expected valid unauthenticated preflight, got HTTP %d headers %#v body %s", preflightResponse.Code, preflightResponse.Header(), preflightResponse.Body.String())
-	}
-
-	actual := newRequest(http.MethodGet, "/api/v1/database-tables", "")
-	actual.Header.Set("Origin", "https://admin.example.test")
-	actualResponse := performHTTP(handler, actual)
-	assertSafeErrorEnvelope(t, actualResponse, http.StatusUnauthorized, "unauthorized")
-	if actualResponse.Header().Get("Access-Control-Allow-Origin") != "https://admin.example.test" {
-		t.Fatalf("allowed actual origin must receive CORS response header: %#v", actualResponse.Header())
-	}
-
-	for _, rejectedOrigin := range []string{"https://admin.example.test.evil", "https://ADMIN.example.test", "*"} {
-		request := newRequest(http.MethodGet, "/api/v1/database-tables", "")
-		request.Header.Set("Origin", rejectedOrigin)
-		request.Header.Set("Authorization", "Bearer deployment-secret")
-		response := performHTTP(handler, request)
-		assertSafeErrorEnvelope(t, response, http.StatusForbidden, "cors_origin_forbidden")
-		if response.Header().Get("Access-Control-Allow-Origin") != "" {
-			t.Fatalf("rejected origin must not be reflected: %#v", response.Header())
-		}
+func TestAPIDoesNotOfferCrossOriginCredentialAccess(t *testing.T) {
+	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{AccessLog: io.Discard})
+	request := newRequest("OPTIONS", "/api/v1/database-tables", "")
+	request.Header.Set("Origin", "https://external.example")
+	request.Header.Set("Access-Control-Request-Method", "GET")
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	assertSafeErrorEnvelope(t, response, 401, "session_invalid")
+	if response.Header().Get("Access-Control-Allow-Origin") != "" {
+		t.Fatal("cross-origin access advertised")
 	}
 }
 
 func TestAPIPanicRecoveryReturnsStableSafeInternalError(t *testing.T) {
-	handler := newPolicyHTTPHandlerWithOptionsAndMutationExecutor(t, httpinterface.RouterOptions{AuthDisabled: true, AccessLog: io.Discard}, panicMutationExecutor{})
+	handler := newPolicyHTTPHandlerWithOptionsAndMutationExecutor(t, httpinterface.RouterOptions{AccessLog: io.Discard}, panicMutationExecutor{})
 	payload := strings.Replace(validPolicyPayload("managed_alpha"), `"allow_add":false`, `"allow_add":true`, 1)
 	if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies", payload); response.Code != http.StatusCreated {
 		t.Fatalf("create Policy: HTTP %d %s", response.Code, response.Body.String())
@@ -207,7 +178,7 @@ func TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely(t *testing.T) {
 		{name: "unclassified internal", err: errors.New("driver detail secret"), status: http.StatusInternalServerError, code: "internal_error"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			handler := newPolicyHTTPHandlerWithExecutors(t, httpinterface.RouterOptions{AuthDisabled: true, AccessLog: io.Discard}, errorQueryExecutor{err: test.err}, memoryMutationExecutor{})
+			handler := newPolicyHTTPHandlerWithExecutors(t, httpinterface.RouterOptions{AccessLog: io.Discard}, errorQueryExecutor{err: test.err}, memoryMutationExecutor{})
 			if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies", validPolicyPayload("managed_alpha")); response.Code != http.StatusCreated {
 				t.Fatalf("create Policy: HTTP %d %s", response.Code, response.Body.String())
 			}
@@ -225,7 +196,7 @@ func TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely(t *testing.T) {
 }
 
 func TestAPIUnknownRoutesUseTheSafeErrorEnvelope(t *testing.T) {
-	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{AuthDisabled: true, AccessLog: io.Discard})
+	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{AccessLog: io.Discard})
 	response := performRequest(handler, http.MethodGet, "/api/v1/does-not-exist", "")
 	assertSafeErrorEnvelope(t, response, http.StatusNotFound, "route_not_found")
 }
@@ -242,7 +213,7 @@ func TestAPIMutationTimeoutAndInternalErrorsUseSafeMappings(t *testing.T) {
 		{name: "unclassified internal", err: errors.New("bound row value secret"), status: http.StatusInternalServerError, code: "internal_error"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			handler := newPolicyHTTPHandlerWithOptionsAndMutationExecutor(t, httpinterface.RouterOptions{AuthDisabled: true, AccessLog: io.Discard}, errorMutationExecutor{err: test.err})
+			handler := newPolicyHTTPHandlerWithOptionsAndMutationExecutor(t, httpinterface.RouterOptions{AccessLog: io.Discard}, errorMutationExecutor{err: test.err})
 			payload := strings.Replace(validPolicyPayload("managed_alpha"), `"allow_add":false`, `"allow_add":true`, 1)
 			if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies", payload); response.Code != http.StatusCreated {
 				t.Fatalf("create Policy: HTTP %d %s", response.Code, response.Body.String())
@@ -296,6 +267,15 @@ func newRequest(method, path, body string) *http.Request {
 
 func performHTTP(handler http.Handler, request *http.Request) *httptest.ResponseRecorder {
 	recorder := httptest.NewRecorder()
+	if client, ok := handler.(*authenticatedTestHandler); ok {
+		for _, cookie := range client.cookies {
+			if cookie.MaxAge >= 0 {
+				request.AddCookie(cookie)
+			}
+		}
+		request.Header.Set("Origin", "http://127.0.0.1:5173")
+		request.Header.Set("X-CSRF-Token", client.csrf)
+	}
 	handler.ServeHTTP(recorder, request)
 	return recorder
 }

@@ -1,8 +1,10 @@
+import { useWorkspaceIdentity } from "../features/accounts/ProtectedWorkspace";
 import { ArrowLeftRight, ChevronRight, Database, FileSearch, Layers3, Menu, ShieldCheck, Table2, X } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 
 export function AppShell() {
+  const identity = useWorkspaceIdentity();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { pathname } = useLocation();
   const section = pathname.startsWith("/configuration") ? "配置管理" : "平台管理";
@@ -39,9 +41,10 @@ export function AppShell() {
             <NavLink to="/configuration/managed-data" onClick={() => setMobileNavOpen(false)}><Table2 size={18} />配置内容管理</NavLink>
           </section>
         </nav>
+        <NavLink to="/account">本地账号入口</NavLink>
         <div className="operator">
           <span className="operator-avatar"><ShieldCheck size={19} /></span>
-          <span><strong>操作身份</strong><small>由服务端配置</small></span>
+          <span><strong>{identity?.account.display_name}</strong><small>{identity?.account.username}</small></span>
         </div>
       </aside>
       {mobileNavOpen && <button className="mobile-scrim" aria-label="关闭导航" onClick={() => setMobileNavOpen(false)} />}

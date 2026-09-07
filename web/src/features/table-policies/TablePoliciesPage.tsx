@@ -28,7 +28,7 @@ export function TablePoliciesPage() {
 
       <section className="discovery-panel" aria-label="Database Table Discovery">
         <header><span><DatabaseZap size={18} />数据库表</span><small>分配并启用规则后可管理</small></header>
-        {discovery.isPending ? <LoadingState label="正在读取真实数据库表…" /> : discovery.isError ? <ErrorState error={discovery.error} onRetry={() => void discovery.refetch()} /> : !discovery.data.length ? (
+        {discovery.isPending ? <LoadingState label="正在读取真实数据库表…" /> : discovery.isError && !discovery.data ? <ErrorState error={discovery.error} onRetry={() => void discovery.refetch()} /> : !discovery.data.length ? (
           <div className="feedback-state"><strong>没有可发现的数据库表</strong><span>Managed Data Source 当前没有可用于规则分配的真实表。</span></div>
         ) : (
           <div className="discovery-grid">
@@ -50,7 +50,7 @@ export function TablePoliciesPage() {
         <div className="catalog-toolbar">
           <label className="search-field"><Search size={16} /><span className="sr-only">筛选表规则</span><input type="search" aria-label="筛选表规则" placeholder="筛选表名、规则编码或修改人" value={filter} onChange={(event) => setFilter(event.target.value)} /></label>
         </div>
-        {policies.isPending ? <LoadingState label="正在读取表规则目录…" /> : policies.isError ? <ErrorState error={policies.error} onRetry={() => void policies.refetch()} /> : !policies.data.length ? <EmptyState entity="表规则" /> : !filteredPolicies.length ? <div className="feedback-state"><strong>没有匹配的表规则</strong><span>尝试调整筛选条件。</span></div> : (
+        {policies.isPending ? <LoadingState label="正在读取表规则目录…" /> : policies.isError && !policies.data ? <ErrorState error={policies.error} onRetry={() => void policies.refetch()} /> : !policies.data.length ? <EmptyState entity="表规则" /> : !filteredPolicies.length ? <div className="feedback-state"><strong>没有匹配的表规则</strong><span>尝试调整筛选条件。</span></div> : (
           <div className="table-scroll"><table className="policy-table table-policy-table"><thead><tr><th>配置表</th><th>已分配规则</th><th>状态</th><th>最近更新</th><th>操作</th></tr></thead><tbody>
             {filteredPolicies.map((policy) => <tr key={policy.tableName} className={tableName === policy.tableName ? "selected-row" : ""}>
               <td className="rule-identity"><code>{policy.tableName}</code></td><td className="rule-pair"><div><small>查询</small><code>{policy.queryPolicyCode}</code></div><div><small>变更</small><code>{policy.mutationPolicyCode}</code></div></td>

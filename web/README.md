@@ -16,8 +16,8 @@
 - 配置内容管理只列出 enabled Managed Table，以实时动态列构造全部八种 Query Spec 操作符、单字段排序和服务端分页。
 - Managed Data 值保持 JSON String 语义，并在结果中明确区分 SQL NULL 与空字符串。
 - 变更规则驱动的 ADD、MODIFY、DELETE 始终显示能力状态；未授权、未知类型、无效 Auto Fill 或不可执行规则快照均失败关闭。
-- 通用写入编辑器以字段开关表达省略，并区分 NULL、空字符串和普通 JSON String；`id` 与全部 Auto Fill 字段不会进入写请求。
-- ADD、MODIFY、DELETE 共用完整字段 Change Set；执行后 ADD/MODIFY 以 exact id 回查数据库最终值，DELETE 显示删除摘要，失败保留输入并展示稳定错误与 Request ID。
+- 通用写入编辑器以字段开关表达省略，并区分 NULL、空字符串和普通 JSON String。ADD 可显式填写非自增主键 `id`；自增主键可保持省略。MODIFY 不修改 `id`，全部 Auto Fill 字段由后端填充。
+- ADD、MODIFY、DELETE 共用完整字段 Change Set；收到成功响应后 ADD/MODIFY 以返回的 exact id 回查数据库最终值，DELETE 显示删除摘要。未知写入结果保留输入并锁定再次提交，只有只读核对与明确的人工确认才允许继续；未收到 ADD 的真实返回 ID 时，核对当前页而不猜测输入 ID。
 - 规则详情把名称和描述与执行规则分开；执行规则区块解释查询排序/分页、变更授权和 Auto Fill 的实际效果，修改名称和描述不会改变执行内容。
 - 未知规则类型或不完整的变更类型能力失败关闭：未知 Draft 只能安全查看，Active 或 Deprecated 只能更新名称和描述等元数据。
 - GET 仅对网络错误、503、504 自动重试一次；写命令不自动重试。
@@ -27,7 +27,7 @@
 
 Web 固定使用 Node.js 24.19.0 与 pnpm 10.28.2；`package.json` 同时声明两者，确保本地开发与持续集成使用相同工具链。
 
-Admin 默认运行在 `http://127.0.0.1:8080`。复制环境变量示例并填入部署级 Token：
+Admin 默认运行在 `http://127.0.0.1:8080`。复制环境变量示例并确认 Admin 代理地址：
 
 ```bash
 cd web
@@ -36,9 +36,11 @@ pnpm install
 pnpm dev
 ```
 
-浏览器只请求同源 `/api/v1`。Vite 开发代理读取 `RCC_ADMIN_URL` 和 `RCC_ADMIN_TOKEN`，并在代理层注入精确的 `Authorization: Bearer <token>`；变量没有 `VITE_` 前缀，因此不会进入浏览器包。生产部署也应由同源反向代理持有 Token。Admin 仍按配置的精确 CORS origin 校验请求；生产环境默认启用 Bearer Token，只有显式 loopback 地址才允许使用 `ADMIN_AUTH_DISABLED=true`。
+浏览器只请求同源 `/api/v1`，使用 HttpOnly 会话 Cookie 和仅存于内存的 CSRF 凭据。Vite 仅读取 `RCC_ADMIN_URL`，转发原请求；旧 `RCC_ADMIN_TOKEN` 会明确报错。Admin 的 `ADMIN_PUBLIC_ORIGIN` 必须与浏览器地址一致，本机 HTTP 显式启用 `ADMIN_ALLOW_LOCAL_HTTP=true`。生产部署使用同源 HTTPS 反向代理，不能继续注入共享 Token。
 
-`pnpm dev` 的代理用于本地开发；`pnpm build` 生成生产静态资源，`pnpm preview` 用于本地预览并复用当前 Vite proxy 配置。preview 仍不能代替生产环境的同源反向代理，生产部署必须独立配置由反向代理保存和注入 Token。
+工作区先检查真实当前身份；未登录时转到登录页并保留安全的站内目标，注册或登录成功后返回。规则或 CSRF 拒绝的 403 不跳登录；会话失效的 401 转登录，服务故障保留凭据并提供重新检查。工作区与账号页复用同一浏览器 Web Lock 活动协调，业务写入不自动重放。同账号重新登录后会重新读取当前规则和目标数据，再恢复内存中的编辑内容并要求重新确认；退出或切换账号时清除草稿。
+
+`pnpm dev` 的代理用于本地开发；`pnpm build` 生成生产静态资源，`pnpm preview` 用于本地预览并复用当前 Vite proxy 配置。preview 不能代替生产环境的同源 HTTPS 反向代理。
 
 ## 验证
 
@@ -58,7 +60,7 @@ pnpm build
 
 ## 真实验收
 
-从仓库根目录执行以下命令；它会从干净 checkout 启动一次性的 MySQL 8.4、Admin 和 Web preview，加载隔离 fixture，并运行 14 项未保存保护及 6 项规则说明验收：
+从仓库根目录执行以下命令；它会从干净 checkout 启动一次性的 MySQL 8.4、Admin 和 Web preview，加载隔离 fixture，注册临时账号，并运行未保存保护、规则说明、写入恢复、操作覆盖、复杂字段及浏览器可访问性验收：
 
 ```sh
 make test-browser-acceptance
@@ -75,6 +77,8 @@ RCC_E2E_ARTIFACTS=/tmp/rcc-browser-accessibility-firefox-webkit \
   make test-browser-acceptance
 ```
 
+每个套件通过公开注册接口取得独立 Cookie 会话，并在内存中复用该账号；页面自己发送 CSRF，脚本不向页面请求注入认证 Header。只读主键回查等直接 APIRequest 操作显式取得当前 CSRF。独立认证检查证明无会话为 401、缺 CSRF 为 403、注册后查询为 200、退出后恢复 401。账号及会话随专属数据库销毁，不落盘保存 Cookie、CSRF 或注册密码。
+
 本地 macOS 阶段 5 已分别验证 Chromium 151.0.7922.34、Firefox 153.0 和 Playwright WebKit 26.5；WebKit 结果代表 Playwright 构建，不代表系统 Safari 的所有发行版。Linux CI 的三引擎运行是独立的环境证据，不能由 macOS 结果替代。使用 Colima 时，Admin integration 需要同时指定 Docker daemon 和 VM 内的 Ryuk socket：
 
 ```sh
@@ -84,6 +88,8 @@ TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
 ```
 
 只设置 `DOCKER_HOST` 会让 Ryuk 尝试把 macOS socket 路径挂载进 VM 并失败；本次环境在 provider 健康检查未通过时会跳过 integration，其他 Docker provider 可能自动发现 daemon，不能据此泛化。其他 provider 的路径需要按本机环境核实。
+
+账号专用系统验收入口也保留：从仓库根目录运行 `make test-browser`：它创建独立 MySQL、Admin、同源 Vite 和浏览器环境，依次验证账号注册与会话恢复、未保存编辑保护、规则效果说明，再销毁测试资源。需要已安装 Web 依赖、可用的 Docker 和 Chrome；也可通过 `RCC_BROWSER_EXECUTABLE` 指定 Chromium。该入口使用公开账号会话与 CSRF 流程，不依赖已移除的免认证模式。
 
 完整流程、真实 MySQL 8.4 和浏览器验收见 [`docs/verification/2026-09-07-stage1-acceptance.md`](../docs/verification/2026-09-07-stage1-acceptance.md)。未保存保护见 [`docs/verification/2026-09-07-stage2-unsaved-changes.md`](../docs/verification/2026-09-07-stage2-unsaved-changes.md)，规则效果说明见 [`docs/verification/2026-09-07-stage3-rule-clarity.md`](../docs/verification/2026-09-07-stage3-rule-clarity.md)。浏览器脚本使用隔离 fixture，运行前先启动隔离 Admin、Web 和 MySQL；不要对生产环境运行脚本：
 
@@ -99,3 +105,5 @@ RCC_E2E_OUTPUT=/tmp/rcc-stage4-rule-clarity \
 ```
 
 两个脚本都支持 `RCC_WEB_URL` 和 `RCC_E2E_OUTPUT`；只有 `unsaved-changes.cjs` 支持 `RCC_E2E_TABLE`。阶段 1 的完整重建和 fixture 加载方式见其报告。正常停止自建 Compose 环境时，从仓库根目录执行 `docker compose --env-file <env-file> -f deploy/docker-compose.yml -p <isolated-project> down`，将环境文件路径和项目名替换为启动时使用的值。原生 Admin 与 Web 在各自启动终端用 Ctrl+C 停止。
+
+手动运行这些脚本前，须按[本地账号运行手册](../docs/admin-local-accounts.md)配置当前认证与数据库结构；历史阶段报告中的 Token 或免认证启动方式不适用于当前版本。每个脚本通过公开 API 注册随机测试账号，邮箱使用 `@example.invalid` 且不执行邮件操作，清理规则草稿时携带当前会话的 CSRF。测试账号随隔离数据库销毁，不应在共享数据库运行这些脚本。

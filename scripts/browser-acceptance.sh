@@ -43,7 +43,6 @@ random_secret() {
 
 mysql_root_password=$(random_secret)
 mysql_password=$(random_secret)
-admin_token=$(random_secret)$(random_secret)
 mysql_env="$runtime_dir/mysql.env"
 {
   printf 'MYSQL_ROOT_PASSWORD=%s\n' "$mysql_root_password"
@@ -83,7 +82,7 @@ check_persisted_secrets() {
   if [[ -d "$repo_root/web/dist" ]]; then roots+=("$repo_root/web/dist"); fi
   : > "$matches"
   : > "$errors"
-  for secret in "$admin_token" "$mysql_password" "$mysql_root_password"; do
+  for secret in "$mysql_password" "$mysql_root_password"; do
     set +e
     grep -R -F -l -- "$secret" "${roots[@]}" > "$current_matches" 2> "$current_errors"
     grep_status=$?
@@ -364,10 +363,8 @@ printf 'Building and starting Admin on a dynamic loopback port...\n'
 run_logged 300 "$artifact_root/admin-build.log" \
   go -C "$repo_root/admin" build -o "$runtime_dir/admin" ./cmd/admin
 ADMIN_HTTP_ADDR="127.0.0.1:$admin_port" \
-ADMIN_API_TOKEN="$admin_token" \
-ADMIN_AUTH_DISABLED=false \
-ADMIN_OPERATOR=browser-acceptance \
-ADMIN_CORS_ORIGINS="$web_url" \
+ADMIN_PUBLIC_ORIGIN="$web_url" \
+ADMIN_ALLOW_LOCAL_HTTP=true \
 MYSQL_HOST=127.0.0.1 \
 MYSQL_PORT="$mysql_port" \
 MYSQL_DATABASE=rcc \
@@ -381,7 +378,7 @@ admin_pid=$!
 wait_for_http Admin "$admin_url/health/ready" "$admin_pid" "$artifact_root/admin.log"
 
 printf 'Starting Web preview on a different dynamic loopback port...\n'
-RCC_ADMIN_URL="$admin_url" RCC_ADMIN_TOKEN="$admin_token" \
+RCC_ADMIN_URL="$admin_url" \
 RCC_TIMEOUT_KILL_GRACE_MS=1000 \
   node "$repo_root/scripts/run-with-timeout.cjs" 1200 \
     node "$repo_root/scripts/run-vite-preview.cjs" "$repo_root/web" \
@@ -394,12 +391,15 @@ direct_status=$(curl --silent --show-error --max-time 5 --output /dev/null --wri
   "$admin_url/api/v1/query-policies")
 proxy_status=$(curl --silent --show-error --max-time 5 --output /dev/null --write-out '%{http_code}' \
   "$web_url/api/v1/query-policies")
-printf 'direct Admin without token: %s\nWeb same-origin proxy: %s\n' \
+printf 'direct Admin without session: %s\nWeb same-origin proxy without session: %s\n' \
   "$direct_status" "$proxy_status" > "$artifact_root/auth-boundary.txt"
-if [[ $direct_status != 401 || $proxy_status != 200 ]]; then
+if [[ $direct_status != 401 || $proxy_status != 401 ]]; then
   printf 'authentication boundary failed: direct=%s proxy=%s\n' "$direct_status" "$proxy_status" >&2
   exit 1
 fi
+
+RCC_PLAYWRIGHT_MODULE="$repo_root/web/node_modules/playwright" RCC_WEB_URL="$web_url" \
+  run_timeout 30 node "$repo_root/web/e2e/auth-boundary.cjs" > "$artifact_root/authenticated-boundary.json"
 
 run_browser_suite() {
   local name=$1

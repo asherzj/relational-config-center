@@ -1,3 +1,4 @@
+import { withAccountSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -44,7 +45,7 @@ describe("配置内容管理页面", () => {
       if (url.endsWith("/table-policies")) return json({ policies: [{ ...enabledPolicy, enabled: false }] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
 
     renderPage();
 
@@ -76,7 +77,7 @@ describe("配置内容管理页面", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage();
@@ -116,7 +117,7 @@ describe("配置内容管理页面", () => {
       }
       throw new Error(`unexpected request ${url} ${String(init?.body)}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage();
@@ -143,7 +144,7 @@ describe("配置内容管理页面", () => {
       });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage();
@@ -179,7 +180,7 @@ describe("配置内容管理页面", () => {
       });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage();
@@ -244,7 +245,7 @@ describe("配置内容管理页面", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage();
@@ -283,7 +284,7 @@ describe("配置内容管理页面", () => {
       });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage();
@@ -294,14 +295,14 @@ describe("配置内容管理页面", () => {
   });
 
   it("清晰呈现 Managed Data 稳定错误和 Request ID", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/table-policies")) return json({ policies: [enabledPolicy] });
       if (url.endsWith("/tables/notification_templates/query")) {
         return json({ error: { code: "query_timeout", message: "Managed Table query timed out", request_id: "req-timeout-27" } }, 504);
       }
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
 
     renderPage();
 
@@ -314,14 +315,14 @@ describe("配置内容管理页面", () => {
     ["invalid_policy_snapshot", "当前规则快照无法执行", "req-policy-27"],
     ["incompatible_table", "表结构不符合 Managed Table 要求", "req-schema-27"],
   ])("呈现 %s 稳定错误和 Request ID", async (code, expectedMessage, requestId) => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/table-policies")) return json({ policies: [enabledPolicy] });
       if (url.endsWith("/tables/notification_templates/query")) {
         return json({ error: { code, message: "unsafe backend detail", request_id: requestId } }, 422);
       }
       throw new Error(`unexpected request ${url}`);
-    }));
+    })));
 
     renderPage();
 
@@ -340,7 +341,7 @@ describe("配置内容管理页面", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
 
     renderPage(1);
     expect(await screen.findByRole("alert")).toHaveTextContent("req-no-retry-27");
@@ -361,7 +362,7 @@ describe("配置内容管理页面", () => {
       });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", withAccountSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage();

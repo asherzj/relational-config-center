@@ -24,6 +24,19 @@ function focusableElements(container: HTMLElement) {
 
 const modalStack: HTMLElement[] = [];
 const managedInert = new Map<HTMLElement, boolean>();
+let environmentObserver: MutationObserver | null = null;
+
+function isModalAvailable(element: HTMLElement) {
+  return element.isConnected && !element.closest('[hidden], [aria-hidden="true"]');
+}
+
+function topAvailableModal() {
+  for (let index = modalStack.length - 1; index >= 0; index -= 1) {
+    const candidate = modalStack[index]!;
+    if (isModalAvailable(candidate)) return candidate;
+  }
+  return undefined;
+}
 
 function restoreManagedInert() {
   managedInert.forEach((wasInert, element) => {
@@ -38,9 +51,9 @@ function refreshModalEnvironment() {
   for (let index = modalStack.length - 1; index >= 0; index -= 1) {
     if (!modalStack[index]!.isConnected) modalStack.splice(index, 1);
   }
-  document.documentElement.classList.toggle("modal-open", modalStack.length > 0);
-  document.body.classList.toggle("modal-open", modalStack.length > 0);
-  const top = modalStack.at(-1);
+  const top = topAvailableModal();
+  document.documentElement.classList.toggle("modal-open", Boolean(top));
+  document.body.classList.toggle("modal-open", Boolean(top));
   if (!top) return;
 
   // Keep the top layer (including its pointer scrim) available and make every
@@ -60,7 +73,7 @@ function refreshModalEnvironment() {
 }
 
 function isTopModal(container: HTMLElement) {
-  return modalStack.at(-1) === container;
+  return topAvailableModal() === container;
 }
 
 function canRestoreFocus(element: HTMLElement | null): element is HTMLElement {
@@ -75,6 +88,7 @@ function canRestoreFocus(element: HTMLElement | null): element is HTMLElement {
 }
 
 function focusModal(dialog: HTMLElement, preferred?: HTMLElement | null) {
+  if (!isModalAvailable(dialog)) return;
   const focusable = focusableElements(dialog);
   const target = preferred && focusable.includes(preferred) ? preferred : dialog;
   target.focus();
@@ -99,6 +113,14 @@ export function useModalFocus({
     if (!open || !dialog) return;
     const previous = document.activeElement as HTMLElement | null;
     modalStack.push(dialog);
+    if (!environmentObserver) {
+      environmentObserver = new MutationObserver(refreshModalEnvironment);
+      environmentObserver.observe(document.documentElement, {
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["hidden", "aria-hidden"],
+      });
+    }
     refreshModalEnvironment();
     const onKeyDown = (event: KeyboardEvent) => {
       if (!isTopModal(dialog)) return;
@@ -141,8 +163,15 @@ export function useModalFocus({
       const index = modalStack.lastIndexOf(dialog);
       if (index >= 0) modalStack.splice(index, 1);
       refreshModalEnvironment();
+      if (modalStack.length === 0) {
+        environmentObserver?.disconnect();
+        environmentObserver = null;
+      }
       if (canRestoreFocus(previous)) previous.focus();
-      else modalStack.at(-1)?.focus();
+      else {
+        const fallback = topAvailableModal();
+        if (fallback) focusModal(fallback);
+      }
     };
   }, [dialogRef, initialFocusRef, open]);
 }

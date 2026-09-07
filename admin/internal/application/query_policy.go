@@ -124,11 +124,10 @@ type PutQueryPolicy struct {
 type QueryPolicyManagement struct {
 	catalog  domain.QueryPolicyCatalog
 	registry *QueryPolicyTypeRegistry
-	operator string
 }
 
-func NewQueryPolicyManagement(catalog domain.QueryPolicyCatalog, registry *QueryPolicyTypeRegistry, operator string) *QueryPolicyManagement {
-	return &QueryPolicyManagement{catalog: catalog, registry: registry, operator: operator}
+func NewQueryPolicyManagement(catalog domain.QueryPolicyCatalog, registry *QueryPolicyTypeRegistry) *QueryPolicyManagement {
+	return &QueryPolicyManagement{catalog: catalog, registry: registry}
 }
 
 func (management *QueryPolicyManagement) Types() []QueryPolicyType {
@@ -136,6 +135,10 @@ func (management *QueryPolicyManagement) Types() []QueryPolicyType {
 }
 
 func (management *QueryPolicyManagement) Create(ctx context.Context, candidate PutQueryPolicy) (domain.QueryPolicy, error) {
+	operator, identityErr := requestOperator(ctx)
+	if identityErr != nil {
+		return domain.QueryPolicy{}, identityErr
+	}
 	policy, err := draftQueryPolicy(candidate)
 	if err != nil {
 		return domain.QueryPolicy{}, err
@@ -143,7 +146,7 @@ func (management *QueryPolicyManagement) Create(ctx context.Context, candidate P
 	if err := management.registry.validatePersistentScalars(policy); err != nil {
 		return domain.QueryPolicy{}, err
 	}
-	return management.catalog.CreateQueryPolicy(ctx, policy, management.operator)
+	return management.catalog.CreateQueryPolicy(ctx, policy, operator)
 }
 
 func (management *QueryPolicyManagement) List(ctx context.Context) ([]domain.QueryPolicy, error) {
@@ -175,6 +178,10 @@ func (management *QueryPolicyManagement) ValidateForTable(policy domain.QueryPol
 }
 
 func (management *QueryPolicyManagement) ReplaceDraft(ctx context.Context, code string, candidate PutQueryPolicy) (domain.QueryPolicy, error) {
+	operator, identityErr := requestOperator(ctx)
+	if identityErr != nil {
+		return domain.QueryPolicy{}, identityErr
+	}
 	if candidate.Code != code {
 		return domain.QueryPolicy{}, ErrInvalidPolicyCode
 	}
@@ -185,10 +192,14 @@ func (management *QueryPolicyManagement) ReplaceDraft(ctx context.Context, code 
 	if err := management.registry.validatePersistentScalars(policy); err != nil {
 		return domain.QueryPolicy{}, err
 	}
-	return management.catalog.ReplaceDraftQueryPolicy(ctx, policy, management.operator)
+	return management.catalog.ReplaceDraftQueryPolicy(ctx, policy, operator)
 }
 
 func (management *QueryPolicyManagement) Activate(ctx context.Context, code string) (domain.QueryPolicy, error) {
+	operator, identityErr := requestOperator(ctx)
+	if identityErr != nil {
+		return domain.QueryPolicy{}, identityErr
+	}
 	policy, err := management.catalog.GetQueryPolicy(ctx, code)
 	if err != nil {
 		return domain.QueryPolicy{}, err
@@ -199,7 +210,7 @@ func (management *QueryPolicyManagement) Activate(ctx context.Context, code stri
 	if err := management.registry.Validate(policy); err != nil {
 		return domain.QueryPolicy{}, err
 	}
-	return management.catalog.SetQueryPolicyStatus(ctx, code, domain.PolicyStatusDraft, domain.PolicyStatusActive, management.operator)
+	return management.catalog.SetQueryPolicyStatus(ctx, code, domain.PolicyStatusDraft, domain.PolicyStatusActive, operator)
 }
 
 func (management *QueryPolicyManagement) Deprecate(ctx context.Context, code string) (domain.QueryPolicy, error) {
@@ -207,6 +218,10 @@ func (management *QueryPolicyManagement) Deprecate(ctx context.Context, code str
 }
 
 func (management *QueryPolicyManagement) transition(ctx context.Context, code string, from, to domain.PolicyStatus) (domain.QueryPolicy, error) {
+	operator, identityErr := requestOperator(ctx)
+	if identityErr != nil {
+		return domain.QueryPolicy{}, identityErr
+	}
 	policy, err := management.catalog.GetQueryPolicy(ctx, code)
 	if err != nil {
 		return domain.QueryPolicy{}, err
@@ -214,10 +229,14 @@ func (management *QueryPolicyManagement) transition(ctx context.Context, code st
 	if policy.Status != from {
 		return domain.QueryPolicy{}, ErrInvalidPolicyTransition
 	}
-	return management.catalog.SetQueryPolicyStatus(ctx, code, from, to, management.operator)
+	return management.catalog.SetQueryPolicyStatus(ctx, code, from, to, operator)
 }
 
 func (management *QueryPolicyManagement) UpdateMetadata(ctx context.Context, code, name, description string) (domain.QueryPolicy, error) {
+	operator, identityErr := requestOperator(ctx)
+	if identityErr != nil {
+		return domain.QueryPolicy{}, identityErr
+	}
 	name = strings.TrimSpace(name)
 	description = strings.TrimSpace(description)
 	if name == "" || utf8.RuneCountInString(name) > 100 || utf8.RuneCountInString(description) > 500 {
@@ -230,10 +249,13 @@ func (management *QueryPolicyManagement) UpdateMetadata(ctx context.Context, cod
 	if policy.Status != domain.PolicyStatusActive && policy.Status != domain.PolicyStatusDeprecated {
 		return domain.QueryPolicy{}, ErrInvalidPolicyTransition
 	}
-	return management.catalog.UpdateQueryPolicyMetadata(ctx, code, name, description, management.operator)
+	return management.catalog.UpdateQueryPolicyMetadata(ctx, code, name, description, operator)
 }
 
 func (management *QueryPolicyManagement) DeleteDraft(ctx context.Context, code string) error {
+	if _, identityErr := requestOperator(ctx); identityErr != nil {
+		return identityErr
+	}
 	policy, err := management.catalog.GetQueryPolicy(ctx, code)
 	if err != nil {
 		return err

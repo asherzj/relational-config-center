@@ -12,9 +12,9 @@ import (
 
 func TestTransactionalManagedTableMutationUsesOneCompleteSnapshotAndDatabaseAutoFill(t *testing.T) {
 	session := validMutationSnapshotSession()
-	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: session}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry(), NewFixedOperatorProvider("test-operator"))
+	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: session}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
 
-	id, err := mutation.Add(t.Context(), "managed_items", domain.MutationContent{"name": jsonStringPointer("created")})
+	id, err := mutation.Add((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(t.Context()), "managed_items", domain.MutationContent{"name": jsonStringPointer("created")})
 	if err != nil {
 		t.Fatalf("ADD through relational Policy Snapshot: %v", err)
 	}
@@ -28,7 +28,7 @@ func TestTransactionalManagedTableMutationUsesOneCompleteSnapshotAndDatabaseAuto
 		t.Fatalf("expected separate Snapshot reads and one in-session write, got %#v", session.calls)
 	}
 	values := mutationValueMap(session.insert.Values)
-	if values["name"] != "created" || values["creator"] != "test-operator" || values["modifier"] != "test-operator" {
+	if values["name"] != "created" || values["creator"] != "00000000-0000-4000-8000-000000000001" || values["modifier"] != "00000000-0000-4000-8000-000000000001" {
 		t.Fatalf("operator Auto Fill is incomplete: %#v", values)
 	}
 	wantTime := session.databaseTime.Truncate(time.Microsecond)
@@ -39,8 +39,8 @@ func TestTransactionalManagedTableMutationUsesOneCompleteSnapshotAndDatabaseAuto
 
 func TestTransactionalManagedTableMutationRejectsClientManagedFieldsInsteadOfOverwriting(t *testing.T) {
 	session := validMutationSnapshotSession()
-	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: session}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry(), NewFixedOperatorProvider("test-operator"))
-	_, err := mutation.Add(t.Context(), "managed_items", domain.MutationContent{
+	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: session}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
+	_, err := mutation.Add((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(t.Context()), "managed_items", domain.MutationContent{
 		"name":    jsonStringPointer("created"),
 		"creator": jsonStringPointer("client-value"),
 	})
@@ -57,8 +57,8 @@ func TestTransactionalManagedTableMutationAuthorizationComesOnlyFromMutationPoli
 	session.mutationPolicy.AllowAdd = false
 	session.mutationPolicy.CreateOperatorField = nil
 	session.mutationPolicy.CreateTimeField = nil
-	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: session}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry(), NewFixedOperatorProvider("test-operator"))
-	_, err := mutation.Add(t.Context(), "managed_items", domain.MutationContent{"name": jsonStringPointer("denied")})
+	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: session}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
+	_, err := mutation.Add((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(t.Context()), "managed_items", domain.MutationContent{"name": jsonStringPointer("denied")})
 	if !errors.Is(err, ErrMutationNotAllowed) {
 		t.Fatalf("expected reusable Mutation Policy to deny ADD, got %v", err)
 	}
@@ -69,8 +69,8 @@ func TestTransactionalManagedTableMutationAuthorizationComesOnlyFromMutationPoli
 
 func TestTransactionalManagedTableMutationModifyFillsOnlyModifyAndDeleteFillsNothing(t *testing.T) {
 	modifySession := validMutationSnapshotSession()
-	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: modifySession}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry(), NewFixedOperatorProvider("test-operator"))
-	if _, err := mutation.Modify(t.Context(), "managed_items", "7", domain.MutationContent{"name": jsonStringPointer("changed")}); err != nil {
+	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: modifySession}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
+	if _, err := mutation.Modify((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(t.Context()), "managed_items", "7", domain.MutationContent{"name": jsonStringPointer("changed")}); err != nil {
 		t.Fatalf("MODIFY through relational Policy Snapshot: %v", err)
 	}
 	values := mutationValueMap(modifySession.update.Values)
@@ -80,17 +80,51 @@ func TestTransactionalManagedTableMutationModifyFillsOnlyModifyAndDeleteFillsNot
 	if _, found := values["created_at"]; found {
 		t.Fatalf("MODIFY changed Create Time: %#v", values)
 	}
-	if values["modifier"] != "test-operator" || values["updated_at"] != modifySession.databaseTime.Truncate(time.Microsecond) {
+	if values["modifier"] != "00000000-0000-4000-8000-000000000001" || values["updated_at"] != modifySession.databaseTime.Truncate(time.Microsecond) {
 		t.Fatalf("MODIFY did not fill Modify targets: %#v", values)
 	}
 
 	deleteSession := validMutationSnapshotSession()
-	deleteMutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: deleteSession}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry(), NewFixedOperatorProvider("test-operator"))
-	if _, err := deleteMutation.Delete(t.Context(), "managed_items", "7"); err != nil {
+	deleteMutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: deleteSession}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
+	if _, err := deleteMutation.Delete((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(t.Context()), "managed_items", "7"); err != nil {
 		t.Fatalf("DELETE through relational Policy Snapshot: %v", err)
 	}
 	if containsCall(deleteSession.calls, "database-time") {
 		t.Fatalf("DELETE unexpectedly produced Auto Fill: %#v", deleteSession.calls)
+	}
+}
+
+func TestTransactionalManagedTableMutationAllowsDeprecatedAndFailsClosedForDraftOrUnknownTypes(t *testing.T) {
+	deprecated := validMutationSnapshotSession()
+	deprecated.queryPolicy.Status = domain.PolicyStatusDeprecated
+	deprecated.mutationPolicy.Status = domain.PolicyStatusDeprecated
+	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: deprecated}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
+	if _, err := mutation.Delete((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(t.Context()), "managed_items", "7"); err != nil {
+		t.Fatalf("existing Deprecated references must execute: %v", err)
+	}
+
+	tests := []struct {
+		name string
+		edit func(*memoryMutationSnapshotSession)
+		want error
+	}{
+		{name: "Draft Query Policy", edit: func(session *memoryMutationSnapshotSession) { session.queryPolicy.Status = domain.PolicyStatusDraft }, want: ErrInvalidPolicySnapshot},
+		{name: "Draft Mutation Policy", edit: func(session *memoryMutationSnapshotSession) { session.mutationPolicy.Status = domain.PolicyStatusDraft }, want: ErrInvalidPolicySnapshot},
+		{name: "unknown Query Type", edit: func(session *memoryMutationSnapshotSession) { session.queryPolicy.TypeCode = "unknown" }, want: ErrUnknownQueryPolicyType},
+		{name: "unknown Mutation Type", edit: func(session *memoryMutationSnapshotSession) { session.mutationPolicy.TypeCode = "unknown" }, want: ErrUnknownMutationPolicyType},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			session := validMutationSnapshotSession()
+			test.edit(session)
+			mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: session}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
+			if _, err := mutation.Delete((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(t.Context()), "managed_items", "7"); !errors.Is(err, test.want) {
+				t.Fatalf("expected %v, got %v", test.want, err)
+			}
+			if containsCall(session.calls, "delete:managed_items") {
+				t.Fatalf("invalid Snapshot reached row execution: %#v", session.calls)
+			}
+		})
 	}
 }
 
@@ -139,10 +173,10 @@ func validMutationSnapshotSession() *memoryMutationSnapshotSession {
 			Name: "managed_items", Compatible: true,
 			Columns: []domain.Column{
 				{Name: "id", Type: domain.ColumnTypeUInt64, AutoIncrement: true},
-				{Name: "name", Type: domain.ColumnTypeString},
-				{Name: "creator", Type: domain.ColumnTypeString},
+				{Name: "name", Type: domain.ColumnTypeString, TextCapacity: 100},
+				{Name: "creator", Type: domain.ColumnTypeString, TextCapacity: 100},
 				{Name: "created_at", Type: domain.ColumnTypeDateTime},
-				{Name: "modifier", Type: domain.ColumnTypeString},
+				{Name: "modifier", Type: domain.ColumnTypeString, TextCapacity: 100},
 				{Name: "updated_at", Type: domain.ColumnTypeDateTime},
 			},
 		},
@@ -201,8 +235,8 @@ func TestManagedTableAddRejectsUnaddressableRawAndCanonicalIdentities(t *testing
 			session.schema.Columns[0] = domain.Column{Name: "id", Type: domain.ColumnTypeString}
 			session.insertID = &test.canonical
 			executor := &memoryMutationSnapshotExecutor{session: session}
-			mutation := NewManagedTableMutation(executor, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry(), NewFixedOperatorProvider("test-operator"))
-			_, err := mutation.Add(t.Context(), "managed_items", domain.MutationContent{"id": jsonStringPointer(test.raw), "name": jsonStringPointer("test")})
+			mutation := NewManagedTableMutation(executor, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
+			_, err := mutation.Add((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(t.Context()), "managed_items", domain.MutationContent{"id": jsonStringPointer(test.raw), "name": jsonStringPointer("test")})
 			if !errors.Is(err, ErrInvalidMutation) || !errors.Is(executor.callbackError, ErrInvalidMutation) {
 				t.Fatalf("identity rejection must occur inside the transaction callback: error=%v callback=%v", err, executor.callbackError)
 			}
@@ -220,8 +254,8 @@ func TestManagedTableAddValidatesGeneratedIdentityAgainstSnapshotSchema(t *testi
 			session.schema.Columns[0] = domain.Column{Name: "id", Type: domain.ColumnTypeBoolean, AutoIncrement: true}
 			session.insertID = &id
 			executor := &memoryMutationSnapshotExecutor{session: session}
-			mutation := NewManagedTableMutation(executor, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry(), NewFixedOperatorProvider("test-operator"))
-			result, err := mutation.Add(t.Context(), "managed_items", domain.MutationContent{"name": jsonStringPointer("test")})
+			mutation := NewManagedTableMutation(executor, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
+			result, err := mutation.Add((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(t.Context()), "managed_items", domain.MutationContent{"name": jsonStringPointer("test")})
 			if id == "1" {
 				if err != nil || result != id {
 					t.Fatalf("valid generated identity: id=%q error=%v", result, err)
@@ -277,15 +311,15 @@ func TestNonAutoIncrementIDIsRequiredEvenWhenSchemaHasADefault(t *testing.T) {
 	session := validMutationSnapshotSession()
 	session.schema.Columns[0].AutoIncrement = false
 	session.schema.Columns[0].HasDefault = true
-	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: session}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry(), NewFixedOperatorProvider("test-operator"))
-	_, err := mutation.Add(t.Context(), "managed_items", domain.MutationContent{"name": jsonStringPointer("created")})
+	mutation := NewManagedTableMutation(&memoryMutationSnapshotExecutor{session: session}, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry())
+	_, err := mutation.Add((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(t.Context()), "managed_items", domain.MutationContent{"name": jsonStringPointer("created")})
 	if !errors.Is(err, ErrMissingRequiredField) {
 		t.Fatalf("missing non-auto id must fail before insert even with a default: %v", err)
 	}
 	if containsCall(session.calls, "insert:managed_items") {
 		t.Fatalf("unknown default identity reached row execution: %#v", session.calls)
 	}
-	_, err = mutation.Add(t.Context(), "managed_items", domain.MutationContent{"id": jsonStringPointer("42"), "name": jsonStringPointer("created")})
+	_, err = mutation.Add((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(t.Context()), "managed_items", domain.MutationContent{"id": jsonStringPointer("42"), "name": jsonStringPointer("created")})
 	if err != nil || session.insert.ProvidedID == nil || *session.insert.ProvidedID != "42" {
 		t.Fatalf("explicit non-auto id must remain supported: id=%v error=%v", session.insert.ProvidedID, err)
 	}

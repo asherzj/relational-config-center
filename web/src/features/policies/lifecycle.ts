@@ -1,7 +1,7 @@
-import { isUncertainWriteError } from "../../api/client";
 import { useWriteRecovery } from "../../components/ui/WriteRecovery";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { isUncertainWriteError } from "../../api/client";
 import { presentError } from "../../api/error-messages";
 import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { useToast } from "../../components/ui/Toast";
@@ -70,62 +70,87 @@ export function usePolicyLifecycleCommands({
   collectionPath,
   copy,
   runners,
+  blocked = false,
+  onUncertainWrite,
 }: {
   selectedCode?: string;
   collectionPath: string;
   copy: PolicyCommandCopy;
   runners: PolicyCommandRunners;
+  blocked?: boolean;
+  onUncertainWrite?: (error: unknown, code: string) => void;
 }) {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [pendingCommand, setPendingCommand] = useState<{ command: PolicyLifecycleCommand; code: string } | null>(null);
-
+  type Command = { command: PolicyLifecycleCommand; code: string };
+  const [pendingCommand, setPendingCommand] = useState<Command | null>(null);
+  const currentCommand = useRef<Command | null>(null);
   const inFlight = useRef(false);
+  const setCommand = (command: Command | null) => {
+    currentCommand.current = command;
+    setPendingCommand(command);
+  };
+
   const lastTarget = useRef<string | undefined>(undefined);
   const uncertainTargets = useRef(new Map<string, unknown>());
   const recovery = useWriteRecovery();
   const request = (command: PolicyLifecycleCommand, code: string) => {
-    if (inFlight.current) return;
+    if (blocked || inFlight.current) return;
     lastTarget.current = code;
     recovery.reset();
     if (uncertainTargets.current.has(code)) recovery.fail(uncertainTargets.current.get(code));
-    setPendingCommand({ command, code });
+    setCommand({ command, code });
   };
-  const cancel = () => { if (!inFlight.current) setPendingCommand(null); };
+  const cancel = () => { if (!inFlight.current) setCommand(null); };
   const confirm = pendingCommand ? copy[pendingCommand.command] : null;
   const pending = pendingCommand ? runners[pendingCommand.command].pending : false;
 
   const protection = useDraftProtection(false, pending, inFlight);
 
   const execute = () => {
-    if (!pendingCommand || inFlight.current || pending || recovery.blocked.current) return;
+    if (!pendingCommand || pendingCommand !== currentCommand.current || inFlight.current || blocked || pending || recovery.blocked.current) return;
+    const acceptedCommand = pendingCommand;
+    const { command, code } = acceptedCommand;
+    // React Query publishes pending state after mutate(): guard the interval
+    // synchronously, including repeated events within the same render.
     inFlight.current = true;
-    const { command, code } = pendingCommand;
-    lastTarget.current = code;
-    runners[command].run(
-      code,
-      () => {
-        inFlight.current = false;
-        protection.submissionSettled();
-        showToast(copy[command].success);
-        setPendingCommand(null);
-        if (command === "delete" && selectedCode === code) protection.afterSave(() => navigate(collectionPath));
-      },
-      (error) => {
-        inFlight.current = false;
-        protection.submissionSettled();
+    const settle = () => {
+      if (currentCommand.current !== acceptedCommand) return false;
+      inFlight.current = false;
+      protection.submissionSettled();
+      setCommand(null);
+      return true;
+    };
+    const onError = (error: unknown) => {
+      if (!settle()) return;
+      if (isUncertainWriteError(error)) {
+        lastTarget.current = code;
+        uncertainTargets.current.set(code, error);
         recovery.fail(error);
-        if (recovery.blocked.current) { uncertainTargets.current.set(code, error); return; }
-        const shown = presentError(error);
-        showToast(shown.requestId ? `${shown.message}（请求编号：${shown.requestId}）` : shown.message);
-        setPendingCommand(null);
-      },
-    );
+        if (onUncertainWrite) protection.afterSave(() => onUncertainWrite(error, code));
+        return;
+      }
+      const shown = presentError(error);
+      showToast(shown.requestId ? `${shown.message}（请求编号：${shown.requestId}）` : shown.message);
+    };
+    try {
+      runners[command].run(
+        code,
+        () => {
+          if (!settle()) return;
+          showToast(copy[command].success);
+          if (command === "delete" && selectedCode === code) protection.afterSave(() => navigate(collectionPath));
+        },
+        onError,
+      );
+    } catch (error) {
+      onError(error);
+    }
   };
 
   const finishCheck = () => {
     if (lastTarget.current) uncertainTargets.current.delete(lastTarget.current);
-    recovery.reset(); setPendingCommand(null);
+    recovery.reset(); setCommand(null);
     navigate(collectionPath);
   };
   return { request, cancel, execute, confirm, pending, recovery, finishCheck, targetCode: lastTarget.current };
@@ -141,6 +166,7 @@ export function usePolicyFormSubmission<TDraft, TMetadata>({
   updateMetadata,
   pending,
   error,
+  blocked = false,
 }: {
   mode: PolicyFormMode;
   code?: string;
@@ -151,6 +177,7 @@ export function usePolicyFormSubmission<TDraft, TMetadata>({
   updateMetadata: (code: string, value: TMetadata, onSuccess: () => void, onError: (error: unknown) => void) => void;
   pending: boolean;
   error: unknown;
+  blocked?: boolean;
 }) {
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -166,7 +193,7 @@ export function usePolicyFormSubmission<TDraft, TMetadata>({
   };
 
   const submit = (value: TDraft | TMetadata) => {
-    if (inFlight.current || pending || recovery.blocked.current || mode === "view") return;
+    if (inFlight.current || pending || blocked || recovery.blocked.current || mode === "view") return;
     submittedCode.current = mode === "create" ? (value as { code: string }).code : code;
     inFlight.current = true;
     if (mode === "create") {

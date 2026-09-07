@@ -398,6 +398,27 @@ input::placeholder, textarea::placeholder { color: #6d7884; opacity: 1; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 
+.account-page { min-height: 100vh; display: grid; place-items: center; padding: 40px 20px; background: #f4f6f9; }
+.account-card { width: min(100%, 560px); padding: 32px; background: white; border: 1px solid #e5e9ef; border-radius: 12px; }
+.account-brand { font-size: 14px; color: #607089; text-decoration: none; }
+.account-card h1 { margin: 18px 0 24px; font-size: 26px; }
+.account-card label { display: grid; gap: 8px; margin-top: 18px; font-size: 14px; font-weight: 600; }
+.account-card input { width: 100%; min-height: 40px; padding: 9px 12px; border: 1px solid #cbd3df; border-radius: 6px; }
+.account-help { color: #65748b; font-size: 12px; line-height: 1.7; margin: 8px 0 18px; }
+.account-card form > .button { width: 100%; }
+.account-link { font-size: 14px; text-align: center; margin-top: 18px; }
+.account-error { display: grid; gap: 12px; padding: 14px; background: #fff3f1; color: #a33227; font-size: 14px; line-height: 1.7; border-radius: 6px; }
+.account-details { display: grid; grid-template-columns: 90px 1fr; gap: 16px; font-size: 14px; }
+.account-details dt { color: #65748b; }
+.account-details dd { margin: 0; overflow-wrap: anywhere; }
+.account-action { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
+.account-action h2 { margin: 0; font-size: 17px; }
+.account-session-actions { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 10px; }
+.account-notice { padding: 12px 14px; border-radius: 6px; background: var(--accent-soft); color: var(--accent-strong); font-size: 14px; }
+.session-interruption { position: fixed; z-index: 100; inset: 0; overflow: auto; background: #f4f6f9; }
+.session-interruption-copy { position: relative; z-index: 1; width: min(100% - 40px, 560px); margin: 32px auto -72px; padding: 18px 22px; border: 1px solid #d8e1de; border-radius: 10px; background: #fff; box-shadow: var(--shadow); }
+.session-interruption-copy h2 { margin: 0 0 8px; font-size: 18px; }
+.session-interruption-copy p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
 /* A discard confirmation must remain above drawers and Change Set dialogs. */
 .leave-protection-layer { z-index: 80; }
 .form-controls { display: contents; border: 0; padding: 0; margin: 0; min-width: 0; }

@@ -2,6 +2,7 @@ import { getMutationPolicy } from "../../api/mutation-policies";
 import { WriteRecovery } from "../../components/ui/WriteRecovery";
 import { FileCode2, Plus, RefreshCw } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { isUncertainWriteError } from "../../api/client";
 import { Button } from "../../components/ui/Button";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { EmptyState, ErrorState, LoadingState } from "../../components/ui/Feedback";
@@ -42,7 +43,7 @@ const commandContent: PolicyCommandCopy = {
   delete: { title: "删除变更规则草稿？", description: "删除后无法恢复。只有草稿状态的变更规则可以删除。", label: "确认删除", success: "变更规则草稿已删除", destructive: true },
 };
 
-function PolicyActions({ policy, supported, onCommand }: { policy: MutationPolicy; supported: boolean; onCommand: (command: PolicyLifecycleCommand, code: string) => void }) {
+function PolicyActions({ policy, supported, commandsBlocked, onCommand }: { policy: MutationPolicy; supported: boolean; commandsBlocked: boolean; onCommand: (command: PolicyLifecycleCommand, code: string) => void }) {
   const navigate = useNavigate();
   const actions = policyActionAvailability(policy.status, supported);
   const open = (suffix = "") => navigate(`/platform/mutation-policies/${encodeURIComponent(policy.code)}${suffix}`);
@@ -50,9 +51,9 @@ function PolicyActions({ policy, supported, onCommand }: { policy: MutationPolic
     <button onClick={() => open()}>查看</button>
     {actions.replace && <button onClick={() => open("?mode=edit")}>修改执行规则</button>}
     {actions.metadata && <button onClick={() => open("?mode=metadata")}>名称和描述</button>}
-    {actions.activate && <button onClick={() => onCommand("activate", policy.code)}>激活</button>}
-    {actions.deprecate && <button className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</button>}
-    {actions.delete && <button className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</button>}
+    {!commandsBlocked && actions.activate && <button onClick={() => onCommand("activate", policy.code)}>激活</button>}
+    {!commandsBlocked && actions.deprecate && <button className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</button>}
+    {!commandsBlocked && actions.delete && <button className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</button>}
   </div>;
 }
 
@@ -69,7 +70,10 @@ export function MutationPoliciesPage() {
   const activate = useActivateMutationPolicy();
   const deprecate = useDeprecateMutationPolicy();
   const remove = useDeleteMutationPolicy();
+  const uncertainCommand = [activate.error, deprecate.error, remove.error].some(isUncertainWriteError);
   const lifecycle = usePolicyLifecycleCommands({
+    blocked: uncertainCommand,
+    onUncertainWrite: (_error, targetCode) => { if (code === targetCode) navigate("/platform/mutation-policies"); },
     selectedCode: code,
     collectionPath: "/platform/mutation-policies",
     copy: commandContent,
@@ -89,7 +93,7 @@ export function MutationPoliciesPage() {
           <h1>变更规则定义</h1>
           <p>定义配置记录的新增、修改与删除权限，以及操作人和时间的自动填写方式。</p>
         </div>
-        <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/mutation-policies/new")} disabled={types.isPending || types.isError || !supportedTypes.length}>新建草稿</Button>
+        <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/mutation-policies/new")} disabled={uncertainCommand || types.isPending || types.isError || !supportedTypes.length}>新建草稿</Button>
       </div>
 
       <section className="type-registry" aria-label="变更规则类型注册表">
@@ -105,7 +109,7 @@ export function MutationPoliciesPage() {
       </section>
 
       <section className="catalog" aria-label="变更规则目录">
-        {policies.isPending ? <LoadingState label="正在读取变更规则目录…" /> : policies.isError ? (
+        {policies.isPending ? <LoadingState label="正在读取变更规则目录…" /> : policies.isError && !policies.data ? (
           <ErrorState error={policies.error} onRetry={() => void policies.refetch()} />
         ) : !policies.data.length ? <EmptyState entity="变更规则" /> : (
           <div className="table-scroll">
@@ -121,7 +125,7 @@ export function MutationPoliciesPage() {
                   <td><div className="auto-fill-targets">{autoFillTargets(policy).length ? autoFillTargets(policy).map((target) => <code key={target}>{target}</code>) : <span>无</span>}</div></td>
                   <td><span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span></td>
                   <td className="timestamp">{formatTimestamp(policy.modifiedAt)}</td>
-                  <td><PolicyActions policy={policy} supported={supported} onCommand={lifecycle.request} /></td>
+                  <td><PolicyActions policy={policy} supported={supported} commandsBlocked={uncertainCommand} onCommand={lifecycle.request} /></td>
                 </tr>;
               })}</tbody>
             </table>
@@ -133,9 +137,17 @@ export function MutationPoliciesPage() {
           <Button className="catalog-refresh" variant="ghost" icon={<RefreshCw size={15} />} onClick={() => void policies.refetch()} disabled={policies.isFetching}>刷新</Button>
         </footer>
       </section>
-      <MutationPolicyDrawer code={code} onRequestCommand={lifecycle.request} />
-      {!confirm && <WriteRecovery onResume={() => { lifecycle.finishCheck(); void policies.refetch(); }} resumeLabel="我已核对，结束本次核对" error={lifecycle.recovery.error} onCheck={() => getMutationPolicy(lifecycle.targetCode!)} />}
-      {confirm && <ConfirmDialog open title={confirm.title} description={confirm.description} confirmLabel={confirm.label} destructive={confirm.destructive} pending={lifecycle.pending} confirmDisabled={lifecycle.recovery.blocked.current} children={<WriteRecovery onResume={() => { lifecycle.finishCheck(); void policies.refetch(); }} resumeLabel="我已核对，结束本次核对" error={lifecycle.recovery.error} onCheck={() => getMutationPolicy(lifecycle.targetCode!)} />} onCancel={lifecycle.cancel} onConfirm={lifecycle.execute} />}
+      <MutationPolicyDrawer code={code} commandsBlocked={uncertainCommand} onRequestCommand={lifecycle.request} />
+      {!confirm && <WriteRecovery onResume={() => {
+        activate.reset(); deprecate.reset(); remove.reset();
+        lifecycle.finishCheck();
+        void policies.refetch();
+      }} resumeLabel="我已核对，结束本次核对" error={lifecycle.recovery.error} onCheck={() => getMutationPolicy(lifecycle.targetCode!)} />}
+      {confirm && <ConfirmDialog open title={confirm.title} description={confirm.description} confirmLabel={confirm.label} destructive={confirm.destructive} pending={lifecycle.pending} confirmDisabled={uncertainCommand || lifecycle.recovery.blocked.current} children={<WriteRecovery onResume={() => {
+        activate.reset(); deprecate.reset(); remove.reset();
+        lifecycle.finishCheck();
+        void policies.refetch();
+      }} resumeLabel="我已核对，结束本次核对" error={lifecycle.recovery.error} onCheck={() => getMutationPolicy(lifecycle.targetCode!)} />} onCancel={lifecycle.cancel} onConfirm={lifecycle.execute} />}
     </main>
   );
 }

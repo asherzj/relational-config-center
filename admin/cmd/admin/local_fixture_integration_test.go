@@ -28,7 +28,7 @@ func TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable(t *testing.T) 
 	}
 	t.Cleanup(func() { _ = app.Close() })
 
-	discovery := policyIntegrationRequest(app, http.MethodGet, "/api/v1/database-tables", "")
+	discovery := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/database-tables", "")
 	if discovery.Code != http.StatusOK {
 		t.Fatalf("discover local Managed Table: HTTP %d %s", discovery.Code, discovery.Body.String())
 	}
@@ -59,7 +59,7 @@ func TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable(t *testing.T) 
 
 	assertLocalFixturePolicies(t, app)
 
-	page := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/notification_templates/query", `{
+	page := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/notification_templates/query", `{
 		"order":{"field":"id","direction":"ASC"},
 		"page_number":2,
 		"page_size":2
@@ -81,7 +81,7 @@ func TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable(t *testing.T) 
 		t.Fatalf("fixture was duplicated or pagination is unusable: %s", page.Body.String())
 	}
 
-	added := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/notification_templates/rows", `{
+	added := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/notification_templates/rows", `{
 		"content":{
 			"template_key":"issue-25-cleanup",
 			"channel":"EMAIL",
@@ -95,14 +95,14 @@ func TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable(t *testing.T) 
 	id := mutationResponseID(t, added)
 	created := queryNotificationTemplate(t, app, "issue-25-cleanup")
 	assertMutationString(t, created, "body", "created")
-	assertMutationString(t, created, "creator", "integration-test")
-	assertMutationString(t, created, "modifier", "integration-test")
+	assertMutationString(t, created, "creator", integrationAccountID(t, app))
+	assertMutationString(t, created, "modifier", integrationAccountID(t, app))
 
-	modified := policyIntegrationRequest(app, http.MethodPatch, "/api/v1/tables/notification_templates/rows/"+id, `{"content":{"body":"modified"}}`)
+	modified := policyIntegrationRequest(t, app, http.MethodPatch, "/api/v1/tables/notification_templates/rows/"+id, `{"content":{"body":"modified"}}`)
 	assertMutationAffected(t, modified)
 	assertMutationString(t, queryNotificationTemplate(t, app, "issue-25-cleanup"), "body", "modified")
 
-	deleted := policyIntegrationRequest(app, http.MethodDelete, "/api/v1/tables/notification_templates/rows/"+id, "")
+	deleted := policyIntegrationRequest(t, app, http.MethodDelete, "/api/v1/tables/notification_templates/rows/"+id, "")
 	assertMutationAffected(t, deleted)
 	assertNotificationTemplateAbsent(t, app, "issue-25-cleanup")
 }
@@ -180,7 +180,7 @@ func executeLocalManagedTableFixture(driverConfig *mysqldriver.Config) error {
 
 func assertLocalFixturePolicies(t *testing.T, app *adminApplication) {
 	t.Helper()
-	tablePolicy := policyIntegrationRequest(app, http.MethodGet, "/api/v1/table-policies/notification_templates", "")
+	tablePolicy := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/table-policies/notification_templates", "")
 	if tablePolicy.Code != http.StatusOK {
 		t.Fatalf("read fixture Table Policy: HTTP %d %s", tablePolicy.Code, tablePolicy.Body.String())
 	}
@@ -194,7 +194,7 @@ func assertLocalFixturePolicies(t *testing.T, app *adminApplication) {
 		t.Fatalf("unexpected local Policy Snapshot assignment: %s", tablePolicy.Body.String())
 	}
 
-	queryPolicy := policyIntegrationRequest(app, http.MethodGet, "/api/v1/query-policies/notification_page_query_v1", "")
+	queryPolicy := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/query-policies/notification_page_query_v1", "")
 	if queryPolicy.Code != http.StatusOK {
 		t.Fatalf("read fixture Query Policy: HTTP %d %s", queryPolicy.Code, queryPolicy.Body.String())
 	}
@@ -206,7 +206,7 @@ func assertLocalFixturePolicies(t *testing.T, app *adminApplication) {
 		t.Fatalf("fixture Query Policy is not Active: %s", queryPolicy.Body.String())
 	}
 
-	mutationPolicy := policyIntegrationRequest(app, http.MethodGet, "/api/v1/mutation-policies/notification_full_mutation_v1", "")
+	mutationPolicy := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/mutation-policies/notification_full_mutation_v1", "")
 	if mutationPolicy.Code != http.StatusOK {
 		t.Fatalf("read fixture Mutation Policy: HTTP %d %s", mutationPolicy.Code, mutationPolicy.Body.String())
 	}
@@ -240,7 +240,7 @@ func assertNotificationTemplateAbsent(t *testing.T, app *adminApplication, templ
 
 func queryNotificationTemplateRows(t *testing.T, app *adminApplication, templateKey string) []map[string]*string {
 	t.Helper()
-	response := policyIntegrationRequest(app, http.MethodPost, "/api/v1/tables/notification_templates/query", `{
+	response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/notification_templates/query", `{
 		"conditions":[{"field":"template_key","operator":"exact","value":"`+templateKey+`"}]
 	}`)
 	if response.Code != http.StatusOK {

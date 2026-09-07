@@ -157,4 +157,25 @@ describe("modal focus management", () => {
     expect(screen.getByRole("dialog", { name: "规则详情" })).toContainElement(document.activeElement as HTMLElement);
   });
 
+  it("does not trap login keyboard input in a workspace drawer hidden by session expiry", async () => {
+    const user = userEvent.setup();
+    const closeDrawer = vi.fn();
+    const contents = (hidden: boolean) => <>
+      <div hidden={hidden} aria-hidden={hidden}>
+        <Drawer open title="未提交的规则" eyebrow="规则" onClose={closeDrawer}><input aria-label="规则名称" /></Drawer>
+      </div>
+      {hidden && <form><input aria-label="登录用户名" /><input aria-label="登录密码" /></form>}
+    </>;
+    const view = render(contents(false));
+    view.rerender(contents(true));
+    screen.getByLabelText("登录用户名").focus();
+    await user.tab();
+    expect(screen.getByLabelText("登录密码")).toHaveFocus();
+    expect(screen.getByLabelText("登录用户名").closest("[inert]")).toBeNull();
+    expect(document.body).not.toHaveClass("modal-open");
+    expect(document.documentElement).not.toHaveClass("modal-open");
+    await user.keyboard("{Escape}");
+    expect(closeDrawer).not.toHaveBeenCalled();
+  });
+
 });

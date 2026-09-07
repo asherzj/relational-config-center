@@ -98,3 +98,32 @@ it("returns to the catalog after deleting the selected draft while the observer 
   expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   expect(run).toHaveBeenCalledTimes(1);
 });
+
+
+it("returns to the catalog after an uncertain command while the observer still reports pending", () => {
+  const run = vi.fn();
+  const detail = "/platform/query-policies/uncertain_v1";
+  const collection = "/platform/query-policies";
+  const wrapper = ({ children }: { children: ReactNode }) => <TestRouter initialEntries={[detail]}><ToastProvider><LeaveProtectionProvider>{children}</LeaveProtectionProvider></ToastProvider></TestRouter>;
+  const hook = renderHook(({ pending }: { pending: boolean }) => {
+    const navigate = useNavigate();
+    const runner = { run, pending };
+    const commands = usePolicyLifecycleCommands({
+      selectedCode: "uncertain_v1",
+      collectionPath: collection,
+      copy: { activate: copy, deprecate: copy, delete: copy },
+      runners: { activate: runner, deprecate: runner, delete: runner },
+      onUncertainWrite: (_error, code) => { if (code === "uncertain_v1") navigate(collection); },
+    });
+    return { commands, location: useLocation() };
+  }, { wrapper, initialProps: { pending: false } });
+  act(() => hook.result.current.commands.request("activate", "uncertain_v1"));
+  act(() => hook.result.current.commands.execute());
+  hook.rerender({ pending: true });
+  expect(hook.result.current.commands.pending).toBe(true);
+  act(() => run.mock.calls[0]![2](new ApiError("policy_catalog_unavailable", "unknown", 503)));
+  expect(hook.result.current.location.pathname).toBe(collection);
+  expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+  expect(hook.result.current.commands.recovery.error).toBeTruthy();
+  expect(run).toHaveBeenCalledTimes(1);
+});

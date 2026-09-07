@@ -1,7 +1,8 @@
-// Real Chromium -> production same-origin Web proxy -> Bearer Admin -> disposable MySQL 8.4.
+// Real Chromium -> production same-origin Web proxy -> Cookie-authenticated Admin -> disposable MySQL 8.4.
 // SQL arranges this suite's tables and independently verifies bytes and database semantics.
 const { chromium } = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
+const { registerFixtureAccount, authenticatedRequest } = require('./local-account.cjs');
 const fs = require('node:fs/promises');
 const { execFileSync } = require('node:child_process');
 const base = process.env.RCC_WEB_URL;
@@ -49,13 +50,13 @@ function fixtureSQL() {
   const http = [], evidence = [], failures = [], pageErrors = [];
   const previewDifferences = [];
   const sqlErrors = [];
-  let browser, page, cleanup, browserVersion;
+  let browser, context, page, cleanup, browserVersion;
   const button = (name) => page.getByRole('button', { name, exact: true });
   const input = (name) => page.getByRole('textbox', { name: `${name} 值`, exact: true });
   const checkbox = (name) => page.getByRole('checkbox', { name, exact: true });
   async function managed(table) {
     if (page) await page.close();
-    page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, timezoneId: 'America/Los_Angeles' });
+    page = await context.newPage();
     page.setDefaultTimeout(12000);
     page.on('pageerror', (error) => pageErrors.push(error.message));
     await page.goto(`${base}/configuration/managed-data`);
@@ -142,6 +143,8 @@ function fixtureSQL() {
   try {
     sql(fixtureSQL());
     browser = await chromium.launch({ headless: true }); browserVersion = browser.version();
+    context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, timezoneId: 'America/Los_Angeles' });
+    await registerFixtureAccount(context, base);
     await run('TEXT and JSON browser ADD, PATCH, SQL byte comparison, readback and reopened editor', async () => {
       const values = {
         note: `  中文🙂第一行\n第二行\t保留空白\n${'长文本🧪 abc\t'.repeat(700)}\n尾部  `,
@@ -275,7 +278,7 @@ function fixtureSQL() {
       const sqlID = sql(`SELECT JSON_QUOTE(CAST(id AS CHAR)) FROM ${table};`);
       const query = { conditions: [{ field: 'id', operator: 'exact', value: item.canonical }], page_number: 1, page_size: 1 };
       async function api(method, path, body) {
-        const result = await page.request.fetch(`${base}${path}`, { method, data: body });
+        const result = await authenticatedRequest(context, base, path, { method, data: body });
         const entry = { method, path, status: result.status(), requestId: result.headers()['x-request-id'], body, response: await result.json(), transport: 'Playwright APIRequest through real same-origin proxy' }; http.push(entry); assert.equal(entry.status, 200, JSON.stringify(entry)); return entry;
       }
       const queried = await api('POST', `/api/v1/tables/${table}/query`, query); assert.equal(queried.response.rows.length, 1); assert.equal(queried.response.rows[0].id, item.canonical);
@@ -316,7 +319,7 @@ function fixtureSQL() {
       const originalLog = sqlAsRoot('SELECT @@GLOBAL.general_log;');
       const originalOutput = sqlAsRoot('SELECT @@GLOBAL.log_output;');
       assert.match(originalLog, /^[01]$/); assert.match(originalOutput, /^(?:FILE|TABLE|NONE)(?:,(?:FILE|TABLE))*$/);
-      const catalogs = ['rcc_query_policies', 'rcc_mutation_policies', 'rcc_table_policies'];
+      const catalogs = ['rcc_query_policies', 'rcc_mutation_policies', 'rcc_table_policies', 'rcc_accounts', 'rcc_login_sessions', 'rcc_auth_control_lock', 'rcc_preauth_credentials', 'rcc_auth_rate_limits'];
       let details;
       const renewIdleConnections = () => {
         const ids = sqlAsRoot("SELECT ID FROM information_schema.PROCESSLIST WHERE USER='rcc_admin' AND COMMAND='Sleep';").split('\n').filter(Boolean);
@@ -350,7 +353,10 @@ function fixtureSQL() {
         const response = await execute(table, 'ADD', { id: '88', label: 'readback-denied' }, undefined, 503);
         assert.equal(response.response.error.code, 'mutation_unavailable');
         const rows = sqlAsRoot(`SELECT COUNT(*) FROM rcc.${table};`); assert.equal(rows, '0');
-        const trace = sqlAsRoot("SELECT JSON_OBJECT('thread',thread_id,'command',command_type,'statement',CONVERT(argument USING utf8mb4)) FROM mysql.general_log WHERE user_host LIKE 'rcc_admin[%' ORDER BY event_time;").split('\n').filter(Boolean).map(JSON.parse);
+        const trace = sqlAsRoot("SELECT JSON_OBJECT('thread',thread_id,'command',command_type,'statement',CONVERT(argument USING utf8mb4)) FROM mysql.general_log WHERE user_host LIKE 'rcc_admin[%' ORDER BY event_time;").split('\n').filter(Boolean).map(JSON.parse)
+          // Session queries bind token hashes. They are not evidence for this
+          // business-table fault and must not enter persisted SQL traces.
+          .filter(entry => !/\brcc_(accounts|login_sessions|preauth_credentials|auth_rate_limits|auth_control_lock)\b/i.test(entry.statement));
         await fs.writeFile(`${output}/identity-read-failure-trace.json`, JSON.stringify(trace, null, 2));
         // MySQL may reject SELECT during privilege checks before logging that
         // statement. Prove the transaction ran and ended without any INSERT.

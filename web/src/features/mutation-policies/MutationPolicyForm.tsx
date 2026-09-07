@@ -1,6 +1,8 @@
 import { Info } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useDraftProtection } from "../../components/ui/LeaveProtection";
+import { isUncertainWriteError } from "../../api/client";
+import { Button } from "../../components/ui/Button";
 import { presentError } from "../../api/error-messages";
 import type { PolicyFormMode } from "../policies/lifecycle";
 import { MutationPolicyEffect, type RegistryState } from "../policies/PolicyEffect";
@@ -43,11 +45,12 @@ type Props = {
   registryTypes: import("./model").MutationPolicyType[] | undefined;
   registryState: RegistryState;
   serverError?: unknown;
+  onVerify?: () => void;
   pending?: boolean;
   onSubmit: (value: MutationPolicyDraft | MutationPolicyMetadata) => void;
 };
 
-export function MutationPolicyForm({ mode, policy, typeCodes, registryTypes, registryState, serverError, pending = false, onSubmit }: Props) {
+export function MutationPolicyForm({ mode, policy, typeCodes, registryTypes, registryState, serverError, pending = false, onVerify, onSubmit }: Props) {
   const [baseline] = useState(() => draftFor(policy));
   const [editableDraft, setDraft] = useState<MutationPolicyDraft>(baseline);
   const draft = mode === "view" ? draftFor(policy) : editableDraft;
@@ -72,7 +75,7 @@ export function MutationPolicyForm({ mode, policy, typeCodes, registryTypes, reg
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (pending || mode === "view") return;
+    if (pending || isUncertainWriteError(serverError) || mode === "view") return;
     if (mode === "metadata") {
       const next = { name: draft.name.trim(), description: draft.description.trim() };
       const nextErrors: typeof errors = {};
@@ -115,7 +118,7 @@ export function MutationPolicyForm({ mode, policy, typeCodes, registryTypes, reg
 
   return (
     <form id="mutation-policy-form" className="policy-form" onSubmit={submit} noValidate>
-      {presentedError && <div className="inline-alert" role="alert"><strong>{presentedError.message}</strong>{presentedError.requestId && <span>请求编号：{presentedError.requestId}</span>}</div>}
+      {presentedError && <div className="inline-alert" role="alert"><strong>{isUncertainWriteError(serverError) ? "提交结果尚未确认。系统不会自动重复此写入。" : presentedError.message}</strong>{presentedError.requestId && <span>请求编号：{presentedError.requestId}</span>}{isUncertainWriteError(serverError) && onVerify && <Button type="button" variant="secondary" onClick={onVerify}>只读查询当前状态</Button>}</div>}
       <fieldset className="form-controls" disabled={pending}>
       {policy && <span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span>}
 
@@ -149,7 +152,7 @@ export function MutationPolicyForm({ mode, policy, typeCodes, registryTypes, reg
         </section>
         <section className="mutation-form-section" aria-labelledby="auto-fill-heading">
           <h3 id="auto-fill-heading">服务器自动填写的列</h3>
-          <p>新增会填写已配置的创建列和修改列；修改只填写修改列；删除不自动填写。Operator 来自部署配置，Time 使用数据库时间，留空表示不填写。</p>
+          <p>新增会填写已配置的创建列和修改列；修改只填写修改列；删除不自动填写。Operator 使用当前登录账号的永久 Account ID，Time 使用数据库时间，留空表示不填写。</p>
           <div className="form-grid">
             {field("createOperatorField", "新增时填写 Operator 的列", "creator")}
             {field("createTimeField", "新增时填写创建时间的列", "created_at")}
