@@ -216,8 +216,10 @@ export function useManagedDataMutationWorkflow({ tableName, mutationPolicyCode, 
     },
     checkCurrent: async () => {
       if (!pendingChange) return;
-      // An ADD whose generated id was lost cannot be uniquely located. Never guess it.
-      const id = pendingChange.id ?? pendingChange.content.id;
+      // Only an existing row gives us a known stored ID. ADD input may be
+      // transformed by MySQL (for example auto-increment zero); a lost response
+      // leaves its actual ID unknown even when the caller supplied one.
+      const id = pendingChange.id;
       return queryManagedTable(pendingChange.tableName, {
         conditions: typeof id === "string" ? [{ field: "id", operator: "exact", value: id }] : [],
         pageNumber: 1, ...(typeof id === "string" ? { pageSize: 1 } : {}),

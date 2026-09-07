@@ -95,11 +95,13 @@ func TestTransactionalManagedTableMutationModifyFillsOnlyModifyAndDeleteFillsNot
 }
 
 type memoryMutationSnapshotExecutor struct {
-	session *memoryMutationSnapshotSession
+	session       *memoryMutationSnapshotSession
+	callbackError error
 }
 
 func (executor *memoryMutationSnapshotExecutor) ExecuteMutationSnapshot(_ context.Context, execute func(MutationSnapshotSession) error) error {
-	return execute(executor.session)
+	executor.callbackError = execute(executor.session)
+	return executor.callbackError
 }
 
 type memoryMutationSnapshotSession struct {
@@ -110,6 +112,7 @@ type memoryMutationSnapshotSession struct {
 	databaseTime   time.Time
 	calls          []string
 	insert         domain.RowInsert
+	insertID       *string
 	update         domain.RowUpdate
 	deletion       domain.RowDelete
 }
@@ -175,7 +178,62 @@ func (session *memoryMutationSnapshotSession) DatabaseTime(context.Context) (tim
 func (session *memoryMutationSnapshotSession) InsertRow(_ context.Context, insert domain.RowInsert) (string, error) {
 	session.calls = append(session.calls, "insert:"+insert.TableName)
 	session.insert = insert
+	if session.insertID != nil {
+		return *session.insertID, nil
+	}
 	return "41", nil
+}
+
+func TestManagedTableAddRejectsUnaddressableRawAndCanonicalIdentities(t *testing.T) {
+	for _, test := range []struct {
+		name, raw, canonical string
+		wantInsert           bool
+	}{
+		{name: "empty input", raw: "", canonical: "41"},
+		{name: "dot input", raw: ".", canonical: "41"},
+		{name: "double dot input", raw: "..", canonical: "41"},
+		{name: "empty returned identity", raw: "valid", canonical: "", wantInsert: true},
+		{name: "normalized dot", raw: ".  ", canonical: ".", wantInsert: true},
+		{name: "normalized double dot", raw: "..  ", canonical: "..", wantInsert: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			session := validMutationSnapshotSession()
+			session.schema.Columns[0] = domain.Column{Name: "id", Type: domain.ColumnTypeString}
+			session.insertID = &test.canonical
+			executor := &memoryMutationSnapshotExecutor{session: session}
+			mutation := NewManagedTableMutation(executor, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry(), NewFixedOperatorProvider("test-operator"))
+			_, err := mutation.Add(t.Context(), "managed_items", domain.MutationContent{"id": jsonStringPointer(test.raw), "name": jsonStringPointer("test")})
+			if !errors.Is(err, ErrInvalidMutation) || !errors.Is(executor.callbackError, ErrInvalidMutation) {
+				t.Fatalf("identity rejection must occur inside the transaction callback: error=%v callback=%v", err, executor.callbackError)
+			}
+			if got := containsCall(session.calls, "insert:managed_items"); got != test.wantInsert {
+				t.Fatalf("INSERT reached=%v, want %v", got, test.wantInsert)
+			}
+		})
+	}
+}
+
+func TestManagedTableAddValidatesGeneratedIdentityAgainstSnapshotSchema(t *testing.T) {
+	for _, id := range []string{"1", "2"} {
+		t.Run(id, func(t *testing.T) {
+			session := validMutationSnapshotSession()
+			session.schema.Columns[0] = domain.Column{Name: "id", Type: domain.ColumnTypeBoolean, AutoIncrement: true}
+			session.insertID = &id
+			executor := &memoryMutationSnapshotExecutor{session: session}
+			mutation := NewManagedTableMutation(executor, NewQueryPolicyTypeRegistry(), NewMutationPolicyTypeRegistry(), NewFixedOperatorProvider("test-operator"))
+			result, err := mutation.Add(t.Context(), "managed_items", domain.MutationContent{"name": jsonStringPointer("test")})
+			if id == "1" {
+				if err != nil || result != id {
+					t.Fatalf("valid generated identity: id=%q error=%v", result, err)
+				}
+			} else if !errors.Is(err, ErrInvalidMutation) || !errors.Is(executor.callbackError, ErrInvalidMutation) {
+				t.Fatalf("unaddressable generated identity must reject inside the transaction callback: error=%v callback=%v", err, executor.callbackError)
+			}
+			if !containsCall(session.calls, "insert:managed_items") {
+				t.Fatal("generated identity must be validated after insertion")
+			}
+		})
+	}
 }
 
 func (session *memoryMutationSnapshotSession) UpdateRow(_ context.Context, update domain.RowUpdate) (int64, error) {

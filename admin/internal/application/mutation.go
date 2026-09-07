@@ -135,6 +135,9 @@ func (mutation *ManagedTableMutation) Delete(ctx context.Context, tableName stri
 }
 
 func (mutation *ManagedTableMutation) relationalAdd(ctx context.Context, session MutationSnapshotSession, schema domain.TableSchema, policy domain.MutationPolicy, content domain.MutationContent) (string, error) {
+	if id := content["id"]; id != nil && !addressableMutationID(string(*id)) {
+		return "", ErrInvalidMutation
+	}
 	effective, err := mutation.effectiveRelationalContent(ctx, session, schema, policy, MutationOperationAdd, content)
 	if err != nil {
 		return "", err
@@ -148,7 +151,29 @@ func (mutation *ManagedTableMutation) relationalAdd(ctx context.Context, session
 			return "", ErrMissingRequiredField
 		}
 	}
-	return session.InsertRow(ctx, domain.RowInsert{TableName: schema.Name, Values: values, ProvidedID: effective["id"]})
+	id, err := session.InsertRow(ctx, domain.RowInsert{TableName: schema.Name, Values: values, ProvidedID: effective["id"]})
+	if err != nil {
+		return "", err
+	}
+	// Validate the stored representation while still inside the snapshot
+	// callback, so rejection rolls back the same INSERT transaction.
+	if !addressableMutationID(id) {
+		return "", ErrInvalidMutation
+	}
+	idColumn, found := schema.Column("id")
+	if !found || idColumn.Type == domain.ColumnTypeUnsupported {
+		return "", ErrIncompatibleTable
+	}
+	if _, err := domain.ParseColumnValue(idColumn, domain.JSONString(id)); err != nil {
+		return "", ErrInvalidMutation
+	}
+	return id, nil
+}
+
+func addressableMutationID(id string) bool {
+	// Empty and dot-only identities cannot address a row using the current
+	// public mutation contract; URL parsing removes dot-only path segments.
+	return id != "" && id != "." && id != ".."
 }
 
 func (mutation *ManagedTableMutation) relationalModify(ctx context.Context, session MutationSnapshotSession, schema domain.TableSchema, policy domain.MutationPolicy, id domain.JSONString, content domain.MutationContent) (int64, error) {

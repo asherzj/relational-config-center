@@ -2,6 +2,8 @@
 
 日期：2026-09-07。分支：`codex/management-reliability-20260907`。本阶段在前一阶段的操作覆盖之后，验证真实 Chromium → production Web 同源代理 → Bearer Admin → 独占 MySQL 8.4 的完整写入回路。未使用 API 替身来代替复杂字段写入。
 
+本文保留阶段交付 `49fc66f` 的实现与证据。后续主键补审改用本次 INSERT 结果处理自增 ID，补充规范 ID 回查、事务前提和不可用身份回滚，详见[主键补审报告](2026-09-07-reliability-identity-review.md)。账号 MR #44 合并后的 Cookie 会话验收另行记录，不能倒写为本文原有 Bearer 验收。
+
 ## 已修复的实际问题
 
 | 问题与红灯 | 最小修复 | 绿灯回路 |

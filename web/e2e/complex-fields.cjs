@@ -8,10 +8,11 @@ const base = process.env.RCC_WEB_URL;
 const output = process.env.RCC_E2E_OUTPUT;
 const container = process.env.RCC_E2E_MYSQL_CONTAINER;
 assert.match(container || '', /^rcc-browser-\d+-\d+-mysql$/);
-const tables = ['stage4_complex', 'stage4_ids', 'stage4_defaults', 'stage4_auto', 'stage4_generated', 'stage4_limits', 'stage4_zero_ids', 'stage4_default_id_constant', 'stage4_default_id_expression'];
+const tables = ['stage4_complex', 'stage4_ids', 'stage4_defaults', 'stage4_auto', 'stage4_generated', 'stage4_limits', 'stage4_zero_ids', 'stage4_default_id_constant', 'stage4_default_id_expression', 'stage4_explicit_ids'];
 const hex = (value) => Buffer.from(value, 'utf8').toString('hex');
 const literal = (value) => `CONVERT(0x${hex(value)} USING utf8mb4)`;
 const sql = (statement) => execFileSync('docker', ['exec', '-i', container, 'sh', '-c', 'MYSQL_PWD="$MYSQL_PASSWORD" mysql --default-character-set=utf8mb4 --raw --batch --skip-column-names -u"$MYSQL_USER" "$MYSQL_DATABASE"'], { input: statement, encoding: 'utf8', timeout: 20000, stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+const sqlAsRoot = (statement) => execFileSync('docker', ['exec', '-i', container, 'sh', '-c', 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --default-character-set=utf8mb4 --raw --batch --skip-column-names -uroot "$MYSQL_DATABASE"'], { input: statement, encoding: 'utf8', timeout: 20000, stdio: ['pipe', 'pipe', 'pipe'] }).trim();
 const row = (table, id) => JSON.parse(sql(`SELECT JSON_OBJECT(${Object.entries({id:'CAST(id AS CHAR)',note:'note',payload:'CAST(payload AS CHAR)',nullable_text:'nullable_text',empty_text:'empty_text',default_text:'default_text',big_signed:'CAST(big_signed AS CHAR)',big_unsigned:'CAST(big_unsigned AS CHAR)',amount:'CAST(amount AS CHAR)',day:'CAST(day AS CHAR)',clock:'CAST(clock AS CHAR)',local_time:'CAST(local_time AS CHAR)',instant:"CONCAT(DATE_FORMAT(instant,'%Y-%m-%dT%H:%i:%s.%f'),'Z')"}).map(([key, expression]) => `'${key}',${expression}`).join(',')}) FROM ${table} WHERE id=${id};`));
 const fixtureRows = () => sql("SELECT CONCAT_WS('|',id,HEX(name),IF(category IS NULL,'NULL',HEX(category)),IF(note IS NULL,'NULL',HEX(note)),HEX(state),priority,HEX(created_by),DATE_FORMAT(created_at,'%Y%m%d%H%i%s.%f'),HEX(updated_by),DATE_FORMAT(updated_at,'%Y%m%d%H%i%s.%f')) FROM stage1_acceptance_items ORDER BY id;");
 const matrix = [
@@ -35,6 +36,7 @@ function fixtureSQL() {
   CREATE TABLE stage4_zero_ids (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, label VARCHAR(64));
   CREATE TABLE stage4_default_id_constant (id BIGINT UNSIGNED PRIMARY KEY DEFAULT 42, label VARCHAR(64));
   CREATE TABLE stage4_default_id_expression (id BIGINT UNSIGNED PRIMARY KEY DEFAULT (40+3), label VARCHAR(64));
+  CREATE TABLE stage4_explicit_ids (id BIGINT PRIMARY KEY, label VARCHAR(64));
   CREATE TABLE stage4_limits (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, label VARCHAR(4), small_value TINYINT);
   INSERT INTO rcc_mutation_policies(code,name,description,type_code,allow_add,allow_modify,allow_delete,status,creator,modifier) VALUES ('stage4_plain_v1','Stage 4 plain','','single_table_mutation',1,1,1,'ACTIVE','fixture','fixture');
   INSERT INTO rcc_mutation_policies(code,name,description,type_code,allow_add,allow_modify,allow_delete,create_time_field,modify_time_field,status,creator,modifier) VALUES ('stage4_auto_v1','Stage 4 auto','','single_table_mutation',1,1,1,'created_at','updated_at','ACTIVE','fixture','fixture');
@@ -57,9 +59,11 @@ function fixtureSQL() {
     page.setDefaultTimeout(12000);
     page.on('pageerror', (error) => pageErrors.push(error.message));
     await page.goto(`${base}/configuration/managed-data`);
-    const response = page.waitForResponse((r) => new URL(r.url()).pathname === `/api/v1/tables/${table}/query`);
-    await page.getByRole('combobox', { name: 'Managed Table', exact: true }).selectOption(table);
-    const result = await record(await response);
+    const [response] = await Promise.all([
+      page.waitForResponse((r) => new URL(r.url()).pathname === `/api/v1/tables/${table}/query`),
+      page.getByRole('combobox', { name: 'Managed Table', exact: true }).selectOption(table),
+    ]);
+    const result = await record(response);
     assert.equal(result.status, 200, JSON.stringify(result));
     await page.getByRole('region', { name: 'Managed Data 查询结果' }).locator('tbody').waitFor();
   }
@@ -227,6 +231,160 @@ function fixtureSQL() {
       await closeSuccess('ADD', { id: expectedID, label: 'default-id-probe' }); await reopened(table, expectedID, { label: 'default-id-probe' });
       assert.equal(await input('id').count(), 0, 'MODIFY cannot change the primary key');
       return { actualID: expectedID, responseID: response.response.id, missingIDRejected: true };
+    });
+    await run('identity review: explicit numeric ID returns the stored canonical identity', async () => {
+      const table = 'stage4_default_id_constant';
+      await managed(table); await button('新增记录').click(); const values = { id: '00077', label: 'canonical-id' }; await edit(values);
+      const response = await execute(table, 'ADD', values);
+      const actualID = sql("SELECT CAST(id AS CHAR) FROM stage4_default_id_constant WHERE label='canonical-id';");
+      assert.equal(actualID, '77'); assert.equal(response.response.id, actualID, 'ADD must identify the actual SQL row');
+      await closeSuccess('ADD', { id: actualID, label: values.label });
+      await reopened(table, actualID, { label: values.label });
+      return { submittedID: values.id, actualID, responseID: response.response.id };
+    });
+    for (const item of [
+      { name: 'signed integer', type: 'BIGINT', input: '-00077', canonical: '-77' },
+      { name: 'decimal equal value', type: 'DECIMAL(6,2)', input: '+001.2', canonical: '1.20' },
+      { name: 'decimal rounding', type: 'DECIMAL(6,2)', input: '1.235', rejected: true },
+      { name: 'CHAR trailing spaces', type: 'CHAR(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci', input: 'ab  ', rejected: true },
+      { name: 'VARCHAR trailing spaces', type: 'VARCHAR(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci', input: 'ab  ', canonical: 'ab  ' },
+      { name: 'VARCHAR URI delimiters', type: 'VARCHAR(32)', input: '键/值 ?#%', canonical: '键/值 ?#%' },
+      { name: 'ENUM case normalization', type: "ENUM('Alpha','Beta')", input: 'alpha', canonical: 'Alpha' },
+      { name: 'TIME equal value', type: 'TIME(2)', input: '01:02:03.700000', canonical: '01:02:03.70' },
+      { name: 'TIME rounding', type: 'TIME(2)', input: '01:02:03.777', canonical: '01:02:03.78' },
+      { name: 'DATETIME equal value', type: 'DATETIME(2)', input: '2026-09-07 12:34:56.700000', canonical: '2026-09-07 12:34:56.7' },
+      { name: 'DATETIME rounding', type: 'DATETIME(2)', input: '2026-09-07 12:34:59.999', rejected: true },
+      { name: 'TIMESTAMP equal value', type: 'TIMESTAMP(2)', input: '2026-09-07T12:34:56.700000Z', canonical: '2026-09-07T12:34:56.7Z' },
+      { name: 'TIMESTAMP rounding', type: 'TIMESTAMP(2)', input: '2026-09-07T12:34:59.999Z', rejected: true },
+      { name: 'FLOAT exact', type: 'FLOAT', input: '0.5', canonical: '0.5' },
+      { name: 'FLOAT precision boundary', type: 'FLOAT', input: '0.1', rejected: true },
+      { name: 'DOUBLE', type: 'DOUBLE', input: '0.1', canonical: '0.1' },
+      { name: 'DATE', type: 'DATE', input: '2024-02-29', canonical: '2024-02-29' },
+    ]) await run(`identity matrix: ${item.name} keeps a usable stored key or rolls back`, async () => {
+      const sqlMode = sql('SELECT @@session.sql_mode;');
+      if (item.name === 'TIME rounding' && sqlMode.split(',').includes('TIME_TRUNCATE_FRACTIONAL')) item.canonical = '01:02:03.77';
+      const table = 'stage4_explicit_ids'; sql(`DROP TABLE ${table}; CREATE TABLE ${table}(id ${item.type} PRIMARY KEY, label VARCHAR(64));`);
+      await managed(table); await button('新增记录').click(); const values = { id: item.input, label: item.name }; await edit(values);
+      const response = await execute(table, 'ADD', values, undefined, item.rejected ? 400 : 201);
+      if (item.rejected) {
+        assert.equal(response.response.error.code, 'invalid_mutation_content'); assert.equal(sql(`SELECT COUNT(*) FROM ${table};`), '0', 'unlocatable identity must roll back the INSERT');
+        await button('返回修改').click(); assert.equal(await input('id').inputValue(), item.input);
+        return { ...item, status: response.status, rollbackRows: '0', draftRetained: true };
+      }
+      assert.equal(response.response.id, item.canonical); await closeSuccess('ADD', { id: item.canonical, label: item.name });
+      const sqlID = sql(`SELECT JSON_QUOTE(CAST(id AS CHAR)) FROM ${table};`);
+      const query = { conditions: [{ field: 'id', operator: 'exact', value: item.canonical }], page_number: 1, page_size: 1 };
+      async function api(method, path, body) {
+        const result = await page.request.fetch(`${base}${path}`, { method, data: body });
+        const entry = { method, path, status: result.status(), requestId: result.headers()['x-request-id'], body, response: await result.json(), transport: 'Playwright APIRequest through real same-origin proxy' }; http.push(entry); assert.equal(entry.status, 200, JSON.stringify(entry)); return entry;
+      }
+      const queried = await api('POST', `/api/v1/tables/${table}/query`, query); assert.equal(queried.response.rows.length, 1); assert.equal(queried.response.rows[0].id, item.canonical);
+      await api('PATCH', `/api/v1/tables/${table}/rows/${encodeURIComponent(item.canonical)}`, { content: { label: 'canonical-patched' } });
+      const final = await api('POST', `/api/v1/tables/${table}/query`, query); assert.equal(final.response.rows[0].label, 'canonical-patched'); assert.equal(sql(`SELECT COUNT(*) FROM ${table};`), '1');
+      return { ...item, responseID: response.response.id, sqlID, sqlMode, exactQueryAndPatch: true };
+    });
+    await run('identity review: response-lost explicit zero ADD checks without guessing a generated ID', async () => {
+      const table = 'stage4_zero_ids';
+      const before = sql(`SELECT COUNT(*) FROM ${table};`);
+      await managed(table); let writes = 0; let actualWrite;
+      page.on('request', request => { if (new URL(request.url()).pathname === `/api/v1/tables/${table}/rows` && request.method() === 'POST') writes++; });
+      await page.route(`**/api/v1/tables/${table}/rows`, async route => {
+        if (route.request().method() !== 'POST') return route.continue();
+        const response = await route.fetch();
+        actualWrite = { method: 'POST', path: `/api/v1/tables/${table}/rows`, status: response.status(), requestId: response.headers()['x-request-id'], body: route.request().postDataJSON(), response: await response.json(), fault: 'successful response withheld from browser' };
+        http.push(actualWrite); await route.abort('failed');
+      });
+      await button('新增记录').click(); const values = { id: '0', label: 'lost-zero-id' }; await edit(values); await preview('ADD', values); await button('确认并执行').click();
+      const recovery = page.getByRole('alert', { name: '提交结果尚未确认', exact: true }); await recovery.waitFor();
+      assert.equal(actualWrite.status, 201); const actualID = sql("SELECT CAST(id AS CHAR) FROM stage4_zero_ids WHERE label='lost-zero-id';");
+      assert.notEqual(actualID, '0', 'default SQL mode generates the stored identity');
+      assert.equal(await button('确认并执行').isDisabled(), true);
+      const queryResponse = page.waitForResponse(r => new URL(r.url()).pathname === `/api/v1/tables/${table}/query`);
+      await recovery.getByRole('button', { name: '只读核对当前状态', exact: true }).click(); const checked = await record(await queryResponse);
+      assert.deepEqual(checked.body, { conditions: [], page_number: 1 }, 'lost ADD cannot trust submitted zero as the stored ID');
+      assert.ok(checked.response.rows.some(row => row.id === actualID && row.label === values.label));
+      assert.equal(writes, 1); assert.equal(sql(`SELECT COUNT(*) FROM ${table};`), String(Number(before) + 1));
+      assert.equal(await button('确认并执行').isDisabled(), true, 'read-only checking never unlocks a write automatically');
+      return { actualWrite, actualID, readonlyQuery: checked.body, writeCount: writes, databaseCountBefore: before, databaseCountAfter: sql(`SELECT COUNT(*) FROM ${table};`) };
+    });
+    await run('identity preflight read denial prevents INSERT and preserves the draft', async () => {
+      const table = 'stage4_explicit_ids';
+      sql(`DROP TABLE ${table}; CREATE TABLE ${table}(id BIGINT PRIMARY KEY, label VARCHAR(64));`);
+      await managed(table); await button('新增记录').click(); await edit({ id: '88', label: 'readback-denied' });
+      assert.equal(sql('SELECT CURRENT_USER();'), 'rcc_admin@%');
+      const grantsBefore = sql('SHOW GRANTS;').split('\n').sort();
+      const originalLog = sqlAsRoot('SELECT @@GLOBAL.general_log;');
+      const originalOutput = sqlAsRoot('SELECT @@GLOBAL.log_output;');
+      assert.match(originalLog, /^[01]$/); assert.match(originalOutput, /^(?:FILE|TABLE|NONE)(?:,(?:FILE|TABLE))*$/);
+      const catalogs = ['rcc_query_policies', 'rcc_mutation_policies', 'rcc_table_policies'];
+      let details;
+      const renewIdleConnections = () => {
+        const ids = sqlAsRoot("SELECT ID FROM information_schema.PROCESSLIST WHERE USER='rcc_admin' AND COMMAND='Sleep';").split('\n').filter(Boolean);
+        for (const id of ids) { assert.match(id, /^\d+$/); sqlAsRoot(`KILL CONNECTION ${id};`); }
+        return ids;
+      };
+      const warmCatalog = async () => {
+        const statuses = [];
+        // Discard each killed pool entry through safe reads; retries here are
+        // fixture preparation, never mutation replay or product behavior.
+        for (let attempt = 0; attempt < 8; attempt++) {
+          const response = await page.request.get(`${base}/api/v1/query-policies`);
+          statuses.push(response.status());
+          if (response.status() === 200) return statuses;
+          assert.equal(response.status(), 503);
+        }
+        assert.fail(`Admin did not renew the killed pool entries: ${statuses}`);
+      };
+      try {
+        // This container belongs only to this acceptance run. Preserve catalog
+        // reads and INSERT, but deny the primary-key preflight SELECT.
+        sqlAsRoot("REVOKE SELECT ON rcc.* FROM 'rcc_admin'@'%';" + catalogs.map(name => `GRANT SELECT ON rcc.${name} TO 'rcc_admin'@'%';`).join(''));
+        const renewedConnections = renewIdleConnections();
+        let denied = '';
+        try { sql(`SELECT id FROM ${table};`); } catch (error) { denied = String(error.stderr || ''); }
+        assert.match(denied, /ERROR 1142/, 'a fresh application-user session cannot SELECT the row table');
+        sqlAsRoot("SET GLOBAL log_output='TABLE'; SET GLOBAL general_log=ON;");
+        // A killed pooled connection can fail BEGIN before the write starts.
+        // Warm the Admin pool with an allowed, read-only catalog request first.
+        const catalogWarmupStatuses = await warmCatalog();
+        const response = await execute(table, 'ADD', { id: '88', label: 'readback-denied' }, undefined, 503);
+        assert.equal(response.response.error.code, 'mutation_unavailable');
+        const rows = sqlAsRoot(`SELECT COUNT(*) FROM rcc.${table};`); assert.equal(rows, '0');
+        const trace = sqlAsRoot("SELECT JSON_OBJECT('thread',thread_id,'command',command_type,'statement',CONVERT(argument USING utf8mb4)) FROM mysql.general_log WHERE user_host LIKE 'rcc_admin[%' ORDER BY event_time;").split('\n').filter(Boolean).map(JSON.parse);
+        await fs.writeFile(`${output}/identity-read-failure-trace.json`, JSON.stringify(trace, null, 2));
+        // MySQL may reject SELECT during privilege checks before logging that
+        // statement. Prove the transaction ran and ended without any INSERT.
+        assert.ok(trace.some(entry => /^START TRANSACTION$/i.test(entry.statement)));
+        assert.ok(trace.some(entry => /^ROLLBACK$/i.test(entry.statement)));
+        assert.equal(trace.some(entry => /INSERT INTO\s+`?stage4_explicit_ids`?/i.test(entry.statement)), false, 'no INSERT is sent after the preflight fails');
+        details = { status: response.status, requestId: response.requestId, rows, statements: trace, insertSent: false, renewedConnections, catalogWarmupStatuses, permissionError: denied };
+      } finally {
+        sqlAsRoot(`SET GLOBAL general_log=${originalLog}; SET GLOBAL log_output='${originalOutput}';`);
+        sqlAsRoot("GRANT SELECT ON rcc.* TO 'rcc_admin'@'%';" + catalogs.map(name => `REVOKE SELECT ON rcc.${name} FROM 'rcc_admin'@'%';`).join(''));
+        renewIdleConnections();
+        await warmCatalog();
+      }
+      assert.deepEqual(sql('SHOW GRANTS;').split('\n').sort(), grantsBefore, 'restore the isolated user permissions');
+      const recovery = page.getByRole('alert', { name: '提交结果尚未确认', exact: true });
+      const checked = page.waitForResponse(r => new URL(r.url()).pathname === `/api/v1/tables/${table}/query`);
+      await recovery.getByRole('button', { name: '只读核对当前状态', exact: true }).click(); const current = await record(await checked);
+      assert.deepEqual(current.response.rows, []); assert.equal(await button('确认并执行').isDisabled(), true);
+      return { ...details, permissionsRestored: true, recoveryReadOnly: true };
+    });
+    for (const item of [
+      { name: 'nontransactional decimal rounding', type: 'DECIMAL(6,2)', engine: 'MyISAM', input: '1.235', status: 422, code: 'incompatible_table' },
+      { name: 'empty string', type: 'VARCHAR(16)', engine: 'InnoDB', input: '', status: 400, code: 'invalid_mutation_content' },
+      { name: 'single dot', type: 'VARCHAR(16)', engine: 'InnoDB', input: '.', status: 400, code: 'invalid_mutation_content' },
+      { name: 'double dot', type: 'VARCHAR(16)', engine: 'InnoDB', input: '..', status: 400, code: 'invalid_mutation_content' },
+    ]) await run(`identity guard: ${item.name} rejects without persisting a row`, async () => {
+      const table = 'stage4_explicit_ids';
+      sql(`DROP TABLE ${table}; CREATE TABLE ${table}(id ${item.type} PRIMARY KEY, label VARCHAR(64)) ENGINE=${item.engine};`);
+      await managed(table); await button('新增记录').click(); const values = { id: item.input, label: item.name }; await edit(values);
+      const response = await execute(table, 'ADD', values, undefined, item.status);
+      assert.equal(response.response.error.code, item.code);
+      assert.equal(sql(`SELECT COUNT(*) FROM ${table};`), '0', 'a known rejection must leave no persisted row');
+      await button('返回修改').click(); assert.equal(await input('id').inputValue(), item.input);
+      return { ...item, rows: '0', draftRetained: true };
     });
     await run('CRLF and standalone CR stay protected through unrelated writes and explicit normalization', async () => {
       const note = 'first\r\nsecond\rthird';
