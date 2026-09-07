@@ -58,6 +58,14 @@ pnpm build
 
 ## 真实验收
 
+从仓库根目录执行以下命令；它会从干净 checkout 启动一次性的 MySQL 8.4、Admin 和 Web preview，加载隔离 fixture，并运行 14 项未保存保护及 6 项规则说明验收：
+
+```sh
+make test-browser-acceptance
+```
+
+该命令要求本机已有 Docker、Go、Node.js 和 pnpm；它会安装锁定的 Web 依赖、Chromium，并构建 Web。MySQL、Admin 和 Web 均使用动态宿主端口；正常或失败退出时只删除本次创建的进程、容器和数据卷。日志、截图与结构化结果写入命令最后显示的临时目录，可通过 `RCC_E2E_ARTIFACTS` 指定一个新的空目录。CI 执行同一命令，并在成功或失败时上传证据。
+
 完整流程、真实 MySQL 8.4 和浏览器验收见 [`docs/verification/2026-09-07-stage1-acceptance.md`](../docs/verification/2026-09-07-stage1-acceptance.md)。未保存保护见 [`docs/verification/2026-09-07-stage2-unsaved-changes.md`](../docs/verification/2026-09-07-stage2-unsaved-changes.md)，规则效果说明见 [`docs/verification/2026-09-07-stage3-rule-clarity.md`](../docs/verification/2026-09-07-stage3-rule-clarity.md)。浏览器脚本使用隔离 fixture，运行前先启动隔离 Admin、Web 和 MySQL；不要对生产环境运行脚本：
 
 从仓库根目录运行脚本，并为输出指定新的临时目录，避免覆盖历史报告：
