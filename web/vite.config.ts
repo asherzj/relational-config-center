@@ -6,6 +6,10 @@ import { fileURLToPath, URL } from "node:url";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "RCC_");
   const adminTarget = env.RCC_ADMIN_URL || "http://127.0.0.1:8080";
+  const webPort = Number(env.RCC_WEB_PORT || "5173");
+  if (!Number.isInteger(webPort) || webPort < 1 || webPort > 65535) {
+    throw new Error("RCC_WEB_PORT must be an integer from 1 to 65535.");
+  }
   if (env.RCC_ADMIN_TOKEN || process.env.RCC_ADMIN_TOKEN) {
     throw new Error("RCC_ADMIN_TOKEN has been removed; use Local Account sessions through the same-origin proxy.");
   }
@@ -29,7 +33,9 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: "127.0.0.1",
-      port: 5173,
+      port: webPort,
+      // Changing the browser port also changes the origin checked by Admin.
+      strictPort: true,
       proxy: {
         "/api": {
           target: adminTarget,

@@ -45,6 +45,9 @@ jobs:
       - name: Run all tests
         run: pnpm test:run
 
+      - name: Verify development server origin
+        run: pnpm test:dev
+
       - name: Typecheck
         run: pnpm typecheck
 
