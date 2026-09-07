@@ -44,7 +44,11 @@ func NewAuthentication(accounts domain.AccountRepository, passwords PasswordHash
 	if limits.LoginFailures < 1 {
 		limits.LoginFailures = 10
 	}
-	return &Authentication{accounts: accounts, passwords: passwords, now: now, rates: rates, limits: limits}
+	// Persisted account timestamps have microsecond precision. Use the same
+	// clock for writes, returned deadlines and expiry checks; rounding upward
+	// in storage must never extend a credential's lifetime.
+	accountNow := func() time.Time { return now().UTC().Truncate(time.Microsecond) }
+	return &Authentication{accounts: accounts, passwords: passwords, now: accountNow, rates: rates, limits: limits}
 }
 
 // Registration is the application input; HTTP does not import Domain models.

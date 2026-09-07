@@ -393,7 +393,7 @@ func accountFixture(t *testing.T, now func() time.Time) (*adminApplication, *sql
 }
 
 func TestLocalAccountFailuresAndCredentialBoundaries(t *testing.T) {
-	now := time.Now().UTC()
+	now := time.Date(2026, 9, 7, 0, 0, 0, 123456789, time.UTC)
 	app, db := accountFixture(t, func() time.Time { return now })
 	registered := registerAccount(t, app, "credential.user", "credential@example.com", " exact password with spaces ")
 	var identity struct {
@@ -484,7 +484,7 @@ func TestLocalAccountFailuresAndCredentialBoundaries(t *testing.T) {
 }
 
 func TestLocalAccountRateLimitsAcrossIPsAndWindows(t *testing.T) {
-	now := time.Now().UTC()
+	now := time.Date(2026, 9, 7, 0, 0, 0, 123456789, time.UTC)
 	app, _ := accountFixture(t, func() time.Time { return now })
 	cookies, csrf := prepareAccount(t, app)
 	results := make(chan *httptest.ResponseRecorder, 20)
@@ -536,7 +536,7 @@ func TestLocalAccountRateLimitsAcrossIPsAndWindows(t *testing.T) {
 }
 
 func TestLocalAccountSuccessClearsFailureCountAndIPLimit(t *testing.T) {
-	now := time.Now().UTC()
+	now := time.Date(2026, 9, 7, 0, 0, 0, 123456789, time.UTC)
 	app, _ := accountFixture(t, func() time.Time { return now })
 	registerAccount(t, app, "clear.user", "clear@example.com", "correct horse battery staple")
 	cookies, csrf := prepareAccount(t, app)
@@ -637,7 +637,7 @@ func TestLocalAccountHTTPFieldContract(t *testing.T) {
 }
 
 func TestLocalAccountStoredSecretsAndAbsoluteExpiry(t *testing.T) {
-	now := time.Now().UTC()
+	now := time.Date(2026, 9, 7, 0, 0, 0, 123456789, time.UTC)
 	app, db := accountFixture(t, func() time.Time { return now })
 	password := " identical password for independent salts "
 	first := registerAccount(t, app, "salt.first", "salt.first@example.com", password)
@@ -702,7 +702,7 @@ func TestLocalAccountStoredSecretsAndAbsoluteExpiry(t *testing.T) {
 }
 
 func TestLocalAccountHTTPSCookiesAndPreauthExpiry(t *testing.T) {
-	now := time.Now().UTC()
+	now := time.Date(2026, 9, 7, 0, 0, 0, 123456789, time.UTC)
 	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
 	settings := integrationConfig(driver)
 	settings.AccountPublicOrigin = "https://config.example.test"
