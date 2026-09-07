@@ -20,7 +20,7 @@ if [[ -d "$artifact_root" && -n $(ls -A "$artifact_root" 2>/dev/null) ]]; then
   printf 'artifact directory must be new or empty: %s\n' "$artifact_root" >&2
   exit 2
 fi
-mkdir -p "$artifact_root/unsaved-changes" "$artifact_root/rule-clarity" "$artifact_root/write-recovery" "$artifact_root/operation-coverage" "$artifact_root/complex-fields"
+mkdir -p "$artifact_root/unsaved-changes" "$artifact_root/rule-clarity" "$artifact_root/write-recovery" "$artifact_root/operation-coverage" "$artifact_root/complex-fields" "$artifact_root/browser-accessibility"
 umask 077
 
 for command in docker node pnpm go curl od tr grep sort cmp; do
@@ -31,7 +31,7 @@ for command in docker node pnpm go curl od tr grep sort cmp; do
 done
 
 case ${RCC_E2E_SUITE:-all} in
-  all|write-recovery|operation-coverage|complex-fields) ;;
+  all|unsaved-changes|rule-clarity|write-recovery|operation-coverage|complex-fields|browser-accessibility) ;;
   *) printf 'unknown browser suite: %s\n' "$RCC_E2E_SUITE" >&2; exit 2 ;;
 esac
 
@@ -250,15 +250,40 @@ node --version >> "$artifact_root/run.txt"
 pnpm --version >> "$artifact_root/run.txt"
 go version >> "$artifact_root/run.txt"
 
-printf 'Installing pinned Web dependencies and Chromium...\n'
+printf 'Installing pinned Web dependencies and required Playwright browsers...\n'
 run_logged 300 "$artifact_root/dependencies-install.log" \
   pnpm --dir "$repo_root/web" install --frozen-lockfile
+browser_engines=${RCC_E2E_ENGINES:-${RCC_E2E_ENGINE:-chromium}}
+browser_engine_list=()
+if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == browser-accessibility ]]; then
+  engine_ifs=$IFS
+  IFS=,
+  read -r -a browser_engine_list <<< "$browser_engines"
+  IFS=$engine_ifs
+  for browser_engine in "${browser_engine_list[@]}"; do
+    case $browser_engine in chromium|firefox|webkit) ;; *) printf 'unknown browser engine: %s\n' "$browser_engine" >&2; exit 2 ;; esac
+  done
+fi
+if [[ ${RCC_E2E_SUITE:-all} == browser-accessibility ]]; then
+  playwright_install_targets=("${browser_engine_list[@]}")
+else
+  playwright_install_targets=(chromium)
+  if [[ ${RCC_E2E_SUITE:-all} == all ]]; then
+    for browser_engine in "${browser_engine_list[@]}"; do
+      target_present=false
+      for install_target in "${playwright_install_targets[@]}"; do
+        if [[ $install_target == "$browser_engine" ]]; then target_present=true; break; fi
+      done
+      if [[ $target_present == false ]]; then playwright_install_targets+=("$browser_engine"); fi
+    done
+  fi
+fi
 if [[ $(uname -s) == Linux && ${CI:-} == true ]]; then
   run_logged 600 "$artifact_root/chromium-install.log" \
-    pnpm --dir "$repo_root/web" exec playwright install --with-deps chromium
+    pnpm --dir "$repo_root/web" exec playwright install --with-deps "${playwright_install_targets[@]}"
 else
   run_logged 600 "$artifact_root/chromium-install.log" \
-    pnpm --dir "$repo_root/web" exec playwright install chromium
+    pnpm --dir "$repo_root/web" exec playwright install "${playwright_install_targets[@]}"
 fi
 
 printf 'Building the Web preview artifact...\n'
@@ -381,9 +406,12 @@ run_browser_suite() {
   local script=$2
   local output=$3
   local suite_timeout=${4:-180}
+  local browser_engine=${5:-${RCC_E2E_ENGINE:-chromium}}
   local status
+  mkdir -p "$output"
   printf 'Running %s...\n' "$name"
   if RCC_PLAYWRIGHT_MODULE="$repo_root/web/node_modules/playwright" \
+  RCC_E2E_ENGINE="$browser_engine" \
   RCC_E2E_MYSQL_CONTAINER="$mysql_container" RCC_WEB_URL="$web_url" RCC_E2E_OUTPUT="$output" RCC_E2E_TABLE=stage1_acceptance_items \
     run_timeout "${RCC_E2E_TIMEOUT_SECONDS:-$suite_timeout}" node "$script" \
       > "$output/runner.log" 2>&1; then status=0; else status=$?; fi
@@ -402,10 +430,11 @@ run_browser_suite() {
   return "$status"
 }
 
-if [[ ${RCC_E2E_SUITE:-all} == all ]]; then
+if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == unsaved-changes ]]; then
 run_browser_suite unsaved-changes "$repo_root/web/e2e/unsaved-changes.cjs" "$artifact_root/unsaved-changes"
+fi
+if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == rule-clarity ]]; then
 run_browser_suite rule-clarity "$repo_root/web/e2e/rule-clarity.cjs" "$artifact_root/rule-clarity"
-
 fi
 if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == write-recovery ]]; then
 run_browser_suite write-recovery "$repo_root/web/e2e/write-recovery.cjs" "$artifact_root/write-recovery" 360
@@ -416,6 +445,12 @@ fi
 
 if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == complex-fields ]]; then
 run_browser_suite complex-fields "$repo_root/web/e2e/complex-fields.cjs" "$artifact_root/complex-fields" 420
+fi
+
+if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == browser-accessibility ]]; then
+for browser_engine in "${browser_engine_list[@]}"; do
+  run_browser_suite "browser-accessibility ($browser_engine)" "$repo_root/web/e2e/browser-accessibility.cjs" "$artifact_root/browser-accessibility/$browser_engine" 420 "$browser_engine"
+done
 fi
 
 expected='5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED'

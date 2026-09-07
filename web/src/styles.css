@@ -195,7 +195,7 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 .spinner { width: 26px; height: 26px; border: 3px solid #d9e7e2; border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.drawer-open { overflow: hidden; }
+.modal-open { overflow: hidden; }
 .drawer-layer, .modal-layer { position: fixed; inset: 0; z-index: 40; display: flex; justify-content: flex-end; }
 .drawer-scrim { position: absolute; inset: 0; width: 100%; border: 0; background: rgb(32 47 61 / 26%); cursor: default; }
 .drawer { position: relative; z-index: 1; width: min(640px, 100vw); height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: var(--surface); box-shadow: var(--shadow); animation: drawer-in .2s cubic-bezier(.16, 1, .3, 1); }

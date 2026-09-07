@@ -1,0 +1,158 @@
+{
+  "schema": "rcc.reliability.browser-accessibility.v1",
+  "date": "2026-09-07",
+  "status": "passed",
+  "environment": {
+    "web": "production Vite build behind the Web same-origin proxy",
+    "admin": "Bearer-authenticated Admin",
+    "database": "disposable MySQL 8.4",
+    "host": "macOS arm64"
+  },
+  "red": {
+    "engine": "chromium",
+    "browserVersion": "151.0.7922.34",
+    "startedAt": "2026-09-07T07:45:35Z",
+    "finishedAt": "2026-09-07T07:45:57Z",
+    "observed": {
+      "backgroundInert": false,
+      "focusStayedInTopModalAfterProgrammaticProbe": false,
+      "scrollLockClass": "drawer-open"
+    },
+    "exitStatus": 1,
+    "cleanupVerified": true,
+    "source": "../../../.records-reliability-20260907/stage5-modal-chromium-red-real/browser-accessibility/result.json"
+  },
+  "fix": [
+    "register open modal surfaces in stack order and apply inert to every sibling branch behind the top surface",
+    "redirect escaped focus to the top surface and let only the top surface process Tab and Escape",
+    "exclude disabled, negative-tabindex, inert, hidden, aria-hidden and CSS-hidden controls from the keyboard loop",
+    "restore focus to a usable previous control, or to the remaining lower modal when that control is gone or disabled",
+    "lock both documentElement and body for every modal type until the last modal closes"
+  ],
+  "final": {
+    "componentTests": {
+      "files": 1,
+      "passed": 9,
+      "failed": 0
+    },
+    "checksPerEngine": 7,
+    "totalEngineChecks": 21,
+    "pageErrors": 0,
+    "engines": [
+      {
+        "name": "chromium",
+        "browserVersion": "151.0.7922.34",
+        "ok": true,
+        "drawerWheel": {
+          "before": 889,
+          "after": 1249
+        },
+        "rawCRHex": "7072656669782d6368726f6d69756d0d0a7365636f6e640d7461696c",
+        "unknownWrite": {
+          "actualStatus": 201,
+          "injectedStatus": 503,
+          "writeRequests": 1,
+          "sqlRows": 1
+        },
+        "source": "../../../.records-reliability-20260907/stage5-cross-engine-final/browser-accessibility/chromium/result.json"
+      },
+      {
+        "name": "firefox",
+        "browserVersion": "153.0",
+        "ok": true,
+        "drawerWheel": {
+          "before": 881,
+          "after": 1199
+        },
+        "rawCRHex": "7072656669782d66697265666f780d0a7365636f6e640d7461696c",
+        "unknownWrite": {
+          "actualStatus": 201,
+          "injectedStatus": 503,
+          "writeRequests": 1,
+          "sqlRows": 1
+        },
+        "source": "../../../.records-reliability-20260907/stage5-firefox-webkit-final/browser-accessibility/firefox/result.json"
+      },
+      {
+        "name": "webkit",
+        "browserVersion": "26.5",
+        "ok": true,
+        "drawerWheel": {
+          "before": 890,
+          "after": 1250
+        },
+        "rawCRHex": "7072656669782d7765626b69740d0a7365636f6e640d7461696c",
+        "unknownWrite": {
+          "actualStatus": 201,
+          "injectedStatus": 503,
+          "writeRequests": 1,
+          "sqlRows": 1
+        },
+        "source": "../../../.records-reliability-20260907/stage5-firefox-webkit-final/browser-accessibility/webkit/result.json"
+      }
+    ],
+    "commonChecks": [
+      "drawer background is inert and actual Shift+Tab/Tab stays in the top modal",
+      "native back cancel/confirm and forward preserve the intended history entry",
+      "320x568 CSS-pixel long drawer scrolls by a real mouse wheel and keeps each footer action reachable",
+      "320x568 CSS-pixel Change Set owns overflow and keeps each action reachable",
+      "only the top nested leave dialog handles Tab and Escape, then focus returns to Change Set",
+      "real MySQL 400 retains raw CR and explicit LF conversion unlocks editing",
+      "390px unknown-write recovery remains locked with one real committed write and one read-only SQL match"
+    ],
+    "cleanup": {
+      "chromiumRemainingRows": 0,
+      "firefoxRemainingRows": 0,
+      "webkitRemainingRows": 0,
+      "firefoxWebkitRunExitStatus": 0,
+      "firefoxWebkitRunCleanupVerified": true
+    }
+  },
+  "coverageBoundaries": {
+    "focusProbe": "Programmatic HTMLElement.focus verifies native inert; the separate recorded keyboard paths use real Playwright Tab, Shift+Tab and Escape input.",
+    "clipboard": "A synthetic paste Event with injected DataTransfer verifies application selection and raw-CR handling; it does not exercise the OS clipboard.",
+    "unknownWrite": "Playwright lets route.fetch complete a real MySQL commit and then substitutes HTTP 503 for the page; this is API response fault injection, followed by read-only SQL verification.",
+    "beforeUnload": "Firefox and WebKit evidence covers a cancelable browser event, not a native user-agent prompt. Existing Chromium unsaved-changes acceptance separately observes the native prompt.",
+    "safari": "The result covers Playwright WebKit 26.5, not an installed Safari release.",
+    "narrowWidth": "320 and 390 are CSS-pixel viewport widths. The suite does not claim it changed browser UI zoom to 200%."
+  },
+  "ci": {
+    "configuredEngines": [
+      "chromium",
+      "firefox",
+      "webkit"
+    ],
+    "installer": "Playwright official installer with --with-deps on Linux CI",
+    "statusAtReportTime": "pending; the 21 passing engine checks in this file are from macOS arm64"
+  },
+  "staticVerification": [
+    "bash -n scripts/browser-acceptance.sh",
+    "node --check web/e2e/browser-accessibility.cjs",
+    "JSON.parse portable evidence",
+    "Ruby YAML parse .github/workflows/ci.yml",
+    "git diff --check"
+  ],
+  "portableScreenshots": [
+    "2026-09-07-reliability-stage5-chromium-drawer-320.png",
+    "2026-09-07-reliability-stage5-firefox-change-set-320.png",
+    "2026-09-07-reliability-stage5-webkit-write-recovery-390.png"
+  ],
+  "rootBaselineVerification": {
+    "suite": "unsaved-changes",
+    "cases": 14,
+    "passed": 14,
+    "startedAt": "2026-09-07T08:32:52Z",
+    "finishedAt": "2026-09-07T08:33:31Z",
+    "nativeReloadAndTabClose": true,
+    "fixtureEqual": true,
+    "cleanupVerified": true,
+    "records": "stage5-unsaved-baseline"
+  },
+  "sharedWorktreeWebVerification": {
+    "files": 22,
+    "tests": 175,
+    "typecheck": true,
+    "includesUncommittedRootIdentityTests": 2,
+    "log": "stage5-root-web-all.log"
+  }
+}

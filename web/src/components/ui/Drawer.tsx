@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { useModalFocus } from "./useModalFocus";
 
 type Props = {
@@ -14,11 +14,6 @@ type Props = {
 export function Drawer({ open, title, eyebrow, onClose, children, footer }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   useModalFocus({ open, dialogRef, onEscape: onClose });
-  useEffect(() => {
-    if (!open) return;
-    document.body.classList.add("drawer-open");
-    return () => document.body.classList.remove("drawer-open");
-  }, [open]);
 
   if (!open) return null;
   return (
