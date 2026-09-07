@@ -1,4 +1,4 @@
-# Local Accounts, sessions and protected workspace: T1–T4
+# Local Accounts, sessions, protected workspace and maintenance: T1–T5
 
 [#35](https://github.com/asherzj/relational-config-center/issues/35) implements the
 account-entry slice and [#36](https://github.com/asherzj/relational-config-center/issues/36)
@@ -13,7 +13,7 @@ or mail operation exists.
 business route and attributes every authored row/catalog change to the requesting
 account's permanent ID. TMP-01 has been removed: no shared Token, disabled-auth
 mode, proxy credential injection or normal fixed Operator remains. #38 adds
-interrupted in-memory edit recovery; #39 owns account maintenance commands; #40 owns final
+interrupted in-memory edit recovery; #39 adds account maintenance commands; #40 owns final
 required-schema startup checks and complete release acceptance.
 
 ## Start the development entry
@@ -185,10 +185,10 @@ They are distinct from session invalidation. A disabled account returns
 recoverable state. Login still returns the same `invalid_credentials` response for an
 unknown username, wrong password and disabled account.
 
-The #39 disable operation must preserve enough old login-session rows to classify a
+The disable operation preserves enough old login-session rows to classify a
 previously authenticated Cookie as `account_disabled`, while atomically setting the
-account disabled and advancing its session version. It must not delete those rows as
-ordinary logout currently does. Re-enabling the account must not revive them: with the
+account disabled and advancing its session version. It does not delete those rows as
+ordinary logout does. Re-enabling the account does not revive them: with the
 account enabled again, their older version must resolve to `session_invalid`. Expired
 session cleanup may remove them at the normal expiry boundary. This maintenance
 contract keeps disabled-account draft destruction observable without revealing
@@ -316,3 +316,91 @@ and `ADMIN_CORS_ORIGINS` settings now produce a configuration error. The Vite
 proxy also rejects `RCC_ADMIN_TOKEN`. Maintenance `policy-migrate` reads only
 `MYSQL_*` plus explicit `POLICY_MIGRATION_OPERATOR` for historical attribution;
 its connection is independent of normal Admin HTTP configuration and readiness.
+
+## Account maintenance without Web login
+
+`make build` produces `bin/admin/account-maintain`. The normal Admin image also
+ships `/usr/local/bin/account-maintain`; select that executable with the container
+runtime's `--entrypoint account-maintain` and supply the same private `MYSQL_*`
+environment. Neither command needs a running Admin, a Cookie, an HTTP origin, or
+Policy Catalog readiness. It needs the final account control tables from migration
+007 and database permission to read and update those tables. It does not migrate
+schemas implicitly. Stop old shared-Token Admin instances before the account
+cutover; final upgrade verification is tracked in #40.
+
+Choose exactly one immutable Account ID or username. Username lookup uses the same
+trimming and lowercase rule as login. The command prints JSON containing the
+operation, Account ID, username and enabled status; it never prints an email,
+password, hash, Cookie or raw database error.
+
+```bash
+bin/admin/account-maintain lookup --username alice.one
+bin/admin/account-maintain lookup --id 550e8400-e29b-41d4-a716-446655440000
+bin/admin/account-maintain disable --username alice.one
+bin/admin/account-maintain enable --username alice.one
+```
+
+Reset passwords through standard input only. The executable rejects terminal
+input, password arguments and extra positional arguments. For interactive use,
+Python's hidden prompt supplies stdin without placing the password in shell
+history, process arguments or environment variables:
+
+```bash
+python3 -c 'import getpass,sys; sys.stdout.write(getpass.getpass("New password: "))' | \
+  bin/admin/account-maintain reset-password --username alice.one --password-stdin
+```
+
+Stdin is read through EOF as exact UTF-8 bytes, including spaces and newlines;
+use a secret source that does not append an unintended newline. The password must
+contain 15–128 Unicode characters, with no normalization or truncation. Resetting
+to the same password is still successful and revokes all sessions. Password hash,
+password version, session version and session revocation commit together. Resetting
+a disabled account does not enable it and keeps its old session records available
+for `account_disabled` draft destruction until normal expiry cleanup. Communicate a replacement password offline;
+there is no email delivery, temporary-password state or forced-change flow.
+
+Correct an email only after independently verifying the intended account:
+
+```bash
+python3 -c 'import getpass,sys; sys.stdout.write(getpass.getpass("Correct email: "))' | \
+  bin/admin/account-maintain set-email --username alice.one --email-stdin
+```
+
+Email correction uses the same ASCII, format, length, trimming, lowercase and
+database uniqueness rules as registration. It releases the old email, preserves
+Account ID and username, stays unverified, and neither revokes nor renews sessions.
+An email claim is not proof of ownership. There are no mail operations or account
+rename, deletion, merge or public account-management APIs. If compromise is
+suspected, separately reset the password or disable the account.
+
+Disable advances the session version atomically with account status and retains
+old session rows until ordinary expiry cleanup so Web can destroy drafts. Enable
+requires a fresh login; repeated enable/disable of an unchanged status is a no-op.
+Disabled accounts retain their username and email. Disabling an account is not a
+person ban: open registration and unverified emails allow that person to register
+different details. Organizational network admission remains the boundary.
+
+Exit status 0 means success, 2 means a malformed command or unreadable/oversized
+stdin, and 1 means rejected fields or a failed operation/configuration/database
+problem. Diagnostics identify missing accounts,
+invalid fields, occupied email, timeout or unavailable control storage without
+echoing sensitive input. A timeout, connection failure or lost output can leave
+the caller unsure whether a write committed: inspect status or verify login before
+deciding to repeat an operation; a repeated password reset revokes sessions again.
+
+`TestAccountMaintenance*` starts the delivered executable and observes its effects
+over HTTP with MySQL 8.4. It also proves rollback when session revocation fails,
+missing-schema diagnostics and independence from normal Admin readiness.
+`TestLocalAccountSecurityChangesWinAgainstVerifiedLogin` uses a second real Admin
+with a controlled clock after credential verification and before issuance; the
+same barrier has a successful no-revocation control. Real HTTP changes and CLI
+reset/disable operations then prove that a verified old snapshot cannot issue a
+session after security versions change, including disable followed by enable.
+
+The final regression also covers uncertain policy writes (AC-026): Query and
+Mutation Policy details inherit the list's lifecycle-command block, including
+after closing and reopening a drawer. Command and form entry points check that
+block before writing. Query, Mutation and Table Policy forms/commands keep the
+uncertain result after a failed 503/504 read check, including the normal safe-read
+retry, and only clear it after successful reads. Read-only checks never replay
+the original command. The three policy-page suites exercise these paths.

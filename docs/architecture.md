@@ -133,5 +133,11 @@ repository does not yet have a general layer dependency graph checker.
 
 TMP-01 is removed. `OpenMaintenance` and `LoadMySQL` initialize maintenance
 connections independently from normal Admin HTTP and required-schema readiness.
-#38 continues draft recovery, #39 account maintenance commands, and #40 final
+The `account-maintain` composition root invokes `application/AccountMaintenance`
+with the Domain-owned maintenance repository and existing password adapter. It
+uses database authority and exposes no HTTP account-management route. Resets
+commit password and session-version changes with revocation; status changes share
+the authentication transaction lock and retain old session rows for disabled-client
+draft destruction until normal expiry cleanup. Enable never revives an old version.
+The normal build and Admin image distribute the executable. #40 covers final
 startup/readiness and release acceptance.

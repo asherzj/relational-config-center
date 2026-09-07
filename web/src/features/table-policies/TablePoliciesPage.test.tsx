@@ -104,7 +104,7 @@ function json(value: unknown, status = 200) {
 }
 
 function renderPage(initialEntry = "/platform/table-policies") {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 }, mutations: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[initialEntry]}>
@@ -191,6 +191,9 @@ describe("表规则分配页面", () => {
   it("does not replay a table-rule assignment whose response was lost and offers a read-only check", async () => {
     let writes = 0;
     let reads = 0;
+    let failedCheckStatus = 0;
+    let failedReads = 0;
+    let finishCheck: ((response: Response) => void) | undefined;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) { reads += 1; return json({ tables: discoveryTables }); }
@@ -202,7 +205,15 @@ describe("表规则分配页面", () => {
         writes += 1;
         throw new TypeError("response lost after commit");
       }
-      if (url.endsWith("/table-policies")) { reads += 1; return json({ policies: [tablePolicy] }); }
+      if (url.endsWith("/table-policies")) {
+        reads += 1;
+        if (failedCheckStatus) {
+          failedReads += 1;
+          if (!finishCheck) return new Promise<Response>((resolve) => { finishCheck = resolve; });
+          return json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, failedCheckStatus);
+        }
+        return json({ policies: [tablePolicy] });
+      }
       throw new Error(`unexpected request ${url}`);
     });
     vi.stubGlobal("fetch", withAccountSession(fetchMock));
@@ -215,6 +226,19 @@ describe("表规则分配页面", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
     expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeDisabled();
     expect(writes).toBe(1);
+    for (const status of [503, 504]) {
+      failedCheckStatus = status;
+      failedReads = 0;
+      finishCheck = undefined;
+      await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+      await waitFor(() => expect(finishCheck).toBeTypeOf("function"));
+      await act(async () => { finishCheck!(json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, status)); });
+      await waitFor(() => expect(failedReads).toBe(2));
+      expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+      expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeDisabled();
+      expect(writes).toBe(1);
+    }
+    failedCheckStatus = 0;
     const readsBeforeCheck = reads;
     await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
     await vi.waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
@@ -224,6 +248,9 @@ describe("表规则分配页面", () => {
   it("blocks a table-rule state command after its response is lost until a read-only check", async () => {
     let writes = 0;
     let reads = 0;
+    let failedCheckStatus = 0;
+    let failedReads = 0;
+    let finishCheck: ((response: Response) => void) | undefined;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/database-tables")) { reads += 1; return json({ tables: discoveryTables }); }
@@ -231,7 +258,15 @@ describe("表规则分配页面", () => {
         writes += 1;
         throw new TypeError("response lost after commit");
       }
-      if (url.endsWith("/table-policies/notification_templates")) { reads += 1; return json(tablePolicy); }
+      if (url.endsWith("/table-policies/notification_templates")) {
+        reads += 1;
+        if (failedCheckStatus) {
+          failedReads += 1;
+          if (!finishCheck) return new Promise<Response>((resolve) => { finishCheck = resolve; });
+          return json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, failedCheckStatus);
+        }
+        return json(tablePolicy);
+      }
       if (url.endsWith("/table-policies")) { reads += 1; return json({ policies: [tablePolicy] }); }
       throw new Error(`unexpected request ${url}`);
     });
@@ -243,9 +278,28 @@ describe("表规则分配页面", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
     expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
     expect(writes).toBe(1);
+    await user.click(screen.getByRole("button", { name: "关闭抽屉" }));
+    await user.click(screen.getByRole("button", { name: "查看" }));
+    expect(await screen.findByRole("dialog", { name: "表规则详情" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
+    for (const status of [503, 504]) {
+      failedCheckStatus = status;
+      failedReads = 0;
+      finishCheck = undefined;
+      await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+      await waitFor(() => expect(finishCheck).toBeTypeOf("function"));
+      await act(async () => { finishCheck!(json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, status)); });
+      await waitFor(() => expect(failedReads).toBe(2));
+      expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+      expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
+      expect(writes).toBe(1);
+    }
+    failedCheckStatus = 0;
     const readsBeforeCheck = reads;
     await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
     await waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
+    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "停用" })).toBeEnabled();
     expect(writes).toBe(1);
   });
 
@@ -307,8 +361,8 @@ describe("表规则分配页面", () => {
     renderPage("/platform/table-policies/notification_templates");
 
     expect(await screen.findByRole("heading", { name: "表规则详情" })).toBeVisible();
-    expect(fetchMock).toHaveBeenCalledWith("/api/v1/table-policies/notification_templates", expect.any(Object));
     expect(await screen.findByDisplayValue("notification_templates")).toBeDisabled();
+    expect(fetchMock).toHaveBeenCalledWith("/api/v1/table-policies/notification_templates", expect.any(Object));
     await user.click(screen.getByRole("button", { name: "原子替换" }));
     await user.selectOptions(await screen.findByRole("combobox", { name: "Active 查询规则" }), "strict_page_query_v2");
     await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "readonly_mutation_v2");

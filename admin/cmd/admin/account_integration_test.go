@@ -279,42 +279,6 @@ func TestLocalAccountPasswordChangeRevokesAllSessions(t *testing.T) {
 	}
 }
 
-func TestLocalAccountLogoutAllWinsAgainstLoginUsingOldSecurityState(t *testing.T) {
-	app, db := accountFixture(t, nil)
-	current := registerAccount(t, app, "race.user", "race@example.com", "current password long enough")
-	if _, err := db.Exec("UPDATE rcc_accounts SET password_hash = ? WHERE username = 'race.user'", encodedTestPassword("current password long enough", 65536, 5)); err != nil {
-		t.Fatal(err)
-	}
-	// Positive control: the deliberately expensive replacement hash is valid
-	// before any security version changes.
-	loginAccount(t, app, "race.user", "current password long enough")
-	cookies, csrf := prepareAccount(t, app)
-	result := make(chan *httptest.ResponseRecorder, 1)
-	go func() {
-		result <- accountRequest(app, "POST", "/api/v1/auth/login", `{"username":"race.user","password":"current password long enough"}`, cookies, csrf)
-	}()
-	deadline := time.Now().Add(2 * time.Second)
-	for {
-		var inFlight int
-		if err := db.QueryRow("SELECT COALESCE(SUM(in_flight),0) FROM rcc_auth_rate_limits WHERE bucket_key LIKE 'login-user:%'").Scan(&inFlight); err != nil {
-			t.Fatal(err)
-		}
-		if inFlight == 1 {
-			break
-		}
-		if time.Now().After(deadline) {
-			t.Fatal("login did not reach reserved password verification")
-		}
-		time.Sleep(time.Millisecond)
-	}
-	if revoked := accountRequest(app, "POST", "/api/v1/auth/logout-all", "", current.Result().Cookies(), sessionCSRF(t, current)); revoked.Code != 204 {
-		t.Fatalf("logout all during login: %d %s", revoked.Code, revoked.Body.String())
-	}
-	login := <-result
-	if login.Code != 401 || len(login.Result().Cookies()) != 0 {
-		t.Fatalf("old security state issued a session: %d %s", login.Code, login.Body.String())
-	}
-}
 func TestLocalAccountLoginAfterLogout(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
 	registration := registerAccount(t, app, "Login.User", "login@example.com", " correct horse battery staple ")

@@ -3,7 +3,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
-import { isUncertainWriteError } from "../../api/client";
+import { isUncertainWriteError, prioritizeUncertainWriteError } from "../../api/client";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Drawer } from "../../components/ui/Drawer";
 import { ErrorState, LoadingState } from "../../components/ui/Feedback";
@@ -40,15 +40,21 @@ export function TablePolicyDrawer({ tableName }: Props) {
   const [confirmReplace, setConfirmReplace] = useState(false);
   const [pendingStateCommand, setPendingStateCommand] = useState<"enable" | "disable" | null>(null);
   const close = () => navigate("/platform/table-policies");
-  const serverError = create.error || replace.error || enable.error || disable.error;
+  const serverError = prioritizeUncertainWriteError([create.error, replace.error, enable.error, disable.error]);
   const uncertain = isUncertainWriteError(serverError);
-  const verifyCurrentState = () => {
+  const verifyCurrentState = async () => {
+    try {
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: tablePolicyKeys.list }, { throwOnError: true }),
+        queryClient.refetchQueries({ queryKey: tablePolicyKeys.discovery }, { throwOnError: true }),
+        ...(tableName ? [queryClient.refetchQueries({ queryKey: tablePolicyKeys.detail(tableName) }, { throwOnError: true })] : []),
+      ]);
+    } catch {
+      // A failed read cannot establish the outcome of the previous write.
+      return;
+    }
     create.reset(); replace.reset(); enable.reset(); disable.reset();
-    void Promise.all([
-      queryClient.refetchQueries({ queryKey: tablePolicyKeys.list }),
-      queryClient.refetchQueries({ queryKey: tablePolicyKeys.discovery }),
-      ...(tableName ? [queryClient.refetchQueries({ queryKey: tablePolicyKeys.detail(tableName) })] : []),
-    ]).finally(() => navigate(tableName ? `/platform/table-policies/${encodeURIComponent(tableName)}` : "/platform/table-policies"));
+    navigate(tableName ? `/platform/table-policies/${encodeURIComponent(tableName)}` : "/platform/table-policies");
   };
   const writeError = serverError && (uncertain
     ? <div className="inline-alert" role="alert"><strong>提交结果尚未确认。系统不会自动重复此写入。</strong>{selectingAssignment && <Button type="button" variant="secondary" onClick={verifyCurrentState}>只读查询当前状态</Button>}</div>
@@ -87,7 +93,7 @@ export function TablePolicyDrawer({ tableName }: Props) {
   );
 
   const executeReplace = () => {
-    if (!tableName || !valid) return;
+    if (!tableName || !valid || uncertain) return;
     replace.mutate({ tableName, assignment }, {
       onSuccess() {
         setConfirmReplace(false);
@@ -99,7 +105,7 @@ export function TablePolicyDrawer({ tableName }: Props) {
   };
 
   const executeStateCommand = () => {
-    if (!tableName || !pendingStateCommand) return;
+    if (!tableName || !pendingStateCommand || uncertain) return;
     const command = pendingStateCommand;
     const mutation = command === "enable" ? enable : disable;
     mutation.mutate(tableName, {
@@ -113,7 +119,7 @@ export function TablePolicyDrawer({ tableName }: Props) {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (!valid) return;
+    if (!valid || uncertain) return;
     if (creating) create.mutate(assignment, {
       onSuccess(policy) {
         showToast("表规则已创建并保持未启用");

@@ -74,14 +74,20 @@ export function QueryPoliciesPage() {
   const { showToast } = useToast();
   const [pendingCommand, setPendingCommand] = useState<PendingCommand>(null);
   const commandMutation = pendingCommand?.command === "activate" ? activate : pendingCommand?.command === "deprecate" ? deprecate : remove;
-  const uncertainCommand = isUncertainWriteError(activate.error || deprecate.error || remove.error);
+  const uncertainCommand = [activate.error, deprecate.error, remove.error].some(isUncertainWriteError);
   const verifyCommand = async () => {
-    await policies.refetch();
+    const result = await policies.refetch();
+    if (!result.isSuccess) return;
     activate.reset(); deprecate.reset(); remove.reset();
   };
 
+  const requestCommand = (command: Command, targetCode: string) => {
+    if (uncertainCommand) return;
+    setPendingCommand({ command, code: targetCode });
+  };
+
   const executeCommand = () => {
-    if (!pendingCommand) return;
+    if (!pendingCommand || uncertainCommand) return;
     const { command, code: targetCode } = pendingCommand;
     const onSuccess = () => {
       showToast(command === "activate" ? "查询规则已激活" : command === "deprecate" ? "查询规则已弃用" : "查询规则草稿已删除");
@@ -147,7 +153,7 @@ export function QueryPoliciesPage() {
                     <td><span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span></td>
                     <td>{policy.modifier}</td>
                     <td className="timestamp">{formatTimestamp(policy.modifiedAt)}</td>
-                    <td><PolicyActions policy={policy} commandsBlocked={uncertainCommand} onCommand={(command, targetCode) => setPendingCommand({ command, code: targetCode })} /></td>
+                    <td><PolicyActions policy={policy} commandsBlocked={uncertainCommand} onCommand={requestCommand} /></td>
                   </tr>
                 ))}
               </tbody>
@@ -161,7 +167,7 @@ export function QueryPoliciesPage() {
         </footer>
       </section>
 
-      <QueryPolicyDrawer code={code} onRequestCommand={(command, targetCode) => setPendingCommand({ command, code: targetCode })} />
+      <QueryPolicyDrawer code={code} commandsBlocked={uncertainCommand} onRequestCommand={requestCommand} />
       {confirm && (
         <ConfirmDialog
           open

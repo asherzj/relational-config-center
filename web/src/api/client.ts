@@ -136,3 +136,8 @@ export function isUncertainWriteError(error: unknown): boolean {
       || error.code === "stale_session"
       || error.status === 504);
 }
+
+// An earlier explicit rejection must never hide a later unresolved write.
+export function prioritizeUncertainWriteError<T>(errors: readonly T[]): T | undefined {
+  return errors.find(isUncertainWriteError) ?? errors.find(Boolean);
+}

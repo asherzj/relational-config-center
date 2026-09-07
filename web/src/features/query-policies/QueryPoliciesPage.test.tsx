@@ -50,7 +50,7 @@ function json(value: unknown, status = 200) {
 }
 
 function renderPage(initialEntry = "/platform/query-policies") {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 }, mutations: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[initialEntry]}>
@@ -211,6 +211,9 @@ describe("查询规则页面", () => {
   it("does not replay a query-rule write whose response was lost and offers a read-only check", async () => {
     let writes = 0;
     let reads = 0;
+    let failedCheckStatus = 0;
+    let failedReads = 0;
+    let finishCheck: ((response: Response) => void) | undefined;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
@@ -218,7 +221,15 @@ describe("查询规则页面", () => {
         writes += 1;
         throw new TypeError("response lost after commit");
       }
-      if (url.endsWith("/query-policies/compact_page_query_v1")) { reads += 1; return json(draftPolicy); }
+      if (url.endsWith("/query-policies/compact_page_query_v1")) {
+        reads += 1;
+        if (failedCheckStatus) {
+          failedReads += 1;
+          if (!finishCheck) return new Promise<Response>((resolve) => { finishCheck = resolve; });
+          return json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, failedCheckStatus);
+        }
+        return json(draftPolicy);
+      }
       if (url.endsWith("/query-policies")) { reads += 1; return json({ policies: [draftPolicy] }); }
       throw new Error(`unexpected request ${url}`);
     });
@@ -231,6 +242,19 @@ describe("查询规则页面", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
     expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
     expect(writes).toBe(1);
+    for (const status of [503, 504]) {
+      failedCheckStatus = status;
+      failedReads = 0;
+      finishCheck = undefined;
+      await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+      await waitFor(() => expect(finishCheck).toBeTypeOf("function"));
+      await act(async () => { finishCheck!(json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, status)); });
+      await waitFor(() => expect(failedReads).toBe(2));
+      expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+      expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
+      expect(writes).toBe(1);
+    }
+    failedCheckStatus = 0;
     const readsBeforeCheck = reads;
     await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
     await waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
@@ -240,15 +264,30 @@ describe("查询规则页面", () => {
   it("blocks a query-rule lifecycle command after its response is lost until a read-only check", async () => {
     let writes = 0;
     let reads = 0;
+    let failedCheckStatus = 0;
+    let failedReads = 0;
+    let finishCheck: ((response: Response) => void) | undefined;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/compact_page_query_v1/activate") && init?.method === "POST") {
         writes += 1;
+        return json({ error: { code: "policy_conflict", message: "activation refused", request_id: "req-conflict" } }, 409);
+      }
+      if (url.endsWith("/query-policies/compact_page_query_v1") && init?.method === "DELETE") {
+        writes += 1;
         throw new TypeError("response lost after commit");
       }
       if (url.endsWith("/query-policies/compact_page_query_v1")) { reads += 1; return json(draftPolicy); }
-      if (url.endsWith("/query-policies")) { reads += 1; return json({ policies: [draftPolicy] }); }
+      if (url.endsWith("/query-policies")) {
+        reads += 1;
+        if (failedCheckStatus) {
+          failedReads += 1;
+          if (!finishCheck) return new Promise<Response>((resolve) => { finishCheck = resolve; });
+          return json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, failedCheckStatus);
+        }
+        return json({ policies: [draftPolicy] });
+      }
       throw new Error(`unexpected request ${url}`);
     });
     vi.stubGlobal("fetch", withAccountSession(fetchMock));
@@ -256,13 +295,41 @@ describe("查询规则页面", () => {
     renderPage("/platform/query-policies/compact_page_query_v1");
     await user.click((await screen.findAllByRole("button", { name: "激活" })).at(-1)!);
     await user.click(screen.getByRole("button", { name: "确认激活" }));
+    expect(await screen.findByText(/activation refused/)).toBeVisible();
+    await user.click(screen.getAllByRole("button", { name: "删除" }).at(-1)!);
+    await user.click(screen.getByRole("button", { name: "确认删除" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "查询规则详情" })).not.toBeInTheDocument());
+    await user.click(screen.getByRole("button", { name: "查看" }));
+    expect(await screen.findByRole("dialog", { name: "查询规则详情" })).toBeInTheDocument();
+    const repeatedCommand = screen.queryByRole("button", { name: "删除" });
+    if (repeatedCommand) {
+      await user.click(repeatedCommand);
+      const confirmation = screen.queryByRole("button", { name: "确认删除" });
+      if (confirmation) await user.click(confirmation);
+    }
+    expect(writes).toBe(2);
     expect(screen.queryByRole("button", { name: "激活" })).not.toBeInTheDocument();
-    expect(writes).toBe(1);
+    await user.click(screen.getByRole("button", { name: "关闭抽屉" }));
+    for (const status of [503, 504]) {
+      failedCheckStatus = status;
+      failedReads = 0;
+      finishCheck = undefined;
+      await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+      await waitFor(() => expect(finishCheck).toBeTypeOf("function"));
+      await act(async () => { finishCheck!(json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, status)); });
+      await waitFor(() => expect(failedReads).toBe(2));
+      expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+      expect(screen.queryByRole("button", { name: "激活" })).not.toBeInTheDocument();
+      expect(writes).toBe(2);
+    }
+    failedCheckStatus = 0;
     const readsBeforeCheck = reads;
     await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
     await waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
-    expect(writes).toBe(1);
+    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "激活" })).toBeEnabled();
+    expect(writes).toBe(2);
   });
 
   it("keeps the mounted rule draft hidden when recovery refetch fails and reveals it after retry", async () => {

@@ -66,16 +66,22 @@ export function MutationPoliciesPage() {
   const { showToast } = useToast();
   const [pendingCommand, setPendingCommand] = useState<PendingCommand>(null);
   const commandMutation = pendingCommand?.command === "activate" ? activate : pendingCommand?.command === "deprecate" ? deprecate : remove;
-  const uncertainCommand = isUncertainWriteError(activate.error || deprecate.error || remove.error);
+  const uncertainCommand = [activate.error, deprecate.error, remove.error].some(isUncertainWriteError);
   const verifyCommand = async () => {
-    await policies.refetch();
+    const result = await policies.refetch();
+    if (!result.isSuccess) return;
     activate.reset(); deprecate.reset(); remove.reset();
   };
   const supportedTypes = (types.data ?? []).filter((type) => supportsMutationPolicyType(types.data, type.code));
   const confirm = pendingCommand ? commandContent[pendingCommand.command] : null;
 
+  const requestCommand = (command: Command, targetCode: string) => {
+    if (uncertainCommand) return;
+    setPendingCommand({ command, code: targetCode });
+  };
+
   const executeCommand = () => {
-    if (!pendingCommand) return;
+    if (!pendingCommand || uncertainCommand) return;
     const { command, code: targetCode } = pendingCommand;
     const onSuccess = () => {
       showToast(command === "activate" ? "变更规则已激活" : command === "deprecate" ? "变更规则已弃用" : "变更规则草稿已删除");
@@ -139,7 +145,7 @@ export function MutationPoliciesPage() {
                   <td><div className="auto-fill-targets">{autoFillTargets(policy).length ? autoFillTargets(policy).map((target) => <code key={target}>{target}</code>) : <span>无</span>}</div></td>
                   <td><span className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</span></td>
                   <td className="timestamp">{formatTimestamp(policy.modifiedAt)}</td>
-                  <td><PolicyActions policy={policy} supported={supportsMutationPolicyType(types.data, policy.typeCode)} commandsBlocked={uncertainCommand} onCommand={(command, targetCode) => setPendingCommand({ command, code: targetCode })} /></td>
+                  <td><PolicyActions policy={policy} supported={supportsMutationPolicyType(types.data, policy.typeCode)} commandsBlocked={uncertainCommand} onCommand={requestCommand} /></td>
                 </tr>
               ))}</tbody>
             </table>
@@ -151,7 +157,7 @@ export function MutationPoliciesPage() {
           <Button className="catalog-refresh" variant="ghost" icon={<RefreshCw size={15} />} onClick={() => void policies.refetch()} disabled={policies.isFetching}>刷新</Button>
         </footer>
       </section>
-      <MutationPolicyDrawer code={code} onRequestCommand={(command, targetCode) => setPendingCommand({ command, code: targetCode })} />
+      <MutationPolicyDrawer code={code} commandsBlocked={uncertainCommand} onRequestCommand={requestCommand} />
       {confirm && <ConfirmDialog open title={confirm.title} description={confirm.description} confirmLabel={confirm.label} destructive={confirm.destructive} pending={commandMutation.isPending} onCancel={() => setPendingCommand(null)} onConfirm={executeCommand} />}
     </main>
   );

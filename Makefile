@@ -25,3 +25,4 @@ build:
 		mkdir -p bin/$$module || exit $$?; \
 		(cd $$module && go build -o ../bin/$$module/$$module ./cmd/$$module) || exit $$?; \
 	done
+	@cd admin && go build -o ../bin/admin/account-maintain ./cmd/account-maintain
