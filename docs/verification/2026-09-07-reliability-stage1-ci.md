@@ -3,6 +3,8 @@
 - 日期：2026-09-07
 - 分支：`codex/management-reliability-20260907`
 - 基线：`439fa33c5ec0d20be97c9c3efe04e35683f406cf`
+- 实现提交：`12eb0eead302d74fa979bb81acc33f788515f99a`
+- Draft MR：[#43](https://github.com/asherzj/relational-config-center/pull/43)
 - 本机验证：macOS arm64、Node.js 24.19.0、pnpm 10.28.2、Go 1.27.0、Docker Client 29.7.2 / Server 29.5.2、Chromium 151.0.7922.34
 
 ## 当前结论
@@ -14,7 +16,7 @@
 
 本机冷依赖目录和带空格路径均已跑通。成功与失败都会保存前置安装、构建、服务、浏览器 runner、数据库、结构化结果和可取得的截图；退出 trap 只按本次唯一运行名停止进程并删除本次容器和数据卷。
 
-`.github/workflows/ci.yml` 已增加独立的 `Browser acceptance` job，执行同一 Make 入口，并以 `if: always()` 上传证据。该 job 尚未在 GitHub Linux runner 上实际执行；在父代理提交、推送并触发 Actions 前，不能称为 CI 已通过。
+`.github/workflows/ci.yml` 已增加独立的 `Browser acceptance` job，执行同一 Make 入口，并以 `if: always()` 上传证据。提交 `12eb0ee` 的 GitHub Actions run [`34084805003`](https://github.com/asherzj/relational-config-center/actions/runs/34084805003) 中，Browser acceptance job [`101626676349`](https://github.com/asherzj/relational-config-center/actions/runs/34084805003/job/101626676349) 在 Ubuntu `linux/amd64` runner 上成功；验收步骤和 artifact 上传均为 success。该 workflow 的其他 job 独立计算结论，因此这里不把 Browser job 成功表述为整个 workflow 全绿。
 
 ## 一键运行与隔离边界
 
@@ -39,6 +41,7 @@ Admin 使用本次生成的随机 Bearer Token，浏览器不持有 Token。Toke
 | 冷依赖目录 | 删除本 checkout 的 `web/node_modules` 和 `web/dist` 后运行 Make 入口 | 04:26:52Z–04:27:37Z，exit 0；依赖安装、Web build、14 + 6、数据库回查、清理通过 | `/private/tmp/rcc-stage1-ci-run4` |
 | 带空格路径 | 将当前源码复制到 `/private/tmp/rcc reliability stage1 space`，排除 `.git`、`node_modules`、`dist` 后运行 Make 入口 | 最终运行 04:35:23Z–04:36:03Z，exit 0；14 + 6 通过，0 page error，清理通过 | `/private/tmp/rcc-stage1-ci-space-run3` |
 | 超时进程树 | `node --test scripts/run-with-timeout.test.cjs` | 本机多次通过；父代理用独立 probe 复核修复后孙进程不存活 | `/private/tmp/rcc-reliability-record-20260907/timeout-descendant-comparison.json` |
+| GitHub Ubuntu runner | Draft MR #43，提交 `12eb0ee`，CI run `34084805003` | 04:54:11Z–04:56:15Z，job success；验收入口 88 秒；14 + 6、0 page error、数据库回查、凭据扫描和 cleanup 通过 | artifact `browser-acceptance-34084805003-1`（ID `10004870264`，SHA-256 `0bc6b0901e3eb269ac05f6fd7e488454faa02b85599f6f56e092bf8d74d08326`）；下载核验目录 `/private/tmp/rcc-stage1-linux-ci-artifact` |
 
 成功运行的数据库 post-check 为：
 
@@ -64,6 +67,14 @@ Admin 使用本次生成的随机 Bearer Token，浏览器不持有 Token。Toke
 
 带空格路径的前一次受控运行还发现：将 timeout wrapper 改成可跟踪的后台进程后，如果不显式继承 stdin，MySQL 命令会接收空输入并以 0 返回。fixture 存在性检查使该问题失败关闭；最终 wrapper 使用 `<&0`，随后带空格路径完整运行通过。
 
+## Go CI 同时发现的退出测试时限问题
+
+同一 run 的 Go unit job `101626676539` 在 `TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully/interrupt` 报错：外层在 5.02 秒杀死 helper。服务实际配置允许 10 秒收尾，外层只等待 5 秒并不覆盖合法退出时间。
+
+新增真实 TCP 回归 `TestAdminExternalProcessWaitsForIncompleteRequestHeadersOnShutdown`：保持一条未完成 HTTP 请求头的连接，再发 SIGINT。旧 5 秒等待下出现同样的 `signal: killed`（5.03 秒）；按生产 10 秒上限加 2 秒进程清理余量等待后，服务自行退出且 application close marker 正确（5.26 秒）。生产 `serveAdmin`、ReadHeaderTimeout 和 shutdown deadline 均未改变。原 100 毫秒强制退出测试仍通过（0.10 秒）。这是对外层测试时限缺陷的证明，不表示已证明原 CI 中未完成连接的具体来源。
+
+独立审查后另加入保守耗时下界，避免连接未参与时快速误报成功；最终针对性回归和 `make test` 全部通过。红/绿日志保存在本轮外部记录目录 `shutdown-incomplete-headers-red.log`、`shutdown-incomplete-headers-green.log` 和 `stage1-go-test.log`、`shutdown-incomplete-headers-final.log`。本次修正会随阶段 1 收尾提交推送，以新一轮 Linux CI 核对。
+
 ## 证据内容
 
 每次完整运行的 artifact 包含：
@@ -78,12 +89,12 @@ Admin 使用本次生成的随机 Bearer Token，浏览器不持有 Token。Toke
 
 进程级强制超时发生时，页面可能已被浏览器进程关闭，因而不能保证取得新的 failure screenshot；此路径仍保存 runner log、结构化失败结果、此前已产生的截图、服务日志、数据库终态和 cleanup 结果。普通 Playwright 断言/等待失败会在浏览器仍可用时保存 `failure.png` 与 `failure-body.txt`。
 
-## 尚待验证与边界
+## 验证边界
 
-- GitHub Actions 的 Ubuntu runner 尚未实跑新增 job；父代理负责提交、推送、创建 draft MR 并跟踪 Linux 结果。
+- GitHub artifact 在 2026-09-21T04:56:10Z 到期；报告同时记录 artifact ID、名称和服务端 SHA-256，但没有把临时下载目录提交到仓库。
 - 本机冷目录仍复用了 pnpm content-addressable store 和已下载的 Chromium cache；它验证 checkout 不需要 `node_modules`、`dist`、旧端口、旧服务、人工数据库或宿主绝对 Playwright 路径，不等于离线空缓存安装测试。
 - Web 使用本次 production build 的 Vite preview 和同源代理做验收；这验证编译产物与当前代理配置，不代表生产托管、TLS 或外部反向代理部署已验收。
 - 正常错误可取得 failure screenshot；进程级 KILL 前浏览器可能先关闭，截图为尽力保存，日志、结果与资源清理仍为强制要求。
-- 没有重复 Web unit、Go unit/build 全套或 MySQL integration CI。本轮基线 `439fa33` 的既有 CI run `34081770150` 三个原 job 已由父代理核实成功；新增 browser job 必须单独取得 Linux 结果。
+- 没有在 Browser job 中重复 Web unit、Go unit/build 全套或 MySQL integration CI。本轮基线 `439fa33` 的既有 CI run `34081770150` 三个原 job 已由父代理核实成功；本轮新增 Browser job 已单独取得上述 Linux success。
 
 父代理独立核验了成功、suite 超时及 SIGTERM 三组测试的精确容器/数据卷均不存在，并先确认 Docker 服务仍可用；读取 `fixture-before.tsv` 与 `fixture-after.tsv` 后 `cmp` 返回 0。对应机器记录保存在本轮外部工作记录目录的 `parent-stage1-cleanup-verification.json`。

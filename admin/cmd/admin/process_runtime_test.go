@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"syscall"
 	"testing"
@@ -20,6 +21,10 @@ import (
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
 	httpinterface "github.com/asherzj/relational-config-center/admin/internal/interfaces/http"
 )
+
+// The HTTP server owns the shutdown deadline. Give the external process time
+// to finish that deadline and its final application cleanup before killing it.
+const normalProcessShutdownWait = productionShutdownTimeout + 2*time.Second
 
 func TestAdminProcessHelper(t *testing.T) {
 	if os.Getenv("RCC_ADMIN_PROCESS_HELPER") != "true" {
@@ -56,17 +61,14 @@ func TestAdminProcessHelper(t *testing.T) {
 }
 
 func TestAdminExternalProcessServesHealthAndEnforcesAuthDefault(t *testing.T) {
-	process, address := startAdminProcessHelper(t, "normal", 10*time.Second)
+	process, address := startAdminProcessHelper(t, "normal", productionShutdownTimeout)
 
 	assertProcessHTTP(t, address+"/health/live", "", http.StatusOK)
 	assertProcessHTTP(t, address+"/health/ready", "", http.StatusOK)
 	assertProcessHTTP(t, address+"/api/v1/database-tables", "", http.StatusUnauthorized)
 	assertProcessHTTP(t, address+"/api/v1/database-tables", "Bearer process-token", http.StatusOK)
 
-	// The helper still has the production-shaped 10 second shutdown bound.
-	// Match the harness wait to that bound so multi-package integration runs do
-	// not kill a correctly shutting-down process when the host is contended.
-	stopProcessAndAssertClose(t, process, os.Interrupt, 10*time.Second)
+	stopProcessAndAssertClose(t, process, os.Interrupt, normalProcessShutdownWait)
 }
 
 func TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully(t *testing.T) {
@@ -75,9 +77,9 @@ func TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully(t *testing.T) {
 	}
 	for _, signal := range []os.Signal{os.Interrupt, syscall.SIGTERM} {
 		t.Run(signal.String(), func(t *testing.T) {
-			process, address := startAdminProcessHelper(t, "normal", 10*time.Second)
+			process, address := startAdminProcessHelper(t, "normal", productionShutdownTimeout)
 			assertProcessHTTP(t, address+"/health/live", "", http.StatusOK)
-			stopProcessAndAssertClose(t, process, signal, 5*time.Second)
+			stopProcessAndAssertClose(t, process, signal, normalProcessShutdownWait)
 		})
 	}
 }
@@ -95,6 +97,30 @@ func TestAdminExternalProcessForcesShutdownAtConfiguredBoundAndStillClosesApplic
 	// well below the production 10 second bound without making the race run flaky.
 	if elapsed := time.Since(started); elapsed > 1500*time.Millisecond {
 		t.Fatalf("bounded shutdown took %v; output: %s", elapsed, process.output.String())
+	}
+}
+
+func TestAdminExternalProcessWaitsForIncompleteRequestHeadersOnShutdown(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX process signals are unavailable on Windows")
+	}
+	process, address := startAdminProcessHelper(t, "normal", productionShutdownTimeout)
+	started := time.Now()
+	connection, err := net.DialTimeout("tcp", strings.TrimPrefix(address, "http://"), time.Second)
+	if err != nil {
+		t.Fatalf("open incomplete request connection: %v", err)
+	}
+	defer connection.Close()
+	if _, err := io.WriteString(connection, "GET /health/live HTTP/1.1\r\nHost: localhost\r\n"); err != nil {
+		t.Fatalf("send incomplete request headers: %v", err)
+	}
+	// Keep the incomplete request open while checking that the server is live.
+	// The elapsed-time assertion below also rejects a fast, vacuous pass where
+	// this connection never participated in graceful shutdown.
+	assertProcessHTTP(t, address+"/health/live", "", http.StatusOK)
+	stopProcessAndAssertClose(t, process, os.Interrupt, normalProcessShutdownWait)
+	if elapsed := time.Since(started); elapsed < readHeaderTimeout/2 {
+		t.Fatalf("incomplete request did not delay shutdown: %v; output: %s", elapsed, process.output.String())
 	}
 }
 
