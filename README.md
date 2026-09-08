@@ -1,6 +1,6 @@
 # 关系型配置中心
 
-账号默认只读。部署维护者通过 `account-maintain grant-admin` 明确指定首位管理员，再在管理台分配全局角色；存量部署需迁移 008。见[账号角色、初始化与恢复](docs/admin-account-roles.md)。发布单审批仍按 #48 的后续工单推进。
+账号默认只读。部署维护者通过 `account-maintain grant-admin` 明确指定首位管理员，再在管理台分配全局角色；存量账号部署需在维护窗口完成 008–012。见[账号角色、初始化与恢复](docs/admin-account-roles.md)和[发布单升级指南](docs/admin-release-upgrade.md)。配置变更经独立审批后正式发布，回滚也必须重新审批。
 
 本地账号提供 `/register`、`/login` 和 `/account`，所有业务页面及 API 均要求真实 MySQL Cookie 会话，配置行和规则目录写入归属当前账号的永久 Account ID。启动需显式配置 `ADMIN_PUBLIC_ORIGIN`；本机 HTTP 还需 `ADMIN_ALLOW_LOCAL_HTTP=true`。参见[账号入口与 HTTP 契约](docs/admin-local-accounts.md)。旧共享 Token、免认证和固定 Operator 已移除；已包含草稿恢复、账号维护工具、缺结构启动检查和真实浏览器验收；参见[完整验收证据](docs/admin-local-accounts-evidence.md)。
 
@@ -73,15 +73,40 @@ make build
 make test-integration
 ```
 
-集成测试使用 Testcontainers 和真实 MySQL 8.4；`make test-integration` 禁用 Go 测试缓存。本机没有可用 Docker provider 时测试会明确跳过，不会以数据库 mock 替代；持续集成会先执行 Docker 健康检查，因此 Docker 不可用时整个检查失败，不会跳过后假绿。
+集成测试使用 Testcontainers 和真实 MySQL 8.4；`make test-integration` 禁用 Go 测试缓存。正式入口先执行 Docker 健康检查，依赖不可用时命令失败；直接运行带 `integration` 标签的 Go 测试也会因缺失必需 Docker/MySQL 而失败。
 
 整组集成测试的进程上限为 40 分钟，以容纳隔离 MySQL 容器启动时间的波动；CI 任务另有 45 分钟总上限。各请求、数据库等待和进程停止的独立超时仍由对应测试验证。
 
 ## 持续集成
 
-GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行三个稳定检查：`Web`、`Go unit and build`、`MySQL 8.4 integration`。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
+GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行四个检查：`Web`、`Go unit and build`、`MySQL 8.4 integration` 和 `Browser acceptance`。浏览器检查在 Linux runner 上使用 Playwright 的 Chromium、Firefox 和 WebKit；每个引擎单独写入 artifact 子目录。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
 
-工作流当前只在推送到 `main` 和目标为 `main` 的 Pull Request 上运行三个检查；推送到其他分支不会自动触发这套 CI。是否配置 branch protection、rulesets 或 required checks 由仓库设置决定，不能从本地文档推断为合并保证。
+浏览器验收通过公开 Cookie 会话及 CSRF 流程进入管理台；未登录的 Admin 和 Web 代理都拒绝业务请求。临时账号、规则和业务数据只存在于本次创建的独立 MySQL 中，结束后连同数据库一起清理。
+
+工作流当前只在推送到 `main` 和目标为 `main` 的 Pull Request 上运行这四个检查；推送到其他分支不会自动触发这套 CI。是否配置 branch protection、rulesets 或 required checks 由仓库设置决定，不能从本地文档推断为合并保证。
+
+浏览器检查也可以在本地按套件或引擎运行。`all` 包含 `unsaved-changes`、`rule-clarity`、`write-recovery`、`operation-coverage`、`complex-fields`、`browser-accessibility` 和 `release-workflow`。正式发布套件实际执行草稿、独立审批、混合批量，以及按 `RCC_E2E_ENGINES` 逐引擎运行的正向/反向发布和会话、冲突、未知结果恢复；无障碍套件也逐引擎运行。每次运行都应使用独立的空 artifact 目录：
+
+```bash
+RCC_E2E_ARTIFACTS=/tmp/rcc-browser-acceptance-$(date +%s) \
+RCC_E2E_ENGINES=chromium,firefox,webkit \
+  make test-browser-acceptance
+
+RCC_E2E_SUITE=browser-accessibility \
+RCC_E2E_ENGINE=firefox \
+RCC_E2E_ARTIFACTS=/tmp/rcc-browser-accessibility-firefox \
+  make test-browser-acceptance
+```
+
+本地阶段 5 的三引擎证据是在 macOS 上由 Playwright Chromium 151.0.7922.34、Firefox 153.0 和 WebKit 26.5 运行得到的；WebKit 结果代表 Playwright WebKit 构建，不代表系统 Safari 的所有发行版。Linux CI 是另一条实际环境边界，不能由 macOS 结果替代。使用 Colima 时，Admin integration 需要让 Docker client 和 Ryuk 都连接到 VM 内的 socket，例如：
+
+```bash
+DOCKER_HOST=unix://$HOME/.colima/default/docker.sock \
+TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
+  make test-integration
+```
+
+只设置 `DOCKER_HOST` 会让 Ryuk 尝试把 macOS socket 路径挂载进 VM 并失败；当前共享 MySQL fixture 在 provider 健康检查未通过时明确失败，其他 Docker provider 可能自动发现 daemon，不能据此泛化。其他 provider 的 daemon 与 VM socket 仍需按本机环境核实。
 
 ## 项目结构
 
@@ -103,4 +128,4 @@ docs/    跨模块设计与项目文档
 - Go package 使用简短、清晰的小写名称。
 - 引入新能力时同步补充测试和文档。
 
-记录并发保护、Admin/Web 请求迁移与数据库维护窗口见 [记录版本契约](docs/admin-record-versions.md)。发布草稿、独立审批与单条正式执行已接通，见[发布结果契约](docs/design-notes/publication-contract.md)。升级需依次迁移 010、011、012，并显式授予 TRIGGER 元数据与 PROCESS 权限；旧记录写路由已删除，分发尚未接入。批量与反向发布继续按[交付计划](docs/design-notes/release-order-ticket-plan.md)推进。
+记录并发保护、Admin/Web 请求迁移与数据库维护窗口见 [记录版本契约](docs/admin-record-versions.md)。发布草稿、独立审批、同表 1～1,000 项混合发布与审批回滚已接通，见[发布结果契约](docs/design-notes/publication-contract.md)。升级需依次迁移 010、011、012，并显式授予 TRIGGER 元数据与 PROCESS 权限；旧记录写路由已删除，分发尚未接入。完整操作与维护步骤见[发布单升级指南](docs/admin-release-upgrade.md)，逐项验收归属见[交付计划](docs/design-notes/release-order-ticket-plan.md)。

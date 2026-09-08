@@ -214,6 +214,7 @@ ORDER BY ORDINAL_POSITION`, adapter.database, tableName).Scan(&rows).Error; err 
 	columns := make([]domain.Column, 0, len(rows))
 	primaryKey := make([]string, 0, 1)
 	for _, row := range rows {
+		// DEFAULT_GENERATED marks an expression default, not a computed column.
 		extra := strings.ToLower(row.Extra)
 		floatBits := 0
 		if row.DataType == "float" {
@@ -225,7 +226,7 @@ ORDER BY ORDINAL_POSITION`, adapter.database, tableName).Scan(&rows).Error; err 
 			FloatBits:     floatBits,
 			Type:          liveColumnType(row.DataType, row.ColumnType),
 			Nullable:      row.Nullable == "YES",
-			Generated:     row.GenerationExpression != "" || strings.Contains(extra, "generated"),
+			Generated:     row.GenerationExpression != "" || strings.Contains(extra, "stored generated") || strings.Contains(extra, "virtual generated"),
 			AutoIncrement: strings.Contains(extra, "auto_increment"),
 			HasDefault:    row.DefaultValue.Valid || strings.Contains(extra, "default_generated"),
 		})
@@ -926,10 +927,10 @@ func classifyMutationError(err error, contextErr error) error {
 		switch mysqlError.Number {
 		case 1062:
 			return application.ErrDuplicateKey
-		case 1265:
-			// MySQL reports an invalid ENUM member as data truncation. The
-			// submitted value caused the rejection, so expose it as editable
-			// Mutation Content instead of an infrastructure outage.
+		case 1264, 1265, 1406:
+			// Numeric overflow, invalid ENUM members and overlong strings are
+			// rejected storage values. Keep these known input errors editable;
+			// other database failures remain unavailable.
 			return application.ErrInvalidMutation
 		}
 	}

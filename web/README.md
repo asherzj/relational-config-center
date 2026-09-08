@@ -16,8 +16,8 @@
 - 配置内容管理只列出 enabled Managed Table，以实时动态列构造全部八种 Query Spec 操作符、单字段排序和服务端分页。
 - Managed Data 值保持 JSON String 语义，并在结果中明确区分 SQL NULL 与空字符串。
 - 变更规则驱动的 ADD、MODIFY、DELETE 始终显示能力状态；未授权、未知类型、无效 Auto Fill 或不可执行规则快照均失败关闭。
-- 通用写入编辑器以字段开关表达省略，并区分 NULL、空字符串和普通 JSON String；`id` 与全部 Auto Fill 字段不会进入写请求。
-- ADD、MODIFY、DELETE 共用完整字段 Change Set；执行后 ADD/MODIFY 以 exact id 回查数据库最终值，DELETE 显示删除摘要，失败保留输入并展示稳定错误与 Request ID。
+- 通用写入编辑器以字段开关表达省略，并区分 NULL、空字符串和普通 JSON String。ADD 可显式填写非自增主键 `id`；自增主键可保持省略。MODIFY 不修改 `id`，全部 Auto Fill 字段由后端填充。
+- ADD、MODIFY、DELETE 共用完整字段 Change Set；收到成功响应后 ADD/MODIFY 以返回的 exact id 回查数据库最终值，DELETE 显示删除摘要。未知写入结果保留输入并锁定再次提交，只有只读核对与明确的人工确认才允许继续；未收到 ADD 的真实返回 ID 时，核对当前页而不猜测输入 ID。
 - 规则详情把名称和描述与执行规则分开；执行规则区块解释查询排序/分页、变更授权和 Auto Fill 的实际效果，修改名称和描述不会改变执行内容。
 - 未知规则类型或不完整的变更类型能力失败关闭：未知 Draft 只能安全查看，Active 或 Deprecated 只能更新名称和描述等元数据。
 - GET 仅对网络错误、503、504 自动重试一次；写命令不自动重试。
@@ -36,7 +36,9 @@ pnpm install
 pnpm dev
 ```
 
-浏览器只请求同源 `/api/v1`，使用 HttpOnly 会话 Cookie 和仅存于内存的 CSRF 凭据。Vite 仅读取 `RCC_ADMIN_URL`，转发原请求；旧 `RCC_ADMIN_TOKEN` 会明确报错。Admin 的 `ADMIN_PUBLIC_ORIGIN` 必须与浏览器地址一致，本机 HTTP 显式启用 `ADMIN_ALLOW_LOCAL_HTTP=true`。生产部署使用同源 HTTPS 反向代理，不能继续注入共享 Token。
+浏览器只请求同源 `/api/v1`，使用 HttpOnly 会话 Cookie 和仅存于内存的 CSRF 凭据。Vite 通过 `RCC_ADMIN_URL` 选择后端并转发原请求，通过 `RCC_WEB_PORT` 固定页面端口（默认 `5173`）；端口被占用时停止启动，不会自动换端口。旧 `RCC_ADMIN_TOKEN` 会明确报错。Admin 的 `ADMIN_PUBLIC_ORIGIN` 必须与浏览器地址一致，本机 HTTP 显式启用 `ADMIN_ALLOW_LOCAL_HTTP=true`。生产部署使用同源 HTTPS 反向代理，不能继续注入共享 Token。
+
+并行运行预览页时，需成对配置页面地址与对应的 Admin。例如页面使用 `RCC_WEB_PORT=5174`、`RCC_ADMIN_URL=http://127.0.0.1:8081`，对应 Admin 应使用 `ADMIN_HTTP_ADDR=127.0.0.1:8081`、`ADMIN_PUBLIC_ORIGIN=http://127.0.0.1:5174`。如果页面连接到为其他端口配置的 Admin，即使刚获取登录凭据，登录和注册仍会返回 `403 csrf_invalid`；重新检查登录状态无法修复地址不匹配。
 
 工作区先检查真实当前身份；未登录时转到登录页并保留安全的站内目标，注册或登录成功后返回。规则或 CSRF 拒绝的 403 不跳登录；会话失效的 401 转登录，服务故障保留凭据并提供重新检查。工作区与账号页复用同一浏览器 Web Lock 活动协调，业务写入不自动重放。同账号重新登录后会重新读取当前规则和目标数据，再恢复内存中的编辑内容并要求重新确认；退出或切换账号时清除草稿。
 
@@ -48,6 +50,7 @@ pnpm dev
 pnpm install --frozen-lockfile
 pnpm typecheck
 pnpm test:run
+pnpm test:dev
 pnpm build
 ```
 
@@ -60,7 +63,38 @@ pnpm build
 
 ## 真实验收
 
-当前组合验收可从仓库根目录运行 `make test-browser`：它创建独立 MySQL、Admin、同源 Vite 和浏览器环境，依次验证账号注册与会话恢复、未保存编辑保护、规则效果说明、真实记录版本冲突及显式重建，再销毁测试资源。需要已安装 Web 依赖、可用的 Docker 和 Chrome；也可通过 `RCC_BROWSER_EXECUTABLE` 指定 Chromium。该入口使用公开账号会话与 CSRF 流程，不依赖已移除的免认证模式。
+最近一轮可靠性验收、账号兼容合并及 131 项生产构建浏览器证据见[交付记录](../docs/verification/2026-09-07-reliability-final-delivery.md)。
+
+从仓库根目录执行以下命令；它会从干净 checkout 启动一次性的 MySQL 8.4、Admin 和 Web preview，加载隔离 fixture，注册临时账号，并运行未保存保护、规则说明、写入恢复、操作覆盖、复杂字段及浏览器可访问性验收：
+
+```sh
+make test-browser-acceptance
+```
+
+该命令要求本机已有 Docker、Go、Node.js 和 pnpm；它会安装锁定的 Web 依赖、默认使用 Chromium，并构建 Web。MySQL、Admin 和 Web 均使用动态宿主端口；正常或失败退出时只删除本次创建的进程、容器和数据卷。日志、截图与结构化结果写入命令最后显示的临时目录，可通过 `RCC_E2E_ARTIFACTS` 指定一个新的空目录。CI 执行同一命令并设置 `RCC_E2E_ENGINES=chromium,firefox,webkit`，每个引擎使用独立的 artifact 子目录，成功或失败时均上传证据。
+
+runner 支持按套件和引擎缩小范围。`RCC_E2E_SUITE` 可选 `all`、`unsaved-changes`、`rule-clarity`、`write-recovery`、`operation-coverage`、`complex-fields`、`browser-accessibility` 或 `release-workflow`；`RCC_E2E_ENGINES` 是逗号分隔的 `chromium`、`firefox`、`webkit`，也可用 `RCC_E2E_ENGINE` 选择单个引擎。默认 `all` 包含 Chromium 管理套件，并在三个所选引擎中执行可访问性以及正式发布、回滚、刷新恢复、登录和冲突流程。每次本地运行请指定新的空输出目录，例如：
+
+```sh
+RCC_E2E_SUITE=browser-accessibility \
+RCC_E2E_ENGINES=firefox,webkit \
+RCC_E2E_ARTIFACTS=/tmp/rcc-browser-accessibility-firefox-webkit \
+  make test-browser-acceptance
+```
+
+每个套件通过公开注册接口取得独立 Cookie 会话，并在内存中复用该账号；页面自己发送 CSRF，脚本不向页面请求注入认证 Header。只读主键回查等直接 APIRequest 操作显式取得当前 CSRF。独立认证检查证明无会话为 401、缺 CSRF 为 403、注册后查询为 200、退出后恢复 401。账号及会话随专属数据库销毁，不落盘保存 Cookie、CSRF 或注册密码。
+
+本地 macOS 阶段 5 已分别验证 Chromium 151.0.7922.34、Firefox 153.0 和 Playwright WebKit 26.5；WebKit 结果代表 Playwright 构建，不代表系统 Safari 的所有发行版。Linux CI 的三引擎运行是独立的环境证据，不能由 macOS 结果替代。使用 Colima 时，Admin integration 需要同时指定 Docker daemon 和 VM 内的 Ryuk socket：
+
+```sh
+DOCKER_HOST=unix://$HOME/.colima/default/docker.sock \
+TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
+  go -C admin test -count=1 -timeout=25m -tags=integration ./...
+```
+
+只设置 `DOCKER_HOST` 会让 Ryuk 尝试把 macOS socket 路径挂载进 VM 并失败；本次环境在 provider 健康检查未通过时会跳过 integration，其他 Docker provider 可能自动发现 daemon，不能据此泛化。其他 provider 的路径需要按本机环境核实。
+
+账号专用系统验收入口也保留：从仓库根目录运行 `make test-browser`。它创建独立 MySQL、Admin、同源 Vite 和浏览器环境，验证账号注册、会话恢复、未保存编辑保护与规则效果说明，再销毁测试资源。需要已安装 Web 依赖、可用的 Docker 和 Chrome；也可通过 `RCC_BROWSER_EXECUTABLE` 指定 Chromium。该入口使用公开账号会话与 CSRF 流程。
 
 完整流程、真实 MySQL 8.4 和浏览器验收见 [`docs/verification/2026-09-07-stage1-acceptance.md`](../docs/verification/2026-09-07-stage1-acceptance.md)。未保存保护见 [`docs/verification/2026-09-07-stage2-unsaved-changes.md`](../docs/verification/2026-09-07-stage2-unsaved-changes.md)，规则效果说明见 [`docs/verification/2026-09-07-stage3-rule-clarity.md`](../docs/verification/2026-09-07-stage3-rule-clarity.md)。浏览器脚本使用隔离 fixture，运行前先启动隔离 Admin、Web 和 MySQL；不要对生产环境运行脚本：
 

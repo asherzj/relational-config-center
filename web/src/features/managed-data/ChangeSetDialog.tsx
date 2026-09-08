@@ -11,7 +11,7 @@ import { DialogTitle } from "../../components/shadcn/dialog";
 function Cell({ cell, autoFill }: { cell: ChangeSetCell; autoFill?: boolean }) {
   const content = cell.state === "value" ? cell.value
     : cell.state === "null" ? "NULL"
-      : cell.state === "empty" ? '""'
+      : cell.state === "empty" ? '\"\"'
         : cell.state === "unsubmitted" ? "未提交"
           : "不存在";
   return <><span className={`change-cell-value cell-${cell.state}`}>{content}</span>{autoFill && cell.state === "unsubmitted" && <small className="auto-fill-label">Auto Fill</small>}</>;
@@ -57,7 +57,6 @@ export function ChangeSetDialog({ changeSet, error, pending, onEdit, onCancel, o
             <Button onClick={onCancel} disabled={pending||draftLocked}>{operation === "DELETE" ? "取消删除" : "放弃本次编辑"}</Button>
             {operation !== "DELETE" && <Button onClick={onEdit} disabled={pending||draftLocked}>返回修改</Button>}
             {draftAction}
-
         </footer>
     </ModalSurface>
   );

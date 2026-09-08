@@ -126,27 +126,8 @@ func (p *publicationWireProxy) connect(client net.Conn) {
 }
 func publicationProcessRequest(t *testing.T, p *accountProcess, path, key string, cookies []*http.Cookie, csrf string) (int, []byte) {
 	t.Helper()
-	req, err := http.NewRequest("POST", p.origin+path, strings.NewReader(`{"expected_version":"3"}`))
-	if err != nil {
-		t.Fatal(err)
-	}
-	req.Header.Set("Origin", p.publicOrigin)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-CSRF-Token", csrf)
-	req.Header.Set("Idempotency-Key", key)
-	for _, c := range cookies {
-		req.AddCookie(c)
-	}
-	response, err := (&http.Client{Timeout: 10 * time.Second}).Do(req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer response.Body.Close()
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return response.StatusCode, body
+	status, _, body := p.requestWithKey(t, "POST", path, `{"expected_version":"3"}`, cookies, csrf, key)
+	return status, body
 }
 
 // AC-031/036: distinguish dependency loss, request timeout, and a proven committed

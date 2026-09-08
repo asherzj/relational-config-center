@@ -176,6 +176,20 @@ it("编辑冲突保留输入，读取最新后必须明确重建再保存",async
  expect(JSON.parse(String(writes[1].body))).toMatchObject({expected_version:"2",items:[{content:{label:"my retained proposal"}}]});
 });
 
+it("编辑发布草稿时保留原始 CRLF 和 CR，明确转换后才允许修改",async()=>{
+ const raw="line one\r\nline two\rline three";
+ const draft={...order,items:[{...order.items[0]!,content:{label:raw},fields:order.items[0]!.fields.map(field=>field.name==="label"?{...field,proposed:raw}:field)}]};
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async()=>json(draft))));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"编辑草稿"}));
+ const input=screen.getByLabelText("label 申请值");
+ expect(input).toHaveAttribute("readonly");
+ expect(input).toHaveValue("line one\nline two\nline three");
+ await user.click(screen.getByRole("button",{name:"label 申请值：转换为 LF 再编辑"}));
+ expect(input).not.toHaveAttribute("readonly");
+ expect(input).toHaveValue("line one\nline two\nline three");
+});
+
 it("刷新后恢复未知请求，随后403也不丢弃原标识或跨账号重放",async()=>{
  let account={...testAdminIdentity.account};let attempts=0;const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",vi.fn(async(input,init)=>{

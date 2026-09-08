@@ -11,11 +11,24 @@ type Props = {
   confirmLabel: string;
   destructive?: boolean;
   pending?: boolean;
+  confirmDisabled?: boolean;
+  children?: React.ReactNode;
   onConfirm: () => void;
   onCancel: () => void;
 };
 
-export function ConfirmDialog({ open, title, description, confirmLabel, destructive, pending, onConfirm, onCancel }: Props) {
+export function ConfirmDialog({
+  open,
+  title,
+  description,
+  confirmLabel,
+  destructive,
+  pending,
+  confirmDisabled,
+  children,
+  onConfirm,
+  onCancel,
+}: Props) {
   const cancelRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const descriptionId = useId();
@@ -28,9 +41,10 @@ export function ConfirmDialog({ open, title, description, confirmLabel, destruct
       <AlertTriangle className={destructive ? "text-destructive" : "text-muted-foreground"} size={24} aria-hidden="true" />
       <DialogTitle id={titleId}>{title}</DialogTitle>
       <DialogDescription id={descriptionId} className="leading-7">{description}</DialogDescription>
+      {children}
       <div className="confirm-actions">
         <Button ref={cancelRef} onClick={onCancel} disabled={pending}>取消</Button>
-        <Button variant={destructive ? "danger" : "primary"} onClick={onConfirm} disabled={pending}>
+        <Button variant={destructive ? "danger" : "primary"} onClick={onConfirm} disabled={pending || confirmDisabled}>
           {pending ? "正在处理…" : confirmLabel}
         </Button>
       </div>

@@ -11,13 +11,42 @@ const { execFileSync } = require('node:child_process');
 const assert = require('node:assert/strict');
 const { randomBytes } = require('node:crypto');
 
+function selectedBrowser(playwright) {
+  const engine = process.env.RCC_E2E_ENGINE || 'chromium';
+  assert.ok(['chromium', 'firefox', 'webkit'].includes(engine), `unknown browser engine: ${engine}`);
+  return playwright[engine];
+}
+
 function browserOptions() {
+  if (process.env.RCC_E2E_ENGINE && !process.env.RCC_BROWSER_EXECUTABLE) return { headless: true };
   return process.env.RCC_BROWSER_EXECUTABLE
     ? { executablePath: process.env.RCC_BROWSER_EXECUTABLE, headless: true }
     : { channel: 'chrome', headless: true };
 }
 
-async function registerFixtureAccount(context, baseURL) {
+async function fixtureRoleAccount(context, baseURL, accountID) {
+  const response = await authenticatedRequest(context, baseURL, `/api/v1/account-roles?q=${encodeURIComponent(accountID)}`);
+  assert.equal(response.status(), 200, 'role fixture lookup failed');
+  const result = await response.json();
+  const account = result.accounts.find(candidate => candidate.id === accountID);
+  assert.ok(account, `role fixture lookup omitted ${accountID}`);
+  return account;
+}
+
+async function setFixtureRoles(context, baseURL, accountID, roles) {
+  const current = await fixtureRoleAccount(context, baseURL, accountID);
+  const response = await authenticatedRequest(context, baseURL, `/api/v1/account-roles/${accountID}`, {
+    method: 'PUT',
+    headers: { 'Idempotency-Key': randomBytes(16).toString('hex') },
+    data: { roles, expected_version: current.version },
+  });
+  assert.equal(response.status(), 200, `role fixture update failed: ${await response.text()}`);
+  const updated = await response.json();
+  assert.deepEqual(updated.roles, roles);
+  return updated;
+}
+
+async function registerFixtureAccount(context, baseURL, options = {}) {
   const origin = new URL(baseURL).origin;
   const suffix = randomBytes(10).toString('hex');
   const username = `e2e.${suffix}`;
@@ -37,8 +66,15 @@ async function registerFixtureAccount(context, baseURL) {
   assert.deepEqual(identity.account.roles, ['VIEWER']);
   assert.ok(process.env.RCC_ACCOUNT_MAINTAIN, 'supply the maintenance tool for this isolated writer fixture');
   execFileSync(process.env.RCC_ACCOUNT_MAINTAIN, ['grant-admin', '--id', identity.account.id], {stdio:'pipe'});
+  const roles = options.roles || ['ADMIN'];
+  const roleAccount = roles.length === 1 && roles[0] === 'ADMIN'
+    ? await fixtureRoleAccount(context, origin, identity.account.id)
+    : await setFixtureRoles(context, origin, identity.account.id, roles);
 
   return {
+    accountID: identity.account.id,
+    roles: roleAccount.roles,
+    credentials: { username, email, password },
     async assertMemoryOnly(page, draftValues = []) {
       const storage = await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage }, cookie: document.cookie }));
       // Coordination persists timestamps/events only; account/session/draft data
@@ -75,4 +111,15 @@ async function authenticatedDelete(context, baseURL, resourcePath) {
   });
 }
 
-module.exports = { browserOptions, registerFixtureAccount, authenticatedDelete };
+async function authenticatedRequest(context, baseURL, resourcePath, options = {}) {
+  const origin = new URL(baseURL).origin;
+  assert.ok(resourcePath.startsWith('/api/v1/') && !resourcePath.startsWith('/api/v1/auth/'));
+  const session = await context.request.get(`${origin}/api/v1/auth/session`);
+  assert.equal(session.status(), 200, 'fixture request requires the current local account');
+  const { csrf_token: csrf } = await session.json();
+  return context.request.fetch(`${origin}${resourcePath}`, {
+    ...options, headers: { ...options.headers, Origin: origin, 'X-CSRF-Token': csrf },
+  });
+}
+
+module.exports = { browserOptions, selectedBrowser, registerFixtureAccount, setFixtureRoles, authenticatedDelete, authenticatedRequest };

@@ -1,17 +1,29 @@
 import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { chromium, request } from 'playwright';
+import { chromium, firefox, webkit, request } from 'playwright';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const origin = process.env.RCC_E2E_ORIGIN;
-assert.ok(origin, 'Run make test-browser to create isolated real services');
-const profile = await mkdtemp(join(tmpdir(), 'rcc-account-browser-'));
-const launchOptions = process.env.RCC_BROWSER_EXECUTABLE
+const origin = process.env.RCC_E2E_ORIGIN || process.env.RCC_WEB_URL;
+assert.ok(origin, 'Run make test-browser-acceptance to create isolated real services');
+const engineName = process.env.RCC_E2E_ENGINE || 'chromium';
+const engines = { chromium, firefox, webkit };
+assert.ok(engines[engineName], `unknown browser engine: ${engineName}`);
+const browserEngine = engines[engineName];
+const profile = await mkdtemp(join(process.env.RCC_E2E_OUTPUT || tmpdir(), 'account-browser-profile-'));
+const runSuffix = randomUUID().replaceAll('-', '').slice(0, 12);
+const adminUsername = `browser.user.${runSuffix}`;
+const adminEmail = `browser.${runSuffix}@example.invalid`;
+const memberUsername = `roles.member.${runSuffix}`;
+const memberEmail = `roles.${runSuffix}@example.invalid`;
+const templateKey = `browser_system_${runSuffix}`;
+const launchOptions = engineName === 'chromium' && process.env.RCC_BROWSER_EXECUTABLE
   ? { executablePath: process.env.RCC_BROWSER_EXECUTABLE, headless: true }
-  : { channel: 'chrome', headless: true };
+  : engineName === 'chromium' && !process.env.RCC_E2E_ENGINE
+    ? { channel: 'chrome', headless: true }
+    : { headless: true };
 
 async function session(api) {
   const response = await api.get(`${origin}/api/v1/auth/session`);
@@ -79,7 +91,7 @@ let adminAPI;
 let reviewerBrowser;
 let page;
 try {
-  context = await chromium.launchPersistentContext(profile, launchOptions);
+  context = await browserEngine.launchPersistentContext(profile, launchOptions);
   page = await context.newPage();
   const seenRequests = [];
   const rememberRequest = browserRequest => seenRequests.push({ method: browserRequest.method(), url: browserRequest.url() });
@@ -90,8 +102,8 @@ try {
   // Wait for initial session reconciliation before entering registration data.
   await page.getByRole('button', { name: '注册并登录', exact: true }).waitFor({ state: 'visible' });
   await page.waitForFunction(() => [...document.querySelectorAll('button')].some(button => button.textContent === '注册并登录' && !button.disabled));
-  await page.getByLabel('用户名', { exact: true }).fill('browser.user');
-  await page.getByLabel('邮箱', { exact: true }).fill('browser.secret@example.com');
+  await page.getByLabel('用户名', { exact: true }).fill(adminUsername);
+  await page.getByLabel('邮箱', { exact: true }).fill(adminEmail);
   await page.getByLabel('密码', { exact: true }).fill('browser password long enough');
   const registration = page.waitForResponse(response => new URL(response.url()).pathname === '/api/v1/auth/register' && response.request().method() === 'POST');
   await page.getByRole('button', { name: '注册并登录' }).click();
@@ -112,17 +124,17 @@ try {
   const preparation = await prepared.json();
   const response = await member.post(`${origin}/api/v1/auth/register`, {
     headers: { Origin: origin, 'X-CSRF-Token': preparation.csrf_token },
-    data: { username: 'roles.member', email: 'roles.member@example.invalid', password: 'member password long enough' },
+    data: { username: memberUsername, email: memberEmail, password: 'member password long enough' },
   });
   assert.equal(response.status(), 201);
   assert.deepEqual((await response.json()).account.roles, ['VIEWER']);
   await page.goto(`${origin}/platform/account-roles`);
-  await page.getByRole('button', { name: '管理 roles.member 的角色' }).waitFor();
+  await page.getByRole('button', { name: `管理 ${memberUsername} 的角色` }).waitFor();
   if (process.env.RCC_E2E_OUTPUT) await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'account-roles-desktop.png') });
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'role catalog overflows mobile viewport');
-  await page.getByRole('button', { name: '管理 roles.member 的角色' }).click();
-  await page.getByRole('dialog', { name: '管理 roles.member 的角色' }).evaluate(async element => {
+  await page.getByRole('button', { name: `管理 ${memberUsername} 的角色` }).click();
+  await page.getByRole('dialog', { name: `管理 ${memberUsername} 的角色` }).evaluate(async element => {
     // Resizing can replace an opening transition. Its cancelled promise is not
     // a failed drawer; wait for replacement animations before checking layout.
     for (;;) {
@@ -143,15 +155,15 @@ try {
   await page.getByText('角色已保存，后续请求立即生效。').waitFor();
   const memberIdentity = await session(member);
   assert.deepEqual(memberIdentity.account.roles, ['EDITOR', 'APPROVER']);
-  await page.getByRole('button', { name: '管理 roles.member 的角色' }).click();
+  await page.getByRole('button', { name: `管理 ${memberUsername} 的角色` }).click();
   await page.getByRole('heading', { name: '角色变更历史' }).waitFor();
   await page.getByText(`操作者：${identity.account.id}`, { exact: true }).waitFor();
   await page.getByRole('button', { name: '关闭', exact: true }).last().click();
 
   adminAPI = await request.newContext();
-  const adminIdentity = await login(adminAPI, 'browser.user', 'browser password long enough');
+  const adminIdentity = await login(adminAPI, adminUsername, 'browser password long enough');
   assert.ok(adminIdentity.account.roles.includes('ADMIN'));
-  reviewerBrowser = await chromium.launch(launchOptions);
+  reviewerBrowser = await browserEngine.launch(launchOptions);
   const reviewerContext = await reviewerBrowser.newContext({
     storageState: await member.storageState(),
     viewport: { width: 1280, height: 900 },
@@ -162,14 +174,14 @@ try {
   await page.reload();
   await page.getByRole('heading', { name: '配置内容管理' }).waitFor();
   await context.close();
-  context = await chromium.launchPersistentContext(profile, launchOptions);
+  context = await browserEngine.launchPersistentContext(profile, launchOptions);
   context.on('request', rememberRequest);
   page = await context.newPage();
   await page.goto(`${origin}/configuration/managed-data`);
   await page.getByRole('heading', { name: '配置内容管理' }).waitFor();
   await page.getByLabel('Managed Table', { exact: true }).selectOption('notification_templates');
   await page.getByRole('button', { name: '新增记录', exact: true }).click();
-  for (const [field, value] of Object.entries({ template_key: 'browser_system', channel: 'PUSH', body: 'browser initial configuration' })) {
+  for (const [field, value] of Object.entries({ template_key: templateKey, channel: 'PUSH', body: 'browser initial configuration' })) {
     await page.getByLabel(`包含 ${field}`, { exact: true }).check();
     await page.getByLabel(`${field} 值`, { exact: true }).fill(value);
   }
@@ -181,7 +193,7 @@ try {
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await page.getByRole('heading', { name: '登录本地账号' }).waitFor();
   assert.equal(await page.getByRole('alertdialog').count(), 0);
-  await page.getByLabel('用户名', { exact: true }).fill('browser.user');
+  await page.getByLabel('用户名', { exact: true }).fill(adminUsername);
   await page.keyboard.press('Tab');
   assert.equal(await page.getByLabel('密码', { exact: true }).evaluate(element => element === document.activeElement), true);
   await page.getByLabel('密码', { exact: true }).fill('browser password long enough');
@@ -209,6 +221,9 @@ try {
   await reviewerPage.getByRole('heading', { name: 'notification_templates · 已批准', exact: true }).waitFor();
   assert.equal(await reviewerPage.getByRole('button', { name: '执行发布', exact: true }).count(), 0);
 
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByLabel('主导航', { exact: true }).waitFor({ state: 'hidden' });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'approved release overflows before narrow execute recovery');
   await page.reload();
   await page.getByRole('button', { name: '执行发布', exact: true }).click();
   const executePath = `/api/v1/release-orders/${addOrderID}/execute`;
@@ -244,15 +259,12 @@ try {
   assert.equal(executeWrites.length, 2);
   assert.deepEqual(executeWrites[0], executeWrites[1]);
   if (process.env.RCC_E2E_OUTPUT) {
-    await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'publication-result-desktop.png'), fullPage: true });
-    const priorViewport = page.viewportSize();
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByLabel('主导航', { exact: true }).waitFor({ state: 'hidden' });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'publication result overflows narrow viewport');
     await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'publication-result-mobile.png'), fullPage: true });
     await page.getByRole('region', { name: '发布结果' }).screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'publication-final-row-mobile.png') });
-    await page.setViewportSize(priorViewport);
   }
+  await page.setViewportSize({ width: 1280, height: 900 });
+  if (process.env.RCC_E2E_OUTPUT) await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'publication-result-desktop.png'), fullPage: true });
 
   const addPublication = await page.evaluate(async id => (await (await fetch(`/api/v1/release-orders/${id}`)).json()), addOrderID);
   assert.equal(addPublication.state, 'SUCCEEDED');
@@ -266,7 +278,7 @@ try {
   assert.equal(addPublication.history.find(event => event.action === 'APPROVE')?.actor_id, memberIdentity.account.id);
   assert.equal(addPublication.history.find(event => event.action === 'EXECUTE')?.actor_id, identity.account.id);
   const addFinalFields = Object.fromEntries(addPublication.publication.commands[0].final.fields.map(field => [field.name, field.value]));
-  assert.equal(addFinalFields.template_key, 'browser_system');
+  assert.equal(addFinalFields.template_key, templateKey);
   assert.equal(addFinalFields.enabled, '1');
   assert.equal(addFinalFields.priority, '100');
   assert.equal(addFinalFields.creator, identity.account.id);
@@ -274,15 +286,15 @@ try {
 
   await page.goto(`${origin}/configuration/managed-data`);
   await page.getByLabel('Managed Table', { exact: true }).selectOption('notification_templates');
-  const baseline = await page.evaluate(async () => {
+  const baseline = await page.evaluate(async key => {
     const auth = await (await fetch('/api/v1/auth/session')).json();
     const result = await (await fetch('/api/v1/tables/notification_templates/query', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': auth.csrf_token },
-      body: JSON.stringify({ conditions: [{ field: 'template_key', operator: 'exact', value: 'browser_system' }] }),
+      body: JSON.stringify({ conditions: [{ field: 'template_key', operator: 'exact', value: key }] }),
     })).json();
     return { id: result.rows[0].id, version: result.record_versions[0] };
-  });
+  }, templateKey);
   assert.equal(baseline.id, addPublication.publication.commands[0].id);
   assert.equal(baseline.version, '1');
   await page.getByRole('button', { name: `修改记录 ${baseline.id}`, exact: true }).click();
@@ -353,14 +365,14 @@ try {
   assert.equal(modifyFinalFields.creator, identity.account.id);
   assert.equal(modifyFinalFields.modifier, identity.account.id);
 
-  const finalRow = await page.evaluate(async () => {
+  const finalRow = await page.evaluate(async key => {
     const auth = await (await fetch('/api/v1/auth/session')).json();
     return (await fetch('/api/v1/tables/notification_templates/query', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': auth.csrf_token },
-      body: JSON.stringify({ conditions: [{ field: 'template_key', operator: 'exact', value: 'browser_system' }] }),
+      body: JSON.stringify({ conditions: [{ field: 'template_key', operator: 'exact', value: key }] }),
     })).json();
-  });
+  }, templateKey);
   assert.equal(finalRow.rows[0].body, 'browser system configuration');
   assert.equal(finalRow.record_versions[0], '3');
 
@@ -368,7 +380,7 @@ try {
   const browserSession = cookies.find(cookie => cookie.name === 'rcc-session-dev');
   assert.ok(browserSession?.httpOnly && !browserSession.secure && browserSession.sameSite === 'Lax' && browserSession.path === '/');
   const storage = await page.evaluate(async () => ({ local: { ...localStorage }, session: { ...sessionStorage }, databases: await indexedDB.databases(), cookie: document.cookie }));
-  const materials = ['browser.secret@example.com', 'browser password long enough', 'browser initial configuration', 'browser system configuration', identity.csrf_token, browserSession.value];
+  const materials = [adminEmail, memberEmail, 'browser password long enough', 'browser initial configuration', 'browser system configuration', identity.csrf_token, browserSession.value];
   for (const secret of materials) {
     assert.ok(!JSON.stringify(storage).includes(secret), 'sensitive material persisted or script-readable');
     assert.ok(seenRequests.every(({ url }) => !decodeURIComponent(url).includes(secret)), 'sensitive material in URL');
@@ -382,8 +394,11 @@ try {
   await page.goto(`${origin}/configuration/managed-data`);
   await page.getByRole('heading', { name: '登录本地账号' }).waitFor();
   process.stdout.write(JSON.stringify({
+    run_suffix: runSuffix,
     account_id: identity.account.id,
-    template_key: 'browser_system',
+    username: adminUsername,
+    member_username: memberUsername,
+    template_key: templateKey,
     checks: [
       'record version conflict preserves input',
       'explicit latest read and baseline rebuild',

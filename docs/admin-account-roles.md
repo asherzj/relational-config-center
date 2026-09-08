@@ -1,26 +1,26 @@
 # 全局账号角色
 
-对应 [发布单 T1 #49](https://github.com/asherzj/relational-config-center/issues/49)，父规格 [#48](https://github.com/asherzj/relational-config-center/issues/48) 的 AC-001～AC-006。本阶段交付账号角色；配置记录仍使用过渡写入口，T5 #52 负责迁移为发布单并关闭旧入口。
+本指南说明当前管理台的全局角色、管理员初始化及权限恢复。配置记录的新增、修改和删除均通过[发布草稿](admin-release-drafts.md)、[独立审批与执行](admin-release-approvals.md)生效；撤销已发布变更需[重新申请并审批回滚](admin-release-rollbacks.md)。角色验收来源为 [T1 #49](https://github.com/asherzj/relational-config-center/issues/49)，完整发布范围见[规格 #48](https://github.com/asherzj/relational-config-center/issues/48)。
 
 ## 使用与权限
 
-新注册账号和升级后的存量账号默认只有 VIEWER，不按注册顺序、用户名或邮箱授予管理员。账号启用状态与角色独立。每个角色都包含查看能力；角色覆盖当前部署的全部受管表，查询和写入仍须满足表规则。
+新注册账号默认只有 VIEWER；首次通过 008 引入角色时，存量账号初始化为 VIEWER。已有角色的升级或迁移重跑保留原授予。不按注册顺序、用户名或邮箱授予管理员。账号启用状态与角色独立。每个角色都包含查看能力；角色覆盖当前部署的全部受管表，查询和写入仍须满足表规则。
 
 | 角色 | 能力 |
 |---|---|
-| VIEWER | 查看规则目录、受管表及配置 |
-| EDITOR | 编辑配置；后续 T3 接入发布草稿 |
-| APPROVER | 保留审批授权，后续 T4 接入审批他人单据 |
-| PUBLISHER | 保留发布授权，后续 T5 接入执行已批准单据 |
-| ADMIN | 管理角色、规则目录及配置，包含上述业务能力；后续审批仍不得自批 |
+| VIEWER | 查看规则目录、受管表、配置及本部署全部发布历史 |
+| EDITOR | 创建发布草稿，编辑并提交本人普通草稿，复制已拒绝/取消的普通单据，申请回滚；尚未发布的本人单据可按状态取消 |
+| APPROVER | 批准或拒绝他人提交的发布单，必须填写意见 |
+| PUBLISHER | 手动执行已批准的发布单，包括获批的回滚单 |
+| ADMIN | 管理角色与规则目录，包含上述业务能力，可取消尚未发布的单据；同样不得审批自己的单据 |
 
-EDITOR、APPROVER、PUBLISHER 不互相隐含，可以组合分配。规则目录直接修改只允许 ADMIN；过渡记录 POST/PATCH/DELETE 只允许 EDITOR 或 ADMIN。`POST /api/v1/tables/:table_name/query` 是只读查询，但仍沿用 CSRF 与同源校验。`X-RCC-Roles` 等客户端身份头不授予权限。
+EDITOR、APPROVER、PUBLISHER 不互相隐含，可以组合分配。规则目录直接修改只允许 ADMIN，不进入发布审批；配置记录的旧 POST/PATCH/DELETE 写路由已删除。申请人持有 PUBLISHER 时可以执行他人已批准的本人单据，审批人也可以兼任发布人。`POST /api/v1/tables/:table_name/query` 是只读查询，但仍沿用 CSRF 与同源校验。`X-RCC-Roles` 等客户端身份头不授予权限。
 
 每个业务请求从 MySQL 读取当前账号角色，原登录会话下一次请求立即按新授权执行；不承诺撤回已经认证的在途请求。Web 从当前身份显示角色，返回页面时复核；收到权限拒绝后刷新身份并保留尚未提交的输入，不自动重试写入。
 
 ## 初始化与恢复
 
-1. 存量部署先停止全部旧 Admin 写入口，备份数据库，完成迁移 007 后应用 `deploy/mysql/migrations/008-account-roles.sql`。新安装直接使用 `deploy/mysql/init/001-schema.sql`。
+1. 存量部署按[发布单升级指南](admin-release-upgrade.md)先备份并处理旧 FLOAT 身份在途单，再停止全部旧 Admin 及其他写入者，按[迁移说明](../deploy/mysql/migrations/README.md)确认既有迁移状态。已有 007 本地账号结构的部署继续应用 008～012；不要重跑 007 的一次性 DDL。008 初始化角色，009～012 建立记录版本和完整发布控制结构。新安装直接使用 `deploy/mysql/init/001-schema.sql`。角色初始化不能代替后续迁移或[发布所需数据库权限](design-notes/publication-contract.md#写入能力边界)。
 2. 启动新版 Admin。Schema 就绪但没有 ADMIN 时，注册、登录和只读功能仍可用。
 3. 在管理台注册明确指定的账号，然后由有数据库维护权限的人运行：
 
@@ -36,7 +36,7 @@ bin/admin/account-maintain grant-admin --id 550e8400-e29b-41d4-a716-446655440000
 
 HTTP 撤权和 `account-maintain disable` 共同保护最后一个启用 ADMIN：先为另一启用账号授予 ADMIN，才可移除旧管理员。维护者忘记密码时使用既有 `reset-password`；账号全被异常外部操作停用时，可先 `enable` 已知账号，再 `grant-admin` 恢复。维护命令不提供绕过最后管理员检查的停用选项。
 
-迁移 008 可重跑，并可在两个新增列之间中断后继续；已有角色、版本和历史不会被重置。Admin 启动和 readiness 检查角色控制结构，缺失时提示迁移 008。不要将缺结构或无权限视为授予 ADMIN 的理由。回退旧二进制会重新开放旧同权行为，必须在维护窗口处理，不能混跑。
+迁移 008 可重跑，并可在两个新增列之间中断后继续；已有角色、版本和历史不会被重置。Admin 启动和 readiness 检查角色及其余发布控制结构，缺失或不兼容时拒绝就绪，并提示对应迁移。不要将缺结构或无权限视为授予 ADMIN 的理由。回退旧二进制会重新开放旧同权或直写行为，必须在维护窗口处理，不能混跑；记录身份算法变更还须遵循[版本维护流程](admin-record-versions.md)。
 
 ## HTTP 契约
 

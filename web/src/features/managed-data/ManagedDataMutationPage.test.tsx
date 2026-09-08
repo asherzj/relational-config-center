@@ -112,7 +112,7 @@ function readFetch(input: RequestInfo | URL, init: RequestInit | undefined, poli
 afterEach(() => {vi.unstubAllGlobals();sessionStorage.clear()});
 
 describe("Managed Data draft confirmation", () => {
-  it("fails closed by capability and excludes id plus every server-managed Auto Fill field from ADD", async () => {
+  it("fails closed by capability, offers optional id, and excludes every server-managed Auto Fill field from ADD", async () => {
     vi.stubGlobal("fetch", withAdminSession(vi.fn((input: RequestInfo | URL, init?: RequestInit) => Promise.resolve(readFetch(input, init)))));
     const user = userEvent.setup();
 
@@ -135,7 +135,7 @@ describe("Managed Data draft confirmation", () => {
     const editor = screen.getByRole("dialog", { name: "新增 notification_templates 记录" });
     expect(within(editor).getByRole("checkbox", { name: "包含 template_key" })).toBeVisible();
     expect(within(editor).getByRole("checkbox", { name: "包含 subject" })).toBeVisible();
-    expect(within(editor).queryByRole("checkbox", { name: "包含 id" })).not.toBeInTheDocument();
+    expect(within(editor).getByRole("checkbox", { name: "包含 id" })).not.toBeChecked();
     expect(within(editor).queryByRole("checkbox", { name: "包含 creator" })).not.toBeInTheDocument();
     expect(within(editor).queryByRole("checkbox", { name: "包含 gmt_created" })).not.toBeInTheDocument();
     expect(within(editor).queryByRole("checkbox", { name: "包含 modifier" })).not.toBeInTheDocument();
@@ -444,6 +444,61 @@ it("空字符串主键的DELETE仍保存准确身份和版本",async()=>{
  await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
  await waitFor(()=>expect(writes).toHaveLength(1));
  expect(JSON.parse(String(writes[0].body)).items[0]).toEqual({operation:"DELETE",id:"",expected_record_version:"9007199254740993",content:{}});
+});
+
+it("首次发布能力明确拒绝后保留输入并允许返回修改",async()=>{
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  if(String(input)==="/api/v1/release-orders"&&init?.method==="POST"){
+   writes.push(init);return json({error:{code:"publication_unsupported",message:"cannot publish this table",request_id:"known-release-rejection"}},422);
+  }
+  return readFetch(input,init);
+ })));
+ const user=userEvent.setup();renderPage();
+ await user.click(await screen.findByRole("button",{name:"新增记录"}));
+ await user.click(screen.getByLabelText("包含 template_key"));
+ await user.type(screen.getByLabelText("template_key 值"),"kept-after-rejection");
+ await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
+ await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
+ const dialog=screen.getByRole("dialog",{name:"ADD Change Set"});
+ expect(await within(dialog).findByText("cannot publish this table")).toBeVisible();
+ expect(within(dialog).getByRole("button",{name:"返回修改"})).toBeEnabled();
+ expect(within(dialog).queryByText("草稿保存结果待确认。原请求已保留，刷新后仍可找回。")).not.toBeInTheDocument();
+ await user.click(within(dialog).getByRole("button",{name:"返回修改"}));
+ expect(screen.getByLabelText("template_key 值")).toHaveValue("kept-after-rejection");
+ expect(writes).toHaveLength(1);
+});
+
+it("未知草稿请求随后收到明确能力拒绝时仍以原正文和键恢复",async()=>{
+ const releaseID="99999999aaaabbbbccccddddeeeeeeee";let attempts=0;const writes:RequestInit[]=[];
+ const saved={id:releaseID,table_name:"notification_templates",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit","cancel"],items:[{operation:"ADD",id:null,expected_record_version:"",content:{template_key:"same-release-intent"},before:null,fields:[]}]};
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  if(String(input)==="/api/v1/release-orders"&&init?.method==="POST"){
+   writes.push(init);attempts++;
+   if(attempts===1)throw new TypeError("response lost");
+   if(attempts===2)return json({error:{code:"publication_unsupported",message:"known after unknown",request_id:"known-after-unknown"}},422);
+   return json(saved,201);
+  }
+  if(String(input)===`/api/v1/release-orders/${releaseID}`)return json(saved);
+  return readFetch(input,init);
+ })));
+ const user=userEvent.setup();renderPage();
+ await user.click(await screen.findByRole("button",{name:"新增记录"}));
+ await user.click(screen.getByLabelText("包含 template_key"));
+ await user.type(screen.getByLabelText("template_key 值"),"same-release-intent");
+ await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
+ await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
+ await user.click(await screen.findByRole("button",{name:"使用原请求重试"}));
+ await waitFor(()=>expect(writes).toHaveLength(2));
+ const retry=await screen.findByRole("button",{name:"使用原请求重试"});
+ await waitFor(()=>expect(retry).toBeEnabled());
+ await user.click(retry);
+ expect(await screen.findByRole("heading",{name:"notification_templates · 草稿"})).toBeVisible();
+ expect(writes).toHaveLength(3);
+ for(const retry of writes.slice(1)){
+  expect(retry.body).toBe(writes[0]!.body);
+  expect(new Headers(retry.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
+ }
 });
 
 it("明确勾选两行后加入本人同表已有草稿，保留原明细和各行版本",async()=>{

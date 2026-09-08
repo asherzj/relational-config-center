@@ -2,7 +2,7 @@ GO_MODULES := admin client server shared
 GO_COMMAND_MODULES := admin server
 GO_LIBRARY_MODULES := client shared
 
-.PHONY: fmt test test-integration test-browser build
+.PHONY: fmt test test-integration test-browser-acceptance test-browser build
 
 fmt:
 	@for module in $(GO_MODULES); do \
@@ -15,7 +15,11 @@ test:
 	done
 
 test-integration:
+	@docker info >/dev/null
 	@cd admin && go test -count=1 -timeout=40m -tags=integration ./...
+
+test-browser-acceptance:
+	@./scripts/browser-acceptance.sh
 
 build:
 	@for module in $(GO_LIBRARY_MODULES); do \

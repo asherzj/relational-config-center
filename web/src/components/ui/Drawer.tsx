@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "../shadcn/sheet";
 import { Button } from "./Button";
 import { useModalFocus } from "./useModalFocus";
@@ -16,11 +16,6 @@ type Props = {
 export function Drawer({ open, title, eyebrow, onClose, children, footer }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   useModalFocus({ open, dialogRef, onEscape: onClose });
-  useEffect(() => {
-    if (!open) return;
-    document.body.classList.add("drawer-open");
-    return () => document.body.classList.remove("drawer-open");
-  }, [open]);
   if (!open) return null;
 
   return (
@@ -30,7 +25,7 @@ export function Drawer({ open, title, eyebrow, onClose, children, footer }: Prop
         <SheetContent
           inline showCloseButton={false} ref={dialogRef} tabIndex={-1}
           aria-modal="true" data-modal-surface="true"
-          className="drawer grid h-dvh w-full grid-rows-[auto_minmax(0,1fr)_auto] gap-0 border-0 bg-card p-0 sm:max-w-[640px]"
+          className="drawer grid h-dvh w-full min-w-0 max-w-full grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 border-0 bg-card p-0 sm:max-w-[640px]"
           onOpenAutoFocus={(event) => event.preventDefault()}
           onCloseAutoFocus={(event) => event.preventDefault()}
           onInteractOutside={(event) => event.preventDefault()}

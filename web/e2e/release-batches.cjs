@@ -1,16 +1,16 @@
 // Real Chrome → same-origin Admin process → isolated MySQL batch acceptance.
-const { chromium } = require('playwright');
+const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const { join } = require('node:path');
 const { mkdir, writeFile } = require('node:fs/promises');
-const { browserOptions, registerFixtureAccount } = require('./local-account.cjs');
+const { browserOptions, selectedBrowser, registerFixtureAccount, setFixtureRoles } = require('./local-account.cjs');
 const base = process.env.RCC_WEB_URL;
 const table = 'batch_browser_items';
 const output = process.env.RCC_E2E_OUTPUT;
 
 (async () => {
-  const browser = await chromium.launch(browserOptions());
+  const browser = await selectedBrowser(playwright).launch(browserOptions());
   const checks = [], errors = [];
   const check = name => { checks.push(name); console.log('PASS', name); };
   const identity = async context => (await context.request.get(`${base}/api/v1/auth/session`)).json();
@@ -22,10 +22,6 @@ const output = process.env.RCC_E2E_OUTPUT;
     });
     assert.equal(response.status(), expected, `${method} ${path}: ${await response.text()}`);
     return response.json();
-  };
-  const roles = async (context, names) => {
-    const session = await identity(context);
-    await api(context, 'PUT', `/api/v1/account-roles/${session.account.id}`, { roles: names, expected_version: '2' });
   };
   const button = (page, name) => page.getByRole('button', { name, exact: true });
   const heading = (page, state) => page.getByRole('heading', { name: `${table} · ${state}`, exact: true });
@@ -90,9 +86,8 @@ const output = process.env.RCC_E2E_OUTPUT;
       table_name: table, query_policy_code: 'batch_browser_query_v1', mutation_policy_code: 'batch_browser_mutation_v1',
     }, 201);
     await api(applicant, 'POST', `/api/v1/table-policies/${table}/enable`);
-    await roles(applicant, ['EDITOR', 'PUBLISHER']);
-    await registerFixtureAccount(reviewer, base);
-    await roles(reviewer, ['APPROVER']);
+    await setFixtureRoles(applicant, base, (await identity(applicant)).account.id, ['EDITOR', 'PUBLISHER']);
+    await registerFixtureAccount(reviewer, base, { roles: ['APPROVER'] });
     page = await applicant.newPage();
     review = await reviewer.newPage();
     for (const current of [page, review]) {
@@ -140,9 +135,30 @@ const output = process.env.RCC_E2E_OUTPUT;
     assert.equal(await page.getByLabel('编辑明细', { exact: true }).locator('option').count(), 2);
     await page.getByLabel('编辑明细', { exact: true }).selectOption('0');
     await page.getByLabel('label 申请值', { exact: true }).fill('published mixed label');
-    await button(page, '保存草稿修改').click();
+    const [editResponse] = await Promise.all([
+      page.waitForResponse(response => response.request().method() === 'PUT' && new URL(response.url()).pathname === `/api/v1/release-orders/${mixedID}`),
+      button(page, '保存草稿修改').click(),
+    ]);
+    const editEvidence = {
+      method: editResponse.request().method(),
+      path: new URL(editResponse.url()).pathname,
+      request: editResponse.request().postDataJSON(),
+      status: editResponse.status(),
+      response: await editResponse.text(),
+    };
+    if (output) await writeFile(join(output, 'batch-edit-response.json'), JSON.stringify(editEvidence, null, 2));
+    assert.equal(editEvidence.status, 200, `PUT release order: ${editEvidence.response}`);
+    assert.deepEqual(editEvidence.request.items.map(item => [item.operation, item.id]), [['MODIFY', '1'], ['DELETE', '2']]);
+    const savedOrder = JSON.parse(editEvidence.response);
+    assert.equal(savedOrder.items.length, 2);
+    assert.equal(savedOrder.items[0].content.label, 'published mixed label');
+    // The edited value is already visible before save completes. Wait for the
+    // actual response and the editor to close before reading durable state.
+    await page.getByRole('dialog', { name: `编辑 ${table} 草稿`, exact: true }).waitFor({ state: 'hidden' });
+    await heading(page, '草稿').waitFor();
     await page.getByText('published mixed label', { exact: true }).waitFor();
     order = await read(applicant, mixedID);
+    assert.equal(order.version, savedOrder.version);
     assert.equal(order.items.length, 2);
     assert.equal(order.items[0].content.label, 'published mixed label');
     assert.equal(order.items[1].id, '2');

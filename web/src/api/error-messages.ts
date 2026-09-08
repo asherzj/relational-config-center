@@ -64,10 +64,10 @@ const errorMessages: Record<string, string> = {
   record_version_conflict: "记录已被其他操作修改；你的输入已保留，请查看最新值并重新确认。",
   duplicate_key: "唯一键已存在，请修改字段值后重试。",
   mutation_timeout: "Managed Table 写入超时，请确认结果后再决定是否重试。",
-  mutation_unavailable: "Managed Table 写入暂时不可用，请稍后重试。",
+  mutation_unavailable: "Managed Table 写入响应未能确认，请先核对当前结果。",
   request_body_too_large: "请求内容超过大小限制。",
   invalid_request: "请求内容不符合 Admin 契约。",
-  network_error: "无法连接 Admin，请检查服务状态后重试。",
+  network_error: "Admin 连接或响应传输中断。",
   contract_mismatch: "Admin 响应与 Web 契约不一致。",
   unexpected_response: "Admin 返回了未识别的响应。",
 };

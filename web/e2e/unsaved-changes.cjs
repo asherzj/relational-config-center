@@ -5,25 +5,33 @@ const assert = require('node:assert/strict');
 const { browserOptions, registerFixtureAccount, authenticatedDelete } = require('./local-account.cjs');
 const fs = require('node:fs/promises');
 const base = process.env.RCC_WEB_URL || 'http://127.0.0.1:15173';
-const output = process.env.RCC_E2E_OUTPUT || '/tmp/rcc-stage2-browser';
+const output = process.env.RCC_E2E_OUTPUT || '/tmp/rcc-unsaved-changes-browser';
 const table = process.env.RCC_E2E_TABLE || 'stage1_acceptance_items';
 
 (async () => {
   await fs.mkdir(output, { recursive: true });
-  const browser = await chromium.launch(browserOptions());
-  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
-  const page = await context.newPage();
-  page.setDefaultTimeout(8000);
+  let browser;
+  let browserVersion = null;
+  let context;
+  let page;
   let cleanupCode = null;
+  let failure = null;
+  let releaseResponse = null;
   const errors = [];
   const passed = [];
-  page.on('pageerror', (error) => errors.push(error.message));
   const check = (name) => { passed.push(name); console.log('PASS', name); };
   const button = (name) => page.getByRole('button', { name, exact: true });
   const discard = () => page.getByRole('alertdialog', { name: '放弃未保存的修改？' });
   const nameField = () => page.getByRole('textbox', { name: '显示名称', exact: true });
   try {
+    browser = await chromium.launch(browserOptions());
+    browserVersion = browser.version();
+    context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    page = await context.newPage();
     const account = await registerFixtureAccount(context, base);
+    page.setDefaultTimeout(8000);
+    page.setDefaultNavigationTimeout(15000);
+    page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${base}/platform/query-policies`);
     await button('新建草稿').click();
     await nameField().waitFor();
@@ -80,8 +88,13 @@ const table = process.env.RCC_E2E_TABLE || 'stage1_acceptance_items';
     assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= 390 && bounds.y >= 0 && bounds.y + bounds.height <= 844);
     check('discard confirmation owns keyboard focus and fits a 390px viewport');
     await page.keyboard.press('Escape');
+    await discard().waitFor({ state: 'detached' });
+    const closeButton = button('关闭');
+    const closeElement = await closeButton.elementHandle();
+    await page.waitForFunction((element) => document.activeElement === element, closeElement);
     assert.equal(await nameField().inputValue(), 'reload-protected');
     await nameField().fill('');
+    assert.equal(await nameField().inputValue(), '');
     await button('取消').click();
     await page.waitForURL('**/platform/query-policies');
     check('restored original Query values clear protection');
@@ -110,7 +123,6 @@ const table = process.env.RCC_E2E_TABLE || 'stage1_acceptance_items';
     const createdCode = `stage2_unsaved_query_${Date.now()}_v1`;
     cleanupCode = createdCode;
     await codeField.fill(createdCode);
-    let releaseResponse;
     const responseGate = new Promise((resolve) => { releaseResponse = resolve; });
     let responseArrived;
     const received = new Promise((resolve) => { responseArrived = resolve; });
@@ -181,12 +193,25 @@ const table = process.env.RCC_E2E_TABLE || 'stage1_acceptance_items';
     await account.assertMemoryOnly(page, ['Stage 2 draft', 'reload-protected', 'forward protected', 'Stage 2 save outcome', createdCode, 'stage2-invalid-row', 'not-valid-state']);
     check('confirmed discard closes the editor with no browser storage draft');
     assert.deepEqual(errors, []);
-    await fs.writeFile(`${output}/result.json`, JSON.stringify({ browser: browser.version(), passed, errors }, null, 2));
   } catch (error) {
-    await page.screenshot({ path: `${output}/failure.png`, fullPage: true, mask: [page.locator('.operator')] }).catch(() => {});
+    failure = { name: error.name, message: error.message, stack: error.stack };
+    if (page) {
+      await page.screenshot({ path: `${output}/failure.png`, fullPage: true, mask: [page.locator('.operator')] }).catch(() => {});
+    }
     throw error;
   } finally {
-    if (cleanupCode) await authenticatedDelete(context, base, `/api/v1/query-policies/${cleanupCode}`).catch(() => {});
-    await browser.close();
+    if (releaseResponse) releaseResponse();
+    if (cleanupCode && context) {
+      await authenticatedDelete(context, base, `/api/v1/query-policies/${cleanupCode}`).catch(() => {});
+    }
+    if (browser) await browser.close().catch(() => {});
+    await fs.writeFile(`${output}/result.json`, JSON.stringify({
+      ok: failure === null,
+      base,
+      browser: browserVersion,
+      passed,
+      errors,
+      failure,
+    }, null, 2) + '\n');
   }
 })().catch((error) => { console.error(error); process.exitCode = 1; });

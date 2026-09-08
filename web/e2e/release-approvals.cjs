@@ -1,16 +1,16 @@
 // Real applicant/reviewer browsers against the isolated Admin + MySQL fixture.
-const {chromium}=require('playwright');
+const playwright=require(process.env.RCC_PLAYWRIGHT_MODULE||'playwright');
 const assert=require('node:assert/strict');
 const {randomUUID}=require('node:crypto');
 const {join}=require('node:path');
-const {browserOptions,registerFixtureAccount}=require('./local-account.cjs');
+const {browserOptions,selectedBrowser,registerFixtureAccount}=require('./local-account.cjs');
 const base=process.env.RCC_WEB_URL;
 (async()=>{
- const browser=await chromium.launch(browserOptions());const errors=[],checks=[];
+ const browser=await selectedBrowser(playwright).launch(browserOptions());const errors=[],checks=[];
  const check=name=>{checks.push(name);console.log('PASS',name)};
  const identity=async ctx=>(await (await ctx.request.get(`${base}/api/v1/auth/session`)).json());
  const call=async(ctx,path,data)=>{const session=await identity(ctx);return ctx.request.post(`${base}${path}`,{headers:{Origin:base,'X-CSRF-Token':session.csrf_token,'Idempotency-Key':randomUUID()},data})};
- const account=async roles=>{const ctx=await browser.newContext({viewport:{width:1440,height:1000}});await registerFixtureAccount(ctx,base);const session=await identity(ctx);const r=await ctx.request.put(`${base}/api/v1/account-roles/${session.account.id}`,{headers:{Origin:base,'X-CSRF-Token':session.csrf_token,'Idempotency-Key':randomUUID()},data:{roles,expected_version:'2'}});assert.equal(r.status(),200);return ctx};
+ const account=async roles=>{const ctx=await browser.newContext({viewport:{width:1440,height:1000}});await registerFixtureAccount(ctx,base,{roles});return ctx};
  try{
   const applicant=await account(['EDITOR']),reviewer=await account(['APPROVER']);
   const page=await applicant.newPage(),review=await reviewer.newPage();for(const p of [page,review]){p.setDefaultTimeout(12000);p.on('pageerror',e=>errors.push(e.message))}

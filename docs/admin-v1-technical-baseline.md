@@ -2,7 +2,7 @@
 
 本文是 Admin 第一迭代的冻结设计。它汇总可直接指导实现和验收的边界；取舍理由见 [ADR](./adr/)，领域语言见 [Admin Context](../admin/CONTEXT.md)。
 
-当前实现说明：本文冻结的是 Admin 后端第一迭代的历史范围。正式 Web 管理台已经在 [`web/README.md`](../web/README.md) 和 [`web/DESIGN.md`](../web/DESIGN.md) 所述入口交付；Server、Client 仍未提供运行时配置服务或账户功能。
+当前实现说明：本文冻结的是 Admin 后端第一迭代的历史范围。当前账号角色、同表混合发布、独立审批与审批回滚见[发布单升级与操作指南](admin-release-upgrade.md)；旧记录直写 HTTP 路由已删除。正式 Web 管理台已经在 [`web/README.md`](../web/README.md) 和 [`web/DESIGN.md`](../web/DESIGN.md) 所述入口交付；Server、Client 仍未提供运行时配置服务或账户功能。
 
 当前并发语义已由 [ADR-0021](./adr/0021-store-record-versions-outside-business-tables.md) 及 [记录版本契约](./admin-record-versions.md) 替代下文受管记录的 last-write-wins 约定；规则目录并发语义不变。当前数据库版本与身份维护要求也以该契约为准。
 
@@ -226,7 +226,7 @@ modify_operator_field = "modifier"
 modify_time_field = "updated_at"
 ```
 
-- ADD 可写非生成列；自增 `id` 可省略，返回 `{"id":"42"}`。
+- ADD 可写非生成列；仅自增 `id` 可省略，非自增 `id` 即使有数据库默认值也须显式提交，否则写入前返回 `missing_required_field`。返回 `{"id":"42"}`，完整保留 uint64 主键；显式自增零值按当前 MySQL SQL 模式返回实际保存或生成的 ID。
 - MODIFY 按 `id` 更新一行、使用 PATCH 语义、禁止修改 `id`，返回 `{"affected":1}`。
 - DELETE 默认禁止；显式允许后按 `id` 硬删除，返回 `{"affected":1}`。
 - MySQL 唯一索引是唯一性的最终裁决，重复键映射为 409。
@@ -407,7 +407,7 @@ Admin V1 的 Definition of Done：
 - PostgreSQL：新增独立 Adapter 与 Compiler。
 - 已部署 Schema 升级：原历史建议是引入迁移框架；当前实现按 [`deploy/mysql/migrations/README.md`](../deploy/mysql/migrations/README.md) 使用显式 SQL migration，未引入 Goose。
 - 多租户、公网访问或真实用户审计：重新设计身份、授权与隔离。
-- 规则/Data 并发控制、缓存、发布、审批、关系查询和 Secret 管理：作为独立能力设计，不隐式扩展当前规则。
+- 受管记录并发保护、发布和审批已由上述当前契约取代历史规划；规则目录并发控制、缓存、关系查询和 Secret 管理仍待后续设计。
 
 
-当前发布草稿 API、权限、字段差异及幂等恢复见[发布草稿契约](admin-release-drafts.md)。本文中的旧记录写路由处于 T5 #52 负责删除的过渡期，不表示已强制审批。
+当前发布草稿 API、权限、字段差异及幂等恢复见[发布草稿契约](admin-release-drafts.md)。本文保留第一迭代的历史路由设计；旧记录写入口已由正式发布流程取代，不再提供写入能力。

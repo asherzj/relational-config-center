@@ -216,33 +216,25 @@ func startIntegrationApplication(t *testing.T, scripts ...string) *adminApplicat
 
 func startIntegrationMySQL(t *testing.T, scripts ...string) (context.Context, *mysqldriver.Config) {
 	t.Helper()
-	return startIntegrationMySQLWithRequirement(t, false, scripts...)
-}
-
-func startIntegrationMySQLWithRequirement(t *testing.T, required bool, scripts ...string) (context.Context, *mysqldriver.Config) {
-	t.Helper()
-	if required {
-		// System acceptance must fail, never silently pass via a provider skip.
-		func() {
-			defer func() {
-				if recovered := recover(); recovered != nil {
-					t.Fatalf("required Docker provider unavailable: %v", recovered)
-				}
-			}()
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			provider, err := testcontainers.ProviderDocker.GetProvider()
-			if err != nil {
-				t.Fatalf("required Docker provider unavailable: %v", err)
-			}
-			defer provider.Close()
-			if err := provider.Health(ctx); err != nil {
-				t.Fatalf("required Docker provider unavailable: %v", err)
+	// Tagged MySQL acceptance requires its real dependency.
+	// Unavailable providers must fail both local and CI formal regression.
+	func() {
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				t.Fatalf("required Docker provider unavailable: %v", recovered)
 			}
 		}()
-	} else {
-		testcontainers.SkipIfProviderIsNotHealthy(t)
-	}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		provider, err := testcontainers.ProviderDocker.GetProvider()
+		if err != nil {
+			t.Fatalf("required Docker provider unavailable: %v", err)
+		}
+		defer provider.Close()
+		if err := provider.Health(ctx); err != nil {
+			t.Fatalf("required Docker provider unavailable: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	t.Cleanup(cancel)

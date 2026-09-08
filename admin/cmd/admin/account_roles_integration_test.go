@@ -112,6 +112,11 @@ func TestAccountRoleUpgradePreservesAccountsAndGrants(t *testing.T) {
 	if err := f.app.mysql.Ready(t.Context()); err == nil {
 		t.Fatal("Admin is ready with missing role control schema")
 	}
+	// Resume exactly where 008 was interrupted after its first added column.
+	deliveryExec(t, f.databaseOwner, "ALTER TABLE rcc_accounts ADD COLUMN roles TINYINT UNSIGNED NOT NULL DEFAULT 1 AFTER session_version")
+	if err := f.app.mysql.Ready(t.Context()); err == nil {
+		t.Fatal("partial role migration became ready")
+	}
 	applyRoleMigration(t, f.databaseOwner)
 	if err := f.app.mysql.Ready(t.Context()); err != nil {
 		t.Fatal(err)
@@ -122,6 +127,17 @@ func TestAccountRoleUpgradePreservesAccountsAndGrants(t *testing.T) {
 	}
 	f.run(t, "", "grant-admin", "--id", accountID(t, account))
 	applyRoleMigration(t, f.databaseOwner)
+	f.run(t, "", "grant-admin", "--id", accountID(t, account))
+	var version, events int
+	if err := f.databaseOwner.QueryRow("SELECT role_version FROM rcc_accounts WHERE id=?", accountID(t, account)).Scan(&version); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.databaseOwner.QueryRow("SELECT COUNT(*) FROM rcc_account_role_history WHERE account_id=? AND actor_kind='maintenance'", accountID(t, account)).Scan(&events); err != nil {
+		t.Fatal(err)
+	}
+	if version != 2 || events != 1 {
+		t.Fatalf("repeated bootstrap changed grant: version=%d events=%d", version, events)
+	}
 	current = accountRequest(f.app, "GET", "/api/v1/account-roles", "", account.Result().Cookies(), "")
 	if current.Code != 200 {
 		t.Fatalf("migration reset granted role: %d %s", current.Code, current.Body)

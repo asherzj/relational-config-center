@@ -11,6 +11,7 @@ import {useAccountRole} from "../accounts/roles";
 import {useReleaseWrite} from "./useReleaseWrite";
 import {ReleaseDiff} from "./ReleaseDiff";
 import {ReleaseItemPager,releasePageSize} from "./ReleaseItemPager";
+import {ManagedTextInput} from "../managed-data/ManagedTextInput";
 
 type FieldInput={state:"omitted"|"value"|"sql_null";value:string};
 export function ReleaseDraftEditor({order,onClose}:{order:ReleaseOrder;onClose:()=>void}){
@@ -57,7 +58,7 @@ export function ReleaseDraftEditor({order,onClose}:{order:ReleaseOrder;onClose:(
  <div className="flex flex-wrap items-end gap-3 my-5"><label>编辑明细<NativeSelect aria-label="编辑明细" value={selected} disabled={write.pending||write.unresolved} onChange={event=>setSelected(Number(event.target.value))}>{items.slice(page*releasePageSize,(page+1)*releasePageSize).map((entry,offset)=>{const index=page*releasePageSize+offset;return <option key={index} value={index}>明细 {index+1} · {entry.operation} · {entry.id??"待生成 id"}</option>})}</NativeSelect></label><Button disabled={!allowed||items.length<=1||write.pending||write.unresolved} onClick={()=>{setItems(current=>current.filter((_,index)=>index!==selected));setSelected(Math.max(0,selected-1));setRecordLatest(undefined)}}>移除此明细</Button><p>共 {items.length} 项。保存将更新整张草稿。</p></div>
  <fieldset disabled={!allowed||write.pending||write.unresolved||reading} className="grid gap-5 mt-5">{item.fields.filter(field=>field.editable).map(field=>{
   const value=fields[field.name]??{state:"omitted",value:""};
-  return <div key={field.name} className="grid gap-2"><label>{field.name} 提交方式<NativeSelect aria-label={`${field.name} 提交方式`} value={value.state} onChange={event=>updateField(field.name,{...value,state:event.target.value as FieldInput["state"]})}><option value="omitted">未提交</option><option value="value">提交值（可为空字符串）</option>{field.nullable&&<option value="sql_null">SQL NULL</option>}</NativeSelect></label><label>{field.name} 申请值<Input value={value.value} disabled={value.state!=="value"} onChange={event=>updateField(field.name,{...value,value:event.target.value})}/></label></div>
+  return <div key={field.name} className="grid gap-2"><label>{field.name} 提交方式<NativeSelect aria-label={`${field.name} 提交方式`} value={value.state} onChange={event=>updateField(field.name,{...value,state:event.target.value as FieldInput["state"]})}><option value="omitted">未提交</option><option value="value">提交值（可为空字符串）</option>{field.nullable&&<option value="sql_null">SQL NULL</option>}</NativeSelect></label>{field.type==="string"||field.type==="json"?<ManagedTextInput label={`${field.name} 申请值`} value={value.value} disabled={value.state!=="value"} onChange={next=>updateField(field.name,{...value,value:next})}/>:<label>{field.name} 申请值<Input value={value.value} disabled={value.state!=="value"} onChange={event=>updateField(field.name,{...value,value:event.target.value})}/></label>}</div>
  })}</fieldset>
  {Boolean(write.error)&&<ErrorState error={write.error}/>}
  {write.error instanceof ApiError&&write.error.itemIndex!==undefined&&write.error.itemIndex<items.length&&<Button onClick={()=>setSelected((write.error as ApiError).itemIndex!)}>定位错误明细</Button>}

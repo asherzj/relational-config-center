@@ -75,7 +75,8 @@ func (s *publicationSession) CommitPublication(ctx context.Context, plan applica
 		for _, value := range item.Values {
 			values[value.Column.Name] = value.Value
 		}
-		db := s.database.WithContext(ctx).Session(&gorm.Session{SkipDefaultTransaction: true})
+		insertResult := gorm.WithResult()
+		db := s.database.WithContext(ctx).Session(&gorm.Session{SkipDefaultTransaction: true}).Clauses(insertResult)
 		var changed *gorm.DB
 		switch item.Intent.Operation {
 		case "ADD":
@@ -98,12 +99,16 @@ func (s *publicationSession) CommitPublication(ctx context.Context, plan applica
 			return domain.PublicationResult{}, &application.ReleaseItemError{Index: index, Cause: application.ErrMutationRowNotFound}
 		}
 		if item.Intent.Operation == "ADD" && ids[index] == nil {
-			// Each INSERT has its own actual unsigned result; never infer an id range.
-			var actual string
-			if db.Raw("SELECT CAST(LAST_INSERT_ID() AS CHAR)").Row().Scan(&actual) != nil {
+			// Use this INSERT's protocol result, not mutable connection state.
+			// MySQL exposes uint64 insert ids through database/sql's int64 method.
+			if insertResult.Result == nil {
 				return domain.PublicationResult{}, application.ErrReleaseUnavailable
 			}
-			ids[index] = actual
+			actual, err := insertResult.Result.LastInsertId()
+			if err != nil {
+				return domain.PublicationResult{}, application.ErrReleaseUnavailable
+			}
+			ids[index] = strconv.FormatUint(uint64(actual), 10)
 		}
 	}
 	finalRows, err := s.readCanonicalRows(ctx, plan, ids)
@@ -146,6 +151,13 @@ func (s *publicationSession) CommitPublication(ctx context.Context, plan applica
 		actualID, err := identityRow.RecordID()
 		if err != nil || final.Deleted != (item.Intent.Operation == "DELETE") {
 			return domain.PublicationResult{}, &application.ReleaseItemError{Index: index, Cause: application.ErrPublicationUnsupported}
+		}
+		idColumn, found := plan.Schema.Column("id")
+		if !found {
+			return domain.PublicationResult{}, application.ErrPublicationUnsupported
+		}
+		if _, err := domain.ParseColumnValue(idColumn, domain.JSONString(actualID)); err != nil {
+			return domain.PublicationResult{}, &application.ReleaseItemError{Index: index, Cause: application.ErrInvalidMutation}
 		}
 		cursor++
 		command := domain.PublicationCommand{OrderID: plan.OrderID, Sequence: strconv.FormatUint(cursor, 10), TableName: plan.Execution.TableName, TableVersion: result.TableVersion, Operation: item.Intent.Operation, ID: actualID, RecordVersion: versions[index], Before: before, Final: final}

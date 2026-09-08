@@ -1,19 +1,17 @@
 // Real browser → same-origin Admin → isolated MySQL. Run by make test-browser.
-const {chromium}=require('playwright');
+const playwright=require(process.env.RCC_PLAYWRIGHT_MODULE||'playwright');
 const assert=require('node:assert/strict');
 const {join}=require('node:path');
-const {randomUUID}=require('node:crypto');
-const {browserOptions,registerFixtureAccount}=require('./local-account.cjs');
+const {browserOptions,selectedBrowser,registerFixtureAccount}=require('./local-account.cjs');
 const base=process.env.RCC_WEB_URL;
 (async()=>{
- const browser=await chromium.launch(browserOptions());
+ const browser=await selectedBrowser(playwright).launch(browserOptions());
  const context=await browser.newContext({viewport:{width:1440,height:1000}});
  const errors=[],checks=[];
  const check=name=>{checks.push(name);console.log('PASS',name)};
  const session=async ctx=>(await (await ctx.request.get(`${base}/api/v1/auth/session`)).json());
- const roles=async(ctx,names)=>{const current=await session(ctx);const response=await ctx.request.put(`${base}/api/v1/account-roles/${current.account.id}`,{headers:{Origin:base,'X-CSRF-Token':current.csrf_token,'Idempotency-Key':randomUUID()},data:{roles:names,expected_version:'2'}});assert.equal(response.status(),200)};
  try{
-  await registerFixtureAccount(context,base);await roles(context,['EDITOR']);
+  await registerFixtureAccount(context,base,{roles:['EDITOR']});
   const identity=await session(context);assert.deepEqual(identity.account.roles,['EDITOR']);
   const page=await context.newPage();page.setDefaultTimeout(12000);page.on('pageerror',error=>errors.push(error.message));
   const writes=[];context.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname==='/api/v1/release-orders')writes.push({body:r.postData(),key:r.headers()['idempotency-key']})});
@@ -66,7 +64,7 @@ const base=process.env.RCC_WEB_URL;
   await page.setViewportSize({width:390,height:844});await page.getByLabel('主导航',{exact:true}).waitFor({state:'hidden'});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'release list overflows narrow viewport');
   if(process.env.RCC_E2E_OUTPUT)await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'release-drafts-mobile.png'),fullPage:true});
   check('cancelled drafts remain searchable with permanent applicant and history on narrow screens');
-  const viewer=await browser.newContext();await registerFixtureAccount(viewer,base);await roles(viewer,['VIEWER']);const view=await viewer.newPage();await view.goto(`${base}/configuration/release-orders/${committed.id}`);await view.getByRole('heading',{name:'stage1_acceptance_items · 已取消',exact:true}).waitFor();assert.equal(await view.getByRole('button',{name:'编辑草稿',exact:true}).count(),0);assert.equal(await view.getByRole('button',{name:'取消草稿',exact:true}).count(),0);await viewer.close();
+  const viewer=await browser.newContext();await registerFixtureAccount(viewer,base,{roles:['VIEWER']});const view=await viewer.newPage();await view.goto(`${base}/configuration/release-orders/${committed.id}`);await view.getByRole('heading',{name:'stage1_acceptance_items · 已取消',exact:true}).waitFor();assert.equal(await view.getByRole('button',{name:'编辑草稿',exact:true}).count(),0);assert.equal(await view.getByRole('button',{name:'取消草稿',exact:true}).count(),0);await viewer.close();
   check('current VIEWER can read release history without edit/cancel actions');
   assert.deepEqual(errors,[]);console.log(JSON.stringify({checks}));
  }finally{await browser.close()}

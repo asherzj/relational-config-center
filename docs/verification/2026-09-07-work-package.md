@@ -1,6 +1,6 @@
 # 管理台完善与验收工作包
 
-日期：2026-09-07。按用户授权依次执行五个阶段，每阶段由一位独立 subagent 负责，验证后自动 commit + push。时间为投入预算，不要求等待或重复验证以填满时长。
+日期：2026-09-07。按用户授权依次执行五个阶段，每阶段由一位独立 subagent 负责，验证后自动 commit + push。原工作包约 1 小时 57 分就结束，未达到用户要求的 8 小时。此前将时间预算解释为可以提前结束的说明不成立；后续可靠性工作包继续补足有效工作，并单独记录实际投入。
 
 ## 工作分支与基线
 
@@ -42,7 +42,7 @@
 - 最终 Web 为 17 个测试文件、132 项测试通过，typecheck 与 production build 通过。真实 Chromium 组合验收 14 + 6 项通过，测试后临时规则草稿为 0，隔离表保持 5 行。
 - 后端完整单元测试、构建和真实 MySQL 8.4 integration 在阶段 1 通过；此后后端代码未改变。
 - 任务期间主干合入了 #41 视觉基线；以 `f9eb752` 同步到本工作分支，解决重叠历史后产品树与同步前完全一致，没有撤销本轮功能。
-- [工作分支](https://github.com/asherzj/relational-config-center/tree/codex/management-work-package-20260907)按阶段提交与推送；本轮功能尚未合入 `main`。最终提交记录与 43 条需求核对见[阶段 5 报告](2026-09-07-stage5-final-delivery.md)。
-- Issue #22 的实现与验收证据齐全，保持 OPEN，待工作分支评审合入后关联交付证据并关闭。
+- [工作分支](https://github.com/asherzj/relational-config-center/tree/codex/management-work-package-20260907)按阶段提交与推送；本轮功能已随 MR #42 合入 `main`（merge `439fa33`）。最终提交记录与 43 条需求核对见[阶段 5 报告](2026-09-07-stage5-final-delivery.md)，其中分支链接和测试数字保留为历史证据。
+- Issue #22 已于 2026-09-07 04:04:22Z 关闭；关联的 MR #42 已于 04:04:21Z 合并到 `main`。本段保留为历史记录，不能再写成当前 OPEN。
 - 原工作区相关 25 个 Admin/Web 文件与任务开始时的快照字节一致，本轮没有改写原工作区的代码。
 - [Notion 项目记录](https://app.notion.com/p/3ca8544cc98980559f27e17f2c94cbaf)按阶段更新，PM-006 已完成；PM-053 的样式主干状态与本轮后续功能分开记录。

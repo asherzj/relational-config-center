@@ -1,4 +1,6 @@
 import { useAccountRole } from "../accounts/roles";
+import { getQueryPolicy } from "../../api/query-policies";
+import { WriteRecovery } from "../../components/ui/WriteRecovery";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/shadcn/table";
 import { Badge } from "../../components/shadcn/badge";
 import { FileCode2, Plus, RefreshCw } from "lucide-react";
@@ -84,11 +86,6 @@ export function QueryPoliciesPage() {
   const deprecate = useDeprecateQueryPolicy();
   const remove = useDeleteQueryPolicy();
   const uncertainCommand = [activate.error, deprecate.error, remove.error].some(isUncertainWriteError);
-  const verifyCommand = async () => {
-    const result = await policies.refetch();
-    if (!result.isSuccess) return;
-    activate.reset(); deprecate.reset(); remove.reset();
-  };
   const lifecycle = usePolicyLifecycleCommands({
     blocked: uncertainCommand || !canManage,
     onUncertainWrite: (_error, targetCode) => {
@@ -130,7 +127,6 @@ export function QueryPoliciesPage() {
       </section>
 
       <section className="catalog" aria-label="查询规则目录">
-        {uncertainCommand && <div className="inline-alert" role="alert"><strong>提交结果尚未确认。系统不会自动重复此写入。</strong><Button variant="secondary" onClick={() => void verifyCommand()}>只读查询当前状态</Button></div>}
         {policies.isPending ? <LoadingState label="正在读取查询规则目录…" /> : policies.isError && !policies.data ? (
           <ErrorState error={policies.error} onRetry={() => void policies.refetch()} />
         ) : !policies.data.length ? <EmptyState /> : (
@@ -161,6 +157,11 @@ export function QueryPoliciesPage() {
       </section>
 
       <QueryPolicyDrawer code={code} commandsBlocked={uncertainCommand || !canManage} onRequestCommand={lifecycle.request} />
+      {!confirm && <WriteRecovery onResume={() => {
+        activate.reset(); deprecate.reset(); remove.reset();
+        lifecycle.finishCheck();
+        void policies.refetch();
+      }} resumeLabel="我已核对，结束本次核对" error={lifecycle.recovery.error} onCheck={() => getQueryPolicy(lifecycle.targetCode!)} />}
       {confirm && (
         <ConfirmDialog
           open
@@ -169,6 +170,8 @@ export function QueryPoliciesPage() {
           confirmLabel={confirm.label}
           destructive={confirm.destructive}
           pending={lifecycle.pending}
+          confirmDisabled={uncertainCommand || lifecycle.recovery.blocked.current}
+          children={<WriteRecovery onResume={() => { lifecycle.finishCheck(); void policies.refetch(); }} resumeLabel="我已核对，结束本次核对" error={lifecycle.recovery.error} onCheck={() => getQueryPolicy(lifecycle.targetCode!)} />}
           onCancel={lifecycle.cancel}
           onConfirm={lifecycle.execute}
         />

@@ -1,6 +1,8 @@
 # 发布单提交、审批与在途目标
 
-T4 / #51 在 T3 持久草稿上增加提交、审批、拒绝、取消和复制。实际发布由 T5 / #52 交付；本阶段没有业务执行处理器。单明细限制由 T6 / #53 删除，旧记录写入口仍由 T5 统一删除。
+编辑者保存同表 1～1,000 项变更为草稿，提交后由另一人审批，再由发布者手动执行。保存、提交和审批都不修改业务配置，只有执行成功后数据才生效。已发布内容通过新的反向单重新审批回滚。旧记录直写路由已删除，规则目录仍由 ADMIN 直接管理。
+
+草稿组织和容量限制见[发布草稿](admin-release-drafts.md)，最终结果及数据库权限见[发布结果契约](design-notes/publication-contract.md)，反向单规则见[审批回滚](admin-release-rollbacks.md)。提交与审批的交付证据见 [T4 #51](https://github.com/asherzj/relational-config-center/issues/51)。
 
 ## HTTP 操作
 
@@ -12,13 +14,15 @@ T4 / #51 在 T3 持久草稿上增加提交、审批、拒绝、取消和复制�
 | `POST /api/v1/release-orders/:id/approve` | `expected_version`, 必填 `reason` | 另一位 APPROVER/ADMIN，PENDING_APPROVAL |
 | `POST /api/v1/release-orders/:id/reject` | 同批准 | 同批准；释放目标 |
 | `POST /api/v1/release-orders/:id/cancel` | `expected_version`, 必填 `reason` | 当前仍有编辑权限的申请人或 ADMIN，DRAFT/PENDING_APPROVAL/APPROVED；释放目标 |
-| `POST /api/v1/release-orders/:id/copy` | `expected_version`, `confirmed: true`, `items` | 当前 EDITOR/ADMIN，源单 REJECTED/CANCELLED；返回新 DRAFT（201） |
+| `POST /api/v1/release-orders/:id/copy` | `expected_version`, `confirmed: true`, `items` | 当前 EDITOR/ADMIN，普通源单 REJECTED/CANCELLED；返回新 DRAFT（201） |
+| `POST /api/v1/release-orders/:id/execute` | `expected_version` | 当前 PUBLISHER/ADMIN，APPROVED；整单成功后释放目标 |
+| `POST /api/v1/release-orders/:id/rollback` | `expected_version`, 必填 `reason` | 当前 EDITOR/ADMIN，原单 SUCCEEDED 且没有在途反向申请；返回反向 DRAFT（201） |
 
-ADMIN 也不能审批自己的单据。一位独立审批人决定一次即足够。历史合法审批不会因审批人后来停用或撤权而被改写；之后的新请求和成功重试仍按当前身份校验。批准继续持有目标，没有到期自动释放或强制覆盖。
+ADMIN 也不能审批自己的单据。一位独立审批人决定一次即足够。申请人可持有 PUBLISHER 并执行他人已批准的本人单据；审批人也可兼任发布人。历史合法审批不会因审批人后来停用或撤权而被改写；之后的新请求和成功重试仍按当前身份校验。批准继续持有目标，没有到期自动释放或强制覆盖。
 
 状态动作在锁定订单后检查调用者看到的版本，旧版本为 `409 release_version_conflict`，当前版本上的非法动作是 `422 release_state_invalid`。目标冲突是 `409 release_target_conflict`。同一账号/动作/键的成功请求先找回原业务结果，再对新动作做状态 CAS；同键不同请求摘要为 `409 idempotency_conflict`。成功重放可以返回旧状态的原业务结果，当前 `allowed_actions` 来自最新单据；Web 重新查询当前详情，不将重放结果作为当前详情缓存。
 
-复制前用已有只读 `/release-orders/preview` 读取原申请与当前记录的差异。复制 `items` 的操作、id 和申请内容必须与原单一致，但每个已知目标要明确携带刚核对的 `expected_record_version`。记录在预览与复制之间变化就拒绝。复制不修改源单，创建新的永久申请人和 `COPY` 历史，通过 `copied_from_id` 关联原单；新单须重新编辑/提交/审批。
+复制前用已有只读 `/release-orders/preview` 读取原申请与当前记录的差异。复制 `items` 的操作、id 和申请内容必须与原单一致，但每个已知目标要明确携带刚核对的 `expected_record_version`。记录在预览与复制之间变化就拒绝。复制不修改源单，创建新的永久申请人和 `COPY` 历史，通过 `copied_from_id` 关联原单；新单须重新核对、提交和审批。反向草稿不能编辑、复制或追加明细；取消/拒绝反向单后，应从原成功单重新申请回滚，仍使用原发布后的记录版本。
 
 ## 冻结与真实数据库身份
 
@@ -42,12 +46,14 @@ ADMIN 也不能审批自己的单据。一位独立审批人决定一次即足�
 
 授权元数据的普通字符串比较不能代替数据库身份：Schema/表名按 `lower_case_table_names` 明确比较，账号按 MySQL 返回的完整授权身份精确匹配。大小写不同对象或账号的授权不能证明当前账号能看见目标触发器；用户名中的 `@`、引号和反斜线按元数据原始格式保留。真实 fixture 分别验证这些负例、目标直接授权后的原键恢复，以及大小写不敏感实例的合法授权。
 
-该快照为 T5 的执行重验提供依据，并不表示所有可见触发器、外键或表达式已获执行许可。T5 还必须在业务写入前独立检查能否完整追踪附带变化，包括不可见/跨 Schema 外键、触发器调用链和完整最终行编码；无法证明时拒绝，不能把本单采集到的可见元数据当作不存在隐藏副作用的证明。元数据锁应延续到真实写入提交。
+执行时重新比较上述快照，并在业务写入前检查能否完整追踪附带变化，包括隐藏的跨 Schema 外键、触发器副作用和完整最终行编码。仅能读取触发器定义不足以允许执行；部署账号还需显式全局 PROCESS 权限以检查完整 InnoDB 外键字典。允许的目标行 BEFORE 触发器及拒绝范围见[发布能力边界](design-notes/publication-contract.md#写入能力边界)。元数据锁保持至事务结束，无法证明安全的变更在业务写入前拒绝。
 
 ## 升级与恢复
 
-在 007/008/009/010 后执行 `deploy/mysql/migrations/011-release-targets.sql`，重复执行不改写已有目标。新安装的 001 包含同一定义。Ready 校验目标表列、InnoDB 和完整唯一主键；显式存量升级 fixture 同步执行 011。
+已有 007 本地账号结构的部署在停写维护窗口按顺序应用 008～012。`011-release-targets.sql` 建立在途目标，`012-publication.sql` 建立发布进度、Command 和通知；不能只完成审批结构就恢复新版服务。新安装的 `001-schema.sql` 包含完整定义。008～012 可重跑且保留既有控制数据，007 一次性迁移按[迁移说明](../deploy/mysql/migrations/README.md)确认后处理。Ready 校验控制表列、InnoDB 和完整唯一主键，缺失或不兼容时拒绝就绪。
 
-Web 将提交、批准、拒绝、取消和复制的原请求内容、键及账号在发送前持久保存。未知结果保持原键；只有 APPROVER 的账号也能恢复自己的审批请求，账号切换不会重放别人的请求。明确状态/记录/目标冲突后仍保留原意，读取最新状态与差异、显式确认后才生成新请求。提交基线陈旧时须先更新草稿基线，再提交。
+Web 将草稿和发布动作（含提交、批准、拒绝、取消、复制、执行及回滚申请）的原请求内容、键及账号在发送前保存到当前标签页的 sessionStorage。未知结果保持原键；只有 APPROVER 的账号也能恢复自己的审批请求，账号切换不会重放别人的请求。明确状态/记录/目标冲突后仍保留原意，读取最新状态与差异、显式确认后才生成新请求。普通草稿提交基线陈旧时须先明确更新草稿基线；反向单的原发布后版本不能更新。
 
-详情分别显示草稿、待审批、已批准、已拒绝和已取消，提供当前允许动作、冻结差异、永久身份和历史意见。没有“已发布”桩状态或自动发布按钮。
+详情区分草稿、待审批、已批准、已发布、已拒绝、已取消和已回滚，显示当前允许动作、冻结差异、永久身份、历史意见及关联单。执行结果保存实际发布人、最终行和新版本；反向执行成功时原单标记 ROLLED_BACK，反向单为 SUCCEEDED。
+
+执行前内容、规则、表结构或记录版本冲突会拒绝整单，单据保持 APPROVED 并保留目标。业务数据、记录/表版本、Command、单据状态及历史、目标释放、通知和成功请求结果在同一事务提交；反向执行还同时更新原单的回滚关联。执行结果未知时，刷新或同账号恢复登录后继续使用原键和原内容，不能根据一次查询未找到或 401/403 换键重做。只有确认成功才显示已发布；通知状态为 NOT_CONNECTED，表示分发尚未接入。

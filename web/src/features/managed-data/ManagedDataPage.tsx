@@ -6,6 +6,7 @@ import {useReleaseWrite} from "../release-orders/useReleaseWrite";
 import {ReleaseRecovery} from "../release-orders/ReleaseRecovery";
 import {ApiError} from "../../api/client";
 import { useAccountRole } from "../accounts/roles";
+import { ManagedTextInput } from "./ManagedTextInput";
 import { Input } from "../../components/shadcn/input";
 import { Checkbox } from "../../components/shadcn/checkbox";
 import { NativeSelect } from "../../components/shadcn/native-select";
@@ -59,6 +60,9 @@ function ScalarInput({ column, label, value, onChange }: { column: ManagedDataCo
         <option value="1">1（true）</option>
       </NativeSelect>
     );
+  }
+  if (column.type === "string" || column.type === "json") {
+    return <ManagedTextInput label={label} rows={2} value={value} onChange={onChange} />;
   }
   const inputType = column.type === "date" ? "date" : column.type === "time" ? "time" : "text";
   const inputMode = ["uint64", "int64", "decimal", "float64"].includes(column.type) ? "decimal" : undefined;

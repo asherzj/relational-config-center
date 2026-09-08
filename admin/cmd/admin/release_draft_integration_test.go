@@ -86,9 +86,7 @@ func TestReleaseDraftCASCancelAndIdempotency(t *testing.T) {
 	if read.Body.String() != cancel.Body.String() {
 		t.Fatal(read.Body)
 	}
-	if remove := releaseRequest(t, app, "DELETE", path, "", ""); remove.Code == 200 || remove.Code == 204 {
-		t.Fatal("physical delete exists")
-	}
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "DELETE", path, "", ""), 400, "method_not_allowed")
 }
 
 // AC-014: a saved diff preserves each field state and defers all automatic values.

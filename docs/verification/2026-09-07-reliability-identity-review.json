@@ -1,0 +1,841 @@
+{
+  "checkpoint": "Identity follow-up before integration of main account MR44",
+  "baseline": "439fa33c5ec0d20be97c9c3efe04e35683f406cf",
+  "combinedMacOS": {
+    "startedAt": "2026-09-07T09:07:55Z",
+    "finishedAt": "2026-09-07T09:10:32Z",
+    "checks": 131,
+    "complexFieldChecks": 42,
+    "accessibilityEngines": [
+      "chromium",
+      "firefox",
+      "webkit"
+    ],
+    "accessibilityChecksPerEngine": 7,
+    "pageErrors": [],
+    "fixtureEqual": true,
+    "fixtureSha256": "9a57012b220c3c0cc475baf70c112954e4b419653e80a7aa6083fb3be13dc701",
+    "cleanupVerified": true,
+    "boundary": "Before the final auto-trigger Result.LastInsertId correction and before main account integration"
+  },
+  "complexFields": {
+    "ok": true,
+    "browser": "151.0.7922.34",
+    "evidence": [
+      {
+        "case": "TEXT and JSON browser ADD, PATCH, SQL byte comparison, readback and reopened editor",
+        "ok": true,
+        "http": [
+          0,
+          5
+        ],
+        "id": "1",
+        "textBytes": 12668,
+        "sql": {
+          "id": "1",
+          "note": "  中文🙂第一行\n第二行\t保留空白\n长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t\n尾部  \n追加🙂\t  ",
+          "payload": "{\"text\": \"修改🙂\\n\\t \", \"large\": 18446744073709551615}",
+          "nullable_text": null,
+          "empty_text": "",
+          "big_signed": "9223372036854775807",
+          "big_unsigned": "0",
+          "amount": "-123456789012345678901234567890123456789012345.12345678901234567890",
+          "day": "2024-02-29",
+          "clock": "00:00:00.000001",
+          "local_time": "2026-09-07 12:34:56.123456",
+          "instant": "2026-09-07T12:34:56.654321Z",
+          "default_text": "数据库默认🙂"
+        }
+      },
+      {
+        "case": "multiline TEXT query uses the exact browser input without removing LF",
+        "ok": true,
+        "http": [
+          5,
+          7
+        ],
+        "note": "  查询🙂\n下一行\t末尾  ",
+        "matched": 1
+      },
+      {
+        "case": "SQL NULL, JSON null literal and string, empty and omitted values stay distinct",
+        "ok": true,
+        "http": [
+          7,
+          27
+        ],
+        "results": [
+          {
+            "id": "3",
+            "payload": null,
+            "sqlNull": "1"
+          },
+          {
+            "id": "4",
+            "payload": "null",
+            "sqlNull": "0"
+          },
+          {
+            "id": "5",
+            "payload": "\"null\"",
+            "sqlNull": "0"
+          },
+          {
+            "id": "6",
+            "payload": "\"\"",
+            "sqlNull": "0"
+          }
+        ]
+      },
+      {
+        "case": "uint64 auto ID 9007199254740993 survives browser create, query, PATCH and reopen",
+        "ok": true,
+        "http": [
+          27,
+          32
+        ],
+        "id": "9007199254740993",
+        "sqlCount": "1"
+      },
+      {
+        "case": "uint64 auto ID 9223372036854775808 survives browser create, query, PATCH and reopen",
+        "ok": true,
+        "http": [
+          32,
+          37
+        ],
+        "id": "9223372036854775808",
+        "sqlCount": "1"
+      },
+      {
+        "case": "uint64 auto ID 18446744073709551614 survives browser create, query, PATCH and reopen",
+        "ok": true,
+        "http": [
+          37,
+          42
+        ],
+        "id": "18446744073709551614",
+        "sqlCount": "1"
+      },
+      {
+        "case": "explicit auto ID zero returns the actual inserted identity through browser ADD and PATCH",
+        "ok": true,
+        "http": [
+          42,
+          47
+        ],
+        "priorGeneratedID": "1",
+        "responseID": "2",
+        "actualID": "2",
+        "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+      },
+      {
+        "case": "non-auto default ID stage4_default_id_constant requires explicit identity before inserting",
+        "ok": true,
+        "http": [
+          47,
+          51
+        ],
+        "actualID": "42",
+        "responseID": "42",
+        "missingIDRejected": true
+      },
+      {
+        "case": "non-auto default ID stage4_default_id_expression requires explicit identity before inserting",
+        "ok": true,
+        "http": [
+          51,
+          55
+        ],
+        "actualID": "43",
+        "responseID": "43",
+        "missingIDRejected": true
+      },
+      {
+        "case": "identity review: explicit numeric ID returns the stored canonical identity",
+        "ok": true,
+        "http": [
+          55,
+          58
+        ],
+        "submittedID": "00077",
+        "actualID": "77",
+        "responseID": "77"
+      },
+      {
+        "case": "identity matrix: signed integer keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          58,
+          63
+        ],
+        "name": "signed integer",
+        "type": "BIGINT",
+        "input": "-00077",
+        "canonical": "-77",
+        "responseID": "-77",
+        "sqlID": "\"-77\"",
+        "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+        "exactQueryAndPatch": true
+      },
+      {
+        "case": "identity matrix: decimal equal value keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          63,
+          68
+        ],
+        "name": "decimal equal value",
+        "type": "DECIMAL(6,2)",
+        "input": "+001.2",
+        "canonical": "1.20",
+        "responseID": "1.20",
+        "sqlID": "\"1.20\"",
+        "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+        "exactQueryAndPatch": true
+      },
+      {
+        "case": "identity matrix: decimal rounding keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          68,
+          70
+        ],
+        "name": "decimal rounding",
+        "type": "DECIMAL(6,2)",
+        "input": "1.235",
+        "rejected": true,
+        "status": 400,
+        "rollbackRows": "0",
+        "draftRetained": true
+      },
+      {
+        "case": "identity matrix: CHAR trailing spaces keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          70,
+          72
+        ],
+        "name": "CHAR trailing spaces",
+        "type": "CHAR(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
+        "input": "ab  ",
+        "rejected": true,
+        "status": 400,
+        "rollbackRows": "0",
+        "draftRetained": true
+      },
+      {
+        "case": "identity matrix: VARCHAR trailing spaces keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          72,
+          77
+        ],
+        "name": "VARCHAR trailing spaces",
+        "type": "VARCHAR(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
+        "input": "ab  ",
+        "canonical": "ab  ",
+        "responseID": "ab  ",
+        "sqlID": "\"ab  \"",
+        "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+        "exactQueryAndPatch": true
+      },
+      {
+        "case": "identity matrix: VARCHAR URI delimiters keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          77,
+          82
+        ],
+        "name": "VARCHAR URI delimiters",
+        "type": "VARCHAR(32)",
+        "input": "键/值 ?#%",
+        "canonical": "键/值 ?#%",
+        "responseID": "键/值 ?#%",
+        "sqlID": "\"键/值 ?#%\"",
+        "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+        "exactQueryAndPatch": true
+      },
+      {
+        "case": "identity matrix: ENUM case normalization keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          82,
+          87
+        ],
+        "name": "ENUM case normalization",
+        "type": "ENUM('Alpha','Beta')",
+        "input": "alpha",
+        "canonical": "Alpha",
+        "responseID": "Alpha",
+        "sqlID": "\"Alpha\"",
+        "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+        "exactQueryAndPatch": true
+      },
+      {
+        "case": "identity matrix: TIME equal value keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          87,
+          92
+        ],
+        "name": "TIME equal value",
+        "type": "TIME(2)",
+        "input": "01:02:03.700000",
+        "canonical": "01:02:03.70",
+        "responseID": "01:02:03.70",
+        "sqlID": "\"01:02:03.70\"",
+        "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+        "exactQueryAndPatch": true
+      },
+      {
+        "case": "identity matrix: TIME rounding keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          92,
+          97
+        ],
+        "name": "TIME rounding",
+        "type": "TIME(2)",
+        "input": "01:02:03.777",
+        "canonical": "01:02:03.78",
+        "responseID": "01:02:03.78",
+        "sqlID": "\"01:02:03.78\"",
+        "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+        "exactQueryAndPatch": true
+      },
+      {
+        "case": "identity matrix: DATETIME equal value keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          97,
+          102
+        ],
+        "name": "DATETIME equal value",
+        "type": "DATETIME(2)",
+        "input": "2026-09-07 12:34:56.700000",
+        "canonical": "2026-09-07 12:34:56.7",
+        "responseID": "2026-09-07 12:34:56.7",
+        "sqlID": "\"2026-09-07 12:34:56.70\"",
+        "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+        "exactQueryAndPatch": true
+      },
+      {
+        "case": "identity matrix: DATETIME rounding keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          102,
+          104
+        ],
+        "name": "DATETIME rounding",
+        "type": "DATETIME(2)",
+        "input": "2026-09-07 12:34:59.999",
+        "rejected": true,
+        "status": 400,
+        "rollbackRows": "0",
+        "draftRetained": true
+      },
+      {
+        "case": "identity matrix: TIMESTAMP equal value keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          104,
+          109
+        ],
+        "name": "TIMESTAMP equal value",
+        "type": "TIMESTAMP(2)",
+        "input": "2026-09-07T12:34:56.700000Z",
+        "canonical": "2026-09-07T12:34:56.7Z",
+        "responseID": "2026-09-07T12:34:56.7Z",
+        "sqlID": "\"2026-09-07 12:34:56.70\"",
+        "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+        "exactQueryAndPatch": true
+      },
+      {
+        "case": "identity matrix: TIMESTAMP rounding keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          109,
+          111
+        ],
+        "name": "TIMESTAMP rounding",
+        "type": "TIMESTAMP(2)",
+        "input": "2026-09-07T12:34:59.999Z",
+        "rejected": true,
+        "status": 400,
+        "rollbackRows": "0",
+        "draftRetained": true
+      },
+      {
+        "case": "identity matrix: FLOAT exact keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          111,
+          116
+        ],
+        "name": "FLOAT exact",
+        "type": "FLOAT",
+        "input": "0.5",
+        "canonical": "0.5",
+        "responseID": "0.5",
+        "sqlID": "\"0.5\"",
+        "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+        "exactQueryAndPatch": true
+      },
+      {
+        "case": "identity matrix: FLOAT precision boundary keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          116,
+          118
+        ],
+        "name": "FLOAT precision boundary",
+        "type": "FLOAT",
+        "input": "0.1",
+        "rejected": true,
+        "status": 400,
+        "rollbackRows": "0",
+        "draftRetained": true
+      },
+      {
+        "case": "identity matrix: DOUBLE keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          118,
+          123
+        ],
+        "name": "DOUBLE",
+        "type": "DOUBLE",
+        "input": "0.1",
+        "canonical": "0.1",
+        "responseID": "0.1",
+        "sqlID": "\"0.1\"",
+        "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+        "exactQueryAndPatch": true
+      },
+      {
+        "case": "identity matrix: DATE keeps a usable stored key or rolls back",
+        "ok": true,
+        "http": [
+          123,
+          128
+        ],
+        "name": "DATE",
+        "type": "DATE",
+        "input": "2024-02-29",
+        "canonical": "2024-02-29",
+        "responseID": "2024-02-29",
+        "sqlID": "\"2024-02-29\"",
+        "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+        "exactQueryAndPatch": true
+      },
+      {
+        "case": "identity review: response-lost explicit zero ADD checks without guessing a generated ID",
+        "ok": true,
+        "http": [
+          128,
+          131
+        ],
+        "actualWrite": {
+          "method": "POST",
+          "path": "/api/v1/tables/stage4_zero_ids/rows",
+          "status": 201,
+          "requestId": "rcc-e1da22eb8adc40d549e27b0e806f039c",
+          "body": {
+            "content": {
+              "id": "0",
+              "label": "lost-zero-id"
+            }
+          },
+          "response": {
+            "id": "3"
+          },
+          "fault": "successful response withheld from browser"
+        },
+        "actualID": "3",
+        "readonlyQuery": {
+          "conditions": [],
+          "page_number": 1
+        },
+        "writeCount": 1,
+        "databaseCountBefore": "2",
+        "databaseCountAfter": "3"
+      },
+      {
+        "case": "identity preflight read denial prevents INSERT and preserves the draft",
+        "ok": true,
+        "http": [
+          131,
+          134
+        ],
+        "status": 503,
+        "requestId": "rcc-32ecd9034bfbeb6f562b69ea7d00ba73",
+        "rows": "0",
+        "statements": [
+          {
+            "thread": 282,
+            "command": "Query",
+            "statement": "SELECT @@max_allowed_packet"
+          },
+          {
+            "thread": 282,
+            "command": "Query",
+            "statement": "SET time_zone = '+00:00'"
+          },
+          {
+            "thread": 282,
+            "command": "Query",
+            "statement": "SELECT * FROM `rcc_query_policies` ORDER BY code ASC"
+          },
+          {
+            "thread": 282,
+            "command": "Query",
+            "statement": "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ"
+          },
+          {
+            "thread": 282,
+            "command": "Query",
+            "statement": "START TRANSACTION"
+          },
+          {
+            "thread": 282,
+            "command": "Prepare",
+            "statement": "SELECT * FROM `rcc_table_policies` WHERE table_name = ? ORDER BY `rcc_table_policies`.`id` LIMIT ?"
+          },
+          {
+            "thread": 282,
+            "command": "Execute",
+            "statement": "SELECT * FROM `rcc_table_policies` WHERE table_name = 'stage4_explicit_ids' ORDER BY `rcc_table_policies`.`id` LIMIT 1"
+          },
+          {
+            "thread": 282,
+            "command": "Close stmt",
+            "statement": ""
+          },
+          {
+            "thread": 282,
+            "command": "Prepare",
+            "statement": "SELECT * FROM `rcc_query_policies` WHERE code = ? ORDER BY `rcc_query_policies`.`id` LIMIT ?"
+          },
+          {
+            "thread": 282,
+            "command": "Execute",
+            "statement": "SELECT * FROM `rcc_query_policies` WHERE code = 'stage1_query_v1' ORDER BY `rcc_query_policies`.`id` LIMIT 1"
+          },
+          {
+            "thread": 282,
+            "command": "Close stmt",
+            "statement": ""
+          },
+          {
+            "thread": 282,
+            "command": "Prepare",
+            "statement": "SELECT * FROM `rcc_mutation_policies` WHERE code = ? ORDER BY `rcc_mutation_policies`.`id` LIMIT ?"
+          },
+          {
+            "thread": 282,
+            "command": "Execute",
+            "statement": "SELECT * FROM `rcc_mutation_policies` WHERE code = 'stage4_plain_v1' ORDER BY `rcc_mutation_policies`.`id` LIMIT 1"
+          },
+          {
+            "thread": 282,
+            "command": "Close stmt",
+            "statement": ""
+          },
+          {
+            "thread": 282,
+            "command": "Prepare",
+            "statement": "SELECT TABLE_TYPE AS table_type\nFROM information_schema.TABLES\nWHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?"
+          },
+          {
+            "thread": 282,
+            "command": "Execute",
+            "statement": "SELECT TABLE_TYPE AS table_type\nFROM information_schema.TABLES\nWHERE TABLE_SCHEMA = 'rcc' AND TABLE_NAME = 'stage4_explicit_ids'"
+          },
+          {
+            "thread": 282,
+            "command": "Close stmt",
+            "statement": ""
+          },
+          {
+            "thread": 282,
+            "command": "Prepare",
+            "statement": "SELECT\n  COLUMN_NAME AS column_name,\n  DATA_TYPE AS data_type,\n  COLUMN_TYPE AS column_type,\n  IS_NULLABLE AS is_nullable,\n  COLUMN_KEY AS column_key,\n  COLUMN_DEFAULT AS column_default,\n  EXTRA AS extra,\n  GENERATION_EXPRESSION AS generation_expression\nFROM information_schema.COLUMNS\nWHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?\nORDER BY ORDINAL_POSITION"
+          },
+          {
+            "thread": 282,
+            "command": "Execute",
+            "statement": "SELECT\n  COLUMN_NAME AS column_name,\n  DATA_TYPE AS data_type,\n  COLUMN_TYPE AS column_type,\n  IS_NULLABLE AS is_nullable,\n  COLUMN_KEY AS column_key,\n  COLUMN_DEFAULT AS column_default,\n  EXTRA AS extra,\n  GENERATION_EXPRESSION AS generation_expression\nFROM information_schema.COLUMNS\nWHERE TABLE_SCHEMA = 'rcc' AND TABLE_NAME = 'stage4_explicit_ids'\nORDER BY ORDINAL_POSITION"
+          },
+          {
+            "thread": 282,
+            "command": "Close stmt",
+            "statement": ""
+          },
+          {
+            "thread": 282,
+            "command": "Query",
+            "statement": "ROLLBACK"
+          }
+        ],
+        "insertSent": false,
+        "renewedConnections": [
+          "24",
+          "185",
+          "92",
+          "100",
+          "93",
+          "14"
+        ],
+        "catalogWarmupStatuses": [
+          503,
+          503,
+          503,
+          503,
+          503,
+          503,
+          200
+        ],
+        "permissionError": "ERROR 1142 (42000) at line 1: SELECT command denied to user 'rcc_admin'@'localhost' for table 'stage4_explicit_ids'\n",
+        "permissionsRestored": true,
+        "recoveryReadOnly": true
+      },
+      {
+        "case": "identity guard: nontransactional decimal rounding rejects without persisting a row",
+        "ok": true,
+        "http": [
+          134,
+          136
+        ],
+        "name": "nontransactional decimal rounding",
+        "type": "DECIMAL(6,2)",
+        "engine": "MyISAM",
+        "input": "1.235",
+        "status": 422,
+        "code": "incompatible_table",
+        "rows": "0",
+        "draftRetained": true
+      },
+      {
+        "case": "identity guard: empty string rejects without persisting a row",
+        "ok": true,
+        "http": [
+          136,
+          138
+        ],
+        "name": "empty string",
+        "type": "VARCHAR(16)",
+        "engine": "InnoDB",
+        "input": "",
+        "status": 400,
+        "code": "invalid_mutation_content",
+        "rows": "0",
+        "draftRetained": true
+      },
+      {
+        "case": "identity guard: single dot rejects without persisting a row",
+        "ok": true,
+        "http": [
+          138,
+          140
+        ],
+        "name": "single dot",
+        "type": "VARCHAR(16)",
+        "engine": "InnoDB",
+        "input": ".",
+        "status": 400,
+        "code": "invalid_mutation_content",
+        "rows": "0",
+        "draftRetained": true
+      },
+      {
+        "case": "identity guard: double dot rejects without persisting a row",
+        "ok": true,
+        "http": [
+          140,
+          142
+        ],
+        "name": "double dot",
+        "type": "VARCHAR(16)",
+        "engine": "InnoDB",
+        "input": "..",
+        "status": 400,
+        "code": "invalid_mutation_content",
+        "rows": "0",
+        "draftRetained": true
+      },
+      {
+        "case": "CRLF and standalone CR stay protected through unrelated writes and explicit normalization",
+        "ok": true,
+        "http": [
+          142,
+          148
+        ],
+        "id": "7",
+        "originalHex": "66697273740d0a7365636f6e640d7468697264",
+        "afterExplicitConversionHex": "66697273740a7365636f6e640a74686972640a6578706c696369742065646974"
+      },
+      {
+        "case": "raw CR clipboard selection is preserved in record and query inputs before conversion",
+        "ok": true,
+        "http": [
+          148,
+          153
+        ],
+        "id": "8",
+        "clipboardEvent": "Chromium DataTransfer + ClipboardEvent fixture; no OS clipboard access",
+        "rawHex": "70726566697820e7acace4b880e8a18c0d0a7365636f6e640de69cabe5b0be20737566666978",
+        "convertedMatches": 0
+      },
+      {
+        "case": "ordinary expression defaults allow explicit values and omission defaults",
+        "ok": true,
+        "http": [
+          153,
+          162
+        ],
+        "metadata": "id|auto_increment|\nlabel||\nstamp|DEFAULT_GENERATED|\nexpression_value|DEFAULT_GENERATED|",
+        "explicit": "1",
+        "omitted": "2",
+        "defaulted": {
+          "id": "2",
+          "label": "omitted",
+          "stamp": "2026-09-07 09:10:03.279507",
+          "expression_value": "表达式🙂"
+        }
+      },
+      {
+        "case": "Auto Fill writes expression-default audit columns with one UTC database time",
+        "ok": true,
+        "http": [
+          162,
+          166
+        ],
+        "id": "1",
+        "stamps": [
+          "2026-09-07 09:10:04.604559",
+          "2026-09-07 09:10:04.604559"
+        ],
+        "after": [
+          "2026-09-07 09:10:04.604559",
+          "2026-09-07 09:10:05.449031"
+        ]
+      },
+      {
+        "case": "stored_value remains rejected as a real generated column",
+        "ok": true,
+        "http": [
+          166,
+          168
+        ],
+        "metadata": "id|auto_increment|\nbase_value||\nstored_value|STORED GENERATED|(`base_value` * 2)\nvirtual_value|VIRTUAL GENERATED|(`base_value` + 1)"
+      },
+      {
+        "case": "virtual_value remains rejected as a real generated column",
+        "ok": true,
+        "http": [
+          168,
+          170
+        ],
+        "metadata": "id|auto_increment|\nbase_value||\nstored_value|STORED GENERATED|(`base_value` * 2)\nvirtual_value|VIRTUAL GENERATED|(`base_value` + 1)"
+      },
+      {
+        "case": "generated fields calculate on omitted ADD and stay unwritable on PATCH",
+        "ok": true,
+        "http": [
+          170,
+          178
+        ],
+        "id": "1",
+        "before": "9|18|10",
+        "after": "11|22|12"
+      },
+      {
+        "case": "VARCHAR length is editable rejection with rollback and corrected browser retry",
+        "ok": true,
+        "http": [
+          178,
+          181
+        ],
+        "rejectedRequestId": "rcc-cba7b0bf650fb8a8cbf67b32c2459df9",
+        "retryRequestId": "rcc-45e7f2ea5d0dbed32f1d9a19347ec977"
+      },
+      {
+        "case": "TINYINT range is editable rejection with rollback and corrected browser retry",
+        "ok": true,
+        "http": [
+          181,
+          184
+        ],
+        "rejectedRequestId": "rcc-1c9f479aa4b6e4619d789455b55b9b65",
+        "retryRequestId": "rcc-90f97a315520980522b8875053c0223c"
+      }
+    ],
+    "failures": [],
+    "sqlErrors": [
+      {
+        "case": "VARCHAR length",
+        "diagnostic": "ERROR 1406 (22001) at line 1: Data too long for column 'label' at row 1\n"
+      },
+      {
+        "case": "TINYINT range",
+        "diagnostic": "ERROR 1264 (22003) at line 1: Out of range value for column 'small_value' at row 1\n"
+      }
+    ],
+    "pageErrors": [],
+    "cleanup": {
+      "fixtureRowsEqual": true,
+      "remainingTables": "0",
+      "remainingTablePolicies": "0",
+      "remainingPolicies": "0"
+    }
+  },
+  "focusedMySQL": {
+    "log": "identity-auto-result-final.log",
+    "startedAt": "2026-09-07T09:14:51Z",
+    "finishedAt": "2026-09-07T09:15:56Z",
+    "groups": 8,
+    "allPassed": true,
+    "skipped": 0,
+    "elapsedSeconds": 64.753,
+    "logSha256": "fd9e3590c9ed18e8c15997e58ed0e176816f98323e269bb8dff39a7b2a6deb7d",
+    "autoResultCases": 9,
+    "actualDriverResults": [
+      {
+        "case": "trigger88 omitted/zero",
+        "driver": 88,
+        "session": 6,
+        "sql": "88"
+      },
+      {
+        "case": "unsigned generated",
+        "driver": -2,
+        "session": "18446744073709551614",
+        "sql": "18446744073709551614"
+      },
+      {
+        "case": "unsigned trigger",
+        "driver": -2,
+        "session": 6,
+        "sql": "18446744073709551614"
+      },
+      {
+        "case": "no-auto-zero",
+        "driver": 0,
+        "session": 6,
+        "sql": "0"
+      }
+    ]
+  },
+  "review": {
+    "standardsDeltaFindings": 2,
+    "standardsDeltaClosed": 2,
+    "finalStandardsNewFindings": 0,
+    "specFrozenFindings": 1
+  },
+  "limitations": [
+    "Complex matrix ADD and Change Set use visible UI; exact query and PATCH matrix use Playwright APIRequest through the production same-origin proxy.",
+    "Later main account integration requires new Cookie/CSRF browser evidence.",
+    "Large uint64 interpretation follows pinned go-sql-driver/mysql v1.10.0, protected by real integration tests."
+  ]
+}

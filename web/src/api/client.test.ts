@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { businessSessionInvalid, setBusinessSession } from "./business-session";
-import { ApiError, request, shouldRetryQuery } from "./client";
+import { ApiError, request, shouldRetryQuery, isUncertainWriteError } from "./client";
 
 afterEach(() => { vi.unstubAllGlobals(); setBusinessSession(null); });
 
@@ -37,6 +37,17 @@ describe("Admin API client", () => {
     await expect(request("/api/test", { schema: z.object({ value: z.string() }) })).rejects.toMatchObject({
       code: "contract_mismatch",
       requestId: "req-contract",
+    });
+  });
+
+  it("preserves response headers when the response body stream fails", async () => {
+    const cause = new TypeError("response stream interrupted");
+    const body = new ReadableStream({ start(controller) { controller.enqueue(new TextEncoder().encode('{"id":')); controller.error(cause); } });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(body, {
+      status: 201, headers: { "X-Request-ID": "req-body-interrupted" },
+    })));
+    await expect(request("/api/test", { method: "POST" })).rejects.toMatchObject({
+      name: "ApiError", code: "network_error", status: 201, requestId: "req-body-interrupted", cause,
     });
   });
 
@@ -87,5 +98,35 @@ describe("Admin API client", () => {
     if (result instanceof Response) finish(result); else fail(result);
     await expect(pending).rejects.toMatchObject({ code: "stale_session" });
     expect(invalid).not.toHaveBeenCalled();
+  });
+});
+
+
+describe("uncertain writes", () => {
+  it.each([
+    ["network_error", 0], ["network_error", 201], ["contract_mismatch", 200],
+    ["unexpected_response", 400], ["mutation_unavailable", 503], ["policy_catalog_unavailable", 503],
+    ["query_policy_not_found", 404], ["mutation_policy_not_found", 404], ["table_policy_not_found", 404],
+    ["mutation_timeout", 504], ["internal_error", 500], ["unrecognized_rejection", 422],
+  ])("treats %s/%i as potentially committed", (code, status) => {
+    expect(isUncertainWriteError(new ApiError(code, "message", status))).toBe(true);
+  });
+  it.each(["duplicate_key", "invalid_mutation_content", "query_policy_exists", "invalid_policy_transition", "session_invalid", "account_disabled", "csrf_invalid"])("allows correction after recognized %s rejection", (code) => {
+    expect(isUncertainWriteError(new ApiError(code, "rejected", 422))).toBe(false);
+  });
+  it.each([
+    "release_auto_id_ambiguous", "publication_unsupported", "publication_metadata_permission",
+    "release_snapshot_unsupported", "release_metadata_permission", "release_cross_table",
+    "release_item_limit", "release_result_limit", "release_field_limit", "release_duplicate_target",
+    "release_invalid", "rollback_locked", "rollback_restore_mismatch",
+  ])("allows correction after recognized release %s rejection", (code) => {
+    expect(isUncertainWriteError(new ApiError(code, "release rejected", 422))).toBe(false);
+  });
+  it.each(["permission_denied", "authentication_required", "release_not_found", "idempotency_conflict"])("keeps an original request after non-conclusive release %s", (code) => {
+    expect(isUncertainWriteError(new ApiError(code, "not conclusive", 422))).toBe(true);
+  });
+  it("does not infer a rejection from an unknown exception or absent error", () => {
+    expect(isUncertainWriteError(new TypeError("unknown"))).toBe(true);
+    expect(isUncertainWriteError(null)).toBe(false);
   });
 });

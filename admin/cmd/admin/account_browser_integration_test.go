@@ -17,7 +17,7 @@ import (
 // This intentionally separate system target requires installed Web dependencies
 // and Chromium. It fails (never skips) if that browser environment is unavailable.
 func TestAccountBrowserSystemPath(t *testing.T) {
-	_, driver := startIntegrationMySQLWithRequirement(t, true, "../../../deploy/mysql/init/001-schema.sql", localManagedTableFixture, "../../../docs/verification/fixtures/stage1_acceptance.sql", "testdata/014-batch-browser.sql")
+	_, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", localManagedTableFixture, "../../../docs/verification/fixtures/stage1_acceptance.sql", "testdata/014-batch-browser.sql")
 	db := deliveryDB(t, driver)
 	maintenance := filepath.Join(t.TempDir(), "account-maintain")
 	build := exec.Command("go", "build", "-o", maintenance, "../account-maintain")
@@ -75,12 +75,16 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 		t.Fatalf("browser system path: %v %s", err, result)
 	}
 	var evidence struct {
+		RunSuffix   string   `json:"run_suffix"`
 		AccountID   string   `json:"account_id"`
 		TemplateKey string   `json:"template_key"`
 		Checks      []string `json:"checks"`
 	}
 	if err := json.Unmarshal(result, &evidence); err != nil {
 		t.Fatalf("browser evidence: %v %s", err, result)
+	}
+	if len(evidence.RunSuffix) != 12 || strings.Trim(evidence.RunSuffix, "0123456789abcdef") != "" {
+		t.Fatal("browser evidence omitted its unique account fixture suffix")
 	}
 	var creator, modifier, body string
 	if err := db.QueryRow("SELECT creator,modifier,body FROM notification_templates WHERE template_key=?", evidence.TemplateKey).Scan(&creator, &modifier, &body); err != nil {
@@ -90,6 +94,16 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 		t.Fatal("real database Operator/content did not match browser account")
 	}
 	prepareManagementBrowserPolicies(t, admin, maintenance, fixtureEnvironment)
+	// The shared rollback fixture references the mutation policy created above.
+	rollbackFixture, err := os.ReadFile(filepath.Join(web, "e2e/fixtures/release-rollbacks.sql"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, statement := range strings.Split(string(rollbackFixture), ";") {
+		if strings.TrimSpace(statement) != "" {
+			deliveryExec(t, db, statement)
+		}
+	}
 	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs", "release-drafts.cjs", "release-approvals.cjs", "release-batches.cjs", "release-rollbacks.cjs"} {
 		t.Run(script, func(t *testing.T) {
 			command := exec.Command("node", filepath.Join(web, "e2e", script))
@@ -117,7 +131,7 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 		t.Fatalf("invalid management write changed the fixture: count=%d err=%v", fixtureRows, err)
 	}
 	admin.stop(t)
-	for _, secret := range []string{"browser.secret@example.com", "browser password long enough", "browser system configuration"} {
+	for _, secret := range []string{"browser." + evidence.RunSuffix + "@example.invalid", "roles." + evidence.RunSuffix + "@example.invalid", "browser password long enough", "browser system configuration"} {
 		if strings.Contains(admin.output.String(), secret) || strings.Contains(output.String(), secret) {
 			t.Fatal("process/proxy log exposed sensitive material")
 		}

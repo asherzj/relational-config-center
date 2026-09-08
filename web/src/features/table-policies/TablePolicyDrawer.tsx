@@ -3,9 +3,11 @@ import { Input } from "../../components/shadcn/input";
 import { NativeSelect } from "../../components/shadcn/native-select";
 import { Label } from "../../components/shadcn/label";
 import { Badge } from "../../components/shadcn/badge";
-import { AlertCircle } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { getTablePolicy } from "../../api/table-policies";
+import { useWriteRecovery, WriteRecovery } from "../../components/ui/WriteRecovery";
+import { AlertCircle } from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent, type MutableRefObject, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { Button } from "../../components/ui/Button";
@@ -31,9 +33,10 @@ export function TablePolicyDrawer({ tableName }: Props) {
   const replace = useReplaceTablePolicy();
   const enable = useEnableTablePolicy();
   const disable = useDisableTablePolicy();
+  const submittedTable = useRef<string | undefined>(undefined);
   // Editing selections reset on navigation; an unconfirmed write outcome must
   // survive closing and reopening the drawer until its state is read back.
-  return <TablePolicySession key={`${tableName}:${searchParams.get("mode")}`} tableName={tableName} commands={{ create, replace, enable, disable }} />;
+  return <TablePolicySession key={`${tableName}:${searchParams.get("mode")}`} tableName={tableName} commands={{ create, replace, enable, disable }} submittedTable={submittedTable} />;
 }
 
 type Commands = {
@@ -43,7 +46,7 @@ type Commands = {
   disable: ReturnType<typeof useDisableTablePolicy>;
 };
 
-function TablePolicySession({ tableName, commands: { create, replace, enable, disable } }: Props & { commands: Commands }) {
+function TablePolicySession({ tableName, commands: { create, replace, enable, disable }, submittedTable }: Props & { commands: Commands; submittedTable: MutableRefObject<string | undefined> }) {
   const navigate = useNavigate();
   const canManage = useAccountRole("ADMIN");
   const editingAllowedAtOpen = useRef(canManage).current;
@@ -62,30 +65,32 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
   const [assignment, setAssignment] = useState<TablePolicyAssignment>(emptyAssignment);
   const [baseline, setBaseline] = useState<TablePolicyAssignment | null>(creating ? emptyAssignment : null);
   const inFlight = useRef(false);
+  const recovery = useWriteRecovery();
   const pending = create.isPending || replace.isPending || enable.isPending || disable.isPending;
-  const protection = useDraftProtection(selectingAssignment && baseline !== null && JSON.stringify(assignment) !== JSON.stringify(baseline), pending);
+  const protection = useDraftProtection(selectingAssignment && baseline !== null && JSON.stringify(assignment) !== JSON.stringify(baseline), pending, inFlight);
   const [confirmReplace, setConfirmReplace] = useState(false);
   const [pendingStateCommand, setPendingStateCommand] = useState<"enable" | "disable" | null>(null);
   const close = () => navigate("/platform/table-policies");
   const serverError = prioritizeUncertainWriteError([create.error, replace.error, enable.error, disable.error]);
   const uncertain = isUncertainWriteError(serverError);
-  const verifyCurrentState = async () => {
-    try {
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: tablePolicyKeys.list }, { throwOnError: true }),
-        queryClient.refetchQueries({ queryKey: tablePolicyKeys.discovery }, { throwOnError: true }),
-        ...(tableName ? [queryClient.refetchQueries({ queryKey: tablePolicyKeys.detail(tableName) }, { throwOnError: true })] : []),
-      ]);
-    } catch {
-      // A failed read cannot establish the outcome of the previous write.
-      return;
+  const finishRecovery = () => {
+    recovery.reset(); create.reset(); replace.reset(); enable.reset(); disable.reset();
+    if (!selectingAssignment) {
+      close();
+      void queryClient.invalidateQueries({ queryKey: tablePolicyKeys.list });
+      void queryClient.invalidateQueries({ queryKey: tablePolicyKeys.discovery });
     }
-    create.reset(); replace.reset(); enable.reset(); disable.reset();
-    protection.afterSave(() => navigate(tableName ? `/platform/table-policies/${encodeURIComponent(tableName)}` : "/platform/table-policies"));
   };
-  const writeError = serverError && (uncertain
-    ? <div className="inline-alert" role="alert"><strong>提交结果尚未确认。系统不会自动重复此写入。</strong>{selectingAssignment && <Button type="button" variant="secondary" onClick={verifyCurrentState}>只读查询当前状态</Button>}</div>
-    : <ErrorState error={serverError} />);
+  const checkCurrentState = async () => {
+    const snapshot = await getTablePolicy(submittedTable.current!);
+    await Promise.all([
+      queryClient.refetchQueries({ queryKey: tablePolicyKeys.list }, { throwOnError: true }),
+      queryClient.refetchQueries({ queryKey: tablePolicyKeys.discovery }, { throwOnError: true }),
+      ...(submittedTable.current ? [queryClient.refetchQueries({ queryKey: tablePolicyKeys.detail(submittedTable.current) }, { throwOnError: true })] : []),
+    ]);
+    return snapshot;
+  };
+  const writeError = serverError && !uncertain ? <ErrorState error={serverError} /> : null;
 
   useEffect(() => {
     if (!baseline && detail.data) {
@@ -144,23 +149,24 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
   };
 
   const executeReplace = () => {
-    if (!canManage) return;
-    if (!tableName || !valid || uncertain || inFlight.current || pending) return;
+    if (!canManage || !tableName || !valid || uncertain || inFlight.current || pending || recovery.blocked.current) return;
     inFlight.current = true;
+    submittedTable.current = tableName ?? assignment.tableName;
     replace.mutate({ tableName, assignment }, {
       onSuccess() {
         setConfirmReplace(false);
         showToast("表规则已替换");
         protection.afterSave(() => navigate(`/platform/table-policies/${encodeURIComponent(tableName)}`));
       },
-      onError() { setConfirmReplace(false); },
-      onSettled() { inFlight.current = false; },
+      onError(error) { recovery.fail(error); setConfirmReplace(false); },
+      onSettled() { inFlight.current = false; protection.submissionSettled(); },
     });
   };
 
   const executeStateCommand = () => {
-    if (!canManage || !tableName || !pendingStateCommand || uncertain || inFlight.current || pending) return;
+    if (!canManage || !tableName || !pendingStateCommand || uncertain || inFlight.current || pending || recovery.blocked.current) return;
     inFlight.current = true;
+    submittedTable.current = tableName ?? assignment.tableName;
     const command = pendingStateCommand;
     const mutation = command === "enable" ? enable : disable;
     mutation.mutate(tableName, {
@@ -168,23 +174,24 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
         showToast(command === "enable" ? "表规则已启用" : "表规则已停用");
         setPendingStateCommand(null);
       },
-      onError() { setPendingStateCommand(null); },
-      onSettled() { inFlight.current = false; },
+      onError(error) { recovery.fail(error); setPendingStateCommand(null); },
+      onSettled() { inFlight.current = false; protection.submissionSettled(); },
     });
   };
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (!canManage) return;
-    if (!valid || uncertain || inFlight.current || pending) return;
+    if (!canManage || !valid || uncertain || inFlight.current || pending || recovery.blocked.current) return;
     if (creating) {
       inFlight.current = true;
+      submittedTable.current = tableName ?? assignment.tableName;
       create.mutate(assignment, {
         onSuccess(policy) {
           showToast("表规则已创建并保持未启用");
           protection.afterSave(() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}`));
         },
-        onSettled() { inFlight.current = false; },
+        onError: recovery.fail,
+        onSettled() { inFlight.current = false; protection.submissionSettled(); },
       });
     } else if (detail.data?.enabled) setConfirmReplace(true);
     else executeReplace();
@@ -216,7 +223,7 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
   else content = (
     <form id="table-policy-form" className="policy-form" onSubmit={submit}>
       <fieldset className="form-controls" disabled={pending || !canManage}>
-      <div className="form-note"><AlertCircle size={17} /><span>{creating ? "新分配始终创建为未启用；启用前 Admin 会再次校验实时 Schema 与两条规则引用。" : "查询规则和变更规则会一起校验、一起替换；任何一项失败，当前分配都保持不变。"}</span></div>
+      <div className="form-note"><AlertCircle size={17} /><span>{creating ? "新分配始终创建为未启用；启用前 Admin 会再次校验实时 Schema 与两条规则引用。" : "查询规则和变更规则会一起校验、一起替换；校验拒绝时保持原分配；响应丢失时须先核对结果。"}</span></div>
       {creating ? <Label className="field"><span>真实数据库表</span><NativeSelect aria-label="真实数据库表" value={assignment.tableName} onChange={(event) => setAssignment((current) => ({ ...current, tableName: event.target.value }))}>
           <option value="">请选择兼容且未分配的表</option>
           {assignment.tableName && !candidates.some((table) => table.tableName === assignment.tableName) && <option value={assignment.tableName} disabled>{assignment.tableName} · 当前选择已不可新分配</option>}
@@ -240,12 +247,12 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
   );
 
   let footer: ReactNode;
-  if (creating || replacing) footer = <><Button type="submit" form="table-policy-form" variant="primary" disabled={!valid || uncertain || create.isPending || replace.isPending}>{create.isPending || replace.isPending ? "正在保存…" : creating ? "创建未启用分配" : "检查并替换"}</Button><Button onClick={() => replacing && tableName ? navigate(`/platform/table-policies/${encodeURIComponent(tableName)}`) : close()} disabled={create.isPending || replace.isPending}>取消</Button></>;
+  if (creating || replacing) footer = <><Button type="submit" form="table-policy-form" variant="primary" disabled={!canManage || recovery.blocked.current || !valid || uncertain || create.isPending || replace.isPending}>{create.isPending || replace.isPending ? "正在保存…" : creating ? "创建未启用分配" : "检查并替换"}</Button><Button onClick={() => replacing && tableName ? navigate(`/platform/table-policies/${encodeURIComponent(tableName)}`) : close()} disabled={create.isPending || replace.isPending}>取消</Button></>;
   else footer = uncertain
-    ? <><Button variant="primary" onClick={verifyCurrentState}>只读查询当前状态</Button><Button className="drawer-close-action" onClick={close}>关闭</Button></>
-    : <><Button variant="primary" onClick={() => navigate("?mode=replace")}>替换所选规则</Button>{detail.data && <Button variant={detail.data.enabled ? "danger" : "primary"} onClick={() => setPendingStateCommand(detail.data.enabled ? "disable" : "enable")}>{detail.data.enabled ? "停用" : "启用"}</Button>}<Button className="drawer-close-action" onClick={close}>关闭</Button></>;
+    ? <Button className="drawer-close-action" onClick={close}>关闭</Button>
+    : <><Button variant="primary" disabled={recovery.blocked.current} onClick={() => navigate("?mode=replace")}>替换所选规则</Button>{detail.data && <Button variant={detail.data.enabled ? "danger" : "primary"} disabled={recovery.blocked.current} onClick={() => setPendingStateCommand(detail.data.enabled ? "disable" : "enable")}>{detail.data.enabled ? "停用" : "启用"}</Button>}<Button className="drawer-close-action" onClick={close}>关闭</Button></>;
   if (!canManage) footer = <Button onClick={close}>关闭</Button>;
   const title = creating ? "新建表规则分配" : replacing ? "替换表规则" : "表规则详情";
   const stateConfirm = pendingStateCommand === "enable" ? { title: "启用表规则？", description: "Admin 将根据实时 Schema 和两条规则引用重新校验；成功后该表成为 Managed Table。", label: "确认启用" } : { title: "停用表规则？", description: "停用后该表立即失去 Managed Table 身份，后续数据 API 请求将被拒绝。", label: "确认停用" };
-  return <><Drawer open title={title} eyebrow="表规则" onClose={close} footer={footer}>{content}</Drawer>{detail.data?.enabled && <ConfirmDialog open={confirmReplace} title="替换已启用的表规则？" description="查询规则和变更规则校验成功后会一起替换，下一次请求立即生效。" confirmLabel="确认替换" pending={replace.isPending} onCancel={() => setConfirmReplace(false)} onConfirm={executeReplace} />}{pendingStateCommand && <ConfirmDialog open title={stateConfirm.title} description={stateConfirm.description} confirmLabel={stateConfirm.label} destructive={pendingStateCommand === "disable"} pending={enable.isPending || disable.isPending} onCancel={() => setPendingStateCommand(null)} onConfirm={executeStateCommand} />}</>;
+  return <><Drawer open title={title} eyebrow="表规则" onClose={close} footer={footer}>{content}<WriteRecovery onResume={finishRecovery} resumeLabel={selectingAssignment ? "我已核对，返回修改" : "我已核对，结束本次核对"} error={serverError} onCheck={checkCurrentState} /></Drawer>{detail.data?.enabled && <ConfirmDialog open={confirmReplace} title="替换已启用的表规则？" description="查询规则和变更规则校验成功后会一起替换，下一次请求立即生效。" confirmLabel="确认替换" pending={replace.isPending} confirmDisabled={uncertain || recovery.blocked.current} onCancel={() => setConfirmReplace(false)} onConfirm={executeReplace} />}{pendingStateCommand && <ConfirmDialog open title={stateConfirm.title} description={stateConfirm.description} confirmLabel={stateConfirm.label} destructive={pendingStateCommand === "disable"} pending={enable.isPending || disable.isPending} confirmDisabled={uncertain || recovery.blocked.current} onCancel={() => setPendingStateCommand(null)} onConfirm={executeStateCommand} />}</>;
 }

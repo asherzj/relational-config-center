@@ -27,6 +27,10 @@ func runMain(standardError *os.File) int {
 			fmt.Fprintln(standardError, "startup error: authentication schema is incomplete; apply migration 007 (see deploy/mysql/migrations/README.md)")
 		} else if errors.Is(err, mysqladapter.ErrAccountRoleSchemaIncomplete) {
 			fmt.Fprintln(standardError, "startup error: account role schema is incomplete; apply migration 008 (see deploy/mysql/migrations/README.md)")
+		} else if errors.Is(err, mysqladapter.ErrRecordVersionSchemaIncomplete) {
+			fmt.Fprintln(standardError, "startup error: record version schema is incomplete; apply migration 009 (see deploy/mysql/migrations/README.md)")
+		} else if errors.Is(err, mysqladapter.ErrReleaseSchemaIncomplete) {
+			fmt.Fprintln(standardError, "startup error: release order schema is incomplete; apply migrations 010, 011 and 012 (see deploy/mysql/migrations/README.md)")
 		} else {
 			fmt.Fprintln(standardError, "startup error: Managed Data Source is unavailable")
 		}

@@ -1,6 +1,6 @@
 import { testAdminIdentity, withAdminSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TestRouter } from "../../test/TestRouter";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -210,13 +210,17 @@ describe("表规则分配页面", () => {
         writes += 1;
         throw new TypeError("response lost after commit");
       }
-      if (url.endsWith("/table-policies")) {
+      if (url.endsWith("/table-policies/message_templates")) {
         reads += 1;
         if (failedCheckStatus) {
           failedReads += 1;
           if (!finishCheck) return new Promise<Response>((resolve) => { finishCheck = resolve; });
           return json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, failedCheckStatus);
         }
+        return json({ ...tablePolicy, table_name: "message_templates", enabled: false });
+      }
+      if (url.endsWith("/table-policies")) {
+        reads += 1;
         return json({ policies: [tablePolicy] });
       }
       throw new Error(`unexpected request ${url}`);
@@ -228,25 +232,30 @@ describe("表规则分配页面", () => {
     await user.selectOptions(screen.getByRole("combobox", { name: "Active 查询规则" }), "standard_page_query_v1");
     await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "standard_mutation_v1");
     await user.click(screen.getByRole("button", { name: "创建未启用分配" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+    expect(await screen.findByLabelText("提交结果尚未确认")).toHaveTextContent("提交结果尚未确认");
     expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeDisabled();
     expect(writes).toBe(1);
     for (const status of [503, 504]) {
       failedCheckStatus = status;
       failedReads = 0;
       finishCheck = undefined;
-      await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+      await user.click(screen.getByRole("button", { name: "只读核对当前状态" }));
       await waitFor(() => expect(finishCheck).toBeTypeOf("function"));
       await act(async () => { finishCheck!(json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, status)); });
-      await waitFor(() => expect(failedReads).toBe(2));
-      expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+      await waitFor(() => expect(failedReads).toBe(1));
+      expect(await screen.findByLabelText("提交结果尚未确认")).toHaveTextContent("提交结果尚未确认");
       expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeDisabled();
       expect(writes).toBe(1);
     }
     failedCheckStatus = 0;
     const readsBeforeCheck = reads;
-    await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+    await user.click(screen.getByRole("button", { name: "只读核对当前状态" }));
     await vi.waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
+    expect(await screen.findByText("当前查询结果（仅供核对）")).toBeVisible();
+    expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "我已核对，返回修改" }));
+    await waitFor(() => expect(screen.queryByLabelText("提交结果尚未确认")).not.toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeEnabled();
     expect(writes).toBe(1);
   });
 
@@ -280,7 +289,7 @@ describe("表规则分配页面", () => {
     renderPage("/platform/table-policies/notification_templates");
     await user.click(await screen.findByRole("button", { name: "停用" }));
     await user.click(screen.getByRole("button", { name: "确认停用" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+    expect(await screen.findByLabelText("提交结果尚未确认")).toHaveTextContent("提交结果尚未确认");
     expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
     expect(writes).toBe(1);
     await user.click(screen.getByRole("button", { name: "关闭抽屉" }));
@@ -291,20 +300,23 @@ describe("表规则分配页面", () => {
       failedCheckStatus = status;
       failedReads = 0;
       finishCheck = undefined;
-      await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+      await user.click(screen.getByRole("button", { name: "只读核对当前状态" }));
       await waitFor(() => expect(finishCheck).toBeTypeOf("function"));
       await act(async () => { finishCheck!(json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, status)); });
-      await waitFor(() => expect(failedReads).toBe(2));
-      expect(await screen.findByRole("alert")).toHaveTextContent("提交结果尚未确认");
+      await waitFor(() => expect(failedReads).toBe(1));
+      expect(await screen.findByLabelText("提交结果尚未确认")).toHaveTextContent("提交结果尚未确认");
       expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
       expect(writes).toBe(1);
     }
     failedCheckStatus = 0;
     const readsBeforeCheck = reads;
-    await user.click(screen.getByRole("button", { name: "只读查询当前状态" }));
+    await user.click(screen.getByRole("button", { name: "只读核对当前状态" }));
     await waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
-    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
-    expect(screen.getByRole("button", { name: "停用" })).toBeEnabled();
+    expect(await screen.findByText("当前查询结果（仅供核对）")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "我已核对，结束本次核对" }));
+    await waitFor(() => expect(screen.queryByLabelText("提交结果尚未确认")).not.toBeInTheDocument());
+    expect(await screen.findByRole("button", { name: "查看" })).toBeEnabled();
     expect(writes).toBe(1);
   });
 
@@ -569,4 +581,35 @@ describe("表规则分配页面", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("实时表结构");
     expect(screen.getByRole("alert")).toHaveTextContent("req-schema-24");
   });
+});
+
+
+it("ends an uncertain enable/disable check in the refreshed table directory", async () => {
+  let enabled = true;
+  let writes = 0;
+  vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.endsWith("/table-policies/notification_templates/disable") && init?.method === "POST") {
+      writes++; enabled = false; throw new TypeError("response lost after disabling");
+    }
+    if (url.endsWith("/table-policies/notification_templates")) return json({ ...tablePolicy, enabled });
+    if (url.endsWith("/table-policies")) return json({ policies: [{ ...tablePolicy, enabled }] });
+    if (url.endsWith("/database-tables")) return json({ tables: discoveryTables.map(table => table.table_name === "notification_templates" ? { ...table, policy_enabled: enabled } : table) });
+    if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+    if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
+    if (url.endsWith("/query-policies")) return json({ policies: queryPolicies });
+    if (url.endsWith("/mutation-policies")) return json({ policies: mutationPolicies });
+    throw new Error(`unexpected request ${url}`);
+  })));
+  renderPage("/platform/table-policies/notification_templates");
+  const drawer = await screen.findByRole("dialog", { name: "表规则详情" });
+  await userEvent.click(await within(drawer).findByRole("button", { name: "停用" }));
+  await userEvent.click(screen.getByRole("button", { name: "确认停用" }));
+  await screen.findByLabelText("提交结果尚未确认");
+  await userEvent.click(screen.getByRole("button", { name: "只读核对当前状态" }));
+  await screen.findByText("当前查询结果（仅供核对）");
+  await userEvent.click(screen.getByRole("button", { name: "我已核对，结束本次核对" }));
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: "表规则详情" })).not.toBeInTheDocument());
+  expect(await within(screen.getByRole("region", { name: "表规则目录" })).findByText("未启用")).toBeVisible();
+  expect(writes).toBe(1);
 });
