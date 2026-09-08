@@ -134,6 +134,16 @@ async function waitDatabase() {
       // Enter through a real in-app history entry so pending Back exercises
       // the router blocker, not a fresh tab's about:blank document.
       await open('/configuration/release-orders');
+      await page.getByLabel('单号', { exact: true }).fill(order.id);
+      const lookup = page.waitForResponse(response => {
+        const url = new URL(response.url());
+        return response.request().method() === 'GET' && url.pathname === '/api/v1/release-orders'
+          && url.searchParams.get('id') === order.id;
+      });
+      await page.getByRole('button', { name: '查询发布单', exact: true }).click();
+      const lookupResponse = await lookup;
+      assert.equal(lookupResponse.status(), 200);
+      assert.deepEqual((await lookupResponse.json()).orders.map(item => item.id), [order.id]);
       await page.getByRole('link', { name: order.id, exact: true }).click();
       await button('执行发布').click();
       return { order, id, path: `/api/v1/release-orders/${order.id}/execute` };
