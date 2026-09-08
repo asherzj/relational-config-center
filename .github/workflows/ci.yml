@@ -79,7 +79,7 @@ jobs:
   mysql-integration:
     name: MySQL 8.4 integration
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 65
     steps:
       - name: Check out repository
         uses: actions/checkout@v7

@@ -75,7 +75,7 @@ make test-integration
 
 集成测试使用 Testcontainers 和真实 MySQL 8.4；`make test-integration` 禁用 Go 测试缓存。正式入口先执行 Docker 健康检查，依赖不可用时命令失败；直接运行带 `integration` 标签的 Go 测试也会因缺失必需 Docker/MySQL 而失败。
 
-整组集成测试的进程上限为 40 分钟，以容纳隔离 MySQL 容器启动时间的波动；CI 任务另有 45 分钟总上限。各请求、数据库等待和进程停止的独立超时仍由对应测试验证。
+整组集成测试的进程上限为 60 分钟，以容纳隔离 MySQL 容器启动时间的波动；CI 任务另有 65 分钟总上限。各请求、数据库等待和进程停止的独立超时仍由对应测试验证。
 
 ## 持续集成
 
