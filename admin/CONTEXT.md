@@ -25,11 +25,11 @@ A time-bounded authenticated period of access to Admin associated with one Local
 _Avoid_: Database session, Policy Snapshot, deployment token
 
 **Managed Data Source**:
-The single MySQL database selected by deployment configuration and available to one deployment for management. It cannot be selected or changed by runtime policy.
-_Avoid_: MySQL instance, arbitrary database, external DSN
+The single database available to one Admin deployment for management. It cannot be selected or changed by runtime policy.
+_Avoid_: Database instance, arbitrary database
 
 **Managed Table**:
-An existing base table governed by an enabled Table Policy. Its sole primary-key column is named `id`, and its schema is maintained outside Admin.
+An existing base table governed by an enabled Table Policy, whose schema is maintained outside Admin.
 _Avoid_: View, system table, remote table, arbitrary table
 
 **Table Policy（表规则）**:
@@ -69,7 +69,7 @@ A Table Policy assignment together with the complete Query Policy and Mutation P
 _Avoid_: Live policy lookup, 策略快照
 
 **Query Spec**:
-A domain-level declaration of a requested single-table query against one Managed Table, before storage-specific validation and compilation.
+A declaration of filters, sorting, and pagination requested against one Managed Table, subject to its assigned Query Policy.
 _Avoid_: SQL, GORM query
 
 **Change Set**:
@@ -85,7 +85,7 @@ The decision of an authorized person other than the applicant to approve or reje
 _Avoid_: Login, publication, self-confirmation
 
 **Record Version（记录并发版本）**:
-The monotonically advancing concurrency identity of one configuration record, used to reject changes based on an older record state, including after deletion and recreation of the same record identity. Equivalent representations of the same database identity share that version, and a maintenance generation change invalidates previously observed baselines.
+The monotonically advancing concurrency identity of one configuration record, used to reject changes based on an older record state, including after deletion and recreation of the same record identity.
 _Avoid_: Release Order Version, Table Version, historical revision
 
 **Release Order Version（发布单版本）**:
@@ -105,7 +105,7 @@ A known configuration record identity reserved by a submitted, unfinished Releas
 _Avoid_: Draft editing lock, business-field similarity
 
 **Account Role（账号角色）**:
-A global grant governing the actions a Local Account may perform across this deployment's Managed Tables and Release Orders. Roles can be combined; every role includes viewing, while editing, approving and publishing do not imply one another. New accounts begin as viewers, with administrators explicitly appointed by deployment maintenance. An administrative role does not permit approval of one's own order.
+A global, composable grant governing the actions a Local Account may perform across this deployment's Managed Tables and Release Orders. Every role includes viewing; editing, approval and publication do not imply one another, and no role permits approval of one's own order.
 _Avoid_: Account Status, Table Policy, per-table permission
 
 **Publication Command（发布变更记录）**:
@@ -115,3 +115,9 @@ _Avoid_: Approval request, editable draft, SQL command
 **Refresh Notification Record（刷新通知记录）**:
 A durable record that a committed publication requires downstream consumers to refresh. Its existence does not mean that a consumer has received or applied the change.
 _Avoid_: Published configuration, delivery receipt, cache version
+
+## Related documents
+
+- [Admin technical baseline](../docs/admin-v1-technical-baseline.md): database selection and Managed Table schema requirements.
+- [Record Versions](../docs/admin-record-versions.md): database identity equivalence and maintenance generations.
+- [Account roles](../docs/admin-account-roles.md): default roles, administrator appointment and recovery.

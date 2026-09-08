@@ -4,34 +4,15 @@
 
 ## 约定
 
-- **创建 Issue**：`gh issue create --title "..." --body "..."`。多行正文使用 here-document（heredoc）。
-- **读取 Issue**：`gh issue view <number> --comments`，使用 `jq` 过滤评论，并同时获取标签。
-- **列出 Issue**：`gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'`，并根据需要使用 `--label` 和 `--state` 过滤器。
-- **评论 Issue**：`gh issue comment <number> --body "..."`
-- **添加／移除标签**：`gh issue edit <number> --add-label "..."` / `--remove-label "..."`
-- **关闭 Issue**：`gh issue close <number> --comment "..."`
-
-通过 `git remote -v` 推断仓库；在克隆仓库内部运行时，`gh` 会自动完成此操作。
+- 在仓库目录运行 `gh`，由 Git remote 自动定位仓库。
+- 读取或检索工单时，同时获取正文、评论和标签；按需过滤状态与标签。
+- 多行正文写入临时文件并使用 `--body-file`；Triage 标签见 [标签约定](triage-labels.md)。
 
 ## 将 Pull Request 作为 Triage 入口
 
-**将 PR 作为请求入口：否。** _（如果本仓库将外部 PR 视为功能请求，可改为 `yes`；`/triage` 会读取此标志。）_
-
-设为 `yes` 后，PR 将使用与 Issue 相同的标签和状态流转，并使用对应的 `gh pr` 命令：
-
-- **读取 PR**：使用 `gh pr view <number> --comments`，并通过 `gh pr diff <number>` 查看差异。
-- **列出待 Triage 的外部 PR**：运行 `gh pr list --state open --json number,title,body,labels,author,authorAssociation,comments`，然后只保留 `authorAssociation` 为 `CONTRIBUTOR`、`FIRST_TIME_CONTRIBUTOR` 或 `NONE` 的项目（排除 `OWNER`、`MEMBER` 和 `COLLABORATOR`）。
-- **评论／添加标签／关闭**：使用 `gh pr comment`、`gh pr edit --add-label` / `--remove-label`、`gh pr close`。
+**将 PR 作为请求入口：否。**
 
 GitHub 的 Issue 和 PR 共用同一个编号空间，因此单独出现的 `#42` 可能是其中任意一种：先运行 `gh pr view 42`，失败后再运行 `gh issue view 42`。
-
-## 当技能要求“发布到 Issue 跟踪器”时
-
-创建一个 GitHub Issue。
-
-## 当技能要求“获取相关工单”时
-
-运行 `gh issue view <number> --comments`。
 
 ## Wayfinding 操作
 

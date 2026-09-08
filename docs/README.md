@@ -5,7 +5,9 @@
 ## 入口
 
 - [上下文地图](../CONTEXT-MAP.md)
+- [项目通用术语](../CONTEXT.md)
 - [Admin 领域术语](../admin/CONTEXT.md)
+- [配置组织与视图（规划概念）](./design-notes/configuration-organization-and-views.md)
 - [Admin V1 技术基线](./admin-v1-technical-baseline.md)
 - [架构决策记录](./adr/)
 
