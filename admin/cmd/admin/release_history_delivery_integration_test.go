@@ -77,7 +77,7 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	}
 	orders := map[string]domain.ReleaseOrder{}
 	for _, state := range []string{"DRAFT", "PENDING_APPROVAL", "APPROVED", "REJECTED", "CANCELLED"} {
-		payload := fmt.Sprintf(`{"table_name":"history_items","items":[{"operation":"ADD","content":{"id":%q,"value":"","metadata":"null"}}]}`, strings.ToLower(state))
+		payload := fmt.Sprintf(`{"title":"集成测试发布单","table_name":"history_items","items":[{"operation":"ADD","content":{"id":%q,"value":"","metadata":"null"}}]}`, strings.ToLower(state))
 		order := decode(request(editor, "POST", "/api/v1/release-orders", payload, "history-create-"+state, 201))
 		switch state {
 		case "PENDING_APPROVAL":
@@ -93,7 +93,7 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 		}
 		orders[order.ID] = order
 	}
-	forward := decode(request(editor, "POST", "/api/v1/release-orders", `{"table_name":"history_items","items":[{"operation":"MODIFY","id":"forward","expected_record_version":"0","content":{"value":"发布后新值","metadata":"null"}}]}`, "history-create-forward", 201))
+	forward := decode(request(editor, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"history_items","items":[{"operation":"MODIFY","id":"forward","expected_record_version":"0","content":{"value":"发布后新值","metadata":"null"}}]}`, "history-create-forward", 201))
 	forward = action(editor, forward, "submit", "")
 	forward = action(reviewer, forward, "approve", "正向批准意见")
 	forward = action(publisher, forward, "execute", "")

@@ -5,32 +5,41 @@ const version=z.string().regex(/^(0|[1-9][0-9]*)$/);
 const content=z.record(z.string(),z.string().nullable());
 export const draftItemSchema=z.object({operation:z.enum(["ADD","MODIFY","DELETE"]),id:z.string().nullable().optional(),expected_record_version:z.string().optional(),content});
 export type DraftItem=z.infer<typeof draftItemSchema>;
-export type DraftInput={table_name:string;items:DraftItem[];expected_version?:string};
+export type DraftContentInput={table_name:string;items:DraftItem[]};
+export type DraftInput=DraftContentInput&{title:string;expected_version?:string};
+export const defaultReleaseTitle=(table:string)=>Array.from(`${table} 配置变更`).slice(0,100).join("");
+export const releaseTitleError=(title:string)=>{
+ if(!title.trim())return "发布单标题必填。";
+ if(Array.from(title).length>100)return "发布单标题不能超过 100 个字符。";
+ return undefined;
+};
+export const validReleaseTitle=(title:string)=>!releaseTitleError(title);
 export const releaseFieldSchema=z.object({name:z.string(),type:z.string(),nullable:z.boolean(),editable:z.boolean(),before_state:z.enum(["value","sql_null","absent"]),before:z.string().nullable(),proposed_state:z.enum(["value","sql_null","omitted","absent","automatic","generated"]),proposed:z.string().nullable()});
 const canonicalRowSchema=z.object({format:z.literal("rcc-admin-mysql-row-v1"),schema_digest:z.string().regex(/^[a-f0-9]{64}$/),deleted:z.boolean(),fields:z.array(z.object({name:z.string(),type:z.string(),encoding:z.enum(["text","json","base64","sql_null"]),value:z.string().nullable()})),checksum:z.string().regex(/^[a-f0-9]{64}$/)});
 const publicationSchema=z.object({table_version:version,publisher_id:z.string(),executed_at:z.string(),notification:z.object({id:z.string(),table_version:version,status:z.literal("NOT_CONNECTED")}),commands:z.array(z.object({order_id:z.string(),sequence:version,table_name:z.string(),table_version:version,operation:z.enum(["ADD","MODIFY","DELETE"]),id:z.string(),record_version:version,before:canonicalRowSchema,final:canonicalRowSchema})).min(1)});
 export const releaseOrderSchema=z.object({
  publication:publicationSchema.optional(),
- copied_from_id:z.string().optional(),rollback_of_id:z.string().optional(),rollback_order_id:z.string().optional(),rollback_pending:z.boolean().optional().default(false),frozen_digest:z.string().optional(),id:z.string(),table_name:z.string(),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","APPROVED","SUCCEEDED","REJECTED","CANCELLED","ROLLED_BACK"]),version,
+ copied_from_id:z.string().optional(),rollback_of_id:z.string().optional(),rollback_order_id:z.string().optional(),rollback_pending:z.boolean().optional().default(false),frozen_digest:z.string().optional(),id:z.string(),title:z.string(),table_name:z.string(),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","APPROVED","SUCCEEDED","REJECTED","CANCELLED","ROLLED_BACK"]),version,
  items:z.array(draftItemSchema.extend({id:z.string().nullable(),expected_record_version:z.string(),before:content.nullable(),fields:z.array(releaseFieldSchema)})),
  history:z.array(z.object({action:z.string(),actor_id:z.string(),at:z.string(),version,reason:z.string(),related_order_id:z.string().optional()})),created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),
 });
 export type ReleaseOrder=z.infer<typeof releaseOrderSchema>;
-export const releaseSummarySchema=releaseOrderSchema.pick({id:true,table_name:true,applicant_id:true,state:true,version:true,created_at:true,updated_at:true,allowed_actions:true,rollback_of_id:true,rollback_order_id:true,rollback_pending:true}).extend({item_count:z.number().int().min(1).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
+export const releaseSummarySchema=releaseOrderSchema.pick({id:true,title:true,table_name:true,applicant_id:true,state:true,version:true,created_at:true,updated_at:true,allowed_actions:true,rollback_of_id:true,rollback_order_id:true,rollback_pending:true}).extend({item_count:z.number().int().min(1).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
 export type ReleaseField=z.infer<typeof releaseFieldSchema>;
 export const releaseOrders={
  list:(filters:Record<string,string>)=>request(`/api/v1/release-orders?${new URLSearchParams(filters)}`,{schema:z.object({orders:z.array(releaseSummarySchema),next_cursor:z.string()})}),
- preview:(input:DraftInput)=>request("/api/v1/release-orders/preview",{method:"POST",body:JSON.stringify(input),schema:z.object({table_name:z.string(),items:releaseOrderSchema.shape.items})}),
+ preview:(input:DraftContentInput)=>request("/api/v1/release-orders/preview",{method:"POST",body:JSON.stringify(input),schema:z.object({table_name:z.string(),items:releaseOrderSchema.shape.items})}),
  get:(id:string)=>request(`/api/v1/release-orders/${encodeURIComponent(id)}`,{schema:releaseOrderSchema}),
+ people:(id:string)=>request(`/api/v1/release-orders/${encodeURIComponent(id)}/people`,{schema:z.object({people:z.record(z.string(),z.string())})}),
  write:(path:string,method:string,body:string,key:string)=>request(path,{method,body,headers:{"Idempotency-Key":key},schema:releaseOrderSchema}),
 };
 export function draftFromOrder(order:ReleaseOrder):DraftInput{
- return {table_name:order.table_name,expected_version:order.version,items:order.items.map(item=>({operation:item.operation,...(item.operation!=="ADD"?{id:item.id}:{}),expected_record_version:item.expected_record_version,content:{...item.content}}))};
+ return {title:order.title,table_name:order.table_name,expected_version:order.version,items:order.items.map(item=>({operation:item.operation,...(item.operation!=="ADD"?{id:item.id}:{}),expected_record_version:item.expected_record_version,content:{...item.content}}))};
 }
 
 // Transport envelopes are serialized here once and retained unchanged for retries.
 export type ReleaseRequestEnvelope={path:string;method:"POST"|"PUT";body:string};
-const draftInputSchema=z.object({table_name:z.string(),items:z.array(draftItemSchema),expected_version:z.string().optional()});
+const draftInputSchema=z.object({title:z.string(),table_name:z.string(),items:z.array(draftItemSchema),expected_version:z.string().optional()});
 const cancelInputSchema=z.object({expected_version:z.string(),reason:z.string()});
 const submitInputSchema=z.object({expected_version:z.string()});
 const copyInputSchema=z.object({expected_version:z.string(),confirmed:z.literal(true),items:z.array(draftItemSchema)});

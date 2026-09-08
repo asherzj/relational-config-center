@@ -63,9 +63,10 @@ func (r *ReleaseOrders) Execute(ctx context.Context, id string, input SubmitRele
 			return ErrReleaseFrozenChanged
 		}
 		digest := hex.EncodeToString(releaseDigest(struct {
+			Title     string
 			Items     []ReleaseItem
 			Execution *domain.ReleaseExecutionSnapshot
-		}{order.Items, order.Frozen}))
+		}{order.Title, order.Items, order.Frozen}))
 		if digest != order.FrozenDigest {
 			return ErrReleaseFrozenChanged
 		}

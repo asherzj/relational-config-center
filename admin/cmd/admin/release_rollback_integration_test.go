@@ -135,7 +135,7 @@ func TestReleaseRollbackUnwindsUniqueValueDependencies(t *testing.T) {
 			if operation == "MODIFY" {
 				content = `{"code":"released"}`
 			}
-			body := fmt.Sprintf(`{"table_name":"rollback_unique","items":[{"operation":%q,"id":"1","expected_record_version":"0","content":%s},{"operation":"ADD","content":{"id":"2","code":"shared"}}]}`, operation, content)
+			body := fmt.Sprintf(`{"title":"集成测试发布单","table_name":"rollback_unique","items":[{"operation":%q,"id":"1","expected_record_version":"0","content":%s},{"operation":"ADD","content":{"id":"2","code":"shared"}}]}`, operation, content)
 			path := approvePublication(t, app, reviewer, body, "unique-dependency")
 			rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "unique-forward"), 200)
 			reverse := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/rollback", `{"expected_version":"4","reason":"restore unique value owner"}`, "unique-apply"), 201)
@@ -171,11 +171,11 @@ func TestReleaseRollbackMixedPublication(t *testing.T) {
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	reviewer := publicationFixtureReviewer(t, app)
-	path := approvePublication(t, app, reviewer, `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"new","label":"added"}},{"operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"modified"}},{"operation":"DELETE","id":"20","expected_record_version":"0","content":{}}]}`, "rollback-mixed")
+	path := approvePublication(t, app, reviewer, `{"title":"修正渠道配置","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"new","label":"added"}},{"operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"modified"}},{"operation":"DELETE","id":"20","expected_record_version":"0","content":{}}]}`, "rollback-mixed")
 	forward := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "rollback-forward")
 	original := rollbackOrderResponse(t, forward, 200)
 	reverse := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/rollback", `{"expected_version":"4","reason":"restore previous configuration"}`, "rollback-apply"), 201)
-	if reverse.State != "DRAFT" || len(reverse.Items) != 3 || reverse.Items[0].Operation != "ADD" || reverse.Items[1].Operation != "MODIFY" || reverse.Items[2].Operation != "DELETE" {
+	if reverse.Title != "回滚：修正渠道配置" || reverse.State != "DRAFT" || len(reverse.Items) != 3 || reverse.Items[0].Operation != "ADD" || reverse.Items[1].Operation != "MODIFY" || reverse.Items[2].Operation != "DELETE" {
 		t.Fatalf("reverse: %+v", reverse)
 	}
 	for index, item := range reverse.Items {
@@ -311,7 +311,7 @@ func TestReleaseRollbackConcurrencyAndReapplication(t *testing.T) {
 		t.Fatal("missing association", current, reverse)
 	}
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/rollback", `{"expected_version":"5","reason":"another request"}`, "rollback-conflict"), 409, "rollback_conflict")
-	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", reversePath, `{"table_name":"mutation_add_items","expected_version":"1","items":[{"operation":"DELETE","id":"1","expected_record_version":"1","content":{}}]}`, "rollback-edit"), 422, "rollback_locked")
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", reversePath, `{"title":"集成测试发布单","table_name":"mutation_add_items","expected_version":"1","items":[{"operation":"DELETE","id":"1","expected_record_version":"1","content":{}}]}`, "rollback-edit"), 422, "rollback_locked")
 	rollbackOrderResponse(t, releaseRequest(t, app, "POST", reversePath+"/cancel", `{"expected_version":"1","reason":"cancel before publishing"}`, "rollback-cancel"), 200)
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", reversePath+"/copy", `{"expected_version":"2","confirmed":true,"items":[]}`, "rollback-copy"), 422, "rollback_locked")
 	current = rollbackOrderResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
@@ -374,7 +374,7 @@ func TestReleaseRollbackRestoresDeletedEnumIdentity(t *testing.T) {
 	app, db := batchEdgeApplication(t, `CREATE TABLE rollback_enum(id enum('draft','active','paused') PRIMARY KEY,label varchar(40) NOT NULL) ENGINE=InnoDB`, `INSERT INTO rollback_enum VALUES('active','retained'),('paused','waiting')`)
 	enableMutationPolicy(t, app, "rollback_enum", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	reviewer := publicationFixtureReviewer(t, app)
-	path := approvePublication(t, app, reviewer, `{"table_name":"rollback_enum","items":[{"operation":"DELETE","id":"active","expected_record_version":"0","content":{}},{"operation":"DELETE","id":"paused","expected_record_version":"0","content":{}}]}`, "enum-forward")
+	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"rollback_enum","items":[{"operation":"DELETE","id":"active","expected_record_version":"0","content":{}},{"operation":"DELETE","id":"paused","expected_record_version":"0","content":{}}]}`, "enum-forward")
 	rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "enum-forward-execute"), 200)
 	reverse := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/rollback", `{"expected_version":"4","reason":"restore deleted enum identity"}`, "enum-rollback"), 201)
 	if reverse.Items[0].ID == nil || *reverse.Items[0].ID != "paused" || reverse.Items[1].ID == nil || *reverse.Items[1].ID != "active" || reverse.Items[0].ExpectedRecordVersion != "1" || reverse.Items[1].ExpectedRecordVersion != "1" {
@@ -398,7 +398,7 @@ func TestReleaseRollbackRestoresBusinessFieldsWithNewAudit(t *testing.T) {
 	creator, created, modifier, modified := "creator", "created_at", "modifier", "modified_at"
 	enableMutationPolicy(t, app, "rollback_audit", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true, CreateOperatorField: &creator, CreateTimeField: &created, ModifyOperatorField: &modifier, ModifyTimeField: &modified})
 	reviewer := publicationFixtureReviewer(t, app)
-	path := approvePublication(t, app, reviewer, `{"table_name":"rollback_audit","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"label":"published","payload":"short"}},{"operation":"DELETE","id":"2","expected_record_version":"0","content":{}}]}`, "audit-forward")
+	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"rollback_audit","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"label":"published","payload":"short"}},{"operation":"DELETE","id":"2","expected_record_version":"0","content":{}}]}`, "audit-forward")
 	original := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "audit-forward-execute"), 200)
 	deliveryExec(t, db, `ALTER TABLE rollback_audit MODIFY derived varchar(100) GENERATED ALWAYS AS(CONCAT(label,':new')) STORED`)
 	reverse := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/rollback", `{"expected_version":"4","reason":"restore with current audit"}`, "audit-rollback"), 201)
@@ -496,7 +496,7 @@ func TestReleaseRollbackRejectsLaterChanges(t *testing.T) {
 			id := fmt.Sprint(100 + index*2)
 			other := fmt.Sprint(101 + index*2)
 			deliveryExec(t, db, fmt.Sprintf(`INSERT INTO mutation_add_items(id,code,label) VALUES(%s,'old-%s','old'),(%s,'old-%s','old')`, id, id, other, other))
-			path := approvePublication(t, app, reviewer, fmt.Sprintf(`{"table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":%q,"expected_record_version":"0","content":{"label":"published"}},{"operation":"MODIFY","id":%q,"expected_record_version":"0","content":{"label":"published"}}]}`, id, other), stage+"-forward")
+			path := approvePublication(t, app, reviewer, fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":%q,"expected_record_version":"0","content":{"label":"published"}},{"operation":"MODIFY","id":%q,"expected_record_version":"0","content":{"label":"published"}}]}`, id, other), stage+"-forward")
 			original := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, stage+"-forward-execute"), 200)
 			var reverse domain.ReleaseOrder
 			if stage == "submit" || stage == "execute" {
@@ -548,11 +548,11 @@ func TestReleaseRollbackRejectsLaterChanges(t *testing.T) {
 				t.Fatal("stale reverse marked original")
 			}
 			if stage == "submit" {
-				preview := releaseRequest(t, app, "POST", "/api/v1/release-orders/preview", fmt.Sprintf(`{"table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":%q,"content":{"label":"old"}}]}`, id), "")
+				preview := releaseRequest(t, app, "POST", "/api/v1/release-orders/preview", fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":%q,"content":{"label":"old"}}]}`, id), "")
 				if preview.Code != 200 || !strings.Contains(preview.Body.String(), `"expected_record_version":"2"`) {
 					t.Fatal("current review unavailable", preview.Body)
 				}
-				assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", reversePath, fmt.Sprintf(`{"table_name":"mutation_add_items","expected_version":"1","items":[{"operation":"MODIFY","id":%q,"expected_record_version":"2","content":{"label":"old"}}]}`, id), "reverse-cannot-refresh"), 422, "rollback_locked")
+				assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", reversePath, fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","expected_version":"1","items":[{"operation":"MODIFY","id":%q,"expected_record_version":"2","content":{"label":"old"}}]}`, id), "reverse-cannot-refresh"), 422, "rollback_locked")
 				assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", reversePath+"/submit", `{"expected_version":"1"}`, "reverse-still-stale"), 409, "record_version_conflict")
 			}
 		})
@@ -563,7 +563,7 @@ func TestReleaseRollbackRejectsNewUniqueConstraintAtomically(t *testing.T) {
 	app, db := batchEdgeApplication(t, `INSERT INTO mutation_add_items(id,code,label) VALUES(100,'first','same'),(200,'second','same')`)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	reviewer := publicationFixtureReviewer(t, app)
-	path := approvePublication(t, app, reviewer, `{"table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"100","expected_record_version":"0","content":{"label":"one"}},{"operation":"MODIFY","id":"200","expected_record_version":"0","content":{"label":"two"}}]}`, "constraint-forward")
+	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"100","expected_record_version":"0","content":{"label":"one"}},{"operation":"MODIFY","id":"200","expected_record_version":"0","content":{"label":"two"}}]}`, "constraint-forward")
 	rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "constraint-forward-execute"), 200)
 	deliveryExec(t, db, `ALTER TABLE mutation_add_items ADD UNIQUE KEY new_label_unique(label)`)
 	reverse := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/rollback", `{"expected_version":"4","reason":"restore before new constraint"}`, "constraint-reverse"), 201)

@@ -141,7 +141,7 @@ func TestPublicationCommitUnknownSurvivesExecutableRestart(t *testing.T) {
 	}
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
-	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"commit-loss","label":"committed once"}}]}`, "wire-publication")
+	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"commit-loss","label":"committed once"}}]}`, "wire-publication")
 	proxy := newPublicationWireProxy(t, driver.Addr)
 	through := *driver
 	through.Addr = proxy.listener.Addr().String()

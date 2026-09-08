@@ -1,0 +1,12 @@
+{
+  "worktree": "/private/tmp/rcc-issue-61-title-people",
+  "command": "NO_PROXY=127.0.0.1,localhost GOFLAGS=... -v make test-integration",
+  "loopback_proxy_bypass": "127.0.0.1,localhost",
+  "exit_code": 0,
+  "elapsed_seconds": 2001.928,
+  "test_and_subtest_results": {
+    "PASS": 497,
+    "FAIL": 0,
+    "SKIP": 0
+  }
+}

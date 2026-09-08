@@ -24,7 +24,10 @@ const output = process.env.RCC_E2E_OUTPUT;
     return response.json();
   };
   const button = (page, name) => page.getByRole('button', { name, exact: true });
-  const heading = (page, state) => page.getByRole('heading', { name: `${table} · ${state}`, exact: true });
+  const heading = (page, state, title = `${table} 配置变更`) => ({ waitFor: async () => {
+    await page.getByRole('heading', { name: title, exact: true }).waitFor();
+    await page.getByText(`${table} · ${state}`, { exact: true }).waitFor();
+  } });
   const read = (context, id) => api(context, 'GET', `/api/v1/release-orders/${id}`);
   const query = (context, conditions = [], pageNumber = 1) => api(context, 'POST', `/api/v1/tables/${table}/query`, {
     conditions, order: { field: 'id', direction: 'ASC' }, page_size: 200, page_number: pageNumber,
@@ -46,13 +49,13 @@ const output = process.env.RCC_E2E_OUTPUT;
     if (output) await writeFile(join(output, `${name}-layout.json`), JSON.stringify(layout, null, 2));
     assert.ok(layout.document <= layout.viewport, `${name} overflows mobile: ${JSON.stringify(layout)}`);
   };
-  const submit = async (page, count) => {
+  const submit = async (page, count, title) => {
     await button(page, '提交审批').click();
     await page.getByText(`全部 ${count.toLocaleString('en-US')} 项将一起提交，预览分页不改变操作范围。`, { exact: true }).waitFor();
     await button(page, '确认提交审批').click();
-    await heading(page, '待审批').waitFor();
+    await heading(page, '待审批', title).waitFor();
   };
-  const approve = async (review, url, count) => {
+  const approve = async (review, url, count, title) => {
     await review.goto(url);
     await button(review, '批准发布单').click();
     await review.getByText(`全部 ${count.toLocaleString('en-US')} 项将一起批准，预览分页不改变操作范围。`, { exact: true }).waitFor();
@@ -63,7 +66,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     }
     await review.getByLabel('审批意见', { exact: true }).fill(`Independently reviewed all ${count} batch items`);
     await button(review, '确认批准').click();
-    await heading(review, '已批准').waitFor();
+    await heading(review, '已批准', title).waitFor();
   };
   let page, review;
   try {
@@ -226,11 +229,12 @@ const output = process.env.RCC_E2E_OUTPUT;
     check('independent APPROVER approves all mixed items; EDITOR/PUBLISHER recovers a genuinely committed lost execute response after refresh with the original key and no duplicate rows/history');
 
     const large = await api(applicant, 'POST', '/api/v1/release-orders', {
+      title: '浏览器千条批量变更',
       table_name: table,
       items: Array.from({ length: 1000 }, (_, index) => ({ operation: 'ADD', content: { code: `large-${index + 1}`, label: `batch item ${index + 1}` } })),
     }, 201);
     await page.goto(`${base}/configuration/release-orders/${large.id}`);
-    await heading(page, '草稿').waitFor();
+    await heading(page, '草稿', '浏览器千条批量变更').waitFor();
     await page.getByRole('navigation', { name: '明细分页', exact: true }).getByText('共 1,000 项，当前展示 1–20 项', { exact: true }).waitFor();
     await page.getByLabel('定位明细', { exact: true }).fill('1000');
     const finalItem = page.getByRole('region', { name: '明细 1000', exact: true });
@@ -245,14 +249,14 @@ const output = process.env.RCC_E2E_OUTPUT;
     await page.setViewportSize({ width: 1440, height: 1000 });
     check('1000-item detail shows the complete count and paging reaches the actual final item on desktop and 390px mobile');
 
-    await submit(page, 1000);
-    await approve(review, page.url(), 1000);
+    await submit(page, 1000, '浏览器千条批量变更');
+    await approve(review, page.url(), 1000, '浏览器千条批量变更');
     await page.reload();
-    await heading(page, '已批准').waitFor();
+    await heading(page, '已批准', '浏览器千条批量变更').waitFor();
     await button(page, '执行发布').click();
     await page.getByText('全部 1,000 项将一起发布，预览分页不改变操作范围。', { exact: true }).waitFor();
     await button(page, '确认发布到数据库').click();
-    await heading(page, '已发布').waitFor();
+    await heading(page, '已发布', '浏览器千条批量变更').waitFor();
     const published = await read(applicant, large.id);
     const commands = published.publication.commands;
     assert.equal(commands.length, 1000);

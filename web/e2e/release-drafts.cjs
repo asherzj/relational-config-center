@@ -20,6 +20,10 @@ const base=process.env.RCC_WEB_URL;
   await page.getByRole('button',{name:'修改记录 1',exact:true}).click();
   await page.getByLabel('包含 name',{exact:true}).check();await page.getByLabel('name 值',{exact:true}).fill('browser draft intent');
   await page.getByRole('button',{name:'查看 Change Set',exact:true}).click();
+  const titleInput=page.getByLabel('发布单标题',{exact:true});
+  assert.equal(await titleInput.inputValue(),'stage1_acceptance_items 配置变更');assert.equal(await titleInput.evaluate(element=>element.required),true);assert.equal(await titleInput.getAttribute('aria-invalid'),'false');
+  await titleInput.fill('   ');assert.equal(await titleInput.getAttribute('aria-invalid'),'true');await page.getByText('发布单标题必填。',{exact:true}).waitFor();assert.ok((await titleInput.getAttribute('aria-describedby')).includes('new-release-title-error'));assert.equal(await page.getByRole('button',{name:'确认并保存草稿',exact:true}).isEnabled(),false);
+  await titleInput.fill('浏览器发布草稿标题');assert.equal(await titleInput.getAttribute('aria-invalid'),'false');
   let committed;
   await page.route('**/api/v1/release-orders',async route=>{
    if(route.request().method()!=='POST')return route.continue();
@@ -27,7 +31,7 @@ const base=process.env.RCC_WEB_URL;
   });
   await page.getByRole('button',{name:'确认并保存草稿',exact:true}).click();
   await page.getByRole('button',{name:'使用原请求重试',exact:true}).waitFor();
-  assert.ok(committed?.id);assert.equal(committed.applicant_id,identity.account.id);
+  assert.ok(committed?.id);assert.equal(committed.applicant_id,identity.account.id);assert.equal(committed.title,'浏览器发布草稿标题');
   await page.unroute('**/api/v1/release-orders');
   page.once('dialog',dialog=>dialog.accept());await page.reload();
   await page.getByRole('button',{name:'恢复原发布请求',exact:true}).click();
@@ -57,14 +61,15 @@ const base=process.env.RCC_WEB_URL;
   assert.equal(await page.getByRole('button',{name:'恢复原发布请求',exact:true}).count(),0);
   check('unknown edit rejected after concurrent change survives two refreshes and explicitly rebuilds original intent');
 
-  await page.getByRole('button',{name:'取消草稿',exact:true}).click();await page.getByLabel('取消原因',{exact:true}).fill('browser cancellation');await page.getByRole('button',{name:'确认取消草稿',exact:true}).click();await page.getByRole('heading',{name:'stage1_acceptance_items · 已取消',exact:true}).waitFor();
+  await page.getByRole('button',{name:'取消草稿',exact:true}).click();await page.getByLabel('取消原因',{exact:true}).fill('browser cancellation');await page.getByRole('button',{name:'确认取消草稿',exact:true}).click();await page.getByText('stage1_acceptance_items · 已取消',{exact:true}).waitFor();
   await page.reload();await page.getByText('browser cancellation',{exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'编辑草稿',exact:true}).count(),0);
-  await page.getByRole('link',{name:'返回发布单列表',exact:true}).click();await page.getByLabel('表名',{exact:true}).fill('stage1_acceptance_items');await page.getByLabel('申请人账号 ID',{exact:true}).fill(identity.account.id);await page.getByLabel('状态',{exact:true}).selectOption('CANCELLED');await page.getByRole('button',{name:'查询发布单',exact:true}).click();await page.getByRole('link',{name:committed.id,exact:true}).waitFor();
-  if(process.env.RCC_E2E_OUTPUT){await page.getByRole('link',{name:committed.id,exact:true}).click();await page.getByRole('heading',{name:'stage1_acceptance_items · 已取消',exact:true}).waitFor();await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'release-drafts-detail.png'),fullPage:true});await page.getByRole('link',{name:'返回发布单列表',exact:true}).click();await page.getByRole('link',{name:committed.id,exact:true}).waitFor()}
+  const filterCancelledDraft=async()=>{await page.getByLabel('表名',{exact:true}).fill('stage1_acceptance_items');await page.getByLabel('申请人账号 ID',{exact:true}).fill(identity.account.id);await page.getByLabel('状态',{exact:true}).selectOption('CANCELLED');await page.getByRole('button',{name:'查询发布单',exact:true}).click();await page.getByRole('link',{name:committed.title,exact:true}).waitFor()};
+  await page.getByRole('link',{name:'返回发布单列表',exact:true}).click();await filterCancelledDraft();
+  if(process.env.RCC_E2E_OUTPUT){await page.getByRole('link',{name:committed.title,exact:true}).click();await page.getByRole('heading',{name:'浏览器发布草稿标题',exact:true}).waitFor();await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'release-drafts-detail.png'),fullPage:true});await page.getByRole('link',{name:'返回发布单列表',exact:true}).click();await filterCancelledDraft()}
   await page.setViewportSize({width:390,height:844});await page.getByLabel('主导航',{exact:true}).waitFor({state:'hidden'});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'release list overflows narrow viewport');
   if(process.env.RCC_E2E_OUTPUT)await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'release-drafts-mobile.png'),fullPage:true});
   check('cancelled drafts remain searchable with permanent applicant and history on narrow screens');
-  const viewer=await browser.newContext();await registerFixtureAccount(viewer,base,{roles:['VIEWER']});const view=await viewer.newPage();await view.goto(`${base}/configuration/release-orders/${committed.id}`);await view.getByRole('heading',{name:'stage1_acceptance_items · 已取消',exact:true}).waitFor();assert.equal(await view.getByRole('button',{name:'编辑草稿',exact:true}).count(),0);assert.equal(await view.getByRole('button',{name:'取消草稿',exact:true}).count(),0);await viewer.close();
+  const viewer=await browser.newContext();await registerFixtureAccount(viewer,base,{roles:['VIEWER']});const view=await viewer.newPage();await view.goto(`${base}/configuration/release-orders/${committed.id}`);await view.getByRole('heading',{name:'浏览器发布草稿标题',exact:true}).waitFor();assert.equal(await view.getByRole('button',{name:'编辑草稿',exact:true}).count(),0);assert.equal(await view.getByRole('button',{name:'取消草稿',exact:true}).count(),0);await viewer.close();
   check('current VIEWER can read release history without edit/cancel actions');
   assert.deepEqual(errors,[]);console.log(JSON.stringify({checks}));
  }finally{await browser.close()}

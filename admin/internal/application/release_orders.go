@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
 )
@@ -22,6 +23,7 @@ const ReleaseContinuationHeadroom = 64 << 10
 const ReleaseTransportHeadroom = 1024
 
 var (
+	ErrReleaseTitle               = errors.New("release title must contain 1 to 100 characters")
 	ErrReleaseCrossTable          = errors.New("release item belongs to another table")
 	ErrReleaseItemLimit           = errors.New("release must contain 1 to 1000 items")
 	ErrReleaseResultLimit         = errors.New("release result exceeds 8 MiB")
@@ -64,6 +66,7 @@ type DraftItemInput struct {
 }
 
 type DraftInput struct {
+	Title           string           `json:"title"`
 	TableName       string           `json:"table_name"`
 	Items           []DraftItemInput `json:"items"`
 	ExpectedVersion string           `json:"expected_version"`
@@ -90,6 +93,7 @@ type ReleaseOrderStore interface {
 	ExecutePublication(context.Context, func(PublicationSession) error) error
 	GetReleaseOrder(context.Context, string) (domain.ReleaseOrder, error)
 	ListReleaseOrders(context.Context, domain.ReleaseFilter) ([]domain.ReleaseOrderSummary, error)
+	AccountDisplayNames(context.Context, []string) (map[string]string, error)
 }
 
 type ReleaseOrders struct {
@@ -123,6 +127,9 @@ func (r *ReleaseOrders) Create(ctx context.Context, input DraftInput, key string
 		if input.ExpectedVersion != "" {
 			return ErrReleaseInvalid
 		}
+		if err := validateReleaseTitle(input.Title); err != nil {
+			return err
+		}
 		items, err := r.prepare(ctx, s, input, false)
 		if err != nil {
 			return err
@@ -136,13 +143,20 @@ func (r *ReleaseOrders) Create(ctx context.Context, input DraftInput, key string
 			return ErrReleaseUnavailable
 		}
 		stamp := now.UTC().Format(time.RFC3339Nano)
-		result = ReleaseOrder{ID: hex.EncodeToString(idBytes), TableName: input.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "CREATE", ActorID: actor, At: stamp, Version: "1"}}}
+		result = ReleaseOrder{Title: input.Title, ID: hex.EncodeToString(idBytes), TableName: input.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "CREATE", ActorID: actor, At: stamp, Version: "1"}}}
 		if err = s.SaveReleaseOrder(ctx, result, true); err != nil {
 			return err
 		}
 		return s.CompleteReleaseRequest(ctx, actor, "create", key, result)
 	})
 	return result, err
+}
+
+func validateReleaseTitle(title string) error {
+	if !utf8.ValidString(title) || strings.TrimSpace(title) == "" || utf8.RuneCountInString(title) > 100 {
+		return ErrReleaseTitle
+	}
+	return nil
 }
 
 func releaseDigest(input any) []byte {
@@ -156,6 +170,29 @@ func (r *ReleaseOrders) Get(ctx context.Context, id string) (ReleaseOrder, error
 		return ReleaseOrder{}, err
 	}
 	return r.store.GetReleaseOrder(ctx, id)
+}
+
+// People resolves only identities already visible in this order. It does not
+// expose account search or role-management data to ordinary viewers.
+func (r *ReleaseOrders) People(ctx context.Context, id string) (map[string]string, error) {
+	order, err := r.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	seen := map[string]bool{order.ApplicantID: true}
+	for _, event := range order.History {
+		seen[event.ActorID] = true
+	}
+	if order.Publication != nil {
+		seen[order.Publication.PublisherID] = true
+	}
+	ids := make([]string, 0, len(seen))
+	for id := range seen {
+		if id != "" {
+			ids = append(ids, id)
+		}
+	}
+	return r.store.AccountDisplayNames(ctx, ids)
 }
 
 func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) []string {
@@ -446,6 +483,9 @@ func (r *ReleaseOrders) Update(ctx context.Context, id string, input DraftInput,
 		if input.TableName != order.TableName {
 			return ErrReleaseInvalid
 		}
+		if err := validateReleaseTitle(input.Title); err != nil {
+			return err
+		}
 		for index, item := range input.Items {
 			if item.Operation == "ADD" && item.Content["id"] != nil {
 				if err := ValidateRecordVersion(item.ExpectedRecordVersion); err != nil {
@@ -458,6 +498,7 @@ func (r *ReleaseOrders) Update(ctx context.Context, id string, input DraftInput,
 		if err != nil {
 			return err
 		}
+		order.Title = input.Title
 		order.Items = items
 		return nil
 	})
@@ -485,9 +526,10 @@ func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitRelea
 		order.Items = items
 		order.Frozen = &domain.ReleaseExecutionSnapshot{Schema: schema, Mutation: domain.NewReleaseMutationSemantics(p)}
 		order.FrozenDigest = hex.EncodeToString(releaseDigest(struct {
+			Title     string
 			Items     []ReleaseItem
 			Execution *domain.ReleaseExecutionSnapshot
-		}{items, order.Frozen}))
+		}{order.Title, items, order.Frozen}))
 		targets := []domain.ActiveTarget{}
 		for index, item := range items {
 			if len(item.RecordKey) > 0 {
@@ -726,7 +768,7 @@ func (r *ReleaseOrders) Copy(ctx context.Context, id string, input CopyReleaseIn
 			return ErrReleaseUnavailable
 		}
 		stamp := now.UTC().Format(time.RFC3339Nano)
-		result = ReleaseOrder{ID: hex.EncodeToString(idBytes), CopiedFromID: source.ID, TableName: source.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "COPY", ActorID: actor, At: stamp, Version: "1"}}}
+		result = ReleaseOrder{Title: source.Title, ID: hex.EncodeToString(idBytes), CopiedFromID: source.ID, TableName: source.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "COPY", ActorID: actor, At: stamp, Version: "1"}}}
 		if err := s.SaveReleaseOrder(ctx, result, true); err != nil {
 			return err
 		}

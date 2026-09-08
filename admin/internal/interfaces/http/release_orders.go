@@ -10,6 +10,13 @@ import (
 )
 
 func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseOrders) {
+	router.GET("/api/v1/release-orders/:id/people", func(c *gin.Context) {
+		people, err := orders.People(c.Request.Context(), c.Param("id"))
+		if writeReleaseError(c, err) {
+			return
+		}
+		c.JSON(200, gin.H{"people": people})
+	})
 	router.POST("/api/v1/release-orders/preview", func(c *gin.Context) {
 		var input application.DraftInput
 		if err := decodeRequest(c, &input); err != nil {
@@ -224,6 +231,8 @@ func writeReleaseError(c *gin.Context, err error) bool {
 		status, code, message = 422, "release_field_limit", "each submitted field must fit the 64 KiB UTF-8 limit"
 	case errors.Is(err, application.ErrReleaseDuplicateTarget):
 		status, code, message = 422, "release_duplicate_target", "a known record identity appears more than once in this order"
+	case errors.Is(err, application.ErrReleaseTitle):
+		status, code, message = 422, "release_title_invalid", "release title must contain 1 to 100 characters"
 	case errors.Is(err, application.ErrReleaseInvalid):
 		status, code, message = 422, "release_invalid", "release request content, version, reason or identifier is invalid"
 	case errors.Is(err, application.ErrReleaseAutoIDAmbiguous):

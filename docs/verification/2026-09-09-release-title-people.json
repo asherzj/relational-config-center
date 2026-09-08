@@ -1,0 +1,121 @@
+{
+  "schema": "rcc.release-title-people.verification.v2",
+  "date": "2026-09-09",
+  "fixedBase": "f513859c41e643e2b4d6ee37684dae67ad920e53",
+  "status": "passed",
+  "webVerification": {
+    "full": { "files": 28, "tests": 300, "status": "passed" },
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "makeTest": "passed",
+    "makeBuild": "passed",
+    "pnpmTestDevChecks": 2,
+    "impeccableDetector": []
+  },
+  "mysqlIntegration": {
+    "command": "NO_PROXY=127.0.0.1,localhost make test-integration",
+    "elapsedSeconds": 2001.928,
+    "passed": 497,
+    "failed": 0,
+    "skipped": 0,
+    "summaryFile": "2026-09-09-release-title-people-mysql-summary.json"
+  },
+  "goBrowser": {
+    "command": "RCC_ADMIN_TOKEN='' DOCKER_HOST=unix:///Users/asher/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock make test-browser",
+    "testDurationSeconds": 112.37,
+    "packageDurationSeconds": 116.084,
+    "subSuites": 6,
+    "exitStatus": 0,
+    "cleanupVerified": true
+  },
+  "browserAcceptance": {
+    "command": "RCC_E2E_SUITE=all RCC_E2E_ENGINES=chromium,firefox,webkit make test-browser-acceptance",
+    "engines": ["chromium", "firefox", "webkit"],
+    "elapsedSeconds": 445,
+    "suites": 17,
+    "namedChecks": 222,
+    "exitStatus": 0,
+    "cleanupVerified": true,
+    "fixtureRowsUnchanged": true,
+    "databasePostcheckPresent": true,
+    "summaryFile": "2026-09-09-release-title-people-browser-summary.json",
+    "runFile": "2026-09-09-release-title-people-browser-run.txt",
+    "accountPagination": {
+      "allEngineFirstPages": 25,
+      "allEngineHasNext": true,
+      "webkitTargetOnFirstPage": false,
+      "webkitTargetVisibleAfterSearch": true,
+      "deterministicBoundaryProbe": {
+        "registeredCandidates": 30,
+        "selectedCandidate": "greatest UUID",
+        "firstPageCount": 25,
+        "hasNext": true,
+        "targetOnFirstPage": false,
+        "targetVisibleAfterSearch": true,
+        "exitStatus": 0,
+        "cleanupVerified": true
+      }
+    }
+  },
+  "historicalFailures": [
+    {
+      "scope": "browser evidence setup",
+      "result": "ENOENT before business scripts because the requested evidence directory did not exist",
+      "resolution": "created the directory and reran unchanged assertions"
+    },
+    {
+      "scope": "modal keyboard accessibility",
+      "result": "new title input invalidated the old Chromium path; WebKit then skipped a native button and returned focus to the dialog surface",
+      "resolution": "updated the expected title-input step and made top-modal Tab movement deterministic; all three engines passed 7 checks"
+    },
+    {
+      "scope": "release draft list",
+      "result": "return navigation remounted the list and cleared filters, hiding the target in a larger dataset",
+      "resolution": "reapplied the original filters after each return"
+    },
+    {
+      "scope": "draft cancellation",
+      "result": "waiting on an invariant title allowed reload to abort the in-flight cancellation; persisted history was absent",
+      "resolution": "waited for the exact cancelled state before reload"
+    },
+    {
+      "scope": "account role recovery",
+      "result": "the exact new member was outside the default 25-account page",
+      "resolution": "searched by the full registered username, asserted a unique result, and verified a deterministic over-25 boundary"
+    },
+    {
+      "scope": "first full MySQL integration",
+      "result": "494 PASS, 3 FAIL including parent, 0 SKIP in 1900.391 seconds",
+      "resolution": "removed title mistakenly placed inside a DraftItem and bypassed the inherited macOS loopback proxy at process scope; final rerun passed 497/0/0"
+    }
+  ],
+  "platform": {
+    "local": "macOS arm64",
+    "firefoxLoopback": "network.proxy.type=0 for isolated loopback fixtures because Firefox did not honor process NO_PROXY for the macOS system proxy",
+    "accountProcessLoopback": "NO_PROXY=127.0.0.1,localhost",
+    "linux": "not executed for this local evidence; the runner retains its Playwright --with-deps CI path"
+  },
+  "review": {
+    "specFindings": 0,
+    "standardsHardFindings": 0,
+    "acceptedAdvisories": 1,
+    "advisory": "Consider sharing the anonymous frozen digest structure if a third equivalent summary is introduced."
+  },
+  "visualEvidence": [
+    {
+      "file": "2026-09-09-release-title-people-desktop.png",
+      "imageDimensions": "1440x1847",
+      "sha256": "55ba21569c2e537824b6e501cdfcc64d9a3faa036df819a7ccf314fbd2137c8f"
+    },
+    {
+      "file": "2026-09-09-release-title-people-mobile.png",
+      "imageDimensions": "390x1906",
+      "sha256": "c78c3b7ca58c8f9212132fb6115cb062e73299e7adb66376c001982656f2daa1"
+    },
+    {
+      "file": "2026-09-09-release-title-people-rollback-mobile.png",
+      "imageDimensions": "390x3027",
+      "sha256": "f880787154b4f362bdec4ab39d2287e713b21f86ce5e6201ae00c8ebc142127f"
+    }
+  ]
+}

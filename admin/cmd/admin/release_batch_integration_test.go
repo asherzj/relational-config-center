@@ -29,7 +29,7 @@ func TestReleaseMixedBatchPublication(t *testing.T) {
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	reviewer := publicationFixtureReviewer(t, app)
-	path := approvePublication(t, app, reviewer, `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"new","label":"added"}},{"operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"modified"}},{"operation":"DELETE","id":"20","expected_record_version":"0","content":{}}]}`, "mixed")
+	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"new","label":"added"}},{"operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"modified"}},{"operation":"DELETE","id":"20","expected_record_version":"0","content":{}}]}`, "mixed")
 	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "mixed-execute")
 	if response.Code != 200 {
 		t.Fatalf("execute: %d %s", response.Code, response.Body)
@@ -78,14 +78,14 @@ func TestReleaseMixedBatchPublication(t *testing.T) {
 func TestReleaseBatchDuplicateIdentityDoesNotReplaceDraft(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true, AllowDelete: true})
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"kept"}}]}`, "duplicate-base")
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"kept"}}]}`, "duplicate-base")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}
 	var original domain.ReleaseOrder
 	json.Unmarshal(created.Body.Bytes(), &original)
 	path := "/api/v1/release-orders/" + original.ID
-	update := releaseRequest(t, app, "PUT", path, `{"table_name":"mutation_delete_parents","expected_version":"1","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"discarded"}},{"operation":"DELETE","id":"01","expected_record_version":"0","content":{}}]}`, "duplicate-edit")
+	update := releaseRequest(t, app, "PUT", path, `{"title":"集成测试发布单","table_name":"mutation_delete_parents","expected_version":"1","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"discarded"}},{"operation":"DELETE","id":"01","expected_record_version":"0","content":{}}]}`, "duplicate-edit")
 	assertIntegrationErrorCode(t, update, 422, "release_duplicate_target")
 	var issue struct {
 		Error struct {
@@ -142,7 +142,7 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 		}
 		items = append(items, item)
 	}
-	input, _ := json.Marshal(map[string]any{"table_name": "mutation_add_items", "items": items})
+	input, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": "mutation_add_items", "items": items})
 	request := func(path, body, key string, actorCookies []*http.Cookie, actorCSRF string) []byte {
 		t.Helper()
 		req, err := http.NewRequest("POST", process.origin+path, strings.NewReader(body))
@@ -243,7 +243,7 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 func TestReleaseBatchFieldBudget(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
-	input, _ := json.Marshal(map[string]any{"table_name": "mutation_add_items", "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"code": "oversize", "label": strings.Repeat("x", 65537)}}}})
+	input, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": "mutation_add_items", "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"code": "oversize", "label": strings.Repeat("x", 65537)}}}})
 	response := releaseRequest(t, app, "POST", "/api/v1/release-orders", string(input), "field-budget")
 	assertIntegrationErrorCode(t, response, 422, "release_field_limit")
 }
@@ -268,7 +268,7 @@ func TestReleaseBatchExpandedResultBudgetRollsBack(t *testing.T) {
 	for i := 0; i < 130; i++ {
 		items = append(items, map[string]any{"operation": "ADD", "content": map[string]string{"code": fmt.Sprint(i)}})
 	}
-	input, _ := json.Marshal(map[string]any{"table_name": "batch_large_result", "items": items})
+	input, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": "batch_large_result", "items": items})
 	path := approvePublication(t, app, publicationFixtureReviewer(t, app), string(input), "expanded")
 	result := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "expanded-execute")
 	if result.Code != 422 {
@@ -301,7 +301,7 @@ func TestReleaseBatchBudgetRetainsCancellationHeadroom(t *testing.T) {
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	reviewer := publicationFixtureReviewer(t, app)
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"headroom"}}]}`, "headroom-create")
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"headroom"}}]}`, "headroom-create")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}

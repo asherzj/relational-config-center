@@ -30,7 +30,11 @@ export function useReleaseWrite(scope:string){
    void client.invalidateQueries({queryKey:["release-orders"]});
    if(order.publication)void client.invalidateQueries({queryKey:["managed-data"]});
    void client.invalidateQueries({queryKey:["release-order",order.id]});
-   if(order.rollback_of_id)void client.invalidateQueries({queryKey:["release-order",order.rollback_of_id]});
+   void client.invalidateQueries({queryKey:["release-order-people",order.id]});
+   if(order.rollback_of_id){
+    void client.invalidateQueries({queryKey:["release-order",order.rollback_of_id]});
+    void client.invalidateQueries({queryKey:["release-order-people",order.rollback_of_id]});
+   }
    return order;
   }catch(cause){
    if(!recorded){setError(new ApiError("release_journal_unavailable","浏览器无法保存完整请求，尚未发送。当前输入和已有待恢复请求保留，请释放浏览器存储空间后重试。",0));setUnresolved(Boolean(previous));return;}
@@ -43,9 +47,14 @@ export function useReleaseWrite(scope:string){
    if(rejected)rememberReleaseRequest(accountID,{...intent,rejection:cause.code as PendingReleaseRequest["rejection"]});
    else if(stored?.rejection&&!keep)rememberReleaseRequest(accountID,{...intent,rejection:stored.rejection});
    else if(!keep)forgetReleaseRequest(accountID,intent.key);
-  }finally{busy.current=false;setPending(false)}
+ }finally{busy.current=false;setPending(false)}
  };
- return {send,pending,error,unresolved,clearError:()=>setError(undefined),confirmRebuild:()=>{
+ const retry=()=>{
+  const stored=pendingReleaseRequests(accountID).find(item=>item.scope===scope&&!item.rejection);
+  if(!stored)return Promise.resolve(undefined);
+  return send({path:stored.path,method:stored.method,body:stored.body,label:stored.label});
+ };
+ return {send,retry,pending,error,unresolved,clearError:()=>setError(undefined),confirmRebuild:()=>{
   confirmedRebuild.current=pendingReleaseRequests(accountID).find(item=>item.scope===scope&&item.rejection)?.key;
  }};
 }

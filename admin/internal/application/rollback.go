@@ -73,7 +73,7 @@ func (r *ReleaseOrders) Rollback(ctx context.Context, id string, input CancelRel
 			return ErrReleaseUnavailable
 		}
 		stamp := now.UTC().Format(time.RFC3339Nano)
-		result = ReleaseOrder{ID: hex.EncodeToString(randomID[:]), RollbackOfID: id, TableName: original.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "ROLLBACK_REQUEST", ActorID: actor, At: stamp, Version: "1", Reason: input.Reason, RelatedOrderID: id}}}
+		result = ReleaseOrder{Title: rollbackTitle(original.Title), ID: hex.EncodeToString(randomID[:]), RollbackOfID: id, TableName: original.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "ROLLBACK_REQUEST", ActorID: actor, At: stamp, Version: "1", Reason: input.Reason, RelatedOrderID: id}}}
 		original.RollbackOrderID, original.RollbackPending = result.ID, true
 		if err := appendRollbackEvent(&original, actor, stamp, "ROLLBACK_REQUEST", input.Reason, result.ID); err != nil {
 			return err
@@ -282,4 +282,12 @@ func releaseMutationValues(schema domain.TableSchema, content MutationContent, a
 		}
 		return domain.ParseColumnValue(column, value)
 	})
+}
+
+func rollbackTitle(title string) string {
+	runes := []rune("回滚：" + title)
+	if len(runes) > 100 {
+		runes = runes[:100]
+	}
+	return string(runes)
 }

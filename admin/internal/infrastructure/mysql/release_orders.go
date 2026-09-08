@@ -234,3 +234,21 @@ func releaseDocumentBudget(order domain.ReleaseOrder) int {
 	}
 	return application.ReleaseResultBytes - application.ReleaseContinuationHeadroom
 }
+
+func (a *Adapter) AccountDisplayNames(ctx context.Context, ids []string) (map[string]string, error) {
+	result := map[string]string{}
+	for start := 0; start < len(ids); start += 100 {
+		end := start + 100
+		if end > len(ids) {
+			end = len(ids)
+		}
+		var people []struct{ ID, DisplayName string }
+		if err := a.gorm.WithContext(ctx).Table(accountTable).Select("id,display_name").Where("id IN ?", ids[start:end]).Scan(&people).Error; err != nil {
+			return nil, application.ErrReleaseUnavailable
+		}
+		for _, person := range people {
+			result[person.ID] = person.DisplayName
+		}
+	}
+	return result, nil
+}

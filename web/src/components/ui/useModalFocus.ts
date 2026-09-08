@@ -138,16 +138,16 @@ export function useModalFocus({
         dialog.focus();
         return;
       }
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const active = document.activeElement;
-      if (event.shiftKey && (active === first || active === dialog || !dialog.contains(active))) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && (active === last || !dialog.contains(active))) {
-        event.preventDefault();
-        first.focus();
-      }
+      const active = document.activeElement as HTMLElement | null;
+      const activeIndex = active ? focusable.indexOf(active) : -1;
+      const target = activeIndex < 0
+        ? event.shiftKey ? focusable[focusable.length - 1] : focusable[0]
+        : event.shiftKey
+          ? focusable[(activeIndex - 1 + focusable.length) % focusable.length]
+          : focusable[(activeIndex + 1) % focusable.length];
+      event.preventDefault();
+      event.stopPropagation();
+      target.focus();
     };
     const onFocusIn = (event: FocusEvent) => {
       if (!isTopModal(dialog) || dialog.contains(event.target as Node)) return;

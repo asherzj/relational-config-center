@@ -52,6 +52,12 @@ func publicationFixtureRequest(t *testing.T, app *adminApplication, operation, t
 			return releaseRequest(t, app, "POST", "/api/v1/release-orders", body, key)
 		}
 	}
+	title, exists := payload["title"]
+	if exists {
+		delete(payload, "title")
+	} else {
+		title, _ = json.Marshal(table + " fixture change")
+	}
 	item := map[string]any{"operation": operation, "content": json.RawMessage(`{}`)}
 	for name, value := range payload {
 		if name == "expected_version" {
@@ -63,7 +69,7 @@ func publicationFixtureRequest(t *testing.T, app *adminApplication, operation, t
 	if operation != "ADD" {
 		item["id"] = id
 	}
-	input, _ := json.Marshal(map[string]any{"table_name": table, "items": []any{item}})
+	input, _ := json.Marshal(map[string]any{"title": title, "table_name": table, "items": []any{item}})
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", string(input), key+"-create")
 	if created.Code != 201 {
 		return created

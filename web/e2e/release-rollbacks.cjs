@@ -33,7 +33,10 @@ const output = process.env.RCC_E2E_OUTPUT;
     return context;
   };
   const button = (page, name) => page.getByRole('button', { name, exact: true });
-  const heading = (page, state) => page.getByRole('heading', { name: `${table} · ${state}`, exact: true });
+  const heading = (page, state, reverse = false) => ({ waitFor: async () => {
+    await page.getByRole('heading', { name: reverse ? '回滚：浏览器回滚验收变更' : '浏览器回滚验收变更', exact: true }).waitFor();
+    await page.getByText(`${table} · ${state}`, { exact: true }).waitFor();
+  } });
   const read = (context, id) => api(context, 'GET', `/api/v1/release-orders/${id}`);
   const query = context => api(context, 'POST', `/api/v1/tables/${table}/query`, {
     conditions: [{ field: 'id', operator: 'exact', value: '1' }],
@@ -71,6 +74,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     assert.equal(before.rows[0].name, 'Rollback seed');
     assert.equal(before.record_versions[0], '0');
     const forward = await api(applicant, 'POST', '/api/v1/release-orders', {
+      title: '浏览器回滚验收变更',
       table_name: table,
       items: [{ operation: 'MODIFY', id: '1', expected_record_version: '0', content: { name: `T8 ${engineName} browser published value` } }],
     }, 201);
@@ -116,7 +120,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     applicantPage.once('dialog', dialog => dialog.accept());
     await applicantPage.reload();
     await button(applicantPage, '恢复原发布请求').click();
-    await heading(applicantPage, '草稿').waitFor();
+    await heading(applicantPage, '草稿', true).waitFor();
     const reverseID = new URL(applicantPage.url()).pathname.split('/').pop();
     assert.equal(reverseID, committedReverse.id);
     assert.equal(rollbackWrites.length, 2);
@@ -136,17 +140,17 @@ const output = process.env.RCC_E2E_OUTPUT;
 
     await button(applicantPage, '提交审批').click();
     await button(applicantPage, '确认提交审批').click();
-    await heading(applicantPage, '待审批').waitFor();
+    await heading(applicantPage, '待审批', true).waitFor();
     const reverseURL = applicantPage.url();
     await reviewPage.goto(reverseURL);
     await button(reviewPage, '批准发布单').click();
     await reviewPage.getByLabel('审批意见', { exact: true }).fill('Independent rollback review');
     await button(reviewPage, '确认批准').click();
-    await heading(reviewPage, '已批准').waitFor();
+    await heading(reviewPage, '已批准', true).waitFor();
     await publishPage.goto(reverseURL);
     await button(publishPage, '执行发布').click();
     await button(publishPage, '确认发布到数据库').click();
-    await heading(publishPage, '已发布').waitFor();
+    await heading(publishPage, '已发布', true).waitFor();
     const restored = await query(applicant);
     assert.equal(restored.rows[0].name, 'Rollback seed');
     assert.equal(restored.record_versions[0], '2');
@@ -168,7 +172,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     await assertMobileLayout(applicantPage, 'release-rollback-original');
     if (output) await applicantPage.screenshot({ path: join(output, 'release-rollback-original-mobile.png'), fullPage: true, animations: 'disabled' });
     await applicantPage.goto(reverseURL);
-    await heading(applicantPage, '已发布').waitFor();
+    await heading(applicantPage, '已发布', true).waitFor();
     await applicantPage.getByText('回滚原发布单', { exact: false }).waitFor();
     await assertMobileLayout(applicantPage, 'release-rollback-reverse');
     if (output) await applicantPage.screenshot({ path: join(output, 'release-rollback-reverse-mobile.png'), fullPage: true, animations: 'disabled' });

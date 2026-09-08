@@ -80,6 +80,10 @@ _Avoid_: Release, revision, audit record
 The authoritative record of a proposed configuration change and its progression through approval, publication, cancellation, or rollback, associating the requested content with its applicant and operation history.
 _Avoid_: Change Set, deployment, notification task
 
+**Release Order Title（发布单标题）**:
+The applicant-provided short description of a Release Order's intent, fixed when the order is submitted. It does not replace the order's identifier or the name of its Managed Table.
+_Avoid_: Release Order ID, table name, record title
+
 **Release Approval（发布审批）**:
 The decision of an authorized person other than the applicant to approve or reject the frozen content of a submitted Release Order. It applies only to that submitted content, not to later edits or another order.
 _Avoid_: Login, publication, self-confirmation

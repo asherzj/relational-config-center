@@ -149,7 +149,7 @@ func TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement(t *testing
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/008-mutation-policy-snapshot-fixture.sql")
 	assignRelationalMutationPolicy(t, app, "snapshot_allowed_mutation_v1", true, false, false, true)
 	reviewer := publicationFixtureReviewer(t, app)
-	path := approvePublication(t, app, reviewer, `{"table_name":"mutation_snapshot_items","items":[{"operation":"ADD","content":{"code":"in-flight","label":"old-snapshot"}}]}`, "policy-approved")
+	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_snapshot_items","items":[{"operation":"ADD","content":{"code":"in-flight","label":"old-snapshot"}}]}`, "policy-approved")
 	replaceRelationalMutationPolicy(t, app, "snapshot_denied_mutation_v2", false, false, false, false)
 	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "policy-execute")
 	assertIntegrationErrorCode(t, response, 409, "release_frozen_changed")

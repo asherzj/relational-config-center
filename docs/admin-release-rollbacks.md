@@ -2,6 +2,8 @@
 
 当前 EDITOR 可从 SUCCEEDED 发布单申请反向草稿。调用 `POST /api/v1/release-orders/:id/rollback`，携带 `Idempotency-Key` 和 `{"expected_version":"4","reason":"恢复原业务配置"}`；原因必填且最多 2,000 UTF-8 字节。返回 201 及新的 DRAFT，申请不会写业务行或取得在途目标。反向单仍由申请人提交、另一位 APPROVER 审批、PUBLISHER 执行；ADMIN 也不能自批。
 
+反向草稿标题由服务器生成“回滚：原标题”，按 Unicode 字符截断至 100 个字符，并随只读回滚意图固定。原标题和永久发布单 ID 都保留在原单；标题只帮助人在列表与详情中识别意图。
+
 原单的 `rollback_order_id` 指向最新反向单，`rollback_pending` 表示该申请仍在途；反向单的 `rollback_of_id` 指向原单。未出现过回滚的旧文档可省略这些字段，省略 pending 等价于 false。列表仍是有界摘要，包含这些关联字段；完整差异与历史通过详情读取。`history.related_order_id` 关联每次申请、取消、拒绝与成功；旧申请及原发布结果不会删除。
 
 ## 恢复规则

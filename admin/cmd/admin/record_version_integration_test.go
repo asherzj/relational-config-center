@@ -400,10 +400,10 @@ func TestRecordVersionSnapshotAndIndependentResources(t *testing.T) {
 	// Actual publication locks progress per table. Two different records of
 	// that table serialize, while another table can finish independently.
 	reviewer := publicationFixtureReviewer(t, app)
-	firstPath := approvePublication(t, app, reviewer, `{"table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"1","expected_record_version":"2","content":{"label":"held"}}]}`, "resource-first")
-	secondPath := approvePublication(t, app, reviewer, `{"table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"2","expected_record_version":"1","content":{"label":"ordered"}}]}`, "resource-second")
+	firstPath := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"1","expected_record_version":"2","content":{"label":"held"}}]}`, "resource-first")
+	secondPath := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"2","expected_record_version":"1","content":{"label":"ordered"}}]}`, "resource-second")
 	enableMutationPolicy(t, app, "mutation_supplied_id_items", mutationPolicyFixture{AllowAdd: true})
-	otherPath := approvePublication(t, app, reviewer, `{"table_name":"mutation_supplied_id_items","items":[{"operation":"ADD","content":{"id":"other","label":"independent"}}]}`, "resource-other")
+	otherPath := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_supplied_id_items","items":[{"operation":"ADD","content":{"id":"other","label":"independent"}}]}`, "resource-other")
 	holder, err := owner.BeginTx(ctx, nil)
 	if err != nil {
 		t.Fatal(err)

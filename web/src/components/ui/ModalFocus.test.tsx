@@ -35,6 +35,22 @@ describe("modal focus management", () => {
     expect(input).toHaveFocus();
   });
 
+  it("advances every modal Tab step so browser focus preferences cannot skip actions", () => {
+    render(<Drawer open title="发布草稿" eyebrow="草稿" onClose={() => undefined}>
+      <input aria-label="发布单标题" />
+      <button>选择已有草稿</button>
+    </Drawer>);
+    const title = screen.getByRole("textbox", { name: "发布单标题" });
+    const choose = screen.getByRole("button", { name: "选择已有草稿" });
+    title.focus();
+
+    fireEvent.keyDown(title, { key: "Tab" });
+    expect(choose).toHaveFocus();
+
+    fireEvent.keyDown(choose, { key: "Tab", shiftKey: true });
+    expect(title).toHaveFocus();
+  });
+
   it("keeps keyboard interaction in the top confirmation dialog", async () => {
     const user = userEvent.setup();
     const closeDrawer = vi.fn();

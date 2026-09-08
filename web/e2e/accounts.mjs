@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { chromium, firefox, webkit, request } from 'playwright';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -19,16 +19,24 @@ const adminEmail = `browser.${runSuffix}@example.invalid`;
 const memberUsername = `roles.member.${runSuffix}`;
 const memberEmail = `roles.${runSuffix}@example.invalid`;
 const templateKey = `browser_system_${runSuffix}`;
-const launchOptions = engineName === 'chromium' && process.env.RCC_BROWSER_EXECUTABLE
-  ? { executablePath: process.env.RCC_BROWSER_EXECUTABLE, headless: true }
-  : engineName === 'chromium' && !process.env.RCC_E2E_ENGINE
-    ? { channel: 'chrome', headless: true }
-    : { headless: true };
+const launchOptions = {
+  ...(engineName === 'chromium' && process.env.RCC_BROWSER_EXECUTABLE
+    ? { executablePath: process.env.RCC_BROWSER_EXECUTABLE, headless: true }
+    : engineName === 'chromium' && !process.env.RCC_E2E_ENGINE
+      ? { channel: 'chrome', headless: true }
+      : { headless: true }),
+  ...(engineName === 'firefox' ? { firefoxUserPrefs: { 'network.proxy.type': 0 } } : {}),
+};
 
 async function session(api) {
   const response = await api.get(`${origin}/api/v1/auth/session`);
   assert.equal(response.status(), 200);
   return response.json();
+}
+
+async function releaseState(page, state) {
+  await page.getByRole('heading', { name: 'notification_templates 配置变更', exact: true }).waitFor();
+  await page.getByText(`notification_templates · ${state}`, { exact: true }).waitFor();
 }
 
 async function login(api, username, password) {
@@ -57,6 +65,7 @@ async function releaseWrite(api, path, data, key = randomUUID()) {
 
 async function publishSingle({ applicant, approver, publisher, item, keyPrefix }) {
   const createdResponse = await releaseWrite(applicant, '/api/v1/release-orders', {
+    title: '通知模板账号验收变更',
     table_name: 'notification_templates',
     items: [item],
   }, `${keyPrefix}-create`);
@@ -129,11 +138,23 @@ try {
   assert.equal(response.status(), 201);
   assert.deepEqual((await response.json()).account.roles, ['VIEWER']);
   await page.goto(`${origin}/platform/account-roles`);
-  await page.getByRole('button', { name: `管理 ${memberUsername} 的角色` }).waitFor();
+  const initialRolePage = await page.evaluate(async () => (await fetch('/api/v1/account-roles?q=&after=')).json());
+  await page.getByLabel('检索账号', { exact: true }).fill(memberUsername);
+  await page.getByRole('button', { name: '查询', exact: true }).click();
+  const memberRoleButton = page.getByRole('button', { name: `管理 ${memberUsername} 的角色` });
+  await memberRoleButton.waitFor();
+  assert.equal(await memberRoleButton.count(), 1, 'account search must return the exact registered member once');
+  if (process.env.RCC_E2E_OUTPUT) await writeFile(join(process.env.RCC_E2E_OUTPUT, 'account-role-targeting.json'), JSON.stringify({
+    first_page_count: initialRolePage.accounts.length,
+    first_page_has_next: Boolean(initialRolePage.next_cursor),
+    target_on_first_page: initialRolePage.accounts.some(account => account.username === memberUsername),
+    target_visible_after_search: true,
+    target_username: memberUsername,
+  }, null, 2));
   if (process.env.RCC_E2E_OUTPUT) await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'account-roles-desktop.png') });
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'role catalog overflows mobile viewport');
-  await page.getByRole('button', { name: `管理 ${memberUsername} 的角色` }).click();
+  await memberRoleButton.click();
   await page.getByRole('dialog', { name: `管理 ${memberUsername} 的角色` }).evaluate(async element => {
     // Resizing can replace an opening transition. Its cancelled promise is not
     // a failed drawer; wait for replacement animations before checking layout.
@@ -205,20 +226,20 @@ try {
   await page.getByRole('button', { name: '继续编辑', exact: true }).click();
   await page.getByRole('button', { name: '查看 Change Set' }).click();
   await page.getByRole('button', { name: '确认并保存草稿', exact: true }).click();
-  await page.getByRole('heading', { name: 'notification_templates · 草稿', exact: true }).waitFor();
+  await releaseState(page, '草稿');
   const addOrderID = new URL(page.url()).pathname.split('/').at(-1);
   assert.match(addOrderID, /^[a-f0-9]{32}$/);
 
   await page.getByRole('button', { name: '提交审批', exact: true }).click();
   await page.getByRole('button', { name: '确认提交审批', exact: true }).click();
-  await page.getByRole('heading', { name: 'notification_templates · 待审批', exact: true }).waitFor();
+  await releaseState(page, '待审批');
   assert.equal(await page.getByRole('button', { name: '批准发布单', exact: true }).count(), 0);
 
   await reviewerPage.goto(page.url());
   await reviewerPage.getByRole('button', { name: '批准发布单', exact: true }).click();
   await reviewerPage.getByLabel('审批意见', { exact: true }).fill('Independent browser publication review');
   await reviewerPage.getByRole('button', { name: '确认批准', exact: true }).click();
-  await reviewerPage.getByRole('heading', { name: 'notification_templates · 已批准', exact: true }).waitFor();
+  await releaseState(reviewerPage, '已批准');
   assert.equal(await reviewerPage.getByRole('button', { name: '执行发布', exact: true }).count(), 0);
 
   await page.setViewportSize({ width: 390, height: 844 });
@@ -253,7 +274,7 @@ try {
   const recoverExecute = page.getByRole('button', { name: '恢复原发布请求', exact: true });
   await recoverExecute.click();
   await recoveryPanel.waitFor({ state: 'detached' });
-  await page.getByRole('heading', { name: 'notification_templates · 已发布', exact: true }).waitFor();
+  await releaseState(page, '已发布');
   await page.getByRole('heading', { name: '数据库发布结果', exact: true }).waitFor();
   await page.getByRole('region', { name: '发布结果' }).getByText(/分发尚未接入/, { exact: false }).waitFor();
   assert.equal(executeWrites.length, 2);
@@ -336,21 +357,21 @@ try {
 
   await page.getByRole('button', { name: '基于最新值重建差异', exact: true }).click();
   await page.getByRole('button', { name: '确认并保存草稿', exact: true }).click();
-  await page.getByRole('heading', { name: 'notification_templates · 草稿', exact: true }).waitFor();
+  await releaseState(page, '草稿');
   const modifyOrderID = new URL(page.url()).pathname.split('/').at(-1);
   assert.match(modifyOrderID, /^[a-f0-9]{32}$/);
   await page.getByRole('button', { name: '提交审批', exact: true }).click();
   await page.getByRole('button', { name: '确认提交审批', exact: true }).click();
-  await page.getByRole('heading', { name: 'notification_templates · 待审批', exact: true }).waitFor();
+  await releaseState(page, '待审批');
   await reviewerPage.goto(page.url());
   await reviewerPage.getByRole('button', { name: '批准发布单', exact: true }).click();
   await reviewerPage.getByLabel('审批意见', { exact: true }).fill('Approved after explicit latest baseline rebuild');
   await reviewerPage.getByRole('button', { name: '确认批准', exact: true }).click();
-  await reviewerPage.getByRole('heading', { name: 'notification_templates · 已批准', exact: true }).waitFor();
+  await releaseState(reviewerPage, '已批准');
   await page.reload();
   await page.getByRole('button', { name: '执行发布', exact: true }).click();
   await page.getByRole('button', { name: '确认发布到数据库', exact: true }).click();
-  await page.getByRole('heading', { name: 'notification_templates · 已发布', exact: true }).waitFor();
+  await releaseState(page, '已发布');
   await page.getByRole('heading', { name: '数据库发布结果', exact: true }).waitFor();
   await page.getByRole('region', { name: '发布结果' }).getByText(/分发尚未接入/, { exact: false }).waitFor();
 

@@ -128,7 +128,7 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
 	}
 
 	// Prepare and independently approve through the public release workflow.
-	created, err := do(http.MethodPost, "/api/v1/release-orders", `{"table_name":"mutation_snapshot_items","items":[{"operation":"ADD","content":{"code":"response-loss","label":"committed once"}}]}`, csrf, "response-loss-create")
+	created, err := do(http.MethodPost, "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_snapshot_items","items":[{"operation":"ADD","content":{"code":"response-loss","label":"committed once"}}]}`, csrf, "response-loss-create")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -329,9 +329,9 @@ func TestConcurrentAccountsOwnTheirBusinessChanges(t *testing.T) {
 				}
 				return order
 			}
-			added := publish(fmt.Sprintf(`{"table_name":%q,"items":[{"operation":"ADD","content":{"value":"created"}}]}`, table), table+"-add")
+			added := publish(fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"items":[{"operation":"ADD","content":{"value":"created"}}]}`, table), table+"-add")
 			id := added.Publication.Commands[0].ID
-			publish(fmt.Sprintf(`{"table_name":%q,"items":[{"operation":"MODIFY","id":%q,"expected_record_version":"1","content":{"value":"modified"}}]}`, table, id), table+"-modify")
+			publish(fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"items":[{"operation":"MODIFY","id":%q,"expected_record_version":"1","content":{"value":"modified"}}]}`, table, id), table+"-modify")
 			result := request("POST", "/api/v1/tables/"+table+"/query", `{}`, 200)
 			if !strings.Contains(result.Body.String(), actor) || strings.Contains(result.Body.String(), "integration-test") {
 				t.Fatalf("row identity: %s", result.Body.String())
@@ -386,7 +386,7 @@ func TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory(t *testing.T)
 			t.Fatalf("setup %s: %d %s", step.path, response.Code, response.Body.String())
 		}
 	}
-	input := `{"table_name":"actor_history","items":[{"operation":"ADD","content":{"value":"must not commit"}}]}`
+	input := `{"title":"集成测试发布单","table_name":"actor_history","items":[{"operation":"ADD","content":{"value":"must not commit"}}]}`
 	reviewer := publicationFixtureReviewer(t, app)
 	for i, definition := range []string{"VARCHAR(12)", "CHAR(35)", "ENUM('legacy-admin','aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa')"} {
 		key := fmt.Sprintf("operator-incompatible-%d", i)
@@ -425,7 +425,7 @@ func TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory(t *testing.T)
 	if _, err := db.Exec("ALTER TABLE actor_history MODIFY creator CHAR(36)"); err != nil {
 		t.Fatal(err)
 	}
-	path := approveActorPublication(t, app, session, reviewer, `{"table_name":"actor_history","items":[{"operation":"ADD","content":{"value":"compatible"}}]}`, "operator-compatible")
+	path := approveActorPublication(t, app, session, reviewer, `{"title":"集成测试发布单","table_name":"actor_history","items":[{"operation":"ADD","content":{"value":"compatible"}}]}`, "operator-compatible")
 	if response := releaseActorRequest(t, app, session, "POST", path+"/execute", `{"expected_version":"3"}`, "operator-compatible-execute"); response.Code != 200 {
 		t.Fatalf("36 character column rejected: %d %s", response.Code, response.Body)
 	}
@@ -489,7 +489,7 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
 	grantTestAdministrator(t, app, session)
 	actor := accountID(t, session)
 	csrf := sessionCSRF(t, session)
-	path := approveActorPublication(t, app, session, publicationFixtureReviewer(t, app), `{"table_name":"mutation_snapshot_items","items":[{"operation":"ADD","content":{"code":"inflight","label":"already authenticated"}}]}`, "inflight-publication")
+	path := approveActorPublication(t, app, session, publicationFixtureReviewer(t, app), `{"title":"集成测试发布单","table_name":"mutation_snapshot_items","items":[{"operation":"ADD","content":{"code":"inflight","label":"already authenticated"}}]}`, "inflight-publication")
 	// A real external InnoDB row lock holds the request after authentication.
 	lock, err := owner.BeginTx(t.Context(), nil)
 	if err != nil {
@@ -579,9 +579,9 @@ func TestAccountControlTablesCannotBeDiscoveredOrManaged(t *testing.T) {
 			{"PUT", "/api/v1/table-policies/" + table, tablePolicyCodePayload(table, "unused_query_v1", "unused_mutation_v1")},
 			{"POST", "/api/v1/table-policies/" + table + "/enable", ""}, {"POST", "/api/v1/table-policies/" + table + "/disable", ""},
 			{"POST", "/api/v1/tables/" + table + "/query", `{}`},
-			{"POST", "/api/v1/release-orders", fmt.Sprintf(`{"table_name":%q,"items":[{"operation":"ADD","content":{}}]}`, table)},
-			{"POST", "/api/v1/release-orders", fmt.Sprintf(`{"table_name":%q,"items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{}}]}`, table)},
-			{"POST", "/api/v1/release-orders", fmt.Sprintf(`{"table_name":%q,"items":[{"operation":"DELETE","id":"1","expected_record_version":"0","content":{}}]}`, table)},
+			{"POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"items":[{"operation":"ADD","content":{}}]}`, table)},
+			{"POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{}}]}`, table)},
+			{"POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"items":[{"operation":"DELETE","id":"1","expected_record_version":"0","content":{}}]}`, table)},
 		} {
 			response := releaseActorRequest(t, app, session, route.method, route.path, route.body, fmt.Sprintf("protected-%d", publicationFixtureSequence.Add(1)))
 			assertIntegrationErrorCode(t, response, 403, "protected_table")
