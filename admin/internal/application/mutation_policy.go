@@ -171,7 +171,7 @@ func (management *MutationPolicyManagement) Types() []MutationPolicyType {
 }
 
 func (management *MutationPolicyManagement) Create(ctx context.Context, candidate PutMutationPolicy) (domain.MutationPolicy, error) {
-	operator, identityErr := requestOperator(ctx)
+	operator, identityErr := requireRole(ctx, RoleAdmin)
 	if identityErr != nil {
 		return domain.MutationPolicy{}, identityErr
 	}
@@ -211,7 +211,7 @@ func (management *MutationPolicyManagement) ValidateForTable(policy domain.Mutat
 }
 
 func (management *MutationPolicyManagement) ReplaceDraft(ctx context.Context, code string, candidate PutMutationPolicy) (domain.MutationPolicy, error) {
-	operator, identityErr := requestOperator(ctx)
+	operator, identityErr := requireRole(ctx, RoleAdmin)
 	if identityErr != nil {
 		return domain.MutationPolicy{}, identityErr
 	}
@@ -229,7 +229,7 @@ func (management *MutationPolicyManagement) ReplaceDraft(ctx context.Context, co
 }
 
 func (management *MutationPolicyManagement) Activate(ctx context.Context, code string) (domain.MutationPolicy, error) {
-	operator, identityErr := requestOperator(ctx)
+	operator, identityErr := requireRole(ctx, RoleAdmin)
 	if identityErr != nil {
 		return domain.MutationPolicy{}, identityErr
 	}
@@ -247,7 +247,7 @@ func (management *MutationPolicyManagement) Activate(ctx context.Context, code s
 }
 
 func (management *MutationPolicyManagement) Deprecate(ctx context.Context, code string) (domain.MutationPolicy, error) {
-	operator, identityErr := requestOperator(ctx)
+	operator, identityErr := requireRole(ctx, RoleAdmin)
 	if identityErr != nil {
 		return domain.MutationPolicy{}, identityErr
 	}
@@ -262,7 +262,7 @@ func (management *MutationPolicyManagement) Deprecate(ctx context.Context, code 
 }
 
 func (management *MutationPolicyManagement) UpdateMetadata(ctx context.Context, code, name, description string) (domain.MutationPolicy, error) {
-	operator, identityErr := requestOperator(ctx)
+	operator, identityErr := requireRole(ctx, RoleAdmin)
 	if identityErr != nil {
 		return domain.MutationPolicy{}, identityErr
 	}
@@ -282,7 +282,7 @@ func (management *MutationPolicyManagement) UpdateMetadata(ctx context.Context, 
 }
 
 func (management *MutationPolicyManagement) DeleteDraft(ctx context.Context, code string) error {
-	if _, identityErr := requestOperator(ctx); identityErr != nil {
+	if _, identityErr := requireRole(ctx, RoleAdmin); identityErr != nil {
 		return identityErr
 	}
 	policy, err := management.catalog.GetMutationPolicy(ctx, code)

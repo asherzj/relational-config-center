@@ -1,4 +1,4 @@
-import { withAccountSession } from "../../test/account-session";
+import { withAdminSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -21,7 +21,7 @@ it("keeps form input and presents stable Admin errors with Request ID", async ()
     if (url.endsWith("/mutation-policies")) return json({ policies: [] });
     throw new Error(`unexpected request ${url}`);
   });
-  vi.stubGlobal("fetch", withAccountSession(fetchMock));
+  vi.stubGlobal("fetch", withAdminSession(fetchMock));
   const user = userEvent.setup();
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   render(<QueryClientProvider client={client}><TestRouter initialEntries={["/platform/mutation-policies/new"]}><ToastProvider><AppRoutes /></ToastProvider></TestRouter></QueryClientProvider>);

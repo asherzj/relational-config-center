@@ -96,6 +96,8 @@ CREATE TABLE rcc_accounts (
  enabled BOOLEAN NOT NULL DEFAULT TRUE,
  password_version BIGINT UNSIGNED NOT NULL DEFAULT 1,
  session_version BIGINT UNSIGNED NOT NULL DEFAULT 1,
+ roles TINYINT UNSIGNED NOT NULL DEFAULT 1,
+ role_version BIGINT UNSIGNED NOT NULL DEFAULT 1,
  created_at DATETIME(6) NOT NULL,
  UNIQUE KEY uq_rcc_accounts_username(username), UNIQUE KEY uq_rcc_accounts_email(email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -127,3 +129,79 @@ CREATE TABLE rcc_auth_rate_limits (
 -- Serializes bounded control-table admissions across processes, not password work.
 CREATE TABLE rcc_auth_control_lock (id INT PRIMARY KEY) ENGINE=InnoDB;
 INSERT INTO rcc_auth_control_lock(id) VALUES (1);
+-- Append-only role decisions also retain successful request results for retries.
+CREATE TABLE IF NOT EXISTS rcc_account_role_history (
+ id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ actor_kind VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ actor_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ account_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ before_roles TINYINT UNSIGNED NOT NULL,
+ after_roles TINYINT UNSIGNED NOT NULL,
+ version BIGINT UNSIGNED NOT NULL,
+ request_key VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ request_digest CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ result JSON NOT NULL,
+ created_at DATETIME(6) NOT NULL,
+ UNIQUE KEY uq_rcc_role_request(actor_id,request_key),
+ KEY ix_rcc_role_history(account_id,id),
+ CONSTRAINT fk_rcc_role_history_account FOREIGN KEY(account_id) REFERENCES rcc_accounts(id)
+) ENGINE=InnoDB;
+
+-- The empty key is the table maintenance generation floor; 32-byte keys are record identities.
+CREATE TABLE IF NOT EXISTS rcc_record_versions (
+ table_name VARBINARY(256) NOT NULL,
+ record_key VARBINARY(32) NOT NULL,
+ lock_version BIGINT UNSIGNED NOT NULL,
+ PRIMARY KEY (table_name, record_key)
+) ENGINE=InnoDB;
+-- Stop old writers before upgrade. This migration is restartable and does not touch business rows.
+CREATE TABLE IF NOT EXISTS rcc_release_orders (
+ id varbinary(32) NOT NULL PRIMARY KEY,
+ table_name varbinary(256) NOT NULL,
+ applicant_id varbinary(36) NOT NULL,
+ state varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ version bigint unsigned NOT NULL,
+ document json NOT NULL,
+ KEY release_table(table_name,id),
+ KEY release_applicant(applicant_id,id),
+ KEY release_state(state,id)
+) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS rcc_release_requests (
+ actor_id varbinary(36) NOT NULL,
+ operation varbinary(96) NOT NULL,
+ request_key varbinary(64) NOT NULL,
+ digest binary(32) NOT NULL,
+ result json NULL,
+ PRIMARY KEY(actor_id,operation,request_key)
+) ENGINE=InnoDB;
+
+-- Apply after 010. Reservations have no TTL and are released only by workflow.
+CREATE TABLE IF NOT EXISTS rcc_release_targets (
+ table_name varbinary(256) NOT NULL,
+ record_key binary(32) NOT NULL,
+ order_id varbinary(32) NOT NULL,
+ PRIMARY KEY (table_name,record_key),
+ KEY release_target_order(order_id)
+) ENGINE=InnoDB;
+-- Apply after 011. These immutable records describe this Admin single data source.
+CREATE TABLE IF NOT EXISTS rcc_table_publications (
+ table_name varbinary(256) NOT NULL,
+ table_version bigint unsigned NOT NULL,
+ command_cursor bigint unsigned NOT NULL,
+ PRIMARY KEY(table_name)
+) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS rcc_publication_commands (
+ table_name varbinary(256) NOT NULL,
+ sequence bigint unsigned NOT NULL,
+ order_id varbinary(32) NOT NULL,
+ document json NOT NULL,
+ PRIMARY KEY(table_name,sequence),
+ KEY publication_order(order_id)
+) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS rcc_refresh_notifications (
+ order_id varbinary(32) NOT NULL,
+ table_name varbinary(256) NOT NULL,
+ table_version bigint unsigned NOT NULL,
+ document json NOT NULL,
+ PRIMARY KEY(order_id)
+) ENGINE=InnoDB;

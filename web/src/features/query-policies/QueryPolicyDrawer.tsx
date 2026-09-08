@@ -1,3 +1,4 @@
+import { useAccountRole } from "../accounts/roles";
 import { getQueryPolicy } from "../../api/query-policies";
 import { WriteRecovery } from "../../components/ui/WriteRecovery";
 import { AlertCircle } from "lucide-react";
@@ -49,12 +50,14 @@ type SessionProps = Props & {
 
 function QueryPolicySession({ code, commandsBlocked, onRequestCommand, create, replace, metadata, submittedCode }: SessionProps) {
   const navigate = useNavigate();
+  const canManage = useAccountRole("ADMIN");
+  const editingAllowedAtOpen = useRef(canManage).current;
   const [searchParams] = useSearchParams();
   const creating = code === "new";
   const detail = useQueryPolicy(creating ? undefined : code);
   const types = useQueryPolicyTypes();
 
-  const requestedFormMode = requestedPolicyFormMode(creating, searchParams.get("mode"));
+  const requestedFormMode = editingAllowedAtOpen ? requestedPolicyFormMode(creating, searchParams.get("mode")) : "view";
   const close = () => navigate("/platform/query-policies");
   const editingPolicy = useRef(detail.data);
   if (!editingPolicy.current && detail.data) editingPolicy.current = detail.data;
@@ -70,7 +73,7 @@ function QueryPolicySession({ code, commandsBlocked, onRequestCommand, create, r
   const form = usePolicyFormSubmission<QueryPolicyDraft, QueryPolicyMetadata>({
     mode,
     code,
-    blocked: uncertain || commandsBlocked,
+    blocked: uncertain || commandsBlocked || !canManage,
     collectionPath: "/platform/query-policies",
     copy: { created: "查询规则草稿已创建", replaced: "查询规则草稿已更新", metadataUpdated: "查询规则显示信息已更新" },
     create: (value, onSuccess, onError) => {
@@ -111,6 +114,7 @@ function QueryPolicySession({ code, commandsBlocked, onRequestCommand, create, r
       <QueryPolicyForm
         key={`${code}:${mode}`}
         pending={form.pending}
+        readOnly={!canManage}
         mode={mode}
         policy={policy}
         typeCodes={types.data ?? []}
@@ -125,13 +129,13 @@ function QueryPolicySession({ code, commandsBlocked, onRequestCommand, create, r
   if (mode === "create" || mode === "replace" || mode === "metadata") {
     footer = (
       <>
-        <Button variant="primary" type="submit" form="query-policy-form" disabled={form.pending || uncertain || commandsBlocked || form.recovery.blocked.current || (mode === "create" && !types.data?.some((type) => supportedQueryPolicyTypes.has(type)))}>
+        <Button variant="primary" type="submit" form="query-policy-form" disabled={!canManage || form.pending || uncertain || commandsBlocked || form.recovery.blocked.current || (mode === "create" && !types.data?.some((type) => supportedQueryPolicyTypes.has(type)))}>
           {form.pending ? "正在保存…" : mode === "create" ? "创建草稿" : mode === "metadata" ? "保存名称和描述" : "保存执行规则"}
         </Button>
         <Button onClick={close} disabled={form.pending}>取消</Button>
       </>
     );
-  } else if (policy && actions && !uncertain && !commandsBlocked) {
+  } else if (canManage && policy && actions && !uncertain && !commandsBlocked) {
     footer = (
       <>
         {actions.replace && <Button variant="primary" onClick={() => navigate(`?mode=edit`)}>修改执行规则</Button>}

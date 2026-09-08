@@ -14,15 +14,21 @@ import (
 	"github.com/asherzj/relational-config-center/admin/internal/application"
 )
 
-func NewRouter(discovery *application.DatabaseTableDiscovery, readiness application.Readiness, queryPolicies *application.QueryPolicyManagement, mutationPolicies *application.MutationPolicyManagement, policies *application.TablePolicyManagement, queries *application.ManagedTableQuery, mutations *application.ManagedTableMutation, options RouterOptions) stdhttp.Handler {
+func NewRouter(discovery *application.DatabaseTableDiscovery, readiness application.Readiness, queryPolicies *application.QueryPolicyManagement, mutationPolicies *application.MutationPolicyManagement, policies *application.TablePolicyManagement, queries *application.ManagedTableQuery, options RouterOptions) stdhttp.Handler {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.HandleMethodNotAllowed = true
 	router.UseRawPath = true
 	router.UnescapePathValues = true
-	router.Use(requestIdentity(), structuredAccessLog(options.AccessLog), safeRecovery(), limitRequestBody(), sessionAuthentication(options))
+	router.Use(requestIdentity(), structuredAccessLog(options.AccessLog), safeRecovery(), limitRequestBody(), publicationDeadline(options.PublicationTimeout), sessionAuthentication(options))
 	if options.Authentication != nil {
 		registerAccountRoutes(router, options.Authentication, options.AccountHTTP)
+	}
+	if options.AccountRoles != nil {
+		registerAccountRoleRoutes(router, options.AccountRoles)
+	}
+	if options.ReleaseOrders != nil {
+		registerReleaseOrderRoutes(router, options.ReleaseOrders)
 	}
 	router.NoRoute(func(context *gin.Context) {
 		if isAPIRequest(context.Request.URL.Path) {
@@ -152,44 +158,6 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 			return
 		}
 		context.JSON(stdhttp.StatusOK, queryResponse(result))
-	})
-
-	router.POST("/api/v1/tables/:table_name/rows", func(context *gin.Context) {
-		var request tableAddRequest
-		if err := decodeRequest(context, &request); err != nil {
-			writeRequestDecodeError(context, err)
-			return
-		}
-		id, err := mutations.Add(context.Request.Context(), context.Param("table_name"), request.Content)
-		if writeManagedMutationError(context, err) {
-			return
-		}
-		context.JSON(stdhttp.StatusCreated, gin.H{"id": id})
-	})
-
-	router.PATCH("/api/v1/tables/:table_name/rows/:id", func(context *gin.Context) {
-		var request tablePatchRequest
-		if err := decodeRequest(context, &request); err != nil {
-			writeRequestDecodeError(context, err)
-			return
-		}
-		if request.Content == nil {
-			writeError(context, stdhttp.StatusBadRequest, "invalid_request", "request body must be valid JSON with only supported fields")
-			return
-		}
-		affected, err := mutations.Modify(context.Request.Context(), context.Param("table_name"), application.JSONString(context.Param("id")), *request.Content)
-		if writeManagedMutationError(context, err) {
-			return
-		}
-		context.JSON(stdhttp.StatusOK, gin.H{"affected": affected})
-	})
-
-	router.DELETE("/api/v1/tables/:table_name/rows/:id", func(context *gin.Context) {
-		affected, err := mutations.Delete(context.Request.Context(), context.Param("table_name"), application.JSONString(context.Param("id")))
-		if writeManagedMutationError(context, err) {
-			return
-		}
-		context.JSON(stdhttp.StatusOK, gin.H{"affected": affected})
 	})
 
 	return router
@@ -530,14 +498,6 @@ type tableQueryRequest struct {
 	PageSize   int                   `json:"page_size,omitempty"`
 }
 
-type tableAddRequest struct {
-	Content application.MutationContent `json:"content"`
-}
-
-type tablePatchRequest struct {
-	Content *application.MutationContent `json:"content"`
-}
-
 type tableQueryCondition struct {
 	Field    string                  `json:"field"`
 	Operator string                  `json:"operator"`
@@ -641,9 +601,10 @@ func (request tableQueryRequest) spec() application.QuerySpec {
 }
 
 type tableQueryResponse struct {
-	Columns []tableQueryColumnResponse `json:"columns"`
-	Rows    []map[string]*string       `json:"rows"`
-	Page    tableQueryPageResponse     `json:"page"`
+	RecordVersions []string                   `json:"record_versions"`
+	Columns        []tableQueryColumnResponse `json:"columns"`
+	Rows           []map[string]*string       `json:"rows"`
+	Page           tableQueryPageResponse     `json:"page"`
 }
 
 type tableQueryColumnResponse struct {
@@ -678,8 +639,9 @@ func queryResponse(result application.QueryResult) tableQueryResponse {
 		rows = append(rows, row)
 	}
 	return tableQueryResponse{
-		Columns: columns,
-		Rows:    rows,
+		RecordVersions: result.RecordVersions,
+		Columns:        columns,
+		Rows:           rows,
 		Page: tableQueryPageResponse{
 			PageNumber: result.Page.PageNumber,
 			PageSize:   result.Page.PageSize,
@@ -842,6 +804,12 @@ func writeManagedMutationError(context *gin.Context, err error) bool {
 		return false
 	}
 	switch {
+	case errors.Is(err, application.ErrRecordVersionRequired):
+		writeError(context, stdhttp.StatusUnprocessableEntity, "record_version_required", "read and supply the expected record version")
+	case errors.Is(err, application.ErrRecordVersionInvalid):
+		writeError(context, stdhttp.StatusUnprocessableEntity, "record_version_invalid", "expected_version must be an unsigned decimal JSON string")
+	case errors.Is(err, application.ErrRecordVersionConflict):
+		writeError(context, stdhttp.StatusConflict, "record_version_conflict", "record changed; inspect the latest data and explicitly reconfirm")
 	case errors.Is(err, application.ErrOperatorFieldIncompatible):
 		writeError(context, stdhttp.StatusUnprocessableEntity, "operator_field_incompatible", "Operator fields must be ordinary text columns that can store a complete 36-character Account ID")
 	case errors.Is(err, application.ErrProtectedTable):
@@ -901,5 +869,9 @@ func tableResponse(table application.DatabaseTable) databaseTableResponse {
 }
 
 func writeError(context *gin.Context, status int, code, message string) {
-	context.JSON(status, gin.H{"error": gin.H{"code": code, "message": message, "request_id": requestID(context)}})
+	detail := gin.H{"code": code, "message": message, "request_id": requestID(context)}
+	if index, exists := context.Get("release_item_index"); exists {
+		detail["item_index"] = index
+	}
+	context.JSON(status, gin.H{"error": detail})
 }

@@ -81,7 +81,7 @@ func TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable(t *testing.T) 
 		t.Fatalf("fixture was duplicated or pagination is unusable: %s", page.Body.String())
 	}
 
-	added := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/notification_templates/rows", `{
+	added := publicationFixtureRequest(t, app, "ADD", "notification_templates", "", `{
 		"content":{
 			"template_key":"issue-25-cleanup",
 			"channel":"EMAIL",
@@ -98,11 +98,11 @@ func TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable(t *testing.T) 
 	assertMutationString(t, created, "creator", integrationAccountID(t, app))
 	assertMutationString(t, created, "modifier", integrationAccountID(t, app))
 
-	modified := policyIntegrationRequest(t, app, http.MethodPatch, "/api/v1/tables/notification_templates/rows/"+id, `{"content":{"body":"modified"}}`)
+	modified := versionedPublicationFixture(t, app, "MODIFY", "notification_templates", id, `{"content":{"body":"modified"}}`)
 	assertMutationAffected(t, modified)
 	assertMutationString(t, queryNotificationTemplate(t, app, "issue-25-cleanup"), "body", "modified")
 
-	deleted := policyIntegrationRequest(t, app, http.MethodDelete, "/api/v1/tables/notification_templates/rows/"+id, "")
+	deleted := versionedPublicationFixture(t, app, "DELETE", "notification_templates", id, "")
 	assertMutationAffected(t, deleted)
 	assertNotificationTemplateAbsent(t, app, "issue-25-cleanup")
 }

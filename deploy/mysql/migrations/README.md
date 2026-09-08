@@ -73,3 +73,41 @@ instances in parallel with the new entry. Normal startup/readiness verifies the 
 structures with migration guidance. The complete maintenance-window sequence and
 proxy/script replacement are documented below.
 See [the account interface and development setup](../../../docs/admin-local-accounts.md).
+
+## Global account roles
+
+After 007, stop old Admin instances and apply
+[`008-account-roles.sql`](./008-account-roles.sql). It is restartable and gives
+existing accounts VIEWER without resetting previously granted roles on reruns.
+Fresh installations already contain the same columns and history table.
+Startup/readiness requires the role schema, but deliberately does not require an
+existing administrator: registration and read-only login must work before the
+maintainer explicitly runs `account-maintain grant-admin` for a selected account.
+See [role bootstrap, recovery and HTTP contracts](../../../docs/admin-account-roles.md).
+
+## 记录版本（009）
+
+停止全部旧版本和外部写入后执行 `009-record-versions.sql`。该迁移只建立受保护控制表，不改业务表；重跑保留所有版本。新 Admin 启动及就绪检查要求其列、唯一键及 InnoDB 引擎完整。Admin/Web 必须一起切换为版本必填调用方，不能并行运行旧写入者。
+
+存量基线为 0，删除保留版本条目。外部 SQL、表重建、排序规则、数据库或身份算法升级必须按 [记录版本维护流程](../../../docs/admin-record-versions.md) 提高整表维护基线并重新确认；不允许清空版本控制表或降级继续写入。
+
+## 发布草稿与在途目标（010 / 011）
+
+完成 009 后顺序执行 `010-release-drafts.sql` 和 `011-release-targets.sql`。
+010 持久保存草稿/历史及按账号、动作、请求标识的成功结果；011 建立提交时取得的已知记录唯一目标。
+两者均可重跑，不能清空旧请求、历史或占用来恢复服务。Ready 检查控制结构和 InnoDB，
+完整前不恢复业务服务；新安装的 001 已包含相同定义。
+
+提交审批还要求可证明的目标表/Schema TRIGGER 元数据权限，否则明确拒绝冻结。
+没有占用过期清理任务。T5 已删除旧记录直写路由，继续应用下面的 012 后使用正式执行入口。详见 [审批、冻结与恢复契约](../../../docs/admin-release-approvals.md)。
+
+## 原子发布结果（012）
+
+停写维护窗口内，在 011 后执行 `012-publication.sql`。该幂等迁移仅建立 `rcc_table_publications`、`rcc_publication_commands`、`rcc_refresh_notifications`，不改变业务表；新安装 001 包含完全相同定义。Ready 要求精确列/主键与 InnoDB，不允许清空记录或重置游标。
+
+部署维护账号需按实际 Admin 登录身份显式授予 `GRANT PROCESS ON *.* TO '<admin-user>'@'<host>'`；目标表的 TRIGGER 元数据授权仍必须可证明。PROCESS 用于读取隐藏跨 schema 外键的完整 InnoDB 字典，无法读取时发布在业务写入前明确拒绝。该全局授权不在迁移中自动执行，不能仅靠目标 schema 的 SELECT 推断没有外部级联。详见[能力边界与持久结果](../../../docs/design-notes/publication-contract.md)。
+
+成功只表示数据库提交，通知状态 NOT_CONNECTED；不运行投递器。全部 Admin/Web 应一同切换，旧 rows 客户端会明确拒绝，不提供兼容开关。同表 1～1,000 项混合发布与反向发布共用这些控制结构，无额外临时兼容表；完整维护窗口和恢复步骤见[发布单升级指南](../../../docs/admin-release-upgrade.md)。
+
+
+T5 同时修正 FLOAT 主键的有损短文本权重与 FLOAT/DOUBLE 的正负零等价。应用新二进制前，须取消受影响表的旧在途单并停写，按 [记录版本维护门禁](../../../docs/admin-record-versions.md#t5-浮点身份修订的升级门禁) 为全部 FLOAT/DOUBLE 主键表推进维护基线、保留旧 key。012 不自动完成这项维护，也不能据其可重跑而跳过代际切换。

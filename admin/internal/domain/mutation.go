@@ -10,31 +10,3 @@ type MutationValue struct {
 	Column Column
 	Value  any
 }
-
-// RowInsert is the storage-neutral request passed through the mutation
-// execution interface. Dynamic identifiers are live Schema values, never
-// caller-provided SQL fragments.
-type RowInsert struct {
-	TableName  string
-	Values     []MutationValue
-	ProvidedID *JSONString
-}
-
-// RowUpdate is one live-Schema-validated PATCH operation. The primary key and
-// values are typed before this storage-neutral request crosses the execution
-// seam, so its adapter only owns SQL compilation and transaction handling.
-type RowUpdate struct {
-	TableName string
-	IDColumn  Column
-	ID        any
-	Values    []MutationValue
-}
-
-// RowDelete is one live-Schema-validated hard delete. Only the table and sole
-// id primary key cross the execution interface; unrelated columns are not part
-// of DELETE validation.
-type RowDelete struct {
-	TableName string
-	IDColumn  Column
-	ID        any
-}

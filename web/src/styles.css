@@ -314,7 +314,9 @@
 .cell-unsubmitted { color: #8a5a00 !important; }
 .cell-missing { color: #9a4448 !important; }
 .auto-fill-label { display: inline-flex; margin-left: 7px; padding: 2px 5px; border-radius: 4px; background: var(--muted); color: var(--muted-foreground); font-size: 12px; font-weight: 600; text-decoration: none; }
-.change-set-dialog > .feedback-state { min-height: auto; padding: 14px 20px; border-top: 1px solid #f2b8bb; flex-direction: row; justify-content: flex-start; text-align: left; background: #fff7f7; }
+.change-set-feedback > .feedback-state { min-height: auto; padding: 14px 20px; border-top: 1px solid #f2b8bb; display: grid; grid-template-columns: auto minmax(0, 1fr); justify-content: start; text-align: left; background: #fff7f7; }
+.change-set-feedback > .feedback-state > svg { padding: 6px; margin: 0; }
+.change-set-feedback > .feedback-state > span, .change-set-feedback > .feedback-state > button { grid-column: 2; overflow-wrap: anywhere; }
 .change-set-dialog > footer, .mutation-success-dialog > footer { padding: 14px 20px; display: flex; justify-content: flex-end; gap: 9px; border-top: 1px solid var(--line); }
 
 .mutation-success-dialog h2 { margin: 0 0 8px; }
@@ -583,6 +585,14 @@ input::placeholder, textarea::placeholder { color: var(--muted-foreground); opac
 }
 
 @layer components {
+  .change-set-feedback { min-height: 0; max-height: 42dvh; overflow: auto; }
+  .record-conflict-review { display: grid; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--line); background: var(--surface-soft); font-size: 13px; }
+  .record-conflict-review > p { margin: 0; line-height: 1.5; }
+  .record-conflict-review > button { justify-self: start; }
+  .record-conflict-review dl { margin: 0; max-height: 18dvh; overflow: auto; border: 1px solid var(--line); background: var(--card); }
+  .record-conflict-review dl > div { display: grid; grid-template-columns: minmax(0, 35%) minmax(0, 1fr); border-bottom: 1px solid var(--line); }
+  .record-conflict-review dt, .record-conflict-review dd { margin: 0; padding: 6px 10px; overflow-wrap: anywhere; white-space: pre-wrap; }
+  .record-conflict-review dt { color: var(--muted-foreground); }
   .drawer, .drawer-header, .drawer-body, .drawer-footer { min-width: 0; }
   .drawer-header > div { min-width: 0; }
   .drawer-header .icon-button { flex: 0 0 auto; }

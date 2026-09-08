@@ -1,3 +1,4 @@
+import { useAccountRole, roleLabels } from "../features/accounts/roles";
 import { useWorkspaceIdentity } from "../features/accounts/ProtectedWorkspace";
 import { ArrowLeftRight, ChevronRight, Database, FileSearch, Layers3, Menu, ShieldCheck, Table2, X } from "lucide-react";
 import { useState } from "react";
@@ -9,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 
 export function AppShell() {
   const identity = useWorkspaceIdentity();
+  const administrator = useAccountRole("ADMIN");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { pathname } = useLocation();
   const section = pathname.startsWith("/configuration") ? "配置管理" : "平台管理";
@@ -34,13 +36,15 @@ export function AppShell() {
         <nav>
           <section className="nav-group">
             <div className="nav-group-title">平台管理</div>
+            {administrator && <NavLink to="/platform/account-roles" onClick={() => setMobileNavOpen(false)}><ShieldCheck size={18} />账号角色</NavLink>}
             <NavLink to="/platform/query-policies" onClick={() => setMobileNavOpen(false)}><FileSearch size={18} />查询规则定义</NavLink>
             <NavLink to="/platform/mutation-policies" onClick={() => setMobileNavOpen(false)}><ArrowLeftRight size={18} />变更规则定义</NavLink>
             <NavLink to="/platform/table-policies" onClick={() => setMobileNavOpen(false)}><Layers3 size={18} />表规则分配</NavLink>
           </section>
           <section className="nav-group">
             <div className="nav-group-title">配置管理</div>
-            <NavLink to="/configuration/managed-data" onClick={() => setMobileNavOpen(false)}><Table2 size={18} />配置内容管理</NavLink>
+            <NavLink to="/configuration/release-orders" onClick={() => setMobileNavOpen(false)}><FileSearch size={18} />发布单</NavLink>
+ <NavLink to="/configuration/managed-data" onClick={() => setMobileNavOpen(false)}><Table2 size={18} />配置内容管理</NavLink>
           </section>
         </nav>
         <div className="sidebar-account">
@@ -53,7 +57,7 @@ export function AppShell() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="start" className="w-56">
-              <DropdownMenuLabel>当前账号</DropdownMenuLabel>
+              <DropdownMenuLabel>当前账号 · {identity?.account.roles.map(role => roleLabels[role]).join("、")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild><NavLink to="/account">本地账号入口</NavLink></DropdownMenuItem>
             </DropdownMenuContent>

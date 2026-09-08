@@ -49,6 +49,7 @@ function draftFor(policy?: QueryPolicy): QueryPolicyDraft {
 }
 
 type Props = {
+  readOnly?: boolean;
   mode: FormMode;
   policy?: QueryPolicy;
   typeCodes: string[];
@@ -59,7 +60,7 @@ type Props = {
   onSubmit: (value: QueryPolicyDraft | QueryPolicyMetadata) => void;
 };
 
-export function QueryPolicyForm({ mode, policy, typeCodes, registryState, serverError, onVerify, pending = false, onSubmit }: Props) {
+export function QueryPolicyForm({ readOnly = false, mode, policy, typeCodes, registryState, serverError, onVerify, pending = false, onSubmit }: Props) {
   const [baseline] = useState(() => draftFor(policy));
   const [editableDraft, setDraft] = useState<QueryPolicyDraft>(baseline);
   const draft = mode === "view" ? draftFor(policy) : editableDraft;
@@ -118,7 +119,7 @@ export function QueryPolicyForm({ mode, policy, typeCodes, registryState, server
         </div>
       )}
 
-      <fieldset className="form-controls" disabled={pending}>
+      <fieldset className="form-controls" disabled={pending || readOnly}>
       {policy && <Badge variant="outline" className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</Badge>}
 
       <section className="form-section" aria-labelledby="query-display-heading">

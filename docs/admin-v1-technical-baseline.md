@@ -2,7 +2,9 @@
 
 本文是 Admin 第一迭代的冻结设计。它汇总可直接指导实现和验收的边界；取舍理由见 [ADR](./adr/)，领域语言见 [Admin Context](../admin/CONTEXT.md)。
 
-当前实现说明：本文冻结的是 Admin 后端第一迭代的历史范围。正式 Web 管理台已经在 [`web/README.md`](../web/README.md) 和 [`web/DESIGN.md`](../web/DESIGN.md) 所述入口交付；Server、Client 仍未提供运行时配置服务或账户功能。
+当前实现说明：本文冻结的是 Admin 后端第一迭代的历史范围。当前账号角色、同表混合发布、独立审批与审批回滚见[发布单升级与操作指南](admin-release-upgrade.md)；旧记录直写 HTTP 路由已删除。正式 Web 管理台已经在 [`web/README.md`](../web/README.md) 和 [`web/DESIGN.md`](../web/DESIGN.md) 所述入口交付；Server、Client 仍未提供运行时配置服务或账户功能。
+
+当前并发语义已由 [ADR-0021](./adr/0021-store-record-versions-outside-business-tables.md) 及 [记录版本契约](./admin-record-versions.md) 替代下文受管记录的 last-write-wins 约定；规则目录并发语义不变。当前数据库版本与身份维护要求也以该契约为准。
 
 ## 1. 目标与范围
 
@@ -282,10 +284,13 @@ Query/Mutation Draft 可完整替换或删除，Active/Deprecated 仅允许更�
 
 ```text
 POST   /api/v1/tables/{table_name}/query
-POST   /api/v1/tables/{table_name}/rows
-PATCH  /api/v1/tables/{table_name}/rows/{id}
-DELETE /api/v1/tables/{table_name}/rows/{id}
+POST   /api/v1/release-orders
+POST   /api/v1/release-orders/{id}/submit
+POST   /api/v1/release-orders/{id}/approve
+POST   /api/v1/release-orders/{id}/execute
 ```
+
+数据确认只保存草稿；独立审批后的正式执行才写配置，旧三条 rows 写路由已删除。完整控制事务、最终行与恢复见 [发布结果契约](design-notes/publication-contract.md)。
 
 所有数据 API 必须先加载 enabled Policy。Compiler 的表名来自 Policy，字段来自实时 Schema，方向和操作符是封闭枚举，所有值通过参数绑定；Handler 不能传入 SQL 片段。
 
@@ -402,4 +407,7 @@ Admin V1 的 Definition of Done：
 - PostgreSQL：新增独立 Adapter 与 Compiler。
 - 已部署 Schema 升级：原历史建议是引入迁移框架；当前实现按 [`deploy/mysql/migrations/README.md`](../deploy/mysql/migrations/README.md) 使用显式 SQL migration，未引入 Goose。
 - 多租户、公网访问或真实用户审计：重新设计身份、授权与隔离。
-- 规则/Data 并发控制、缓存、发布、审批、关系查询和 Secret 管理：作为独立能力设计，不隐式扩展当前规则。
+- 受管记录并发保护、发布和审批已由上述当前契约取代历史规划；规则目录并发控制、缓存、关系查询和 Secret 管理仍待后续设计。
+
+
+当前发布草稿 API、权限、字段差异及幂等恢复见[发布草稿契约](admin-release-drafts.md)。本文保留第一迭代的历史路由设计；旧记录写入口已由正式发布流程取代，不再提供写入能力。

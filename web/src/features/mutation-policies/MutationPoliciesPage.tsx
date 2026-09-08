@@ -1,3 +1,4 @@
+import { useAccountRole } from "../accounts/roles";
 import { getMutationPolicy } from "../../api/mutation-policies";
 import { WriteRecovery } from "../../components/ui/WriteRecovery";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/shadcn/table";
@@ -47,15 +48,16 @@ const commandContent: PolicyCommandCopy = {
 
 function PolicyActions({ policy, supported, commandsBlocked, onCommand }: { policy: MutationPolicy; supported: boolean; commandsBlocked: boolean; onCommand: (command: PolicyLifecycleCommand, code: string) => void }) {
   const navigate = useNavigate();
+  const canManage = useAccountRole("ADMIN");
   const actions = policyActionAvailability(policy.status, supported);
   const open = (suffix = "") => navigate(`/platform/mutation-policies/${encodeURIComponent(policy.code)}${suffix}`);
   return <div className="row-actions">
     <Button variant="ghost" onClick={() => open()}>查看</Button>
-    {actions.replace && <Button variant="ghost" onClick={() => open("?mode=edit")}>修改执行规则</Button>}
-    {actions.metadata && <Button variant="ghost" onClick={() => open("?mode=metadata")}>名称和描述</Button>}
-    {!commandsBlocked && actions.activate && <Button variant="ghost" onClick={() => onCommand("activate", policy.code)}>激活</Button>}
-    {!commandsBlocked && actions.deprecate && <Button variant="ghost" className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</Button>}
-    {!commandsBlocked && actions.delete && <Button variant="ghost" className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</Button>}
+    {canManage && actions.replace && <Button variant="ghost" onClick={() => open("?mode=edit")}>修改执行规则</Button>}
+    {canManage && actions.metadata && <Button variant="ghost" onClick={() => open("?mode=metadata")}>名称和描述</Button>}
+    {canManage && !commandsBlocked && actions.activate && <Button variant="ghost" onClick={() => onCommand("activate", policy.code)}>激活</Button>}
+    {canManage && !commandsBlocked && actions.deprecate && <Button variant="ghost" className="danger-link" onClick={() => onCommand("deprecate", policy.code)}>弃用</Button>}
+    {canManage && !commandsBlocked && actions.delete && <Button variant="ghost" className="danger-link" onClick={() => onCommand("delete", policy.code)}>删除</Button>}
   </div>;
 }
 
@@ -66,6 +68,7 @@ function PolicyTypeAvailability({ policy, supported }: { policy: MutationPolicy;
 
 export function MutationPoliciesPage() {
   const navigate = useNavigate();
+  const canManage = useAccountRole("ADMIN");
   const { code } = useParams<{ code?: string }>();
   const policies = useMutationPolicies();
   const types = useMutationPolicyTypes();
@@ -74,7 +77,7 @@ export function MutationPoliciesPage() {
   const remove = useDeleteMutationPolicy();
   const uncertainCommand = [activate.error, deprecate.error, remove.error].some(isUncertainWriteError);
   const lifecycle = usePolicyLifecycleCommands({
-    blocked: uncertainCommand,
+    blocked: uncertainCommand || !canManage,
     onUncertainWrite: (_error, targetCode) => { if (code === targetCode) navigate("/platform/mutation-policies"); },
     selectedCode: code,
     collectionPath: "/platform/mutation-policies",
@@ -95,9 +98,10 @@ export function MutationPoliciesPage() {
           <h1>变更规则定义</h1>
           <p>定义配置记录的新增、修改与删除权限，以及操作人和时间的自动填写方式。</p>
         </div>
-        <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/mutation-policies/new")} disabled={uncertainCommand || types.isPending || types.isError || !supportedTypes.length}>新建草稿</Button>
+        <Button variant="primary" icon={<Plus size={17} />} onClick={() => navigate("/platform/mutation-policies/new")} disabled={!canManage || uncertainCommand || types.isPending || types.isError || !supportedTypes.length}>新建草稿</Button>
       </div>
 
+      {!canManage && <p className="inline-alert">当前账号可查看规则；修改规则需要管理员角色。</p>}
       <section className="type-registry" aria-label="变更规则类型注册表">
         <span><FileCode2 size={18} />已注册规则类型</span>
         {types.isPending && <small>正在读取…</small>}
@@ -127,7 +131,7 @@ export function MutationPoliciesPage() {
                   <TableCell><div className="auto-fill-targets">{autoFillTargets(policy).length ? autoFillTargets(policy).map((target) => <code key={target}>{target}</code>) : <span>无</span>}</div></TableCell>
                   <TableCell><Badge variant="outline" className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</Badge></TableCell>
                   <TableCell className="timestamp">{formatTimestamp(policy.modifiedAt)}</TableCell>
-                  <TableCell><PolicyActions policy={policy} supported={supported} commandsBlocked={uncertainCommand} onCommand={lifecycle.request} /></TableCell>
+                  <TableCell><PolicyActions policy={policy} supported={supported} commandsBlocked={uncertainCommand || !canManage} onCommand={lifecycle.request} /></TableCell>
                 </TableRow>;
               })}</TableBody>
             </Table>
@@ -139,7 +143,7 @@ export function MutationPoliciesPage() {
           <Button className="catalog-refresh" variant="ghost" icon={<RefreshCw size={15} />} onClick={() => void policies.refetch()} disabled={policies.isFetching}>刷新</Button>
         </footer>
       </section>
-      <MutationPolicyDrawer code={code} commandsBlocked={uncertainCommand} onRequestCommand={lifecycle.request} />
+      <MutationPolicyDrawer code={code} commandsBlocked={uncertainCommand || !canManage} onRequestCommand={lifecycle.request} />
       {!confirm && <WriteRecovery onResume={() => {
         activate.reset(); deprecate.reset(); remove.reset();
         lifecycle.finishCheck();

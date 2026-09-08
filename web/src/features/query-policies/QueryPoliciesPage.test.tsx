@@ -1,4 +1,4 @@
-import { testIdentity, withAccountSession } from "../../test/account-session";
+import { testAdminIdentity, withAdminSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -64,7 +64,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("查询规则页面", () => {
   it("renders localized policies from the real Admin contract shape", async () => {
-    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies")) return json({ policies: [activePolicy] });
@@ -86,7 +86,7 @@ describe("查询规则页面", () => {
       if (url.endsWith("/query-policies")) return json({ policies: [activePolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
 
     renderPage("/platform/query-policies/standard_page_query_v1");
     expect(await screen.findByRole("heading", { name: "查询规则详情" })).toBeVisible();
@@ -99,7 +99,7 @@ describe("查询规则页面", () => {
   });
 
   it("blocks execution editing for an unknown Type but still offers safe metadata editing", async () => {
-    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/future_query_v1")) return json(unknownPolicy);
@@ -120,7 +120,7 @@ describe("查询规则页面", () => {
   });
 
   it("keeps a known Active row's hint consistent when the Type registry is unavailable", async () => {
-    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ error: { code: "unavailable", message: "down" } }, 503);
       if (url.endsWith("/query-policies")) return json({ policies: [activePolicy] });
@@ -134,7 +134,7 @@ describe("查询规则页面", () => {
   });
 
   it("allows an unknown active Type to update only its name and description", async () => {
-    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/future_query_v1")) return json(unknownPolicy);
@@ -153,7 +153,7 @@ describe("查询规则页面", () => {
     ["DEPRECATED", "edit", deprecatedPolicy],
     ["DRAFT", "metadata", draftPolicy],
   ])("downgrades a disallowed %s direct mode to read-only", async (_status, requestedMode, policy) => {
-    vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith(`/query-policies/${policy.code}`)) return json(policy);
@@ -178,7 +178,7 @@ describe("查询规则页面", () => {
       if (url.endsWith("/query-policies")) return json({ policies: [draftPolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/query-policies/compact_page_query_v1");
@@ -203,7 +203,7 @@ describe("查询规则页面", () => {
       if (url.endsWith("/query-policies")) return json({ policies: [activePolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/query-policies/standard_page_query_v1");
@@ -226,7 +226,7 @@ describe("查询规则页面", () => {
       if (url.endsWith("/query-policies")) return json({ policies: [draftPolicy] });
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
 
     renderPage("/platform/query-policies/compact_page_query_v1");
@@ -268,7 +268,7 @@ describe("查询规则页面", () => {
       if (url.endsWith("/query-policies")) { reads += 1; return json({ policies: [draftPolicy] }); }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
     renderPage("/platform/query-policies/compact_page_query_v1?mode=edit");
     await user.clear(await screen.findByLabelText("显示名称"));
@@ -341,7 +341,7 @@ describe("查询规则页面", () => {
       }
       throw new Error(`unexpected request ${url}`);
     });
-    vi.stubGlobal("fetch", withAccountSession(fetchMock));
+    vi.stubGlobal("fetch", withAdminSession(fetchMock));
     const user = userEvent.setup();
     renderPage("/platform/query-policies/compact_page_query_v1");
     await user.click((await screen.findAllByRole("button", { name: "激活" })).at(-1)!);
@@ -393,10 +393,10 @@ describe("查询规则页面", () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.includes("/query-policies") && init?.method && init.method !== "GET") writes += 1;
-      if (url.endsWith("/auth/session")) return signedIn ? json(testIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
-      if (url.endsWith("/auth/activity")) return json(testIdentity);
+      if (url.endsWith("/auth/session")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
+      if (url.endsWith("/auth/activity")) return json(testAdminIdentity);
       if (url.endsWith("/auth/csrf")) return json({ csrf_token: "preauth-csrf" });
-      if (url.endsWith("/auth/login")) { signedIn = true; detailUnavailable = true; return json(testIdentity); }
+      if (url.endsWith("/auth/login")) { signedIn = true; detailUnavailable = true; return json(testAdminIdentity); }
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/compact_page_query_v1")) return detailUnavailable
         ? json({ error: { code: "policy_catalog_unavailable", message: "down", request_id: "req-recovery" } }, 503)
@@ -437,7 +437,7 @@ it("ends an uncertain lifecycle check in the refreshed directory instead of leav
   const user = userEvent.setup();
   let storedPolicy = { ...draftPolicy };
   let writes = 0;
-  vi.stubGlobal("fetch", withAccountSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+  vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
     if (url.endsWith(`/query-policies/${draftPolicy.code}/activate`) && init?.method === "POST") {

@@ -2,7 +2,8 @@
 // RCC_E2E_ENGINE chooses one Playwright engine; the runner records each separately.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
-const { registerFixtureAccount } = require('./local-account.cjs');
+const { randomUUID } = require('node:crypto');
+const { registerFixtureAccount, authenticatedRequest } = require('./local-account.cjs');
 const fs = require('node:fs/promises');
 const { execFileSync } = require('node:child_process');
 
@@ -30,7 +31,9 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
   const cleanupNames = new Set();
   let browser;
   let context;
+  let approvalContext;
   let account;
+  let approverAccount;
   let page;
   let failure = null;
   let browserVersion = null;
@@ -63,7 +66,12 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     page.on('pageerror', (error) => pageErrors.push({ url: page.url(), message: error.message }));
     page.on('request', (request) => {
       const url = new URL(request.url());
-      if (url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/v1/auth/')) requests.push({ method: request.method(), path: url.pathname });
+      if (url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/v1/auth/')) requests.push({
+        method: request.method(),
+        path: url.pathname,
+        body: request.postData(),
+        key: request.headers()['idempotency-key'],
+      });
     });
     page.on('response', (response) => {
       const request = response.request();
@@ -96,11 +104,27 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
       node.dispatchEvent(paste);
     }, raw);
   }
+  async function releaseWrite(actor, pathname, data, expected = 200) {
+    const response = await authenticatedRequest(actor, base, pathname, {
+      method: 'POST', headers: { 'Idempotency-Key': randomUUID() }, data,
+    });
+    assert.equal(response.status(), expected, `POST ${pathname}: ${await response.text()}`);
+    return response.json();
+  }
+  async function publishRelease(draft) {
+    let order = await releaseWrite(context, `/api/v1/release-orders/${draft.id}/submit`, { expected_version: draft.version });
+    order = await releaseWrite(approvalContext, `/api/v1/release-orders/${draft.id}/approve`, { expected_version: order.version, reason: 'Accessibility publication review' });
+    assert.equal(order.history.find((event) => event.action === 'APPROVE')?.actor_id, approverAccount.accountID);
+    assert.notEqual(order.applicant_id, approverAccount.accountID, 'approval must use a separate permanent account');
+    return releaseWrite(context, `/api/v1/release-orders/${draft.id}/execute`, { expected_version: order.version });
+  }
 
   try {
     browser = await engine.launch({ headless: true });
     context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     account = await registerFixtureAccount(context, base);
+    approvalContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    approverAccount = await registerFixtureAccount(approvalContext, base, { roles: ['APPROVER'] });
     browserVersion = browser.version();
 
     // Rule editing, native browser history and modal ownership.
@@ -219,9 +243,9 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await changeSet.waitFor();
     assert.equal(await changeSet.evaluate((node) => node === document.activeElement), true, 'opening Change Set must place focus without a test fixture');
     await page.keyboard.press('Shift+Tab');
-    assert.equal(await button('确认并执行').evaluate((node) => node === document.activeElement), true);
+    assert.equal(await button('确认并保存草稿').evaluate((node) => node === document.activeElement), true);
     await page.keyboard.press('Tab');
-    assert.equal(await button('放弃本次编辑').evaluate((node) => node === document.activeElement), true);
+    assert.equal(await button('选择已有草稿').evaluate((node) => node === document.activeElement), true);
     const changeScroll = page.locator('.change-set-scroll');
     const changeTableScroll = changeScroll.locator('[data-slot="table-container"]');
     assert.ok(await changeTableScroll.evaluate((node) => node.scrollWidth > node.clientWidth));
@@ -235,7 +259,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     assert.ok(changeScrollEvidence.horizontal.offset > 0);
     assert.ok(changeScrollEvidence.vertical.offset > 0);
     const changeSetActions = [];
-    for (const action of ['放弃本次编辑', '返回修改', '确认并执行']) {
+    for (const action of ['放弃本次编辑', '返回修改', '确认并保存草稿']) {
       const actionButton = button(action);
       await actionButton.scrollIntoViewIfNeeded();
       const rect = await viewportRect(actionButton);
@@ -245,7 +269,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     }
     assert.ok((await pageOverflow()) <= 1);
     await page.screenshot({ path: `${output}/change-set-320.png` });
-    pass('320px Change Set owns horizontal/vertical overflow and keeps actions reachable', { keyboardPath: ['Shift+Tab -> 确认并执行', 'Tab -> 放弃本次编辑'], documentOverflow: await pageOverflow(), scrolling: changeScrollEvidence, footerActions: changeSetActions });
+    pass('320px Change Set owns horizontal/vertical overflow and keeps actions reachable', { keyboardPath: ['Shift+Tab -> 确认并保存草稿', 'Tab -> 选择已有草稿'], documentOverflow: await pageOverflow(), scrolling: changeScrollEvidence, footerActions: changeSetActions });
 
     await page.keyboard.press('Escape');
     const nestedLeave = page.getByRole('alertdialog', { name: '放弃未保存的修改？', exact: true });
@@ -261,78 +285,105 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     assert.equal(await page.evaluate(() => document.body.classList.contains('modal-open')), true);
     pass('only the top nested leave dialog handles Tab/Escape and focus returns to Change Set', { lowerChangeSetInert: true, bodyRemainedLocked: true });
 
-    const failureResponse = page.waitForResponse((response) => response.request().method() === 'POST' && new URL(response.url()).pathname === `/api/v1/tables/${table}/rows`);
-    await button('确认并执行').click();
-    const failed = await failureResponse;
-    assert.equal(failed.status(), 400);
-    const failureBody = failed.request().postDataJSON();
-    assert.equal(failureBody.content.note, rawCR);
+    const draftResponse = page.waitForResponse((response) => response.request().method() === 'POST' && new URL(response.url()).pathname === '/api/v1/release-orders');
+    await button('确认并保存草稿').click();
+    const created = await draftResponse;
+    assert.equal(created.status(), 201);
+    const failureBody = created.request().postDataJSON();
+    assert.equal(failureBody.items[0].content.note, rawCR);
+    await page.waitForURL('**/configuration/release-orders/*');
+    let invalidOrder = await (await authenticatedRequest(context, base, new URL(page.url()).pathname.replace('/configuration', '/api/v1'))).json();
+    invalidOrder = await releaseWrite(context, `/api/v1/release-orders/${invalidOrder.id}/submit`, { expected_version: invalidOrder.version });
+    invalidOrder = await releaseWrite(approvalContext, `/api/v1/release-orders/${invalidOrder.id}/approve`, { expected_version: invalidOrder.version, reason: 'Independent accessibility validation review' });
+    assert.equal(invalidOrder.history.find((event) => event.action === 'APPROVE')?.actor_id, approverAccount.accountID);
+    const rejected = await releaseWrite(context, `/api/v1/release-orders/${invalidOrder.id}/execute`, { expected_version: invalidOrder.version }, 422);
+    assert.equal(rejected.error.code, 'invalid_mutation_content');
+    const retainedResponse = await authenticatedRequest(context, base, `/api/v1/release-orders/${invalidOrder.id}`);
+    assert.equal(retainedResponse.status(), 200);
+    const retained = await retainedResponse.json();
+    assert.equal(retained.state, 'APPROVED');
+    assert.equal(retained.items[0].content.note, rawCR);
+    assert.equal(retained.publication, undefined);
     assert.equal(sql(`SELECT COUNT(*) FROM ${table} WHERE name=${literal(`stage5_${engineName}_invalid`)};`), '0');
-    await page.getByRole('alert').filter({ hasText: '写入内容不符合实时字段 Schema' }).waitFor();
-    await button('返回修改').click();
-    assert.equal(await note.getAttribute('readonly'), '');
-    await button('note 值：转换为 LF 再编辑').click();
-    assert.equal(await note.getAttribute('readonly'), null);
-    assert.equal(await note.inputValue(), rawCR.replace(/\r\n?/g, '\n'));
-    await button('取消').click();
+    await page.reload();
+    await page.getByRole('heading', { name: `${table} · 已批准`, exact: true }).waitFor();
+    await button('取消发布单').click();
+    await page.getByRole('textbox', { name: '取消原因', exact: true }).fill('Correct the rejected value without changing the frozen intent');
+    await button('确认取消发布单').click();
+    await page.getByRole('heading', { name: `${table} · 已取消`, exact: true }).waitFor();
+    await button('复制新草稿').click();
+    await button('读取最新配置').click();
+    await button('确认最新基线并复制').click();
+    await page.getByRole('heading', { name: `${table} · 草稿`, exact: true }).waitFor();
+    await button('编辑草稿').click();
+    const copiedNote = page.getByRole('textbox', { name: 'note 申请值', exact: true });
+    assert.equal(await copiedNote.getAttribute('readonly'), '');
+    assert.equal(await copiedNote.inputValue(), rawCR.replace(/\r\n?/g, '\n'));
+    await button('note 申请值：转换为 LF 再编辑').click();
+    assert.equal(await copiedNote.getAttribute('readonly'), null);
+    assert.equal(await copiedNote.inputValue(), rawCR.replace(/\r\n?/g, '\n'));
+    await page.getByRole('dialog', { name: `编辑 ${table} 草稿`, exact: true }).locator('.drawer-footer').getByRole('button', { name: '关闭', exact: true }).click();
     await nestedLeave.waitFor();
     await button('放弃修改并离开').click();
     assert.equal(await page.locator('[data-modal-surface="true"]').count(), 0);
     assert.equal(await page.evaluate(() => document.body.classList.contains('modal-open')), false);
-    pass('real MySQL rejection retains raw CR and explicit LF conversion unlocks editing', {
-      status: failed.status(),
+    pass('real MySQL rejection freezes raw CR; a copied draft requires explicit LF conversion before editing', {
+      status: 422,
+      rejectedOrder: invalidOrder.id,
       rawHex: Buffer.from(rawCR).toString('hex'),
-      submittedHex: Buffer.from(failureBody.content.note).toString('hex'),
+      submittedHex: Buffer.from(failureBody.items[0].content.note).toString('hex'),
       clipboardBoundary: 'synthetic paste Event with injected DataTransfer; no OS clipboard access',
     });
 
-    // API fault injection happens after a real database commit.
+    // API fault injection happens after the release draft is durably created.
     await managed({ width: 390, height: 640 });
     await button('新增记录').click();
     const unknownName = `stage5_${engineName}_unknown`;
     cleanupNames.add(unknownName);
     await include('name', unknownName);
     assert.equal(await page.getByRole('checkbox', { name: '包含 id', exact: true }).isChecked(), false);
-    const writePath = `/api/v1/tables/${table}/rows`;
+    const writePath = '/api/v1/release-orders';
     const unknownRequestStart = requests.length;
     await page.route(`**${writePath}`, async (route) => {
       if (route.request().method() !== 'POST') return route.continue();
       const response = await route.fetch();
       faultEvidence = { actualStatus: response.status(), requestId: response.headers()['x-request-id'], injectedStatus: 503 };
-      await route.fulfill({ status: 503, json: { error: { code: 'mutation_unavailable', message: 'Injected after real commit', request_id: faultEvidence.requestId } } });
+      await route.fulfill({ status: 503, json: { error: { code: 'release_order_unavailable', message: 'Injected after durable draft creation', request_id: faultEvidence.requestId } } });
     });
     await button('查看 Change Set').click();
-    await button('确认并执行').click();
-    const uncertain = page.getByRole('alert', { name: '提交结果尚未确认', exact: true });
+    await button('确认并保存草稿').click();
+    const uncertain = page.getByRole('alert').filter({ hasText: '草稿保存结果待确认' });
     await uncertain.waitFor();
     assert.deepEqual(faultEvidence && { actualStatus: faultEvidence.actualStatus, injectedStatus: faultEvidence.injectedStatus }, { actualStatus: 201, injectedStatus: 503 });
-    assert.equal(sql(`SELECT COUNT(*) FROM ${table} WHERE name=${literal(unknownName)};`), '1');
-    assert.equal(await button('确认并执行').isDisabled(), true);
-    await button('只读核对当前状态').scrollIntoViewIfNeeded();
-    assert.equal(await visibleInViewport(button('只读核对当前状态')), true);
+    assert.equal(sql(`SELECT COUNT(*) FROM ${table} WHERE name=${literal(unknownName)};`), '0');
+    assert.equal(await button('使用原请求重试').isEnabled(), true);
+    assert.equal(await visibleInViewport(button('使用原请求重试')), true);
     assert.ok((await pageOverflow()) <= 1);
-    await button('只读核对当前状态').click();
-    await page.getByText('当前查询结果（仅供核对）', { exact: true }).waitFor();
-    const snapshot = page.locator('.write-recovery-snapshot');
-    assert.ok(await snapshot.evaluate((node) => node.scrollWidth > node.clientWidth || node.scrollHeight > node.clientHeight));
-    await snapshot.evaluate((node) => { node.scrollLeft = node.scrollWidth; node.scrollTop = node.scrollHeight; });
-    await button('我已核对，返回修改').scrollIntoViewIfNeeded();
-    assert.equal(await visibleInViewport(button('我已核对，返回修改')), true);
-    for (const action of ['关闭本次预览', '返回修改', '确认并执行']) {
-      assert.equal(await visibleInViewport(button(action)), true, `${action} must remain reachable during recovery`);
-    }
-    const rowWrites = requests.slice(unknownRequestStart).filter((entry) => entry.method === 'POST' && entry.path === writePath);
-    assert.equal(rowWrites.length, 1);
+    await page.unroute(`**${writePath}`);
+    page.once('dialog', dialog => dialog.accept());
+    await page.reload();
+    await button('恢复原发布请求').click();
+    await page.waitForURL('**/configuration/release-orders/*');
+    const draftWrites = requests.slice(unknownRequestStart).filter((entry) => entry.method === 'POST' && entry.path === writePath);
+    assert.equal(draftWrites.length, 2);
+    assert.deepEqual(draftWrites[0], draftWrites[1], 'recovery must replay the original release body and idempotency key');
+    const orderID = new URL(page.url()).pathname.split('/').pop();
+    const recoveredDraft = await (await authenticatedRequest(context, base, `/api/v1/release-orders/${orderID}`)).json();
+    const published = await publishRelease(recoveredDraft);
+    assert.equal(published.state, 'SUCCEEDED');
     assert.equal(sql(`SELECT COUNT(*) FROM ${table} WHERE name=${literal(unknownName)};`), '1');
     await page.screenshot({ path: `${output}/write-recovery-390.png`, fullPage: true });
-    pass('390px unknown-write recovery stays locked and performs one real write plus read-only verification', {
+    pass('390px unknown release-draft recovery replays one intent and then publishes it', {
       faultEvidence,
-      rowWriteRequests: rowWrites.length,
+      releaseDraftRequests: draftWrites.length,
+      replayedOriginalBodyAndKey: true,
+      releaseOrder: published.id,
       sqlRows: 1,
-      longSnapshotOwnsOverflow: true,
-      faultBoundary: 'Playwright API response fault injection after route.fetch committed to real MySQL 8.4',
+      faultBoundary: 'Playwright API response fault injection after route.fetch durably created the release draft',
       documentOverflow: await pageOverflow(),
     });
+
+    assert.equal(requests.some((entry) => /^\/api\/v1\/tables\/[^/]+\/rows(?:\/|$)/.test(entry.path) && !['GET', 'HEAD'].includes(entry.method)), false, 'browser must not use removed direct record write routes');
 
     assert.deepEqual(pageErrors, []);
   } catch (error) {

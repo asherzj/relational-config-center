@@ -5,6 +5,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	passwordadapter "github.com/asherzj/relational-config-center/admin/internal/infrastructure/password"
 	"io"
 	"net"
 	"net/http"
@@ -109,6 +110,10 @@ func (p *accountProcess) stop(t *testing.T) {
 }
 func (p *accountProcess) request(t *testing.T, method, path, body string, cookies []*http.Cookie, csrf string) (int, http.Header, []byte) {
 	t.Helper()
+	return p.requestWithKey(t, method, path, body, cookies, csrf, "")
+}
+func (p *accountProcess) requestWithKey(t *testing.T, method, path, body string, cookies []*http.Cookie, csrf, key string) (int, http.Header, []byte) {
+	t.Helper()
 	req, err := http.NewRequest(method, p.origin+path, strings.NewReader(body))
 	if err != nil {
 		t.Fatal(err)
@@ -116,6 +121,7 @@ func (p *accountProcess) request(t *testing.T, method, path, body string, cookie
 	req.Header.Set("Origin", p.publicOrigin)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-CSRF-Token", csrf)
+	req.Header.Set("Idempotency-Key", key)
 	for _, c := range cookies {
 		if c.MaxAge >= 0 {
 			req.AddCookie(c)
@@ -358,6 +364,60 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 		t.Fatal(err)
 	}
 	deliveryExec(t, owner, string(migration))
+	// Seed the documented 007 deployment format before any role/release schema.
+	// These are real preserved account/session rows, not post-upgrade registration.
+	const oldID = "517c20e7-b4a8-4f7a-b562-c78b1f96e4a0"
+	const oldToken = "old-upgrade-session-credential-aaaaaaaaaaaaaa"
+	const oldCSRF = "old-upgrade-csrf-credential-bbbbbbbbbbbbbbbbb"
+	const oldPassword = "old deployment password long enough"
+	hash, err := passwordadapter.NewArgon2id().Hash(t.Context(), oldPassword)
+	if err != nil {
+		t.Fatal(err)
+	}
+	deliveryExec(t, owner, `INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,enabled,password_version,session_version,created_at) VALUES(?,'legacy.account','legacy@example.com','旧账号',?,1,3,7,UTC_TIMESTAMP(6))`, oldID, hash)
+	deliveryExec(t, owner, `INSERT INTO rcc_login_sessions(token_hash,account_id,csrf_hash,password_version,session_version,created_at,last_active_at,expires_at) VALUES(SHA2(?,256),?,SHA2(?,256),3,7,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6),UTC_TIMESTAMP(6)+INTERVAL 8 HOUR)`, oldToken, oldID, oldCSRF)
+	deliveryExec(t, owner, `CREATE TABLE legacy_policy(id INT PRIMARY KEY,label TEXT,creator VARCHAR(64)) ENGINE=InnoDB`)
+	const oldValue = "  旧配置\r\nwith tab\tand trailing  "
+	deliveryExec(t, owner, `INSERT INTO legacy_policy VALUES(7,?,'legacy-maintainer')`, oldValue)
+	policyQuery := `SELECT p.table_name,p.query_policy_code,p.mutation_policy_code,p.enabled,q.type_code,q.default_order_field,q.default_order_direction,q.default_page_size,q.max_page_size,q.status,m.type_code,m.allow_add,m.allow_modify,m.allow_delete,m.status FROM rcc_table_policies p JOIN rcc_query_policies q ON q.code=p.query_policy_code JOIN rcc_mutation_policies m ON m.code=p.mutation_policy_code WHERE p.table_name=?`
+	preservedPolicy := schemaMetadata(t, owner, policyQuery, "legacy_policy")
+	binary := buildIntegrationAdmin(t)
+	applyRoleMigration(t, owner)
+	rejectIncomplete := func(migration string) {
+		incomplete := accountProcessCommand(t, binary, driver)
+		select {
+		case <-incomplete.done:
+			if incomplete.waitErr == nil || !strings.Contains(incomplete.output.String(), migration) {
+				t.Fatalf("incomplete control upgrade accepted or missing guidance: %v %s", incomplete.waitErr, incomplete.output.String())
+			}
+		case <-time.After(3 * time.Second):
+			t.Fatal("Admin served before control migrations completed")
+		}
+	}
+	rejectIncomplete("009")
+	recordVersionMigration, err := os.ReadFile("../../../deploy/mysql/migrations/009-record-versions.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	deliveryExec(t, owner, string(recordVersionMigration))
+	releaseMigration, err := os.ReadFile("../../../deploy/mysql/migrations/010-release-drafts.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	deliveryExec(t, owner, string(releaseMigration))
+	targetMigration, err := os.ReadFile("../../../deploy/mysql/migrations/011-release-targets.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	deliveryExec(t, owner, string(targetMigration))
+	publicationMigration, err := os.ReadFile("../../../deploy/mysql/migrations/012-publication.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	deliveryExec(t, owner, string(publicationMigration))
+	deliveryExec(t, owner, "RENAME TABLE rcc_refresh_notifications TO interrupted_notifications")
+	rejectIncomplete("010, 011 and 012")
+	deliveryExec(t, owner, "RENAME TABLE interrupted_notifications TO rcc_refresh_notifications")
 	deliveryExec(t, owner, "CREATE DATABASE fresh_accounts CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
 	freshDriver := ownerDriver
 	freshDriver.DBName = "fresh_accounts"
@@ -368,8 +428,8 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	}
 	deliveryExec(t, fresh, string(schema))
 	for _, query := range []string{
-		`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_TYPE,IS_NULLABLE,COALESCE(COLUMN_DEFAULT,'<null>'),COALESCE(COLLATION_NAME,''),EXTRA FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock') ORDER BY TABLE_NAME,ORDINAL_POSITION`,
-		`SELECT TABLE_NAME,INDEX_NAME,NON_UNIQUE,SEQ_IN_INDEX,COLUMN_NAME,COALESCE(SUB_PART,0) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock') ORDER BY TABLE_NAME,INDEX_NAME,SEQ_IN_INDEX`,
+		`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_TYPE,IS_NULLABLE,COALESCE(COLUMN_DEFAULT,'<null>'),COALESCE(COLLATION_NAME,''),EXTRA FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_targets','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications') ORDER BY TABLE_NAME,ORDINAL_POSITION`,
+		`SELECT TABLE_NAME,INDEX_NAME,NON_UNIQUE,SEQ_IN_INDEX,COLUMN_NAME,COALESCE(SUB_PART,0) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_targets','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications') ORDER BY TABLE_NAME,INDEX_NAME,SEQ_IN_INDEX`,
 		`SELECT TABLE_NAME,COLUMN_NAME,REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=? AND REFERENCED_TABLE_NAME IS NOT NULL ORDER BY TABLE_NAME,COLUMN_NAME`,
 	} {
 		upgraded := schemaMetadata(t, owner, query, driver.DBName)
@@ -378,8 +438,40 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 			t.Fatalf("fresh/upgrade metadata mismatch:\n%s\n%s", upgraded, installed)
 		}
 	}
-	p := accountProcessCommand(t, buildIntegrationAdmin(t), driver)
+	p := accountProcessCommand(t, binary, driver)
 	p.ready(t)
+	oldCookies := []*http.Cookie{{Name: "rcc-session-dev", Value: oldToken}}
+	status, _, current := p.request(t, "GET", "/api/v1/auth/session", "", oldCookies, "")
+	if status != 200 || !strings.Contains(string(current), oldID) || !strings.Contains(string(current), `"roles":["VIEWER"]`) {
+		t.Fatalf("old session/identity/default role: %d %s", status, current)
+	}
+	if status, _, _ := p.request(t, "POST", "/api/v1/query-policies", `{}`, oldCookies, oldCSRF); status != 403 {
+		t.Fatalf("old default viewer wrote catalog: %d", status)
+	}
+	_, _, login := processCredentials(t, p, "/api/v1/auth/login", `{"username":"legacy.account","password":"`+oldPassword+`"}`)
+	if !strings.Contains(string(login), oldID) {
+		t.Fatal("old credentials changed identity")
+	}
+	status, _, dataBefore := p.request(t, "POST", "/api/v1/tables/legacy_policy/query", `{}`, oldCookies, oldCSRF)
+	var queryResult struct {
+		Rows           []map[string]*string `json:"rows"`
+		RecordVersions []string             `json:"record_versions"`
+	}
+	if status != 200 || json.Unmarshal(dataBefore, &queryResult) != nil || len(queryResult.Rows) != 1 || queryResult.Rows[0]["label"] == nil || *queryResult.Rows[0]["label"] != oldValue || *queryResult.Rows[0]["creator"] != "legacy-maintainer" {
+		t.Fatalf("upgraded business bytes: %d %s", status, dataBefore)
+	}
+	if len(queryResult.RecordVersions) != 1 || queryResult.RecordVersions[0] != "0" {
+		t.Fatalf("migration fabricated record versions: %s", dataBefore)
+	}
+	if after := schemaMetadata(t, owner, policyQuery, "legacy_policy"); after != preservedPolicy {
+		t.Fatal("upgrade changed existing rule assignment or semantics")
+	}
+	for _, table := range []string{"rcc_record_versions", "rcc_release_orders", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_account_role_history"} {
+		var count int
+		if err := owner.QueryRow("SELECT COUNT(*) FROM " + table).Scan(&count); err != nil || count != 0 {
+			t.Fatalf("migration fabricated %s: %d %v", table, count, err)
+		}
+	}
 	cookies, _, data := processCredentials(t, p, "/api/v1/auth/register", `{"username":"upgraded.user","email":"upgraded@example.com","password":"upgraded password long enough"}`)
 	if status, _, _ := p.request(t, "GET", "/api/v1/table-policies", "", cookies, ""); status != 200 {
 		t.Fatal(status)
@@ -392,6 +484,25 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	if out, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build maintain: %v %s", err, out)
 	}
+	bootstrap := exec.Command(maintain, "grant-admin", "--id", oldID)
+	bootstrap.Env = append([]string{"PATH=" + os.Getenv("PATH")}, integrationEnvironment(driver, "invalid-http-address")...)
+	if out, err := bootstrap.CombinedOutput(); err != nil {
+		t.Fatalf("explicit first administrator: %v %s", err, out)
+	}
+	deliveryExec(t, db, "RENAME TABLE unavailable_query_policies TO rcc_query_policies")
+	p = accountProcessCommand(t, binary, driver)
+	p.ready(t)
+	if status, _, _ := p.request(t, "GET", "/api/v1/account-roles", "", oldCookies, ""); status != 200 {
+		t.Fatalf("selected first administrator unavailable: %d", status)
+	}
+	if status, _, _ := p.request(t, "GET", "/api/v1/account-roles", "", cookies, ""); status != 403 {
+		t.Fatalf("bootstrap granted another account: %d", status)
+	}
+	if status, _, body := p.request(t, "POST", "/api/v1/tables/legacy_policy/rows", `{"content":{"id":"8","label":"old-client"}}`, oldCookies, oldCSRF); status != 404 || !strings.Contains(string(body), "route_not_found") {
+		t.Fatalf("old writer bypass: %d %s", status, body)
+	}
+	p.stop(t)
+	deliveryExec(t, db, "RENAME TABLE rcc_query_policies TO unavailable_query_policies")
 	command = exec.Command(maintain, "lookup", "--username", "upgraded.user")
 	command.Env = append([]string{"PATH=" + os.Getenv("PATH")}, integrationEnvironment(driver, "invalid-http-address")...)
 	out, err := command.CombinedOutput()

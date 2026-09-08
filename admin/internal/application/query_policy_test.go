@@ -13,7 +13,7 @@ import (
 func TestQueryPolicyLifecycleAndAssignmentRules(t *testing.T) {
 	catalog := &memoryQueryPolicyCatalog{policies: make(map[string]domain.QueryPolicy)}
 	management := NewQueryPolicyManagement(catalog, NewQueryPolicyTypeRegistry())
-	ctx := (AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(context.Background())
+	ctx := (AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001", roles: RoleAdmin}).Bind(context.Background())
 	candidate := validPutQueryPolicy("standard_page_query_v1")
 
 	created, err := management.Create(ctx, candidate)
@@ -99,7 +99,7 @@ func TestQueryPolicyDraftRejectsValuesBlockedByCatalogScalarConstraints(t *testi
 			management := NewQueryPolicyManagement(catalog, NewQueryPolicyTypeRegistry())
 			candidate := validPutQueryPolicy("constrained_page_query_v1")
 			test.change(&candidate)
-			if _, err := management.Create((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(context.Background()), candidate); !errors.Is(err, ErrInvalidQueryPolicyRules) {
+			if _, err := management.Create((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001", roles: RoleAdmin}).Bind(context.Background()), candidate); !errors.Is(err, ErrInvalidQueryPolicyRules) {
 				t.Fatalf("expected stable scalar validation error, got %v", err)
 			}
 			if len(catalog.policies) != 0 {
@@ -113,7 +113,7 @@ func TestQueryPolicyCodeIsVersionedLowerCaseAndTechnologyNeutral(t *testing.T) {
 	management := NewQueryPolicyManagement(&memoryQueryPolicyCatalog{policies: make(map[string]domain.QueryPolicy)}, NewQueryPolicyTypeRegistry())
 	for _, code := range []string{"standard_page_query", "Standard_page_query_v1", "mysql_page_query_v1", "postgres_page_query_v2", "standard-page-query-v1", "standard_page_query_v0"} {
 		candidate := validPutQueryPolicy(code)
-		if _, err := management.Create((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001"}).Bind(context.Background()), candidate); !errors.Is(err, ErrInvalidPolicyCode) {
+		if _, err := management.Create((AuthenticatedOperator{accountID: "00000000-0000-4000-8000-000000000001", roles: RoleAdmin}).Bind(context.Background()), candidate); !errors.Is(err, ErrInvalidPolicyCode) {
 			t.Errorf("code %q: expected ErrInvalidPolicyCode, got %v", code, err)
 		}
 	}

@@ -1,8 +1,9 @@
 // Real Chromium -> production Web proxy -> Cookie-authenticated Admin -> isolated MySQL.
 // SQL is used only to arrange disposable fixtures and to verify browser actions.
-const { chromium } = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
+const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
-const { registerFixtureAccount } = require('./local-account.cjs');
+const { randomUUID } = require('node:crypto');
+const { browserOptions, selectedBrowser, registerFixtureAccount, authenticatedRequest } = require('./local-account.cjs');
 const fs = require('node:fs/promises');
 const { execFileSync } = require('node:child_process');
 
@@ -63,6 +64,7 @@ function fixtureSQL() {
   const pageErrors = [];
   let browser;
   let context;
+  let approvalContext;
   let account;
   let browserVersion = null;
   let page;
@@ -76,6 +78,20 @@ function fixtureSQL() {
   };
   const responseFor = (method, pathname) => http.filter((entry) => entry.method === method && entry.path === pathname).at(-1);
   const writes = () => http.filter((entry) => !['GET', 'HEAD'].includes(entry.method) && !entry.path.endsWith('/query'));
+  async function releaseWrite(pathname, data, expectedStatus, actor = context) {
+    const response = await authenticatedRequest(actor, base, pathname, {
+      method: 'POST',
+      headers: { 'Idempotency-Key': randomUUID() },
+      data,
+    });
+    assert.equal(response.status(), expectedStatus, `POST ${pathname}: ${await response.text()}`);
+    return response.json();
+  }
+  async function publishRelease(draft) {
+    let order = await releaseWrite(`/api/v1/release-orders/${draft.id}/submit`, { expected_version: draft.version }, 200);
+    order = await releaseWrite(`/api/v1/release-orders/${draft.id}/approve`, { expected_version: order.version, reason: 'Independent operation coverage review' }, 200, approvalContext);
+    return releaseWrite(`/api/v1/release-orders/${draft.id}/execute`, { expected_version: order.version }, 200);
+  }
   async function open(pathname) {
     if (page) await page.close();
     page = await context.newPage();
@@ -110,9 +126,11 @@ function fixtureSQL() {
   }
   try {
     sql(fixtureSQL());
-    browser = await chromium.launch({ headless: true });
+    browser = await selectedBrowser(playwright).launch(browserOptions());
     context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     account = await registerFixtureAccount(context, base);
+    approvalContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    await registerFixtureAccount(approvalContext, base, { roles: ['APPROVER'] });
     browserVersion = browser.version();
 
     const draftCode = 'stage3_ui_mutation_v1';
@@ -264,13 +282,14 @@ function fixtureSQL() {
     await checkbox('包含 name').check();
     await input('name 值').fill('DeprecatedStillRuns');
     await button('查看 Change Set').click();
-    const addPath = '/api/v1/tables/stage3_active_items/rows';
-    const addResponse = page.waitForResponse((response) => response.request().method() === 'POST' && new URL(response.url()).pathname === addPath);
-    await button('确认并执行').click();
-    assert.equal((await addResponse).status(), 201);
-    await page.getByRole('dialog', { name: 'ADD 写入结果' }).waitFor();
+    const draftResponse = page.waitForResponse((response) => response.request().method() === 'POST' && new URL(response.url()).pathname === '/api/v1/release-orders');
+    await button('确认并保存草稿').click();
+    const created = await draftResponse;
+    assert.equal(created.status(), 201);
+    const published = await publishRelease(await created.json());
+    assert.equal(published.state, 'SUCCEEDED');
     assert.equal(sql(`SELECT CONCAT_WS('|',name,created_by,updated_by) FROM stage3_active_items WHERE name='DeprecatedStillRuns';`), `DeprecatedStillRuns|${account.accountID}|${account.accountID}`);
-    check('existing assignment keeps querying and mutating with Deprecated definitions', { query: responseFor('POST', '/api/v1/tables/stage3_active_items/query'), mutation: responseFor('POST', addPath), sql: `DeprecatedStillRuns|${account.accountID}|${account.accountID}` });
+    check('existing assignment keeps querying and publishes through a release order with Deprecated definitions', { query: responseFor('POST', '/api/v1/tables/stage3_active_items/query'), releaseOrder: published.id, sql: `DeprecatedStillRuns|${account.accountID}|${account.accountID}` });
 
     await open('/platform/table-policies?mode=create');
     const candidate = page.getByRole('combobox', { name: '真实数据库表', exact: true });
@@ -364,12 +383,16 @@ function fixtureSQL() {
     await checkbox('包含 name').check();
     await input('name 值').fill('CapabilitySwitchApplied');
     await button('查看 Change Set').click();
-    const switchedAddPath = '/api/v1/tables/stage3_denied_items/rows';
-    const switchedResponse = page.waitForResponse((response) => response.request().method() === 'POST' && new URL(response.url()).pathname === switchedAddPath);
-    await button('确认并执行').click();
-    assert.equal((await switchedResponse).status(), 201);
+    const switchedDraftResponse = page.waitForResponse((response) => response.request().method() === 'POST' && new URL(response.url()).pathname === '/api/v1/release-orders');
+    await button('确认并保存草稿').click();
+    const switchedCreated = await switchedDraftResponse;
+    assert.equal(switchedCreated.status(), 201);
+    const switchedPublished = await publishRelease(await switchedCreated.json());
+    assert.equal(switchedPublished.state, 'SUCCEEDED');
     assert.equal(sql(`SELECT COUNT(*) FROM stage3_denied_items WHERE name='CapabilitySwitchApplied';`), '1');
-    check('real Table Policy replacement governs the next UI capability and write request', { replacement: responseFor('PUT', replacePath), nextWrite: responseFor('POST', switchedAddPath), sqlCount: 1 });
+    check('real Table Policy replacement governs the next UI capability and release publication', { replacement: responseFor('PUT', replacePath), releaseOrder: switchedPublished.id, sqlCount: 1 });
+
+    assert.equal(http.some((entry) => /^\/api\/v1\/tables\/[^/]+\/rows(?:\/|$)/.test(entry.path) && !['GET', 'HEAD'].includes(entry.method)), false, 'browser must not use removed direct record write routes');
 
     assert.deepEqual(pageErrors, []);
   } catch (error) {

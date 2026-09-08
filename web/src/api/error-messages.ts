@@ -1,6 +1,29 @@
 import { ApiError } from "./client";
 
 const errorMessages: Record<string, string> = {
+  release_duplicate_target:"同一记录不能在一张发布单重复出现，请移除重复明细。",
+  release_cross_table:"所有明细必须属于发布单指定的同一张表。",
+  release_item_limit:"每张发布单必须包含 1～1,000 项明细。",
+  release_field_limit:"单字段不能超过 64 KiB，请缩减该明细的字段内容。",
+  release_result_limit:"完整草稿或发布结果超过 8 MiB，请调整整张申请后重新提交。",
+  permission_denied: "当前账号没有执行此操作的角色，请联系管理员授权。",
+  invalid_account_roles: "请至少选择一个角色，且不要重复选择。",
+  account_roles_conflict: "角色已被其他管理员更新，请先查看最新角色。",
+  last_administrator: "不能移除最后一个启用管理员，请先为其他启用账号授予管理员角色。",
+  idempotency_conflict: "请求标识已用于其他内容，请核对原请求结果。",
+  release_auto_id_ambiguous: "当前数据库会为自增主键 0 分配新编号，请省略 id 后重新保存草稿。",
+  release_target_conflict: "此记录正被其他已提交的发布单占用，请查看相关发布单并等待拒绝、取消或发布后重试。",
+  release_metadata_permission: "无法完整核对触发器，请联系部署维护者补齐元数据读取权限。",
+  release_version_conflict: "发布单状态已更新，请重新读取后确认当前操作。",
+  release_state_invalid: "当前发布单状态不允许此操作，请查看最新详情。",
+  release_invalid: "发布请求无效，请检查内容、版本、必填意见和请求标识。",
+  release_unavailable: "发布单存储暂时不可用，请保留原请求并稍后确认结果。",
+  release_result_unknown: "结果待确认，请保留原请求标识并恢复查询。",
+  rollback_conflict: "这张原发布单已有进行中的回滚申请，请查看当前关联发布单。",
+  rollback_locked: "回滚发布单的明细来自原发布结果，不能编辑或复制。",
+  rollback_restore_mismatch: "当前数据库规则无法完整恢复原业务值，回滚未提交；请查看失败原因和当前配置。",
+  account_not_found: "账号不存在，请刷新列表。",
+
   invalid_policy_code: "规则编码必须使用小写、包含版本号，并且不能包含技术实现名称。",
   invalid_query_policy_definition: "查询规则定义不完整，请检查必填项。",
   query_policy_not_found: "查询规则不存在或已被移除。",
@@ -36,6 +59,9 @@ const errorMessages: Record<string, string> = {
   mutation_row_not_found: "目标记录不存在或已被删除。",
   invalid_mutation_content: "写入内容不符合实时字段 Schema。",
   missing_required_field: "新增内容缺少实时 Schema 要求的字段。",
+  record_version_required: "请先查询记录，并携带查询时的记录版本。",
+  record_version_invalid: "记录版本格式无效，请重新查询。",
+  record_version_conflict: "记录已被其他操作修改；你的输入已保留，请查看最新值并重新确认。",
   duplicate_key: "唯一键已存在，请修改字段值后重试。",
   mutation_timeout: "Managed Table 写入超时，请确认结果后再决定是否重试。",
   mutation_unavailable: "Managed Table 写入响应未能确认，请先核对当前结果。",
@@ -49,7 +75,7 @@ const errorMessages: Record<string, string> = {
 export function presentError(error: unknown): { message: string; requestId?: string } {
   if (!(error instanceof ApiError)) return { message: "发生未知错误，请重试。" };
   return {
-    message: errorMessages[error.code] ?? error.message,
+    message: `${error.itemIndex===undefined?"":`明细 ${error.itemIndex+1}：`}${errorMessages[error.code] ?? error.message}`,
     requestId: error.requestId,
   };
 }

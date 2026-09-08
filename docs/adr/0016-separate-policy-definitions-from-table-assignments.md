@@ -30,7 +30,7 @@ The database enforces unique Codes, unique `table_name`, scalar `CHECK` constrai
 
 Each request reads the Table Policy, Query Policy, and Mutation Policy separately inside one `REPEATABLE READ` transaction rather than using a join or Policy cache. Query uses a read-only transaction; Mutation uses a read-write transaction that also contains the Managed Table change. External concurrent DDL cannot be frozen by this model and must fail safely if it races with live Schema validation.
 
-Configurable page values cannot exceed code-owned platform safety limits for page size, conditions, membership values, offset, or request size. The first iteration accepts last-write-wins administration and defers optimistic concurrency control; a later concurrency mechanism must not be confused with historical Policy revisioning.
+Configurable page values cannot exceed code-owned platform safety limits for page size, conditions, membership values, offset, or request size. Policy Catalog administration retains last-write-wins. Managed Table records now use the separate concurrency mechanism in ADR-0021; it must not be confused with historical Policy revisioning.
 
 ## Consequences
 

@@ -5,7 +5,7 @@
 ## 当前能力
 
 - 中文化应用壳和正式 URL 路由。
-- 四个正式页面：Query Policies、Mutation Policies、Table Policies 和 Managed Data，默认入口重定向到 Query Policies。
+- 正式页面：Query Policies、Mutation Policies、Table Policies、Managed Data 和发布单列表/详情，默认入口重定向到 Query Policies。
 - 类型化 Admin API Client，HTTP DTO 只停留在 `src/api` 边界。
 - Zod 运行时响应校验与稳定错误码映射。
 - 查询规则的列表、详情、创建草稿、替换草稿、激活、弃用、更新元数据和删除草稿。
@@ -21,7 +21,7 @@
 - 规则详情把名称和描述与执行规则分开；执行规则区块解释查询排序/分页、变更授权和 Auto Fill 的实际效果，修改名称和描述不会改变执行内容。
 - 未知规则类型或不完整的变更类型能力失败关闭：未知 Draft 只能安全查看，Active 或 Deprecated 只能更新名称和描述等元数据。
 - GET 仅对网络错误、503、504 自动重试一次；写命令不自动重试。
-- 规则和数据编辑均有未保存退出保护；提交失败保留内存草稿，提交成功才清除草稿。草稿不写入 `localStorage`、`sessionStorage` 或 URL。
+- 规则和数据编辑均有未保存退出保护；提交失败保留内存草稿，提交成功才清除草稿。普通编辑草稿不写入浏览器存储或 URL；发布单写请求在发送前按永久账号保存到 `sessionStorage`，用于刷新后保留原标识/原内容恢复未知结果，明确冲突的申请也保留到核对重建。完整发布单内容持久化于 Admin 控制表。
 
 ## 本地开发
 
@@ -57,8 +57,8 @@ pnpm build
 ## 边界
 
 - Web 不推断 generated、auto_increment、默认值或新增必填字段，Admin 仍以实时 Schema 做最终裁决。
-- Change Set 不做提交前并发刷新；当前管理语义保持 last-write-wins。
-- Managed Data 的编辑值只保存在当前页面内存中；取消离开提醒可继续编辑，明确允许刷新、关闭标签页或放弃后不会恢复，也没有自动保存、自动重放写入或并发版本控制。
+- Change Set 固定查询时的记录版本；冲突保留输入与差异，查看最新值后必须明确重建、再次确认，见 [记录版本契约](../docs/admin-record-versions.md)。
+- Managed Data 的编辑值只保存在当前页面内存中；取消离开提醒可继续编辑，明确允许刷新、关闭标签页或放弃后不会恢复，没有自动保存或自动重放写入；修改/删除必须携带记录版本。
 - `web/prototype/` 继续用于视觉参考，正式应用由 Vite/React 入口运行。
 
 ## 真实验收
@@ -73,7 +73,7 @@ make test-browser-acceptance
 
 该命令要求本机已有 Docker、Go、Node.js 和 pnpm；它会安装锁定的 Web 依赖、默认使用 Chromium，并构建 Web。MySQL、Admin 和 Web 均使用动态宿主端口；正常或失败退出时只删除本次创建的进程、容器和数据卷。日志、截图与结构化结果写入命令最后显示的临时目录，可通过 `RCC_E2E_ARTIFACTS` 指定一个新的空目录。CI 执行同一命令并设置 `RCC_E2E_ENGINES=chromium,firefox,webkit`，每个引擎使用独立的 artifact 子目录，成功或失败时均上传证据。
 
-runner 支持按套件和引擎缩小范围。`RCC_E2E_SUITE` 可选 `all`、`unsaved-changes`、`rule-clarity`、`write-recovery`、`operation-coverage`、`complex-fields` 或 `browser-accessibility`；`RCC_E2E_ENGINES` 是逗号分隔的 `chromium`、`firefox`、`webkit`，也可用 `RCC_E2E_ENGINE` 选择单个引擎。默认 `all` 包含前五个 Chromium 套件以及 `browser-accessibility` 的所选引擎。每次本地运行请指定新的空输出目录，例如：
+runner 支持按套件和引擎缩小范围。`RCC_E2E_SUITE` 可选 `all`、`unsaved-changes`、`rule-clarity`、`write-recovery`、`operation-coverage`、`complex-fields`、`browser-accessibility` 或 `release-workflow`；`RCC_E2E_ENGINES` 是逗号分隔的 `chromium`、`firefox`、`webkit`，也可用 `RCC_E2E_ENGINE` 选择单个引擎。默认 `all` 包含 Chromium 管理套件，并在三个所选引擎中执行可访问性以及正式发布、回滚、刷新恢复、登录和冲突流程。每次本地运行请指定新的空输出目录，例如：
 
 ```sh
 RCC_E2E_SUITE=browser-accessibility \
@@ -94,7 +94,7 @@ TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
 
 只设置 `DOCKER_HOST` 会让 Ryuk 尝试把 macOS socket 路径挂载进 VM 并失败；本次环境在 provider 健康检查未通过时会跳过 integration，其他 Docker provider 可能自动发现 daemon，不能据此泛化。其他 provider 的路径需要按本机环境核实。
 
-账号专用系统验收入口也保留：从仓库根目录运行 `make test-browser`：它创建独立 MySQL、Admin、同源 Vite 和浏览器环境，依次验证账号注册与会话恢复、未保存编辑保护、规则效果说明，再销毁测试资源。需要已安装 Web 依赖、可用的 Docker 和 Chrome；也可通过 `RCC_BROWSER_EXECUTABLE` 指定 Chromium。该入口使用公开账号会话与 CSRF 流程，不依赖已移除的免认证模式。
+账号专用系统验收入口也保留：从仓库根目录运行 `make test-browser`。它创建独立 MySQL、Admin、同源 Vite 和浏览器环境，验证账号注册、会话恢复、未保存编辑保护与规则效果说明，再销毁测试资源。需要已安装 Web 依赖、可用的 Docker 和 Chrome；也可通过 `RCC_BROWSER_EXECUTABLE` 指定 Chromium。该入口使用公开账号会话与 CSRF 流程。
 
 完整流程、真实 MySQL 8.4 和浏览器验收见 [`docs/verification/2026-09-07-stage1-acceptance.md`](../docs/verification/2026-09-07-stage1-acceptance.md)。未保存保护见 [`docs/verification/2026-09-07-stage2-unsaved-changes.md`](../docs/verification/2026-09-07-stage2-unsaved-changes.md)，规则效果说明见 [`docs/verification/2026-09-07-stage3-rule-clarity.md`](../docs/verification/2026-09-07-stage3-rule-clarity.md)。浏览器脚本使用隔离 fixture，运行前先启动隔离 Admin、Web 和 MySQL；不要对生产环境运行脚本：
 
@@ -122,3 +122,8 @@ pnpm dlx shadcn@latest add <component>
 ```
 
 升级 Dialog / Sheet 时保留 `inline` 挂载与业务焦点保护，避免会话失效时浮层脱离隐藏的工作区。Table 的密度、NativeSelect 的全宽布局和 Toaster 的浅色主题也是项目定制项。组件使用 `cn` 合并工具类，`@/` 指向 `src/`。
+
+
+账号角色页面位于 `/platform/account-roles`，仅 ADMIN 可访问；规则修改仅 ADMIN 可操作，配置编辑需要 EDITOR/ADMIN。当前身份契约包含 `account.roles`。角色页保留冲突输入，未知结果使用原请求标识重试。详见[全局角色契约](../docs/admin-account-roles.md)。
+
+`make test-browser` 同时验证默认 VIEWER、真实维护命令初始化 ADMIN、角色界面组合授权和历史。独立运行 `unsaved-changes.cjs` / `rule-clarity.cjs` 时，需额外提供 `RCC_ACCOUNT_MAINTAIN`（维护命令绝对路径）及隔离数据库的 `MYSQL_*`；脚本先验证注册默认只读，再显式授予测试账号管理员。禁止用于共享部署。

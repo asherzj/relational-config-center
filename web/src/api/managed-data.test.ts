@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { addManagedRow, deleteManagedRow, modifyManagedRow, queryManagedTable } from "./managed-data";
+import { queryManagedTable } from "./managed-data";
 import type { QueryCondition } from "../features/managed-data/model";
 
 function json(value: unknown, status = 200) {
@@ -24,7 +24,7 @@ describe("Managed Data query API contract", () => {
   ])("serializes %s without inventing nullable values", async (_name, condition, expected) => {
     const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => json({
       columns: [{ name: "id", type: "uint64", nullable: false }],
-      rows: [{ id: "1" }],
+      rows: [{ id: "1" }], record_versions: ["0"],
       page: { page_number: 2, page_size: 10, total_count: 21, total_pages: 3 },
     }));
     vi.stubGlobal("fetch", fetchMock);
@@ -54,7 +54,7 @@ describe("Managed Data query API contract", () => {
         { name: "id", type: "uint64", nullable: false },
         { name: "subject", type: "string", nullable: true },
       ],
-      rows: [{ id: "1", unexpected: "leaked" }],
+      rows: [{ id: "1", unexpected: "leaked" }], record_versions: ["0"],
       page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 },
     })));
 
@@ -67,7 +67,7 @@ describe("Managed Data query API contract", () => {
   it("fails closed instead of rounding 64-bit page counts beyond JavaScript's safe range", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => json({
       columns: [{ name: "id", type: "uint64", nullable: false }],
-      rows: [],
+      rows: [], record_versions: [],
       page: {
         page_number: 1,
         page_size: 20,
@@ -83,40 +83,5 @@ describe("Managed Data query API contract", () => {
   });
 });
 
-describe("Managed Data mutation API contract", () => {
-  it("preserves omitted, NULL, and empty-string Mutation Content across ADD, MODIFY, and DELETE", async () => {
-    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
-      if (init?.method === "POST") return json({ id: "9007199254740993" }, 201);
-      return json({ affected: 1 });
-    });
-    vi.stubGlobal("fetch", fetchMock);
-
-    await expect(addManagedRow("notification_templates", { subject: null, body: "" })).resolves.toEqual({ id: "9007199254740993" });
-    await expect(modifyManagedRow("notification_templates", "9007199254740993", { subject: "ready", body: null })).resolves.toEqual({ affected: 1 });
-    await expect(deleteManagedRow("notification_templates", "9007199254740993")).resolves.toEqual({ affected: 1 });
-
-    expect(fetchMock.mock.calls.map(([url, init]) => [String(url), init?.method, init?.body ? JSON.parse(String(init.body)) : undefined])).toEqual([
-      ["/api/v1/tables/notification_templates/rows", "POST", { content: { subject: null, body: "" } }],
-      ["/api/v1/tables/notification_templates/rows/9007199254740993", "PATCH", { content: { subject: "ready", body: null } }],
-      ["/api/v1/tables/notification_templates/rows/9007199254740993", "DELETE", undefined],
-    ]);
-  });
-
-  it.each([
-    ["ADD id must remain a JSON String", "POST", { id: 42 }],
-    ["MODIFY affected must be positive", "PATCH", { affected: 0 }],
-    ["MODIFY must affect exactly one row", "PATCH", { affected: 2 }],
-    ["DELETE affected must be lossless", "DELETE", { affected: 9_007_199_254_740_992 }],
-  ])("fails closed when %s", async (_name, method, response) => {
-    vi.stubGlobal("fetch", vi.fn(async () => json(response, method === "POST" ? 201 : 200)));
-
-    const action = method === "POST"
-      ? addManagedRow("notification_templates", {})
-      : method === "PATCH"
-        ? modifyManagedRow("notification_templates", "1", {})
-        : deleteManagedRow("notification_templates", "1");
-
-    await expect(action).rejects.toMatchObject({ code: "contract_mismatch", requestId: "req-managed-data-contract" });
-  });
-});
+// Row writes were removed in T5. Serialization now preserves intent at the
+// release-order boundary, where confirmation cannot change configuration.

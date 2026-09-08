@@ -20,7 +20,7 @@ if [[ -d "$artifact_root" && -n $(ls -A "$artifact_root" 2>/dev/null) ]]; then
   printf 'artifact directory must be new or empty: %s\n' "$artifact_root" >&2
   exit 2
 fi
-mkdir -p "$artifact_root/unsaved-changes" "$artifact_root/rule-clarity" "$artifact_root/write-recovery" "$artifact_root/operation-coverage" "$artifact_root/complex-fields" "$artifact_root/browser-accessibility"
+mkdir -p "$artifact_root/unsaved-changes" "$artifact_root/rule-clarity" "$artifact_root/write-recovery" "$artifact_root/operation-coverage" "$artifact_root/complex-fields" "$artifact_root/browser-accessibility" "$artifact_root/release-workflow"
 umask 077
 
 for command in docker node pnpm go curl od tr grep sort cmp; do
@@ -31,7 +31,7 @@ for command in docker node pnpm go curl od tr grep sort cmp; do
 done
 
 case ${RCC_E2E_SUITE:-all} in
-  all|unsaved-changes|rule-clarity|write-recovery|operation-coverage|complex-fields|browser-accessibility) ;;
+  all|unsaved-changes|rule-clarity|write-recovery|operation-coverage|complex-fields|browser-accessibility|release-workflow) ;;
   *) printf 'unknown browser suite: %s\n' "$RCC_E2E_SUITE" >&2; exit 2 ;;
 esac
 
@@ -254,7 +254,7 @@ run_logged 300 "$artifact_root/dependencies-install.log" \
   pnpm --dir "$repo_root/web" install --frozen-lockfile
 browser_engines=${RCC_E2E_ENGINES:-${RCC_E2E_ENGINE:-chromium}}
 browser_engine_list=()
-if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == browser-accessibility ]]; then
+if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == browser-accessibility || ${RCC_E2E_SUITE:-all} == release-workflow ]]; then
   engine_ifs=$IFS
   IFS=,
   read -r -a browser_engine_list <<< "$browser_engines"
@@ -263,7 +263,7 @@ if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == browser-accessibi
     case $browser_engine in chromium|firefox|webkit) ;; *) printf 'unknown browser engine: %s\n' "$browser_engine" >&2; exit 2 ;; esac
   done
 fi
-if [[ ${RCC_E2E_SUITE:-all} == browser-accessibility ]]; then
+if [[ ${RCC_E2E_SUITE:-all} == browser-accessibility || ${RCC_E2E_SUITE:-all} == release-workflow ]]; then
   playwright_install_targets=("${browser_engine_list[@]}")
 else
   playwright_install_targets=(chromium)
@@ -332,6 +332,14 @@ load_sql "$repo_root/deploy/mysql/init/001-schema.sql"
 load_sql "$repo_root/deploy/mysql/local-fixture/002-notification-templates.sql"
 load_sql "$repo_root/docs/verification/fixtures/stage1_acceptance.sql"
 load_sql "$repo_root/web/e2e/fixtures/stage1-policies.sql"
+load_sql "$repo_root/admin/cmd/admin/testdata/014-batch-browser.sql"
+load_sql "$repo_root/web/e2e/fixtures/release-rollbacks.sql"
+
+printf 'Granting the disposable Admin account publication metadata access...\n'
+run_timeout 30 docker exec --interactive "$mysql_container" sh -c \
+  'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot "$MYSQL_DATABASE"' \
+  < "$repo_root/admin/cmd/admin/testdata/013-publication-grants.sql" \
+  > "$artifact_root/publication-grants.log" 2>&1
 
 capture_fixture_rows() {
   local target=$1
@@ -362,9 +370,12 @@ web_url="http://127.0.0.1:$web_port"
 printf 'Building and starting Admin on a dynamic loopback port...\n'
 run_logged 300 "$artifact_root/admin-build.log" \
   go -C "$repo_root/admin" build -o "$runtime_dir/admin" ./cmd/admin
+run_logged 300 "$artifact_root/account-maintain-build.log" \
+  go -C "$repo_root/admin" build -o "$runtime_dir/account-maintain" ./cmd/account-maintain
 ADMIN_HTTP_ADDR="127.0.0.1:$admin_port" \
 ADMIN_PUBLIC_ORIGIN="$web_url" \
 ADMIN_ALLOW_LOCAL_HTTP=true \
+ADMIN_REGISTER_LIMIT=100 \
 MYSQL_HOST=127.0.0.1 \
 MYSQL_PORT="$mysql_port" \
 MYSQL_DATABASE=rcc \
@@ -372,7 +383,7 @@ MYSQL_USER=rcc_admin \
 MYSQL_PASSWORD="$mysql_password" \
 MYSQL_TLS_MODE=false \
 RCC_TIMEOUT_KILL_GRACE_MS=1000 \
-  node "$repo_root/scripts/run-with-timeout.cjs" 1200 "$runtime_dir/admin" \
+  node "$repo_root/scripts/run-with-timeout.cjs" 2400 "$runtime_dir/admin" \
   > "$artifact_root/admin.log" 2>&1 &
 admin_pid=$!
 wait_for_http Admin "$admin_url/health/ready" "$admin_pid" "$artifact_root/admin.log"
@@ -380,7 +391,7 @@ wait_for_http Admin "$admin_url/health/ready" "$admin_pid" "$artifact_root/admin
 printf 'Starting Web preview on a different dynamic loopback port...\n'
 RCC_ADMIN_URL="$admin_url" \
 RCC_TIMEOUT_KILL_GRACE_MS=1000 \
-  node "$repo_root/scripts/run-with-timeout.cjs" 1200 \
+  node "$repo_root/scripts/run-with-timeout.cjs" 2400 \
     node "$repo_root/scripts/run-vite-preview.cjs" "$repo_root/web" \
       --host 127.0.0.1 --port "$web_port" --strictPort \
   > "$artifact_root/web.log" 2>&1 &
@@ -399,6 +410,8 @@ if [[ $direct_status != 401 || $proxy_status != 401 ]]; then
 fi
 
 RCC_PLAYWRIGHT_MODULE="$repo_root/web/node_modules/playwright" RCC_WEB_URL="$web_url" \
+  RCC_ACCOUNT_MAINTAIN="$runtime_dir/account-maintain" \
+  MYSQL_HOST=127.0.0.1 MYSQL_PORT="$mysql_port" MYSQL_DATABASE=rcc MYSQL_USER=rcc_admin MYSQL_PASSWORD="$mysql_password" MYSQL_TLS_MODE=false \
   run_timeout 30 node "$repo_root/web/e2e/auth-boundary.cjs" > "$artifact_root/authenticated-boundary.json"
 
 run_browser_suite() {
@@ -412,7 +425,8 @@ run_browser_suite() {
   printf 'Running %s...\n' "$name"
   if RCC_PLAYWRIGHT_MODULE="$repo_root/web/node_modules/playwright" \
   RCC_E2E_ENGINE="$browser_engine" \
-  RCC_E2E_MYSQL_CONTAINER="$mysql_container" RCC_WEB_URL="$web_url" RCC_E2E_OUTPUT="$output" RCC_E2E_TABLE=stage1_acceptance_items \
+  RCC_E2E_MYSQL_CONTAINER="$mysql_container" RCC_WEB_URL="$web_url" RCC_E2E_ORIGIN="$web_url" RCC_E2E_OUTPUT="$output" RCC_E2E_TABLE=stage1_acceptance_items \
+  RCC_ACCOUNT_MAINTAIN="$runtime_dir/account-maintain" MYSQL_HOST=127.0.0.1 MYSQL_PORT="$mysql_port" MYSQL_DATABASE=rcc MYSQL_USER=rcc_admin MYSQL_PASSWORD="$mysql_password" MYSQL_TLS_MODE=false \
     run_timeout "${RCC_E2E_TIMEOUT_SECONDS:-$suite_timeout}" node "$script" \
       > "$output/runner.log" 2>&1; then status=0; else status=$?; fi
   cat "$output/runner.log"
@@ -450,6 +464,16 @@ fi
 if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == browser-accessibility ]]; then
 for browser_engine in "${browser_engine_list[@]}"; do
   run_browser_suite "browser-accessibility ($browser_engine)" "$repo_root/web/e2e/browser-accessibility.cjs" "$artifact_root/browser-accessibility/$browser_engine" 420 "$browser_engine"
+done
+fi
+
+if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == release-workflow ]]; then
+run_browser_suite "release drafts" "$repo_root/web/e2e/release-drafts.cjs" "$artifact_root/release-workflow/drafts" 240 chromium
+run_browser_suite "release approvals" "$repo_root/web/e2e/release-approvals.cjs" "$artifact_root/release-workflow/approvals" 300 chromium
+run_browser_suite "release batches" "$repo_root/web/e2e/release-batches.cjs" "$artifact_root/release-workflow/batches" 600 chromium
+for browser_engine in "${browser_engine_list[@]}"; do
+  run_browser_suite "publication and rollback ($browser_engine)" "$repo_root/web/e2e/release-rollbacks.cjs" "$artifact_root/release-workflow/rollback-$browser_engine" 420 "$browser_engine"
+  run_browser_suite "session, conflict and unknown recovery ($browser_engine)" "$repo_root/web/e2e/accounts.mjs" "$artifact_root/release-workflow/recovery-$browser_engine" 600 "$browser_engine"
 done
 fi
 

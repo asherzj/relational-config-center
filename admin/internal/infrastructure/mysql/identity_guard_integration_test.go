@@ -22,40 +22,22 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func TestExplicitIdentityRejectsUnusableKeysBeforeWriting(t *testing.T) {
+func TestPublicationJSONIdentityDoesNotUseURLPathSegments(t *testing.T) {
 	ctx, adapter, _, _ := identityGuardDatabase(t)
-	if err := adapter.gorm.Exec("CREATE TABLE guard_text_ids (id VARCHAR(16) PRIMARY KEY) ENGINE=InnoDB").Error; err != nil {
+	if err := adapter.gorm.Exec("CREATE TABLE guard_text_ids (id VARCHAR(64) PRIMARY KEY) ENGINE=InnoDB").Error; err != nil {
 		t.Fatal(err)
 	}
-	mutation, ctx := identityGuardApplication(t, ctx, adapter, "guard_text_ids", "guard_padded_ids")
-	for _, id := range []string{"", ".", ".."} {
-		t.Run("id="+id, func(t *testing.T) {
-			text := domain.JSONString(id)
-			_, err := mutation.Add(ctx, "guard_text_ids", domain.MutationContent{"id": &text})
-			if !errors.Is(err, application.ErrInvalidMutation) {
-				t.Errorf("ADD %q: got %v, want invalid mutation", id, err)
+	publication, ctx := identityGuardApplication(t, ctx, adapter, "guard_text_ids")
+	for _, id := range []string{".", "..", "键/值 ?#%", "%2F"} {
+		t.Run(id, func(t *testing.T) {
+			value := domain.JSONString(id)
+			actual, err := publication.Add(ctx, "guard_text_ids", domain.MutationContent{"id": &value})
+			if err != nil || actual != id {
+				t.Fatalf("JSON identity %q: %q %v", id, actual, err)
 			}
-			assertIdentityGuardRows(t, adapter.pool, "guard_text_ids", 0)
 		})
 	}
-	t.Run("database normalization cannot produce a dot segment", func(t *testing.T) {
-		if err := adapter.gorm.Exec("CREATE TABLE guard_padded_ids (id CHAR(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci PRIMARY KEY) ENGINE=InnoDB").Error; err != nil {
-			t.Fatal(err)
-		}
-		text := domain.JSONString(".  ")
-		_, err := mutation.Add(ctx, "guard_padded_ids", domain.MutationContent{"id": &text})
-		if !errors.Is(err, application.ErrInvalidMutation) {
-			t.Errorf("normalized dot ID: got %v, want invalid mutation", err)
-		}
-		assertIdentityGuardRows(t, adapter.pool, "guard_padded_ids", 0)
-		// The storage boundary itself does not impose the application's path
-		// contract. The same canonical dot is valid when using the adapter alone.
-		id, err := adapter.InsertRow(ctx, identityGuardInsert("guard_padded_ids", domain.ColumnTypeString, ".  "))
-		if err != nil || id != "." {
-			t.Fatalf("direct storage insertion: id=%q error=%v", id, err)
-		}
-		assertIdentityGuardRows(t, adapter.pool, "guard_padded_ids", 1)
-	})
+	assertIdentityGuardRows(t, adapter.pool, "guard_text_ids", 4)
 }
 
 func TestExplicitIdentityRejectsNontransactionalTableBeforeWriting(t *testing.T) {
@@ -63,7 +45,8 @@ func TestExplicitIdentityRejectsNontransactionalTableBeforeWriting(t *testing.T)
 	if err := adapter.gorm.Exec("CREATE TABLE guard_myisam_ids (id DECIMAL(6,2) PRIMARY KEY) ENGINE=MyISAM").Error; err != nil {
 		t.Fatal(err)
 	}
-	_, err := adapter.InsertRow(ctx, identityGuardInsert("guard_myisam_ids", domain.ColumnTypeDecimal, "1.235"))
+	publication, ctx := identityGuardApplication(t, ctx, adapter, "guard_myisam_ids", "guard_myisam_auto_ids")
+	_, err := publication.Add(ctx, "guard_myisam_ids", identityGuardContent("1.235"))
 	if !errors.Is(err, application.ErrIncompatibleTable) {
 		t.Errorf("ADD to MyISAM: got %v, want incompatible table", err)
 	}
@@ -72,7 +55,7 @@ func TestExplicitIdentityRejectsNontransactionalTableBeforeWriting(t *testing.T)
 		if err := adapter.gorm.Exec("CREATE TABLE guard_myisam_auto_ids (id TINYINT(1) AUTO_INCREMENT PRIMARY KEY) ENGINE=MyISAM").Error; err != nil {
 			t.Fatal(err)
 		}
-		mutation, ctx := identityGuardApplication(t, ctx, adapter, "guard_myisam_auto_ids")
+		mutation := publication
 		_, err := mutation.Add(ctx, "guard_myisam_auto_ids", domain.MutationContent{})
 		if !errors.Is(err, application.ErrIncompatibleTable) {
 			t.Errorf("generated ADD to MyISAM: got %v, want incompatible table", err)
@@ -107,6 +90,7 @@ func TestExplicitIdentityKeepsEngineStableUntilInsertTransactionEnds(t *testing.
 	if _, err := admin.ExecContext(ctx, "CREATE TABLE guard_mdl_ids (id BIGINT PRIMARY KEY) ENGINE=InnoDB"); err != nil {
 		t.Fatal(err)
 	}
+	publication, ctx := identityGuardApplication(t, ctx, adapter, "guard_mdl_ids")
 	beforeInsert := make(chan struct{})
 	resumeInsert := make(chan struct{})
 	var releaseOnce sync.Once
@@ -129,7 +113,7 @@ func TestExplicitIdentityKeepsEngineStableUntilInsertTransactionEnds(t *testing.
 	}
 	inserted := make(chan error, 1)
 	go func() {
-		_, err := adapter.InsertRow(ctx, identityGuardInsert("guard_mdl_ids", domain.ColumnTypeInt64, "77"))
+		_, err := publication.Add(ctx, "guard_mdl_ids", identityGuardContent("77"))
 		inserted <- err
 	}()
 	select {
@@ -197,15 +181,38 @@ func TestExplicitIdentityReadPermissionFailureAfterInsertRollsBack(t *testing.T)
 	for _, statement := range []string{
 		"CREATE TABLE guard_permission_ids (id BIGINT PRIMARY KEY) ENGINE=InnoDB",
 		"CREATE USER 'identity_writer'@'%' IDENTIFIED BY 'isolated-identity-writer'",
-		"GRANT SELECT, INSERT ON identity_guard.guard_permission_ids TO 'identity_writer'@'%'",
+		"GRANT SELECT, INSERT, UPDATE, DELETE ON identity_guard.guard_permission_ids TO 'identity_writer'@'%'",
+		"GRANT TRIGGER ON identity_guard.* TO 'identity_writer'@'%'",
+		"GRANT PROCESS ON *.* TO 'identity_writer'@'%'",
 	} {
 		if _, err := admin.ExecContext(ctx, statement); err != nil {
+			t.Fatal(err)
+		}
+	}
+	rows, err := admin.QueryContext(ctx, "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA='identity_guard' AND TABLE_NAME LIKE 'rcc\\_%'")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var controls []string
+	for rows.Next() {
+		var table string
+		if err := rows.Scan(&table); err != nil {
+			t.Fatal(err)
+		}
+		controls = append(controls, table)
+	}
+	if err := rows.Close(); err != nil {
+		t.Fatal(err)
+	}
+	for _, table := range controls {
+		if _, err := admin.ExecContext(ctx, "GRANT SELECT, INSERT, UPDATE, DELETE ON identity_guard.`"+table+"` TO 'identity_writer'@'%'"); err != nil {
 			t.Fatal(err)
 		}
 	}
 	limitedSettings := settings.Clone()
 	limitedSettings.User, limitedSettings.Passwd = "identity_writer", "isolated-identity-writer"
 	adapter := identityGuardAdapter(t, limitedSettings)
+	publication, ctx := identityGuardApplication(t, ctx, adapter, "guard_permission_ids")
 	var callbackErr error
 	var insertedRows int
 	var readDenied bool
@@ -229,7 +236,7 @@ func TestExplicitIdentityReadPermissionFailureAfterInsertRollsBack(t *testing.T)
 	}); err != nil {
 		t.Fatal(err)
 	}
-	_, err := adapter.InsertRow(ctx, identityGuardInsert("guard_permission_ids", domain.ColumnTypeInt64, "88"))
+	_, err = publication.Add(ctx, "guard_permission_ids", identityGuardContent("88"))
 	if callbackErr != nil {
 		t.Fatalf("real post-INSERT permission change: %v", callbackErr)
 	}
@@ -253,60 +260,48 @@ func TestExplicitIdentityNeverReturnsExistingRowAfterTriggerChangesKey(t *testin
 			t.Fatal(err)
 		}
 	}
-	id, err := adapter.InsertRow(ctx, identityGuardInsert("guard_trigger_ids", domain.ColumnTypeInt64, "77"))
+	publication, ctx := identityGuardApplication(t, ctx, adapter, "guard_trigger_ids")
+	id, err := publication.Add(ctx, "guard_trigger_ids", identityGuardContent("77"))
 	var oldRows, newRows int
 	if readErr := admin.QueryRowContext(ctx, "SELECT COUNT(CASE WHEN id=77 AND label='old' THEN 1 END), COUNT(CASE WHEN id=88 AND label='new' THEN 1 END) FROM guard_trigger_ids").Scan(&oldRows, &newRows); readErr != nil {
 		t.Fatal(readErr)
 	}
 	t.Logf("submitted ID=77; returned ID=%q error=%v; original 77 rows=%d, new 88 rows=%d", id, err, oldRows, newRows)
-	if !errors.Is(err, application.ErrInvalidMutation) || oldRows != 1 || newRows != 0 {
+	if !errors.Is(err, application.ErrDuplicateKey) || oldRows != 1 || newRows != 0 {
 		t.Fatal("a trigger must not turn an existing submitted key into a successful identity; its new row must roll back")
 	}
 	if _, err := admin.ExecContext(ctx, "DELETE FROM guard_trigger_ids"); err != nil {
 		t.Fatal(err)
 	}
-	_, err = adapter.InsertRow(ctx, identityGuardInsert("guard_trigger_ids", domain.ColumnTypeInt64, "77"))
-	if !errors.Is(err, application.ErrInvalidMutation) {
+	_, err = publication.Add(ctx, "guard_trigger_ids", identityGuardContent("77"))
+	if !errors.Is(err, application.ErrPublicationUnsupported) {
 		t.Fatalf("trigger changed an unused key: got %v, want invalid mutation", err)
 	}
 	assertIdentityGuardRows(t, admin, "guard_trigger_ids", 0)
 }
 
-func TestExplicitIdentityChecksCurrentRowsBeyondThePolicySnapshot(t *testing.T) {
-	ctx, adapter, admin, _ := identityGuardDatabase(t)
-	if _, err := admin.ExecContext(ctx, "CREATE TABLE guard_current_ids (id BIGINT PRIMARY KEY) ENGINE=InnoDB"); err != nil {
+func TestPublicationRejectsIdentityCreatedAfterApproval(t *testing.T) {
+	ctx, adapter, owner, _ := identityGuardDatabase(t)
+	if _, err := owner.ExecContext(ctx, "CREATE TABLE guard_current_ids (id BIGINT PRIMARY KEY) ENGINE=InnoDB"); err != nil {
 		t.Fatal(err)
 	}
-	var duplicateFromDatabase bool
-	if err := adapter.gorm.Callback().Create().After("gorm:create").Register("test:database_duplicate_identity", func(tx *gorm.DB) {
-		var mysqlError *driver.MySQLError
-		duplicateFromDatabase = errors.As(tx.Error, &mysqlError) && mysqlError.Number == 1062
-	}); err != nil {
+	publication, ctx := identityGuardApplication(t, ctx, adapter, "guard_current_ids")
+	approved, key, err := publication.approve(ctx, "guard_current_ids", identityGuardContent("77"))
+	if err != nil {
 		t.Fatal(err)
 	}
-	err := adapter.ExecuteMutationSnapshot(ctx, func(session application.MutationSnapshotSession) error {
-		// Establish the same older RR view as an earlier catalog read, then let
-		// another transaction commit the submitted key before the ADD begins.
-		var count int
-		if err := session.(*mutationSnapshotSession).database.Raw("SELECT COUNT(*) FROM guard_current_ids").Row().Scan(&count); err != nil {
-			return err
-		}
-		if count != 0 {
-			t.Errorf("initial snapshot contains %d rows", count)
-		}
-		if _, err := admin.ExecContext(ctx, "INSERT INTO guard_current_ids (id) VALUES (77)"); err != nil {
-			return err
-		}
-		_, err := session.InsertRow(ctx, identityGuardInsert("guard_current_ids", domain.ColumnTypeInt64, "77"))
-		return err
-	})
-	if !errors.Is(err, application.ErrDuplicateKey) {
-		t.Fatalf("current-row check: got %v, want duplicate key", err)
+	if _, err := owner.ExecContext(ctx, "INSERT INTO guard_current_ids(id) VALUES(77)"); err != nil {
+		t.Fatal(err)
 	}
-	if !duplicateFromDatabase {
-		t.Fatal("the database unique index must produce actual MySQL 1062, not an application pre-check")
+	_, err = publication.orders.Execute(ctx, approved.ID, application.SubmitReleaseInput{ExpectedVersion: approved.Version}, key+"-execute")
+	if !errors.Is(err, application.ErrRecordVersionConflict) && !errors.Is(err, application.ErrDuplicateKey) {
+		t.Fatalf("new current identity: %v", err)
 	}
-	assertIdentityGuardRows(t, admin, "guard_current_ids", 1)
+	assertIdentityGuardRows(t, owner, "guard_current_ids", 1)
+	stored, err := adapter.GetReleaseOrder(ctx, approved.ID)
+	if err != nil || stored.State != "APPROVED" || stored.Publication != nil {
+		t.Fatalf("failed approved publication: %#v %v", stored, err)
+	}
 }
 
 func TestExplicitIdentityAutoResultBelongsToThisInsert(t *testing.T) {
@@ -319,7 +314,7 @@ func TestExplicitIdentityAutoResultBelongsToThisInsert(t *testing.T) {
 	cases := []identityCase{}
 	for _, seeded := range []bool{false, true} {
 		for _, mode := range []string{"omitted", "zero", "explicit77"} {
-			test := identityCase{name: fmt.Sprintf("%s_%t", mode, seeded), trigger: "88", seeded: seeded, wantID: "88"}
+			test := identityCase{name: fmt.Sprintf("%s_%t", mode, seeded), trigger: "88", seeded: seeded, wantInvalid: true}
 			if mode == "zero" {
 				test.supplied = "0"
 			} else if mode == "explicit77" {
@@ -330,7 +325,7 @@ func TestExplicitIdentityAutoResultBelongsToThisInsert(t *testing.T) {
 	}
 	cases = append(cases,
 		identityCase{name: "unsigned_generated", unsigned: true, start: "18446744073709551614", wantID: "18446744073709551614"},
-		identityCase{name: "unsigned_trigger", unsigned: true, trigger: "18446744073709551614", wantID: "18446744073709551614"},
+		identityCase{name: "unsigned_trigger", unsigned: true, trigger: "18446744073709551614", wantInvalid: true},
 		identityCase{name: "no_auto_zero", unsigned: true, supplied: "0", mode: "NO_AUTO_VALUE_ON_ZERO", wantID: "0"},
 	)
 	tables := make([]string, 0, len(cases))
@@ -380,7 +375,7 @@ func TestExplicitIdentityAutoResultBelongsToThisInsert(t *testing.T) {
 			table := "guard_result_" + test.name
 			id, err := mutation.Add(ctx, table, content)
 			if test.wantInvalid {
-				if !errors.Is(err, application.ErrInvalidMutation) {
+				if !errors.Is(err, application.ErrPublicationUnsupported) && !errors.Is(err, application.ErrReleaseAutoIDAmbiguous) && !(test.seeded && test.supplied == "77" && errors.Is(err, application.ErrDuplicateKey)) {
 					t.Errorf("rewritten explicit identity: id=%q error=%v", id, err)
 				}
 			} else if err != nil || id != test.wantID {
@@ -405,19 +400,13 @@ func TestExplicitIdentityAutoResultBelongsToThisInsert(t *testing.T) {
 	}
 }
 
-func identityGuardInsert(table string, kind domain.ColumnType, id string) domain.RowInsert {
-	column := domain.Column{Name: "id", Type: kind}
-	text := domain.JSONString(id)
-	value, err := domain.ParseColumnValue(column, text)
-	if err != nil {
-		panic(err)
-	}
-	return domain.RowInsert{TableName: table, ProvidedID: &text, Values: []domain.MutationValue{{Column: column, Value: value}}}
+func identityGuardContent(id string) domain.MutationContent {
+	value := domain.JSONString(id)
+	return domain.MutationContent{"id": &value}
 }
 
 func identityGuardDatabase(t *testing.T) (context.Context, *Adapter, *sql.DB, *driver.Config) {
 	t.Helper()
-	testcontainers.SkipIfProviderIsNotHealthy(t)
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	t.Cleanup(cancel)
 	container, err := tcmysql.Run(ctx, "mysql:8.4", tcmysql.WithDatabase("identity_guard"), tcmysql.WithUsername("root"), tcmysql.WithPassword("isolated-identity-fixture"), tcmysql.WithScripts("../../../../deploy/mysql/init/001-schema.sql"))
@@ -443,7 +432,7 @@ func identityGuardDatabase(t *testing.T) (context.Context, *Adapter, *sql.DB, *d
 	return ctx, adapter, admin, settings
 }
 
-func identityGuardApplication(t *testing.T, ctx context.Context, adapter *Adapter, tables ...string) (*application.ManagedTableMutation, context.Context) {
+func identityGuardApplication(t *testing.T, ctx context.Context, adapter *Adapter, tables ...string) (*identityGuardPublication, context.Context) {
 	t.Helper()
 	for _, statement := range []string{
 		"INSERT INTO rcc_query_policies(code,name,type_code,default_order_field,default_order_direction,default_page_size,max_page_size,status,creator,modifier) VALUES ('guard_query_v1','Guard query','page_query','id','ASC',5,20,'ACTIVE','test','test')",
@@ -458,25 +447,64 @@ func identityGuardApplication(t *testing.T, ctx context.Context, adapter *Adapte
 			t.Fatal(err)
 		}
 	}
-	// Obtain a real authenticated request identity through the current Account
-	// flow. The identity regression must not bypass Login Session or CSRF checks.
+	// Actual registration, explicit maintenance grants and separate Login Sessions
+	// authorize the same ReleaseOrders API used by HTTP. No raw business-write facade.
 	auth := application.NewAuthentication(adapter, passwordadapter.NewArgon2id(), nil, adapter, application.AuthenticationLimits{})
-	preauth, csrf, err := auth.Prepare(ctx)
+	actor := func(name string) context.Context {
+		preauth, csrf, err := auth.Prepare(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := auth.CheckPreauth(ctx, preauth, csrf); err != nil {
+			t.Fatal(err)
+		}
+		registered, err := auth.Register(ctx, application.Registration{Username: name, Email: name + "@example.com", Password: "correct horse battery staple"}, preauth, "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = application.NewAccountMaintenance(adapter, passwordadapter.NewArgon2id()).GrantAdmin(ctx, application.AccountSelector{Username: name})
+		if err != nil {
+			t.Fatal(err)
+		}
+		operator, err := auth.AuthenticateRequest(ctx, registered.Token, registered.CSRF, true)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return operator.Bind(ctx)
+	}
+	return &identityGuardPublication{orders: application.NewReleaseOrders(adapter), reviewer: actor("identity.reviewer")}, actor("identity.applicant")
+}
+
+type identityGuardPublication struct {
+	orders   *application.ReleaseOrders
+	reviewer context.Context
+	sequence uint64
+}
+
+func (p *identityGuardPublication) approve(ctx context.Context, table string, content domain.MutationContent) (domain.ReleaseOrder, string, error) {
+	p.sequence++
+	key := fmt.Sprintf("identity-guard-%d", p.sequence)
+	order, err := p.orders.Create(ctx, application.DraftInput{TableName: table, Items: []application.DraftItemInput{{Operation: "ADD", Content: content}}}, key+"-create")
 	if err != nil {
-		t.Fatal(err)
+		return order, key, err
 	}
-	if err := auth.CheckPreauth(ctx, preauth, csrf); err != nil {
-		t.Fatal(err)
-	}
-	registered, err := auth.Register(ctx, application.Registration{Username: "identity.guard", Email: "identity.guard@example.com", Password: "correct horse battery staple"}, preauth, "")
+	order, err = p.orders.Submit(ctx, order.ID, application.SubmitReleaseInput{ExpectedVersion: order.Version}, key+"-submit")
 	if err != nil {
-		t.Fatal(err)
+		return order, key, err
 	}
-	operator, err := auth.AuthenticateRequest(ctx, registered.Token, registered.CSRF, true)
+	order, err = p.orders.Approve(p.reviewer, order.ID, application.ReleaseDecisionInput{ExpectedVersion: order.Version, Reason: "independent identity review"}, key+"-approve")
+	return order, key, err
+}
+func (p *identityGuardPublication) Add(ctx context.Context, table string, content domain.MutationContent) (string, error) {
+	order, key, err := p.approve(ctx, table, content)
 	if err != nil {
-		t.Fatal(err)
+		return "", err
 	}
-	return application.NewManagedTableMutation(adapter, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry()), operator.Bind(ctx)
+	order, err = p.orders.Execute(ctx, order.ID, application.SubmitReleaseInput{ExpectedVersion: order.Version}, key+"-execute")
+	if err != nil {
+		return "", err
+	}
+	return order.Publication.Commands[0].ID, nil
 }
 
 func identityGuardAdapter(t *testing.T, settings *driver.Config) *Adapter {

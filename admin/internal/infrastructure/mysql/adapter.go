@@ -110,7 +110,16 @@ func (adapter *Adapter) Ready(ctx context.Context) error {
 			return fmt.Errorf("Policy Catalog unavailable: %w", err)
 		}
 	}
-	return adapter.accountSchemaReady(ctx)
+	if err := adapter.accountSchemaReady(ctx); err != nil {
+		return err
+	}
+	if err := adapter.accountRoleSchemaReady(ctx); err != nil {
+		return err
+	}
+	if err := adapter.recordVersionSchemaReady(ctx); err != nil {
+		return err
+	}
+	return adapter.releaseSchemaReady(ctx)
 }
 
 func (adapter *Adapter) ListDatabaseTables(ctx context.Context) ([]domain.DatabaseTable, error) {
@@ -207,9 +216,14 @@ ORDER BY ORDINAL_POSITION`, adapter.database, tableName).Scan(&rows).Error; err 
 	for _, row := range rows {
 		// DEFAULT_GENERATED marks an expression default, not a computed column.
 		extra := strings.ToLower(row.Extra)
+		floatBits := 0
+		if row.DataType == "float" {
+			floatBits = 32
+		}
 		columns = append(columns, domain.Column{
 			Name:          row.Name,
 			TextCapacity:  liveTextCapacity(row.DataType, row.TextCapacity),
+			FloatBits:     floatBits,
 			Type:          liveColumnType(row.DataType, row.ColumnType),
 			Nullable:      row.Nullable == "YES",
 			Generated:     row.GenerationExpression != "" || strings.Contains(extra, "stored generated") || strings.Contains(extra, "virtual generated"),
@@ -847,149 +861,6 @@ func classifyCatalogSnapshotError(err, contextErr error, operation string) error
 	return fmt.Errorf("%w: %s", application.ErrPolicyCatalogUnavailable, operation)
 }
 
-// ExecuteMutationSnapshot owns the only transaction used by the relational
-// Managed Table mutation path. Catalog reads, live Schema inspection,
-// database-time production, and the row write all use this read-write RR
-// session, so the adapter's row helpers must not begin nested transactions.
-func (adapter *Adapter) ExecuteMutationSnapshot(ctx context.Context, execute func(application.MutationSnapshotSession) error) (returnErr error) {
-	transaction := adapter.gorm.WithContext(ctx).Begin(&sql.TxOptions{
-		Isolation: sql.LevelRepeatableRead,
-		ReadOnly:  false,
-	})
-	if transaction.Error != nil {
-		return classifyMutationError(transaction.Error, ctx.Err())
-	}
-
-	session := &mutationSnapshotSession{adapter: adapter, database: transaction}
-	session.active.Store(true)
-	defer func() {
-		if recovered := recover(); recovered != nil {
-			session.active.Store(false)
-			_ = transaction.Rollback().Error
-			panic(recovered)
-		}
-	}()
-	returnErr = execute(session)
-	session.active.Store(false)
-	if returnErr != nil {
-		if rollbackErr := transaction.Rollback().Error; rollbackErr != nil {
-			return classifyMutationError(rollbackErr, ctx.Err())
-		}
-		return returnErr
-	}
-	if err := transaction.Commit().Error; err != nil {
-		return classifyMutationError(err, ctx.Err())
-	}
-	return nil
-}
-
-type mutationSnapshotSession struct {
-	adapter  *Adapter
-	database *gorm.DB
-	active   atomic.Bool
-}
-
-func (session *mutationSnapshotSession) available() error {
-	if !session.active.Load() {
-		return application.ErrMutationUnavailable
-	}
-	return nil
-}
-
-func (session *mutationSnapshotSession) GetTablePolicy(ctx context.Context, tableName string) (domain.TablePolicy, error) {
-	if err := session.available(); err != nil {
-		return domain.TablePolicy{}, err
-	}
-	policy, err := session.adapter.getTablePolicy(ctx, session.database, tableName)
-	if err != nil {
-		if errors.Is(err, domain.ErrTablePolicyNotFound) {
-			return domain.TablePolicy{}, err
-		}
-		return domain.TablePolicy{}, classifyMutationSnapshotRead(err, ctx.Err(), "read Table Policy")
-	}
-	return policy, nil
-}
-
-func (session *mutationSnapshotSession) GetQueryPolicy(ctx context.Context, code string) (domain.QueryPolicy, error) {
-	if err := session.available(); err != nil {
-		return domain.QueryPolicy{}, err
-	}
-	policy, err := session.adapter.getQueryPolicy(ctx, session.database, code)
-	if err != nil {
-		return domain.QueryPolicy{}, classifyMutationSnapshotRead(err, ctx.Err(), "read Query Policy")
-	}
-	return policy, nil
-}
-
-func (session *mutationSnapshotSession) GetMutationPolicy(ctx context.Context, code string) (domain.MutationPolicy, error) {
-	if err := session.available(); err != nil {
-		return domain.MutationPolicy{}, err
-	}
-	policy, err := session.adapter.getMutationPolicy(ctx, session.database, code)
-	if err != nil {
-		return domain.MutationPolicy{}, classifyMutationSnapshotRead(err, ctx.Err(), "read Mutation Policy")
-	}
-	return policy, nil
-}
-
-func (session *mutationSnapshotSession) GetTableSchema(ctx context.Context, tableName string) (domain.TableSchema, error) {
-	if err := session.available(); err != nil {
-		return domain.TableSchema{}, err
-	}
-	schema, err := session.adapter.getTableSchema(ctx, session.database, tableName)
-	if err != nil {
-		if errors.Is(err, application.ErrDatabaseTableNotFound) || errors.Is(err, application.ErrProtectedTable) {
-			return domain.TableSchema{}, err
-		}
-		return domain.TableSchema{}, classifyMutationSnapshotRead(err, ctx.Err(), "read live Schema")
-	}
-	return schema, nil
-}
-
-func (session *mutationSnapshotSession) DatabaseTime(ctx context.Context) (time.Time, error) {
-	if err := session.available(); err != nil {
-		return time.Time{}, err
-	}
-	var row struct {
-		Now time.Time `gorm:"column:database_time"`
-	}
-	if err := session.database.WithContext(ctx).Raw("SELECT UTC_TIMESTAMP(6) AS database_time").Scan(&row).Error; err != nil {
-		return time.Time{}, classifyMutationSnapshotRead(err, ctx.Err(), "read database time")
-	}
-	if row.Now.IsZero() {
-		return time.Time{}, application.ErrMutationUnavailable
-	}
-	return row.Now.UTC(), nil
-}
-
-func (session *mutationSnapshotSession) InsertRow(ctx context.Context, insert domain.RowInsert) (string, error) {
-	if err := session.available(); err != nil {
-		return "", err
-	}
-	return insertRow(ctx, session.database, insert)
-}
-
-func (session *mutationSnapshotSession) UpdateRow(ctx context.Context, update domain.RowUpdate) (int64, error) {
-	if err := session.available(); err != nil {
-		return 0, err
-	}
-	return updateRow(ctx, session.database, update)
-}
-
-func (session *mutationSnapshotSession) DeleteRow(ctx context.Context, deletion domain.RowDelete) (int64, error) {
-	if err := session.available(); err != nil {
-		return 0, err
-	}
-	return deleteRow(ctx, session.database, deletion)
-}
-
-func classifyMutationSnapshotRead(err, contextErr error, operation string) error {
-	if errors.Is(err, context.DeadlineExceeded) || errors.Is(contextErr, context.DeadlineExceeded) {
-		return fmt.Errorf("%w: %s", application.ErrMutationTimeout, operation)
-	}
-	return fmt.Errorf("%w: %s", application.ErrMutationUnavailable, operation)
-}
-
 func executePageQuery(ctx context.Context, database *gorm.DB, query domain.PageQuery) (domain.QueryResult, error) {
 	countContext, cancelCount := context.WithTimeout(ctx, 3*time.Second)
 	var totalCount int64
@@ -1030,9 +901,14 @@ func executePageQuery(ctx context.Context, database *gorm.DB, query domain.PageQ
 	if totalCount > 0 {
 		totalPages = (totalCount + int64(query.PageSize) - 1) / int64(query.PageSize)
 	}
+	versions, err := queryRecordVersions(ctx, database, query.TableName, resultRows)
+	if err != nil {
+		return domain.QueryResult{}, classifyQueryError(err, ctx.Err(), "read record versions")
+	}
 	return domain.QueryResult{
-		Columns: append([]domain.Column(nil), query.Columns...),
-		Rows:    resultRows,
+		RecordVersions: versions,
+		Columns:        append([]domain.Column(nil), query.Columns...),
+		Rows:           resultRows,
 		Page: domain.Page{
 			PageNumber: query.PageNumber,
 			PageSize:   query.PageSize,
@@ -1040,262 +916,6 @@ func executePageQuery(ctx context.Context, database *gorm.DB, query domain.PageQ
 			TotalPages: totalPages,
 		},
 	}, nil
-}
-
-func (adapter *Adapter) InsertRow(ctx context.Context, insert domain.RowInsert) (id string, returnErr error) {
-	transaction := adapter.gorm.WithContext(ctx).Begin()
-	if transaction.Error != nil {
-		return "", classifyMutationError(transaction.Error, ctx.Err())
-	}
-	defer func() {
-		if returnErr != nil {
-			_ = transaction.Rollback().Error
-		}
-	}()
-
-	resultID, err := insertRow(ctx, transaction, insert)
-	if err != nil {
-		return "", err
-	}
-	if err := transaction.Commit().Error; err != nil {
-		return "", classifyMutationError(err, ctx.Err())
-	}
-	return resultID, nil
-}
-
-func insertRow(ctx context.Context, database *gorm.DB, insert domain.RowInsert) (string, error) {
-	values := make(map[string]any, len(insert.Values))
-	providedAutoZero := false
-	existingID := false
-	var providedID *domain.MutationValue
-	for _, value := range insert.Values {
-		values[value.Column.Name] = value.Value
-		if value.Column.Name == "id" {
-			providedID = &value
-			providedAutoZero = value.Column.AutoIncrement && (value.Value == uint64(0) || value.Value == int64(0))
-		}
-	}
-	if insert.ProvidedID != nil && providedID == nil {
-		return "", application.ErrInvalidMutation
-	}
-	if err := requireTransactionalInsertTable(ctx, database, insert.TableName); err != nil {
-		return "", err
-	}
-	if insert.ProvidedID != nil && !providedAutoZero {
-		var err error
-		existingID, err = explicitIDExists(ctx, database, insert.TableName, providedID.Value)
-		if err != nil {
-			return "", err
-		}
-	}
-	result := gorm.WithResult()
-	session := database.WithContext(ctx).Session(&gorm.Session{SkipDefaultTransaction: true}).Clauses(result)
-	var created *gorm.DB
-	if len(values) == 0 {
-		quotedTable := session.Statement.Quote(insert.TableName)
-		created = session.Exec("INSERT INTO " + quotedTable + " VALUES ()")
-	} else {
-		created = session.Table(insert.TableName).Create(values)
-	}
-	if created.Error != nil {
-		return "", classifyMutationError(created.Error, ctx.Err())
-	}
-	if insert.ProvidedID != nil && !providedAutoZero {
-		// Only the INSERT's actual unique-index error decides a duplicate key.
-		// If it succeeded despite a pre-existing submitted identity, a trigger
-		// may have changed the new key; the old row cannot prove this ADD's ID.
-		if existingID {
-			return "", application.ErrInvalidMutation
-		}
-		id, err := readExplicitInsertedID(ctx, database, insert.TableName, providedID.Column, providedID.Value)
-		if err != nil {
-			return "", err
-		}
-		// The ID returned to the client must also be usable by the normal
-		// exact-query/PATCH parser. Do not commit an identity that loses its
-		// ability to locate the row when serialized (for example FLOAT precision).
-		parsedID, err := domain.ParseColumnValue(providedID.Column, domain.JSONString(id))
-		if err != nil {
-			return "", application.ErrInvalidMutation
-		}
-		confirmedID, err := readExplicitInsertedID(ctx, database, insert.TableName, providedID.Column, parsedID)
-		if err != nil {
-			return "", err
-		}
-		if confirmedID != id {
-			return "", application.ErrInvalidMutation
-		}
-		return id, nil
-	}
-	if result.Result == nil {
-		return "", application.ErrMutationUnavailable
-	}
-	insertID, err := result.Result.LastInsertId()
-	if err != nil {
-		return "", application.ErrMutationUnavailable
-	}
-	// Use this INSERT's result: a trigger can assign an auto-increment ID without
-	// updating the connection's LAST_INSERT_ID. The MySQL driver stores the
-	// protocol's uint64 ID as int64; converting back preserves BIGINT UNSIGNED,
-	// while also retaining an actual zero under NO_AUTO_VALUE_ON_ZERO.
-	return strconv.FormatUint(uint64(insertID), 10), nil
-}
-
-func explicitIDExists(ctx context.Context, database *gorm.DB, tableName string, value any) (bool, error) {
-	// A BEFORE INSERT trigger may change NEW.id. Never let the later readback
-	// mistake an existing row at the submitted key for the row we just inserted.
-	// The Policy Snapshot may already have an older RR read view, so use a current
-	// locking read; its gap lock also prevents a competing insert at this key.
-	rows, err := database.WithContext(ctx).Table(tableName).
-		Clauses(selectColumns([]domain.Column{{Name: "id"}}), clause.Locking{Strength: "SHARE"}).
-		Where(clause.Eq{Column: clause.Column{Name: "id"}, Value: value}).Limit(1).Rows()
-	if err != nil {
-		return false, classifyMutationError(err, ctx.Err())
-	}
-	exists := rows.Next()
-	readErr := rows.Err()
-	closeErr := rows.Close()
-	if readErr != nil {
-		return false, classifyMutationError(readErr, ctx.Err())
-	}
-	if closeErr != nil {
-		return false, classifyMutationError(closeErr, ctx.Err())
-	}
-	return exists, nil
-}
-
-func requireTransactionalInsertTable(ctx context.Context, database *gorm.DB, tableName string) error {
-	// Execute a real table read to retain its metadata lock until this transaction
-	// ends. Reading information_schema alone leaves an ALTER ENGINE race between
-	// checking transaction support and the INSERT that may need to be rolled back.
-	rows, err := database.WithContext(ctx).Table(tableName).
-		Clauses(selectColumns([]domain.Column{{Name: "id"}})).Limit(0).Rows()
-	if err != nil {
-		return classifyMutationError(err, ctx.Err())
-	}
-	if err := rows.Close(); err != nil {
-		return classifyMutationError(err, ctx.Err())
-	}
-	var transactional sql.NullString
-	err = database.WithContext(ctx).Raw(`
-SELECT engines.TRANSACTIONS
-FROM information_schema.TABLES AS tables
-LEFT JOIN information_schema.ENGINES AS engines ON engines.ENGINE = tables.ENGINE
-WHERE tables.TABLE_SCHEMA = DATABASE() AND tables.TABLE_NAME = ? AND tables.TABLE_TYPE = 'BASE TABLE'`, tableName).Row().Scan(&transactional)
-	if errors.Is(err, sql.ErrNoRows) {
-		return application.ErrIncompatibleTable
-	}
-	if err != nil {
-		return classifyMutationError(err, ctx.Err())
-	}
-	if !transactional.Valid || transactional.String != "YES" {
-		return application.ErrIncompatibleTable
-	}
-	return nil
-}
-
-// Read on the INSERT transaction, using exactly the bound primary-key value.
-// The database may normalize its representation; if it changes the key so that
-// it cannot be located precisely, reject the input and let the caller roll back.
-func readExplicitInsertedID(ctx context.Context, database *gorm.DB, tableName string, column domain.Column, value any) (string, error) {
-	rows, err := database.WithContext(ctx).Table(tableName).
-		Clauses(selectColumns([]domain.Column{column})).
-		Where(clause.Eq{Column: clause.Column{Name: "id"}, Value: value}).Limit(2).Rows()
-	if err != nil {
-		return "", classifyMutationError(err, ctx.Err())
-	}
-	result, scanErr := scanJSONStringRows(rows, []domain.Column{column})
-	closeErr := rows.Close()
-	if scanErr != nil {
-		return "", classifyMutationError(scanErr, ctx.Err())
-	}
-	if closeErr != nil {
-		return "", classifyMutationError(closeErr, ctx.Err())
-	}
-	if len(result) != 1 || result[0]["id"] == nil {
-		return "", application.ErrInvalidMutation
-	}
-	return string(*result[0]["id"]), nil
-}
-
-func (adapter *Adapter) UpdateRow(ctx context.Context, update domain.RowUpdate) (affected int64, returnErr error) {
-	transaction := adapter.gorm.WithContext(ctx).Begin()
-	if transaction.Error != nil {
-		return 0, classifyMutationError(transaction.Error, ctx.Err())
-	}
-	defer func() {
-		if returnErr != nil {
-			_ = transaction.Rollback().Error
-		}
-	}()
-
-	affected, err := updateRow(ctx, transaction, update)
-	if err != nil {
-		return 0, err
-	}
-	if err := transaction.Commit().Error; err != nil {
-		return 0, classifyMutationError(err, ctx.Err())
-	}
-	return affected, nil
-}
-
-func updateRow(ctx context.Context, database *gorm.DB, update domain.RowUpdate) (int64, error) {
-	values := make(map[string]any, len(update.Values))
-	for _, value := range update.Values {
-		values[value.Column.Name] = value.Value
-	}
-	updated := database.WithContext(ctx).Session(&gorm.Session{SkipDefaultTransaction: true}).
-		Table(update.TableName).
-		Where(clause.Eq{Column: clause.Column{Name: update.IDColumn.Name}, Value: update.ID}).
-		Updates(values)
-	if updated.Error != nil {
-		return 0, classifyMutationError(updated.Error, ctx.Err())
-	}
-	if updated.RowsAffected == 0 {
-		return 0, application.ErrMutationRowNotFound
-	}
-	if updated.RowsAffected != 1 {
-		return 0, application.ErrMutationUnavailable
-	}
-	return updated.RowsAffected, nil
-}
-
-func (adapter *Adapter) DeleteRow(ctx context.Context, deletion domain.RowDelete) (affected int64, returnErr error) {
-	transaction := adapter.gorm.WithContext(ctx).Begin()
-	if transaction.Error != nil {
-		return 0, classifyMutationError(transaction.Error, ctx.Err())
-	}
-	defer func() {
-		if returnErr != nil {
-			_ = transaction.Rollback().Error
-		}
-	}()
-
-	affected, err := deleteRow(ctx, transaction, deletion)
-	if err != nil {
-		return 0, err
-	}
-	if err := transaction.Commit().Error; err != nil {
-		return 0, classifyMutationError(err, ctx.Err())
-	}
-	return affected, nil
-}
-
-func deleteRow(ctx context.Context, database *gorm.DB, deletion domain.RowDelete) (int64, error) {
-	deleted := database.WithContext(ctx).Session(&gorm.Session{SkipDefaultTransaction: true}).
-		Table(deletion.TableName).
-		Where(clause.Eq{Column: clause.Column{Name: deletion.IDColumn.Name}, Value: deletion.ID}).
-		Delete(&map[string]any{})
-	if deleted.Error != nil {
-		return 0, classifyMutationError(deleted.Error, ctx.Err())
-	}
-	if deleted.RowsAffected == 0 {
-		return 0, application.ErrMutationRowNotFound
-	}
-	if deleted.RowsAffected != 1 {
-		return 0, application.ErrMutationUnavailable
-	}
-	return deleted.RowsAffected, nil
 }
 
 func classifyMutationError(err error, contextErr error) error {
@@ -1379,11 +999,21 @@ func containsPattern(value string) string {
 }
 
 func selectColumns(columns []domain.Column) clause.Select {
-	selected := make([]clause.Column, 0, len(columns))
+	projections := make([]string, 0, len(columns))
+	args := make([]any, 0, len(columns))
 	for _, column := range columns {
-		selected = append(selected, clause.Column{Name: column.Name})
+		field := clause.Column{Name: column.Name}
+		if column.Type == domain.ColumnTypeFloat64 {
+			// FLOAT text protocol output has only six significant digits.
+			// DOUBLE promotion preserves every stored FLOAT bit before display.
+			projections = append(projections, "CAST(? AS DOUBLE) AS ?")
+			args = append(args, field, field)
+		} else {
+			projections = append(projections, "?")
+			args = append(args, field)
+		}
 	}
-	return clause.Select{Columns: selected}
+	return clause.Select{Expression: clause.Expr{SQL: strings.Join(projections, ","), Vars: args}}
 }
 
 func pageQueryColumn(columns []domain.Column, name string) (domain.Column, bool) {
@@ -1565,7 +1195,6 @@ var _ application.TableMetadataReader = (*Adapter)(nil)
 var _ application.Readiness = (*Adapter)(nil)
 var _ application.QueryExecutor = (*Adapter)(nil)
 var _ application.QuerySnapshotExecutor = (*Adapter)(nil)
-var _ application.MutationExecutor = (*Adapter)(nil)
 var _ domain.TablePolicyCatalog = (*Adapter)(nil)
 var _ domain.QueryPolicyCatalog = (*Adapter)(nil)
 var _ domain.MutationPolicyCatalog = (*Adapter)(nil)

@@ -1,8 +1,9 @@
 // Real browser -> production Web proxy -> Admin -> unique disposable MySQL.
 // route.fetch executes real writes; only delivery of selected responses is changed.
-const { chromium } = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
+const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
+const { randomUUID } = require('node:crypto');
 const assert = require('node:assert/strict');
-const { registerFixtureAccount } = require('./local-account.cjs');
+const { registerFixtureAccount, authenticatedRequest, selectedBrowser, browserOptions } = require('./local-account.cjs');
 const fs = require('node:fs/promises');
 const { writeFileSync } = require('node:fs');
 const { execFileSync } = require('node:child_process');
@@ -46,7 +47,7 @@ async function waitDatabase() {
     requests = []; faults = [];
     page.on('request', request => {
       const path = new URL(request.url()).pathname;
-      if (path.startsWith('/api/') && !path.startsWith('/api/v1/auth/')) requests.push({ path, method: request.method(), ...(path.endsWith('/query') ? { query: request.postDataJSON() } : {}) });
+      if (path.startsWith('/api/') && !path.startsWith('/api/v1/auth/')) requests.push({ path, method: request.method(), ...(path.endsWith('/query') ? { query: request.postDataJSON() } : {}), ...(path.endsWith('/execute') ? { body: request.postData(), key: request.headers()['idempotency-key'] } : {}) });
     });
     await page.goto(`${base}${path}`);
   }
@@ -93,139 +94,228 @@ async function waitDatabase() {
     check(label, { requests: writes(), actualWrites: auditCount(entity), faults, readonlyRequests: requests.filter(r => r.method === 'GET' || r.path.endsWith('/query')).slice(-1) });
   }
   try {
-    sql(`CREATE TABLE stage2_write_audit(id BIGINT AUTO_INCREMENT PRIMARY KEY,entity VARCHAR(80),operation VARCHAR(12));
-      CREATE TRIGGER stage2_data_add AFTER INSERT ON ${table} FOR EACH ROW INSERT INTO stage2_write_audit(entity,operation) VALUES('${table}','ADD');
-      CREATE TRIGGER stage2_data_modify AFTER UPDATE ON ${table} FOR EACH ROW INSERT INTO stage2_write_audit(entity,operation) VALUES('${table}','MODIFY');
-      CREATE TRIGGER stage2_data_delete AFTER DELETE ON ${table} FOR EACH ROW INSERT INTO stage2_write_audit(entity,operation) VALUES('${table}','DELETE');`, true);
+    // Audit catalog mutations only. Business-table triggers are deliberately
+    // incompatible with the publication contract; its immutable Command and
+    // execution event provide the authoritative once-only write evidence.
+    sql(`CREATE TABLE stage2_write_audit(id BIGINT AUTO_INCREMENT PRIMARY KEY,entity VARCHAR(80),operation VARCHAR(12));`, true);
     for (const entity of ['rcc_query_policies', 'rcc_mutation_policies', 'rcc_table_policies']) {
       for (const [suffix, event] of [['add', 'INSERT'], ['modify', 'UPDATE'], ['delete', 'DELETE']]) {
         sql(`CREATE TRIGGER stage2_${entity}_${suffix} AFTER ${event} ON ${entity} FOR EACH ROW INSERT INTO stage2_write_audit(entity,operation) VALUES('${entity}','${event}');`, true);
       }
     }
-    browser = await chromium.launch({ headless: true });
-    context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
-    await registerFixtureAccount(context, base);
+    browser = await selectedBrowser(playwright).launch(browserOptions());
+    const account = async roles => {
+      const candidate = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+      await registerFixtureAccount(candidate, base, { roles });
+      return candidate;
+    };
+    const admin = await account(['ADMIN']);
+    const applicant = await account(['EDITOR']);
+    const reviewer = await account(['APPROVER']);
+    const publisher = await account(['PUBLISHER']);
+    const api = async (actor, method, path, data, expected = 200) => {
+      const response = await authenticatedRequest(actor, base, path, {
+        method, headers: { 'Idempotency-Key': randomUUID() }, ...(data === undefined ? {} : { data }),
+      });
+      assert.equal(response.status(), expected, `${method} ${path}: ${await response.text()}`);
+      return response.json();
+    };
+    const read = id => api(publisher, 'GET', `/api/v1/release-orders/${id}`);
+    const approve = async order => {
+      const submitted = await api(applicant, 'POST', `/api/v1/release-orders/${order.id}/submit`, { expected_version: order.version });
+      return api(reviewer, 'POST', `/api/v1/release-orders/${order.id}/approve`, { expected_version: submitted.version, reason: 'Independent recovery acceptance' });
+    };
+    const prepare = async (operation, name) => {
+      const id = operation === 'ADD' ? undefined : seed(name);
+      const item = { operation, content: operation === 'DELETE' ? {} : { name: operation === 'MODIFY' ? `${name}_saved` : name }, ...(id ? { id, expected_record_version: '0' } : {}) };
+      const draft = await api(applicant, 'POST', '/api/v1/release-orders', { table_name: table, items: [item] }, 201);
+      const order = await approve(draft);
+      context = publisher;
+      // Enter through a real in-app history entry so pending Back exercises
+      // the router blocker, not a fresh tab's about:blank document.
+      await open('/configuration/release-orders');
+      await page.getByRole('link', { name: order.id, exact: true }).click();
+      await button('执行发布').click();
+      return { order, id, path: `/api/v1/release-orders/${order.id}/execute` };
+    };
+    const executeRequests = path => writes().filter(request => request.path === path);
+    const commands = id => Number(sql(`SELECT COUNT(*) FROM rcc_publication_commands WHERE order_id=${literal(id)};`));
+    const published = async (order, name, operation = 'ADD') => {
+      const current = await read(order.id);
+      assert.equal(current.state, 'SUCCEEDED');
+      assert.equal(current.history.filter(event => event.action === 'EXECUTE').length, 1);
+      assert.equal(commands(order.id), 1);
+      assert.equal(current.publication.commands.length, 1);
+      assert.equal(rowCount(operation === 'MODIFY' ? `${name}_saved` : name), operation === 'DELETE' ? 0 : 1);
+      return current;
+    };
+    const recover = async (order, path, reload = false) => {
+      await button('使用原请求重试').waitFor();
+      const first = executeRequests(path);
+      assert.equal(first.length, 1);
+      assert.ok(first[0].key);
+      const current = await read(order.id);
+      assert.equal(current.state, 'SUCCEEDED');
+      // A read can establish current state but cannot acknowledge the pending
+      // request. Only the original immutable request is allowed to resolve it.
+      assert.equal(executeRequests(path).length, 1);
+      assert.equal(await button('使用原请求重试').count(), 1);
+      await page.unroute(`**${path}`);
+      if (reload) {
+        page.once('dialog', dialog => dialog.accept());
+        await page.reload();
+        await button('恢复原发布请求').click();
+      } else await button('使用原请求重试').click();
+      await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+      const attempts = executeRequests(path);
+      assert.equal(attempts.length, 2);
+      assert.deepEqual(attempts[0], attempts[1]);
+      assert.equal(commands(order.id), 1);
+      assert.equal(await button('恢复原发布请求').count(), 0);
+      return attempts;
+    };
     for (const kind of ['abort', 'json', 'contract', '503']) {
       const name = `stage2_add_${kind}`;
-      await managed(); await addEditor(name); resetAudit();
-      await fault(`/api/v1/tables/${table}/rows`, 'POST', kind);
-      await button('确认并执行').click();
-      await uncertain().waitFor();
-      assert.equal(rowCount(name), 1);
-      assert.equal(await button('确认并执行').isDisabled(), true);
-      assert.equal(await button('返回修改').isDisabled(), true);
-      assert.match(await page.getByRole('dialog', { name: 'ADD Change Set', exact: true }).innerText(), new RegExp(name));
-      await verifyUnknown(`ADD ${kind}: committed once, draft retained, check is read-only`, table);
+      const { order, path } = await prepare('ADD', name);
+      await fault(path, 'POST', kind);
+      await button('确认发布到数据库').click();
+      await button('使用原请求重试').waitFor();
+      await published(order, name);
+      assert.match(await page.getByRole('dialog', { name: '执行发布', exact: true }).innerText(), new RegExp(name));
       if (kind === 'abort') await page.screenshot({ path: `${output}/add-response-lost.png`, fullPage: true });
+      const attempts = await recover(order, path, kind === 'abort');
+      await published(order, name);
+      check(`ADD ${kind}: one publication, immutable intent, original-key recovery`, { attempts, commands: commands(order.id), faults });
     }
     for (const operation of ['MODIFY', 'DELETE']) {
       const name = `stage2_${operation.toLowerCase()}_lost`;
-      const id = seed(name);
-      await managed();
-      if (operation === 'MODIFY') {
-        await button(`修改记录 ${id}`).click();
-        await page.getByRole('checkbox', { name: '包含 name', exact: true }).check();
-        await page.getByRole('textbox', { name: 'name 值', exact: true }).fill(`${name}_saved`);
-        await button('查看 Change Set').click();
-      } else await button(`删除记录 ${id}`).click();
-      resetAudit();
-      await fault(`/api/v1/tables/${table}/rows/${id}`, operation === 'MODIFY' ? 'PATCH' : 'DELETE');
-      await button('确认并执行').click(); await uncertain().waitFor();
-      assert.equal(sql(`SELECT COUNT(*) FROM ${table} WHERE id=${id};`), operation === 'DELETE' ? '0' : '1');
-      if (operation === 'MODIFY') assert.equal(rowCount(`${name}_saved`), 1);
-      else assert.doesNotMatch(await page.getByRole('dialog').innerText(), /尚未执行删除|取消删除会/);
-      assert.equal(await button('确认并执行').isDisabled(), true);
-      await verifyUnknown(`${operation} response lost: actual final row and exact-id check`, table);
-      const query = requests.filter(r => r.path.endsWith('/query')).at(-1).query;
-      assert.deepEqual(query.conditions, [{ field: 'id', operator: 'exact', value: id }]);
+      const { order, path, id } = await prepare(operation, name);
+      await fault(path, 'POST');
+      await button('确认发布到数据库').click();
+      await button('使用原请求重试').waitFor();
+      await published(order, name, operation);
+      const attempts = await recover(order, path);
+      const actual = await published(order, name, operation);
+      assert.equal(actual.items[0].id, id);
+      check(`${operation} lost response: exact identity and original-key replay`, { attempts, id, commands: commands(order.id), faults });
     }
-    // A second unknown attempt must not inherit the first attempt's read evidence.
-    sql(`INSERT INTO rcc_query_policies(code,name,description,type_code,default_order_field,default_order_direction,default_page_size,max_page_size,status,creator,modifier) VALUES('stage2_limited_query_v1','Limited recovery','','page_query','id','DESC',5,5,'ACTIVE','fixture','fixture');
-      UPDATE rcc_table_policies SET query_policy_code='stage2_limited_query_v1' WHERE table_name='${table}';`);
-    await managed(); await addEditor('stage2_attempt_first'); resetAudit();
-    await fault(`/api/v1/tables/${table}/rows`, 'POST');
-    await button('确认并执行').click(); await uncertain().waitFor();
-    await button('只读核对当前状态').click();
-    await page.getByText('当前查询结果（仅供核对）', { exact: true }).waitFor();
-    assert.equal(requests.filter(r => r.path.endsWith('/query')).at(-1).query.page_size, undefined);
-    assert.ok(await page.locator('.write-recovery-snapshot tbody tr').count() <= 5);
-    assert.equal(await button('确认并执行').isDisabled(), true);
-    await button('我已核对，返回修改').click();
-    assert.equal(await page.getByRole('textbox', { name: 'name 值', exact: true }).inputValue(), 'stage2_attempt_first');
-    assert.equal(await page.getByRole('checkbox', { name: '包含 name', exact: true }).isChecked(), true);
-    assert.equal(writes().length, 1); assert.equal(auditCount(), 1);
-    await page.getByRole('textbox', { name: 'name 值', exact: true }).fill('stage2_attempt_second');
-    await button('查看 Change Set').click(); await button('确认并执行').click(); await uncertain().waitFor();
-    assert.equal(rowCount('stage2_attempt_first'), 1); assert.equal(rowCount('stage2_attempt_second'), 1);
-    assert.equal(writes().length, 2); assert.equal(auditCount(), 2);
-    assert.equal(await button('我已核对，返回修改').count(), 0);
-    assert.equal(await page.getByText('当前查询结果（仅供核对）', { exact: true }).count(), 0);
-    assert.equal(await button('确认并执行').isDisabled(), true);
-    await button('只读核对当前状态').click();
-    await page.getByText('当前查询结果（仅供核对）', { exact: true }).waitFor();
-    assert.equal(writes().length, 2); assert.equal(auditCount(), 2);
-    check('explicit resume retains draft; the next unknown attempt needs a fresh read under max page size 5', { requests: writes(), actualWrites: auditCount(), finalRows: [rowCount('stage2_attempt_first'), rowCount('stage2_attempt_second')] });
-    sql(`UPDATE rcc_table_policies SET query_policy_code='notification_page_query_v1' WHERE table_name='${table}';`);
+    // A second order has its own journal entry; resolving the first cannot
+    // acknowledge another request or replace its idempotency key.
+    const recoveredKeys = [];
+    for (const suffix of ['first', 'second']) {
+      const name = `stage2_attempt_${suffix}`;
+      const { order, path } = await prepare('ADD', name);
+      await fault(path, 'POST');
+      await button('确认发布到数据库').click();
+      await button('使用原请求重试').waitFor();
+      const attempts = await recover(order, path);
+      recoveredKeys.push(attempts[0].key);
+      await published(order, name);
+    }
+    assert.notEqual(recoveredKeys[0], recoveredKeys[1]);
+    check('separate unknown publications retain separate original request keys', { recoveredKeys });
 
-    await managed(); await addEditor('stage2_readback_recovery'); resetAudit();
+    const readbackName = 'stage2_readback_recovery';
+    const readback = await prepare('ADD', readbackName);
     let failReadback = true;
-    await page.route(`**/api/v1/tables/${table}/query`, async route => {
-      const query = route.request().postDataJSON();
-      if (failReadback && query.conditions?.some(c => c.field === 'id')) return route.fulfill({ status: 503, json: { error: { code: 'query_unavailable', message: 'readback failed', request_id: 'stage2-readback' } } });
+    await page.route(`**/api/v1/release-orders/${readback.order.id}`, async route => {
+      if (failReadback && route.request().method() === 'GET') return route.fulfill({ status: 503, json: { error: { code: 'release_unavailable', message: 'readback failed', request_id: 'stage2-readback' } } });
       return route.continue();
     });
-    await button('确认并执行').click();
-    await page.getByRole('heading', { name: 'ADD 已执行，回查未完成', exact: true }).waitFor();
-    assert.equal(rowCount('stage2_readback_recovery'), 1); assert.equal(auditCount(), 1);
-    const beforeRetry = writes().length;
-    failReadback = false; await button('重新回查').click();
-    await page.getByRole('heading', { name: 'ADD 已完成', exact: true }).waitFor();
-    assert.match(await page.getByRole('dialog', { name: 'ADD 写入结果', exact: true }).innerText(), /stage2_readback_recovery/);
-    assert.equal(writes().length, beforeRetry); assert.equal(auditCount(), 1);
-    check('known success followed by readback failure recovers without a second write', { writes: writes(), actualWrites: auditCount() });
+    await button('确认发布到数据库').click();
+    await page.getByRole('alert').filter({ hasText: 'stage2-readback' }).waitFor();
+    await published(readback.order, readbackName);
+    const beforeRetry = executeRequests(readback.path).length;
+    failReadback = false;
+    await button('重试').click();
+    await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+    assert.equal(executeRequests(readback.path).length, beforeRetry);
+    check('known publication followed by detail read failure recovers with GET only', { attempts: executeRequests(readback.path), commands: commands(readback.order.id) });
 
-    await managed(); await addEditor('stage2_double_confirm'); resetAudit();
+    const doubleName = 'stage2_double_confirm';
+    const double = await prepare('ADD', doubleName);
     let receivedResolve; const received = new Promise(resolve => { receivedResolve = resolve; });
     const gate = new Promise(resolve => { release = resolve; });
-    await page.route(`**/api/v1/tables/${table}/rows`, async route => {
+    await page.route(`**${double.path}`, async route => {
       const response = await route.fetch(); receivedResolve(); await gate; await route.fulfill({ response });
     });
-    await button('确认并执行').dblclick(); await received;
+    await button('确认发布到数据库').dblclick(); await received;
     await page.keyboard.press('Enter'); await page.keyboard.press('Enter');
     await page.goBack();
     await page.getByRole('alertdialog', { name: '正在提交，请稍候', exact: true }).waitFor();
-    const closeEvent = page.waitForEvent('dialog').catch(error => ({ error }));
-    await page.close({ runBeforeUnload: true }); const native = await closeEvent; assert.ok(!native.error, native.error?.message); assert.equal(native.type(), 'beforeunload'); await native.dismiss();
-    assert.equal(writes().length, 1); assert.equal(auditCount(), 1);
+    const closeEvent = page.waitForEvent('dialog');
+    await page.close({ runBeforeUnload: true });
+    const native = await closeEvent; assert.equal(native.type(), 'beforeunload'); await native.dismiss();
+    assert.equal(executeRequests(double.path).length, 1);
+    assert.equal(commands(double.order.id), 1);
     release(); release = null;
-    await page.getByRole('heading', { name: 'ADD 已完成', exact: true }).waitFor();
-    assert.equal(rowCount('stage2_double_confirm'), 1);
-    check('double-click + Enter + back/close during pending executes one ADD', { writes: writes(), actualWrites: auditCount() });
+    await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+    await published(double.order, doubleName);
+    check('double-click, Enter and pending back/close execute once', { attempts: executeRequests(double.path), commands: commands(double.order.id) });
 
-    await managed(); await addEditor('stage2_validation', 'invalid-state'); resetAudit();
-    await button('确认并执行').click();
+    context = applicant;
+    await managed(); await addEditor('stage2_validation', 'invalid-state');
+    await button('确认并保存草稿').click();
+    await page.getByRole('heading', { name: `${table} · 草稿`, exact: true }).waitFor();
+    assert.equal(rowCount('stage2_validation'), 0);
+    const invalidDraft = await read(new URL(page.url()).pathname.split('/').at(-1));
+    const invalidOrder = await approve(invalidDraft);
+    context = publisher; await open(`/configuration/release-orders/${invalidOrder.id}`);
+    await button('执行发布').click();
+    const [rejection] = await Promise.all([
+      page.waitForResponse(response => new URL(response.url()).pathname === `/api/v1/release-orders/${invalidOrder.id}/execute`),
+      button('确认发布到数据库').click(),
+    ]);
+    assert.equal(rejection.status(), 422);
+    assert.equal((await rejection.json()).error.code, 'invalid_mutation_content');
     await page.getByRole('alert').filter({ hasText: '写入内容不符合实时字段 Schema' }).waitFor();
-    assert.equal(rowCount('stage2_validation'), 0); assert.equal(auditCount(), 0);
-    assert.equal(await button('确认并执行').isDisabled(), false);
-    await button('返回修改').click();
-    assert.equal(await page.getByRole('textbox', { name: 'name 值', exact: true }).inputValue(), 'stage2_validation');
-    await page.getByRole('textbox', { name: 'state 值', exact: true }).fill('active');
-    await button('查看 Change Set').click(); await button('确认并执行').click();
-    await page.getByRole('heading', { name: 'ADD 已完成', exact: true }).waitFor();
-    assert.equal(rowCount('stage2_validation'), 1); assert.equal(auditCount(), 1); assert.equal(writes().length, 2);
-    check('real ENUM rejection keeps input editable and corrected submission writes once', { requests: writes(), actualWrites: auditCount() });
+    const retained = await read(invalidOrder.id);
+    assert.equal(retained.state, 'APPROVED');
+    assert.equal(retained.items[0].content.state, 'invalid-state');
+    assert.equal(rowCount('stage2_validation'), 0);
+    assert.equal(commands(invalidOrder.id), 0);
+    // An approved intention is immutable after a constraint failure. Correct a
+    // copied draft and obtain new approval; do not edit the frozen original.
+    context = applicant; await open(`/configuration/release-orders/${invalidOrder.id}`);
+    await button('取消发布单').click();
+    await page.getByRole('textbox', { name: '取消原因', exact: true }).fill('Correct the rejected ENUM value in a new proposal');
+    await button('确认取消发布单').click();
+    await page.getByRole('heading', { name: `${table} · 已取消`, exact: true }).waitFor();
+    await button('复制新草稿').click();
+    await button('读取最新配置').click();
+    await button('确认最新基线并复制').click();
+    await page.getByRole('heading', { name: `${table} · 草稿`, exact: true }).waitFor();
+    const correctedID = new URL(page.url()).pathname.split('/').at(-1);
+    assert.notEqual(correctedID, invalidOrder.id);
+    await button('编辑草稿').click();
+    assert.equal(await page.getByRole('textbox', { name: 'name 申请值', exact: true }).inputValue(), 'stage2_validation');
+    assert.equal(await page.getByRole('textbox', { name: 'state 申请值', exact: true }).inputValue(), 'invalid-state');
+    await page.getByRole('textbox', { name: 'state 申请值', exact: true }).fill('active');
+    await button('保存草稿修改').click();
+    await page.getByRole('dialog', { name: `编辑 ${table} 草稿`, exact: true }).waitFor({ state: 'detached' });
+    const corrected = await read(correctedID);
+    assert.equal(corrected.items[0].content.state, 'active');
+    assert.equal(corrected.copied_from_id, invalidOrder.id);
+    assert.equal(rowCount('stage2_validation'), 0);
+    const validOrder = await approve(corrected);
+    context = publisher; await open(`/configuration/release-orders/${validOrder.id}`);
+    await button('执行发布').click(); await button('确认发布到数据库').click();
+    await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+    await published(validOrder, 'stage2_validation');
+    assert.equal((await read(invalidOrder.id)).state, 'CANCELLED');
+    assert.equal(commands(invalidOrder.id), 0);
+    check('real ENUM failure preserves frozen intent; copied correction needs new approval and publishes once', { rejectedOrderID: invalidOrder.id, correctedOrderID: validOrder.id, commands: commands(validOrder.id) });
 
-    await managed(); await addEditor('stage2_database_down'); resetAudit();
+    const outageName = 'stage2_database_down';
+    const outage = await prepare('ADD', outageName);
     const databaseEndpointBefore = docker('port', container, '3306/tcp');
     stopped = true; docker('stop', '--time', '1', container);
-    await button('确认并执行').click();
-    // The same outage can also hide the workspace when a real foreground
-    // activity report fails. Observe retained state without bypassing that UI.
-    await page.getByRole('alert', { name: '提交结果尚未确认', exact: true, includeHidden: true }).waitFor({ state: 'attached', timeout: 40000 });
-    assert.equal(await button('确认并执行').isDisabled(), true);
+    await button('确认发布到数据库').click();
+    await page.getByRole('button', { name: '使用原请求重试', exact: true, includeHidden: true }).waitFor({ state: 'attached', timeout: 40000 });
+    const original = executeRequests(outage.path)[0];
     docker('start', container); await waitDatabase(); stopped = false;
-    assert.equal(docker('port', container, '3306/tcp'), databaseEndpointBefore, 'database recovery must retain the Admin-configured TCP endpoint');
-    assert.equal(rowCount('stage2_database_down'), 0);
+    assert.equal(docker('port', container, '3306/tcp'), databaseEndpointBefore);
+    assert.equal(rowCount(outageName), 0);
     const accountRecoveryStatuses = [];
     for (let attempt = 0; attempt < 6 && await page.locator('.session-interruption').count(); attempt++) {
       await button('重新检查登录状态').waitFor();
@@ -239,28 +329,42 @@ async function waitDatabase() {
         return !overlay || Boolean(overlay.querySelector('button'));
       });
     }
-    await uncertain().waitFor();
-    const recoveryReads = [];
-    const recoveryReadErrors = [];
+    const waitForAccount = async () => {
+      for (let attempt = 0; attempt < 12; attempt++) {
+        const response = await publisher.request.get(`${base}/api/v1/auth/session`);
+        accountRecoveryStatuses.push(response.status());
+        if (response.status() === 200) return;
+        assert.ok([503, 504].includes(response.status()), `unexpected account recovery status: ${response.status()}`);
+        await sleep(300);
+      }
+      throw new Error('Admin authentication did not recover after disposable MySQL restart');
+    };
+    // MySQL accepting a new CLI connection is not proof that Admin's pooled
+    // connections have recovered. Transient authentication failures happen
+    // before release idempotency storage; keep the same request throughout.
+    const replayStatuses = [];
     for (let attempt = 0; attempt < 6; attempt++) {
-      const responsePromise = page.waitForResponse(response => new URL(response.url()).pathname === `/api/v1/tables/${table}/query`);
-      await button('只读核对当前状态').click();
-      const response = await responsePromise;
-      recoveryReads.push(response.status());
-      if (response.ok()) break;
-      const { error } = await response.json();
-      assert.equal(response.status(), 503);
-      assert.ok(['query_unavailable', 'auth_unavailable'].includes(error.code), JSON.stringify(error));
-      recoveryReadErrors.push({ code: error.code, requestId: error.request_id });
-      await uncertain().getByRole('alert').filter({ hasText: error.request_id }).waitFor();
-      assert.equal(await button('我已核对，返回修改').count(), 0);
-      assert.equal(writes().length, 1); assert.equal(auditCount(), 0);
+      await waitForAccount();
+      const [response] = await Promise.all([
+        page.waitForResponse(response => new URL(response.url()).pathname === outage.path),
+        button('使用原请求重试').click(),
+      ]);
+      replayStatuses.push(response.status());
+      if (response.status() === 200) break;
+      const payload = await response.json();
+      assert.ok([503, 504].includes(response.status()), `unexpected original-key recovery status: ${response.status()}`);
+      assert.ok(['auth_unavailable', 'auth_timeout', 'release_unavailable', 'release_result_unknown', 'request_timeout'].includes(payload.error.code), payload.error.code);
+      await button('使用原请求重试').waitFor();
+      await sleep(300);
     }
-    await page.getByText('当前查询结果（仅供核对）', { exact: true }).waitFor();
-    assert.equal(recoveryReads.at(-1), 200);
-    assert.equal(writes().length, 1); assert.equal(auditCount(), 0);
-    check('actual database outage and recovery: failed reads stay locked, only reads are retried', { writes: writes(), actualWrites: auditCount(), recoveryReadStatuses: recoveryReads, recoveryReadErrors, accountRecoveryStatuses, finalRowCount: rowCount('stage2_database_down') });
-    assert.equal(await button('确认并执行').isDisabled(), true);
+    assert.equal(replayStatuses.at(-1), 200);
+    await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+    const outageAttempts = executeRequests(outage.path);
+    assert.ok(outageAttempts.length >= 2);
+    for (const attempt of outageAttempts) assert.deepEqual(attempt, original);
+    await published(outage.order, outageName);
+    check('real database stop/start retains endpoint and original request, publishes once after recovery', { attempts: outageAttempts, commands: commands(outage.order.id), accountRecoveryStatuses, replayStatuses });
+    context = admin;
 
     // Catalog scenarios are appended below; each uses a fresh browser document and audit baseline.
     for (const kind of ['query', 'mutation']) {
@@ -383,7 +487,7 @@ async function waitDatabase() {
     if (release) release();
     if (stopped) { docker('start', container); await waitDatabase(); }
     if (browser) await browser.close();
-    for (const trigger of ['stage2_data_add','stage2_data_modify','stage2_data_delete', ...['rcc_query_policies','rcc_mutation_policies','rcc_table_policies'].flatMap(entity => ['add','modify','delete'].map(suffix => `stage2_${entity}_${suffix}`))]) sql(`DROP TRIGGER IF EXISTS ${trigger};`);
+    for (const trigger of ['rcc_query_policies','rcc_mutation_policies','rcc_table_policies'].flatMap(entity => ['add','modify','delete'].map(suffix => `stage2_${entity}_${suffix}`))) sql(`DROP TRIGGER IF EXISTS ${trigger};`);
     sql(`UPDATE rcc_table_policies SET query_policy_code='notification_page_query_v1' WHERE table_name='${table}'; DELETE FROM ${table} WHERE name LIKE 'stage2_%'; DELETE FROM rcc_table_policies WHERE table_name='stage2_assignment_items'; DELETE FROM rcc_query_policies WHERE code LIKE 'stage2_%'; DELETE FROM rcc_mutation_policies WHERE code LIKE 'stage2_%'; DROP TABLE IF EXISTS stage2_assignment_items; DROP TABLE IF EXISTS stage2_write_audit;`);
     await fs.writeFile(`${output}/result.json`, JSON.stringify({ ok: !failure, passed, evidence, routeErrors, pageErrors, failure }, null, 2));
   }

@@ -92,13 +92,13 @@ The first iteration ships the Policy Catalog as runtime data (ADR 0005) and prov
 - The catalog table ships in `deploy/mysql/init/001-schema.sql`; dedicated APIs manage it, and each data request loads its current Policy Snapshot from the database.
 - A saved policy takes effect immediately; draft/activation workflows wait for multi-instance or audit needs.
 - Saving a policy validates its physical table and columns against `information_schema` of the single deployment-configured datasource. Policies cannot store DSNs or reach other databases.
-- Web can discover database tables and their policy state, submit policy-limited AND filters, sorting, and one-based pagination, and create, update, and delete rows using live column names.
+- Web can discover database tables and their policy state, submit policy-limited AND filters, sorting, and one-based pagination, and prepare ADD/MODIFY/DELETE Release Orders using live column names. Only independently approved publication writes business rows.
 - Requests cannot select arbitrary physical tables, columns, operators, sort expressions, or SQL.
 - Query depth, node count, `IN` size, page size, string length, enum values, and JSON types are validated before GORM executes anything.
 
 The original prototype packages (`httpapi`, `managedtable`, `mysqlstore`) were rewritten into the layout above rather than preserved; the compile-time `bootstrap` registry was deleted when the runtime Policy Catalog landed (issue #2).
 
-Relations, role-based authorization, audit history, publishing workflows and runtime gRPC reads belong to later iterations. Local Account identity and explicit control-schema upgrades are delivered below.
+Local Accounts, global roles, publication history, approved mixed publication and approved rollback are implemented. Relations and runtime gRPC reads remain future scope. The current workflow and control-schema upgrade sequence are documented in [the release upgrade guide](admin-release-upgrade.md).
 
 ## Local Accounts and business request identity
 

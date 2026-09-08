@@ -16,7 +16,7 @@ import (
 	"github.com/asherzj/relational-config-center/admin/internal/platform/config"
 )
 
-const usage = "usage: account-maintain <lookup|reset-password|disable|enable|set-email> <--id UUID|--username NAME> [--password-stdin|--email-stdin]"
+const usage = "usage: account-maintain <lookup|reset-password|disable|enable|set-email|grant-admin> <--id UUID|--username NAME> [--password-stdin|--email-stdin]"
 
 func main() { os.Exit(run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr)) }
 
@@ -30,7 +30,7 @@ func run(args []string, input *os.File, output, diagnostics io.Writer) int {
 		return 2
 	}
 	action := args[0]
-	if action != "lookup" && action != "reset-password" && action != "disable" && action != "enable" && action != "set-email" {
+	if action != "lookup" && action != "reset-password" && action != "disable" && action != "enable" && action != "set-email" && action != "grant-admin" {
 		fmt.Fprintln(diagnostics, usage)
 		return 2
 	}
@@ -75,7 +75,9 @@ func run(args []string, input *os.File, output, diagnostics io.Writer) int {
 	maintenance := application.NewAccountMaintenance(adapter, password.NewArgon2id())
 	selector := application.AccountSelector{ID: *id, Username: *username}
 	var account application.LocalAccountSummary
-	if action == "reset-password" {
+	if action == "grant-admin" {
+		account, err = maintenance.GrantAdmin(ctx, selector)
+	} else if action == "reset-password" {
 		account, err = maintenance.ResetPassword(ctx, selector, fieldInput)
 	} else if action == "disable" || action == "enable" {
 		account, err = maintenance.SetEnabled(ctx, selector, action == "enable")
@@ -99,6 +101,10 @@ func run(args []string, input *os.File, output, diagnostics io.Writer) int {
 
 func reportError(output io.Writer, err error) int {
 	switch {
+	case errors.Is(err, application.ErrLastAdministrator):
+		fmt.Fprintln(output, "cannot remove the last enabled administrator; grant ADMIN to another enabled account first")
+	case errors.Is(err, application.ErrAccountDisabled):
+		fmt.Fprintln(output, "account is disabled; explicitly enable it before granting ADMIN")
 	case errors.Is(err, application.ErrAccountFields):
 		fmt.Fprintln(output, "invalid account fields: verify selector and account field rules")
 	case errors.Is(err, application.ErrAccountNotFound):

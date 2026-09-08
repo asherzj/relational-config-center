@@ -246,7 +246,7 @@ func (h accountHandler) signedIn(c *gin.Context, result application.Authenticati
 }
 func identityResponse(result application.AuthenticationResult) gin.H {
 	account := result.Account
-	return gin.H{"account": gin.H{"id": account.ID, "username": account.Username, "display_name": account.DisplayName, "email": account.Email, "email_verified": false, "status": "enabled"}, "csrf_token": result.CSRF, "idle_expires_at": result.Session.LastActiveAt.Add(30 * time.Minute), "expires_at": result.Session.ExpiresAt}
+	return gin.H{"account": gin.H{"id": account.ID, "username": account.Username, "display_name": account.DisplayName, "email": account.Email, "email_verified": false, "status": "enabled", "roles": account.Roles.Names()}, "csrf_token": result.CSRF, "idle_expires_at": result.Session.LastActiveAt.Add(30 * time.Minute), "expires_at": result.Session.ExpiresAt}
 }
 func writeAuthError(c *gin.Context, err error) {
 	var rate *application.AuthenticationRateLimited

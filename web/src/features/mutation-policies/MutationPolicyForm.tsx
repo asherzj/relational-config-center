@@ -45,6 +45,7 @@ function draftFor(policy?: MutationPolicy): MutationPolicyDraft {
 }
 
 type Props = {
+  readOnly?: boolean;
   mode: FormMode;
   policy?: MutationPolicy;
   typeCodes: string[];
@@ -56,7 +57,7 @@ type Props = {
   onSubmit: (value: MutationPolicyDraft | MutationPolicyMetadata) => void;
 };
 
-export function MutationPolicyForm({ mode, policy, typeCodes, registryTypes, registryState, serverError, pending = false, onVerify, onSubmit }: Props) {
+export function MutationPolicyForm({ readOnly = false, mode, policy, typeCodes, registryTypes, registryState, serverError, pending = false, onVerify, onSubmit }: Props) {
   const [baseline] = useState(() => draftFor(policy));
   const [editableDraft, setDraft] = useState<MutationPolicyDraft>(baseline);
   const draft = mode === "view" ? draftFor(policy) : editableDraft;
@@ -125,7 +126,7 @@ export function MutationPolicyForm({ mode, policy, typeCodes, registryTypes, reg
   return (
     <form id="mutation-policy-form" className="policy-form" onSubmit={submit} noValidate>
       {presentedError && <div className="inline-alert" role="alert"><strong>{isUncertainWriteError(serverError) ? "提交结果尚未确认。系统不会自动重复此写入。" : presentedError.message}</strong>{presentedError.requestId && <span>请求编号：{presentedError.requestId}</span>}{isUncertainWriteError(serverError) && onVerify && <Button type="button" variant="secondary" onClick={onVerify}>只读查询当前状态</Button>}</div>}
-      <fieldset className="form-controls" disabled={pending}>
+      <fieldset className="form-controls" disabled={pending || readOnly}>
       {policy && <Badge variant="outline" className={`status-badge status-${policy.status.toLowerCase()}`}>{policyStatusLabels[policy.status]}</Badge>}
 
       <section className="form-section" aria-labelledby="mutation-display-heading">

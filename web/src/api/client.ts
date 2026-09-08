@@ -16,6 +16,7 @@ export class ApiError extends Error {
     public readonly requestId?: string,
     options?: ErrorOptions,
     public readonly retryAfter?: number,
+    public readonly itemIndex?: number,
   ) {
     super(message, options);
     this.name = "ApiError";
@@ -97,6 +98,7 @@ export async function request<T>(path: string, options: RequestOptions<T> = {}):
   if (!response.ok) {
     const parsedError = adminErrorDtoSchema.safeParse(payload);
     if (parsedError.success) {
+      if (business && parsedError.data.error.code === "permission_denied") window.dispatchEvent(new Event("rcc:account-roles-changed"));
       if (business && response.status === 401) window.dispatchEvent(new CustomEvent(businessSessionInvalid, { detail: { code: parsedError.data.error.code } }));
       throw new ApiError(
         parsedError.data.error.code,
@@ -105,6 +107,7 @@ export async function request<T>(path: string, options: RequestOptions<T> = {}):
         parsedError.data.error.request_id,
         undefined,
         response.headers.has("Retry-After") ? Number(response.headers.get("Retry-After")) : undefined,
+        parsedError.data.error.item_index,
       );
     }
     throw new ApiError(
@@ -147,6 +150,14 @@ const definiteWriteRejections = new Set([
   "invalid_mutation_content", "missing_required_field", "duplicate_key", "request_body_too_large", "invalid_request",
   "unauthorized", "cors_origin_forbidden", "cors_preflight_forbidden",
   "session_invalid", "account_disabled", "csrf_invalid",
+  "account_roles_conflict",
+  // Release input and capability checks happen before the request can be
+  // accepted. Keep authentication, permission, not-found and idempotency
+  // responses conservative because they do not prove the original outcome.
+  "release_auto_id_ambiguous", "publication_unsupported", "publication_metadata_permission",
+  "release_snapshot_unsupported", "release_metadata_permission", "release_cross_table",
+  "release_item_limit", "release_result_limit", "release_field_limit", "release_duplicate_target",
+  "release_invalid", "rollback_locked", "rollback_restore_mismatch",
 ]);
 
 export function isUncertainWriteError(error: unknown): boolean {

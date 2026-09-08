@@ -596,7 +596,7 @@ func TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed(t *tes
 
 	protectedTable := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/table-policies", tablePolicyCodePayload("rcc_mutation_policies", "unused_query_v1", "unused_mutation_v1"))
 	assertIntegrationErrorCode(t, protectedTable, http.StatusForbidden, "protected_table")
-	protectedMutation := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/rcc_mutation_policies/rows", `{"content":{}}`)
+	protectedMutation := publicationFixtureRequest(t, app, "ADD", "rcc_mutation_policies", "", `{"content":{}}`)
 	assertIntegrationErrorCode(t, protectedMutation, http.StatusForbidden, "protected_table")
 }
 
@@ -820,6 +820,6 @@ func assertIntegrationErrorCode(t *testing.T, response *httptest.ResponseRecorde
 
 func policyIntegrationRequest(t *testing.T, app *adminApplication, method, path, body string) *httptest.ResponseRecorder {
 	t.Helper()
-	session := integrationSession(t, app)
+	session := integrationAdminSession(t, app)
 	return accountRequest(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session))
 }

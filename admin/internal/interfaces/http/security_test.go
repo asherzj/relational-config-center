@@ -75,7 +75,7 @@ func TestAPIAccessLogIsStructuredAndRedactsRequestDetails(t *testing.T) {
 func TestAPIAccessLogUsesRouteTemplatesWithoutDynamicTableOrRowValues(t *testing.T) {
 	var logOutput bytes.Buffer
 	handler := newPolicyHTTPHandlerWithRouterOptions(t, httpinterface.RouterOptions{AccessLog: &logOutput})
-	response := performRequest(handler, http.MethodDelete, "/api/v1/tables/managed_alpha/rows/sensitive-row-id", "")
+	response := performRequest(handler, http.MethodDelete, "/api/v1/tables/managed_alpha/rows/sensitive-row-id", `{"expected_version":"0"}`)
 	if response.Code != http.StatusNotFound {
 		t.Fatalf("expected Policy lookup result, got HTTP %d: %s", response.Code, response.Body.String())
 	}
@@ -89,7 +89,7 @@ func TestAPIAccessLogUsesRouteTemplatesWithoutDynamicTableOrRowValues(t *testing
 	if err := json.Unmarshal([]byte(logLine), &event); err != nil {
 		t.Fatalf("decode access log: %v; %q", err, logLine)
 	}
-	if event.Path != "/api/v1/tables/:table_name/rows/:id" {
+	if event.Path != "unmatched" {
 		t.Fatalf("expected stable route template, got %q", event.Path)
 	}
 
@@ -149,23 +149,6 @@ func TestAPIDoesNotOfferCrossOriginCredentialAccess(t *testing.T) {
 	}
 }
 
-func TestAPIPanicRecoveryReturnsStableSafeInternalError(t *testing.T) {
-	handler := newPolicyHTTPHandlerWithOptionsAndMutationExecutor(t, httpinterface.RouterOptions{AccessLog: io.Discard}, panicMutationExecutor{})
-	payload := strings.Replace(validPolicyPayload("managed_alpha"), `"allow_add":false`, `"allow_add":true`, 1)
-	if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies", payload); response.Code != http.StatusCreated {
-		t.Fatalf("create Policy: HTTP %d %s", response.Code, response.Body.String())
-	}
-	if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies/managed_alpha/enable", ""); response.Code != http.StatusOK {
-		t.Fatalf("enable Policy: HTTP %d %s", response.Code, response.Body.String())
-	}
-
-	response := performHTTP(handler, newRequest(http.MethodPost, "/api/v1/tables/managed_alpha/rows", `{"content":{"value":"secret-row-value"}}`))
-	assertSafeErrorEnvelope(t, response, http.StatusInternalServerError, "internal_error")
-	if strings.Contains(response.Body.String(), "mutation executor") || strings.Contains(response.Body.String(), "secret-row-value") {
-		t.Fatalf("panic response leaked details: %s", response.Body.String())
-	}
-}
-
 func TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely(t *testing.T) {
 	for _, test := range []struct {
 		name   string
@@ -178,7 +161,7 @@ func TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely(t *testing.T) {
 		{name: "unclassified internal", err: errors.New("driver detail secret"), status: http.StatusInternalServerError, code: "internal_error"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			handler := newPolicyHTTPHandlerWithExecutors(t, httpinterface.RouterOptions{AccessLog: io.Discard}, errorQueryExecutor{err: test.err}, memoryMutationExecutor{})
+			handler := newPolicyHTTPHandlerWithExecutors(t, httpinterface.RouterOptions{AccessLog: io.Discard}, errorQueryExecutor{err: test.err})
 			if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies", validPolicyPayload("managed_alpha")); response.Code != http.StatusCreated {
 				t.Fatalf("create Policy: HTTP %d %s", response.Code, response.Body.String())
 			}
@@ -201,35 +184,6 @@ func TestAPIUnknownRoutesUseTheSafeErrorEnvelope(t *testing.T) {
 	assertSafeErrorEnvelope(t, response, http.StatusNotFound, "route_not_found")
 }
 
-func TestAPIMutationTimeoutAndInternalErrorsUseSafeMappings(t *testing.T) {
-	for _, test := range []struct {
-		name   string
-		err    error
-		status int
-		code   string
-	}{
-		{name: "deadline", err: context.DeadlineExceeded, status: http.StatusGatewayTimeout, code: "mutation_timeout"},
-		{name: "known unavailable", err: application.ErrMutationUnavailable, status: http.StatusServiceUnavailable, code: "mutation_unavailable"},
-		{name: "unclassified internal", err: errors.New("bound row value secret"), status: http.StatusInternalServerError, code: "internal_error"},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			handler := newPolicyHTTPHandlerWithOptionsAndMutationExecutor(t, httpinterface.RouterOptions{AccessLog: io.Discard}, errorMutationExecutor{err: test.err})
-			payload := strings.Replace(validPolicyPayload("managed_alpha"), `"allow_add":false`, `"allow_add":true`, 1)
-			if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies", payload); response.Code != http.StatusCreated {
-				t.Fatalf("create Policy: HTTP %d %s", response.Code, response.Body.String())
-			}
-			if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies/managed_alpha/enable", ""); response.Code != http.StatusOK {
-				t.Fatalf("enable Policy: HTTP %d %s", response.Code, response.Body.String())
-			}
-			response := performRequest(handler, http.MethodPost, "/api/v1/tables/managed_alpha/rows", `{"content":{"value":"client-secret"}}`)
-			assertSafeErrorEnvelope(t, response, test.status, test.code)
-			if strings.Contains(response.Body.String(), "secret") {
-				t.Fatalf("mutation error leaked details: %s", response.Body.String())
-			}
-		})
-	}
-}
-
 type errorQueryExecutor struct {
 	err error
 }
@@ -239,22 +193,6 @@ func (executor errorQueryExecutor) ExecutePageQuery(context.Context, domain.Page
 }
 
 var _ application.QueryExecutor = errorQueryExecutor{}
-
-type errorMutationExecutor struct {
-	err error
-}
-
-func (executor errorMutationExecutor) InsertRow(context.Context, domain.RowInsert) (string, error) {
-	return "", executor.err
-}
-func (executor errorMutationExecutor) UpdateRow(context.Context, domain.RowUpdate) (int64, error) {
-	return 0, executor.err
-}
-func (executor errorMutationExecutor) DeleteRow(context.Context, domain.RowDelete) (int64, error) {
-	return 0, executor.err
-}
-
-var _ application.MutationExecutor = errorMutationExecutor{}
 
 func newRequest(method, path, body string) *http.Request {
 	if body == "" {

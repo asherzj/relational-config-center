@@ -57,7 +57,7 @@ The lifecycle state of a Query Policy or Mutation Policy. A Draft may be edited 
 _Avoid_: Table Policy enabled state, deletion flag, 策略状态
 
 **Operator**:
-The identity attributed to the author of a configuration or policy change. For a change made under a Local Account, it is that account's permanent Account ID rather than its login name or display name.
+The identity attributed to the person executing a configuration or policy change. For a change made under a Local Account, it is that account's permanent Account ID; for a publication or rollback it identifies the publisher, separately from the applicant and approver.
 _Avoid_: Display name, deployment identity, auditor
 
 **Policy Catalog（规则目录）**:
@@ -73,5 +73,45 @@ A domain-level declaration of a requested single-table query against one Managed
 _Avoid_: SQL, GORM query
 
 **Change Set**:
-A complete field-by-field comparison of one pending ADD, MODIFY, or DELETE against a Managed Table row, used for final confirmation before the change is executed.
+A complete field-by-field comparison of one proposed ADD, MODIFY, or DELETE against a Managed Table row, used to review the intended change before authorizing it for publication.
 _Avoid_: Release, revision, audit record
+
+**Release Order（发布单）**:
+The authoritative record of a proposed configuration change and its progression through approval, publication, cancellation, or rollback, associating the requested content with its applicant and operation history.
+_Avoid_: Change Set, deployment, notification task
+
+**Release Approval（发布审批）**:
+The decision of an authorized person other than the applicant to approve or reject the frozen content of a submitted Release Order. It applies only to that submitted content, not to later edits or another order.
+_Avoid_: Login, publication, self-confirmation
+
+**Record Version（记录并发版本）**:
+The monotonically advancing concurrency identity of one configuration record, used to reject changes based on an older record state, including after deletion and recreation of the same record identity. Equivalent representations of the same database identity share that version, and a maintenance generation change invalidates previously observed baselines.
+_Avoid_: Release Order Version, Table Version, historical revision
+
+**Release Order Version（发布单版本）**:
+The revision of a Release Order's editable content or workflow state, used to ensure that an action applies to the order state its caller observed.
+_Avoid_: Record Version, Table Version
+
+**Table Version（表发布版本）**:
+The publication progress of one Managed Table, advanced when a change set is committed for that table. It identifies published table progress rather than the concurrency identity of an individual record.
+_Avoid_: Record Version, Release Order Version, cache refresh time
+
+**Rollback Release Order（回滚发布单）**:
+A new Release Order requesting the reversal of a previous publication, linked to that publication and subject to fresh approval and checks that no later change would be overwritten.
+_Avoid_: History deletion, forced restore, cancellation
+
+**Active Target（在途目标）**:
+A known configuration record identity reserved by a submitted, unfinished Release Order so that another order cannot simultaneously submit a conflicting change to that identity.
+_Avoid_: Draft editing lock, business-field similarity
+
+**Account Role（账号角色）**:
+A global grant governing the actions a Local Account may perform across this deployment's Managed Tables and Release Orders. Roles can be combined; every role includes viewing, while editing, approving and publishing do not imply one another. New accounts begin as viewers, with administrators explicitly appointed by deployment maintenance. An administrative role does not permit approval of one's own order.
+_Avoid_: Account Status, Table Policy, per-table permission
+
+**Publication Command（发布变更记录）**:
+An immutable record of a configuration change actually committed by a publication, retaining the final configuration state or the fact of deletion and linking it to its originating Release Order.
+_Avoid_: Approval request, editable draft, SQL command
+
+**Refresh Notification Record（刷新通知记录）**:
+A durable record that a committed publication requires downstream consumers to refresh. Its existence does not mean that a consumer has received or applied the change.
+_Avoid_: Published configuration, delivery receipt, cache version

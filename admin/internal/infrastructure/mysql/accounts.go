@@ -40,7 +40,7 @@ func authError(err error) error {
 	if errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &timeout) && timeout.Timeout()) {
 		return domain.ErrAuthTimeout
 	}
-	for _, known := range []error{domain.ErrAccountNotFound, domain.ErrAccountConflict, domain.ErrCredentials, domain.ErrCurrentPassword, domain.ErrSession, domain.ErrAccountDisabled, domain.ErrCSRF, domain.ErrAuthUnavailable, domain.ErrAuthTimeout} {
+	for _, known := range []error{domain.ErrLastAdministrator, domain.ErrRoleIdempotencyConflict, domain.ErrPermissionDenied, domain.ErrInvalidRoles, domain.ErrRoleVersionConflict, domain.ErrAccountNotFound, domain.ErrAccountConflict, domain.ErrCredentials, domain.ErrCurrentPassword, domain.ErrSession, domain.ErrAccountDisabled, domain.ErrCSRF, domain.ErrAuthUnavailable, domain.ErrAuthTimeout} {
 		if errors.Is(err, known) {
 			return known
 		}
