@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN" data-variant="blue">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>关系型配置中心 · 样式预览</title>
+  <link rel="stylesheet" href="./base.css">
+  <link rel="stylesheet" href="./preview.css">
+</head>
+<body>
+  <!-- 一次性配色原型：保持同一查询规则布局，通过 ?variant=blue|graphite|teal 比较强调色。所有数据仅为示例。 -->
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand"><span class="brand-mark" data-icon="database"></span><strong>关系型配置中心</strong></div>
+      <div class="header-breadcrumb"><span>工作空间</span><span data-icon="right"></span><strong>平台管理</strong></div>
+      <span class="preview-label">样式预览 · 示例数据</span>
+    </header>
+    <aside class="sidebar" aria-label="主导航预览">
+      <nav>
+        <section class="nav-group"><div class="nav-group-title">平台管理</div>
+          <a class="active" href="#" aria-current="page"><span data-icon="search-file"></span>查询规则定义</a>
+          <span class="nav-preview"><span data-icon="arrows"></span>变更规则定义</span>
+          <span class="nav-preview"><span data-icon="layers"></span>表规则分配</span>
+        </section>
+        <section class="nav-group"><div class="nav-group-title">配置管理</div><span class="nav-preview"><span data-icon="table"></span>配置内容管理</span></section>
+      </nav>
+      <div class="operator"><span class="operator-avatar" data-icon="shield"></span><span><strong>操作身份</strong><small>由服务端配置</small></span></div>
+    </aside>
+    <div class="app-content"><main class="workspace">
+      <div class="page-heading"><div><h1>查询规则定义</h1><p>统一配置表的排序与分页方式。规则从草稿开始，激活后即可分配使用。</p></div><button id="create" class="button button-primary"><span data-icon="plus"></span>新建草稿</button></div>
+      <div class="type-registry"><span><span data-icon="search-file"></span>已注册规则类型</span><code>page_query</code></div>
+      <section class="catalog" aria-label="查询规则目录">
+        <div class="catalog-toolbar"><label class="search-field"><span data-icon="search"></span><input id="search" placeholder="搜索规则名称或编码" aria-label="搜索规则名称或编码"></label><label class="status-filter"><span>状态</span><select id="status" aria-label="筛选规则状态"><option value="all">全部状态</option><option value="active">已激活</option><option value="draft">草稿</option><option value="deprecated">已弃用</option></select></label></div>
+        <div class="table-scroll"><table class="policy-table"><thead><tr><th>查询规则</th><th>默认排序</th><th>每页条数</th><th>状态</th><th>最近更新</th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div>
+        <div id="empty" class="feedback-state" hidden><span data-icon="search"></span><strong>没有匹配的查询规则</strong><span>换个关键词，或清除筛选后再试。</span><button id="reset" class="button">清除筛选</button></div>
+        <footer class="catalog-footer"><span id="count"></span><span>所有数据仅用于样式预览</span><button id="refresh" class="button button-ghost catalog-refresh"><span data-icon="refresh"></span>刷新</button></footer>
+      </section>
+      <p class="workspace-hint"><span data-icon="info"></span>已激活的规则可分配给配置表；排序与分页约束如需调整，请新建草稿。</p>
+    </main></div>
+  </div>
+  <section class="theme-switcher" aria-label="预览配色"><div class="switcher-caption"><strong>配色预览</strong><span id="theme-description">低饱和灰蓝</span></div><div class="theme-options"><button data-theme="blue" aria-pressed="true"><i class="swatch blue"></i>灰蓝</button><button data-theme="graphite" aria-pressed="false"><i class="swatch graphite"></i>石墨灰</button><button data-theme="teal" aria-pressed="false"><i class="swatch teal"></i>青绿</button></div></section>
+  <dialog id="detail" class="preview-drawer" aria-labelledby="drawer-title"><form id="draft-form" class="drawer-frame"><header class="drawer-header"><div><h2 id="drawer-title">查询规则详情</h2><p id="drawer-description"></p></div><button type="button" class="icon-button close-dialog" aria-label="关闭详情"><span data-icon="close"></span></button></header><div id="drawer-content" class="drawer-body"></div><footer class="drawer-footer"><span>仅预览，不连接真实数据</span><button type="button" class="button close-dialog">关闭</button><button id="save" class="button button-primary" type="submit">保存草稿</button></footer></form></dialog>
+  <div id="notice" role="status" class="preview-toast" hidden></div>
+  <script type="module" src="./preview.js"></script>
+</body>
+</html>
