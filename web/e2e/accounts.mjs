@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { chromium, firefox, webkit, request } from 'playwright';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -127,8 +127,29 @@ try {
     data: { username: memberUsername, email: memberEmail, password: 'member password long enough' },
   });
   assert.equal(response.status(), 201);
-  assert.deepEqual((await response.json()).account.roles, ['VIEWER']);
+  const registeredMember = (await response.json()).account;
+  assert.deepEqual(registeredMember.roles, ['VIEWER']);
   await page.goto(`${origin}/platform/account-roles`);
+  // The shared fixture may span several pages ordered by permanent Account ID.
+  // Find this run's member through the same visible search an administrator uses.
+  await page.getByLabel('检索账号', { exact: true }).fill(memberUsername);
+  const memberLookup = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname === '/api/v1/account-roles'
+      && url.searchParams.get('q') === memberUsername
+      && response.request().method() === 'GET';
+  });
+  await page.getByRole('button', { name: '查询', exact: true }).click();
+  const memberLookupResponse = await memberLookup;
+  assert.equal(memberLookupResponse.status(), 200);
+  const memberLookupResult = await memberLookupResponse.json();
+  assert.deepEqual(memberLookupResult.accounts.map(account => account.id), [registeredMember.id]);
+  if (process.env.RCC_E2E_OUTPUT) await writeFile(join(process.env.RCC_E2E_OUTPUT, 'account-role-lookup.json'), JSON.stringify({
+    query: memberUsername,
+    status: memberLookupResponse.status(),
+    expectedAccountID: registeredMember.id,
+    returnedAccountIDs: memberLookupResult.accounts.map(account => account.id),
+  }, null, 2));
   await page.getByRole('button', { name: `管理 ${memberUsername} 的角色` }).waitFor();
   if (process.env.RCC_E2E_OUTPUT) await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'account-roles-desktop.png') });
   await page.setViewportSize({ width: 390, height: 844 });

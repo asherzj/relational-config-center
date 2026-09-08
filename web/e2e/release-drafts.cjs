@@ -2,6 +2,7 @@
 const playwright=require(process.env.RCC_PLAYWRIGHT_MODULE||'playwright');
 const assert=require('node:assert/strict');
 const {join}=require('node:path');
+const {writeFileSync}=require('node:fs');
 const {browserOptions,selectedBrowser,registerFixtureAccount}=require('./local-account.cjs');
 const base=process.env.RCC_WEB_URL;
 (async()=>{
@@ -59,8 +60,29 @@ const base=process.env.RCC_WEB_URL;
 
   await page.getByRole('button',{name:'取消草稿',exact:true}).click();await page.getByLabel('取消原因',{exact:true}).fill('browser cancellation');await page.getByRole('button',{name:'确认取消草稿',exact:true}).click();await page.getByRole('heading',{name:'stage1_acceptance_items · 已取消',exact:true}).waitFor();
   await page.reload();await page.getByText('browser cancellation',{exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'编辑草稿',exact:true}).count(),0);
-  await page.getByRole('link',{name:'返回发布单列表',exact:true}).click();await page.getByLabel('表名',{exact:true}).fill('stage1_acceptance_items');await page.getByLabel('申请人账号 ID',{exact:true}).fill(identity.account.id);await page.getByLabel('状态',{exact:true}).selectOption('CANCELLED');await page.getByRole('button',{name:'查询发布单',exact:true}).click();await page.getByRole('link',{name:committed.id,exact:true}).waitFor();
-  if(process.env.RCC_E2E_OUTPUT){await page.getByRole('link',{name:committed.id,exact:true}).click();await page.getByRole('heading',{name:'stage1_acceptance_items · 已取消',exact:true}).waitFor();await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'release-drafts-detail.png'),fullPage:true});await page.getByRole('link',{name:'返回发布单列表',exact:true}).click();await page.getByRole('link',{name:committed.id,exact:true}).waitFor()}
+  const cancelledDraftLookups=[];
+  const findCancelledDraft=async()=>{
+   // Returning from detail remounts the list with its default filters/page.
+   await page.getByLabel('表名',{exact:true}).fill('stage1_acceptance_items');
+   await page.getByLabel('申请人账号 ID',{exact:true}).fill(identity.account.id);
+   await page.getByLabel('状态',{exact:true}).selectOption('CANCELLED');
+   const lookup=page.waitForResponse(response=>{
+    const url=new URL(response.url());
+    return response.request().method()==='GET'&&url.pathname==='/api/v1/release-orders'
+     &&url.searchParams.get('table_name')==='stage1_acceptance_items'
+     &&url.searchParams.get('applicant_id')===identity.account.id
+     &&url.searchParams.get('state')==='CANCELLED';
+   });
+   await page.getByRole('button',{name:'查询发布单',exact:true}).click();
+   const response=await lookup;assert.equal(response.status(),200);
+   const returnedIDs=(await response.json()).orders.map(order=>order.id);
+   assert.deepEqual(returnedIDs,[committed.id]);
+   cancelledDraftLookups.push({status:response.status(),applicantID:identity.account.id,state:'CANCELLED',expectedOrderID:committed.id,returnedIDs});
+   if(process.env.RCC_E2E_OUTPUT)writeFileSync(join(process.env.RCC_E2E_OUTPUT,'cancelled-draft-lookups.json'),JSON.stringify(cancelledDraftLookups,null,2));
+   await page.getByRole('link',{name:committed.id,exact:true}).waitFor();
+  };
+  await page.getByRole('link',{name:'返回发布单列表',exact:true}).click();await findCancelledDraft();
+  if(process.env.RCC_E2E_OUTPUT){await page.getByRole('link',{name:committed.id,exact:true}).click();await page.getByRole('heading',{name:'stage1_acceptance_items · 已取消',exact:true}).waitFor();await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'release-drafts-detail.png'),fullPage:true});await page.getByRole('link',{name:'返回发布单列表',exact:true}).click();await findCancelledDraft()}
   await page.setViewportSize({width:390,height:844});await page.getByLabel('主导航',{exact:true}).waitFor({state:'hidden'});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'release list overflows narrow viewport');
   if(process.env.RCC_E2E_OUTPUT)await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'release-drafts-mobile.png'),fullPage:true});
   check('cancelled drafts remain searchable with permanent applicant and history on narrow screens');

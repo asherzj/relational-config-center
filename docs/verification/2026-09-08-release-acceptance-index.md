@@ -4,7 +4,7 @@
 
 下表按用例的主要交付工单索引证据。T1～T7 已分别完成验证、双轴评审、推送和关闭；链接固定到当时已验收的提交及对应文档行。早期证据记录当时的阶段行为，旧直写入口及单条容量限制已分别在 T5、T6 删除，相关记录并发回归迁入正式发布入口。最终候选的回归及远端 CI 由 T8 证据补充。
 
-T8 的本地完整检查已通过，最终提交的远端 CI 及功能完成记录仍待确认；以下分别标明已有实际证据与剩余门禁。
+T8 的主体功能已通过 [PR #56](https://github.com/asherzj/relational-config-center/pull/56) 合入 main。本地完整检查及后续浏览器分页定位修订已验收；最终提交的远端 CI 与功能完成状态以 [#55 完成记录](https://github.com/asherzj/relational-config-center/issues/55) 为准。
 
 ## T1：全局账号角色
 
@@ -101,13 +101,13 @@ T8 的本地完整检查已通过，最终提交的远端 CI 及功能完成记�
 
 ## T8：存量升级与功能验收
 
-[工单 #55](https://github.com/asherzj/relational-config-center/issues/55) · 进行中。下面列出该工单的责任和完成证据要求，当前不标记通过。
+[工单 #55](https://github.com/asherzj/relational-config-center/issues/55) · 下列本地验收已通过；最新远端 CI 与工单完成状态直接记录在该工单。
 
 | 用例 | 必须验证的行为 | 最终证据 |
 |---|---|---|
 | AC-045 | 保留旧账号、会话规则、稳定身份、Policy 和业务数据；默认只读、显式首位 ADMIN；中断/重复迁移不破坏数据或重复授权，控制结构不完整时拒绝服务写入，旧调用方无直写能力 | `TestAccountUpgradeFromLegacyMatchesFreshSchema`、`TestAccountRoleUpgradePreservesAccountsAndGrants`；完整 MySQL 493 项测试及子测试通过，零失败/跳过 |
 | AC-046 | 独立申请、审批、发布账号在真实浏览器完成正向与反向发布；刷新/登录恢复、冲突输入保留、当前角色限制 | 完整 `make test-browser-acceptance` 退出 0；Chromium/Firefox/WebKit 各实际回滚 4 项、账号/冲突/执行恢复 21 项；另保留 Go 浏览器入口通过 |
-| AC-047 | 正式 Go/Web/真实 MySQL/浏览器目标、构建、架构和契约检查实际执行并通过；固定基点两轴评审；最终提交对应的远端 CI 通过 | Go 测试/构建、Web 296 项及类型/构建/开发配置、完整 MySQL 与两条浏览器入口通过；独立审查无硬性阻断；最终签核及远端 CI 待 #55 记录 |
+| AC-047 | 正式 Go/Web/真实 MySQL/浏览器目标、构建、架构和契约检查实际执行并通过；固定基点两轴评审；最终提交对应的远端 CI 通过 | Go 测试/构建、Web 296 项及类型/构建/开发配置、完整 MySQL 与两条浏览器入口通过；独立审查无硬性阻断；分页定位修订另经两轴审查并重新通过浏览器两条入口；最终签核及远端 CI 见 #55 记录 |
 | AC-048 | 全部状态的完整差异、意见、永久身份及关联在重启/账号资料变化后可追溯；无公开物理删除、改写或自动清理入口 | `TestReleaseHistorySurvivesExecutableRestartAndExternalChanges` 在完整 MySQL 中通过，覆盖七种状态、实际重启、资料变更、拒绝删除及伪造改写后的逐项一致读取 |
 
 以上四项统一由 T8 的 `docs/verification/2026-09-08-release-delivery.md` 记录最终候选、本地检查和实际浏览器证据。最终远端 CI 链接同时记入 #55 完成评论，避免为补充 CI 链接另建未经 CI 验证的提交。
