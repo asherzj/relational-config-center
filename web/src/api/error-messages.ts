@@ -19,6 +19,9 @@ const errorMessages: Record<string, string> = {
   release_invalid: "发布请求无效，请检查内容、版本、必填意见和请求标识。",
   release_unavailable: "发布单存储暂时不可用，请保留原请求并稍后确认结果。",
   release_result_unknown: "结果待确认，请保留原请求标识并恢复查询。",
+  rollback_conflict: "这张原发布单已有进行中的回滚申请，请查看当前关联发布单。",
+  rollback_locked: "回滚发布单的明细来自原发布结果，不能编辑或复制。",
+  rollback_restore_mismatch: "当前数据库规则无法完整恢复原业务值，回滚未提交；请查看失败原因和当前配置。",
   account_not_found: "账号不存在，请刷新列表。",
 
   invalid_policy_code: "规则编码必须使用小写、包含版本号，并且不能包含技术实现名称。",

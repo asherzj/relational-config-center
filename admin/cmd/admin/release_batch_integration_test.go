@@ -210,6 +210,34 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 	if count != 667 || commands != 1000 || versions != 1000 || notifications != 1 || targets != 0 {
 		t.Fatalf("partial/duplicate state %d %d %d %d %d", count, commands, versions, notifications, targets)
 	}
+	// AC-041: exercise the complete reverse under the same executable's default
+	// four-second transaction budget, without repeating the forward fixture.
+	reverseBytes := request(path+"/rollback", `{"expected_version":"4","reason":"restore all 1000 actual results"}`, "thousand-rollback", cookies, csrf)
+	var reverse domain.ReleaseOrder
+	if json.Unmarshal(reverseBytes, &reverse) != nil || reverse.RollbackOfID != order.ID || len(reverse.Items) != 1000 {
+		t.Fatal("incomplete reverse draft")
+	}
+	reversePath := "/api/v1/release-orders/" + reverse.ID
+	request(reversePath+"/submit", `{"expected_version":"1"}`, "thousand-reverse-submit", cookies, csrf)
+	request(reversePath+"/approve", `{"expected_version":"2","reason":"reviewed all reverse items"}`, "thousand-reverse-approve", reviewCookies, reviewCSRF)
+	restored := request(reversePath+"/execute", `{"expected_version":"3"}`, "thousand-reverse-execute", cookies, csrf)
+	if json.Unmarshal(restored, &reverse) != nil || reverse.State != "SUCCEEDED" || reverse.Publication.TableVersion != "2" || len(reverse.Publication.Commands) != 1000 {
+		t.Fatal("incomplete reverse publication")
+	}
+	if string(request(reversePath+"/execute", `{"expected_version":"3"}`, "thousand-reverse-execute", cookies, csrf)) != string(restored) {
+		t.Fatal("reverse original-key result changed")
+	}
+	for index, command := range reverse.Publication.Commands {
+		sourceIndex := len(order.Publication.Commands) - 1 - index
+		if command.ID != order.Publication.Commands[sourceIndex].ID || command.RecordVersion != "2" || command.Final.Deleted != (sourceIndex >= 666) {
+			t.Fatalf("incorrect inverse %d", index)
+		}
+	}
+	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM mutation_add_items`: 666, `SELECT COUNT(*) FROM mutation_add_items WHERE id<=666 AND label='old'`: 666, `SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=2`: 1000, `SELECT COUNT(*) FROM rcc_publication_commands`: 2000, `SELECT COUNT(*) FROM rcc_refresh_notifications`: 2, `SELECT COUNT(*) FROM rcc_release_targets`: 0})
+	current := rollbackOrderResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
+	if current.State != "ROLLED_BACK" || current.RollbackOrderID != reverse.ID {
+		t.Fatal("thousand inverse missing original association")
+	}
 }
 
 func TestReleaseBatchFieldBudget(t *testing.T) {

@@ -468,6 +468,19 @@ it("明确勾选两行后加入本人同表已有草稿，保留原明细和各�
  expect(JSON.parse(String(writes[0]!.body))).toEqual({table_name:"notification_templates",expected_version:"4",items:[{operation:"ADD",expected_record_version:"",content:{template_key:"kept",body:"kept"}},{operation:"DELETE",id:"41",expected_record_version:"7",content:{}},{operation:"DELETE",id:"42",expected_record_version:"8",content:{}}]});
 });
 
+it("已有草稿去向不列出不可编辑的反向草稿",async()=>{
+ const editableID="11111111222222223333333344444444",reverseID="55555555666666667777777788888888";
+ const summary=(id:string,extra:object={})=>({id,table_name:"notification_templates",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",allowed_actions:["edit"],item_count:1,operation_counts:{MODIFY:1},...extra});
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  if(String(input).startsWith("/api/v1/release-orders?"))return json({orders:[summary(editableID),summary(reverseID,{rollback_of_id:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",allowed_actions:["submit","cancel"]})],next_cursor:""});
+  return readFetch(input,init,{...mutationPolicy,allow_modify:true});
+ })));
+ const user=userEvent.setup();renderPage();
+ await user.click(await screen.findByRole("button",{name:"修改记录 41"}));await user.click(screen.getByLabelText("包含 body"));await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
+ await user.click(screen.getByRole("button",{name:"选择已有草稿"}));
+ expect(await screen.findByRole("option",{name:`${editableID} · 版本 1`})).toBeVisible();expect(screen.queryByRole("option",{name:`${reverseID} · 版本 1`})).not.toBeInTheDocument();
+});
+
 it("批量选择把原型属性名当作普通字符串记录 id",async()=>{
  const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{

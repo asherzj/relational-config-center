@@ -1,4 +1,4 @@
-# Admin 发布结果契约（T5 / #52，T6 / #53）
+# Admin 发布结果契约（T5 / #52，T6 / #53，T7 / #54）
 
 已批准单通过 `POST /api/v1/release-orders/:id/execute` 执行，正文为 `{"expected_version":"3"}`，带原 `Idempotency-Key`。当前永久账号必须具有 PUBLISHER（ADMIN 含该能力）；合法审批不因审批人后来撤权失效。业务行、记录版本、Command、表进度、发布单 SUCCEEDED/EXECUTE 历史、目标释放、通知、成功请求结果在同一事务中提交。执行前重新核实冻结语义和基线；明确失败保持 APPROVED、版本和占用。COMMIT 错误一律待确认；原键重试在当前鉴权后、状态版本检查前重放持久结果。
 
@@ -24,7 +24,7 @@
 
 `CanonicalRow.Verify(expectedSchemaDigest)` 需要调用方提供可信预期摘要，不应把未验证输入中的摘要当成信任来源。
 
-T7 必须根据保存的 Command.before 与实际 ID/record_version 绑定反向申请；不能仅使用旧草稿预览 before，也不能回填旧操作人/时间或生成列。before/final 均保存 Schema digest，后续业务值解析须核对格式和 Schema。
+T7 [审批回滚](../admin-release-rollbacks.md) 根据保存的 Command.before 与实际 ID/record_version 绑定反向申请，重新审批并原子提交原单 ROLLED_BACK 关联。不能使用旧草稿预览 before，也不回填旧操作人/时间或生成列；最终实际业务值不匹配时整笔拒绝。before/final 均保存 Schema digest，历史解析核对格式和 Schema。
 
 ## 写入能力边界
 

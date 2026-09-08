@@ -90,7 +90,7 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 		t.Fatal("real database Operator/content did not match browser account")
 	}
 	prepareManagementBrowserPolicies(t, admin, maintenance, fixtureEnvironment)
-	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs", "release-drafts.cjs", "release-approvals.cjs", "release-batches.cjs"} {
+	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs", "release-drafts.cjs", "release-approvals.cjs", "release-batches.cjs", "release-rollbacks.cjs"} {
 		t.Run(script, func(t *testing.T) {
 			command := exec.Command("node", filepath.Join(web, "e2e", script))
 			command.Dir = web

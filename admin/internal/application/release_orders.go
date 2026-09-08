@@ -74,6 +74,7 @@ type DraftInput struct {
 type ReleaseOrderSession interface {
 	PolicySnapshotReader
 	ReadRecordBaselines(context.Context, domain.TableSchema, []any) ([]domain.RecordBaseline, error)
+	ReadRollbackBaselines(context.Context, domain.TableSchema, []any, domain.ReleaseOrder) ([]domain.RecordBaseline, error)
 	LockAndReadTableExecutionSchema(context.Context, string) (domain.TableExecutionSchema, error)
 	ReserveReleaseTargets(context.Context, string, []domain.ActiveTarget) error
 	ReleaseTargets(context.Context, string) error
@@ -159,8 +160,8 @@ func (r *ReleaseOrders) Get(ctx context.Context, id string) (ReleaseOrder, error
 
 func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) []string {
 	actions := []string{}
-	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute"} {
-		if releaseActionState(order.State, action) && authorizeReleaseAction(ctx, order, action) == nil {
+	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute", "rollback"} {
+		if releaseOrderActionState(order, action) && authorizeReleaseAction(ctx, order, action) == nil {
 			actions = append(actions, action)
 		}
 	}
@@ -186,7 +187,7 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
 		}
 		return nil
 	}
-	if action == "execute" || action == "copy" || actor == order.ApplicantID {
+	if action == "execute" || action == "copy" || action == "rollback" || actor == order.ApplicantID {
 		return nil
 	}
 	if action == "cancel" {
@@ -195,8 +196,20 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
 	}
 	return ErrPermissionDenied
 }
+func releaseOrderActionState(order ReleaseOrder, action string) bool {
+	if order.RollbackOfID != "" && (action == "edit" || action == "copy") {
+		return false
+	}
+	if action == "rollback" && order.RollbackPending {
+		return false
+	}
+	return releaseActionState(order.State, action)
+}
+
 func releaseActionState(state, action string) bool {
 	switch action {
+	case "rollback":
+		return state == "SUCCEEDED"
 	case "execute":
 		return state == "APPROVED"
 	case "copy":
@@ -212,6 +225,10 @@ func releaseActionState(state, action string) bool {
 }
 
 func (r *ReleaseOrders) prepare(ctx context.Context, s ReleaseOrderSession, input DraftInput, refreshBaseline bool) ([]ReleaseItem, error) {
+	return r.prepareInput(ctx, s, input, refreshBaseline, nil)
+}
+
+func (r *ReleaseOrders) prepareInput(ctx context.Context, s ReleaseOrderSession, input DraftInput, refreshBaseline bool, source *ReleaseOrder) ([]ReleaseItem, error) {
 	if protectedTable(input.TableName) {
 		return nil, ErrProtectedTable
 	}
@@ -229,14 +246,14 @@ func (r *ReleaseOrders) prepare(ctx context.Context, s ReleaseOrderSession, inpu
 	ids := make([]any, len(input.Items))
 	idColumn, _ := snapshot.schema.Column("id")
 	for index, item := range input.Items {
-		if item.ID != nil && len(*item.ID) > ReleaseFieldBytes {
+		if source == nil && item.ID != nil && len(*item.ID) > ReleaseFieldBytes {
 			return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseFieldLimit}
 		}
 		if item.TableName != "" && item.TableName != input.TableName {
 			return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseCrossTable}
 		}
 		for name, value := range item.Content {
-			if len(name) > 256 || value != nil && len(*value) > ReleaseFieldBytes {
+			if len(name) > 256 || source == nil && value != nil && len(*value) > ReleaseFieldBytes {
 				return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseFieldLimit}
 			}
 		}
@@ -251,14 +268,19 @@ func (r *ReleaseOrders) prepare(ctx context.Context, s ReleaseOrderSession, inpu
 			}
 		}
 	}
-	baselines, err := s.ReadRecordBaselines(ctx, snapshot.schema, ids)
+	var baselines []domain.RecordBaseline
+	if source == nil {
+		baselines, err = s.ReadRecordBaselines(ctx, snapshot.schema, ids)
+	} else {
+		baselines, err = s.ReadRollbackBaselines(ctx, snapshot.schema, ids, *source)
+	}
 	if err != nil {
 		return nil, err
 	}
 	items := make([]ReleaseItem, 0, len(input.Items))
 	seen := map[string]bool{}
 	for index, item := range input.Items {
-		prepared, err := prepareReleaseItem(snapshot.schema, snapshot.mutationPolicy, item, baselines[index], refreshBaseline)
+		prepared, err := prepareReleaseItem(snapshot.schema, snapshot.mutationPolicy, item, baselines[index], refreshBaseline, source != nil)
 		if err != nil {
 			return nil, &ReleaseItemError{Index: index, Cause: err}
 		}
@@ -281,7 +303,7 @@ func (r *ReleaseOrders) prepare(ctx context.Context, s ReleaseOrderSession, inpu
 	return items, nil
 }
 
-func prepareReleaseItem(schema domain.TableSchema, policy domain.MutationPolicy, item DraftItemInput, baseline domain.RecordBaseline, refreshBaseline bool) ([]ReleaseItem, error) {
+func prepareReleaseItem(schema domain.TableSchema, policy domain.MutationPolicy, item DraftItemInput, baseline domain.RecordBaseline, refreshBaseline, historical bool) ([]ReleaseItem, error) {
 	var err error
 	for _, column := range schema.Columns {
 		if column.Type == domain.ColumnTypeUnsupported {
@@ -330,7 +352,7 @@ func prepareReleaseItem(schema domain.TableSchema, policy domain.MutationPolicy,
 	if item.Operation == "MODIFY" && len(item.Content) == 0 && len(automatic) == 0 {
 		return nil, ErrInvalidMutation
 	}
-	if _, err = mutationValues(schema, item.Content, item.Operation == "ADD"); err != nil {
+	if _, err = releaseMutationValues(schema, item.Content, item.Operation == "ADD", historical); err != nil {
 		return nil, err
 	}
 	if item.Operation == "ADD" {
@@ -451,15 +473,7 @@ func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitRelea
 		if err != nil {
 			return err
 		}
-		draft := DraftInput{TableName: order.TableName}
-		for _, item := range order.Items {
-			entry := DraftItemInput{Operation: item.Operation, ID: item.ID, ExpectedRecordVersion: item.ExpectedRecordVersion, Content: item.Content}
-			if entry.Operation == "ADD" {
-				entry.ID = nil
-			}
-			draft.Items = append(draft.Items, entry)
-		}
-		items, err := r.prepare(ctx, s, draft, false)
+		items, err := r.prepareOrder(ctx, s, *order)
 		if err != nil {
 			return err
 		}
@@ -494,6 +508,9 @@ func (r *ReleaseOrders) Cancel(ctx context.Context, id string, input CancelRelea
 			return ErrReleaseInvalid
 		}
 		order.State = "CANCELLED"
+		if err := r.finishRollback(ctx, s, *order, false); err != nil {
+			return err
+		}
 		return s.ReleaseTargets(ctx, order.ID)
 	})
 }
@@ -516,6 +533,9 @@ func (r *ReleaseOrders) decide(ctx context.Context, id, action string, input Rel
 		order.State = "APPROVED"
 		if action == "reject" {
 			order.State = "REJECTED"
+			if err := r.finishRollback(ctx, s, *order, false); err != nil {
+				return err
+			}
 			return s.ReleaseTargets(ctx, order.ID)
 		}
 		return nil
@@ -534,6 +554,10 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 	if !roleRequestKey.MatchString(key) {
 		return ReleaseOrder{}, ErrReleaseInvalid
 	}
+	hint, err := r.store.GetReleaseOrder(ctx, id)
+	if err != nil {
+		return ReleaseOrder{}, err
+	}
 	var result ReleaseOrder
 	err = execute(ctx, func(s ReleaseOrderSession) error {
 		// Lock request identity before the order consistently, including retries.
@@ -541,6 +565,13 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 		previous, err := s.BeginReleaseRequest(ctx, actor, operation, key, releaseDigest(input))
 		if err != nil {
 			return err
+		}
+		// Every reverse action locks its immutable original first. Discovery was
+		// outside this transaction so it cannot start a stale RR snapshot.
+		if hint.RollbackOfID != "" {
+			if _, err := s.GetReleaseOrder(ctx, hint.RollbackOfID); err != nil {
+				return err
+			}
 		}
 		order, err := s.GetReleaseOrder(ctx, id)
 		if err != nil {
@@ -559,7 +590,10 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 		if order.Version != version {
 			return ErrReleaseVersionConflict
 		}
-		if !releaseActionState(order.State, action) {
+		if order.RollbackOfID != "" && (action == "edit" || action == "copy") {
+			return ErrRollbackLocked
+		}
+		if !releaseOrderActionState(order, action) {
 			return ErrReleaseState
 		}
 		next, err := strconv.ParseUint(version, 10, 64)
@@ -654,6 +688,9 @@ func (r *ReleaseOrders) Copy(ctx context.Context, id string, input CopyReleaseIn
 		}
 		if source.Version != input.ExpectedVersion {
 			return ErrReleaseVersionConflict
+		}
+		if source.RollbackOfID != "" {
+			return ErrRollbackLocked
 		}
 		if !releaseActionState(source.State, "copy") {
 			return ErrReleaseState

@@ -51,11 +51,9 @@ func (order ReleaseOrder) VerifyPublication() error {
 	}
 	schemaSum := sha256.Sum256(schemaJSON)
 	digest := hex.EncodeToString(schemaSum[:])
-	var columns [][]*string
-	for _, section := range order.Frozen.Schema.Sections {
-		if section.Name == "columns" {
-			columns = section.Rows
-		}
+	columns, err := order.Frozen.Schema.Columns()
+	if err != nil {
+		return err
 	}
 	for i, command := range result.Commands {
 		if command.OrderID != order.ID || command.TableName != order.Frozen.Schema.TableName || command.TableVersion != result.TableVersion || command.Operation != order.Items[i].Operation || command.Before.Deleted != (command.Operation == "ADD") || command.Final.Deleted != (command.Operation == "DELETE") {
@@ -81,7 +79,7 @@ func (order ReleaseOrder) VerifyPublication() error {
 			}
 			for j, field := range row.Fields {
 				column := columns[j]
-				if len(column) != 10 || column[0] == nil || column[2] == nil || field.Name != *column[0] || field.Type != *column[2] {
+				if field.Name != column.Name || field.Type != column.Type {
 					return ErrCanonicalRow
 				}
 			}

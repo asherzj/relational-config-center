@@ -45,7 +45,7 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 			summary := struct {
 				application.ReleaseOrderSummary
 				AllowedActions []string `json:"allowed_actions"`
-			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{ID: order.ID, State: order.State, ApplicantID: order.ApplicantID})}
+			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{ID: order.ID, State: order.State, ApplicantID: order.ApplicantID, RollbackOfID: order.RollbackOfID, RollbackOrderID: order.RollbackOrderID, RollbackPending: order.RollbackPending})}
 			response = append(response, summary)
 		}
 		next := ""
@@ -80,6 +80,18 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 			respondReleaseWrite(c, orders, order, 200)
 		})
 	}
+	router.POST("/api/v1/release-orders/:id/rollback", func(c *gin.Context) {
+		var input application.CancelReleaseInput
+		if err := decodeRequest(c, &input); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		order, err := orders.Rollback(c.Request.Context(), c.Param("id"), input, c.GetHeader("Idempotency-Key"))
+		if writeReleaseError(c, err) {
+			return
+		}
+		respondReleaseWrite(c, orders, order, 201)
+	})
 	router.POST("/api/v1/release-orders/:id/copy", func(c *gin.Context) {
 		var input application.CopyReleaseInput
 		if err := decodeRequest(c, &input); err != nil {
@@ -179,6 +191,12 @@ func writeReleaseError(c *gin.Context, err error) bool {
 	}
 	status, code, message := 503, "release_unavailable", "release order storage is unavailable"
 	switch {
+	case errors.Is(err, application.ErrRollbackConflict):
+		status, code, message = 409, "rollback_conflict", "the original publication already has an active rollback request"
+	case errors.Is(err, application.ErrRollbackLocked):
+		status, code, message = 422, "rollback_locked", "rollback intent is fixed to the original result; cancel or reject it and reapply from the original order"
+	case errors.Is(err, application.ErrRollbackRestoreMismatch):
+		status, code, message = 422, "rollback_restore_mismatch", "current schema, rules or database effects cannot restore every original business value"
 	case errors.Is(err, application.ErrPermissionDenied):
 		status, code, message = 403, "permission_denied", "the current account cannot perform this release action"
 	case errors.Is(err, application.ErrSession):

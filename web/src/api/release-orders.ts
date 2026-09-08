@@ -11,12 +11,12 @@ const canonicalRowSchema=z.object({format:z.literal("rcc-admin-mysql-row-v1"),sc
 const publicationSchema=z.object({table_version:version,publisher_id:z.string(),executed_at:z.string(),notification:z.object({id:z.string(),table_version:version,status:z.literal("NOT_CONNECTED")}),commands:z.array(z.object({order_id:z.string(),sequence:version,table_name:z.string(),table_version:version,operation:z.enum(["ADD","MODIFY","DELETE"]),id:z.string(),record_version:version,before:canonicalRowSchema,final:canonicalRowSchema})).min(1)});
 export const releaseOrderSchema=z.object({
  publication:publicationSchema.optional(),
- copied_from_id:z.string().optional(),frozen_digest:z.string().optional(),id:z.string(),table_name:z.string(),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","APPROVED","SUCCEEDED","REJECTED","CANCELLED","ROLLED_BACK"]),version,
+ copied_from_id:z.string().optional(),rollback_of_id:z.string().optional(),rollback_order_id:z.string().optional(),rollback_pending:z.boolean().optional().default(false),frozen_digest:z.string().optional(),id:z.string(),table_name:z.string(),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","APPROVED","SUCCEEDED","REJECTED","CANCELLED","ROLLED_BACK"]),version,
  items:z.array(draftItemSchema.extend({id:z.string().nullable(),expected_record_version:z.string(),before:content.nullable(),fields:z.array(releaseFieldSchema)})),
- history:z.array(z.object({action:z.string(),actor_id:z.string(),at:z.string(),version,reason:z.string()})),created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),
+ history:z.array(z.object({action:z.string(),actor_id:z.string(),at:z.string(),version,reason:z.string(),related_order_id:z.string().optional()})),created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),
 });
 export type ReleaseOrder=z.infer<typeof releaseOrderSchema>;
-export const releaseSummarySchema=releaseOrderSchema.pick({id:true,table_name:true,applicant_id:true,state:true,version:true,created_at:true,updated_at:true,allowed_actions:true}).extend({item_count:z.number().int().min(1).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
+export const releaseSummarySchema=releaseOrderSchema.pick({id:true,table_name:true,applicant_id:true,state:true,version:true,created_at:true,updated_at:true,allowed_actions:true,rollback_of_id:true,rollback_order_id:true,rollback_pending:true}).extend({item_count:z.number().int().min(1).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
 export type ReleaseField=z.infer<typeof releaseFieldSchema>;
 export const releaseOrders={
  list:(filters:Record<string,string>)=>request(`/api/v1/release-orders?${new URLSearchParams(filters)}`,{schema:z.object({orders:z.array(releaseSummarySchema),next_cursor:z.string()})}),
@@ -34,8 +34,8 @@ const draftInputSchema=z.object({table_name:z.string(),items:z.array(draftItemSc
 const cancelInputSchema=z.object({expected_version:z.string(),reason:z.string()});
 const submitInputSchema=z.object({expected_version:z.string()});
 const copyInputSchema=z.object({expected_version:z.string(),confirmed:z.literal(true),items:z.array(draftItemSchema)});
-export type ReleaseStateAction="submit"|"approve"|"reject"|"cancel"|"execute";
-export const releaseActionLabels={execute:"执行发布",submit:"提交审批",approve:"批准发布单",reject:"拒绝发布单",cancel:"取消发布单",copy:"复制新草稿"};
+export type ReleaseStateAction="submit"|"approve"|"reject"|"cancel"|"execute"|"rollback";
+export const releaseActionLabels={execute:"执行发布",submit:"提交审批",approve:"批准发布单",reject:"拒绝发布单",cancel:"取消发布单",copy:"复制新草稿",rollback:"申请回滚"};
 export const releaseActionRole=(action:string)=>action==="execute"?"PUBLISHER" as const:action==="approve"||action==="reject"?"APPROVER" as const:"EDITOR" as const;
 
 export const releaseRequests={
@@ -52,6 +52,7 @@ export function decodeReleaseRequest(value:ReleaseRequestEnvelope){
  if(id&&action==="execute")return {action:"execute" as const,id,input:submitInputSchema.parse(body)};
  if(id&&action==="submit")return {action:"submit" as const,id,input:submitInputSchema.parse(body)};
  if(id&&action==="copy")return {action:"copy" as const,id,input:copyInputSchema.parse(body)};
+ if(id&&action==="rollback")return {action:"rollback" as const,id,input:cancelInputSchema.parse(body)};
  if(id&&action==="cancel")return {action:"cancel" as const,id,input:cancelInputSchema.parse(body)};
  if(id&&action==="approve")return {action:"approve" as const,id,input:cancelInputSchema.parse(body)};
  if(id&&action==="reject")return {action:"reject" as const,id,input:cancelInputSchema.parse(body)};

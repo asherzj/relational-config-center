@@ -30,13 +30,14 @@ export function useReleaseWrite(scope:string){
    void client.invalidateQueries({queryKey:["release-orders"]});
    if(order.publication)void client.invalidateQueries({queryKey:["managed-data"]});
    void client.invalidateQueries({queryKey:["release-order",order.id]});
+   if(order.rollback_of_id)void client.invalidateQueries({queryKey:["release-order",order.rollback_of_id]});
    return order;
   }catch(cause){
    if(!recorded){setError(new ApiError("release_journal_unavailable","浏览器无法保存完整请求，尚未发送。当前输入和已有待恢复请求保留，请释放浏览器存储空间后重试。",0));setUnresolved(Boolean(previous));return;}
    setError(cause);
    // These write conflicts are returned only after original-key deduplication.
    // They prove no original success exists; authentication/read failures do not.
-   const rejected=cause instanceof ApiError&&["release_version_conflict","record_version_conflict","release_state_invalid","release_target_conflict","release_frozen_changed"].includes(cause.code);
+   const rejected=cause instanceof ApiError&&["release_version_conflict","record_version_conflict","release_state_invalid","release_target_conflict","release_frozen_changed","rollback_conflict"].includes(cause.code);
    const keep=Boolean(previous)&&!rejected||uncertainReleaseError(cause);
    setUnresolved(keep);
    if(rejected)rememberReleaseRequest(accountID,{...intent,rejection:cause.code as PendingReleaseRequest["rejection"]});

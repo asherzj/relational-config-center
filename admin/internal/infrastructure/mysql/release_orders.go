@@ -89,7 +89,7 @@ func (s *releaseOrderSession) SaveReleaseOrder(ctx context.Context, order domain
 	if err != nil {
 		return application.ErrReleaseUnavailable
 	}
-	if len(encoded) > releaseDocumentBudget(order.State) {
+	if len(encoded) > releaseDocumentBudget(order) {
 		return application.ErrReleaseResultLimit
 	}
 	if create {
@@ -133,7 +133,7 @@ func (s *releaseOrderSession) CompleteReleaseRequest(ctx context.Context, actor,
 	if err != nil {
 		return application.ErrReleaseUnavailable
 	}
-	if len(encoded) > releaseDocumentBudget(order.State) {
+	if len(encoded) > releaseDocumentBudget(order) {
 		return application.ErrReleaseResultLimit
 	}
 	if err = s.database.WithContext(ctx).Exec(`UPDATE rcc_release_requests SET result=? WHERE actor_id=? AND operation=? AND request_key=?`, encoded, actor, operation, key).Error; err != nil {
@@ -219,7 +219,16 @@ func decodeStoredReleaseOrder(encoded []byte) (domain.ReleaseOrder, error) {
 
 // Reserve enough room for required terminating actions and future rollback
 // linkage; a large approval/result must never make cancellation impossible.
-func releaseDocumentBudget(state string) int {
+func releaseDocumentBudget(order domain.ReleaseOrder) int {
+	state := order.State
+	if state == "SUCCEEDED" && order.RollbackOrderID != "" {
+		// A newly accepted association must leave room to terminate. Cancellation
+		// or rejection consumes that room even while the original stays SUCCEEDED.
+		if order.RollbackPending {
+			return application.ReleaseResultBytes - application.ReleaseTransportHeadroom - 4096
+		}
+		return application.ReleaseResultBytes - application.ReleaseTransportHeadroom
+	}
 	if state == "CANCELLED" || state == "REJECTED" || state == "ROLLED_BACK" {
 		return application.ReleaseResultBytes - application.ReleaseTransportHeadroom
 	}

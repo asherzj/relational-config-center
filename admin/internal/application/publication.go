@@ -69,15 +69,7 @@ func (r *ReleaseOrders) Execute(ctx context.Context, id string, input SubmitRele
 		if digest != order.FrozenDigest {
 			return ErrReleaseFrozenChanged
 		}
-		input := DraftInput{TableName: order.TableName}
-		for _, item := range order.Items {
-			entry := DraftItemInput{Operation: item.Operation, ID: item.ID, ExpectedRecordVersion: item.ExpectedRecordVersion, Content: item.Content}
-			if entry.Operation == "ADD" {
-				entry.ID = nil
-			}
-			input.Items = append(input.Items, entry)
-		}
-		prepared, err := r.prepare(ctx, s, input, false)
+		prepared, err := r.prepareOrder(ctx, s, *order)
 		if err != nil {
 			return err
 		}
@@ -102,7 +94,7 @@ func (r *ReleaseOrders) Execute(ctx context.Context, id string, input SubmitRele
 			if err != nil {
 				return err
 			}
-			entry.Values, err = mutationValues(snapshot.schema, content, item.Operation == "ADD")
+			entry.Values, err = releaseMutationValues(snapshot.schema, content, item.Operation == "ADD", order.RollbackOfID != "")
 			if err != nil {
 				return err
 			}
@@ -112,8 +104,20 @@ func (r *ReleaseOrders) Execute(ctx context.Context, id string, input SubmitRele
 		if err != nil {
 			return err
 		}
+		if order.RollbackOfID != "" {
+			original, err := s.GetReleaseOrder(ctx, order.RollbackOfID)
+			if err != nil {
+				return err
+			}
+			if err := verifyRollbackResult(original, result, snapshot.schema, p); err != nil {
+				return err
+			}
+		}
 		order.Publication = &result
 		order.State = "SUCCEEDED"
+		if err := r.finishRollback(ctx, s, *order, true); err != nil {
+			return err
+		}
 		return s.ReleaseTargets(ctx, order.ID)
 	})
 }

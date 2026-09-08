@@ -44,13 +44,18 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
    const latest=intent.action==="create"?undefined:await releaseOrders.get(intent.id);setCurrent(latest);
    if(intent.action==="execute"){
     if(latest?.allowed_actions.includes("execute"))setRebuilt(releaseRequests.action("execute",intent.id,latest.version));
+   }else if(intent.action==="rollback"){
+    if(latest?.allowed_actions.includes("rollback"))setRebuilt(releaseRequests.action("rollback",intent.id,latest.version,intent.input.reason));
    }else if(intent.action==="cancel"||intent.action==="approve"||intent.action==="reject"){
     if(latest?.allowed_actions.includes(intent.action))setRebuilt(releaseRequests.action(intent.action,intent.id,latest.version,intent.input.reason));
    }else if(intent.action==="submit"){
     if(latest?.allowed_actions.includes("submit")){
-     const snapshot=await releaseOrders.preview(draftFromOrder(latest));setPreview(snapshot);
-     const changed=snapshot.items.some((entry,index)=>entry.expected_record_version!==latest.items[index]!.expected_record_version);
-     setNeedsDraftUpdate(changed);if(!changed)setRebuilt(releaseRequests.action("submit",intent.id,latest.version));
+     if(latest.rollback_of_id)setRebuilt(releaseRequests.action("submit",intent.id,latest.version));
+     else{
+      const snapshot=await releaseOrders.preview(draftFromOrder(latest));setPreview(snapshot);
+      const changed=snapshot.items.some((entry,index)=>entry.expected_record_version!==latest.items[index]!.expected_record_version);
+      setNeedsDraftUpdate(changed);if(!changed)setRebuilt(releaseRequests.action("submit",intent.id,latest.version));
+     }
     }
    }else if(intent.action==="copy"){
     if(latest?.allowed_actions.includes("copy")){
@@ -67,7 +72,7 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
  const confirmLabel=action==="cancel"?`确认按最新状态取消${current?.state==="DRAFT"?"草稿":"发布单"}`:action==="create"||action==="edit"?"确认重建并保存草稿":`确认按最新状态${action?releaseActionLabels[action]:"重建"}`;
  return <><p role="alert">服务器已明确拒绝原请求。原申请保留，请查看最新状态与配置后决定是否重建。</p>
   <Button disabled={!action||!allowed||reading||write.pending} onClick={()=>void inspect()}>{reading?"正在检查…":"查看最新状态与配置"}</Button>{reading&&<LoadingState label="正在检查最新状态与配置…"/>}
-  {current&&<><p>最新发布单版本：{current.version}，状态：{current.state}</p><ReleaseDiff order={current}/></>}
+  {current&&<><p>最新发布单版本：{current.version}，状态：{current.state}</p>{current.rollback_order_id&&<p>当前关联回滚发布单：<Link to={`/configuration/release-orders/${current.rollback_order_id}`}>{current.rollback_order_id}</Link></p>}<ReleaseDiff order={current}/></>}
   {preview&&<><p>原申请与最新记录基线的差异：</p><ReleaseDiff order={{items:preview.items}}/></>}
   {needsDraftUpdate&&current&&<p>草稿记录基线已变化，请先<Link to={`/configuration/release-orders/${current.id}`}>编辑草稿并核对最新配置</Link>，再重新检查提交。</p>}
   {(current||preview)&&<Button disabled={!allowed||reading||write.pending||!rebuilt} onClick={async()=>{
@@ -82,6 +87,7 @@ function PendingIntent({item}:{item:PendingReleaseRequest}){
  try{intent=decodeReleaseRequest(item)}catch{return <p>原申请内容无法读取；原请求标识仍保留。</p>}
  if(intent.action==="execute")return <details className="my-2"><summary>查看原申请内容</summary><p>发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
  if(intent.action==="submit")return <details className="my-2"><summary>查看原申请内容</summary><p>提交单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
+ if(intent.action==="rollback")return <details className="my-2"><summary>查看原申请内容</summary><p>原发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>回滚原因：{intent.input.reason}</p></details>;
  if(intent.action==="cancel"||intent.action==="approve"||intent.action==="reject")return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="cancel"?"取消原因":"审批意见"}：{intent.input.reason}</p></details>;
  return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="copy"?`复制原单 ${intent.id}`:intent.input.table_name}</p>{intent.input.items.map((entry,index)=><div key={index}><strong>{entry.operation} · {entry.id??entry.content.id??"待生成 id"}</strong><dl>{Object.entries(entry.content).map(([field,value])=><div key={field} className="break-all"><dt>{field}</dt><dd className="whitespace-pre-wrap">{value===null?"SQL NULL":value===""?"空字符串（\"\"）":<>值：{value}</>}</dd></div>)}</dl></div>)}</details>;
 }

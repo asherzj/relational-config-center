@@ -14,6 +14,19 @@ import (
 // The ordinal belongs to the request, while weights belong to MySQL. A join
 // therefore preserves each requested slot without assuming result row order.
 func (s *releaseOrderSession) ReadRecordBaselines(ctx context.Context, schema domain.TableSchema, ids []any) ([]domain.RecordBaseline, error) {
+	return s.readRecordBaselines(ctx, schema, ids, nil)
+}
+
+// Only a verified original DELETE can supply an absent ENUM's comparison key.
+// Ordinary ADD continues to reject unsupported missing-ENUM identity synthesis.
+func (s *releaseOrderSession) ReadRollbackBaselines(ctx context.Context, schema domain.TableSchema, ids []any, source domain.ReleaseOrder) ([]domain.RecordBaseline, error) {
+	if source.VerifyPublication() != nil || source.Publication == nil || len(source.Items) != len(ids) {
+		return nil, application.ErrReleaseUnavailable
+	}
+	return s.readRecordBaselines(ctx, schema, ids, &source)
+}
+
+func (s *releaseOrderSession) readRecordBaselines(ctx context.Context, schema domain.TableSchema, ids []any, source *domain.ReleaseOrder) ([]domain.RecordBaseline, error) {
 	if err := s.available(); err != nil {
 		return nil, err
 	}
@@ -64,12 +77,23 @@ func (s *releaseOrderSession) ReadRecordBaselines(ctx context.Context, schema do
 		if rows.Scan(dest...) != nil || index < 0 || index >= len(result) || weight == nil {
 			return nil, application.ErrReleaseUnavailable
 		}
-		if !exists && meta.DataType == "enum" {
-			return nil, &application.ReleaseItemError{Index: index, Cause: application.ErrReleaseSnapshotUnsupported}
-		}
 		sum := sha256.Sum256(weight)
-		baseline := domain.RecordBaseline{TableName: meta.TableName, Key: sum[:], Version: "0"}
-		keys = append(keys, sum[:])
+		key := sum[:]
+		if !exists && meta.DataType == "enum" {
+			if source == nil {
+				return nil, &application.ReleaseItemError{Index: index, Cause: application.ErrReleaseSnapshotUnsupported}
+			}
+			// Reverse inputs unwind the original execution order.
+			sourceIndex := len(source.Items) - 1 - index
+			saved := source.Items[sourceIndex]
+			command := source.Publication.Commands[sourceIndex]
+			if command.Operation != "DELETE" || saved.RecordTable != meta.TableName || len(saved.RecordKey) != 32 || !sameRollbackEnumDefinition(source.Frozen.Schema, meta) {
+				return nil, &application.ReleaseItemError{Index: index, Cause: application.ErrRecordVersionConflict}
+			}
+			key = saved.RecordKey
+		}
+		baseline := domain.RecordBaseline{TableName: meta.TableName, Key: key, Version: "0"}
+		keys = append(keys, key)
 		if exists {
 			baseline.Row = domain.Row{}
 			for i, column := range schema.Columns {
@@ -138,4 +162,17 @@ func (s *releaseOrderSession) ReadRecordBaselines(ctx context.Context, schema do
 		}
 	}
 	return result, nil
+}
+
+func sameRollbackEnumDefinition(schema domain.TableExecutionSchema, meta identityMetadata) bool {
+	columns, err := schema.Columns()
+	if err != nil {
+		return false
+	}
+	for _, column := range columns {
+		if column.Name == "id" {
+			return column.Type == meta.ColumnType && column.Charset != nil && *column.Charset == meta.CharsetName && column.Collation != nil && *column.Collation == meta.CollationName
+		}
+	}
+	return false
 }

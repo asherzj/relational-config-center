@@ -49,6 +49,10 @@ func formatAutoFillTime(value time.Time, layout, suffix string) string {
 }
 
 func mutationValues(schema domain.TableSchema, content domain.MutationContent, allowID bool) ([]domain.MutationValue, error) {
+	return mutationValuesUsing(schema, content, allowID, domain.ParseColumnValue)
+}
+
+func mutationValuesUsing(schema domain.TableSchema, content domain.MutationContent, allowID bool, parse func(domain.Column, domain.JSONString) (any, error)) ([]domain.MutationValue, error) {
 	values := make([]domain.MutationValue, 0, len(content))
 	for field, value := range content {
 		if field == "id" && !allowID {
@@ -65,7 +69,7 @@ func mutationValues(schema domain.TableSchema, content domain.MutationContent, a
 			values = append(values, domain.MutationValue{Column: column})
 			continue
 		}
-		parsed, err := domain.ParseColumnValue(column, *value)
+		parsed, err := parse(column, *value)
 		if err != nil {
 			return nil, ErrInvalidMutation
 		}
