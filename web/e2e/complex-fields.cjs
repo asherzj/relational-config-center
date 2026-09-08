@@ -207,7 +207,9 @@ function fixtureSQL() {
     assert.equal(currentOrder.publication.commands.length, 1);
     assert.equal(currentOrder.publication.commands[0].operation, operation);
     await page.reload();
-    await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+    await page.getByRole('heading', { name: `${table} · 已发布待完结`, exact: true }).waitFor();
+    // Finish each independent data fixture before a later case uses its identity.
+    await api(publisher, 'POST', `/api/v1/release-orders/${currentOrder.id}/complete`, { expected_version: currentOrder.version });
     return { ...result, response: { ...result.response, id: currentOrder.publication.commands[0].id }, stage: 'publication' };
   }
   async function closeSuccess(operation, expected, commandExpected = expected) {

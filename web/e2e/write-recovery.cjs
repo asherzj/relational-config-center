@@ -166,7 +166,7 @@ async function waitDatabase() {
         await page.reload();
         await button('恢复原发布请求').click();
       } else await button('使用原请求重试').click();
-      await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+      await page.getByRole('heading', { name: `${table} · 已发布待完结`, exact: true }).waitFor();
       const attempts = executeRequests(path);
       assert.equal(attempts.length, 2);
       assert.deepEqual(attempts[0], attempts[1]);
@@ -228,7 +228,7 @@ async function waitDatabase() {
     const beforeRetry = executeRequests(readback.path).length;
     failReadback = false;
     await button('重试').click();
-    await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+    await page.getByRole('heading', { name: `${table} · 已发布待完结`, exact: true }).waitFor();
     assert.equal(executeRequests(readback.path).length, beforeRetry);
     check('known publication followed by detail read failure recovers with GET only', { attempts: executeRequests(readback.path), commands: commands(readback.order.id) });
 
@@ -249,7 +249,7 @@ async function waitDatabase() {
     assert.equal(executeRequests(double.path).length, 1);
     assert.equal(commands(double.order.id), 1);
     release(); release = null;
-    await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+    await page.getByRole('heading', { name: `${table} · 已发布待完结`, exact: true }).waitFor();
     await published(double.order, doubleName);
     check('double-click, Enter and pending back/close execute once', { attempts: executeRequests(double.path), commands: commands(double.order.id) });
 
@@ -300,7 +300,7 @@ async function waitDatabase() {
     const validOrder = await approve(corrected);
     context = publisher; await open(`/configuration/release-orders/${validOrder.id}`);
     await button('执行发布').click(); await button('确认发布到数据库').click();
-    await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+    await page.getByRole('heading', { name: `${table} · 已发布待完结`, exact: true }).waitFor();
     await published(validOrder, 'stage2_validation');
     assert.equal((await read(invalidOrder.id)).state, 'CANCELLED');
     assert.equal(commands(invalidOrder.id), 0);
@@ -358,7 +358,7 @@ async function waitDatabase() {
       await sleep(300);
     }
     assert.equal(replayStatuses.at(-1), 200);
-    await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+    await page.getByRole('heading', { name: `${table} · 已发布待完结`, exact: true }).waitFor();
     const outageAttempts = executeRequests(outage.path);
     assert.ok(outageAttempts.length >= 2);
     for (const attempt of outageAttempts) assert.deepEqual(attempt, original);

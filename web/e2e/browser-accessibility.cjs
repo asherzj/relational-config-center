@@ -116,11 +116,15 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     order = await releaseWrite(approvalContext, `/api/v1/release-orders/${draft.id}/approve`, { expected_version: order.version, reason: 'Accessibility publication review' });
     assert.equal(order.history.find((event) => event.action === 'APPROVE')?.actor_id, approverAccount.accountID);
     assert.notEqual(order.applicant_id, approverAccount.accountID, 'approval must use a separate permanent account');
-    return releaseWrite(context, `/api/v1/release-orders/${draft.id}/execute`, { expected_version: order.version });
+    const result = await releaseWrite(context, `/api/v1/release-orders/${draft.id}/execute`, { expected_version: order.version });
+    await releaseWrite(context, `/api/v1/release-orders/${draft.id}/complete`, { expected_version: result.version });
+    return result;
   }
 
   try {
-    browser = await engine.launch({ headless: true });
+    browser = await engine.launch({ headless: true,
+      ...(engineName === 'firefox' ? { firefoxUserPrefs: { 'network.proxy.type': 0 } } : {}),
+    });
     context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     account = await registerFixtureAccount(context, base);
     approvalContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });

@@ -104,6 +104,18 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 		}
 		respondReleaseWrite(c, orders, order, 201)
 	})
+	router.POST("/api/v1/release-orders/:id/complete", func(c *gin.Context) {
+		var input application.SubmitReleaseInput
+		if err := decodeRequest(c, &input); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		order, err := orders.Complete(c.Request.Context(), c.Param("id"), input, c.GetHeader("Idempotency-Key"))
+		if writeReleaseError(c, err) {
+			return
+		}
+		respondReleaseWrite(c, orders, order, 200)
+	})
 	router.POST("/api/v1/release-orders/:id/execute", func(c *gin.Context) {
 		var input application.SubmitReleaseInput
 		if err := decodeRequest(c, &input); err != nil {

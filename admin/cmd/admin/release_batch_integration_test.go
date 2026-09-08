@@ -64,7 +64,7 @@ func TestReleaseMixedBatchPublication(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if count != 2 || targets != 0 || notifications != 1 {
+	if count != 2 || targets != 3 || notifications != 1 {
 		t.Fatalf("rows %d targets %d notifications %d", count, targets, notifications)
 	}
 	list := releaseRequest(t, app, "GET", "/api/v1/release-orders?limit=100", "", "")
@@ -207,12 +207,13 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if count != 667 || commands != 1000 || versions != 1000 || notifications != 1 || targets != 0 {
+	if count != 667 || commands != 1000 || versions != 1000 || notifications != 1 || targets != 1000 {
 		t.Fatalf("partial/duplicate state %d %d %d %d %d", count, commands, versions, notifications, targets)
 	}
 	// AC-041: exercise the complete reverse under the same executable's default
 	// four-second transaction budget, without repeating the forward fixture.
-	reverseBytes := request(path+"/rollback", `{"expected_version":"4","reason":"restore all 1000 actual results"}`, "thousand-rollback", cookies, csrf)
+	request(path+"/complete", `{"expected_version":"4"}`, "thousand-complete", cookies, csrf)
+	reverseBytes := request(path+"/rollback", `{"expected_version":"5","reason":"restore all 1000 actual results"}`, "thousand-rollback", cookies, csrf)
 	var reverse domain.ReleaseOrder
 	if json.Unmarshal(reverseBytes, &reverse) != nil || reverse.RollbackOfID != order.ID || len(reverse.Items) != 1000 {
 		t.Fatal("incomplete reverse draft")
@@ -221,7 +222,7 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 	request(reversePath+"/submit", `{"expected_version":"1"}`, "thousand-reverse-submit", cookies, csrf)
 	request(reversePath+"/approve", `{"expected_version":"2","reason":"reviewed all reverse items"}`, "thousand-reverse-approve", reviewCookies, reviewCSRF)
 	restored := request(reversePath+"/execute", `{"expected_version":"3"}`, "thousand-reverse-execute", cookies, csrf)
-	if json.Unmarshal(restored, &reverse) != nil || reverse.State != "SUCCEEDED" || reverse.Publication.TableVersion != "2" || len(reverse.Publication.Commands) != 1000 {
+	if json.Unmarshal(restored, &reverse) != nil || reverse.State != "COMPLETED" || reverse.Publication.TableVersion != "2" || len(reverse.Publication.Commands) != 1000 {
 		t.Fatal("incomplete reverse publication")
 	}
 	if string(request(reversePath+"/execute", `{"expected_version":"3"}`, "thousand-reverse-execute", cookies, csrf)) != string(restored) {

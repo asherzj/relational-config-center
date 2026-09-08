@@ -1,8 +1,8 @@
 # 审批回滚（T7 / #54）
 
-当前 EDITOR 可从 SUCCEEDED 发布单申请反向草稿。调用 `POST /api/v1/release-orders/:id/rollback`，携带 `Idempotency-Key` 和 `{"expected_version":"4","reason":"恢复原业务配置"}`；原因必填且最多 2,000 UTF-8 字节。返回 201 及新的 DRAFT，申请不会写业务行或取得在途目标。反向单仍由申请人提交、另一位 APPROVER 审批、PUBLISHER 执行；ADMIN 也不能自批。
+当前 EDITOR 可从 COMPLETED 普通发布单申请反向草稿；SUCCEEDED 表示已发布待完结，必须先由当前 PUBLISHER/ADMIN 明确完结。成功反向结果虽然也是 COMPLETED，但不能再次申请回滚。调用 `POST /api/v1/release-orders/:id/rollback`，携带 `Idempotency-Key` 和 `{"expected_version":"5","reason":"恢复原业务配置"}`；原因必填且最多 2,000 UTF-8 字节。返回 201 及新的 DRAFT，申请不会写业务行或取得在途目标。反向单仍由申请人提交、另一位 APPROVER 审批、PUBLISHER 执行；ADMIN 也不能自批。
 
-原单的 `rollback_order_id` 指向最新反向单，`rollback_pending` 表示该申请仍在途；反向单的 `rollback_of_id` 指向原单。未出现过回滚的旧文档可省略这些字段，省略 pending 等价于 false。列表仍是有界摘要，包含这些关联字段；完整差异与历史通过详情读取。`history.related_order_id` 关联每次申请、取消、拒绝与成功；旧申请及原发布结果不会删除。
+原单的 `rollback_order_id` 指向最新反向单，`rollback_pending` 表示该申请仍在途；反向单的 `rollback_of_id` 指向原单。无回滚关联时可省略这些字段，省略 pending 等价于 false。列表仍是有界摘要，包含这些关联字段；完整差异与历史通过详情读取。`history.related_order_id` 关联每次申请、取消、拒绝与成功；旧申请及原发布结果不会删除。
 
 ## 恢复规则
 
@@ -26,12 +26,12 @@
 
 同原单至多一张在途有效反向申请（`409 rollback_conflict`）；原单版本仍控制申请竞争。原单行锁协调申请与反向动作；反向动作先锁原单、再锁反向单，后续提交保持既有业务表/目标/版本锁序。获取不可变原单指针在事务外完成，不提前建立执行事务的旧一致性快照。
 
-执行成功在同一个 MySQL 事务中保存：反向业务行、记录版本、Command、Table Version、反向单 SUCCEEDED/EXECUTE、原单 ROLLED_BACK/关联历史、目标释放、通知与原请求成功结果。任意步骤失败，原单仍 SUCCEEDED，反向单仍 APPROVED 且保留占用。取消和拒绝也与原关联的释放同事务提交。
+执行成功在同一个 MySQL 事务中保存：反向业务行、记录版本、Command、Table Version、反向单 COMPLETED/EXECUTE、原单 ROLLED_BACK/关联历史、目标释放、通知与原请求成功结果。任意步骤失败，原单仍 COMPLETED，反向单仍 APPROVED 且保留占用。取消和拒绝也与原关联的释放同事务提交。
 
 所有动作沿用账号、操作、请求键和规范请求摘要。同键同内容返回原业务结果；同键改内容为 `409 idempotency_conflict`。已回滚原单的旧 execute 键仍返回原来的 SUCCEEDED 快照，当前详情则显示 ROLLED_BACK。Web 成功后重新读取当前详情和关联单，不把旧结果当作当前状态。未知结果保留原键、原单号、期望版本和理由，刷新/重新登录后按账号隔离恢复；明确冲突后保留原意，先看当前状态再确认重建。反向提交恢复不会调用普通 preview 来更新记录基线。
 
 一单仍为同表 1～1,000 项，整单一次提交，明细/结果每页最多显示 20 项。HTTP 1 MiB、普通提交字段 64 KiB 和完整文档/结果 8 MiB 门禁不变。回滚动作没有重新上传全部历史值，因此服务器生成的历史字段不套用上传的 64 KiB 门禁，但仍受当前类型、完整结果及默认正式 4 秒事务期限约束。超过最终文档预算仍整单拒绝。
 
-普通未关联 SUCCEEDED 保留 64 KiB 的后续动作空间。申请关联可消耗其中一部分，但 pending 原单始终保留 4 KiB 终止事件空间和 1 KiB HTTP 空间；取消、拒绝或最终回滚可消耗终止余量，即使取消后的原单仍为 SUCCEEDED。新的申请必须再次通过 pending 门禁，不承诺无限历史容量。不会接受一笔因新增关联占满空间而无法取消/拒绝的申请。
+普通 SUCCEEDED 保留 64 KiB 的后续动作空间；人工完结可消耗其中 4 KiB，无关联 COMPLETED 仍保留 60 KiB。申请关联可消耗其中一部分，但 pending 原单始终保留 4 KiB 终止事件空间和 1 KiB HTTP 空间；取消、拒绝或最终回滚可消耗终止余量，即使取消后的原单仍为 COMPLETED。新的申请必须再次通过 pending 门禁，不承诺无限历史容量。不会接受一笔因新增关联占满空间而无法取消/拒绝的申请。
 
 无新增 Schema 迁移、临时恢复 SQL、免审批入口或兼容开关。通知仍只持久化 `NOT_CONNECTED`，没有 worker 或 Server/Client 投递。本单证据见 [T7 验收](verification/2026-09-08-approved-rollback.md)。

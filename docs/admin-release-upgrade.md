@@ -30,3 +30,9 @@
 DRAFT、PENDING_APPROVAL、APPROVED、SUCCEEDED、REJECTED、CANCELLED、ROLLED_BACK 均作为持久历史保留。完整申请差异、意见、永久 Account ID、最终 Command 及正反向关联不依赖当前业务表或账号显示资料；重启、账号改名/邮箱修正/停用以及后续规则或表结构变化不会重写归属。系统没有物理删除发布历史或自动清理发布/幂等记录的接口。
 
 详细契约：[草稿](admin-release-drafts.md)、[审批](admin-release-approvals.md)、[混合批量](admin-release-drafts.md)、[回滚](admin-release-rollbacks.md)、[记录版本](admin-record-versions.md)。Environment、跨表发布、模板编辑器、灰度、Worker、运行时投递及版本大盘仍属后续范围。
+
+## 发布后的人工完结
+
+普通成功 `SUCCEEDED` 表示已发布待完结，所有已知、自增生成及删除身份继续占用；同表不重叠记录仍可发布。当前 PUBLISHER/ADMIN 可调用 `POST /api/v1/release-orders/:id/complete`，发送 `{"expected_version":"4"}` 及原有会话、CSRF、Idempotency-Key；无需意见。响应为 `COMPLETED`，只推进发布单版本、记录 COMPLETE 历史及释放占用，不改配置、Record Version、Table Version 或通知状态。Web 完结确认说明释放占用及关闭快速回滚；取消无写入，未知结果以原请求恢复。
+
+完结后的普通回滚仍需独立审批；反向成功自身直接 COMPLETED，原单 ROLLED_BACK，禁止连续反向操作。并发动作由单据版本收敛，相同成功请求键返回原业务结果，当前权限仍须有效。COMPLETED 与其他已发布状态一样要求可信完整的 Publication；缺失或损坏不能经详情、列表或原键重放绕过校验。决策见 [ADR-0023](adr/0023-keep-published-orders-open-for-quick-rollback.md)，快速回滚接口由 #63 后续交付。

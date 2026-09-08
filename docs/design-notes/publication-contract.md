@@ -1,6 +1,6 @@
 # Admin 发布结果契约（T5 / #52，T6 / #53，T7 / #54，T8 / #55）
 
-已批准单通过 `POST /api/v1/release-orders/:id/execute` 执行，正文为 `{"expected_version":"3"}`，带原 `Idempotency-Key`。当前永久账号必须具有 PUBLISHER（ADMIN 含该能力）；合法审批不因审批人后来撤权失效。业务行、记录版本、Command、表进度、发布单 SUCCEEDED/EXECUTE 历史、目标释放、通知、成功请求结果在同一事务中提交。执行前重新核实冻结语义和基线；明确失败保持 APPROVED、版本和占用。COMMIT 错误一律待确认；原键重试在当前鉴权后、状态版本检查前重放持久结果。
+已批准单通过 `POST /api/v1/release-orders/:id/execute` 执行，正文为 `{"expected_version":"3"}`，带原 `Idempotency-Key`。当前永久账号必须具有 PUBLISHER（ADMIN 含该能力）；合法审批不因审批人后来撤权失效。业务行、记录版本、Command、表进度、普通发布单 SUCCEEDED/EXECUTE 历史、全部真实目标持续占用、通知、成功请求结果在同一事务中提交。反向单成功为 COMPLETED 并释放目标；普通单由人工 complete 后才释放目标，详见[人工完结](../admin-release-upgrade.md#发布后的人工完结)。执行前重新核实冻结语义和基线；明确失败保持 APPROVED、版本和占用。COMMIT 错误一律待确认；原键重试在当前鉴权后、状态版本检查前重放持久结果。
 
 省略主键仅支持 AUTO_INCREMENT。非自增主键即使有 DEFAULT，也需在申请中显式提供 id；否则在准备前返回 publication_unsupported，不能用上次连接的 LAST_INSERT_ID 猜测实际记录。
 

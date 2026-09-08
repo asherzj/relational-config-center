@@ -77,7 +77,7 @@ A complete field-by-field comparison of one proposed ADD, MODIFY, or DELETE agai
 _Avoid_: Release, revision, audit record
 
 **Release Order（发布单）**:
-The authoritative record of a proposed configuration change and its progression through approval, publication, cancellation, or rollback, associating the requested content with its applicant and operation history.
+The authoritative record of a proposed configuration change and its progression through approval, publication, completion, cancellation, or rollback, associating the requested content with its applicant and operation history.
 _Avoid_: Change Set, deployment, notification task
 
 **Release Approval（发布审批）**:
@@ -97,11 +97,15 @@ The publication progress of one Managed Table, advanced when a change set is com
 _Avoid_: Record Version, Release Order Version, cache refresh time
 
 **Rollback Release Order（回滚发布单）**:
-A new Release Order requesting the reversal of a previous publication, linked to that publication and subject to fresh approval and checks that no later change would be overwritten.
+A new Release Order requesting the reversal of a completed ordinary publication, linked to that publication and subject to fresh approval and checks that no later change would be overwritten. Its successful result is complete and cannot itself be reversed.
 _Avoid_: History deletion, forced restore, cancellation
 
+**Release Completion（发布完结）**:
+The explicit end of a successful ordinary publication's protected recovery period, authorized by a current publisher. It releases the publication's targets and closes quick rollback without changing configuration values or claiming downstream delivery; later restoration requires an independently approved Rollback Release Order.
+_Avoid_: Publication, cancellation, delivery confirmation
+
 **Active Target（在途目标）**:
-A known configuration record identity reserved by a submitted, unfinished Release Order so that another order cannot simultaneously submit a conflicting change to that identity.
+A configuration record identity reserved by a submitted, unfinished Release Order, including the actual identities created or deleted by a successful publication, until completion or successful rollback releases it. Other orders may submit changes to unrelated identities.
 _Avoid_: Draft editing lock, business-field similarity
 
 **Account Role（账号角色）**:

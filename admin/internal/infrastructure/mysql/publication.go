@@ -135,6 +135,18 @@ func (s *publicationSession) CommitPublication(ctx context.Context, plan applica
 			return domain.PublicationResult{}, &application.ReleaseItemError{Index: index, Cause: application.ErrRecordVersionConflict}
 		}
 	}
+	// Generated INSERT identities were unknown at submission. Protect the real
+	// MySQL identity in this same transaction before acknowledging publication.
+	generatedTargets := []domain.ActiveTarget{}
+	for index, item := range plan.Items {
+		if item.Intent.ID == nil {
+			baseline := baselines[index]
+			generatedTargets = append(generatedTargets, domain.ActiveTarget{ItemIndex: index, TableName: baseline.TableName, RecordKey: baseline.Key})
+		}
+	}
+	if err := s.ReserveReleaseTargets(ctx, plan.OrderID, generatedTargets); err != nil {
+		return domain.PublicationResult{}, err
+	}
 	versions, err := s.advancePublicationVersions(ctx, plan, baselines)
 	if err != nil {
 		return domain.PublicationResult{}, err

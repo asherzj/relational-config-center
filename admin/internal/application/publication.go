@@ -115,10 +115,16 @@ func (r *ReleaseOrders) Execute(ctx context.Context, id string, input SubmitRele
 		}
 		order.Publication = &result
 		order.State = "SUCCEEDED"
+		if order.RollbackOfID != "" {
+			order.State = "COMPLETED"
+		}
 		if err := r.finishRollback(ctx, s, *order, true); err != nil {
 			return err
 		}
-		return s.ReleaseTargets(ctx, order.ID)
+		if order.RollbackOfID != "" {
+			return s.ReleaseTargets(ctx, order.ID)
+		}
+		return nil
 	})
 }
 func publicationContent(schema domain.TableSchema, p domain.MutationPolicy, item ReleaseItem, actor string, now time.Time) (domain.MutationContent, error) {
