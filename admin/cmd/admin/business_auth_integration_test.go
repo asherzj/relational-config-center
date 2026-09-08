@@ -224,7 +224,7 @@ func TestBusinessAPIsRequireSessionAndCSRF(t *testing.T) {
 		{"GET", "/api/v1/table-policies"}, {"POST", "/api/v1/table-policies"}, {"GET", "/api/v1/table-policies/example"}, {"PUT", "/api/v1/table-policies/example"}, {"POST", "/api/v1/table-policies/example/enable"}, {"POST", "/api/v1/table-policies/example/disable"},
 		{"POST", "/api/v1/tables/example/query"},
 		{"GET", "/api/v1/release-orders"}, {"POST", "/api/v1/release-orders"}, {"GET", "/api/v1/release-orders/example"}, {"PUT", "/api/v1/release-orders/example"},
-		{"POST", "/api/v1/release-orders/example/submit"}, {"POST", "/api/v1/release-orders/example/approve"}, {"POST", "/api/v1/release-orders/example/reject"}, {"POST", "/api/v1/release-orders/example/cancel"}, {"POST", "/api/v1/release-orders/example/copy"}, {"POST", "/api/v1/release-orders/example/execute"},
+		{"POST", "/api/v1/release-orders/example/submit"}, {"POST", "/api/v1/release-orders/example/approve"}, {"POST", "/api/v1/release-orders/example/reject"}, {"POST", "/api/v1/release-orders/example/cancel"}, {"POST", "/api/v1/release-orders/example/copy"}, {"POST", "/api/v1/release-orders/example/reprepare"}, {"POST", "/api/v1/release-orders/example/execute"},
 	}
 	for _, path := range []string{"/health/live", "/health/ready"} {
 		if response := accountRequest(app, "GET", path, "", nil, ""); response.Code != 200 {

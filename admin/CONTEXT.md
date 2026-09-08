@@ -104,6 +104,10 @@ _Avoid_: Record Version, Release Order Version, cache refresh time
 A new Release Order requesting the reversal of a previous publication, linked to that publication and subject to fresh approval and checks that no later change would be overwritten.
 _Avoid_: History deletion, forced restore, cancellation
 
+**Reprepared Release Order（重新准备发布单）**:
+A new editable Release Order that replaces an approved but unpublished ordinary Release Order after its original applicant or an administrator reviews the current configuration. The replacement belongs to the person who performs the operation and must receive a fresh independent approval; cancelling the source, releasing its Active Targets, creating the replacement and linking both histories form one atomic change.
+_Avoid_: Editing an approval, approval reuse, quick rollback
+
 **Active Target（在途目标）**:
 A known configuration record identity reserved by a submitted, unfinished Release Order so that another order cannot simultaneously submit a conflicting change to that identity.
 _Avoid_: Draft editing lock, business-field similarity

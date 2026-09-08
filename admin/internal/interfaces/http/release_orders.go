@@ -10,6 +10,18 @@ import (
 )
 
 func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseOrders) {
+	router.POST("/api/v1/release-orders/:id/reprepare", func(c *gin.Context) {
+		var input application.CopyReleaseInput
+		if err := decodeRequest(c, &input); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		order, err := orders.Reprepare(c.Request.Context(), c.Param("id"), input, c.GetHeader("Idempotency-Key"))
+		if writeReleaseError(c, err) {
+			return
+		}
+		respondReleaseWrite(c, orders, order, 201)
+	})
 	router.GET("/api/v1/release-orders/:id/people", func(c *gin.Context) {
 		people, err := orders.People(c.Request.Context(), c.Param("id"))
 		if writeReleaseError(c, err) {

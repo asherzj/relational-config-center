@@ -57,10 +57,11 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
       setNeedsDraftUpdate(changed);if(!changed)setRebuilt(releaseRequests.action("submit",intent.id,latest.version));
      }
     }
-   }else if(intent.action==="copy"){
-    if(latest?.allowed_actions.includes("copy")){
+   }else if(intent.action==="copy"||intent.action==="reprepare"){
+    if(latest?.allowed_actions.includes(intent.action)){
      const snapshot=await releaseOrders.preview({table_name:latest.table_name,items:intent.input.items});setPreview(snapshot);
-     setRebuilt(releaseRequests.copy(intent.id,latest.version,intent.input.items.map((entry,index)=>({...entry,expected_record_version:snapshot.items[index]!.expected_record_version}))));
+     const items=intent.input.items.map((entry,index)=>({...entry,expected_record_version:snapshot.items[index]!.expected_record_version}));
+     setRebuilt(intent.action==="copy"?releaseRequests.copy(intent.id,latest.version,items):releaseRequests.reprepare(intent.id,latest.version,items));
     }
    }else if(intent.action==="create"||latest?.allowed_actions.includes("edit")){
     const snapshot=await releaseOrders.preview(intent.input);setPreview(snapshot);
@@ -89,5 +90,5 @@ function PendingIntent({item}:{item:PendingReleaseRequest}){
  if(intent.action==="submit")return <details className="my-2"><summary>查看原申请内容</summary><p>提交单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
  if(intent.action==="rollback")return <details className="my-2"><summary>查看原申请内容</summary><p>原发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>回滚原因：{intent.input.reason}</p></details>;
  if(intent.action==="cancel"||intent.action==="approve"||intent.action==="reject")return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="cancel"?"取消原因":"审批意见"}：{intent.input.reason}</p></details>;
- return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="copy"?`复制原单 ${intent.id}`:intent.input.table_name}</p>{intent.input.items.map((entry,index)=><div key={index}><strong>{entry.operation} · {entry.id??entry.content.id??"待生成 id"}</strong><dl>{Object.entries(entry.content).map(([field,value])=><div key={field} className="break-all"><dt>{field}</dt><dd className="whitespace-pre-wrap">{value===null?"SQL NULL":value===""?"空字符串（\"\"）":<>值：{value}</>}</dd></div>)}</dl></div>)}</details>;
+ return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="copy"?`复制原单 ${intent.id}`:intent.action==="reprepare"?`重新准备原单 ${intent.id}`:intent.input.table_name}</p>{intent.input.items.map((entry,index)=><div key={index}><strong>{entry.operation} · {entry.id??entry.content.id??"待生成 id"}</strong><dl>{Object.entries(entry.content).map(([field,value])=><div key={field} className="break-all"><dt>{field}</dt><dd className="whitespace-pre-wrap">{value===null?"SQL NULL":value===""?"空字符串（\"\"）":<>值：{value}</>}</dd></div>)}</dl></div>)}</details>;
 }

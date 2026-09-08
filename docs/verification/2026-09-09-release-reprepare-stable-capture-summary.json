@@ -1,0 +1,36 @@
+{
+  "artifact": "/private/tmp/rcc-issue-62-stable-capture-v1",
+  "suites": [
+    {
+      "suite": "drafts",
+      "checks": 6
+    },
+    {
+      "suite": "approvals",
+      "checks": 6
+    },
+    {
+      "suite": "batches",
+      "checks": 5
+    },
+    {
+      "suite": "rollback-chromium",
+      "checks": 4
+    },
+    {
+      "suite": "recovery-chromium",
+      "checks": 21
+    }
+  ],
+  "checks": 42,
+  "run": {
+    "started at": "2026-09-08T23:36:15Z",
+    "exit status": "0",
+    "finished at": "2026-09-08T23:37:42Z",
+    "cleanup verified": "true"
+  },
+  "fixture_rows_unchanged": true,
+  "database_postcheck": "5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED",
+  "desktop_stable_visual": "root inspected; opaque dialog, readable text, full cancel/destructive actions, no clipping",
+  "mobile_visual": "root inspected same unchanged product;390px page has no overall overflow"
+}

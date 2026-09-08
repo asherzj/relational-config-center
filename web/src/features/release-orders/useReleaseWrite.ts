@@ -35,6 +35,10 @@ export function useReleaseWrite(scope:string){
     void client.invalidateQueries({queryKey:["release-order",order.rollback_of_id]});
     void client.invalidateQueries({queryKey:["release-order-people",order.rollback_of_id]});
    }
+   if(order.copied_from_id){
+    void client.invalidateQueries({queryKey:["release-order",order.copied_from_id]});
+    void client.invalidateQueries({queryKey:["release-order-people",order.copied_from_id]});
+   }
    return order;
   }catch(cause){
    if(!recorded){setError(new ApiError("release_journal_unavailable","浏览器无法保存完整请求，尚未发送。当前输入和已有待恢复请求保留，请释放浏览器存储空间后重试。",0));setUnresolved(Boolean(previous));return;}

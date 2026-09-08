@@ -197,7 +197,7 @@ func (r *ReleaseOrders) People(ctx context.Context, id string) (map[string]strin
 
 func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) []string {
 	actions := []string{}
-	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute", "rollback"} {
+	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute", "rollback", "reprepare"} {
 		if releaseOrderActionState(order, action) && authorizeReleaseAction(ctx, order, action) == nil {
 			actions = append(actions, action)
 		}
@@ -227,14 +227,14 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
 	if action == "execute" || action == "copy" || action == "rollback" || actor == order.ApplicantID {
 		return nil
 	}
-	if action == "cancel" {
+	if action == "cancel" || action == "reprepare" {
 		_, err := requireRole(ctx, RoleAdmin)
 		return err
 	}
 	return ErrPermissionDenied
 }
 func releaseOrderActionState(order ReleaseOrder, action string) bool {
-	if order.RollbackOfID != "" && (action == "edit" || action == "copy") {
+	if order.RollbackOfID != "" && (action == "edit" || action == "copy" || action == "reprepare") {
 		return false
 	}
 	if action == "rollback" && order.RollbackPending {
@@ -245,6 +245,8 @@ func releaseOrderActionState(order ReleaseOrder, action string) bool {
 
 func releaseActionState(state, action string) bool {
 	switch action {
+	case "reprepare":
+		return state == "APPROVED"
 	case "rollback":
 		return state == "SUCCEEDED"
 	case "execute":
@@ -632,7 +634,7 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 		if order.Version != version {
 			return ErrReleaseVersionConflict
 		}
-		if order.RollbackOfID != "" && (action == "edit" || action == "copy") {
+		if order.RollbackOfID != "" && (action == "edit" || action == "copy" || action == "reprepare") {
 			return ErrRollbackLocked
 		}
 		if !releaseOrderActionState(order, action) {
@@ -703,6 +705,17 @@ type CopyReleaseInput struct {
 }
 
 func (r *ReleaseOrders) Copy(ctx context.Context, id string, input CopyReleaseInput, key string) (ReleaseOrder, error) {
+	return r.copyOrder(ctx, id, input, key, false)
+}
+
+// Reprepare atomically retires one approved ordinary order and creates a fresh
+// editable draft from the caller-confirmed current record baselines. Approval
+// never crosses the boundary between the two orders.
+func (r *ReleaseOrders) Reprepare(ctx context.Context, id string, input CopyReleaseInput, key string) (ReleaseOrder, error) {
+	return r.copyOrder(ctx, id, input, key, true)
+}
+
+func (r *ReleaseOrders) copyOrder(ctx context.Context, id string, input CopyReleaseInput, key string, reprepare bool) (ReleaseOrder, error) {
 	actor, err := requireRole(ctx, RoleEditor)
 	if err != nil {
 		return ReleaseOrder{}, err
@@ -712,13 +725,20 @@ func (r *ReleaseOrders) Copy(ctx context.Context, id string, input CopyReleaseIn
 	}
 	var result ReleaseOrder
 	err = r.store.ExecuteReleaseOrder(ctx, func(s ReleaseOrderSession) error {
-		operation := "copy:" + id
+		action := "copy"
+		if reprepare {
+			action = "reprepare"
+		}
+		operation := action + ":" + id
 		previous, err := s.BeginReleaseRequest(ctx, actor, operation, key, releaseDigest(input))
 		if err != nil {
 			return err
 		}
 		source, err := s.GetReleaseOrder(ctx, id)
 		if err != nil {
+			return err
+		}
+		if err := authorizeReleaseAction(ctx, source, action); err != nil {
 			return err
 		}
 		if previous != nil {
@@ -734,7 +754,7 @@ func (r *ReleaseOrders) Copy(ctx context.Context, id string, input CopyReleaseIn
 		if source.RollbackOfID != "" {
 			return ErrRollbackLocked
 		}
-		if !releaseActionState(source.State, "copy") {
+		if !releaseOrderActionState(source, action) {
 			return ErrReleaseState
 		}
 		if len(input.Items) != len(source.Items) {
@@ -768,7 +788,23 @@ func (r *ReleaseOrders) Copy(ctx context.Context, id string, input CopyReleaseIn
 			return ErrReleaseUnavailable
 		}
 		stamp := now.UTC().Format(time.RFC3339Nano)
-		result = ReleaseOrder{Title: source.Title, ID: hex.EncodeToString(idBytes), CopiedFromID: source.ID, TableName: source.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "COPY", ActorID: actor, At: stamp, Version: "1"}}}
+		historyAction := "COPY"
+		if reprepare {
+			historyAction = "REPREPARE"
+		}
+		result = ReleaseOrder{Title: source.Title, ID: hex.EncodeToString(idBytes), CopiedFromID: source.ID, TableName: source.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: historyAction, ActorID: actor, At: stamp, Version: "1", RelatedOrderID: source.ID}}}
+		if reprepare {
+			source.State = "CANCELLED"
+			if err := appendRelatedReleaseEvent(&source, actor, stamp, "REPREPARE", "重新准备", result.ID); err != nil {
+				return err
+			}
+			if err := s.SaveReleaseOrder(ctx, source, false); err != nil {
+				return err
+			}
+			if err := s.ReleaseTargets(ctx, source.ID); err != nil {
+				return err
+			}
+		}
 		if err := s.SaveReleaseOrder(ctx, result, true); err != nil {
 			return err
 		}

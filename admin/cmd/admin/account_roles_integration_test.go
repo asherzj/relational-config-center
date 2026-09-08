@@ -190,6 +190,7 @@ func TestCurrentSessionUsesRolePermissionMatrix(t *testing.T) {
 			{"POST", "/api/v1/release-orders/missing/submit", role == "EDITOR" || role == "ADMIN"},
 			{"POST", "/api/v1/release-orders/missing/approve", role == "APPROVER" || role == "ADMIN"},
 			{"POST", "/api/v1/release-orders/missing/reject", role == "APPROVER" || role == "ADMIN"},
+			{"POST", "/api/v1/release-orders/missing/reprepare", role == "EDITOR" || role == "ADMIN"},
 			{"POST", "/api/v1/release-orders/missing/execute", role == "PUBLISHER" || role == "ADMIN"},
 		}
 		for _, resource := range []string{"query-policies", "mutation-policies", "table-policies"} {
