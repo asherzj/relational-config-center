@@ -1,0 +1,12 @@
+{
+  "worktree": "/private/tmp/rcc-issue-63-quick-rollback",
+  "command": "NO_PROXY=127.0.0.1,localhost GOFLAGS=... -json make test-integration",
+  "loopback_proxy_bypass": "127.0.0.1,localhost",
+  "exit_code": 0,
+  "elapsed_seconds": 2145.724,
+  "test_and_subtest_results": {
+    "PASS": 530,
+    "FAIL": 0,
+    "SKIP": 0
+  }
+}

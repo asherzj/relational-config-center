@@ -605,3 +605,120 @@ it("完结丢响应后保留原请求并阻止另一个终止动作直到恢复"
  expect(writes[0]!.body).toBe(writes[1]!.body);
  expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[1]!.headers).get("Idempotency-Key"));
 });
+
+it("快速回滚先读取整单恢复预览，取消无写入且原因必填",async()=>{
+ const published={...order,state:"SUCCEEDED",version:"4",allowed_actions:["complete","quick-rollback"]};
+ const restoredItems=order.items.map(item=>({...item,before:{id:"1",label:"proposal"},content:{label:"original"},fields:item.fields.map(field=>field.name==="label"?{...field,before:"proposal",proposed:"original"}:field)}));
+ let resolvePreview!:(response:Response)=>void;const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  if(String(input).endsWith("/quick-rollback/preview"))return new Promise<Response>(resolve=>{resolvePreview=resolve});
+  if(String(input).endsWith("/quick-rollback"))writes.push(init!);
+  return String(input).endsWith("/people")?json({people:{}}):json(published);
+ })));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"快速回滚"}));
+ expect(screen.getByRole("button",{name:"确认整单快速回滚"})).toBeDisabled();
+ expect(screen.getByText("正在读取整单恢复预览…")).toBeVisible();
+ resolvePreview(json({order_id:id,expected_version:"4",table_name:"items",preview_digest:"a".repeat(64),items:restoredItems}));
+ expect(await screen.findByText("本次恢复涉及全部 1 项，无需再次审批。成功后原单和回滚结果均结束，释放目标记录的占用。")).toBeVisible();
+ expect(screen.getByRole("columnheader",{name:"当前值"})).toBeVisible();
+ expect(screen.getByRole("columnheader",{name:"恢复值"})).toBeVisible();
+ expect(screen.getByLabelText("快速回滚原因")).toBeRequired();
+ expect(screen.getByRole("button",{name:"确认整单快速回滚"})).toBeDisabled();
+ await user.click(screen.getByRole("button",{name:"取消快速回滚"}));
+ expect(writes).toHaveLength(0);expect(screen.queryByLabelText("快速回滚原因")).not.toBeInTheDocument();
+ expect(screen.getByText("items · 已发布待完结")).toBeVisible();
+});
+
+it("快速回滚未知结果保留原摘要原因与标识，锁住完结并跨刷新恢复",async()=>{
+ const identity={...testAdminIdentity,account:{...testAdminIdentity.account,roles:["PUBLISHER"]}};
+ let current={...order,state:"SUCCEEDED",version:"4",allowed_actions:["complete","quick-rollback"]};
+ const digest="a".repeat(64),writes:RequestInit[]=[];let previewReads=0;let rejectFirst!:(error:Error)=>void;
+ const reverse={...order,id:rollbackID,title:"回滚：更新渠道展示名称",state:"COMPLETED",version:"1",allowed_actions:[],rollback_of_id:id,history:[{action:"QUICK_ROLLBACK",actor_id:identity.account.id,at:order.updated_at,version:"1",reason:"恢复实际配置",related_order_id:id}]};
+ vi.stubGlobal("fetch",vi.fn(async(input,init)=>{
+  const path=String(input);if(path.startsWith("/api/v1/auth/"))return json(identity);
+  if(path.endsWith("/people"))return json({people:{}});
+  if(path.endsWith("/quick-rollback/preview")){previewReads++;return json({order_id:id,expected_version:"4",table_name:"items",preview_digest:digest,items:order.items})}
+  if(path.endsWith("/quick-rollback")){writes.push(init!);current={...current,state:"ROLLED_BACK",version:"5",allowed_actions:[]};if(writes.length===1)return new Promise<Response>((_,reject)=>{rejectFirst=reject});return json(reverse)}
+  if(path.endsWith(rollbackID))return json(reverse);return json(current);
+ }));
+ const user=userEvent.setup();const first=mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"快速回滚"}));
+ await user.type(screen.getByLabelText("快速回滚原因"),"恢复实际配置");
+ await user.dblClick(screen.getByRole("button",{name:"确认整单快速回滚"}));
+ await waitFor(()=>expect(writes).toHaveLength(1));rejectFirst(new TypeError("lost committed response"));
+ expect(await screen.findByRole("button",{name:"使用原请求重试"})).toBeVisible();
+ expect(screen.getByLabelText("快速回滚原因")).toBeDisabled();
+ expect(screen.getByRole("button",{name:"完结发布单"})).toBeDisabled();
+ expect(screen.getByRole("button",{name:"快速回滚"})).toBeDisabled();
+ expect(previewReads).toBe(1);
+ first.unmount();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"恢复原发布请求"}));
+ expect(await screen.findByRole("heading",{name:"回滚：更新渠道展示名称"})).toBeVisible();
+ expect(writes).toHaveLength(2);expect(writes[1]!.body).toBe(writes[0]!.body);
+ expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"4",preview_digest:digest,reason:"恢复实际配置"});
+ expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
+ expect(previewReads).toBe(1);expect(sessionStorage.length).toBe(0);
+});
+
+it("快速回滚明确拒绝后保留原因，只有主动重读并审阅新预览才重建",async()=>{
+ const published={...order,state:"SUCCEEDED",version:"4",allowed_actions:["complete","quick-rollback"]};
+ const reverse={...order,id:rollbackID,title:"回滚：更新渠道展示名称",state:"COMPLETED",version:"1",allowed_actions:[],rollback_of_id:id};
+ const writes:RequestInit[]=[];let previewReads=0;
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  if(String(input).endsWith("/people"))return json({people:{}});
+  if(String(input).endsWith("/quick-rollback/preview")){previewReads++;return json({order_id:id,expected_version:"4",table_name:"items",preview_digest:"a".repeat(64),items:order.items})}
+  if(String(input).endsWith("/quick-rollback")){writes.push(init!);return writes.length===1?json({error:{code:"release_frozen_changed",message:"rules changed",request_id:"changed-rules"}},409):json(reverse)}
+  return json(String(input).endsWith(rollbackID)?reverse:published);
+ })));
+ const user=userEvent.setup();const first=mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"快速回滚"}));await user.type(screen.getByLabelText("快速回滚原因"),"需要保留的恢复原因");await user.click(screen.getByRole("button",{name:"确认整单快速回滚"}));
+ expect(await screen.findByText("服务器已明确拒绝原请求。原申请保留，请查看最新状态与配置后决定是否重建。")).toBeVisible();
+ expect(previewReads).toBe(1);expect(screen.getByLabelText("快速回滚原因")).toHaveValue("需要保留的恢复原因");
+ first.unmount();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByText("查看原申请内容"));expect(screen.getByText("快速回滚原因：需要保留的恢复原因")).toBeVisible();
+ expect(previewReads).toBe(1);
+ await user.click(screen.getByRole("button",{name:"查看最新状态与配置"}));
+ expect(await screen.findByText("重新审阅整单恢复预览，确认后将使用新的请求标识执行：")).toBeVisible();
+ expect(previewReads).toBe(2);expect(writes).toHaveLength(1);
+ await user.click(screen.getByRole("button",{name:"确认按最新状态快速回滚"}));
+ expect(await screen.findByRole("heading",{name:"回滚：更新渠道展示名称"})).toBeVisible();
+ expect(writes).toHaveLength(2);expect(JSON.parse(String(writes[1]!.body)).reason).toBe("需要保留的恢复原因");
+ expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).not.toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
+});
+
+it("快速回滚预览失败时保留原因，主动重读成功后仍拒绝超长原因",async()=>{
+ const published={...order,state:"SUCCEEDED",version:"4",allowed_actions:["complete","quick-rollback"]};
+ let previewReads=0,writes=0;
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input)=>{
+  if(String(input).endsWith("/people"))return json({people:{}});
+  if(String(input).endsWith("/quick-rollback/preview")){previewReads++;return previewReads===1?json({error:{code:"release_unavailable",message:"preview unavailable",request_id:"preview-read"}},503):json({order_id:id,expected_version:"4",table_name:"items",preview_digest:"b".repeat(64),items:order.items})}
+  if(String(input).endsWith("/quick-rollback"))writes++;
+  return json(published);
+ })));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"快速回滚"}));
+ const reason=screen.getByLabelText("快速回滚原因");await user.type(reason,"保留恢复原因");
+ expect(screen.getByRole("button",{name:"确认整单快速回滚"})).toBeDisabled();
+ await user.click(screen.getByRole("button",{name:"重试"}));
+ expect(await screen.findByRole("columnheader",{name:"恢复值"})).toBeVisible();
+ expect(reason).toHaveValue("保留恢复原因");expect(previewReads).toBe(2);expect(writes).toBe(0);
+ fireEvent.change(reason,{target:{value:"中".repeat(667)}});
+ expect(screen.getByText("快速回滚原因不能超过 2000 字节。")).toBeVisible();
+ expect(reason).toHaveAttribute("aria-invalid","true");expect(screen.getByRole("button",{name:"确认整单快速回滚"})).toBeDisabled();
+ fireEvent.change(reason,{target:{value:"正常原因"}});
+ expect(screen.getByRole("button",{name:"确认整单快速回滚"})).toBeEnabled();expect(writes).toBe(0);
+});
+
+it.each(["VIEWER","EDITOR","APPROVER"])("当前 %s 即使详情旧权限含快速回滚也不提供入口",async role=>{
+ const published={...order,state:"SUCCEEDED",version:"4",allowed_actions:["complete","quick-rollback"]};let previewReads=0;
+ vi.stubGlobal("fetch",vi.fn(async input=>{
+  if(String(input).startsWith("/api/v1/auth/"))return json({...testAdminIdentity,account:{...testAdminIdentity.account,roles:[role]}});
+  if(String(input).endsWith("/people"))return json({people:{}});
+  if(String(input).endsWith("/quick-rollback/preview"))previewReads++;
+  return json(published);
+ }));
+ mount(`/configuration/release-orders/${id}`);
+ expect(await screen.findByRole("heading",{name:order.title})).toBeVisible();
+ expect(screen.queryByRole("button",{name:"快速回滚"})).not.toBeInTheDocument();expect(previewReads).toBe(0);
+});

@@ -3,7 +3,7 @@ import {ApiError,isUncertainWriteError} from "../../api/client";
 import {businessSession} from "../../api/business-session";
 import {releaseOrders} from "../../api/release-orders";
 
-const pendingSchema=z.object({scope:z.string(),path:z.string().regex(/^\/api\/v1\/release-orders(?:\/[a-f0-9]{32}(?:\/(?:cancel|submit|approve|reject|copy|execute|rollback|complete))?)?$/),method:z.enum(["POST","PUT"]),body:z.string(),key:z.string(),label:z.string(),rejection:z.enum(["release_version_conflict","record_version_conflict","release_state_invalid","release_target_conflict","release_frozen_changed","rollback_conflict"]).optional()});
+const pendingSchema=z.object({scope:z.string(),path:z.string().regex(/^\/api\/v1\/release-orders(?:\/[a-f0-9]{32}(?:\/(?:cancel|submit|approve|reject|copy|execute|rollback|complete|quick-rollback))?)?$/),method:z.enum(["POST","PUT"]),body:z.string(),key:z.string(),label:z.string(),rejection:z.enum(["release_version_conflict","record_version_conflict","release_state_invalid","release_target_conflict","release_frozen_changed","rollback_conflict"]).optional()});
 export type PendingReleaseRequest=z.infer<typeof pendingSchema>;
 export const releaseJournalChanged="rcc:release-journal-changed";
 const storageKey=(accountID:string)=>`rcc:release-requests:${accountID}`;

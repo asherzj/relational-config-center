@@ -20,15 +20,18 @@ var (
 type PublicationSession interface {
 	ReleaseOrderSession
 	LockPublicationTable(context.Context, string) error
+	LockUnchangedPublication(context.Context, domain.ReleaseOrder, domain.TableSchema) error
 	CommitPublication(context.Context, PublicationPlan) (domain.PublicationResult, error)
 }
 type PublicationPlan struct {
 	OrderID, PublisherID, SchemaDigest string
-	At                                 time.Time
-	Schema                             domain.TableSchema
-	Execution                          domain.TableExecutionSchema
-	Policy                             domain.MutationPolicy
-	Items                              []PublicationItem
+	// TargetOrderID is the still-owning original for an atomic quick restoration.
+	TargetOrderID string
+	At            time.Time
+	Schema        domain.TableSchema
+	Execution     domain.TableExecutionSchema
+	Policy        domain.MutationPolicy
+	Items         []PublicationItem
 }
 type PublicationItem struct {
 	Intent domain.ReleaseItem

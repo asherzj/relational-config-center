@@ -227,6 +227,151 @@ const output = process.env.RCC_E2E_OUTPUT;
     if (output) await applicantPage.screenshot({ path: join(output, 'release-rollback-reverse-mobile.png'), fullPage: true, animations: 'disabled' });
     check('original and reverse detail links remain visible at 390px without horizontal overflow');
 
+    const quickTitle = '浏览器快速回滚验收';
+    const quickHeading = async (page, state, reverse = false, title = quickTitle) => {
+      await page.getByRole('heading', { name: reverse ? `回滚：${title}` : title, exact: true }).waitFor();
+      await page.getByText(`${table} · ${state}`, { exact: true }).waitFor();
+    };
+    const quickDraft = await api(applicant, 'POST', '/api/v1/release-orders', {
+      title: quickTitle, table_name: table,
+      items: [{ operation: 'MODIFY', id: '1', expected_record_version: '2', content: { name: `Quick ${engineName} published value` } }],
+    }, 201);
+    const quickURL = `${base}/configuration/release-orders/${quickDraft.id}`;
+    await applicantPage.setViewportSize({ width: 1440, height: 1000 });
+    await applicantPage.goto(quickURL);
+    await button(applicantPage, '提交审批').click();
+    await button(applicantPage, '确认提交审批').click();
+    await quickHeading(applicantPage, '待审批');
+    await reviewPage.goto(quickURL);
+    await button(reviewPage, '批准发布单').click();
+    await reviewPage.getByLabel('审批意见', { exact: true }).fill('Review forward change before quick restoration');
+    await button(reviewPage, '确认批准').click();
+    await quickHeading(reviewPage, '已批准');
+    await publishPage.goto(quickURL);
+    await button(publishPage, '执行发布').click();
+    await button(publishPage, '确认发布到数据库').click();
+    await quickHeading(publishPage, '已发布待完结');
+    await applicantPage.reload();
+    assert.equal(await button(applicantPage, '快速回滚').count(), 0);
+    const quickPublished = await query(applicant);
+    assert.equal(quickPublished.rows[0].name, `Quick ${engineName} published value`);
+    assert.equal(quickPublished.record_versions[0], '3');
+    const quickWrites = [], quickPreviews = [];
+    publisher.on('request', request => {
+      if (request.method() !== 'POST') return;
+      if (request.url().endsWith(`/${quickDraft.id}/quick-rollback`))
+        quickWrites.push({ body: request.postData(), key: request.headers()['idempotency-key'] });
+      if (request.url().endsWith(`/${quickDraft.id}/quick-rollback/preview`)) quickPreviews.push(request.postData());
+    });
+    await button(publishPage, '快速回滚').click();
+    const quickDialog = publishPage.getByRole('dialog', { name: `快速回滚 · ${quickTitle}`, exact: true });
+    await quickDialog.getByRole('region', { name: '整单恢复预览', exact: true }).waitFor();
+    await quickDialog.getByRole('columnheader', { name: '当前值', exact: true }).waitFor();
+    await quickDialog.getByRole('columnheader', { name: '恢复值', exact: true }).waitFor();
+    await quickDialog.getByText(`Quick ${engineName} published value`, { exact: true }).waitFor();
+    await quickDialog.getByText('Rollback seed', { exact: true }).waitFor();
+    assert.equal(await quickDialog.getByLabel('快速回滚原因', { exact: true }).getAttribute('required'), '');
+    assert.equal(await button(quickDialog, '确认整单快速回滚').isDisabled(), true);
+    assert.equal(await button(quickDialog, '取消快速回滚').evaluate(element => element === document.activeElement), true);
+    if (output) await publishPage.screenshot({ path: join(output, 'release-quick-rollback-preview-desktop.png'), fullPage: false, animations: 'disabled' });
+    await publishPage.setViewportSize({ width: 390, height: 844 });
+    await assertMobileLayout(publishPage, 'release-quick-rollback-preview');
+    if (output) await publishPage.screenshot({ path: join(output, 'release-quick-rollback-preview-mobile.png'), fullPage: false, animations: 'disabled' });
+    await button(quickDialog, '取消快速回滚').click();
+    assert.equal(quickWrites.length, 0);
+    assert.equal((await read(publisher, quickDraft.id)).state, 'SUCCEEDED');
+    assert.deepEqual(await query(applicant), quickPublished);
+    check('quick rollback is publisher-only, reviews actual current and restoration values, requires a reason and cancels without writes on desktop and 390px');
+
+    await publishPage.setViewportSize({ width: 1440, height: 1000 });
+    await button(publishPage, '快速回滚').click();
+    await quickDialog.getByRole('region', { name: '整单恢复预览', exact: true }).waitFor();
+    const quickReason = 'Restore reviewed values without another approval';
+    await quickDialog.getByLabel('快速回滚原因', { exact: true }).fill(quickReason);
+    const previewCountBeforeWrite = quickPreviews.length;
+    const quickRoute = `**/api/v1/release-orders/${quickDraft.id}/quick-rollback`;
+    let committedQuick;
+    await publishPage.route(quickRoute, async route => {
+      const response = await route.fetch();
+      assert.equal(response.status(), 200, await response.text());
+      committedQuick = await response.json();
+      assert.equal(committedQuick.state, 'COMPLETED');
+      await route.abort('failed');
+    });
+    await button(quickDialog, '确认整单快速回滚').dblclick();
+    await button(quickDialog, '使用原请求重试').waitFor();
+    assert.equal(quickWrites.length, 1);
+    assert.equal(await button(publishPage, '完结发布单').isDisabled(), true);
+    assert.equal(await button(publishPage, '快速回滚').isDisabled(), true);
+    assert.equal(await quickDialog.getByLabel('快速回滚原因', { exact: true }).isDisabled(), true);
+    assert.equal(quickPreviews.length, previewCountBeforeWrite);
+    if (output) await publishPage.screenshot({ path: join(output, 'release-quick-rollback-unknown.png'), fullPage: false, animations: 'disabled' });
+    await publishPage.unroute(quickRoute);
+    publishPage.once('dialog', dialog => dialog.accept());
+    await publishPage.reload();
+    await button(publishPage, '恢复原发布请求').click();
+    await quickHeading(publishPage, '已完结', true);
+    assert.equal(quickWrites.length, 2);
+    assert.deepEqual(quickWrites[0], quickWrites[1]);
+    assert.equal(quickPreviews.length, previewCountBeforeWrite);
+    assert.equal(new URL(publishPage.url()).pathname.split('/').pop(), committedQuick.id);
+    const quickOriginal = await read(applicant, quickDraft.id);
+    const quickReverse = await read(applicant, committedQuick.id);
+    const quickRestored = await query(applicant);
+    const actualPublisher = (await identity(publisher)).account.id;
+    assert.equal(quickOriginal.state, 'ROLLED_BACK');
+    assert.equal(quickOriginal.rollback_order_id, quickReverse.id);
+    assert.equal(quickReverse.state, 'COMPLETED');
+    assert.equal(quickReverse.rollback_of_id, quickOriginal.id);
+    assert.equal(quickReverse.publication.publisher_id, actualPublisher);
+    assert.equal(quickReverse.applicant_id, actualPublisher);
+    assert.equal(quickReverse.history.length, 1);
+    assert.equal(quickReverse.history[0].action, 'QUICK_ROLLBACK');
+    assert.equal(quickReverse.history[0].reason, quickReason);
+    assert.equal(quickReverse.history[0].actor_id, actualPublisher);
+    assert.equal(quickOriginal.history.filter(event => event.action === 'QUICK_ROLLBACK').length, 1);
+    assert.equal(quickRestored.rows[0].name, 'Rollback seed');
+    assert.equal(quickRestored.record_versions[0], '4');
+    for (const action of ['快速回滚', '完结发布单', '申请回滚', '批准发布单', '执行发布']) assert.equal(await button(publishPage, action).count(), 0);
+    await publishPage.getByRole('link', { name: quickOriginal.id, exact: true }).first().waitFor();
+    await publishPage.setViewportSize({ width: 390, height: 844 });
+    await assertMobileLayout(publishPage, 'release-quick-rollback-result');
+    if (output) await publishPage.screenshot({ path: join(output, 'release-quick-rollback-result-mobile.png'), fullPage: true, animations: 'disabled' });
+    check('quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish both orders');
+
+    // Another active publisher can complete after this browser has reviewed a
+    // restoration. Its real server write must win without partial restoration.
+    const competingPublisher = await account(['PUBLISHER']);
+    const competingDraft = await api(applicant, 'POST', '/api/v1/release-orders', {
+      title: '浏览器完结与快速回滚竞争', table_name: table,
+      items: [{ operation: 'MODIFY', id: '1', expected_record_version: '4', content: { name: 'Completion wins the reviewed quick rollback' } }],
+    }, 201);
+    const submittedCompetition = await api(applicant, 'POST', `/api/v1/release-orders/${competingDraft.id}/submit`, { expected_version: competingDraft.version });
+    const approvedCompetition = await api(reviewer, 'POST', `/api/v1/release-orders/${competingDraft.id}/approve`, { expected_version: submittedCompetition.version, reason: 'Independent approval' });
+    const publishedCompetition = await api(publisher, 'POST', `/api/v1/release-orders/${competingDraft.id}/execute`, { expected_version: approvedCompetition.version });
+    await publishPage.setViewportSize({ width: 1440, height: 1000 });
+    await publishPage.goto(`${base}/configuration/release-orders/${competingDraft.id}`);
+    await button(publishPage, '快速回滚').click();
+    await publishPage.getByRole('region', { name: '整单恢复预览', exact: true }).waitFor();
+    await publishPage.getByLabel('快速回滚原因', { exact: true }).fill('Retain reason when completion wins');
+    const completedCompetition = await api(competingPublisher, 'POST', `/api/v1/release-orders/${competingDraft.id}/complete`, { expected_version: publishedCompetition.version });
+    const competingResponse = publishPage.waitForResponse(response => response.url().endsWith(`/${competingDraft.id}/quick-rollback`) && response.request().method() === 'POST');
+    await button(publishPage, '确认整单快速回滚').click();
+    assert.equal((await competingResponse).status(), 409);
+    await publishPage.getByText('原原因已保留。请关闭此窗口，查看最新状态与配置后重新审阅恢复预览。', { exact: true }).waitFor();
+    assert.equal(await publishPage.getByLabel('快速回滚原因', { exact: true }).inputValue(), 'Retain reason when completion wins');
+    await button(publishPage, '取消快速回滚').click();
+    await button(publishPage, '查看最新状态与配置').click();
+    await publishPage.getByText(/最新发布单版本：.*状态：COMPLETED/).waitFor();
+    assert.equal(await button(publishPage, '确认按最新状态快速回滚').count(), 0);
+    assert.deepEqual(await read(publisher, competingDraft.id), completedCompetition);
+    const competitionRows = await query(applicant);
+    assert.equal(competitionRows.rows[0].name, 'Completion wins the reviewed quick rollback');
+    assert.equal(competitionRows.record_versions[0], '5');
+    assert.equal(completedCompetition.history.filter(event => event.action === 'COMPLETE').length, 1);
+    assert.equal(completedCompetition.history.filter(event => event.action === 'QUICK_ROLLBACK').length, 0);
+    check('a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends');
+
     assert.deepEqual(errors, []);
     if (output) await writeFile(join(output, 'rollback-evidence.json'), JSON.stringify({
       checks,
@@ -236,6 +381,13 @@ const output = process.env.RCC_E2E_OUTPUT;
       reverse_state: reverse.state,
       rollback_request_replayed_with_same_key: true,
       restored_record_version: restored.record_versions[0],
+      quick_original_order_id: quickOriginal.id,
+      quick_reverse_order_id: quickReverse.id,
+      quick_actual_publisher_id: actualPublisher,
+      quick_request_replayed_with_same_key_body: true,
+      quick_preview_reads: quickPreviews.length,
+      quick_restored_record_version: quickRestored.record_versions[0],
+      competition_completed_order_id: completedCompetition.id,
       browser_errors: errors,
     }, null, 2));
     console.log(JSON.stringify({ checks }));

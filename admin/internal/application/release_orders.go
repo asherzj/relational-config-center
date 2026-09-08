@@ -197,7 +197,7 @@ func (r *ReleaseOrders) People(ctx context.Context, id string) (map[string]strin
 
 func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) []string {
 	actions := []string{}
-	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute", "rollback", "complete"} {
+	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute", "rollback", "complete", "quick-rollback"} {
 		if releaseOrderActionState(order, action) && authorizeReleaseAction(ctx, order, action) == nil {
 			actions = append(actions, action)
 		}
@@ -205,7 +205,7 @@ func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) 
 	return actions
 }
 func releaseActionRole(action string) AccountRoles {
-	if action == "execute" || action == "complete" {
+	if action == "execute" || action == "complete" || action == "quick-rollback" {
 		return RolePublisher
 	}
 	if action == "approve" || action == "reject" {
@@ -224,7 +224,7 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
 		}
 		return nil
 	}
-	if action == "execute" || action == "complete" || action == "copy" || action == "rollback" || actor == order.ApplicantID {
+	if action == "execute" || action == "complete" || action == "quick-rollback" || action == "copy" || action == "rollback" || actor == order.ApplicantID {
 		return nil
 	}
 	if action == "cancel" {
@@ -234,7 +234,7 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
 	return ErrPermissionDenied
 }
 func releaseOrderActionState(order ReleaseOrder, action string) bool {
-	if order.RollbackOfID != "" && (action == "edit" || action == "copy" || action == "complete" || action == "rollback") {
+	if order.RollbackOfID != "" && (action == "edit" || action == "copy" || action == "complete" || action == "quick-rollback" || action == "rollback") {
 		return false
 	}
 	if action == "rollback" && order.RollbackPending {
@@ -245,7 +245,7 @@ func releaseOrderActionState(order ReleaseOrder, action string) bool {
 
 func releaseActionState(state, action string) bool {
 	switch action {
-	case "complete":
+	case "complete", "quick-rollback":
 		return state == "SUCCEEDED"
 	case "rollback":
 		return state == "COMPLETED"

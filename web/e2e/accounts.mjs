@@ -309,7 +309,7 @@ try {
   assert.equal(addFinalFields.modifier, identity.account.id);
   await page.getByRole('button', { name: '完结发布单', exact: true }).click();
   await page.getByRole('button', { name: '确认完结', exact: true }).click();
-  await page.getByRole('heading', { name: 'notification_templates · 已完结', exact: true }).waitFor();
+  await releaseState(page, '已完结');
 
   await page.goto(`${origin}/configuration/managed-data`);
   await page.getByLabel('Managed Table', { exact: true }).selectOption('notification_templates');

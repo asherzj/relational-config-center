@@ -87,6 +87,34 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 			respondReleaseWrite(c, orders, order, 200)
 		})
 	}
+	router.POST("/api/v1/release-orders/:id/quick-rollback", func(c *gin.Context) {
+		var input application.QuickRollbackInput
+		if err := decodeRequest(c, &input); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		result, err := orders.QuickRollback(c.Request.Context(), c.Param("id"), input, c.GetHeader("Idempotency-Key"))
+		if writeReleaseError(c, err) {
+			return
+		}
+		respondReleaseWrite(c, orders, result, 200)
+	})
+	router.POST("/api/v1/release-orders/:id/quick-rollback/preview", func(c *gin.Context) {
+		var input application.SubmitReleaseInput
+		if err := decodeRequest(c, &input); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		preview, err := orders.PreviewQuickRollback(c.Request.Context(), c.Param("id"), input)
+		if writeReleaseError(c, err) {
+			return
+		}
+		for i := range preview.Items {
+			preview.Items[i].RecordKey = nil
+			preview.Items[i].RecordTable = ""
+		}
+		c.JSON(200, preview)
+	})
 	router.POST("/api/v1/release-orders/:id/rollback", func(c *gin.Context) {
 		var input application.CancelReleaseInput
 		if err := decodeRequest(c, &input); err != nil {

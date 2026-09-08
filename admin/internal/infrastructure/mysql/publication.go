@@ -3,6 +3,8 @@ package mysql
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"math"
 	"strconv"
@@ -290,3 +292,29 @@ func (s *publicationSession) readCanonicalRows(ctx context.Context, plan applica
 
 var _ application.PublicationSession = (*publicationSession)(nil)
 var _ application.ReleaseOrderStore = (*Adapter)(nil)
+
+// LockUnchangedPublication compares the current raw MySQL values, including NULL,
+// generated and audit fields. Record Versions alone cannot observe external SQL.
+// These row/gap locks remain held until quick restoration and target release commit.
+func (s *publicationSession) LockUnchangedPublication(ctx context.Context, original domain.ReleaseOrder, schema domain.TableSchema) error {
+	if original.Publication == nil || original.VerifyPublication() != nil {
+		return application.ErrReleaseUnavailable
+	}
+	encoded, _ := json.Marshal(original.Frozen.Schema)
+	sum := sha256.Sum256(encoded)
+	plan := application.PublicationPlan{Schema: schema, Execution: original.Frozen.Schema, SchemaDigest: hex.EncodeToString(sum[:])}
+	ids := make([]any, len(original.Publication.Commands))
+	for i, command := range original.Publication.Commands {
+		ids[i] = command.ID
+	}
+	rows, err := s.readCanonicalRows(ctx, plan, ids)
+	if err != nil {
+		return err
+	}
+	for i, row := range rows {
+		if row.Checksum != original.Publication.Commands[i].Final.Checksum {
+			return &application.ReleaseItemError{Index: len(rows) - 1 - i, Cause: application.ErrRecordVersionConflict}
+		}
+	}
+	return nil
+}

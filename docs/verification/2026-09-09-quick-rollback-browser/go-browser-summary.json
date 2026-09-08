@@ -1,0 +1,11 @@
+{
+  "worktree": "/private/tmp/rcc-issue-63-quick-rollback",
+  "command": [
+    "make",
+    "test-browser"
+  ],
+  "started_at": "2026-09-08T23:38:12.972958+00:00",
+  "finished_at": "2026-09-08T23:40:20.826723+00:00",
+  "elapsed_seconds": 127.852,
+  "exit_code": 0
+}

@@ -44,6 +44,11 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
    const latest=intent.action==="create"?undefined:await releaseOrders.get(intent.id);setCurrent(latest);
    if(intent.action==="execute"||intent.action==="complete"){
     if(latest?.allowed_actions.includes(intent.action))setRebuilt(releaseRequests.action(intent.action,intent.id,latest.version));
+   }else if(intent.action==="quick-rollback"){
+    if(latest?.allowed_actions.includes("quick-rollback")){
+     const restoration=await releaseOrders.quickRollbackPreview(intent.id,latest.version);setPreview(restoration);
+     setRebuilt(releaseRequests.quickRollback(intent.id,latest.version,restoration.preview_digest,intent.input.reason));
+    }
    }else if(intent.action==="rollback"){
     if(latest?.allowed_actions.includes("rollback"))setRebuilt(releaseRequests.action("rollback",intent.id,latest.version,intent.input.reason));
    }else if(intent.action==="cancel"||intent.action==="approve"||intent.action==="reject"){
@@ -73,9 +78,10 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
  return <><p role="alert">服务器已明确拒绝原请求。原申请保留，请查看最新状态与配置后决定是否重建。</p>
   <Button disabled={!action||!allowed||reading||write.pending} onClick={()=>void inspect()}>{reading?"正在检查…":"查看最新状态与配置"}</Button>{reading&&<LoadingState label="正在检查最新状态与配置…"/>}
   {current&&<><p>最新发布单版本：{current.version}，状态：{current.state}</p>{current.rollback_order_id&&<p>当前关联回滚发布单：<Link to={`/configuration/release-orders/${current.rollback_order_id}`}>{current.rollback_order_id}</Link></p>}<ReleaseDiff order={current}/></>}
-  {preview&&<><p>原申请与最新记录基线的差异：</p><ReleaseDiff order={{items:preview.items}}/></>}
+  {preview&&<><p>{action==="quick-rollback"?"重新审阅整单恢复预览，确认后将使用新的请求标识执行：":"原申请与最新记录基线的差异："}</p><ReleaseDiff order={{items:preview.items}} beforeLabel={action==="quick-rollback"?"当前值":undefined} proposedLabel={action==="quick-rollback"?"恢复值":undefined}/></>}
   {needsDraftUpdate&&current&&<p>草稿记录基线已变化，请先<Link to={`/configuration/release-orders/${current.id}`}>编辑草稿并核对最新配置</Link>，再重新检查提交。</p>}
-  {(current||preview)&&<Button disabled={!allowed||reading||write.pending||!rebuilt} onClick={async()=>{
+  {action==="quick-rollback"&&current&&!current.allowed_actions.includes("quick-rollback")&&<p>当前发布单已不能快速回滚，原原因保留供核对。</p>}
+  {(current||preview)&&(action!=="quick-rollback"||Boolean(rebuilt))&&<Button disabled={!allowed||reading||write.pending||!rebuilt} onClick={async()=>{
    if(!rebuilt)return;write.confirmRebuild();const result=await write.send({...rebuilt,label:item.label});
    if(result)protection.afterSave(()=>navigate(`/configuration/release-orders/${result.id}`));
   }}>{confirmLabel}</Button>}
@@ -85,6 +91,7 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
 function PendingIntent({item}:{item:PendingReleaseRequest}){
  let intent:ReturnType<typeof decodeReleaseRequest>;
  try{intent=decodeReleaseRequest(item)}catch{return <p>原申请内容无法读取；原请求标识仍保留。</p>}
+ if(intent.action==="quick-rollback")return <details className="my-2"><summary>查看原申请内容</summary><p>原发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>快速回滚原因：{intent.input.reason}</p><p>原恢复预览摘要已保留，将使用原请求确认结果。</p></details>;
  if(intent.action==="complete")return <details className="my-2"><summary>查看原申请内容</summary><p>完结发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>释放全部目标记录的占用，并关闭快速回滚；配置内容保持不变。</p></details>;
  if(intent.action==="execute")return <details className="my-2"><summary>查看原申请内容</summary><p>发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
  if(intent.action==="submit")return <details className="my-2"><summary>查看原申请内容</summary><p>提交单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;

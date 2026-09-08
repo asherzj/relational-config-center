@@ -1,0 +1,278 @@
+{
+  "issue": 63,
+  "specification_issue": 59,
+  "acceptance_criteria": [
+    "AC-003",
+    "AC-004",
+    "AC-005",
+    "AC-006",
+    "AC-015"
+  ],
+  "status": "verified_awaiting_commit_authorization",
+  "ready_to_commit": true,
+  "proposed_commit_subject": "feat(release-orders): support approval-free quick rollback",
+  "feature_base": "17cdaf015d000ac42d3c1f7404192690effe1dcd",
+  "merge_parents": [
+    "f7a39bafe2e767b706a5f4f158e7972cdfe53af0",
+    "911f23b3c1d2f79008f641b317a71b2ddb042a9e"
+  ],
+  "reviewed_snapshot": {
+    "patch": "/private/tmp/rcc-issue-63-evidence/feature-frozen-v4.patch",
+    "sha256": "a16f47fbd751ff2d16aeff3353fa04aa7c623ae1a5eb6f193f718d3f58967a85",
+    "product_and_test_files_unchanged_after_v4": true
+  },
+  "backend_freeze": {
+    "input_count": 147,
+    "unchanged": true,
+    "manifest": "/private/tmp/rcc-release-detail-reference/issue-63-backend-freeze.json"
+  },
+  "completed_checks": {
+    "full_mysql": {
+      "worktree": "/private/tmp/rcc-issue-63-quick-rollback",
+      "command": "NO_PROXY=127.0.0.1,localhost GOFLAGS=... -json make test-integration",
+      "loopback_proxy_bypass": "127.0.0.1,localhost",
+      "exit_code": 0,
+      "elapsed_seconds": 2145.724,
+      "test_and_subtest_results": {
+        "PASS": 530,
+        "FAIL": 0,
+        "SKIP": 0
+      },
+      "persisted_summary": "2026-09-09-quick-rollback-mysql-summary.json",
+      "source_sha256": "1f32f2e79403cd8fa7f3a85f1d1477749b090e83b958b8240fa715a5fb1f68bc"
+    },
+    "go_build": {
+      "worktree": "/private/tmp/rcc-issue-63-quick-rollback",
+      "command": [
+        "make",
+        "build"
+      ],
+      "started_at": "2026-09-08T23:05:45.798557+00:00",
+      "finished_at": "2026-09-08T23:05:48.873493+00:00",
+      "elapsed_seconds": 3.074,
+      "exit_code": 0
+    },
+    "web_dev": {
+      "worktree": "/private/tmp/rcc-issue-63-quick-rollback",
+      "command": [
+        "pnpm",
+        "--dir",
+        "web",
+        "test:dev"
+      ],
+      "started_at": "2026-09-08T23:05:47.219677+00:00",
+      "finished_at": "2026-09-08T23:05:48.236392+00:00",
+      "elapsed_seconds": 1.017,
+      "exit_code": 0
+    },
+    "go_test": {
+      "command": "make test",
+      "exit_code": 0,
+      "log": "/private/tmp/rcc-issue-63-evidence/go-test.log"
+    },
+    "quick_mysql": {
+      "exit_code": 0,
+      "elapsed_seconds": 149.481,
+      "log": "/private/tmp/rcc-issue-63-evidence/quick-backend-final.log"
+    },
+    "web_typecheck": {
+      "exit_code": 0,
+      "log": "/private/tmp/rcc-issue-63-evidence/web-typecheck.log"
+    },
+    "web_tests": {
+      "exit_code": 0,
+      "files": 28,
+      "tests": 309,
+      "elapsed_seconds": 29.52,
+      "log": "/private/tmp/rcc-issue-63-evidence/web-full-tests-green.log"
+    },
+    "impeccable_detector": {
+      "runs": 1,
+      "findings": [],
+      "log": "/private/tmp/rcc-issue-63-evidence/impeccable-detect.json"
+    }
+  },
+  "independent_review": {
+    "source": "Root handoff: both axes reviewed actual merge resolution, feature changes, documentation fixes and the completion-wait incremental patch.",
+    "spec": {
+      "findings": 0,
+      "documentation_delta_findings": 0,
+      "completion_wait_delta_findings": 0
+    },
+    "standards": {
+      "hard_findings": 0,
+      "documentation_delta_findings": 0,
+      "repaired_hard_finding": "Updated admin-release-upgrade.md to remove the stale future-delivery claim and describe current quick rollback.",
+      "completion_wait_delta_hard_findings": 0
+    },
+    "accepted_nonblocking_p3": [
+      "Repeated clearing of private preview fields at HTTP boundaries.",
+      "The quick-rollback action string is repeated across boundaries.",
+      "PublicationPlan.TargetOrderID could have a more specific name."
+    ],
+    "optional_refactoring_included": false
+  },
+  "preserved_failed_runs": [
+    {
+      "run": "focused-v1",
+      "failure": "Build failed on a Testing Library exact option unsupported by its TypeScript type.",
+      "repair": "Corrected test selector options.",
+      "claimed_pass": false
+    },
+    {
+      "run": "focused-v2",
+      "failure": "Quick completion-race UI still displayed a disabled rebuild confirmation; the no-rebuild-entry assertion failed.",
+      "passed_rollback_checks": 7,
+      "total_rollback_checks": 8,
+      "repair": "Hide quick-rebuild confirmation for an ended order and retain the count=0 assertion.",
+      "claimed_pass": false
+    },
+    {
+      "run": "focused-v3",
+      "failure": "Existing 1000-item batch execute returned HTTP 504 at 4002ms before the quick script ran.",
+      "quick_script_entered": false,
+      "transaction_timeout_changed": false,
+      "outer_make_exit_code": 2,
+      "runner_exit_code": 1,
+      "cleanup_verified": true,
+      "root_cause": "not established",
+      "claimed_pass": false
+    },
+    {
+      "run": "web-full-tests-first",
+      "failure": "Sandbox denied the existing real TCP test loopback listen with EPERM.",
+      "repair": "Granted required loopback access and reran the unchanged complete suite.",
+      "claimed_pass": false
+    },
+    {
+      "run": "final-go-browser-v1",
+      "summary": {
+        "worktree": "/private/tmp/rcc-issue-63-quick-rollback",
+        "command": [
+          "make",
+          "test-browser"
+        ],
+        "started_at": "2026-09-08T23:31:32.436424+00:00",
+        "finished_at": "2026-09-08T23:32:34.072881+00:00",
+        "elapsed_seconds": 61.636,
+        "exit_code": 2
+      },
+      "log": "/private/tmp/rcc-issue-63-final-go-browser-v1.log",
+      "failure": "accounts.mjs:312 waited 30 seconds for the legacy combined table/state heading, which no longer exists after T1 separated title from status.",
+      "source_commit": "911f23b3c1d2f79008f641b317a71b2ddb042a9e",
+      "repair": "Reuse releaseState(page, 已完结): exact release title and exact table/state waits both remain.",
+      "quick_script_entered": false,
+      "timeouts_changed": false,
+      "test_container_cleanup_observed": true,
+      "claimed_pass": false
+    }
+  ],
+  "delivery": {
+    "commit_sha": null,
+    "push_verified": false,
+    "notion_updated_and_read_back": false,
+    "github_issue_closed": false
+  },
+  "completed_browser": {
+    "make_test_browser": {
+      "status": "passed",
+      "exit_code": 0,
+      "elapsed_seconds": 127.852,
+      "summary": "2026-09-09-quick-rollback-browser/go-browser-summary.json",
+      "cleanup_verified": true,
+      "previous_attempt_exit_code": 2,
+      "locator_fix": "web/e2e/accounts.mjs:312"
+    },
+    "standalone_all_three_engines": {
+      "status": "passed",
+      "engines": [
+        "chromium",
+        "firefox",
+        "webkit"
+      ],
+      "command": "RCC_E2E_SUITE=all RCC_E2E_ENGINES=chromium,firefox,webkit make test-browser-acceptance",
+      "exit_code": 0,
+      "elapsed_seconds": 473.417,
+      "command_summary": "2026-09-09-quick-rollback-browser/three-engine-command-summary.json",
+      "summary": "2026-09-09-quick-rollback-browser/summary.json",
+      "run_record": "2026-09-09-quick-rollback-browser/run.txt",
+      "suite_count": 17,
+      "checks": 234,
+      "cleanup_verified": true,
+      "fixture_rows_unchanged": true,
+      "database_postcheck_verified": true
+    },
+    "rollback_evidence": {
+      "required_checks_per_engine": 8,
+      "ordinary_checks": 5,
+      "quick_checks": 3,
+      "artifact_paths": {
+        "chromium": "2026-09-09-quick-rollback-browser/rollback-chromium.json",
+        "firefox": "2026-09-09-quick-rollback-browser/rollback-firefox.json",
+        "webkit": "2026-09-09-quick-rollback-browser/rollback-webkit.json"
+      },
+      "actual_order_ids": {
+        "chromium": {
+          "quick_original_order_id": "5f83b76711f8fa969b55d6c9b7a77e62",
+          "quick_reverse_order_id": "b5c945d45b179b430b01df250d133543",
+          "quick_actual_publisher_id": "986a1a5c-0e8c-4d9d-9cf1-5563727da43c",
+          "competition_completed_order_id": "fe00cc5a0657ce167c0152e54a47a22f",
+          "quick_request_replayed_with_same_key_body": true,
+          "quick_restored_record_version": "4",
+          "quick_preview_reads": 2
+        },
+        "firefox": {
+          "quick_original_order_id": "5f22802dccce74a3e717870f54bef852",
+          "quick_reverse_order_id": "da35222615111b294a0bb62c16cd675c",
+          "quick_actual_publisher_id": "eaa519ab-4893-40d7-9393-1d3eed2a9872",
+          "competition_completed_order_id": "8abfaed17d6c951c38b958fbb5249334",
+          "quick_request_replayed_with_same_key_body": true,
+          "quick_restored_record_version": "4",
+          "quick_preview_reads": 2
+        },
+        "webkit": {
+          "quick_original_order_id": "7db7ed60cc2fbbc91ce3c14bb698eeb5",
+          "quick_reverse_order_id": "a989fb03b62aa7a0b687eedab1672632",
+          "quick_actual_publisher_id": "df9cb6c6-9b92-4604-9464-733ac8f5b9ef",
+          "competition_completed_order_id": "a5c393fc80f8ff72915d444052fcf596",
+          "quick_request_replayed_with_same_key_body": true,
+          "quick_restored_record_version": "4",
+          "quick_preview_reads": 2
+        }
+      },
+      "browser_errors": []
+    },
+    "screenshots": {
+      "preview_desktop": "2026-09-09-quick-rollback-browser/chromium-preview-desktop.png",
+      "preview_390px": "2026-09-09-quick-rollback-browser/webkit-preview-mobile.png",
+      "unknown_recovery": "2026-09-09-quick-rollback-browser/firefox-unknown.png",
+      "completed_result_390px": "2026-09-09-quick-rollback-browser/webkit-result-mobile.png",
+      "final_visual_confirmation": {
+        "confirmed": true,
+        "reviewer": "root",
+        "source": "Root viewed the four archived final screenshots via view_image.",
+        "observations": [
+          "Opaque stable modal; restoration explanation and destructive footer remain clearly reachable.",
+          "390px restoration table scrolls locally with no document horizontal overflow.",
+          "Unknown result retains the original reason and original-request retry.",
+          "Completed reversal shows real result, actor and original-order relationship."
+        ]
+      }
+    },
+    "v2_screenshots_are_final_evidence": false
+  },
+  "archived_browser_files": {
+    "2026-09-09-quick-rollback-browser/chromium-preview-desktop.png": "df9da04cc8cf7ba6911f1cd99c9fe9129e248fecf139296c2c1a444f1b01b2a9",
+    "2026-09-09-quick-rollback-browser/firefox-unknown.png": "bc9e9a904db64db827a471638471a43bb32be140b8d870c909272348d7f00d38",
+    "2026-09-09-quick-rollback-browser/go-browser-summary.json": "1fd371a5580212a073089fe829ccbcc4ca2f8f3af63fff8eaadb33abf9c277a7",
+    "2026-09-09-quick-rollback-browser/rollback-chromium.json": "bf1b6fb0db56a00cdfa35b7334ae22df4f91bbc204561908ed94a6b6b68cd509",
+    "2026-09-09-quick-rollback-browser/rollback-firefox.json": "f7bf71d1ce7da54eff5dad77946aa4644b1ac91f258ba47b864b94d0fe29f3cb",
+    "2026-09-09-quick-rollback-browser/rollback-webkit.json": "71fb1bfde81028c5701302841bc1ca4669e93eb7d5d7f7baee090b155d2cc84e",
+    "2026-09-09-quick-rollback-browser/run.txt": "63796161700a94d2fc03223a523cb730b34fa28d638d2588b97ec8cd300ecfa7",
+    "2026-09-09-quick-rollback-browser/summary.json": "61f8ffc5688c9dae2141350c6e5b9919bf37ab2a244dfd73532120d2a37a4d38",
+    "2026-09-09-quick-rollback-browser/three-engine-command-summary.json": "faac4642768eb9178a1c8c68e00b774c861d07ac8641aec4c735fe8e9a24776d",
+    "2026-09-09-quick-rollback-browser/webkit-preview-mobile.png": "4f89dec0fdbb73c21c413676bc6e325947253dce8c4e02a6345ecc7e4eff45cb",
+    "2026-09-09-quick-rollback-browser/webkit-result-mobile.png": "6abf8b455d181bebdfbc1846a02e3468b47915754085968860883540ac9ca898"
+  },
+  "pending_validation_gates": []
+}

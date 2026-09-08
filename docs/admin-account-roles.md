@@ -1,6 +1,6 @@
 # 全局账号角色
 
-本指南说明当前管理台的全局角色、管理员初始化及权限恢复。配置记录的新增、修改和删除均通过[发布草稿](admin-release-drafts.md)、[独立审批与执行](admin-release-approvals.md)生效；撤销已发布变更需[重新申请并审批回滚](admin-release-rollbacks.md)。角色验收来源为 [T1 #49](https://github.com/asherzj/relational-config-center/issues/49)，完整发布范围见[规格 #48](https://github.com/asherzj/relational-config-center/issues/48)。
+本指南说明当前管理台的全局角色、管理员初始化及权限恢复。配置记录的新增、修改和删除均通过[发布草稿](admin-release-drafts.md)、[独立审批与执行](admin-release-approvals.md)生效；恢复已发布变更可在待完结阶段由当前发布人[快速回滚](admin-release-rollbacks.md#免审批快速回滚t4--63)，或在完结后重新申请并审批回滚。角色验收来源为 [T1 #49](https://github.com/asherzj/relational-config-center/issues/49)，完整发布范围见[规格 #48](https://github.com/asherzj/relational-config-center/issues/48)。
 
 ## 使用与权限
 
@@ -11,7 +11,7 @@
 | VIEWER | 查看规则目录、受管表、配置及本部署全部发布历史 |
 | EDITOR | 创建发布草稿，编辑并提交本人普通草稿，复制已拒绝/取消的普通单据，申请回滚；尚未发布的本人单据可按状态取消 |
 | APPROVER | 批准或拒绝他人提交的发布单，必须填写意见 |
-| PUBLISHER | 手动执行已批准的发布单，包括获批的回滚单；明确完结已发布待完结的普通单，不限定原发布人 |
+| PUBLISHER | 手动执行已批准的发布单，包括获批的回滚单；审阅整单恢复预览、填写原因后免审批快速回滚，或明确完结已发布待完结的普通单；两者均不限定原发布人 |
 | ADMIN | 管理角色与规则目录，包含上述业务能力，可取消尚未发布的单据；同样不得审批自己的单据 |
 
 EDITOR、APPROVER、PUBLISHER 不互相隐含，可以组合分配。规则目录直接修改只允许 ADMIN，不进入发布审批；配置记录的旧 POST/PATCH/DELETE 写路由已删除。申请人持有 PUBLISHER 时可以执行他人已批准的本人单据，审批人也可以兼任发布人。`POST /api/v1/tables/:table_name/query` 是只读查询，但仍沿用 CSRF 与同源校验。`X-RCC-Roles` 等客户端身份头不授予权限。

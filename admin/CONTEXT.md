@@ -101,8 +101,12 @@ The publication progress of one Managed Table, advanced when a change set is com
 _Avoid_: Record Version, Release Order Version, cache refresh time
 
 **Rollback Release Order（回滚发布单）**:
-A new Release Order requesting the reversal of a completed ordinary publication, linked to that publication and subject to fresh approval and checks that no later change would be overwritten. Its successful result is complete and cannot itself be reversed.
+A Release Order linked to the ordinary publication it reverses. Restoration after Release Completion begins as a new request subject to fresh approval; Quick Rollback records its successful reversal directly as a completed result. Both check that no later change would be overwritten and cannot themselves be reversed.
 _Avoid_: History deletion, forced restore, cancellation
+
+**Quick Rollback（快速回滚）**:
+The whole-order restoration of a successful ordinary publication during its protected recovery period, authorized by any current publisher after reviewing the restoration intent and recording a reason. It needs no new approval, retains the original Active Targets throughout restoration, and ends both the original and reversal result together.
+_Avoid_: Fresh approval, partial restore, history deletion, forced overwrite
 
 **Release Completion（发布完结）**:
 The explicit end of a successful ordinary publication's protected recovery period, authorized by a current publisher. It releases the publication's targets and closes quick rollback without changing configuration values or claiming downstream delivery; later restoration requires an independently approved Rollback Release Order.
