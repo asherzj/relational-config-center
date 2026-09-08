@@ -327,6 +327,8 @@ func TestConcurrentAccountsOwnTheirBusinessChanges(t *testing.T) {
 				if order.Publication == nil || order.Publication.PublisherID != actor {
 					t.Fatalf("publisher identity: %s", response.Body)
 				}
+				// Finish this actor's publication before the next independent row change.
+				rollbackOrderResponse(t, releaseActorRequest(t, app, session, "POST", path+"/complete", `{"expected_version":"4"}`, key+"-complete"), 200)
 				return order
 			}
 			added := publish(fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"items":[{"operation":"ADD","content":{"value":"created"}}]}`, table), table+"-add")

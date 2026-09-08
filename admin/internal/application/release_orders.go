@@ -197,7 +197,7 @@ func (r *ReleaseOrders) People(ctx context.Context, id string) (map[string]strin
 
 func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) []string {
 	actions := []string{}
-	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute", "rollback"} {
+	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute", "rollback", "complete"} {
 		if releaseOrderActionState(order, action) && authorizeReleaseAction(ctx, order, action) == nil {
 			actions = append(actions, action)
 		}
@@ -205,7 +205,7 @@ func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) 
 	return actions
 }
 func releaseActionRole(action string) AccountRoles {
-	if action == "execute" {
+	if action == "execute" || action == "complete" {
 		return RolePublisher
 	}
 	if action == "approve" || action == "reject" {
@@ -224,7 +224,7 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
 		}
 		return nil
 	}
-	if action == "execute" || action == "copy" || action == "rollback" || actor == order.ApplicantID {
+	if action == "execute" || action == "complete" || action == "copy" || action == "rollback" || actor == order.ApplicantID {
 		return nil
 	}
 	if action == "cancel" {
@@ -234,7 +234,7 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
 	return ErrPermissionDenied
 }
 func releaseOrderActionState(order ReleaseOrder, action string) bool {
-	if order.RollbackOfID != "" && (action == "edit" || action == "copy") {
+	if order.RollbackOfID != "" && (action == "edit" || action == "copy" || action == "complete" || action == "rollback") {
 		return false
 	}
 	if action == "rollback" && order.RollbackPending {
@@ -245,8 +245,10 @@ func releaseOrderActionState(order ReleaseOrder, action string) bool {
 
 func releaseActionState(state, action string) bool {
 	switch action {
-	case "rollback":
+	case "complete":
 		return state == "SUCCEEDED"
+	case "rollback":
+		return state == "COMPLETED"
 	case "execute":
 		return state == "APPROVED"
 	case "copy":
@@ -544,6 +546,15 @@ func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitRelea
 	})
 }
 
+// Complete ends a successful ordinary publication without changing its data or
+// claiming downstream delivery. The workflow and target release commit together.
+func (r *ReleaseOrders) Complete(ctx context.Context, id string, input SubmitReleaseInput, key string) (ReleaseOrder, error) {
+	return r.changeOrder(ctx, id, input.ExpectedVersion, "complete", key, input, func(s ReleaseOrderSession, order *ReleaseOrder) error {
+		order.State = "COMPLETED"
+		return s.ReleaseTargets(ctx, order.ID)
+	})
+}
+
 func (r *ReleaseOrders) Cancel(ctx context.Context, id string, input CancelReleaseInput, key string) (ReleaseOrder, error) {
 	return r.changeOrder(ctx, id, input.ExpectedVersion, "cancel", key, input, func(s ReleaseOrderSession, order *ReleaseOrder) error {
 		if strings.TrimSpace(input.Reason) == "" || len(input.Reason) > 2000 {
@@ -672,7 +683,7 @@ func (r *ReleaseOrders) List(ctx context.Context, filter ReleaseFilter) ([]domai
 		return nil, ErrReleaseInvalid
 	}
 	switch filter.State {
-	case "", "DRAFT", "PENDING_APPROVAL", "APPROVED", "SUCCEEDED", "REJECTED", "CANCELLED", "ROLLED_BACK":
+	case "", "DRAFT", "PENDING_APPROVAL", "APPROVED", "SUCCEEDED", "COMPLETED", "REJECTED", "CANCELLED", "ROLLED_BACK":
 	default:
 		return nil, ErrReleaseInvalid
 	}

@@ -91,6 +91,9 @@ async function publishSingle({ applicant, approver, publisher, item, keyPrefix }
   assert.equal(executedResponse.status(), 200);
   const executed = await executedResponse.json();
   assert.equal(executed.state, 'SUCCEEDED');
+  const completed = await releaseWrite(publisher, `/api/v1/release-orders/${created.id}/complete`, { expected_version: executed.version }, `${keyPrefix}-complete`);
+  assert.equal(completed.status(), 200);
+  assert.equal((await completed.json()).state, 'COMPLETED');
   return executed;
 }
 
@@ -274,7 +277,7 @@ try {
   const recoverExecute = page.getByRole('button', { name: '恢复原发布请求', exact: true });
   await recoverExecute.click();
   await recoveryPanel.waitFor({ state: 'detached' });
-  await releaseState(page, '已发布');
+  await releaseState(page, '已发布待完结');
   await page.getByRole('heading', { name: '数据库发布结果', exact: true }).waitFor();
   await page.getByRole('region', { name: '发布结果' }).getByText(/分发尚未接入/, { exact: false }).waitFor();
   assert.equal(executeWrites.length, 2);
@@ -304,6 +307,9 @@ try {
   assert.equal(addFinalFields.priority, '100');
   assert.equal(addFinalFields.creator, identity.account.id);
   assert.equal(addFinalFields.modifier, identity.account.id);
+  await page.getByRole('button', { name: '完结发布单', exact: true }).click();
+  await page.getByRole('button', { name: '确认完结', exact: true }).click();
+  await page.getByRole('heading', { name: 'notification_templates · 已完结', exact: true }).waitFor();
 
   await page.goto(`${origin}/configuration/managed-data`);
   await page.getByLabel('Managed Table', { exact: true }).selectOption('notification_templates');
@@ -371,7 +377,7 @@ try {
   await page.reload();
   await page.getByRole('button', { name: '执行发布', exact: true }).click();
   await page.getByRole('button', { name: '确认发布到数据库', exact: true }).click();
-  await releaseState(page, '已发布');
+  await releaseState(page, '已发布待完结');
   await page.getByRole('heading', { name: '数据库发布结果', exact: true }).waitFor();
   await page.getByRole('region', { name: '发布结果' }).getByText(/分发尚未接入/, { exact: false }).waitFor();
 

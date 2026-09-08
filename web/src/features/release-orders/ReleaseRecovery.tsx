@@ -42,8 +42,8 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
   try{
    const intent=decodeReleaseRequest(item);
    const latest=intent.action==="create"?undefined:await releaseOrders.get(intent.id);setCurrent(latest);
-   if(intent.action==="execute"){
-    if(latest?.allowed_actions.includes("execute"))setRebuilt(releaseRequests.action("execute",intent.id,latest.version));
+   if(intent.action==="execute"||intent.action==="complete"){
+    if(latest?.allowed_actions.includes(intent.action))setRebuilt(releaseRequests.action(intent.action,intent.id,latest.version));
    }else if(intent.action==="rollback"){
     if(latest?.allowed_actions.includes("rollback"))setRebuilt(releaseRequests.action("rollback",intent.id,latest.version,intent.input.reason));
    }else if(intent.action==="cancel"||intent.action==="approve"||intent.action==="reject"){
@@ -85,6 +85,7 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
 function PendingIntent({item}:{item:PendingReleaseRequest}){
  let intent:ReturnType<typeof decodeReleaseRequest>;
  try{intent=decodeReleaseRequest(item)}catch{return <p>原申请内容无法读取；原请求标识仍保留。</p>}
+ if(intent.action==="complete")return <details className="my-2"><summary>查看原申请内容</summary><p>完结发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>释放全部目标记录的占用，并关闭快速回滚；配置内容保持不变。</p></details>;
  if(intent.action==="execute")return <details className="my-2"><summary>查看原申请内容</summary><p>发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
  if(intent.action==="submit")return <details className="my-2"><summary>查看原申请内容</summary><p>提交单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
  if(intent.action==="rollback")return <details className="my-2"><summary>查看原申请内容</summary><p>原发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>回滚原因：{intent.input.reason}</p></details>;

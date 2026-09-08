@@ -189,11 +189,11 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { app.Close() })
-	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
+	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowAdd: true, AllowModify: true})
 	reviewer := registerAccount(t, app, "atomic.reviewer", "atomic.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "atomic-roles")
-	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"committed"}}]}`, "atomic")
-	for _, failure := range []struct{ table, event, condition string }{{"rcc_record_versions", "INSERT", "TRUE"}, {"rcc_publication_commands", "INSERT", "TRUE"}, {"rcc_table_publications", "UPDATE", "NEW.table_version>0"}, {"rcc_refresh_notifications", "INSERT", "TRUE"}, {"rcc_release_targets", "DELETE", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='SUCCEEDED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
+	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"committed"}},{"operation":"ADD","content":{"code":"new-atomic"}}]}`, "atomic")
+	for _, failure := range []struct{ table, event, condition string }{{"rcc_record_versions", "INSERT", "TRUE"}, {"rcc_publication_commands", "INSERT", "TRUE"}, {"rcc_table_publications", "UPDATE", "NEW.table_version>0"}, {"rcc_refresh_notifications", "INSERT", "TRUE"}, {"rcc_release_targets", "INSERT", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='SUCCEEDED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
 		t.Run(failure.table, func(t *testing.T) {
 			statement := fmt.Sprintf("CREATE TRIGGER fail_publication BEFORE %s ON %s FOR EACH ROW BEGIN IF %s THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='injected persistence failure'; END IF; END", failure.event, failure.table, failure.condition)
 			if _, err := owner.Exec(statement); err != nil {
@@ -393,6 +393,7 @@ func TestPublicationFrozenChangesAndDescriptions(t *testing.T) {
 	}
 	success := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "frozen-execute")
 	publishedFixtureCommand(t, success)
+	completePublicationFixture(t, app, path, "frozen-complete")
 	path = approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_supplied_id_items","items":[{"operation":"MODIFY","id":"one","expected_record_version":"2","content":{"label":"stale"}}]}`, "stale-execution")
 	deliveryExec(t, db, `UPDATE mutation_supplied_id_items SET label='newer' WHERE id='one'`)
 	deliveryExec(t, db, `UPDATE rcc_record_versions SET lock_version=lock_version+1 WHERE table_name='mutation_supplied_id_items'`)

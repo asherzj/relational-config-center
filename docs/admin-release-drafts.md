@@ -97,7 +97,7 @@ Web 在请求发送前将原键、路径和申请内容保存在当前标签页�
 | HTTP 请求体 1 MiB（1,048,576 字节） | 所有 API 沿用 `400 request_body_too_large`，含流式正文；不放宽账号/查询请求 |
 | 每个提交值或明细 id 64 KiB UTF-8，字段名 256 字节 | 超限 `422 release_field_limit`；表本身的类型、约束仍独立有效 |
 | 单据/完整结果 8 MiB 编码 JSON | `422 release_result_limit`，包含完整历史、基线、最终行与幂等成功结果；小请求也可能因默认值/历史扩张被拒绝 |
-| 后续动作空间 | DRAFT/PENDING_APPROVAL/APPROVED/SUCCEEDED 保留 64 KiB 终止/关联余量；取消、拒绝及最终回滚状态可使用该余量，始终为 HTTP 动作元数据再留 1 KiB。不能因一次获批耗尽空间而锁死取消；T7 原成功单的关联也使用这份余量：pending 保留额外 4 KiB 终止事件空间，取消/拒绝后的 SUCCEEDED 与 ROLLED_BACK 可消耗它，详见[审批回滚](admin-release-rollbacks.md) |
+| 后续动作空间 | DRAFT/PENDING_APPROVAL/APPROVED/SUCCEEDED 保留 64 KiB 终止/关联余量；人工完结可消耗其中 4 KiB，无关联 COMPLETED 仍为后续普通回滚保留 60 KiB；取消、拒绝及最终回滚状态可使用该余量，始终为 HTTP 动作元数据再留 1 KiB。不能因一次获批耗尽空间而锁死取消；T7 原成功单的关联也使用这份余量：pending 保留额外 4 KiB 终止事件空间，取消/拒绝反向申请后的 COMPLETED 与 ROLLED_BACK 可消耗它，详见[审批回滚](admin-release-rollbacks.md) |
 | 全部发布单 POST/PUT 的事务/请求期限 | 正式值为 `min(8s, 正数 MYSQL_CONNECT_TIMEOUT / MYSQL_READ_TIMEOUT / MYSQL_WRITE_TIMEOUT) × 4/5`，默认 socket 5s 对应 4s；HTTP ReadTimeout/WriteTimeout 各 10s。超时整体回滚或返回提交待确认，不自动拆单 |
 | 列表 | 默认 20/最多 100 个摘要，每项仅标题、ID、表、申请人、状态/版本、时间、item_count、operation_counts 与 allowed_actions；按原单号稳定游标分页，不返回 items、Publication、冻结定义或历史 |
 

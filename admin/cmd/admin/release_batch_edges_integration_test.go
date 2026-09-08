@@ -319,7 +319,7 @@ func TestReleaseBatchEdgeAutoIncrementAndIndependentRequests(t *testing.T) {
 		`SELECT COUNT(*) FROM rcc_publication_commands`:                                        6,
 		`SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=1`:                        6,
 		`SELECT COUNT(*) FROM rcc_refresh_notifications`:                                       2,
-		`SELECT COUNT(*) FROM rcc_release_targets`:                                             0,
+		`SELECT COUNT(*) FROM rcc_release_targets`:                                             6,
 		`SELECT table_version FROM rcc_table_publications WHERE table_name='batch_auto_items'`: 2,
 	})
 }
@@ -383,7 +383,7 @@ func TestReleaseBatchEdgeIndependentUniqueConflict(t *testing.T) {
 		`SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=1`:                          2,
 		`SELECT COUNT(*) FROM rcc_publication_commands`:                                          2,
 		`SELECT COUNT(*) FROM rcc_refresh_notifications`:                                         1,
-		`SELECT COUNT(*) FROM rcc_release_targets`:                                               0,
+		`SELECT COUNT(*) FROM rcc_release_targets`:                                               2,
 		`SELECT table_version FROM rcc_table_publications WHERE table_name='mutation_add_items'`: 1,
 		`SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%'`:             1,
 	})
@@ -404,7 +404,7 @@ func TestReleaseBatchExistingEnumPrimaryKeys(t *testing.T) {
 	if replay.Code != 200 || replay.Body.String() != response.Body.String() {
 		t.Fatal("ENUM replay changed")
 	}
-	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM batch_enum_keys WHERE id='alpha' AND label='changed'`: 1, `SELECT COUNT(*) FROM batch_enum_keys`: 1, `SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=1`: 2, `SELECT COUNT(*) FROM rcc_publication_commands`: 2, `SELECT COUNT(*) FROM rcc_release_targets`: 0})
+	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM batch_enum_keys WHERE id='alpha' AND label='changed'`: 1, `SELECT COUNT(*) FROM batch_enum_keys`: 1, `SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=1`: 2, `SELECT COUNT(*) FROM rcc_publication_commands`: 2, `SELECT COUNT(*) FROM rcc_release_targets`: 2})
 	missing := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"batch_enum_keys","items":[{"operation":"ADD","content":{"id":"gamma","label":"unsupported"}}]}`, "enum-missing")
 	assertIntegrationErrorCode(t, missing, 422, "release_snapshot_unsupported")
 }

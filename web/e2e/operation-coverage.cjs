@@ -90,7 +90,9 @@ function fixtureSQL() {
   async function publishRelease(draft) {
     let order = await releaseWrite(`/api/v1/release-orders/${draft.id}/submit`, { expected_version: draft.version }, 200);
     order = await releaseWrite(`/api/v1/release-orders/${draft.id}/approve`, { expected_version: order.version, reason: 'Independent operation coverage review' }, 200, approvalContext);
-    return releaseWrite(`/api/v1/release-orders/${draft.id}/execute`, { expected_version: order.version }, 200);
+    const result = await releaseWrite(`/api/v1/release-orders/${draft.id}/execute`, { expected_version: order.version }, 200);
+    await releaseWrite(`/api/v1/release-orders/${draft.id}/complete`, { expected_version: result.version }, 200);
+    return result;
   }
   async function open(pathname) {
     if (page) await page.close();

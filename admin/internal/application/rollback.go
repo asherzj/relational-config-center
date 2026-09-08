@@ -51,7 +51,7 @@ func (r *ReleaseOrders) Rollback(ctx context.Context, id string, input CancelRel
 		if original.Version != input.ExpectedVersion {
 			return ErrReleaseVersionConflict
 		}
-		if original.State != "SUCCEEDED" {
+		if original.State != "COMPLETED" || original.RollbackOfID != "" {
 			return ErrReleaseState
 		}
 		if original.RollbackPending {
@@ -95,7 +95,7 @@ func (r *ReleaseOrders) prepareOrder(ctx context.Context, s ReleaseOrderSession,
 		if err != nil {
 			return nil, err
 		}
-		if original.State != "SUCCEEDED" || !original.RollbackPending || original.RollbackOrderID != order.ID {
+		if original.State != "COMPLETED" || !original.RollbackPending || original.RollbackOrderID != order.ID {
 			return nil, ErrRollbackConflict
 		}
 		return r.reverseItems(ctx, s, original)
@@ -246,7 +246,7 @@ func (r *ReleaseOrders) finishRollback(ctx context.Context, s ReleaseOrderSessio
 	if err != nil {
 		return err
 	}
-	if original.State != "SUCCEEDED" || !original.RollbackPending || original.RollbackOrderID != order.ID {
+	if original.State != "COMPLETED" || !original.RollbackPending || original.RollbackOrderID != order.ID {
 		return ErrRollbackConflict
 	}
 	original.RollbackPending = false
