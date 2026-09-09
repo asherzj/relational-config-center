@@ -1,5 +1,13 @@
 # Policy Catalog migrations
 
+These scripts retain their historical upgrade responsibilities. After reaching
+the current structure, including 013, an existing database can be explicitly
+adopted with `schema-migrate baseline`; the command verifies the complete control
+schema before registering versions and never replays these scripts. See the
+[Goose maintenance runbook](../../../docs/schema-migrations.md). Goose `up`
+refuses unadopted control tables. Compose and the old current initialization entry
+remain pending the deployment switch in #70.
+
 The reusable Policy model uses an expand-contract rollout. Apply migrations
 001 through 005 in order, then 013 before running the current contraction
 command below. A fresh installation uses the already-final

@@ -18,6 +18,7 @@ type schemaMigrationLock struct {
 	version   int64
 	recover   bool
 	attemptID int64
+	baseline  bool
 }
 
 var errSchemaAlreadyApplied = errors.New("schema migration already applied")
@@ -27,15 +28,20 @@ func (lock *schemaMigrationLock) SessionLock(ctx context.Context, conn *sql.Conn
 	lock.attemptID = 0
 	waitCtx, cancel := context.WithTimeout(ctx, lock.wait)
 	defer cancel()
+	contended := false
 	for {
 		var acquired sql.NullInt64
 		if err := conn.QueryRowContext(waitCtx, `SELECT GET_LOCK(CONCAT('rcc.schema:',LEFT(SHA2(DATABASE(),256),48)),0)`).Scan(&acquired); err != nil {
 			lock.failure = errors.New("migration_lock_unavailable: check database connection and permissions")
+			if contended && waitCtx.Err() != nil && ctx.Err() == nil {
+				lock.failure = errors.New("migration_busy: another maintenance session holds the lock; retry after it finishes")
+			}
 			return lock.failure
 		}
 		if acquired.Valid && acquired.Int64 == 1 {
 			break
 		}
+		contended = acquired.Valid && acquired.Int64 == 0
 		select {
 		case <-waitCtx.Done():
 			lock.failure = errors.New("migration_busy: another maintenance session holds the lock; retry after it finishes")
@@ -59,7 +65,7 @@ func (lock *schemaMigrationLock) SessionLock(ctx context.Context, conn *sql.Conn
 	if err != nil {
 		return err
 	}
-	if status.State == "unmanaged" {
+	if status.State == "unmanaged" && !lock.baseline {
 		return errors.New("baseline_required: existing control tables require verified baseline adoption")
 	}
 	if status.State == "incompatible" {
@@ -74,14 +80,17 @@ func (lock *schemaMigrationLock) SessionLock(ctx context.Context, conn *sql.Conn
 			return err
 		}
 	}
+	if lock.baseline {
+		return lock.prepareBaseline(ctx, conn, status, digest)
+	}
 	bootstrap := false
 	if status.State == "recovery_required" {
 		if !lock.recover {
 			return errors.New("recovery_required: inspect status and actual schema, then explicitly run recover")
 		}
 		if status.AttemptID == 0 {
-			var tables int
-			if err := conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND LEFT(table_name,4)='rcc_' AND table_name NOT IN ('rcc_schema_migration_attempts','rcc_goose_db_version')`).Scan(&tables); err != nil || tables != 0 || status.Current != 0 {
+			tables, err := controlTablesBeyondMigrationMetadata(ctx, conn)
+			if err != nil || tables != 0 || status.Current != 0 {
 				return errors.New("recovery_unverified: missing attempt with existing control state requires manual investigation")
 			}
 			bootstrap = true
@@ -142,6 +151,11 @@ func initializeSchemaVersionZero(ctx context.Context, conn *sql.Conn) error {
 		return err
 	}
 	if exists == 0 {
+		// Goose's MySQL ledger DDL omits ENGINE. Baseline version-prefix
+		// registration relies on transactions regardless of the server default.
+		if _, err := conn.ExecContext(ctx, `SET SESSION default_storage_engine='InnoDB'`); err != nil {
+			return err
+		}
 		if err := store.CreateVersionTable(ctx, conn); err != nil {
 			return err
 		}
@@ -165,7 +179,11 @@ func (lock *schemaMigrationLock) SessionUnlock(ctx context.Context, conn *sql.Co
 		if err := conn.QueryRowContext(cleanup, `SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=? AND is_applied=1`, lock.version).Scan(&applied); err == nil && applied == 1 {
 			completionErr = checkControlSchema(cleanup, conn, lock.version, false)
 			if completionErr == nil {
-				if _, err := conn.ExecContext(cleanup, `UPDATE rcc_schema_migration_attempts SET state='SUCCEEDED',finished_at=CURRENT_TIMESTAMP(6) WHERE id=? AND state='RUNNING'`, lock.attemptID); err != nil {
+				state, previous := "SUCCEEDED", "RUNNING"
+				if lock.baseline {
+					state, previous = "BASELINED", "BASELINING"
+				}
+				if _, err := conn.ExecContext(cleanup, `UPDATE rcc_schema_migration_attempts SET state=?,finished_at=CURRENT_TIMESTAMP(6) WHERE id=? AND state=?`, state, lock.attemptID, previous); err != nil {
 					completionErr = errors.New("migration_result_unknown: success could not be confirmed; inspect status and explicitly recover")
 				}
 			}

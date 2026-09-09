@@ -136,7 +136,9 @@ connections independently from normal Admin HTTP and required-schema readiness.
 control-schema upgrades. Goose and its same-session lock stay inside the MySQL
 adapter; the command does not expose the SQL pool or route migration through the
 business Application. Version status is read-only; unfinished attempts require
-verified explicit recovery. This exceptional schema-maintenance path uses Goose
+verified explicit recovery. Existing databases can be adopted only after complete
+current-structure verification; adoption records the version prefix atomically
+without replaying control SQL or historical backfills. This exceptional schema-maintenance path uses Goose
 and `database/sql` on its locked connection while business persistence continues
 to use GORM. See [the migration runbook and delivery boundary](schema-migrations.md).
 The `account-maintain` composition root invokes `application/AccountMaintenance`

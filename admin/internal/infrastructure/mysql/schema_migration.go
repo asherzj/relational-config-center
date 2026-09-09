@@ -23,13 +23,14 @@ const schemaVersionTable = "rcc_goose_db_version"
 
 // SchemaMigrationStatus is the maintenance command's persisted migration progress.
 type SchemaMigrationStatus struct {
-	State          string  `json:"state"`
-	Current        int64   `json:"current"`
-	Required       int64   `json:"required"`
-	Pending        []int64 `json:"pending"`
-	AttemptID      int64   `json:"attempt_id,omitempty"`
-	AttemptVersion int64   `json:"attempt_version,omitempty"`
-	AttemptDigest  string  `json:"attempt_digest,omitempty"`
+	State            string  `json:"state"`
+	Current          int64   `json:"current"`
+	Required         int64   `json:"required"`
+	Pending          []int64 `json:"pending"`
+	AttemptID        int64   `json:"attempt_id,omitempty"`
+	AttemptVersion   int64   `json:"attempt_version,omitempty"`
+	AttemptDigest    string  `json:"attempt_digest,omitempty"`
+	AttemptOperation string  `json:"attempt_operation,omitempty"`
 }
 
 type SchemaMigrationOptions struct {
@@ -68,6 +69,7 @@ func readControlSchemaStatus(ctx context.Context, db schemaQuerier) (SchemaMigra
 	}
 	status := SchemaMigrationStatus{State: "uninitialized", Required: versions[len(versions)-1], Pending: versions}
 	var versionTables, controlTables, attemptTables int
+	var versionEngine string
 	if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='rcc_schema_migration_attempts'`).Scan(&attemptTables); err != nil {
 		return status, errors.New("status_unavailable: cannot inspect migration attempts")
 	}
@@ -77,10 +79,17 @@ func readControlSchemaStatus(ctx context.Context, db schemaQuerier) (SchemaMigra
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return status, errors.New("status_unavailable: migration attempts cannot be read")
 		}
+		if status.AttemptID > 0 {
+			status.AttemptOperation = "up"
+			if attemptState == "BASELINING" || attemptState == "BASELINED" {
+				status.AttemptOperation = "baseline"
+			}
+		}
 	}
-	if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?`, schemaVersionTable).Scan(&versionTables); err != nil {
+	if err := db.QueryRowContext(ctx, `SELECT COUNT(*),COALESCE(MAX(engine),'') FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?`, schemaVersionTable).Scan(&versionTables, &versionEngine); err != nil {
 		return status, errors.New("status_unavailable: check database connection and metadata permissions")
 	}
+	completed := attemptState == "SUCCEEDED" || attemptState == "BASELINED"
 	if versionTables == 0 {
 		if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND LEFT(table_name,4)='rcc_'`).Scan(&controlTables); err != nil {
 			return status, errors.New("status_unavailable: cannot inspect control tables")
@@ -91,13 +100,16 @@ func readControlSchemaStatus(ctx context.Context, db schemaQuerier) (SchemaMigra
 		if attemptTables > 0 {
 			status.State = "recovery_required"
 		}
+		if completed {
+			status.State = "incompatible"
+		}
 		return status, nil
 	}
 	rows, err := db.QueryContext(ctx, `SELECT version_id,is_applied FROM rcc_goose_db_version ORDER BY id`)
 	if err != nil {
 		return status, errors.New("status_unavailable: migration version table cannot be read")
 	}
-	index, invalid := 0, false
+	index, invalid := 0, versionEngine != "InnoDB"
 	for rows.Next() {
 		var version int64
 		var applied bool
@@ -130,10 +142,10 @@ func readControlSchemaStatus(ctx context.Context, db schemaQuerier) (SchemaMigra
 	if status.Current == status.Required {
 		status.State, status.Pending = "current", []int64{}
 	}
-	if status.Current > status.Required || invalid || (attemptState == "SUCCEEDED" && (index == 0 || status.AttemptVersion != status.Current)) {
+	if status.Current > status.Required || invalid || (completed && (index == 0 || status.AttemptVersion != status.Current)) {
 		status.State = "incompatible"
 	}
-	if status.State != "incompatible" && (index == 0 || attemptTables == 0 || attemptState != "SUCCEEDED") {
+	if status.State != "incompatible" && (index == 0 || attemptTables == 0 || !completed) {
 		status.State = "recovery_required"
 	}
 	return status, nil
@@ -143,6 +155,18 @@ func (adapter *Adapter) MigrateControlSchema(ctx context.Context, options Schema
 	status, err := adapter.ControlSchemaStatus(ctx)
 	if err != nil {
 		return status, err
+	}
+	if options.Recover && status.State == "recovery_required" && status.AttemptOperation == "baseline" {
+		return adapter.BaselineControlSchema(ctx, options)
+	}
+	if options.Recover && status.State == "recovery_required" && status.AttemptID == 0 {
+		tables, err := controlTablesBeyondMigrationMetadata(ctx, adapter.pool)
+		if err != nil {
+			return status, errors.New("recovery_unavailable: cannot inspect incomplete initialization")
+		}
+		if tables > 0 {
+			return adapter.BaselineControlSchema(ctx, options)
+		}
 	}
 	locker := &schemaMigrationLock{wait: options.LockTimeout, recover: options.Recover}
 	provider, err := adapter.schemaProvider(goose.WithSessionLocker(locker))
@@ -177,6 +201,12 @@ func (adapter *Adapter) MigrateControlSchema(ctx context.Context, options Schema
 		err = errors.New("migration_incomplete: inspect status and explicitly recover the unfinished attempt")
 	}
 	return status, err
+}
+
+func controlTablesBeyondMigrationMetadata(ctx context.Context, db schemaQuerier) (int, error) {
+	var count int
+	err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND LEFT(table_name,4)='rcc_' AND table_name NOT IN ('rcc_schema_migration_attempts','rcc_goose_db_version')`).Scan(&count)
+	return count, err
 }
 
 func controlSchemaVersions() ([]int64, error) {

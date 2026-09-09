@@ -18,12 +18,12 @@ func main() { os.Exit(run()) }
 
 func run() int {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: schema-migrate status|up|recover [--timeout=5m] [--lock-timeout=10s]")
+		fmt.Fprintln(os.Stderr, "usage: schema-migrate status|up|baseline|recover [--timeout=5m] [--lock-timeout=10s]")
 		return 2
 	}
 	operation := os.Args[1]
-	if operation != "status" && operation != "up" && operation != "recover" {
-		fmt.Fprintln(os.Stderr, "unsupported_operation: use status, up or recover; down/reset are not supported")
+	if operation != "status" && operation != "up" && operation != "baseline" && operation != "recover" {
+		fmt.Fprintln(os.Stderr, "unsupported_operation: use status, up, baseline or recover; down/reset are not supported")
 		return 2
 	}
 	flags := flag.NewFlagSet("schema-migrate", flag.ContinueOnError)
@@ -51,6 +51,8 @@ func run() int {
 	var result mysqladapter.SchemaMigrationStatus
 	if operation == "status" {
 		result, err = adapter.ControlSchemaStatus(ctx)
+	} else if operation == "baseline" {
+		result, err = adapter.BaselineControlSchema(ctx, mysqladapter.SchemaMigrationOptions{LockTimeout: *lockTimeout})
 	} else {
 		result, err = adapter.MigrateControlSchema(ctx, mysqladapter.SchemaMigrationOptions{LockTimeout: *lockTimeout, Recover: operation == "recover"})
 	}

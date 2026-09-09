@@ -348,6 +348,11 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 		"../../../deploy/mysql/migrations/013-policy-audit-timestamps.sql")
 	db := deliveryDB(t, driver)
 	directory := t.TempDir()
+	schemaMigrate := buildSchemaMigrationCommand(t)
+	if output, err := schemaMigrationCommand(schemaMigrate, driver, "baseline").CombinedOutput(); err == nil || !strings.Contains(string(output), "deploy/mysql/migrations/README.md") {
+		t.Fatalf("historical structure accepted or missing upgrade guidance: %v %s", err, output)
+	}
+	requireSchemaMigrationState(t, schemaMigrate, driver, "unmanaged", "status")
 	migrate := directory + "/policy-migrate"
 	build := exec.Command("go", "build", "-o", migrate, "../policy-migrate")
 	if out, err := build.CombinedOutput(); err != nil {
@@ -440,6 +445,14 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 		if upgraded != installed || upgraded == "" {
 			t.Fatalf("fresh/upgrade metadata mismatch:\n%s\n%s", upgraded, installed)
 		}
+	}
+	preservedBeforeBaseline := baselineDataSnapshot(t, owner)
+	if policyCatalogSchemaSignature(t, t.Context(), owner) != policyCatalogSchemaSignature(t, t.Context(), fresh) {
+		t.Fatal("historical Policy structure differs from fresh installation")
+	}
+	requireSchemaMigrationState(t, schemaMigrate, driver, "current", "baseline")
+	if got := baselineDataSnapshot(t, owner); got != preservedBeforeBaseline {
+		t.Fatal("baseline changed historical account, session, policy or business rows")
 	}
 	p := accountProcessCommand(t, binary, driver)
 	p.ready(t)

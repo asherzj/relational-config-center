@@ -20,7 +20,7 @@ import (
 
 // A second isolated release uses the unchanged public command and adds an
 // embedded migration. No production test hook or arbitrary-SQL CLI is needed.
-func buildNextSchemaMigrationRelease(t *testing.T, slow ...bool) string {
+func buildSchemaMigrationVariant(t *testing.T, prepare func(string)) string {
 	t.Helper()
 	root := t.TempDir()
 	source, err := filepath.Abs("../..")
@@ -62,29 +62,7 @@ func buildNextSchemaMigrationRelease(t *testing.T, slow ...bool) string {
 		t.Fatal(err)
 	}
 	directory := filepath.Join(root, "internal/infrastructure/mysql/migrations")
-	fixture := "-- +goose NO TRANSACTION\n-- +goose Up\nCREATE TABLE IF NOT EXISTS rcc_migration_fixture (id bigint NOT NULL PRIMARY KEY, note varchar(20) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\nINSERT INTO rcc_migration_fixture VALUES (1,'upgraded') ON DUPLICATE KEY UPDATE id=id;\n"
-	if len(slow) > 0 && slow[0] {
-		fixture = strings.Replace(fixture, "\nINSERT", "\nSELECT SLEEP(3);\nINSERT", 1)
-	}
-	if err := os.WriteFile(filepath.Join(directory, "00002_fixture.sql"), []byte(fixture), 0644); err != nil {
-		t.Fatal(err)
-	}
-	var manifest map[string]string
-	data, err := os.ReadFile(filepath.Join(directory, "00001_schema.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := json.Unmarshal(data, &manifest); err != nil {
-		t.Fatal(err)
-	}
-	manifest["rcc_migration_fixture"] = "CREATE TABLE `rcc_migration_fixture` (\n  `id` bigint NOT NULL,\n  `note` varchar(20) NOT NULL,\n  PRIMARY KEY (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci"
-	data, err = json.Marshal(manifest)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(directory, "00002_schema.json"), data, 0644); err != nil {
-		t.Fatal(err)
-	}
+	prepare(directory)
 	binary := filepath.Join(root, "schema-migrate")
 	build := exec.Command("go", "build", "-o", binary, "./cmd/schema-migrate")
 	build.Dir, build.Env = root, append(os.Environ(), "GOWORK=off")
@@ -92,6 +70,45 @@ func buildNextSchemaMigrationRelease(t *testing.T, slow ...bool) string {
 		t.Fatalf("build next release: %v %s", err, output)
 	}
 	return binary
+}
+
+func buildNextSchemaMigrationRelease(t *testing.T, slow ...bool) string {
+	t.Helper()
+	return buildSchemaMigrationVariant(t, func(directory string) {
+		fixture := "-- +goose NO TRANSACTION\n-- +goose Up\nCREATE TABLE IF NOT EXISTS rcc_migration_fixture (id bigint NOT NULL PRIMARY KEY, note varchar(20) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\nINSERT INTO rcc_migration_fixture VALUES (1,'upgraded') ON DUPLICATE KEY UPDATE id=id;\n"
+		if len(slow) > 0 && slow[0] {
+			fixture = strings.Replace(fixture, "\nINSERT", "\nSELECT SLEEP(3);\nINSERT", 1)
+		}
+		if err := os.WriteFile(filepath.Join(directory, "00003_fixture.sql"), []byte(fixture), 0644); err != nil {
+			t.Fatal(err)
+		}
+		var manifest map[string]string
+		data, err := os.ReadFile(filepath.Join(directory, "00002_schema.json"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := json.Unmarshal(data, &manifest); err != nil {
+			t.Fatal(err)
+		}
+		manifest["rcc_migration_fixture"] = "CREATE TABLE `rcc_migration_fixture` (\n  `id` bigint NOT NULL,\n  `note` varchar(20) NOT NULL,\n  PRIMARY KEY (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci"
+		data, err = json.Marshal(manifest)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(directory, "00003_schema.json"), data, 0644); err != nil {
+			t.Fatal(err)
+		}
+	})
+}
+func buildPreviousSchemaMigrationRelease(t *testing.T) string {
+	t.Helper()
+	return buildSchemaMigrationVariant(t, func(directory string) {
+		for _, name := range []string{"00002_policy_audit_timestamps.sql", "00002_schema.json"} {
+			if err := os.Remove(filepath.Join(directory, name)); err != nil {
+				t.Fatal(err)
+			}
+		}
+	})
 }
 
 func buildSchemaMigrationCommand(t *testing.T) string {
@@ -350,10 +367,10 @@ func TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	// Fail at the persistence boundary after Goose has committed version 2.
+	// Fail at the persistence boundary after Goose has committed version 3.
 	for _, statement := range []string{
 		`INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,created_at) VALUES('fixture-account','fixture','fixture@example.test','Retained account','opaque-password-hash','2026-01-01')`,
-		`INSERT INTO rcc_query_policies(code,name,type_code,default_order_field,default_order_direction,default_page_size,max_page_size,creator,modifier,gmt_created,gmt_modified) VALUES('retained_v1','Retained policy','business_marker','id','ASC',20,100,'fixture-account','fixture-account','2026-01-01','2026-01-02')`,
+		`INSERT INTO rcc_query_policies(code,name,type_code,default_order_field,default_order_direction,default_page_size,max_page_size,creator,modifier,created_at,updated_at) VALUES('retained_v1','Retained policy','business_marker','id','ASC',20,100,'fixture-account','fixture-account','2026-01-01','2026-01-02')`,
 		`INSERT INTO rcc_release_orders(id,table_name,applicant_id,state,version,document) VALUES('fixture-order','business_marker','fixture-account','PUBLISHED',7,'{"retained":true}')`,
 		`CREATE TABLE business_marker(id int PRIMARY KEY,note varchar(20) NOT NULL)`,
 		`INSERT INTO business_marker VALUES(1,'retained')`,
@@ -370,7 +387,7 @@ func TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery(t *testing.T) {
 		t.Fatalf("confirmation failure must be safe: %v %s", err, output)
 	}
 	var versions int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=2 AND is_applied=1`).Scan(&versions); err != nil || versions != 1 {
+	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=3 AND is_applied=1`).Scan(&versions); err != nil || versions != 1 {
 		t.Fatalf("version was not committed: %d %v", versions, err)
 	}
 	requireSchemaMigrationState(t, next, driver, "recovery_required", "status")
@@ -395,12 +412,12 @@ func TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery(t *testing.T) {
 		t.Fatal(err)
 	}
 	requireSchemaMigrationState(t, next, driver, "current", "recover")
-	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=2`).Scan(&versions); err != nil || versions != 1 {
+	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=3`).Scan(&versions); err != nil || versions != 1 {
 		t.Fatalf("committed version duplicated: %d %v", versions, err)
 	}
 	for _, query := range []string{
 		`SELECT COUNT(*) FROM rcc_accounts WHERE id='fixture-account' AND username='fixture' AND password_hash='opaque-password-hash' AND roles=1 AND role_version=1 AND session_version=1 AND created_at='2026-01-01'`,
-		`SELECT COUNT(*) FROM rcc_query_policies WHERE code='retained_v1' AND name='Retained policy' AND modifier='fixture-account' AND gmt_created='2026-01-01' AND gmt_modified='2026-01-02'`,
+		`SELECT COUNT(*) FROM rcc_query_policies WHERE code='retained_v1' AND name='Retained policy' AND modifier='fixture-account' AND created_at='2026-01-01' AND updated_at='2026-01-02'`,
 		`SELECT COUNT(*) FROM rcc_release_orders WHERE id='fixture-order' AND applicant_id='fixture-account' AND state='PUBLISHED' AND version=7 AND document->'$.retained'=true`,
 		`SELECT COUNT(*) FROM business_marker WHERE id=1 AND note='retained'`,
 		`SELECT COUNT(*) FROM rcc_migration_fixture WHERE id=1 AND note='retained'`,
@@ -440,7 +457,8 @@ func TestSchemaMigrationRecoversInterruptedBootstrap(t *testing.T) {
 	if output, err := schemaMigrationCommand(binary, driver, "up").CombinedOutput(); err == nil {
 		t.Fatalf("bootstrap was implicitly retried: %s", output)
 	}
-	requireSchemaMigrationState(t, binary, driver, "current", "recover")
+	requireSchemaMigrationState(t, binary, driver, "pending", "recover")
+	requireSchemaMigrationState(t, binary, driver, "current", "up")
 }
 
 func TestSchemaMigrationProcessInterruptionRequiresSameReleaseRecovery(t *testing.T) {
@@ -540,7 +558,8 @@ func TestSchemaMigrationRecoversMissingZeroVersion(t *testing.T) {
 	if _, err := db.Exec("GRANT ALL PRIVILEGES ON rcc_test.* TO 'rcc_admin'@'%'"); err != nil {
 		t.Fatal(err)
 	}
-	requireSchemaMigrationState(t, binary, driver, "current", "recover")
+	requireSchemaMigrationState(t, binary, driver, "pending", "recover")
+	requireSchemaMigrationState(t, binary, driver, "current", "up")
 }
 
 func TestSchemaMigrationConnectionDeadlineAndSafeDiagnostics(t *testing.T) {
