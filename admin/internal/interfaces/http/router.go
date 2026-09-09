@@ -403,8 +403,8 @@ type queryPolicyResponse struct {
 	Status                application.PolicyStatus `json:"status"`
 	Creator               string                   `json:"creator"`
 	Modifier              string                   `json:"modifier"`
-	CreatedAt             string                   `json:"gmt_created"`
-	UpdatedAt             string                   `json:"gmt_modified"`
+	CreatedAt             string                   `json:"created_at"`
+	UpdatedAt             string                   `json:"updated_at"`
 }
 
 type putMutationPolicyRequest struct {
@@ -455,8 +455,8 @@ type mutationPolicyResponse struct {
 	Status              application.PolicyStatus `json:"status"`
 	Creator             string                   `json:"creator"`
 	Modifier            string                   `json:"modifier"`
-	CreatedAt           string                   `json:"gmt_created"`
-	UpdatedAt           string                   `json:"gmt_modified"`
+	CreatedAt           string                   `json:"created_at"`
+	UpdatedAt           string                   `json:"updated_at"`
 }
 
 func mutationPolicyResponseFor(policy application.MutationPolicy) mutationPolicyResponse {
@@ -487,8 +487,8 @@ type tablePolicyAssignmentResponse struct {
 	Enabled            bool   `json:"enabled"`
 	Creator            string `json:"creator"`
 	Modifier           string `json:"modifier"`
-	CreatedAt          string `json:"gmt_created"`
-	UpdatedAt          string `json:"gmt_modified"`
+	CreatedAt          string `json:"created_at"`
+	UpdatedAt          string `json:"updated_at"`
 }
 
 type tableQueryRequest struct {
@@ -608,9 +608,10 @@ type tableQueryResponse struct {
 }
 
 type tableQueryColumnResponse struct {
-	Name     string                 `json:"name"`
-	Type     application.ColumnType `json:"type"`
-	Nullable bool                   `json:"nullable"`
+	Name      string                 `json:"name"`
+	Type      application.ColumnType `json:"type"`
+	Nullable  bool                   `json:"nullable"`
+	Generated bool                   `json:"generated,omitempty"`
 }
 
 type tableQueryPageResponse struct {
@@ -623,7 +624,7 @@ type tableQueryPageResponse struct {
 func queryResponse(result application.QueryResult) tableQueryResponse {
 	columns := make([]tableQueryColumnResponse, 0, len(result.Columns))
 	for _, column := range result.Columns {
-		columns = append(columns, tableQueryColumnResponse{Name: column.Name, Type: column.Type, Nullable: column.Nullable})
+		columns = append(columns, tableQueryColumnResponse{Name: column.Name, Type: column.Type, Nullable: column.Nullable, Generated: column.Generated})
 	}
 	rows := make([]map[string]*string, 0, len(result.Rows))
 	for _, resultRow := range result.Rows {

@@ -97,7 +97,7 @@ type legacyPolicyRecord struct {
 func (legacyPolicyRecord) TableName() string { return "rcc_table_policies" }
 
 // MigrateLegacyTablePolicies runs a set-wide preflight and then performs one
-// all-or-nothing Catalog backfill. Expand migration 005 must be applied first.
+// all-or-nothing Catalog backfill. Expand migration 005 and audit migration 013 must be applied first.
 func (adapter *Adapter) MigrateLegacyTablePolicies(ctx context.Context, operator string) error {
 	return adapter.gorm.WithContext(ctx).Transaction(func(transaction *gorm.DB) error {
 		var records []legacyPolicyRecord
@@ -247,8 +247,6 @@ func (adapter *Adapter) ContractLegacyTablePolicies(ctx context.Context) error {
   DROP COLUMN allow_add,
   DROP COLUMN allow_modify,
   DROP COLUMN allow_delete,
-  RENAME COLUMN created_at TO gmt_created,
-  RENAME COLUMN updated_at TO gmt_modified,
   ADD CONSTRAINT chk_table_policy_enabled CHECK (enabled IN (0, 1))`).Error; err != nil {
 		return fmt.Errorf("contract legacy Table Policy columns: %w", err)
 	}

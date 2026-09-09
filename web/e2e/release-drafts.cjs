@@ -18,7 +18,7 @@ const base=process.env.RCC_WEB_URL;
   await page.goto(`${base}/configuration/managed-data`);
   await page.getByLabel('Managed Table',{exact:true}).selectOption('stage1_acceptance_items');
   await page.getByRole('button',{name:'修改记录 1',exact:true}).click();
-  await page.getByLabel('包含 name',{exact:true}).check();await page.getByLabel('name 值',{exact:true}).fill('browser draft intent');
+  await page.getByLabel('name 值',{exact:true}).fill('browser draft intent');
   await page.getByRole('button',{name:'查看 Change Set',exact:true}).click();
   const titleInput=page.getByLabel('发布单标题',{exact:true});
   assert.equal(await titleInput.inputValue(),'stage1_acceptance_items 配置变更');assert.equal(await titleInput.evaluate(element=>element.required),true);assert.equal(await titleInput.getAttribute('aria-invalid'),'false');

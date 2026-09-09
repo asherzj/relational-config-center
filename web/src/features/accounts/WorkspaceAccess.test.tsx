@@ -103,7 +103,7 @@ it("cancels pending dirty navigation on expiry and restores the guarded draft af
  const draftPolicy = {
   code:"editable_query_v1",name:"原名称",description:"",type_code:"page_query",default_order_field:"id",
   default_order_direction:"DESC",default_page_size:20,max_page_size:200,status:"DRAFT",
-  creator:identity.account.id,modifier:identity.account.id,gmt_created:"2026-09-07T00:00:00Z",gmt_modified:"2026-09-07T00:00:00Z",
+  creator:identity.account.id,modifier:identity.account.id,created_at:"2026-09-07T00:00:00Z",updated_at:"2026-09-07T00:00:00Z",
  };
  let expired=false;
  let detailReads=0;
@@ -120,7 +120,7 @@ it("cancels pending dirty navigation on expiry and restores the guarded draft af
   if(path.endsWith("/query-policy-types"))return json({types:[{code:"page_query"}]});
   if(path.endsWith("/query-policies/editable_query_v1")){
    if(init?.method){writes++;return json(draftPolicy);}
-   detailReads++;return json({...draftPolicy,gmt_modified:`2026-09-07T00:00:0${detailReads}Z`});
+   detailReads++;return json({...draftPolicy,updated_at:`2026-09-07T00:00:0${detailReads}Z`});
   }
   if(path.endsWith("/query-policies"))return json({policies:[draftPolicy]});
   throw new Error(`unexpected ${path}`);

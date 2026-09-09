@@ -10,6 +10,7 @@ import {useQuery} from "@tanstack/react-query";
 import {Link,useParams} from "react-router-dom";
 import {releaseOrders,type ReleaseStateAction} from "../../api/release-orders";
 import {Button} from "../../components/ui/Button";
+import {Button as PrimitiveButton} from "../../components/shadcn/button";
 import {Input} from "../../components/shadcn/input";
 import {NativeSelect} from "../../components/shadcn/native-select";
 import {Table,TableHeader,TableBody,TableRow,TableHead,TableCell} from "../../components/shadcn/table";
@@ -27,7 +28,7 @@ import {ReleasePerson} from "./ReleasePerson";
 export const releaseStateLabels={DRAFT:"草稿",PENDING_APPROVAL:"待审批",APPROVED:"已批准",SUCCEEDED:"已发布待完结",COMPLETED:"已完结",REJECTED:"已拒绝",CANCELLED:"已取消",ROLLED_BACK:"已回滚"};
 export function ReleaseOrdersPage(){
  const {id}=useParams();
- return <main className="workspace"><ReleaseRecovery/><div className="page-heading"><div><h1>发布单</h1><p>配置经独立审批后发布；发布成功表示数据库已提交，分发尚未接入。</p></div><Link to="/configuration/managed-data" className="button">编辑配置</Link></div>{id?<ReleaseDetail key={id} id={id}/>:<ReleaseList/>}</main>;
+ return <main className="workspace"><ReleaseRecovery/><div className="page-heading"><div><h1>发布单</h1></div></div>{id?<ReleaseDetail key={id} id={id}/>:<ReleaseList/>}</main>;
 }
 function ReleaseList(){
  const [input,setInput]=useState({table_name:"",applicant_id:"",state:"",id:""});
@@ -40,7 +41,7 @@ function ReleaseList(){
   <label>状态<NativeSelect aria-label="状态" value={input.state} onChange={e=>setInput({...input,state:e.target.value})}><option value="">全部状态</option>{Object.entries(releaseStateLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</NativeSelect></label>
   <Button type="submit">查询发布单</Button><Button onClick={()=>void list.refetch()}>刷新列表</Button>
  </form>{list.isPending?<LoadingState/>:list.isError?<ErrorState error={list.error} onRetry={()=>void list.refetch()}/>:<>
- <div className="table-scroll"><Table className="min-w-[760px]"><TableHeader><TableRow><TableHead>标题 / 单号 / 表</TableHead><TableHead>申请人</TableHead><TableHead>状态</TableHead><TableHead>变更</TableHead></TableRow></TableHeader><TableBody>{list.data.orders.map(order=><TableRow key={order.id}><TableCell><Link className="font-medium" to={`/configuration/release-orders/${order.id}`}>{order.title}</Link><p className="break-all text-xs text-muted-foreground">{order.id} · {order.table_name}</p></TableCell><TableCell className="whitespace-nowrap">{order.applicant_id}</TableCell><TableCell>{releaseStateLabels[order.state]}</TableCell><TableCell>{order.item_count} 项 · {Object.entries(order.operation_counts).map(([operation,count])=>`${operation} ${count}`).join("、")}</TableCell></TableRow>)}</TableBody></Table></div>
+ <div className="table-scroll"><Table className="min-w-[760px]"><TableHeader><TableRow><TableHead>标题 / 单号 / 表</TableHead><TableHead>申请人</TableHead><TableHead>状态</TableHead><TableHead>变更</TableHead><TableHead className="sticky right-0 z-10 w-32 bg-background">操作</TableHead></TableRow></TableHeader><TableBody>{list.data.orders.map(order=><TableRow key={order.id}><TableCell><Link className="font-medium" to={`/configuration/release-orders/${order.id}`}>{order.title}</Link><p className="break-all text-xs text-muted-foreground">{order.id} · {order.table_name}</p></TableCell><TableCell className="whitespace-nowrap">{order.applicant_id}</TableCell><TableCell>{releaseStateLabels[order.state]}</TableCell><TableCell>{order.item_count} 项 · {Object.entries(order.operation_counts).map(([operation,count])=>`${operation} ${count}`).join("、")}</TableCell><TableCell className="sticky right-0 z-10 bg-background whitespace-nowrap"><PrimitiveButton asChild variant="ghost" size="sm"><Link to={`/configuration/release-orders/${order.id}`} aria-label={`查看详情：${order.title}`}>查看详情</Link></PrimitiveButton></TableCell></TableRow>)}</TableBody></Table></div>
  {list.data.orders.length===0&&<p className="feedback-state">没有符合条件的发布单。</p>}
  <footer className="catalog-footer"><Button disabled={!filters.after} onClick={()=>setFilters({...filters,after:""})}>回到首页</Button><Button disabled={!list.data.next_cursor} onClick={()=>setFilters({...filters,after:list.data.next_cursor})}>下一页</Button></footer>
  </>}</>;
@@ -70,7 +71,7 @@ function ReleaseDetail({id}:{id:string}){
  const names=people.isError?{}:people.data?.people??{};
  const reverse=Boolean(order.rollback_of_id);
  const approver=[...order.history].reverse().find(event=>event.action==="APPROVE");
- return <div className="release-detail min-w-0"><nav aria-label="发布单位置" className="text-xs text-muted-foreground">配置管理 / 发布单 / <span aria-current="page">详情</span></nav><div className="flex flex-wrap justify-between gap-3"><Link className="underline underline-offset-4" to="/configuration/release-orders">返回发布单列表</Link><Button onClick={()=>{void query.refetch();void people.refetch()}}>重新读取发布单</Button></div>
+ return <div className="release-detail min-w-0"><nav aria-label="发布单位置" className="text-xs text-muted-foreground">配置管理 / 发布单 / <span aria-current="page">详情</span></nav><div><Link className="underline underline-offset-4" to="/configuration/release-orders">返回发布单列表</Link></div>
  <ReleaseProgress order={order} people={names}/>
  <div className="release-detail-overview">
   <section className="release-panel min-w-0" aria-label="基本信息"><h2 className="text-xl font-semibold break-all">{order.title}</h2><p className="mt-2 mb-6 text-muted-foreground break-all">{order.table_name} · {releaseStateLabels[order.state]}</p>

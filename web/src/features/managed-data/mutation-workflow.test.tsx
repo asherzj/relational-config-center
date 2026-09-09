@@ -38,7 +38,7 @@ describe("Managed Data mutation workflow", () => {
           allow_add: true, allow_modify: true, allow_delete: true,
           create_operator_field: null, create_time_field: null, modify_operator_field: null, modify_time_field: null,
           status: "ACTIVE", creator: "fixture", modifier: "fixture",
-          gmt_created: "2026-08-28T00:00:00Z", gmt_modified: "2026-08-28T00:00:00Z",
+          created_at: "2026-08-28T00:00:00Z", updated_at: "2026-08-28T00:00:00Z",
         });
       }
       throw new Error(`unexpected request ${url}`);

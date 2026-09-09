@@ -36,8 +36,7 @@ export function ChangeSetDialog({ changeSet, error, pending, onEdit, onCancel, o
   return (
     <ModalSurface open onClose={onCancel} pending={pending||draftLocked} label={`${changeSet.operation} Change Set`} dismissLabel="取消 Change Set" className={`change-set-dialog change-set-${changeSet.operation.toLowerCase()} gap-0 overflow-hidden p-0 sm:max-w-[980px]`}>
         <header><span>{operation === "DELETE" ? "尚未执行删除；取消删除会直接关闭此预览。" : "请确认以下变更内容："}</span><DialogTitle>{changeSet.operation} Change Set</DialogTitle></header>
-        <div className="change-set-scroll">
-          <Table className="change-set-table">
+          <Table className="change-set-table" containerProps={{className:"change-set-scroll",role:"region","aria-label":"变更字段对比，可横向滚动",tabIndex:0}}>
             <TableHeader><TableRow><TableHead scope="col">字段</TableHead><TableHead scope="col">原值</TableHead><TableHead scope="col">新值</TableHead></TableRow></TableHeader>
             <TableBody>{changeSet.rows.map((row) => (
               <TableRow key={row.field} className={row.changed ? "change-row-changed" : "change-row-unchanged"}>
@@ -47,14 +46,13 @@ export function ChangeSetDialog({ changeSet, error, pending, onEdit, onCancel, o
               </TableRow>
             ))}</TableBody>
           </Table>
-        </div>
         <div className="change-set-feedback">
         {error !== undefined && error !== null && <ErrorState error={error} onRetry={onRetryRecheck} />}
         {draftFeedback}
  <RecordConflictReview {...conflictReview} pending={pending} />
         </div>
         <footer>
-            <Button onClick={onCancel} disabled={pending||draftLocked}>{operation === "DELETE" ? "取消删除" : "放弃本次编辑"}</Button>
+            <Button variant="ghost" onClick={onCancel} disabled={pending||draftLocked}>{operation === "DELETE" ? "取消删除" : "放弃本次编辑"}</Button>
             {operation !== "DELETE" && <Button onClick={onEdit} disabled={pending||draftLocked}>返回修改</Button>}
             {draftAction}
         </footer>

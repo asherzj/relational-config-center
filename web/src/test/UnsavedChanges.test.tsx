@@ -8,7 +8,7 @@ import { AppRoutes } from "../app";
 import { ToastProvider } from "../components/ui/Toast";
 import { testAdminIdentity, withAdminSession } from "./account-session";
 
-const audit = { creator: "fixture", modifier: "fixture", gmt_created: "2026-09-07T00:00:00Z", gmt_modified: "2026-09-07T00:00:00Z" };
+const audit = { creator: "fixture", modifier: "fixture", created_at: "2026-09-07T00:00:00Z", updated_at: "2026-09-07T00:00:00Z" };
 const query = { ...audit, code: "query_v1", name: "查询基线", description: "说明", type_code: "page_query", default_order_field: "id", default_order_direction: "DESC", default_page_size: 20, max_page_size: 200, status: "DRAFT" };
 const mutation = { ...audit, code: "mutation_v1", name: "变更基线", description: "说明", type_code: "single_table_mutation", allow_add: true, allow_modify: true, allow_delete: true, create_operator_field: null, create_time_field: null, modify_operator_field: null, modify_time_field: null, status: "DRAFT" };
 const assignment = { ...audit, table_name: "items", query_policy_code: "query_v1", mutation_policy_code: "mutation_v1", enabled: true };
@@ -334,7 +334,6 @@ describe("table assignments and managed row drafts", () => {
     const edit = await screen.findByRole("button", { name: "修改记录 1" });
     await waitFor(() => expect(edit).toBeEnabled());
     await user.click(edit);
-    await user.click(screen.getByRole("checkbox", { name: "包含 name" }));
     await user.type(screen.getByRole("textbox", { name: "name 值" }), "changed");
     await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
     const execute = screen.getByRole("button", { name: "确认并保存草稿" });
@@ -371,10 +370,8 @@ describe("table assignments and managed row drafts", () => {
     const edit = await screen.findByRole("button", { name: "修改记录 1" });
     await waitFor(() => expect(edit).toBeEnabled());
     await user.click(edit);
-    await user.click(screen.getByRole("checkbox", { name: "包含 name" }));
     await user.type(screen.getByRole("textbox", { name: "name 值" }), "x");
     await user.keyboard("{Backspace}");
-    await user.click(screen.getByRole("checkbox", { name: "包含 name" }));
     expect(unloadPrevented()).toBe(false);
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

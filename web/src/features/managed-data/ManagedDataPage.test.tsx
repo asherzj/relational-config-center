@@ -15,8 +15,8 @@ const enabledPolicy = {
   enabled: true,
   creator: "local-fixture",
   modifier: "local-fixture",
-  gmt_created: "2026-08-25T09:00:00Z",
-  gmt_modified: "2026-08-25T09:00:00Z",
+  created_at: "2026-08-25T09:00:00Z",
+  updated_at: "2026-08-25T09:00:00Z",
 };
 
 function json(value: unknown, status = 200, requestId = "req-managed-data") {

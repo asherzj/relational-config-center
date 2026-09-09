@@ -15,6 +15,7 @@ export type ManagedDataColumn = {
   name: string;
   type: ManagedDataColumnType;
   nullable: boolean;
+  generated?: boolean;
 };
 
 export type QueryOperator =
