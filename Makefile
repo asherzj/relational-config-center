@@ -30,6 +30,7 @@ build:
 		(cd $$module && go build -o ../bin/$$module/$$module ./cmd/$$module) || exit $$?; \
 	done
 	@cd admin && go build -o ../bin/admin/account-maintain ./cmd/account-maintain
+	@cd admin && go build -o ../bin/admin/release-reset ./cmd/release-reset
 
 # Requires pnpm --dir web install and Chrome (or RCC_BROWSER_EXECUTABLE).
 test-browser:

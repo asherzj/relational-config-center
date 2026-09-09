@@ -36,27 +36,11 @@ func (s *releaseOrderSession) LockAndReadTableExecutionSchema(ctx context.Contex
 		}
 		return domain.TableExecutionSchema{}, application.ErrReleaseUnavailable
 	}
-	// information_schema hides triggers without TRIGGER privilege. Require an
-	// explicit effective direct grant rather than mistaking invisibility for none.
-	// Legacy privilege tables use case-insensitive string columns, so apply the
-	// server's filesystem-name case rules explicitly before accepting a grant.
-	var grants int
-	err = s.database.WithContext(ctx).Raw(`SELECT COUNT(*) FROM (
- SELECT GRANTEE,PRIVILEGE_TYPE FROM information_schema.USER_PRIVILEGES WHERE NOT @@global.partial_revokes
- UNION ALL SELECT GRANTEE,PRIVILEGE_TYPE FROM information_schema.SCHEMA_PRIVILEGES
- WHERE IF(@@global.partial_revokes,
-   IF(@@lower_case_table_names=0,BINARY TABLE_SCHEMA=BINARY DATABASE(),BINARY LOWER(TABLE_SCHEMA)=BINARY LOWER(DATABASE())),
-   IF(@@lower_case_table_names=0,BINARY DATABASE() LIKE BINARY TABLE_SCHEMA ESCAPE X'5C',BINARY LOWER(DATABASE()) LIKE BINARY LOWER(TABLE_SCHEMA) ESCAPE X'5C'))
- UNION ALL SELECT GRANTEE,PRIVILEGE_TYPE FROM information_schema.TABLE_PRIVILEGES
- WHERE IF(@@lower_case_table_names=0,BINARY TABLE_SCHEMA=BINARY DATABASE(),BINARY LOWER(TABLE_SCHEMA)=BINARY LOWER(DATABASE()))
- AND IF(@@lower_case_table_names=0,BINARY TABLE_NAME=BINARY ?,BINARY LOWER(TABLE_NAME)=BINARY LOWER(?))
- ) p WHERE PRIVILEGE_TYPE='TRIGGER' AND BINARY GRANTEE=BINARY CONCAT(
- CHAR(39),LEFT(CURRENT_USER(),CHAR_LENGTH(CURRENT_USER())-CHAR_LENGTH(SUBSTRING_INDEX(CURRENT_USER(),'@',-1))-1),
- CHAR(39),'@',CHAR(39),SUBSTRING_INDEX(CURRENT_USER(),'@',-1),CHAR(39))`, meta.TableName, meta.TableName).Row().Scan(&grants)
+	granted, err := directTriggerGrant(s.database.WithContext(ctx), meta.TableName)
 	if err != nil {
 		return domain.TableExecutionSchema{}, application.ErrReleaseUnavailable
 	}
-	if grants == 0 {
+	if !granted {
 		return domain.TableExecutionSchema{}, application.ErrReleaseMetadataPermission
 	}
 	result := domain.TableExecutionSchema{Format: "mysql-8.4-execution-v1", TableName: meta.TableName, Sections: []domain.ExecutionMetadata{}}
