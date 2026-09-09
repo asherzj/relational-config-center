@@ -226,6 +226,8 @@ func TestAccountProcessRestartPreservesSessionsAndRateWindows(t *testing.T) {
 	body := `{"username":"restart.user","email":"restart@example.com","password":"restart password long enough"}`
 	valid, csrf, _ := processCredentials(t, p, "/api/v1/auth/register", body)
 	script := exec.Command("python3", "../../../scripts/account-session.py", "--origin", p.origin, "--username", "restart.user", "--password-stdin")
+	// Keep this loopback acceptance request independent of host proxy settings.
+	script.Env = append(os.Environ(), "NO_PROXY=127.0.0.1,localhost", "no_proxy=127.0.0.1,localhost")
 	script.Stdin = strings.NewReader("restart password long enough")
 	if output, err := script.CombinedOutput(); err != nil || !strings.Contains(string(output), "Session logged out.") {
 		t.Fatalf("delivered script: %v %s", err, output)

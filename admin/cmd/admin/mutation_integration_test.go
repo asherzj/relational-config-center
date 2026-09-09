@@ -365,15 +365,29 @@ func TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields(t 
 }
 
 func TestMutationPolicyAutoFillUsesAccountOperatorAndDatabaseTimeAndRejectsManagedInput(t *testing.T) {
-	app := startIntegrationApplication(t,
+	ctx, driverConfig := startIntegrationMySQL(t,
 		"../../../deploy/mysql/init/001-schema.sql",
 		"testdata/006-mutation-fixture.sql",
 	)
+	app, err := newApplication(ctx, integrationConfig(driverConfig))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = app.Close() })
+	database, err := sql.Open("mysql", driverConfig.FormatDSN())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = database.Close() })
 	enableMutationPolicy(t, app, "mutation_auto_fill_items", mutationPolicyFixture{
 		AllowAdd: true, CreateOperatorField: stringPointer("creator"), CreateTimeField: stringPointer("occurred_at"),
 	})
 
-	before := time.Now().UTC().Add(-time.Second)
+	// Auto Fill uses the database clock; the Docker VM and host can differ.
+	var before, after time.Time
+	if err := database.QueryRowContext(ctx, "SELECT UTC_TIMESTAMP(6)").Scan(&before); err != nil {
+		t.Fatal(err)
+	}
 	added := publicationFixtureRequest(t, app, "ADD", "mutation_auto_fill_items", "", `{
 		"content":{
 			"code":"auto-fill",
@@ -384,7 +398,9 @@ func TestMutationPolicyAutoFillUsesAccountOperatorAndDatabaseTimeAndRejectsManag
 	if added.Code != http.StatusOK {
 		t.Fatalf("add row with Auto Fill: HTTP %d %s", added.Code, added.Body.String())
 	}
-	after := time.Now().UTC().Add(time.Second)
+	if err := database.QueryRowContext(ctx, "SELECT UTC_TIMESTAMP(6)").Scan(&after); err != nil {
+		t.Fatal(err)
+	}
 
 	row := queryMutationTableRow(t, app, "mutation_auto_fill_items", "auto-fill")
 	assertMutationString(t, row, "creator", integrationAccountID(t, app))
@@ -579,10 +595,20 @@ func TestMutationPolicyPatchUsesLatestPolicyAndLiveSchema(t *testing.T) {
 }
 
 func TestMutationPolicyPatchAutoFillUsesModifySlotsAndRejectsManagedInput(t *testing.T) {
-	app := startIntegrationApplication(t,
+	ctx, driverConfig := startIntegrationMySQL(t,
 		"../../../deploy/mysql/init/001-schema.sql",
 		"testdata/006-mutation-fixture.sql",
 	)
+	app, err := newApplication(ctx, integrationConfig(driverConfig))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = app.Close() })
+	database, err := sql.Open("mysql", driverConfig.FormatDSN())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = database.Close() })
 	enableMutationPolicy(t, app, "mutation_auto_fill_items", mutationPolicyFixture{
 		AllowAdd: true, AllowModify: true,
 		ModifyOperatorField: stringPointer("creator"), ModifyTimeField: stringPointer("occurred_at"),
@@ -597,12 +623,18 @@ func TestMutationPolicyPatchAutoFillUsesModifySlotsAndRejectsManagedInput(t *tes
 		t.Fatalf("ADD did not apply configured Modify Auto Fill slots: %#v", created)
 	}
 
-	before := time.Now().UTC().Add(-time.Second)
+	// Auto Fill uses the database clock; the Docker VM and host can differ.
+	var before, after time.Time
+	if err := database.QueryRowContext(ctx, "SELECT UTC_TIMESTAMP(6)").Scan(&before); err != nil {
+		t.Fatal(err)
+	}
 	modified := versionedPublicationFixture(t, app, "MODIFY", "mutation_auto_fill_items", id, `{
 		"content":{"status":"client","quantity":"2"}
 	}`)
 	assertMutationAffected(t, modified)
-	after := time.Now().UTC().Add(time.Second)
+	if err := database.QueryRowContext(ctx, "SELECT UTC_TIMESTAMP(6)").Scan(&after); err != nil {
+		t.Fatal(err)
+	}
 
 	row := queryMutationTableRow(t, app, "mutation_auto_fill_items", "patch-auto-fill")
 	assertMutationString(t, row, "creator", integrationAccountID(t, app))

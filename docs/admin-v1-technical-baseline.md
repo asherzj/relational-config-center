@@ -34,7 +34,7 @@ Admin 是 Web 的管理端后端，治理部署配置指定的一个 MySQL datab
 | 普通 CRUD | GORM Repository |
 | 特殊 SQL | 仅 Repository 内使用参数化 Raw SQL |
 | 初始化 | `deploy/mysql/init/001-schema.sql` + Docker Compose |
-| Migration | 显式 SQL expand/backfill/contract；暂不引入迁移框架 |
+| Migration | Goose T1 独立维护命令；显式 SQL expand/backfill/contract；存量接管和部署入口切换由 #69/#70 交付 |
 | 测试 | Go `testing`、`httptest`、Testcontainers、真实 MySQL 8.4 |
 
 不采用 Hertz、Kitex、sqlc、GORM AutoMigrate、自研 Gateway、Redis、消息队列或 PostgreSQL 兼容分支。
@@ -405,7 +405,7 @@ Admin V1 的 Definition of Done：
 - Web UI：历史范围曾留待另行选择框架；当前正式实现位于 `web/`，按本文 HTTP 契约接入并由 [`web/README.md`](../web/README.md) 说明运行与验收边界。
 - Server/Client：另行设计各自领域模型和 gRPC/Protobuf 契约。
 - PostgreSQL：新增独立 Adapter 与 Compiler。
-- 已部署 Schema 升级：原历史建议是引入迁移框架；当前实现按 [`deploy/mysql/migrations/README.md`](../deploy/mysql/migrations/README.md) 使用显式 SQL migration，未引入 Goose。
+- 控制表 Schema 升级：Goose T1 已提供独立 `schema-migrate` 新库初始化、升级、查询和显式恢复，见[迁移维护手册](schema-migrations.md)。存量库严格接管及 Compose/Admin 就绪切换由 #69/#70 继续交付；在此之前，既有安装仍按[历史迁移手册](../deploy/mysql/migrations/README.md) 升级，不能隐式登记 Goose 基线。
 - 多租户、公网访问或真实用户审计：重新设计身份、授权与隔离。
 - 受管记录并发保护、发布和审批已由上述当前契约取代历史规划；规则目录并发控制、缓存、关系查询和 Secret 管理仍待后续设计。
 

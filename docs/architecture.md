@@ -56,14 +56,13 @@ Current DAL choices:
 | Connection pool | `database/sql` |
 | Dynamic queries | Query Specification → policy validation → GORM Clauses |
 | Static and exceptional SQL | GORM repository methods and parameterized `Raw` only when needed |
-| Initial schema | `deploy/mysql/init/001-schema.sql` |
+| Control schema migrations | Embedded Goose migrations through `schema-migrate`; legacy `deploy/mysql/init/001-schema.sql` temporarily retained until #70 switches existing callers |
 | Integration tests | Testcontainers with a real MySQL 8.4 container |
 | PostgreSQL | A later independent adapter and query compiler |
 
 Not selected for the first iteration:
 
 - sqlc, because GORM is the single primary DAL;
-- Goose, because there are no existing installations to upgrade yet;
 - GORM AutoMigrate, because the shipped schema remains explicit and reviewable;
 - Kitex/Hertz, because RPC is standardized on grpc-go and Admin HTTP uses Gin;
 - a separately implemented Gateway, until multiple backend APIs require routing or aggregation;
@@ -133,6 +132,13 @@ repository does not yet have a general layer dependency graph checker.
 
 TMP-01 is removed. `OpenMaintenance` and `LoadMySQL` initialize maintenance
 connections independently from normal Admin HTTP and required-schema readiness.
+`schema-migrate` uses this maintenance connection for explicit, forward-only
+control-schema upgrades. Goose and its same-session lock stay inside the MySQL
+adapter; the command does not expose the SQL pool or route migration through the
+business Application. Version status is read-only; unfinished attempts require
+verified explicit recovery. This exceptional schema-maintenance path uses Goose
+and `database/sql` on its locked connection while business persistence continues
+to use GORM. See [the migration runbook and delivery boundary](schema-migrations.md).
 The `account-maintain` composition root invokes `application/AccountMaintenance`
 with the Domain-owned maintenance repository and existing password adapter. It
 uses database authority and exposes no HTTP account-management route. Resets
