@@ -7,7 +7,7 @@ import { ConfiguredRowEditor } from "./ConfiguredRowEditor";
 
 afterEach(() => vi.unstubAllGlobals());
 it("AC-015 fails explicitly on configuration read errors and retries before exposing editor fields", async () => {
-  const fetch = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({error:{code:"internal_error", message:"catalog unavailable"}}),{status:500})).mockResolvedValueOnce(new Response(JSON.stringify({table_name:"items",fields:[]})));
+  const fetch = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({error:{code:"internal_error", message:"catalog unavailable"}}),{status:500})).mockResolvedValueOnce(new Response(JSON.stringify({table_name:"items", query_capacity: {max_conditions:256,max_values_per_condition:100,queryable_fields:0,supported:true},fields:[]})));
   vi.stubGlobal("fetch", fetch);
   render(<TestRouter initialEntries={["/"]}><LeaveProtectionProvider><ConfiguredRowEditor open tableName="items" operation="ADD" columns={[{name:"id",type:"uint64",nullable:false}]} autoFillFields={new Set()} onClose={()=>{}} onReview={()=>{}} /></LeaveProtectionProvider></TestRouter>);
   expect(await screen.findByRole("alert")).toBeVisible();

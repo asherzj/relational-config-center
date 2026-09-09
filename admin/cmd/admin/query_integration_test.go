@@ -139,12 +139,12 @@ func TestQueryPolicyEnforcesLimitsAndRequestSortWithoutCorrection(t *testing.T) 
 	enableQueryPolicy(t, app, "query_policy_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "DESC"})
 
 	condition := `{"field":"score","operator":"closed_range","from":"10"}`
-	twentyConditions := `{"conditions":[` + strings.Join(repeated(condition, 20), ",") + `],"page_size":200}`
-	if response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", twentyConditions); response.Code != http.StatusOK {
-		t.Fatalf("20 conditions must be accepted: HTTP %d %s", response.Code, response.Body.String())
+	maximumConditions := `{"conditions":[` + strings.Join(repeated(condition, 256), ",") + `],"page_size":200}`
+	if response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", maximumConditions); response.Code != http.StatusOK {
+		t.Fatalf("256 conditions must be accepted: HTTP %d %s", response.Code, response.Body.String())
 	}
-	twentyOneConditions := `{"conditions":[` + strings.Join(repeated(condition, 21), ",") + `]}`
-	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", twentyOneConditions), http.StatusBadRequest, "invalid_query_condition")
+	overLimitConditions := `{"conditions":[` + strings.Join(repeated(condition, 257), ",") + `]}`
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", overLimitConditions), http.StatusBadRequest, "invalid_query_condition")
 
 	hundredValues := `{"conditions":[{"field":"score","operator":"in","values":[` + strings.Join(repeated(`"10"`, 100), ",") + `]}]}`
 	assertQueryIDs(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", hundredValues), "1")

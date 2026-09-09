@@ -304,9 +304,8 @@ function fixtureSQL() {
     await run('multiline TEXT query uses the exact browser input without removing LF', async () => {
       const note = '  查询🙂\n下一行\t末尾  ';
       sql(`INSERT INTO stage4_complex(note) VALUES (${literal(note)});`);
-      await managed('stage4_complex'); await button('添加条件').click();
-      await page.getByRole('combobox', { name: '条件 1 字段' }).selectOption('note');
-      await page.getByRole('textbox', { name: '条件 1 值', exact: true }).fill(note);
+      await managed('stage4_complex');
+      await page.getByRole('textbox', { name: '筛选 note 值', exact: true }).evaluate((node, value) => {const clipboardData=new DataTransfer();clipboardData.setData('text/plain',value);node.dispatchEvent(new ClipboardEvent('paste',{clipboardData,bubbles:true,cancelable:true}));},note);
       const pending = page.waitForResponse((r) => new URL(r.url()).pathname === '/api/v1/tables/stage4_complex/query');
       await button('查询').click(); const response = await record(await pending);
       assert.equal(response.status, 200); assert.equal(response.body.conditions[0].value, note);
@@ -557,7 +556,7 @@ function fixtureSQL() {
       await execute('stage4_complex', 'MODIFY', { note }, id);
       assert.equal(sql(`SELECT HEX(note) FROM stage4_complex WHERE id=${id};`), hex(note).toUpperCase());
       await closeSuccess('MODIFY'); await managed('stage4_complex'); await button(`修改记录 ${id}`).click();
-      await button('note 值：转换为 LF 再编辑').click();
+      await page.getByRole('dialog').getByRole('button',{name:'note 值：转换为 LF 再编辑',exact:true}).click();
       assert.equal(await input('note').getAttribute('readonly'), null);
       const normalized = note.replace(/\r\n?/g, '\n') + '\nexplicit edit';
       await input('note').fill(normalized); await execute('stage4_complex', 'MODIFY', { note: normalized }, id);
@@ -581,13 +580,12 @@ function fixtureSQL() {
       await managed('stage4_complex'); await button('新增记录').click(); await checkbox('包含 note').check(); await paste(input('note'));
       const added = await execute('stage4_complex', 'ADD', { note: combined }); const id = added.response.id;
       assert.equal(sql(`SELECT HEX(note) FROM stage4_complex WHERE id=${id};`), hex(combined).toUpperCase());
-      await closeSuccess('ADD'); await managed('stage4_complex'); await button('添加条件').click();
-      await page.getByRole('combobox', { name: '条件 1 字段' }).selectOption('note');
-      const queryInput = page.getByRole('textbox', { name: '条件 1 值', exact: true }); await paste(queryInput);
+      await closeSuccess('ADD'); await managed('stage4_complex');
+      const queryInput = page.getByRole('textbox', { name: '筛选 note 值', exact: true }); await paste(queryInput);
       let pending = page.waitForResponse((r) => new URL(r.url()).pathname === '/api/v1/tables/stage4_complex/query');
       await button('查询').click(); const exact = await record(await pending);
       assert.equal(exact.body.conditions[0].value, combined); assert.equal(exact.response.rows.length, 1); assert.equal(exact.response.rows[0].id, id);
-      await button('条件 1 值：转换为 LF 再编辑').click();
+      await button('筛选 note 值：转换为 LF 再编辑').click();
       const normalized = combined.replace(/\r\n?/g, '\n'); assert.equal(await queryInput.inputValue(), normalized);
       pending = page.waitForResponse((r) => new URL(r.url()).pathname === '/api/v1/tables/stage4_complex/query');
       await button('查询').click(); const converted = await record(await pending);

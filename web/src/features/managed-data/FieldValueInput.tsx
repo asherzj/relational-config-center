@@ -12,9 +12,10 @@ type Props = {
   label: string;
   value: string;
   disabled?: boolean;
+  unselected?: boolean;
   required?: boolean;
   errorId?: string;
-  onChange: (value: string) => void;
+  onChange: (value: string, origin?: "choice") => void;
 };
 
 // Preserve protocol strings and fractional seconds without JS Number or Date.
@@ -43,7 +44,7 @@ function DateTimeInput({ column, value, onChange, label, disabled, required, err
 }
 
 export function FieldValueInput(props: Props) {
-  const { column, policy, label, value, disabled, required, errorId, onChange } = props;
+  const { column, policy, label, value, disabled, required, errorId, onChange, unselected } = props;
   const type = policy?.ui_type ?? "text";
   const options = policy?.ui_options.options ?? [];
   const selectedIndex = options.findIndex(option => option.value === value);
@@ -53,18 +54,19 @@ export function FieldValueInput(props: Props) {
   const radioName = useId();
   const a11y = { "aria-label": label, "aria-required": required, "aria-invalid": Boolean(errorId), "aria-describedby": errorId, disabled };
   if (type === "select") return <div className="grid min-w-0 gap-2">
-    <NativeSelect {...a11y} value={custom || selectedIndex < 0 ? "custom" : String(selectedIndex)} onChange={event => {
+    <NativeSelect {...a11y} value={unselected ? "unselected" : custom || selectedIndex < 0 ? "custom" : String(selectedIndex)} onChange={event => {
       const next = event.target.value; setCustom(next === "custom");
-      if (next !== "custom") onChange(options[Number(next)]!.value);
+      if (next !== "custom") onChange(options[Number(next)]!.value, "choice");
     }}>
+      {unselected && <option value="unselected" disabled>未筛选，请选择</option>}
       {options.map((option, index) => <option key={option.value} value={index}>{option.label}（{option.value || "空字符串"}）</option>)}
       <option value="custom">自定义值</option>
     </NativeSelect>
     {(custom || selectedIndex < 0) && <ManagedTextInput label={`${label} 自定义值`} disabled={disabled} required={required} errorId={errorId} rows={2} value={value} onChange={onChange} />}
   </div>;
   if (type === "radio") return <div role="radiogroup" {...a11y} className="grid gap-2">
-    {selectedIndex < 0 && <p className="form-note">当前值：{value === "" ? "空字符串" : value}（不在选项中；选择新选项才会替换）</p>}
-    {options.map(option => <Label key={option.value} className="flex min-w-0 items-center gap-2 break-all"><input className="size-4 shrink-0 accent-primary" type="radio" name={radioName} disabled={disabled} checked={value === option.value} onChange={() => onChange(option.value)} />{option.label}（{option.value || "空字符串"}）</Label>)}
+    {!unselected && selectedIndex < 0 && <p className="form-note">当前值：{value === "" ? "空字符串" : value}（不在选项中；选择新选项才会替换）</p>}
+    {options.map(option => <Label key={option.value} className="flex min-w-0 items-center gap-2 break-all"><input className="size-4 shrink-0 accent-primary" type="radio" name={radioName} disabled={disabled} checked={!unselected && value === option.value} onChange={() => onChange(option.value, "choice")} />{option.label}（{option.value || "空字符串"}）</Label>)}
   </div>;
   if (type === "boolean") return <NativeSelect {...a11y} value={value} onChange={event => onChange(event.target.value)}>
     <option value="">请选择</option><option value="0">否（0 / false）</option><option value="1">是（1 / true）</option>
@@ -82,6 +84,6 @@ export function FieldValueInput(props: Props) {
       onChange(value.slice(0, selectionStart ?? 0) + pasted + value.slice(selectionEnd ?? value.length));
     }} type={type === "date" && (!value || /^\d{4}-\d{2}-\d{2}$/.test(value)) ? "date" : "text"}
     inputMode={type === "number" ? "decimal" : undefined} value={value} onChange={event => onChange(event.target.value)} />
-    {type === "number" && <span className="form-note">{[policy?.ui_options.min !== undefined ? `最小值 ${policy.ui_options.min}` : "", policy?.ui_options.max !== undefined ? `最大值 ${policy.ui_options.max}` : "", policy?.ui_options.step !== undefined ? `步长 ${policy.ui_options.step}` : ""].filter(Boolean).join(" · ")}</span>}
+    {type === "number" && [policy?.ui_options.min, policy?.ui_options.max, policy?.ui_options.step].some(value => value !== undefined) && <span className="form-note">{[policy?.ui_options.min !== undefined ? `最小值 ${policy.ui_options.min}` : "", policy?.ui_options.max !== undefined ? `最大值 ${policy.ui_options.max}` : "", policy?.ui_options.step !== undefined ? `步长 ${policy.ui_options.step}` : ""].filter(Boolean).join(" · ")}</span>}
   </div>;
 }

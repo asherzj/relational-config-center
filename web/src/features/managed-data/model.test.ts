@@ -3,7 +3,7 @@ import { buildChangeSet, createConditionDraft, validateQueryDraft, type ManagedD
 
 function validationFor(type: ManagedDataColumn["type"], value: string) {
   const column: ManagedDataColumn = { name: "value", type, nullable: false };
-  return validateQueryDraft([column], [{ ...createConditionDraft(column.name), value }], "");
+  return validateQueryDraft([column], [{ ...createConditionDraft(column.name), value }], "", { max_conditions: 256, max_values_per_condition: 100 });
 }
 
 describe("Query Spec value validation", () => {

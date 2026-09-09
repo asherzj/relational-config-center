@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
@@ -17,9 +18,17 @@ type FieldPolicyView struct {
 	Effective domain.TableFieldPolicy
 	Warning   string
 }
+type QueryCapacity struct {
+	MaxConditions         int
+	MaxValuesPerCondition int
+	QueryableFields       int
+	Supported             bool
+}
+
 type FieldPolicyResult struct {
-	TableName string
-	Fields    []FieldPolicyView
+	QueryCapacity QueryCapacity
+	TableName     string
+	Fields        []FieldPolicyView
 }
 type TableFieldPolicyManagement struct {
 	metadata    TableMetadataReader
@@ -46,6 +55,10 @@ func (m *TableFieldPolicyManagement) Read(ctx context.Context, table string) (Fi
 	if err != nil {
 		return FieldPolicyResult{}, err
 	}
+	return fieldPolicyResult(table, schema, policies), nil
+}
+
+func fieldPolicyResult(table string, schema domain.TableSchema, policies []domain.TableFieldPolicy) FieldPolicyResult {
 	result := FieldPolicyResult{TableName: table, Fields: make([]FieldPolicyView, 0, len(schema.Columns))}
 	for _, column := range schema.Columns {
 		view := FieldPolicyView{Column: column, State: "missing", Effective: DefaultFieldPolicy(column)}
@@ -68,7 +81,14 @@ func (m *TableFieldPolicyManagement) Read(ctx context.Context, table string) (Fi
 		}
 		result.Fields = append(result.Fields, view)
 	}
-	return result, nil
+	result.QueryCapacity = QueryCapacity{MaxConditions: MaximumQueryConditions, MaxValuesPerCondition: MaximumQueryValues, Supported: true}
+	for _, field := range result.Fields {
+		if field.Effective.IsQueryable {
+			result.QueryCapacity.QueryableFields++
+		}
+	}
+	result.QueryCapacity.Supported = result.QueryCapacity.QueryableFields <= MaximumQueryConditions
+	return result
 }
 func (m *TableFieldPolicyManagement) Replace(ctx context.Context, table string, policies []domain.TableFieldPolicy) (FieldPolicyResult, error) {
 	operator, err := requireRole(ctx, RoleAdmin)
@@ -138,6 +158,10 @@ func (m *TableFieldPolicyManagement) Replace(ctx context.Context, table string, 
 		if p.Enabled && !p.EditableOnAdd && column.RequiredForInsert() && !autofilled {
 			return FieldPolicyResult{}, invalidField(column.Name, "数据库必填且无默认值或自动填写来源，不能关闭新增编辑")
 		}
+	}
+	capacity := fieldPolicyResult(table, schema, policies).QueryCapacity
+	if !capacity.Supported {
+		return FieldPolicyResult{}, invalidField(table, fmt.Sprintf("真实可查询字段共%d个，超过平台上限%d；请关闭部分字段的查询", capacity.QueryableFields, capacity.MaxConditions))
 	}
 	if err = m.catalog.ReplaceFieldPolicies(ctx, table, policies, operator); err != nil {
 		return FieldPolicyResult{}, err

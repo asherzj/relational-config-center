@@ -12,7 +12,7 @@
 
 第一种 Query Policy 采用分页单表查询，行为以既有 `DBPaginationQueryStrategy` 为参考重新设计。第一迭代的 Mutation 成功后直接提交到 Managed Table，不保存 `release_type_list`，也不提供 ChangeSet 或发布流程。
 
-`page_query` Policy Type 支持 AND 连接的 `exact`、`contains`、`open_range`、`closed_range`、`in`、`not_in`、`is_null` 和 `is_not_null` 条件、单字段排序、精确总数及页码分页。默认与最大页大小来自关系化 Query Policy 且最大不能超过 200；最多 20 个条件、每个集合最多 100 个值、最大 Offset 为 10,000，非法参数直接失败，不进行静默修正。
+`page_query` Policy Type 支持 AND 连接的 `exact`、`contains`、`open_range`、`closed_range`、`in`、`not_in`、`is_null` 和 `is_not_null` 条件、单字段排序、精确总数及页码分页。默认与最大页大小来自关系化 Query Policy 且最大不能超过 200；最多 256 个条件（范围计一条，容量决策与共享能力见[字段交互契约](../admin-field-policies.md#组合查询容量)）、每个集合最多 100 个值、最大 Offset 为 10,000，非法参数直接失败，不进行静默修正。
 
 Count 与分页数据在同一个只读事务和一致性快照中完成，并分别受 3 秒查询超时限制。空字符串是可查询的真实值，JSON `null` 不会被静默忽略。
 

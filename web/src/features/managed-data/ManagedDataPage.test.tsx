@@ -1,5 +1,5 @@
 import { withDefaultRecordVersions } from "../../test/managed-data-fixture";
-import { withAdminSession } from "../../test/account-session";
+import { withAdminSession as withSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -19,6 +19,15 @@ const enabledPolicy = {
   updated_at: "2026-08-25T09:00:00Z",
 };
 
+let lastColumns: {name:string;type:string;nullable:boolean}[]=[];
+function withAdminSession(implementation: typeof fetch): typeof fetch {
+ return withSession(async (input,init) => {
+  if(String(input).includes("/table-field-policies/")) return json({table_name:"notification_templates",query_capacity:{max_conditions:256,max_values_per_condition:100,queryable_fields:lastColumns.length,supported:true},fields:lastColumns.map(column=>({field_name:column.name,column_type:column.type,nullable:column.nullable,generated:false,auto_increment:false,has_default:false,state:"missing",warning:"",policy:null,audit:null,effective:{field_name:column.name,display_name:column.name,description:"",display_order:0,is_visible:true,is_queryable:true,query_operators:["exact"],ui_type:"text",ui_options:{options:[]},editable_on_add:true,editable_on_modify:true,is_required:false,enabled:false}}))});
+  const response=await implementation(input,init);
+  if(String(input).endsWith("/query") && response.ok) lastColumns=(await response.clone().json()).columns;
+  return response;
+ });
+}
 function json(value: unknown, status = 200, requestId = "req-managed-data") {
   value = withDefaultRecordVersions(value);
   return new Response(JSON.stringify(value), {
@@ -151,9 +160,8 @@ describe("配置内容管理页面", () => {
 
     renderPage();
     await screen.findByRole("columnheader", { name: /subject/ });
-    await user.click(screen.getByRole("button", { name: "添加条件" }));
-    await user.selectOptions(screen.getByRole("combobox", { name: "条件 1 字段" }), "subject");
-    expect(screen.getByRole("textbox", { name: "条件 1 值" })).toHaveValue("");
+    await user.click(await screen.findByRole("checkbox", { name: "subject 值 空字符串" }));
+    expect(screen.getByRole("textbox", { name: "筛选 subject 值" })).toHaveValue("");
     await user.click(screen.getByRole("button", { name: "查询" }));
 
     await vi.waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/query"))).toHaveLength(2));
@@ -163,70 +171,6 @@ describe("配置内容管理页面", () => {
     });
   });
 
-  it("根据字段类型构造其余七种操作符，并把八个条件作为 AND Query Spec 提交", async () => {
-    const fetchMock = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
-      const url = String(input);
-      if (url.endsWith("/table-policies")) return json({ policies: [enabledPolicy] });
-      if (url.endsWith("/tables/notification_templates/query")) return json({
-        columns: [
-          { name: "id", type: "uint64", nullable: false },
-          { name: "body", type: "string", nullable: false },
-          { name: "priority", type: "int64", nullable: false },
-          { name: "active_from", type: "date", nullable: true },
-          { name: "channel", type: "string", nullable: false },
-          { name: "subject", type: "string", nullable: true },
-          { name: "metadata", type: "json", nullable: true },
-        ],
-        rows: [],
-        page: { page_number: 1, page_size: 20, total_count: 0, total_pages: 0 },
-      });
-      throw new Error(`unexpected request ${url}`);
-    });
-    vi.stubGlobal("fetch", withAdminSession(fetchMock));
-    const user = userEvent.setup();
-
-    renderPage();
-    await screen.findByRole("columnheader", { name: /metadata/ });
-    for (let index = 0; index < 8; index += 1) await user.click(screen.getByRole("button", { name: "添加条件" }));
-
-    const setCondition = async (index: number, field: string, operator: string) => {
-      await user.selectOptions(screen.getByRole("combobox", { name: `条件 ${index} 字段` }), field);
-      await user.selectOptions(screen.getByRole("combobox", { name: `条件 ${index} 操作符` }), operator);
-    };
-    await setCondition(1, "subject", "exact");
-    await setCondition(2, "body", "contains");
-    await user.type(screen.getByRole("textbox", { name: "条件 2 值" }), "ready");
-    await setCondition(3, "priority", "open_range");
-    await user.clear(screen.getByRole("textbox", { name: "条件 3 下界" }));
-    await user.type(screen.getByRole("textbox", { name: "条件 3 下界" }), "10");
-    await user.click(screen.getByRole("checkbox", { name: "条件 3 使用上界" }));
-    await user.type(screen.getByRole("textbox", { name: "条件 3 上界" }), "30");
-    await setCondition(4, "active_from", "closed_range");
-    await user.type(screen.getByLabelText("条件 4 下界"), "2026-01-01");
-    await setCondition(5, "channel", "in");
-    await user.type(screen.getByRole("textbox", { name: "条件 5 集合值 1" }), "EMAIL");
-    await user.click(screen.getByRole("button", { name: "条件 5 添加集合值" }));
-    await setCondition(6, "channel", "not_in");
-    await user.type(screen.getByRole("textbox", { name: "条件 6 集合值 1" }), "SMS");
-    await setCondition(7, "subject", "is_null");
-    await setCondition(8, "metadata", "is_not_null");
-
-    expect(within(screen.getByRole("combobox", { name: "条件 8 操作符" })).queryByRole("option", { name: "contains" })).not.toBeInTheDocument();
-    expect(within(screen.getByRole("combobox", { name: "条件 8 操作符" })).queryByRole("option", { name: "open_range" })).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "查询" }));
-
-    await vi.waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/query"))).toHaveLength(2));
-    expect(JSON.parse(String(fetchMock.mock.calls.at(-1)?.[1]?.body)).conditions).toEqual([
-      { field: "subject", operator: "exact", value: "" },
-      { field: "body", operator: "contains", value: "ready" },
-      { field: "priority", operator: "open_range", from: "10", to: "30" },
-      { field: "active_from", operator: "closed_range", from: "2026-01-01" },
-      { field: "channel", operator: "in", values: ["EMAIL", ""] },
-      { field: "channel", operator: "not_in", values: ["SMS"] },
-      { field: "subject", operator: "is_null" },
-      { field: "metadata", operator: "is_not_null" },
-    ]);
-  });
 
   it("提交单字段排序并只用服务端页信息翻页、设置每页数量和清空查询", async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -350,41 +294,5 @@ describe("配置内容管理页面", () => {
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/query"))).toHaveLength(1);
   });
 
-  it("在浏览器边界拒绝无边界 Range、非法分页，并把 AND 条件限制为 20 个", async () => {
-    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
-      const url = String(input);
-      if (url.endsWith("/table-policies")) return json({ policies: [enabledPolicy] });
-      if (url.endsWith("/tables/notification_templates/query")) return json({
-        columns: [
-          { name: "id", type: "uint64", nullable: false },
-          { name: "priority", type: "int64", nullable: false },
-        ],
-        rows: [],
-        page: { page_number: 1, page_size: 20, total_count: 0, total_pages: 0 },
-      });
-      throw new Error(`unexpected request ${url}`);
-    });
-    vi.stubGlobal("fetch", withAdminSession(fetchMock));
-    const user = userEvent.setup();
 
-    renderPage();
-    await screen.findByRole("columnheader", { name: /priority/ });
-    await user.click(screen.getByRole("button", { name: "添加条件" }));
-    await user.selectOptions(screen.getByRole("combobox", { name: "条件 1 字段" }), "priority");
-    await user.selectOptions(screen.getByRole("combobox", { name: "条件 1 操作符" }), "open_range");
-    await user.click(screen.getByRole("checkbox", { name: "条件 1 使用下界" }));
-    await user.click(screen.getByRole("button", { name: "查询" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Range 至少需要一个边界");
-    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/query"))).toHaveLength(1);
-
-    await user.clear(screen.getByRole("spinbutton", { name: "每页数量" }));
-    await user.type(screen.getByRole("spinbutton", { name: "每页数量" }), "201");
-    await user.click(screen.getByRole("button", { name: "查询" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("每页数量必须是 1 到 200 的整数");
-    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/query"))).toHaveLength(1);
-
-    for (let index = 1; index < 20; index += 1) await user.click(screen.getByRole("button", { name: "添加条件" }));
-    expect(screen.getByRole("button", { name: "添加条件" })).toBeDisabled();
-    expect(screen.getAllByRole("group", { name: /条件 \d+/ })).toHaveLength(20);
-  });
 });

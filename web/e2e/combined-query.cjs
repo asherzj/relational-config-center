@@ -1,0 +1,46 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const {chromium} = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
+const {browserOptions,registerFixtureAccount,authenticatedRequest} = require('./local-account.cjs');
+const origin=process.env.RCC_WEB_URL,output=process.env.RCC_E2E_OUTPUT||'/tmp/rcc-combined-query';
+(async()=>{
+ fs.mkdirSync(output,{recursive:true});const browser=await chromium.launch(browserOptions());
+ const context=await browser.newContext({viewport:{width:1440,height:1000}});const checks=[],errors=[];
+ try{
+  await registerFixtureAccount(context,origin);const page=await context.newPage();page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));
+  const table='stage1_acceptance_items',policyPath=`/api/v1/table-field-policies/${table}`,queryPath=`/api/v1/tables/${table}/query`;
+  const read=await authenticatedRequest(context,origin,policyPath);assert.equal(read.status(),200);const before=await read.json();
+  const policy=(name,patch)=>({...before.fields.find(f=>f.field_name===name).effective,enabled:true,...patch});
+  const policies=[policy('name',{display_name:'配置名称',query_operators:['exact','contains']}),policy('category',{display_name:'渠道',query_operators:['exact','in'],ui_type:'select',ui_options:{options:[{label:'通知',value:'notice'},{label:'告警',value:'alert'}]}}),policy('priority',{display_name:'优先级',ui_type:'number',query_operators:['closed_range','open_range']}),policy('note',{is_queryable:false})];
+  const saved=await authenticatedRequest(context,origin,policyPath,{method:'PUT',data:{policies}});assert.equal(saved.status(),200,await saved.text());
+  const configuration=await saved.json();assert.equal(configuration.query_capacity.queryable_fields,9);
+  await page.goto(`${origin}/configuration/managed-data?table_name=${table}`);
+  const filters=page.getByRole('region',{name:'查询条件',exact:true});
+  await filters.getByLabel('筛选 配置名称 值',{exact:true}).waitFor();
+  assert.equal(await filters.getByLabel('筛选 note 值',{exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'添加条件',exact:true}).count(),0);
+  await filters.getByLabel('筛选 渠道 值',{exact:true}).selectOption('0');
+  await filters.getByLabel('筛选 优先级 下界',{exact:true}).fill('20');
+  const submit=async()=>{const pending=page.waitForResponse(r=>new URL(r.url()).pathname===queryPath&&r.request().method()==='POST');await filters.getByRole('button',{name:'查询',exact:true}).click();const response=await pending;assert.equal(response.status(),200);return {request:response.request().postDataJSON(),data:await response.json()};};
+  await filters.getByRole('button',{name:'收起筛选',exact:true}).click();
+  const first=await submit();assert.deepEqual(first.request.conditions,[{field:'category',operator:'exact',value:'notice'},{field:'priority',operator:'closed_range',from:'20'}]);assert.deepEqual(first.data.rows.map(r=>r.name),['Gamma']);
+  await filters.getByRole('button',{name:'展开筛选',exact:true}).click();assert.equal(await filters.getByLabel('筛选 优先级 下界',{exact:true}).inputValue(),'20');
+  await filters.getByLabel('筛选 渠道 值',{exact:true}).focus();await page.keyboard.press('Tab');assert.notEqual(await page.evaluate(()=>document.activeElement.tagName),'BODY');
+  await page.screenshot({path:path.join(output,'desktop-filters.png'),fullPage:false});
+  checks.push('1440px: current configured fields render directly; hidden query field absent; two entered fields AND-match Gamma; collapse and post-query input preserved; keyboard focus reachable');
+  await filters.getByRole('button',{name:'清空',exact:true}).click();
+  await filters.getByLabel('渠道 运算符',{exact:true}).selectOption('in');
+  await filters.getByLabel('筛选 渠道 集合值 1',{exact:true}).selectOption('0');
+  await filters.getByRole('button',{name:'渠道 添加集合值',exact:true}).click();
+  await filters.getByLabel('筛选 渠道 集合值 2 自定义值',{exact:true}).fill('digest');
+  const second=await submit();assert.deepEqual(second.request.conditions,[{field:'category',operator:'in',values:['notice','digest']}]);assert.deepEqual(second.data.rows.map(r=>r.name).sort(),['Alpha','Epsilon','Gamma']);
+  await page.setViewportSize({width:390,height:844});
+  await page.waitForFunction(()=>getComputedStyle(document.querySelector('.sidebar')).visibility==='hidden');
+  await filters.getByLabel('筛选 渠道 集合值 2 自定义值',{exact:true}).scrollIntoViewIfNeeded();
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:path.join(output,'mobile-filters.png'),fullPage:false});
+  await filters.getByRole('button',{name:'查询',exact:true}).scrollIntoViewIfNeeded();assert.equal(await filters.getByRole('button',{name:'查询',exact:true}).isVisible(),true);
+  const final=await authenticatedRequest(context,origin,policyPath);assert.deepEqual((await final.json()).fields.map(f=>f.policy),configuration.fields.map(f=>f.policy));
+  checks.push('390px: select labels submit actual codes and custom IN value; three real matches; local scroll and query action reachable without document overflow; querying never changes options');
+  assert.deepEqual(errors,[]);fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({browser:browser.version(),checks,errors},null,2));console.log(JSON.stringify({checks,errors}));
+ }catch(error){const page=context.pages()[0];if(page){await page.screenshot({path:path.join(output,'failure.png'),fullPage:true}).catch(()=>{});fs.writeFileSync(path.join(output,'failure.txt'),await page.locator('body').innerText().catch(()=>''));}throw error;}finally{await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1});

@@ -22,7 +22,7 @@ const rejection = () => json({ error: { code: "invalid_mutation_content", messag
 function backend({ active = false, write }: { active?: boolean; write?: (url: string, init: RequestInit) => Promise<Response> } = {}) {
   const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
-    if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", fields: [] });
+    if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", query_capacity: {max_conditions:256,max_values_per_condition:100,queryable_fields:0,supported:true}, fields: [] });
     if (init?.method && init.method !== "GET" && !url.endsWith("/query")) {
       if (write) return write(url, init);
       throw new Error(`Unexpected write ${url}`);

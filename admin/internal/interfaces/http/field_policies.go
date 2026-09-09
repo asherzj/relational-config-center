@@ -43,7 +43,7 @@ func fieldPolicyResultResponse(r application.FieldPolicyResult) gin.H {
 		}
 		fields = append(fields, gin.H{"field_name": f.Column.Name, "column_type": f.Column.Type, "nullable": f.Column.Nullable, "generated": f.Column.Generated, "auto_increment": f.Column.AutoIncrement, "has_default": f.Column.HasDefault, "policy": policy, "audit": audit, "state": f.State, "warning": f.Warning, "effective": fieldPolicyResponse(f.Effective)})
 	}
-	return gin.H{"table_name": r.TableName, "fields": fields}
+	return gin.H{"table_name": r.TableName, "fields": fields, "query_capacity": gin.H{"max_conditions": r.QueryCapacity.MaxConditions, "max_values_per_condition": r.QueryCapacity.MaxValuesPerCondition, "queryable_fields": r.QueryCapacity.QueryableFields, "supported": r.QueryCapacity.Supported}}
 }
 func registerFieldPolicyRoutes(router *gin.Engine, m *application.TableFieldPolicyManagement) {
 	router.GET("/api/v1/table-field-policies/:table_name", func(c *gin.Context) {

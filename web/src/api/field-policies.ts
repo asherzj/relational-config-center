@@ -17,7 +17,7 @@ const fieldSchema = z.object({
   policy: rawPolicySchema.nullable(), effective: policySchema,
   audit: z.object({ creator: z.string(), modifier: z.string(), created_at: z.string(), updated_at: z.string() }).nullable(),
 });
-export const fieldPoliciesSchema = z.object({ table_name: z.string(), fields: z.array(fieldSchema) });
+export const fieldPoliciesSchema = z.object({ table_name: z.string(), fields: z.array(fieldSchema), query_capacity: z.object({ max_conditions: z.number().int().positive(), max_values_per_condition: z.number().int().positive(), queryable_fields: z.number().int().nonnegative(), supported: z.boolean() }) });
 export type FieldPolicy = z.infer<typeof rawPolicySchema>;
 export type FieldPolicyField = z.infer<typeof fieldSchema>;
 export type FieldPolicies = z.infer<typeof fieldPoliciesSchema>;

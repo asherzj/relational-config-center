@@ -6,14 +6,14 @@ const effective = { field_name: "priority", display_name: "priority", descriptio
 const field = { field_name: "priority", column_type: "string", nullable: true, generated: false, auto_increment: false, has_default: false, policy: null, effective, audit: null, state: "missing", warning: "" };
 describe("field policy public transport", () => {
   it("preserves unknown stored controls for management while requiring safe effective controls", () => {
-    const data = { table_name: "items", fields: [{ ...field, state: "incompatible", policy: { ...effective, ui_type: "future-control", query_operators: ["future-operator"] } }] };
+    const data = { table_name: "items", query_capacity: {max_conditions:256,max_values_per_condition:100,queryable_fields:0,supported:true}, fields: [{ ...field, state: "incompatible", policy: { ...effective, ui_type: "future-control", query_operators: ["future-operator"] } }] };
     const result = fieldPoliciesSchema.parse(data);
     expect(result.fields[0].policy?.ui_type).toBe("future-control");
     expect(result.fields[0].effective.ui_type).toBe("text");
     expect(fieldPoliciesSchema.safeParse({ ...data, fields: [{ ...data.fields[0], effective: { ...effective, ui_type: "unknown" } }] }).success).toBe(false);
   });
   it("keeps absent, null and empty prefills distinct", () => {
-    const result = fieldPoliciesSchema.parse({ table_name: "items", fields: [
+    const result = fieldPoliciesSchema.parse({ table_name: "items", query_capacity: {max_conditions:256,max_values_per_condition:100,queryable_fields:0,supported:true}, fields: [
       { ...field, policy: effective }, { ...field, policy: { ...effective, default_value: null } }, { ...field, policy: { ...effective, default_value: "" } },
     ] });
     expect(Object.hasOwn(result.fields[0].policy!, "default_value")).toBe(false);
