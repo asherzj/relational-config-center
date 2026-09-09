@@ -315,3 +315,43 @@ func TestFieldPolicyDatabaseFailureRollsBackWholeReplacement(t *testing.T) {
 		t.Fatal("database failure left partial replacement")
 	}
 }
+
+// AC-009/018: interaction flags and static options never become execution authority.
+func TestFieldPolicyAC009AC018KeepDatabaseDefaultsAndExecutionBoundary(t *testing.T) {
+	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
+	body := `{"policies":[{"field_name":"defaulted_value","display_name":"Web不可编辑","display_order":0,"is_visible":false,"is_queryable":false,"query_operators":[],"ui_type":"select","ui_options":{"options":[{"label":"建议值","value":"suggested"}]},"editable_on_add":false,"editable_on_modify":false,"is_required":true,"enabled":true}]}`
+	saved := policyIntegrationRequest(t, app, "PUT", "/api/v1/table-field-policies/mutation_add_items", body)
+	if saved.Code != 200 {
+		t.Fatalf("field configuration: %d %s", saved.Code, saved.Body.String())
+	}
+	for _, item := range []struct{ code, content, expected string }{
+		{"field-default", `"nullable_value":null`, "database-default"},
+		{"field-custom", `"defaulted_value":"outside-options","nullable_value":null`, "outside-options"},
+		{"field-empty", `"defaulted_value":"","nullable_value":""`, ""},
+	} {
+		result := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"code":"`+item.code+`","label":"valid",`+item.content+`}}`)
+		if result.Code != 200 {
+			t.Fatalf("publish legal content despite Web flags: %d %s", result.Code, result.Body.String())
+		}
+		row := queryMutationRow(t, app, item.code)
+		assertMutationString(t, row, "defaulted_value", item.expected)
+		if item.code == "field-empty" {
+			assertMutationString(t, row, "nullable_value", "")
+		} else if row["nullable_value"] != nil {
+			t.Fatal("explicit NULL was lost")
+		}
+	}
+	for _, item := range []struct{ operation, content, code string }{
+		{"ADD", `{"code":"bad-number","label":"valid","quantity":"not-a-number"}`, "invalid_mutation_content"},
+		{"ADD", `{"code":"bad-generated","label":"valid","generated_value":"override"}`, "invalid_mutation_content"},
+		{"MODIFY", `{"label":"illegal"}`, "mutation_not_allowed"},
+	} {
+		result := publicationFixtureRequest(t, app, item.operation, "mutation_add_items", "1", `{"content":`+item.content+`}`)
+		status := http.StatusUnprocessableEntity
+		if item.code == "mutation_not_allowed" {
+			status = http.StatusForbidden
+		}
+		assertIntegrationErrorCode(t, result, status, item.code)
+	}
+}

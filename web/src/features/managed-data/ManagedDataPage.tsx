@@ -34,7 +34,7 @@ import {
 } from "./model";
 import { useManagedDataQuery } from "./queries";
 import { useManagedDataMutationWorkflow, type ManagedDataMutationIntent } from "./mutation-workflow";
-import { ManagedRowEditor } from "./ManagedRowEditor";
+import { ConfiguredRowEditor } from "./ConfiguredRowEditor";
 import { ChangeSetDialog } from "./ChangeSetDialog";
 
 const initialQuerySpec: QuerySpec = { conditions: [], pageNumber: 1 };
@@ -395,7 +395,7 @@ export function ManagedDataPage() {
 
         </>
       )}
-          {editor && <ManagedRowEditor
+          {editor && <ConfiguredRowEditor
 
             recordConflict={changes.view.recordConflict||(draftWrite.error instanceof ApiError&&draftWrite.error.code==="record_version_conflict")}
             latest={changes.view.latest}

@@ -68,7 +68,7 @@ export function FieldPolicyDrawer({ tableName }: { tableName: string }) {
   return <Drawer open title="字段配置" eyebrow={tableName} onClose={close} footer={<><Button variant="primary" disabled={!canManage || !dirty || pending || uncertain || !snapshot} onClick={() => void save()}>{pending ? "正在保存…" : "保存全部字段配置"}</Button><Button onClick={close} disabled={pending}>关闭</Button></>}>
     {!snapshot ? detail.isError ? <ErrorState error={detail.error} onRetry={() => void detail.refetch()} /> : <LoadingState label="正在读取真实字段与配置…" /> : <div className="policy-form">
       <p className="field-policy-metadata">真实业务表：<code>{tableName}</code></p>
-      <p className="form-note">按真实字段维护交互规则。一次保存全部配置，停用保留原值。配置内容页面的查询、录入与显示将在后续版本接入这些规则。</p>
+      <p className="form-note">按真实字段维护交互规则。一次保存全部配置，停用保留原值。记录录入采用这些规则，字段规则不改变数据库类型与表规则授权。</p>
       {!canManage && <p role="status">当前账号没有管理员权限，字段配置只读。</p>}
       <Label className="field"><span>真实字段</span><NativeSelect aria-label="真实字段" value={selected} onChange={event => setSelected(event.target.value)}>{snapshot.fields.map(f => <option key={f.field_name} value={f.field_name}>{f.field_name} · {policies.some(p => p.field_name === f.field_name) ? policies.find(p => p.field_name === f.field_name)!.enabled ? "已启用" : "已停用" : "未配置"}</option>)}</NativeSelect></Label>
       {error != null && !uncertain && <div ref={errorRef} tabIndex={-1}><p>请检查字段：<code>{error instanceof ApiError ? error.fieldName ?? selected : selected}</code></p><ErrorState error={error} /></div>}

@@ -98,6 +98,7 @@ function renderPage() {
 
 function readFetch(input: RequestInfo | URL, init: RequestInit | undefined, policy = mutationPolicy) {
   const url = String(input);
+  if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", fields: [] });
   if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
   if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
   if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
@@ -163,6 +164,7 @@ describe("Managed Data draft confirmation", () => {
     let writes = 0;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+  if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", fields: [] });
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
@@ -208,6 +210,7 @@ describe("Managed Data draft confirmation", () => {
     let writes = 0;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+  if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", fields: [] });
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
@@ -249,6 +252,7 @@ describe("Managed Data draft confirmation", () => {
     let signedIn = true;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+  if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", fields: [] });
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
@@ -282,6 +286,7 @@ describe("Managed Data draft confirmation", () => {
     let writes = 0;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+  if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", fields: [] });
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
@@ -343,6 +348,7 @@ it("preserves a stale change, reads latest separately, and requires an explicit 
   let latestReads = 0;
   vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
+  if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", fields: [] });
     if (url.endsWith("/release-orders") && init?.method === "POST") {
       writes.push(JSON.parse(String(init.body)));
       return json({ error: { code: "record_version_conflict", message: "record changed", request_id: "stale-33" } }, 409);
