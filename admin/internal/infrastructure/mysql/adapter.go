@@ -102,12 +102,12 @@ func (adapter *Adapter) Ready(ctx context.Context) error {
 		return fmt.Errorf("ping MySQL: %w", err)
 	}
 	for _, table := range []string{"rcc_table_policies", "rcc_query_policies", "rcc_mutation_policies"} {
-		rows, err := adapter.gorm.WithContext(ctx).Raw("SELECT 1 FROM `" + table + "` LIMIT 0").Rows()
+		rows, err := adapter.gorm.WithContext(ctx).Raw("SELECT created_at, updated_at FROM `" + table + "` LIMIT 0").Rows()
 		if err != nil {
-			return fmt.Errorf("Policy Catalog unavailable: %w", err)
+			return fmt.Errorf("Policy Catalog unavailable (apply migration 013 for audit column names): %w", err)
 		}
 		if err := rows.Close(); err != nil {
-			return fmt.Errorf("Policy Catalog unavailable: %w", err)
+			return fmt.Errorf("Policy Catalog unavailable (apply migration 013 for audit column names): %w", err)
 		}
 	}
 	if err := adapter.accountSchemaReady(ctx); err != nil {
@@ -289,8 +289,8 @@ type policyRecord struct {
 	Enabled            bool      `gorm:"column:enabled"`
 	Creator            string    `gorm:"column:creator"`
 	Modifier           string    `gorm:"column:modifier"`
-	CreatedAt          time.Time `gorm:"column:gmt_created"`
-	UpdatedAt          time.Time `gorm:"column:gmt_modified"`
+	CreatedAt          time.Time `gorm:"column:created_at"`
+	UpdatedAt          time.Time `gorm:"column:updated_at"`
 }
 
 func (policyRecord) TableName() string {
@@ -461,8 +461,8 @@ type queryPolicyRecord struct {
 	Status                domain.PolicyStatus `gorm:"column:status"`
 	Creator               string              `gorm:"column:creator"`
 	Modifier              string              `gorm:"column:modifier"`
-	CreatedAt             time.Time           `gorm:"column:gmt_created"`
-	UpdatedAt             time.Time           `gorm:"column:gmt_modified"`
+	CreatedAt             time.Time           `gorm:"column:created_at"`
+	UpdatedAt             time.Time           `gorm:"column:updated_at"`
 }
 
 func (queryPolicyRecord) TableName() string { return "rcc_query_policies" }
@@ -599,8 +599,8 @@ type mutationPolicyRecord struct {
 	Status              domain.PolicyStatus `gorm:"column:status"`
 	Creator             string              `gorm:"column:creator"`
 	Modifier            string              `gorm:"column:modifier"`
-	CreatedAt           time.Time           `gorm:"column:gmt_created"`
-	UpdatedAt           time.Time           `gorm:"column:gmt_modified"`
+	CreatedAt           time.Time           `gorm:"column:created_at"`
+	UpdatedAt           time.Time           `gorm:"column:updated_at"`
 }
 
 func (mutationPolicyRecord) TableName() string { return "rcc_mutation_policies" }

@@ -16,7 +16,7 @@ describe("Mutation Policy API contract", () => {
         allow_add: false, allow_modify: false, allow_delete: false,
         create_operator_field: null, create_time_field: null, modify_operator_field: null, modify_time_field: null,
         status: "DRAFT", creator: "admin", modifier: "admin",
-        gmt_created: "2026-08-22T09:12:08Z", gmt_modified: "2026-08-22T09:12:08Z",
+        created_at: "2026-08-22T09:12:08Z", updated_at: "2026-08-22T09:12:08Z",
       }] });
     }));
 

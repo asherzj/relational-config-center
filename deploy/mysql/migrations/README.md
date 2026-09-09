@@ -1,14 +1,16 @@
 # Policy Catalog migrations
 
 The reusable Policy model uses an expand-contract rollout. Apply migrations
-001 through 005 in order, deploy the transactional Policy Snapshot Admin, then
-run the contraction command below. A fresh installation uses the already-final
+001 through 005 in order, then 013 before running the current contraction
+command below. A fresh installation uses the already-final
 `mysql/init/001-schema.sql` and does not replay these legacy migrations.
 
 ## Table Policy Code expansion
 
-After `005-expand-table-policy-code-references.sql`, run the set-wide preflight
-and backfill from the `admin` module:
+After `005-expand-table-policy-code-references.sql`, apply
+`013-policy-audit-timestamps.sql` to align all three catalogs with the current
+maintenance command's audit mappings. Then run the set-wide preflight and
+backfill from the `admin` module:
 
 ```bash
 POLICY_MIGRATION_OPERATOR=historical-maintainer go run ./cmd/policy-migrate
@@ -54,10 +56,13 @@ scalars, and legacy Query/Mutation/Auto Fill representability before reaching
 its only destructive `ALTER TABLE`. Any assertion raises `SQLSTATE 45000`; all
 legacy columns remain intact. Prefer the Go command because its diagnostics are
 more precise, but direct execution of 006 is independently fail closed.
+The historical 006 script renames Table Policy audit columns back to `gmt_*`;
+if using that script, apply 013 again afterwards. The current Go contraction
+command keeps `created_at` / `updated_at` throughout.
 
 The final `rcc_table_policies` columns are exactly `id`, `table_name`, both
-Policy Codes, `enabled`, `creator`, `modifier`, `gmt_created`, and
-`gmt_modified`. No foreign keys or optimistic-lock columns are added.
+Policy Codes, `enabled`, `creator`, `modifier`, `created_at`, and
+`updated_at`. No foreign keys or optimistic-lock columns are added.
 
 ## Local Account control tables
 
@@ -111,3 +116,21 @@ See [role bootstrap, recovery and HTTP contracts](../../../docs/admin-account-ro
 
 
 T5 同时修正 FLOAT 主键的有损短文本权重与 FLOAT/DOUBLE 的正负零等价。应用新二进制前，须取消受影响表的旧在途单并停写，按 [记录版本维护门禁](../../../docs/admin-record-versions.md#t5-浮点身份修订的升级门禁) 为全部 FLOAT/DOUBLE 主键表推进维护基线、保留旧 key。012 不自动完成这项维护，也不能据其可重跑而跳过代际切换。
+
+## Policy 审计时间统一（013）
+
+`rcc_query_policies`、`rcc_mutation_policies`、`rcc_table_policies` 的审计时间统一为
+`created_at` / `updated_at`，HTTP 返回字段同步改名。Web 与 Admin 必须一起升级。
+
+1. 备份数据库，停止旧 Admin 和其他 Policy 写入者。
+2. 对已完成 012 的数据库执行 `013-policy-audit-timestamps.sql`。
+3. 部署新版 Admin/Web，确认就绪检查及三类 Policy 的查询、创建和修改均正常。
+
+迁移只重命名列，保留现有时间值、数据类型、默认值和自动更新时间行为；不会修改业务表，
+也不会改写 Mutation Policy 中配置的审计目标字段。新安装使用 `init/001-schema.sql` 即可。
+迁移可重跑，支持表间中断和单个时间列已经改名的状态；若旧名和新名同时存在或同时缺失，
+会在任何表发生变更前拒绝执行，并指出异常表。修正异常后可重跑。
+旧版 Admin 不能使用迁移后的列名；需要回退时，应先停写并反向重命名三张表的两列，再整体回退 Admin/Web。
+
+拟新增的 `rcc_table_field_policies` 设计同样采用 `created_at` / `updated_at`。
+013 不创建字段规则表；该表仍属于待实现的字段规则功能。

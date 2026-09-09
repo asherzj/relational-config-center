@@ -86,6 +86,7 @@ function check(condition, message) {
       const select = page.getByRole("combobox", { name: "Managed Table" });
       await select.waitFor();
       await select.selectOption("stage1_acceptance_items");
+      await page.getByRole("button", { name: "查看当前表规则能力", exact: true }).click();
       const abilities = page.getByRole("region", { name: "当前表规则能力" });
       await abilities.getByText("本次实时表结构确认了", { exact: false }).waitFor();
       const text = await abilities.innerText();

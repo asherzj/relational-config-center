@@ -342,7 +342,8 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 		"../../../deploy/mysql/migrations/002-rename-audit-timestamps.sql",
 		"../../../deploy/mysql/migrations/003-create-query-policies.sql",
 		"../../../deploy/mysql/migrations/004-create-mutation-policies.sql",
-		"../../../deploy/mysql/migrations/005-expand-table-policy-code-references.sql")
+		"../../../deploy/mysql/migrations/005-expand-table-policy-code-references.sql",
+		"../../../deploy/mysql/migrations/013-policy-audit-timestamps.sql")
 	db := deliveryDB(t, driver)
 	directory := t.TempDir()
 	migrate := directory + "/policy-migrate"

@@ -16,8 +16,8 @@ const tablePolicy = {
   enabled: true,
   creator: "fixture",
   modifier: "fixture",
-  gmt_created: "2026-08-25T09:00:00Z",
-  gmt_modified: "2026-08-25T09:00:00Z",
+  created_at: "2026-08-25T09:00:00Z",
+  updated_at: "2026-08-25T09:00:00Z",
 };
 
 const mutationPolicy = {
@@ -35,8 +35,8 @@ const mutationPolicy = {
   status: "ACTIVE",
   creator: "fixture",
   modifier: "fixture",
-  gmt_created: "2026-08-25T09:00:00Z",
-  gmt_modified: "2026-08-25T09:00:00Z",
+  created_at: "2026-08-25T09:00:00Z",
+  updated_at: "2026-08-25T09:00:00Z",
 };
 
 const queryPolicy = {
@@ -51,8 +51,8 @@ const queryPolicy = {
   status: "ACTIVE",
   creator: "fixture",
   modifier: "fixture",
-  gmt_created: "2026-08-25T09:00:00Z",
-  gmt_modified: "2026-08-25T09:00:00Z",
+  created_at: "2026-08-25T09:00:00Z",
+  updated_at: "2026-08-25T09:00:00Z",
 };
 
 const columns = [
@@ -124,6 +124,7 @@ describe("Managed Data draft confirmation", () => {
     expect(screen.getByRole("button", { name: "删除记录 41" })).toBeDisabled();
     expect(screen.getByText("MODIFY 未由当前变更规则授权")).toBeVisible();
     expect(screen.getByText("DELETE 未由当前变更规则授权")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "查看当前表规则能力" }));
     const currentAbility = screen.getByRole("region", { name: "当前表规则能力" });
     expect(currentAbility).toHaveTextContent("按 id 降序排列");
     expect(currentAbility).toHaveTextContent("默认每页数量为 20");

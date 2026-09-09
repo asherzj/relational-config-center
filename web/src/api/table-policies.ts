@@ -29,8 +29,8 @@ function tablePolicyFromDto(dto: TablePolicyDto): TablePolicy {
     enabled: dto.enabled,
     creator: dto.creator,
     modifier: dto.modifier,
-    createdAt: dto.gmt_created,
-    modifiedAt: dto.gmt_modified,
+    createdAt: dto.created_at,
+    modifiedAt: dto.updated_at,
   };
 }
 

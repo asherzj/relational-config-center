@@ -12,8 +12,8 @@ import { Checkbox } from "../../components/shadcn/checkbox";
 import { NativeSelect } from "../../components/shadcn/native-select";
 import { Label } from "../../components/shadcn/label";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/shadcn/table";
-import { ChevronLeft, ChevronRight, Database, Pencil, Plus, RefreshCw, RotateCcw, Search, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Database, Pencil, Plus, RefreshCw, RotateCcw, Search, Trash2 } from "lucide-react";
+import { useId, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { Button } from "../../components/ui/Button";
@@ -125,6 +125,8 @@ export function ManagedDataPage() {
  const [saving,setSaving]=useState(false);
   const policies = useTablePolicies();
   const [requestedTable, setRequestedTable] = useState(search.get("table_name")??"");
+  const [expandedPolicyTable, setExpandedPolicyTable] = useState<string>();
+  const policyDetailsId = useId();
   const [querySpec, setQuerySpec] = useState<QuerySpec>(initialQuerySpec);
   const [conditions, setConditions] = useState<QueryConditionDraft[]>([]);
   const [orderField, setOrderField] = useState("");
@@ -138,6 +140,7 @@ export function ManagedDataPage() {
   const destination=useDraftDestination(selectedTable,search.get("draft")??"");
   const result = useManagedDataQuery(selectedTable, querySpec);
   const selectedPolicy = enabledPolicies.find((policy) => policy.tableName === selectedTable);
+  const policyDetailsOpen = Boolean(selectedTable) && expandedPolicyTable === selectedTable;
   const queryPolicy = useQueryPolicy(selectedPolicy?.queryPolicyCode);
   const queryPolicyTypes = useQueryPolicyTypes(Boolean(selectedPolicy));
   const changes = useManagedDataMutationWorkflow({
@@ -214,6 +217,7 @@ export function ManagedDataPage() {
                   protection.requestLeave(() => {
                   changes.send({ type: "cancel-pending" });
                   setRequestedTable(target);setSelectedRows(new Map());
+                  setExpandedPolicyTable(undefined);
                   setQuerySpec(initialQuerySpec);
                   setConditions([]);
                   setOrderField("");
@@ -226,11 +230,18 @@ export function ManagedDataPage() {
                 {enabledPolicies.map((policy) => <option key={policy.tableName} value={policy.tableName}>{policy.tableName}</option>)}
               </NativeSelect>
             </Label>
+            <Button
+              variant="secondary"
+              icon={policyDetailsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              aria-expanded={policyDetailsOpen}
+              aria-controls={policyDetailsId}
+              onClick={() => setExpandedPolicyTable(policyDetailsOpen ? undefined : selectedTable)}
+            >{policyDetailsOpen ? "收起当前表规则能力" : "查看当前表规则能力"}</Button>
             <span className="managed-table-status"><i className="ready-dot" />已启用表规则</span>
           </section>
 
           {selectedPolicy && (
-            <section className="managed-policy-effects" aria-label="当前表规则能力">
+            <section id={policyDetailsId} className="managed-policy-effects" aria-label="当前表规则能力" hidden={!policyDetailsOpen}>
               <div className="form-section-heading">
                 <h2>当前表规则能力</h2>
                 <p>查询与变更都按每次请求读取到的规则和实时表结构执行。</p>

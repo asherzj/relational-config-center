@@ -14,8 +14,8 @@ export const queryPolicyDtoSchema = z.object({
   status: policyStatusSchema,
   creator: z.string(),
   modifier: z.string(),
-  gmt_created: z.string(),
-  gmt_modified: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
 });
 
 export const queryPolicyListDtoSchema = z.object({
@@ -53,8 +53,8 @@ export const mutationPolicyDtoSchema = z.object({
   status: policyStatusSchema,
   creator: z.string(),
   modifier: z.string(),
-  gmt_created: z.string(),
-  gmt_modified: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
 });
 
 export const mutationPolicyListDtoSchema = z.object({
@@ -88,8 +88,8 @@ export const tablePolicyDtoSchema = z.object({
   enabled: z.boolean(),
   creator: z.string(),
   modifier: z.string(),
-  gmt_created: z.string(),
-  gmt_modified: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
 });
 
 export const tablePolicyListDtoSchema = z.object({

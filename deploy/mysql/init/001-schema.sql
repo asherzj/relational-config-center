@@ -1,3 +1,5 @@
+SET NAMES utf8mb4;
+
 CREATE TABLE `rcc_query_policies` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `code` varchar(100) NOT NULL,
@@ -11,8 +13,8 @@ CREATE TABLE `rcc_query_policies` (
   `status` varchar(16) NOT NULL DEFAULT 'DRAFT',
   `creator` varchar(64) NOT NULL,
   `modifier` varchar(64) NOT NULL,
-  `gmt_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_query_policy_code` (`code`),
   KEY `idx_query_policy_status_type` (`status`, `type_code`),
@@ -41,8 +43,8 @@ CREATE TABLE `rcc_mutation_policies` (
   `status` varchar(16) NOT NULL DEFAULT 'DRAFT',
   `creator` varchar(64) NOT NULL,
   `modifier` varchar(64) NOT NULL,
-  `gmt_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_mutation_policy_code` (`code`),
   KEY `idx_mutation_policy_status_type` (`status`, `type_code`),
@@ -77,8 +79,8 @@ CREATE TABLE `rcc_table_policies` (
   `enabled` tinyint(1) NOT NULL DEFAULT 0,
   `creator` varchar(64) NOT NULL,
   `modifier` varchar(64) NOT NULL,
-  `gmt_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_table_name` (`table_name`),
   KEY `idx_table_policy_query_code` (`query_policy_code`),

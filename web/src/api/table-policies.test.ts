@@ -17,7 +17,7 @@ describe("Table Policy API contract", () => {
       return json({ policies: [{
         table_name: "notification_templates", query_policy_code: "standard_query_v1",
         mutation_policy_code: "standard_mutation_v1", enabled: false, creator: "admin", modifier: "admin",
-        gmt_created: "2026-08-24T09:00:00Z", gmt_modified: "2026-08-24T10:00:00Z",
+        created_at: "2026-08-24T09:00:00Z", updated_at: "2026-08-24T10:00:00Z",
       }] });
     }));
 
@@ -28,7 +28,7 @@ describe("Table Policy API contract", () => {
   it("serializes all three immutable assignment identifiers on create", async () => {
     const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => json({
       ...JSON.parse(String(init?.body)), enabled: false, creator: "admin", modifier: "admin",
-      gmt_created: "2026-08-24T09:00:00Z", gmt_modified: "2026-08-24T09:00:00Z",
+      created_at: "2026-08-24T09:00:00Z", updated_at: "2026-08-24T09:00:00Z",
     }, 201));
     vi.stubGlobal("fetch", fetchMock);
 

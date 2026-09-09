@@ -99,8 +99,8 @@ CREATE TABLE `rcc_table_policies` (
   `enabled` tinyint(1) NOT NULL DEFAULT 0,
   `creator` varchar(64) NOT NULL,
   `modifier` varchar(64) NOT NULL,
-  `gmt_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
       ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_table_name` (`table_name`),
@@ -109,7 +109,9 @@ CREATE TABLE `rcc_table_policies` (
 );
 ```
 
-完整定义见 [`001-schema.sql`](../deploy/mysql/init/001-schema.sql)。`rcc_query_policies` 关系化保存 `page_query` 的默认排序和分页标量；`rcc_mutation_policies` 关系化保存操作授权及四个可空审计目标槽。三个表都使用 `gmt_created` / `gmt_modified`，具有唯一、查询索引和标量 CHECK，不使用外键或乐观锁。
+完整定义见 [`001-schema.sql`](../deploy/mysql/init/001-schema.sql)。`rcc_query_policies` 关系化保存 `page_query` 的默认排序和分页标量；`rcc_mutation_policies` 关系化保存操作授权及四个可空审计目标槽。三个表都使用 `created_at` / `updated_at`，具有唯一、查询索引和标量 CHECK，不使用外键或乐观锁。
+
+Policy API 同样返回 `created_at` / `updated_at`。旧库按 [013 升级说明](../deploy/mysql/migrations/README.md#policy-审计时间统一013) 重命名原 `gmt_created` / `gmt_modified` 列，保留时间值，并同步升级 Admin/Web。拟新增的 `rcc_table_field_policies` 也遵循此命名。
 
 该关系化取舍由 [ADR-0016](./adr/0016-separate-policy-definitions-from-table-assignments.md) 冻结，并取代 ADR-0010 的内联 JSON 模型。Policy Code 是不可修改、版本化、技术无关的业务标识；定义遵循 `DRAFT -> ACTIVE -> DEPRECATED`，新绑定只能选择 Active，现有 Deprecated 绑定仍可执行。
 
