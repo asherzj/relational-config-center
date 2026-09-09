@@ -14,7 +14,11 @@ Issue 在本仓库的 GitHub Issues 中跟踪。详见 `docs/agents/issue-tracke
 
 ### 领域文档
 
-本仓库采用多上下文布局。详见 `docs/agents/domain.md`。
+本仓库采用多上下文布局，通过 `CONTEXT.md` 与 `CONTEXT-MAP.md` 管理领域术语和上下文关系。阅读与维护约定见 `docs/agents/domain.md`。
+
+### 前端设计文档
+
+前端设计、实现、评审与验收前先读取 `web/DESIGN.md`，共享设计规则变化时同步维护。它与领域文档的分工、阅读和更新约定见 `docs/agents/design.md`。
 
 ### 架构沟通语言
 

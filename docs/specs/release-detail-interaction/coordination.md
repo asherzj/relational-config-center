@@ -26,4 +26,4 @@ T5 使用已交付接口，整合 T3/T4 后的真实冲突解决也纳入审查�
 
 此前主工作区位于 `f513859`，存在尚未验证的后端及部分 Web 中间实现。它们未作为共同生产基线提交，而是只供各工单选择性参考。最终整合前按确切文件范围归档并保存到 Git stash，再由已验证交付实现替换；只恢复需求、编排与验收文档，未恢复旧产品代码覆盖新实现。
 
-用户原有 `AGENTS.md`、`docs/agents/domain.md`、`docs/agents/design.md` 改动按原文件哈希保留，未包含在实现或收尾提交中。原始参考归档位于 `/private/tmp/rcc-release-detail-reference`，其保存状态与最终快进过程有本地校验记录。
+功能实现和验收收尾时，用户原有 `AGENTS.md`、`docs/agents/domain.md`、`docs/agents/design.md` 改动按原文件哈希保留。随后按用户提交、推送并创建目标为 `main` 的合并请求的要求，将这三份规范文档原样纳入独立提交。原始参考归档位于 `/private/tmp/rcc-release-detail-reference`，其保存状态与最终快进过程有本地校验记录。
