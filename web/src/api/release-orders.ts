@@ -48,7 +48,7 @@ const quickRollbackInputSchema=z.object({expected_version:version,preview_digest
 const submitInputSchema=z.object({expected_version:z.string()});
 const copyInputSchema=z.object({expected_version:z.string(),confirmed:z.literal(true),items:z.array(draftItemSchema)});
 export type ReleaseStateAction="submit"|"approve"|"reject"|"cancel"|"execute"|"rollback"|"complete";
-export const releaseActionLabels={"quick-rollback":"快速回滚",complete:"完结发布单",execute:"执行发布",submit:"提交审批",approve:"批准发布单",reject:"拒绝发布单",cancel:"取消发布单",copy:"复制新草稿",rollback:"申请回滚"};
+export const releaseActionLabels={"quick-rollback":"快速回滚",complete:"完结发布单",execute:"执行发布",submit:"提交审批",approve:"批准发布单",reject:"拒绝发布单",cancel:"取消发布单",copy:"复制新草稿",rollback:"申请回滚",reprepare:"重新准备"};
 export const releaseActionRole=(action:string)=>action==="execute"||action==="complete"||action==="quick-rollback"?"PUBLISHER" as const:action==="approve"||action==="reject"?"APPROVER" as const:"EDITOR" as const;
 
 export const releaseActionRequiresReason=(action:ReleaseStateAction)=>action!=="submit"&&action!=="execute"&&action!=="complete";
@@ -57,6 +57,7 @@ export const releaseRequests={
  quickRollback:(id:string,expectedVersion:string,previewDigest:string,reason:string):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/quick-rollback`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,preview_digest:previewDigest,reason})}),
  action:(action:ReleaseStateAction,id:string,expectedVersion:string,reason=""):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/${action}`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,...(releaseActionRequiresReason(action)?{reason}:{})})}),
  copy:(id:string,expectedVersion:string,items:DraftItem[]):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/copy`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,confirmed:true,items})}),
+ reprepare:(id:string,expectedVersion:string,items:DraftItem[]):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/reprepare`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,confirmed:true,items})}),
  create:(input:DraftInput):ReleaseRequestEnvelope=>({path:"/api/v1/release-orders",method:"POST",body:JSON.stringify(input)}),
  edit:(id:string,input:DraftInput):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}`,method:"PUT",body:JSON.stringify(input)}),
  cancel:(id:string,expectedVersion:string,reason:string):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/cancel`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,reason})}),
@@ -70,6 +71,7 @@ export function decodeReleaseRequest(value:ReleaseRequestEnvelope){
  if(id&&action==="execute")return {action:"execute" as const,id,input:submitInputSchema.parse(body)};
  if(id&&action==="submit")return {action:"submit" as const,id,input:submitInputSchema.parse(body)};
  if(id&&action==="copy")return {action:"copy" as const,id,input:copyInputSchema.parse(body)};
+ if(id&&action==="reprepare")return {action:"reprepare" as const,id,input:copyInputSchema.parse(body)};
  if(id&&action==="rollback")return {action:"rollback" as const,id,input:cancelInputSchema.parse(body)};
  if(id&&action==="cancel")return {action:"cancel" as const,id,input:cancelInputSchema.parse(body)};
  if(id&&action==="approve")return {action:"approve" as const,id,input:cancelInputSchema.parse(body)};

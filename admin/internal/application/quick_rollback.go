@@ -169,7 +169,7 @@ func (r *ReleaseOrders) QuickRollback(ctx context.Context, id string, input Quic
 		}
 		result.Publication = &publication
 		original.State, original.RollbackOrderID, original.RollbackPending = "ROLLED_BACK", result.ID, false
-		if err = appendRollbackEvent(&original, actor, stamp, "QUICK_ROLLBACK", input.Reason, result.ID); err != nil {
+		if err = appendRelatedReleaseEvent(&original, actor, stamp, "QUICK_ROLLBACK", input.Reason, result.ID); err != nil {
 			return err
 		}
 		if err = s.SaveReleaseOrder(ctx, result, true); err != nil {

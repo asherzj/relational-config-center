@@ -15,6 +15,7 @@
 | `POST /api/v1/release-orders/:id/reject` | 同批准 | 同批准；释放目标 |
 | `POST /api/v1/release-orders/:id/cancel` | `expected_version`, 必填 `reason` | 当前仍有编辑权限的申请人或 ADMIN，DRAFT/PENDING_APPROVAL/APPROVED；释放目标 |
 | `POST /api/v1/release-orders/:id/copy` | `expected_version`, `confirmed: true`, `items` | 当前 EDITOR/ADMIN，普通源单 REJECTED/CANCELLED；返回新 DRAFT（201） |
+| `POST /api/v1/release-orders/:id/reprepare` | `expected_version`, `confirmed: true`, `items` | 原申请人且当前 EDITOR，或当前 ADMIN；普通源单 APPROVED；返回新 DRAFT（201） |
 | `POST /api/v1/release-orders/:id/execute` | `expected_version` | 当前 PUBLISHER/ADMIN，APPROVED；普通整单成功进入 SUCCEEDED 待完结并保留真实目标；反向成功直接 COMPLETED 并释放 |
 | `POST /api/v1/release-orders/:id/complete` | `expected_version`，无必填意见 | 当前 PUBLISHER/ADMIN，SUCCEEDED 普通单；COMPLETED 并释放目标，配置和原发布结果不变 |
 | `POST /api/v1/release-orders/:id/rollback` | `expected_version`, 必填 `reason` | 当前 EDITOR/ADMIN，原单 COMPLETED、非反向结果且没有在途反向申请；返回反向 DRAFT（201） |
@@ -24,6 +25,8 @@ ADMIN 也不能审批自己的单据。一位独立审批人决定一次即足�
 状态动作在锁定订单后检查调用者看到的版本，旧版本为 `409 release_version_conflict`，当前版本上的非法动作是 `422 release_state_invalid`。目标冲突是 `409 release_target_conflict`。同一账号/动作/键的成功请求先找回原业务结果，再对新动作做状态 CAS；同键不同请求摘要为 `409 idempotency_conflict`。成功重放可以返回旧状态的原业务结果，当前 `allowed_actions` 来自最新单据；Web 重新查询当前详情，不将重放结果作为当前详情缓存。
 
 复制前用已有只读 `/release-orders/preview` 读取原申请与当前记录的差异。复制 `items` 的操作、id 和申请内容必须与原单一致，但每个已知目标要明确携带刚核对的 `expected_record_version`。记录在预览与复制之间变化就拒绝。复制不修改源单，创建新的永久申请人和 `COPY` 历史，通过 `copied_from_id` 关联原单；新单须重新核对、提交和审批。反向草稿不能编辑、复制或追加明细；取消/拒绝反向单后，应从原成功单重新申请回滚，仍使用原发布后的记录版本。
+
+重新准备同样先用 `/release-orders/preview` 核对最新配置，并逐项提交原操作、原 id、原申请内容和新读取的 `expected_record_version`；`confirmed` 必须为 `true`。确认成功后，源单改为 CANCELLED 并释放其全部在途目标，同时创建继承原标题且可编辑的新 DRAFT。新单申请人是实际操作者，源单与新单各保存一条 `REPREPARE` 关联历史，`copied_from_id` 指向源单；新单须重新提交并由另一人审批，旧批准不能复用。上述源单取消、目标释放、新单与双方历史、成功幂等结果在一个 MySQL 事务内提交；任何明确失败都保留原 APPROVED、旧审批和目标占用。反向单不支持重新准备。
 
 ## 冻结与真实数据库身份
 
@@ -53,7 +56,7 @@ ADMIN 也不能审批自己的单据。一位独立审批人决定一次即足�
 
 已有 007 本地账号结构的部署在停写维护窗口按顺序应用 008～012。`011-release-targets.sql` 建立在途目标，`012-publication.sql` 建立发布进度、Command 和通知；不能只完成审批结构就恢复新版服务。新安装的 `001-schema.sql` 包含完整定义。008～012 可重跑且保留既有控制数据，007 一次性迁移按[迁移说明](../deploy/mysql/migrations/README.md)确认后处理。Ready 校验控制表列、InnoDB 和完整唯一主键，缺失或不兼容时拒绝就绪。
 
-Web 将草稿和发布动作（含提交、批准、拒绝、取消、复制、执行、完结及回滚申请）的原请求内容、键及账号在发送前保存到当前标签页的 sessionStorage。未知结果保持原键；只有 APPROVER 的账号也能恢复自己的审批请求，账号切换不会重放别人的请求。明确状态/记录/目标冲突后仍保留原意，读取最新状态与差异、显式确认后才生成新请求。普通草稿提交基线陈旧时须先明确更新草稿基线；反向单的原发布后版本不能更新。
+Web 将草稿和发布动作（含提交、批准、拒绝、取消、复制、重新准备、执行、完结、快速回滚及回滚申请）的原请求内容、键及账号在发送前保存到当前标签页的 sessionStorage。未知结果保持原键和完整正文；重新准备未知时同一账号恢复同一请求，只在服务端返回明确失败后才重新核对并生成新键。只有 APPROVER 的账号也能恢复自己的审批请求，账号切换不会重放别人的请求。明确状态/记录/目标冲突后仍保留原意，读取最新状态与差异、显式确认后才生成新请求。普通草稿提交基线陈旧时须先明确更新草稿基线；反向单的原发布后版本不能更新。
 
 详情区分草稿、待审批、已批准、已发布待完结、已完结、已拒绝、已取消和已回滚，显示当前允许动作、冻结差异、永久身份、历史意见及关联单。执行结果保存实际发布人、最终行和新版本；普通执行成功时单据为 SUCCEEDED 并保留全部目标占用，人工完结变为 COMPLETED 后释放占用。反向执行成功时原单标记 ROLLED_BACK，反向单直接为 COMPLETED 并释放占用。
 

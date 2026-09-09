@@ -1,0 +1,123 @@
+{
+  "artifact": "/private/tmp/rcc-issue-62-three-engine-v1-20260909",
+  "exit_status": 0,
+  "cleanup_verified": true,
+  "elapsed_seconds": 451.0,
+  "suites": [
+    {
+      "path": "unsaved-changes/result.json",
+      "ok": true,
+      "checks": 14,
+      "page_errors": [],
+      "failure": null
+    },
+    {
+      "path": "rule-clarity/result.json",
+      "ok": true,
+      "checks": 6,
+      "page_errors": [],
+      "failure": null
+    },
+    {
+      "path": "write-recovery/result.json",
+      "ok": true,
+      "checks": 28,
+      "page_errors": [],
+      "failure": null
+    },
+    {
+      "path": "operation-coverage/result.json",
+      "ok": true,
+      "checks": 20,
+      "page_errors": [],
+      "failure": null
+    },
+    {
+      "path": "complex-fields/result.json",
+      "ok": true,
+      "checks": 42,
+      "page_errors": [],
+      "failure": null
+    },
+    {
+      "path": "browser-accessibility/chromium/result.json",
+      "ok": true,
+      "checks": 7,
+      "page_errors": [],
+      "failure": null
+    },
+    {
+      "path": "browser-accessibility/firefox/result.json",
+      "ok": true,
+      "checks": 7,
+      "page_errors": [],
+      "failure": null
+    },
+    {
+      "path": "browser-accessibility/webkit/result.json",
+      "ok": true,
+      "checks": 7,
+      "page_errors": [],
+      "failure": null
+    },
+    {
+      "path": "release-workflow/drafts/runner.log",
+      "ok": true,
+      "checks": 6,
+      "browser_errors": null
+    },
+    {
+      "path": "release-workflow/approvals/runner.log",
+      "ok": true,
+      "checks": 6,
+      "browser_errors": null
+    },
+    {
+      "path": "release-workflow/batches/runner.log",
+      "ok": true,
+      "checks": 5,
+      "browser_errors": null
+    },
+    {
+      "path": "release-workflow/rollback-chromium/runner.log",
+      "ok": true,
+      "checks": 4,
+      "browser_errors": null
+    },
+    {
+      "path": "release-workflow/recovery-chromium/runner.log",
+      "ok": true,
+      "checks": 21,
+      "browser_errors": null
+    },
+    {
+      "path": "release-workflow/rollback-firefox/runner.log",
+      "ok": true,
+      "checks": 4,
+      "browser_errors": null
+    },
+    {
+      "path": "release-workflow/recovery-firefox/runner.log",
+      "ok": true,
+      "checks": 21,
+      "browser_errors": null
+    },
+    {
+      "path": "release-workflow/rollback-webkit/runner.log",
+      "ok": true,
+      "checks": 4,
+      "browser_errors": null
+    },
+    {
+      "path": "release-workflow/recovery-webkit/runner.log",
+      "ok": true,
+      "checks": 21,
+      "browser_errors": null
+    }
+  ],
+  "total_named_checks": 223,
+  "missing": [],
+  "fixture_rows_unchanged": true,
+  "database_postcheck_present": true,
+  "ok": true
+}

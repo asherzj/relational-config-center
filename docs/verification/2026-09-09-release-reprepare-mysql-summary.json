@@ -1,0 +1,12 @@
+{
+  "worktree": "/private/tmp/rcc-issue-62-reprepare",
+  "command": "NO_PROXY=127.0.0.1,localhost GOFLAGS=... -json make test-integration",
+  "loopback_proxy_bypass": "127.0.0.1,localhost",
+  "exit_code": 0,
+  "elapsed_seconds": 2032.998,
+  "test_and_subtest_results": {
+    "PASS": 500,
+    "FAIL": 0,
+    "SKIP": 0
+  }
+}

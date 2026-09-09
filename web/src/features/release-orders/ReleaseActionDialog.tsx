@@ -3,6 +3,7 @@ import {useNavigate} from "react-router-dom";
 import {draftFromOrder,releaseOrders,releaseRequests,releaseActionRole,releaseActionRequiresReason,type ReleaseOrder,type ReleaseStateAction,type DraftItem} from "../../api/release-orders";
 import {Drawer} from "../../components/ui/Drawer";
 import {Button} from "../../components/ui/Button";
+import {ConfirmDialog} from "../../components/ui/ConfirmDialog";
 import {Input} from "../../components/shadcn/input";
 import {ErrorState,LoadingState} from "../../components/ui/Feedback";
 import {useDraftProtection} from "../../components/ui/LeaveProtection";
@@ -40,4 +41,22 @@ export function CopyDraftDialog({order,onClose}:{order:ReleaseOrder;onClose:()=>
  <p>原单和意见永久保留。新草稿使用你核对的当前记录基线，需要重新提交审批。</p><Button disabled={!allowed||reading||write.pending||write.unresolved} onClick={()=>void inspect()}>{reading?"正在读取…":"读取最新配置"}</Button>{reading&&<LoadingState label="正在读取最新配置…"/>}
  {snapshot&&<ReleaseDiff order={{items:snapshot.items}}/>}{Boolean(error)&&<ErrorState error={error}/>} {Boolean(write.error)&&<ErrorState error={write.error}/>} {write.unresolved&&<p role="alert">结果待确认。原复制请求已保留。</p>}
  </Drawer>;
+}
+
+export function ReprepareDraftDialog({order,onClose}:{order:ReleaseOrder;onClose:()=>void}){
+ const [snapshot,setSnapshot]=useState<Awaited<ReturnType<typeof releaseOrders.preview>>>();
+ const [confirming,setConfirming]=useState(false);
+ const [reading,setReading]=useState(false),[error,setError]=useState<unknown>();
+ const write=useReleaseWrite(`reprepare:${order.id}`),allowed=useAccountRole("EDITOR")&&order.allowed_actions.includes("reprepare"),navigate=useNavigate();
+ const protection=useDraftProtection(write.unresolved,write.pending);
+ const inspect=async()=>{setReading(true);setError(undefined);try{setSnapshot(await releaseOrders.preview(draftFromOrder(order)))}catch(cause){setError(cause)}finally{setReading(false)}};
+ const apply=async()=>{
+  const original=draftFromOrder(order);const items:DraftItem[]=original.items.map((item,index)=>({...item,expected_record_version:snapshot?.items[index]?.expected_record_version??item.expected_record_version}));
+  const result=await write.send({...releaseRequests.reprepare(order.id,order.version,items),label:`重新准备 ${order.id}`});if(result)protection.afterSave(()=>{setConfirming(false);onClose();navigate(`/configuration/release-orders/${result.id}`)});
+ };
+ return <><Drawer open eyebrow="发布单" title="重新准备" onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>关闭</Button><Button variant="danger" disabled={!allowed||reading||write.pending||!snapshot&&!write.unresolved} onClick={()=>setConfirming(true)}>{write.unresolved?"处理待确认结果":"继续重新准备"}</Button></>}>
+ <p>先核对当前配置。确认后旧单会取消并释放目标，新草稿继承标题和申请内容，由当前操作者重新编辑、提交并接受独立审批。</p>
+ <Button disabled={!allowed||reading||write.pending||write.unresolved} onClick={()=>void inspect()}>{reading?"正在读取…":"读取最新配置"}</Button>{reading&&<LoadingState label="正在读取最新配置…"/>}
+ {snapshot&&<><p>新草稿将采用以下当前记录基线：</p><ReleaseDiff order={{items:snapshot.items}}/></>}{Boolean(error)&&<ErrorState error={error}/>} {Boolean(write.error)&&<ErrorState error={write.error}/>} {write.unresolved&&<p role="alert">结果待确认。原重新准备请求已保留，请使用原请求重试。</p>}
+ </Drawer><ConfirmDialog open={confirming} title="取消旧单并创建新草稿？" description="确认后，已批准的旧发布单会被取消并释放全部目标；系统会创建由你申请的新草稿，旧审批不会沿用。" confirmLabel={write.unresolved?"使用原请求重试":"取消旧单并创建新草稿"} destructive pending={write.pending} confirmDisabled={!allowed||!snapshot&&!write.unresolved} onCancel={()=>setConfirming(false)} onConfirm={()=>void apply()}>{Boolean(write.error)&&<ErrorState error={write.error}/>} {write.unresolved&&<p role="alert">结果待确认。原正文和请求标识已保留，请用原请求确认同一结果。</p>}</ConfirmDialog></>;
 }

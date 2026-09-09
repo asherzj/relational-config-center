@@ -112,6 +112,10 @@ _Avoid_: Fresh approval, partial restore, history deletion, forced overwrite
 The explicit end of a successful ordinary publication's protected recovery period, authorized by a current publisher. It releases the publication's targets and closes quick rollback without changing configuration values or claiming downstream delivery; later restoration requires an independently approved Rollback Release Order.
 _Avoid_: Publication, cancellation, delivery confirmation
 
+**Reprepared Release Order（重新准备发布单）**:
+A new editable Release Order that replaces an approved but unpublished ordinary Release Order after its original applicant or an administrator reviews the current configuration. The replacement belongs to the person who performs the operation and must receive a fresh independent approval; cancelling the source, releasing its Active Targets, creating the replacement and linking both histories form one atomic change.
+_Avoid_: Editing an approval, approval reuse, quick rollback
+
 **Active Target（在途目标）**:
 A configuration record identity reserved by a submitted, unfinished Release Order, including the actual identities created or deleted by a successful publication, until completion or successful rollback releases it. Other orders may submit changes to unrelated identities.
 _Avoid_: Draft editing lock, business-field similarity

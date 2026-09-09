@@ -75,7 +75,7 @@ func (r *ReleaseOrders) Rollback(ctx context.Context, id string, input CancelRel
 		stamp := now.UTC().Format(time.RFC3339Nano)
 		result = ReleaseOrder{Title: rollbackTitle(original.Title), ID: hex.EncodeToString(randomID[:]), RollbackOfID: id, TableName: original.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "ROLLBACK_REQUEST", ActorID: actor, At: stamp, Version: "1", Reason: input.Reason, RelatedOrderID: id}}}
 		original.RollbackOrderID, original.RollbackPending = result.ID, true
-		if err := appendRollbackEvent(&original, actor, stamp, "ROLLBACK_REQUEST", input.Reason, result.ID); err != nil {
+		if err := appendRelatedReleaseEvent(&original, actor, stamp, "ROLLBACK_REQUEST", input.Reason, result.ID); err != nil {
 			return err
 		}
 		if err := s.SaveReleaseOrder(ctx, original, false); err != nil {
@@ -226,7 +226,7 @@ func verifyRollbackResult(original ReleaseOrder, result domain.PublicationResult
 	return nil
 }
 
-func appendRollbackEvent(order *ReleaseOrder, actor, stamp, action, reason, related string) error {
+func appendRelatedReleaseEvent(order *ReleaseOrder, actor, stamp, action, reason, related string) error {
 	version, err := strconv.ParseUint(order.Version, 10, 64)
 	if err != nil || version == math.MaxUint64 {
 		return ErrReleaseVersionConflict
@@ -262,7 +262,7 @@ func (r *ReleaseOrders) finishRollback(ctx context.Context, s ReleaseOrderSessio
 	if err != nil {
 		return err
 	}
-	if err := appendRollbackEvent(&original, actor, now.UTC().Format(time.RFC3339Nano), action, "", order.ID); err != nil {
+	if err := appendRelatedReleaseEvent(&original, actor, now.UTC().Format(time.RFC3339Nano), action, "", order.ID); err != nil {
 		return err
 	}
 	return s.SaveReleaseOrder(ctx, original, false)

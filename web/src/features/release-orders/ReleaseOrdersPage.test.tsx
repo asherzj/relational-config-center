@@ -9,6 +9,7 @@ import {testAdminIdentity,withAdminSession} from "../../test/account-session";
 
 const id="12345678123456781234567812345678";
 const rollbackID="87654321876543218765432187654321";
+const repreparedID="abcdefabcdefabcdefabcdefabcdefab";
 const order={id,title:"更新渠道展示名称",table_name:"items",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-07T08:00:00Z",updated_at:"2026-09-07T08:00:00Z",history:[{action:"CREATE",actor_id:testAdminIdentity.account.id,version:"1",at:"2026-09-07T08:00:00Z",reason:""}],allowed_actions:["edit","cancel"],items:[{operation:"MODIFY",id:"1",expected_record_version:"0",before:{id:"1",label:"original"},content:{label:"proposal"},fields:[{name:"id",type:"uint64",nullable:false,editable:false,before_state:"value",before:"1",proposed_state:"omitted",proposed:null},{name:"label",type:"string",nullable:true,editable:true,before_state:"value",before:"original",proposed_state:"value",proposed:"proposal"}]}]};
 const json=(value:unknown,status=200)=>new Response(JSON.stringify(value, (key,item)=>key==="orders"?item.map((order:{items:unknown[]})=>({...order,item_count:order.items.length,operation_counts:{MODIFY:order.items.length}})):item),{status,headers:{"Content-Type":"application/json"}});
 function mount(path="/configuration/release-orders"){
@@ -16,6 +17,66 @@ function mount(path="/configuration/release-orders"){
  return render(<QueryClientProvider client={client}><ToastProvider><TestRouter initialEntries={[path]}><AppRoutes/></TestRouter></ToastProvider></QueryClientProvider>);
 }
 afterEach(()=>{vi.unstubAllGlobals();sessionStorage.clear()});
+it("原申请人或管理员核对最新配置后原子化重新准备已批准普通单",async()=>{
+ const approved={...order,applicant_id:"original-applicant",state:"APPROVED",version:"3",allowed_actions:["execute","reprepare"],frozen_digest:"a".repeat(64)};
+ const freshItems=approved.items.map(item=>({...item,expected_record_version:"2",before:{id:"1",label:"latest database value"},fields:item.fields.map(field=>field.name==="label"?{...field,before:"latest database value"}:field)}));
+ const draft={...order,id:repreparedID,applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",allowed_actions:["edit","submit","cancel"],copied_from_id:id,items:freshItems,history:[{action:"REPREPARE",actor_id:testAdminIdentity.account.id,version:"1",at:"2026-09-09T01:00:00Z",reason:"",related_order_id:id}]};
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  const path=String(input);
+  if(path.endsWith("/preview"))return json({table_name:"items",items:freshItems});
+  if(path.endsWith("/reprepare")){writes.push(init!);return json(draft,201)}
+  if(path.endsWith("/people"))return json({people:{}});
+  if(path===`/api/v1/release-orders/${repreparedID}`)return json(draft);
+  return json(approved);
+ })));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"重新准备"}));
+ expect(screen.getByRole("button",{name:"继续重新准备"})).toBeDisabled();
+ expect(screen.getByText(/旧单会取消并释放目标/)).toBeVisible();
+ await user.click(screen.getByRole("button",{name:"读取最新配置"}));
+ expect(await screen.findByText("latest database value")).toBeVisible();
+ await user.click(screen.getByRole("button",{name:"继续重新准备"}));
+ const confirmation=await screen.findByRole("alertdialog",{name:"取消旧单并创建新草稿？"});
+ const cancel=screen.getByRole("button",{name:"取消"});
+ const confirm=screen.getByRole("button",{name:"取消旧单并创建新草稿"});
+ expect(cancel).toHaveFocus();expect(confirm).toHaveAttribute("data-variant","destructive");
+ await user.click(cancel);expect(confirmation).not.toBeInTheDocument();expect(writes).toHaveLength(0);
+ await user.click(screen.getByRole("button",{name:"继续重新准备"}));
+ await user.click(screen.getByRole("button",{name:"取消旧单并创建新草稿"}));
+ expect(await screen.findByText("重新准备自",{exact:false})).toBeVisible();
+ expect(screen.getByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
+ await waitFor(()=>expect(writes).toHaveLength(1));
+ expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"3",confirmed:true,items:[{operation:"MODIFY",id:"1",expected_record_version:"2",content:{label:"proposal"}}]});
+ expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBeTruthy();
+});
+
+it("重新准备响应丢失后跨刷新保留原正文与幂等键并恢复同一草稿",async()=>{
+ const approved={...order,state:"APPROVED",version:"3",allowed_actions:["reprepare"],frozen_digest:"a".repeat(64)};
+ const draft={...order,id:repreparedID,state:"DRAFT",version:"1",allowed_actions:["edit","submit","cancel"],copied_from_id:id,history:[{action:"REPREPARE",actor_id:testAdminIdentity.account.id,version:"1",at:"2026-09-09T01:00:00Z",reason:"",related_order_id:id}]};
+ const writes:RequestInit[]=[];let attempts=0;
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  const path=String(input);
+  if(path.endsWith("/preview"))return json({table_name:"items",items:order.items});
+  if(path.endsWith("/reprepare")){writes.push(init!);attempts++;if(attempts===1)throw new TypeError("lost response");return json(draft,201)}
+  if(path.endsWith("/people"))return json({people:{}});
+  if(path===`/api/v1/release-orders/${repreparedID}`)return json(draft);
+  return json(approved);
+ })));
+ const user=userEvent.setup();let page=mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"重新准备"}));
+ await user.click(screen.getByRole("button",{name:"读取最新配置"}));
+ await user.click(await screen.findByRole("button",{name:"继续重新准备"}));
+ await user.click(await screen.findByRole("button",{name:"取消旧单并创建新草稿"}));
+ await screen.findByRole("button",{name:"使用原请求重试"});page.unmount();page=mount();
+ await user.click(await screen.findByText("查看原申请内容"));
+ expect(await screen.findByText(`重新准备原单 ${id}`)).toBeVisible();
+ await user.click(screen.getByRole("button",{name:"恢复原发布请求"}));
+ expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
+ expect(writes).toHaveLength(2);expect(writes[1]!.body).toBe(writes[0]!.body);
+ expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
+ expect(sessionStorage.length).toBe(0);
+});
 it("详情同时展示标题、相关人员当前姓名、首字头像和永久 ID",async()=>{
  const reviewerID="11111111-2222-4333-8444-555555555555";
  const current={...order,history:[...order.history,{action:"APPROVE",actor_id:reviewerID,version:"2",at:"2026-09-08T08:00:00Z",reason:"已核对"}]};
