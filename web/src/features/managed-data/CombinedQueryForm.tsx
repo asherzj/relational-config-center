@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from "react";
-import { getFieldPolicies, type FieldPolicies, type FieldPolicyField } from "../../api/field-policies";
+import { fieldPolicyColumns, getFieldPolicies, type FieldPolicies, type FieldPolicyField } from "../../api/field-policies";
 import { Button } from "../../components/ui/Button";
 import { ErrorState, LoadingState } from "../../components/ui/Feedback";
 import { Input } from "../../components/shadcn/input";
@@ -12,7 +12,7 @@ import { conditionFromDraft, createConditionDraft, queryOperatorLabels, validate
 type Props = { tableName: string; columns: ManagedDataColumn[]; maxPageSize?: number; defaultPageSize?: number; onSubmit: (spec: QuerySpec) => void; onClear: () => void };
 
 // The opening-time configuration and drafts survive collapsing and session recovery.
-export function CombinedQueryForm({ tableName, columns, onSubmit, onClear, maxPageSize = 200, defaultPageSize }: Props) {
+export function CombinedQueryForm({ tableName, columns: previousColumns, onSubmit, onClear, maxPageSize = 200, defaultPageSize }: Props) {
   const [configuration, setConfiguration] = useState<FieldPolicies>();
   const [failure, setFailure] = useState<unknown>();
   const [attempt, setAttempt] = useState(0);
@@ -29,6 +29,7 @@ export function CombinedQueryForm({ tableName, columns, onSubmit, onClear, maxPa
     void getFieldPolicies(tableName).then(data => { if (active) setConfiguration(data); }, error => { if (active) setFailure(error); });
     return () => { active = false; };
   }, [tableName, attempt]);
+  const columns = configuration ? fieldPolicyColumns(configuration) : previousColumns;
   const fields = configuration?.fields.filter(field => field.effective.is_queryable && columns.some(column => column.name === field.field_name)) ?? [];
   fields.sort((a, b) => a.effective.display_order - b.effective.display_order || a.field_name.localeCompare(b.field_name));
   const submit = () => {

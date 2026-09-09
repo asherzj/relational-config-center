@@ -11,7 +11,7 @@ import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { Drawer } from "../../components/ui/Drawer";
 import { Button } from "../../components/ui/Button";
 import { ErrorState } from "../../components/ui/Feedback";
-import type { ManagedDataColumn, MutationContent } from "./model";
+import type { ManagedDataColumn, ManagedRowSnapshot, MutationContent } from "./model";
 
 type FieldDraft = { included: boolean; value: string; isNull: boolean };
 
@@ -28,7 +28,7 @@ export type ManagedRowEditorProps = RecordConflictReviewProps & {
   recheckError?: unknown;
   onRetryRecheck?: () => void;
   onClose: () => void;
-  onReview: (content: MutationContent) => void;
+  onReview: (content: MutationContent, snapshot?: ManagedRowSnapshot) => void;
 };
 
 function initialFields(columns: readonly ManagedDataColumn[], operation: ManagedRowEditorProps["operation"], original?: Record<string, string | null>, policies: readonly FieldPolicyField[] = []) {

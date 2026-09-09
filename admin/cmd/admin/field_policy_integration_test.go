@@ -181,10 +181,46 @@ func TestFieldPolicyReadDistinguishesDisabledSchemaDriftAndFailure(t *testing.T)
 	if disabled.Code != 200 || !strings.Contains(disabled.Body.String(), `"state":"disabled"`) {
 		t.Fatalf("disabled: %d %s", disabled.Code, disabled.Body.String())
 	}
+	// A fresh read is driven by the real schema: stale catalog rows never create fields.
+	deliveryExec(t, db, "ALTER TABLE notification_templates DROP COLUMN priority, ADD COLUMN recovery_note varchar(64) NULL")
+	current := policyIntegrationRequest(t, app, "GET", path, "")
+	var metadata struct {
+		Fields []struct {
+			Name      string `json:"field_name"`
+			State     string `json:"state"`
+			Effective struct {
+				UIType    string   `json:"ui_type"`
+				Operators []string `json:"query_operators"`
+			} `json:"effective"`
+		} `json:"fields"`
+	}
+	if current.Code != 200 || json.Unmarshal(current.Body.Bytes(), &metadata) != nil {
+		t.Fatalf("read changed schema: %d %s", current.Code, current.Body.String())
+	}
+	foundNew := false
+	for _, field := range metadata.Fields {
+		if field.Name == "priority" {
+			t.Fatal("removed field manufactured from stale catalog")
+		}
+		if field.Name == "recovery_note" {
+			foundNew = true
+			if field.State != "missing" || field.Effective.UIType != "text" || len(field.Effective.Operators) != 1 || field.Effective.Operators[0] != "exact" {
+				t.Fatalf("new field defaults: %s", current.Body.String())
+			}
+		}
+	}
+	if !foundNew {
+		t.Fatal("new real field omitted")
+	}
 	deliveryExec(t, db, "RENAME TABLE rcc_table_field_policies TO unavailable_field_policies")
 	failed := policyIntegrationRequest(t, app, "GET", path, "")
 	if failed.Code != 503 || !strings.Contains(failed.Body.String(), `"field_policy_unavailable"`) {
 		t.Fatalf("failed read falsely became missing: %d %s", failed.Code, failed.Body.String())
+	}
+	deliveryExec(t, db, "RENAME TABLE unavailable_field_policies TO rcc_table_field_policies")
+	retried := policyIntegrationRequest(t, app, "GET", path, "")
+	if retried.Code != 200 || retried.Body.String() != current.Body.String() {
+		t.Fatalf("independent retry did not restore metadata: %d %s", retried.Code, retried.Body.String())
 	}
 }
 

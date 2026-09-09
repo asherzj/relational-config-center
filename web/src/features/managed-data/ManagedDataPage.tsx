@@ -231,7 +231,7 @@ export function ManagedDataPage() {
             recheckError={changes.view.recheckError}
             onRetryRecheck={() => changes.send({ type: "retry-recheck" })}
             onClose={() => send({ type: "cancel-pending" })}
-            onReview={(content) => changes.send({ type: "review-content", content })}
+            onReview={(content, snapshot) => changes.send({ type: "review-content", content, snapshot })}
           />}
           <ChangeSetDialog
             draftAction={<Button variant="primary" disabled={!canEdit||!destination.valid||changes.view.reviewDisabled||saving||draftWrite.pending||draftRecordConflict} onClick={()=>{if(changes.view.draftInput)void saveDraft(changes.view.draftInput)}}>{draftWrite.pending?"正在保存草稿…":draftWrite.unresolved?"使用原请求重试":"确认并保存草稿"}</Button>}

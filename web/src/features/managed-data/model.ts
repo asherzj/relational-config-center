@@ -18,6 +18,11 @@ export type ManagedDataColumn = {
   generated?: boolean;
 };
 
+export type ManagedRowSnapshot = {
+  columns: readonly ManagedDataColumn[];
+  original?: Record<string, string | null>;
+};
+
 export type QueryOperator =
   | "exact"
   | "contains"

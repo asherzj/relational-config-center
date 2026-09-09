@@ -1,3 +1,4 @@
+import { defaultFieldPolicies } from "../../test/field-policy-fixture";
 import { withDefaultRecordVersions } from "../../test/managed-data-fixture";
 import { testAdminIdentity, withAdminSession } from "../../test/account-session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -98,7 +99,7 @@ function renderPage() {
 
 function readFetch(input: RequestInfo | URL, init: RequestInit | undefined, policy = mutationPolicy) {
   const url = String(input);
-  if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", query_capacity: {max_conditions:256,max_values_per_condition:100,queryable_fields:0,supported:true}, fields: [] });
+  if (url.includes("/table-field-policies/")) return json(defaultFieldPolicies("notification_templates", columns));
   if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
   if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
   if (url.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
@@ -164,7 +165,7 @@ describe("Managed Data draft confirmation", () => {
     let writes = 0;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
-  if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", query_capacity: {max_conditions:256,max_values_per_condition:100,queryable_fields:0,supported:true}, fields: [] });
+  if (url.includes("/table-field-policies/")) return json(defaultFieldPolicies("notification_templates", columns));
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
@@ -210,7 +211,7 @@ describe("Managed Data draft confirmation", () => {
     let writes = 0;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
-  if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", query_capacity: {max_conditions:256,max_values_per_condition:100,queryable_fields:0,supported:true}, fields: [] });
+  if (url.includes("/table-field-policies/")) return json(defaultFieldPolicies("notification_templates", columns));
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
@@ -252,7 +253,7 @@ describe("Managed Data draft confirmation", () => {
     let signedIn = true;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
-  if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", query_capacity: {max_conditions:256,max_values_per_condition:100,queryable_fields:0,supported:true}, fields: [] });
+  if (url.includes("/table-field-policies/")) return json(defaultFieldPolicies("notification_templates", columns));
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
@@ -286,7 +287,7 @@ describe("Managed Data draft confirmation", () => {
     let writes = 0;
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
-  if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", query_capacity: {max_conditions:256,max_values_per_condition:100,queryable_fields:0,supported:true}, fields: [] });
+  if (url.includes("/table-field-policies/")) return json(defaultFieldPolicies("notification_templates", columns));
       if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
       if (url.endsWith("/query-policies/notification_page_query_v1")) return json(queryPolicy);
       if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({ error: { code: "session_invalid", message: "expired", request_id: "req-session" } }, 401);
@@ -348,7 +349,7 @@ it("preserves a stale change, reads latest separately, and requires an explicit 
   let latestReads = 0;
   vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
-  if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", query_capacity: {max_conditions:256,max_values_per_condition:100,queryable_fields:0,supported:true}, fields: [] });
+  if (url.includes("/table-field-policies/")) return json(defaultFieldPolicies("notification_templates", columns));
     if (url.endsWith("/release-orders") && init?.method === "POST") {
       writes.push(JSON.parse(String(init.body)));
       return json({ error: { code: "record_version_conflict", message: "record changed", request_id: "stale-33" } }, 409);
@@ -382,6 +383,10 @@ it("preserves a stale change, reads latest separately, and requires an explicit 
   expect(within(dialog).getByText("other editor")).toBeVisible();
   expect(within(dialog).getByText("my pending input")).toBeVisible();
   expect(writes).toHaveLength(1);
+  await user.click(screen.getByRole("button", { name: "返回修改" }));
+  expect(screen.getByRole("textbox", { name: "body 值" })).toHaveValue("my pending input");
+  await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
+  expect(within(screen.getByRole("dialog", { name: "MODIFY Change Set" })).getByText("other editor")).toBeVisible();
   await user.click(screen.getByRole("button", { name: "确认并保存草稿" }));
   await waitFor(() => expect(writes).toHaveLength(2));
   expect(writes[1]).toEqual({title:"notification_templates 配置变更",table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",content:{template_key:"welcome",subject:null,body:"my pending input"},expected_record_version:"9007199254740994"}]});
@@ -484,10 +489,14 @@ it("首次发布能力明确拒绝后保留输入并允许返回修改",async()=
  expect(writes).toHaveLength(1);
 });
 
-it("未知草稿请求随后收到明确能力拒绝时仍以原正文和键恢复",async()=>{
+it("AC-019 配置下拉草稿结果未知后仍以原正文和键恢复",async()=>{
  const releaseID="99999999aaaabbbbccccddddeeeeeeee";let attempts=0;const writes:RequestInit[]=[];
  const saved={id:releaseID,title:"notification_templates 配置变更",table_name:"notification_templates",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit","cancel"],items:[{operation:"ADD",id:null,expected_record_version:"",content:{template_key:"same-release-intent"},before:null,fields:[]}]};
+ const metadata=defaultFieldPolicies("notification_templates",columns);
+ const template=metadata.fields.find(field=>field.field_name==="template_key")!;
+ template.effective={...template.effective,ui_type:"select",ui_options:{options:[{label:"原目录",value:"catalog"}]}};
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  if(String(input).includes("/table-field-policies/"))return json(metadata);
   if(String(input)==="/api/v1/release-orders"&&init?.method==="POST"){
    writes.push(init);attempts++;
    if(attempts===1)throw new TypeError("response lost");
@@ -500,7 +509,8 @@ it("未知草稿请求随后收到明确能力拒绝时仍以原正文和键恢�
  const user=userEvent.setup();renderPage();
  await user.click(await screen.findByRole("button",{name:"新增记录"}));
  await user.click(screen.getByLabelText("包含 template_key"));
- await user.type(screen.getByLabelText("template_key 值"),"same-release-intent");
+ await user.selectOptions(screen.getByRole("combobox",{name:"template_key 值"}),"custom");
+ await user.type(screen.getByRole("textbox",{name:"template_key 值 自定义值"}),"same-release-intent");
  await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
  await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
  await user.click(await screen.findByRole("button",{name:"使用原请求重试"}));
@@ -591,4 +601,162 @@ it("批量删除核对每页20项，末页定位后仍保存全部选择",async(
  await user.click(within(dialog).getByRole("button",{name:"确认并保存草稿"}));
  await waitFor(()=>expect(writes).toHaveLength(1));
  expect(JSON.parse(String(writes[0]!.body)).items.map((item:{id:string})=>item.id)).toEqual(Array.from({length:21},(_,index)=>String(index+1)));
+});
+
+it("AC-012 freezes configured query/editor input through same-account recovery and reopens with latest rules", async () => {
+  const metadata = defaultFieldPolicies("notification_templates", columns);
+  const template = metadata.fields.find(field => field.field_name === "template_key")!;
+  template.state = "active";
+  template.effective = {...template.effective,display_name:"模板",ui_type:"select",ui_options:{options:[{label:"欢迎",value:"welcome"}]},is_required:true};
+  let latest = metadata;
+  let metadataReads = 0;
+  let signedIn = true;
+  let queryReads = 0;
+  let schemaChanged = false;
+  const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.includes("/table-field-policies/")) { metadataReads++; return json(latest); }
+    if (url.endsWith("/auth/session") || url.endsWith("/auth/activity")) return signedIn ? json(testAdminIdentity) : json({error:{code:"session_invalid",message:"expired"}},401);
+    if (url.endsWith("/auth/csrf")) return json({csrf_token:"preauth"});
+    if (url.endsWith("/auth/login")) { signedIn=true; return json(testAdminIdentity); }
+    if (url.endsWith("/query")) {
+      queryReads++;
+      return json({columns:schemaChanged?columns.filter(column=>column.name!=="body"):columns,rows:[schemaChanged?Object.fromEntries(Object.entries(row).filter(([name])=>name!=="body")):row],page:{page_number:1,page_size:20,total_count:1,total_pages:1}});
+    }
+    if (url.endsWith("/query-policies")) return json({policies:[queryPolicy]});
+    return readFetch(input,init,{...mutationPolicy,allow_modify:true});
+  });
+  vi.stubGlobal("fetch",fetchMock);
+  const user=userEvent.setup(); renderPage();
+  const queryInput = await screen.findByRole("combobox",{name:"筛选 模板 值"});
+  await user.selectOptions(queryInput,"custom");
+  const queryCustom = screen.getByRole("textbox",{name:"筛选 模板 值 自定义值"});
+  await user.type(queryCustom,"query-kept");
+  await user.click(screen.getByRole("button",{name:"新增记录"}));
+  await user.selectOptions(await screen.findByRole("combobox",{name:"template_key 值"}),"custom");
+  const editorInput = screen.getByRole("textbox",{name:"template_key 值 自定义值"});
+  await user.type(editorInput,"editor-kept");
+  const originalBodyInput = screen.getByRole("textbox",{name:"body 值"});
+  schemaChanged = true;
+  latest = structuredClone(metadata);
+  latest.fields = latest.fields.filter(field=>field.field_name!=="body");
+  latest.fields.find(field=>field.field_name==="template_key")!.effective = {...template.effective,display_name:"最新模板",ui_type:"textarea",ui_options:{options:[]},default_value:"latest-prefill"};
+  signedIn=false;
+  act(()=>window.dispatchEvent(new CustomEvent(businessSessionInvalid,{detail:{code:"session_invalid"}})));
+  expect(editorInput).not.toBeVisible();
+  await user.type(await screen.findByLabelText("用户名"),"test.user");
+  await user.type(screen.getByLabelText("密码"),"correct horse battery staple");
+  await user.click(screen.getByRole("button",{name:"登录"}));
+  await waitFor(()=>expect(editorInput).toBeVisible());
+  expect(screen.getByRole("textbox",{name:"template_key 值 自定义值"})).toBe(editorInput);
+  expect(editorInput).toHaveValue("editor-kept");
+  expect(screen.getByRole("textbox",{name:"body 值"})).toBe(originalBodyInput);
+  expect(queryCustom).toHaveValue("query-kept");
+  expect(metadataReads).toBe(2);
+  expect(queryReads).toBeGreaterThanOrEqual(2);
+  expect(fetchMock.mock.calls.filter(([url,init])=>String(url).endsWith("/release-orders")&&init?.method==="POST")).toHaveLength(0);
+  await user.click(screen.getByRole("button",{name:"取消"}));
+  await user.click(screen.getByRole("button",{name:"放弃修改并离开"}));
+  await user.click(screen.getByRole("button",{name:"新增记录"}));
+  const reopened=await screen.findByRole("textbox",{name:"template_key 值"});
+  expect(reopened.tagName).toBe("TEXTAREA");
+  expect(reopened).toHaveValue("latest-prefill");
+  await user.click(screen.getByRole("button",{name:"取消"}));
+  await user.click(screen.getByRole("link",{name:"查询规则定义"}));
+  await screen.findByRole("heading",{name:"查询规则定义"});
+  await user.click(screen.getByRole("link",{name:"配置内容管理"}));
+  expect((await screen.findByRole("textbox",{name:"筛选 最新模板 值"})).tagName).toBe("TEXTAREA");
+});
+
+it("AC-012 isolates configured query and editor drafts when the account changes", async () => {
+  let identity = testAdminIdentity;
+  let reads = 0;
+  vi.stubGlobal("fetch",vi.fn(async(input: RequestInfo | URL,init?:RequestInit)=>{
+    if(String(input).endsWith("/auth/session")||String(input).endsWith("/auth/activity")) return json(identity);
+    if(String(input).includes("/table-field-policies/")){reads++;return json(defaultFieldPolicies("notification_templates",columns));}
+    return readFetch(input,init);
+  }));
+  const user=userEvent.setup();renderPage();
+  await user.type(await screen.findByRole("textbox",{name:"筛选 template_key 值"}),"alice-query");
+  await user.click(screen.getByRole("button",{name:"新增记录"}));
+  await user.click(await screen.findByRole("checkbox",{name:"包含 template_key"}));
+  await user.type(screen.getByRole("textbox",{name:"template_key 值"}),"alice-editor");
+  identity={...testAdminIdentity,account:{...testAdminIdentity.account,id:"9e5e2b50-6aaa-4eaa-83fb-f56d84240214",username:"bob"},csrf_token:"bob-csrf"};
+  act(()=>window.dispatchEvent(new CustomEvent(businessSessionInvalid,{detail:{code:"account_changed"}})));
+  const query=await screen.findByRole("textbox",{name:"筛选 template_key 值"});
+  await waitFor(()=>expect(query).toHaveValue(""));
+  expect(screen.queryByRole("dialog",{name:"新增 notification_templates 记录"})).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button",{name:"新增记录"}));
+  expect(await screen.findByRole("textbox",{name:"template_key 值"})).toHaveValue("");
+  expect(reads).toBe(4);
+});
+
+it("AC-015 independently retries field metadata without replacing already entered query input", async () => {
+  let reads=0;
+  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input: RequestInfo | URL,init?:RequestInit)=>{
+    if(String(input).includes("/table-field-policies/")) {
+      reads++;
+      return reads===1||reads===3 ? json({error:{code:"field_policy_unavailable",message:"unavailable",request_id:`metadata-${reads}`}},503) : json(defaultFieldPolicies("notification_templates",columns));
+    }
+    return readFetch(input,init);
+  })));
+  const user=userEvent.setup();renderPage();
+  expect(await screen.findByRole("alert")).toHaveTextContent("metadata-1");
+  expect(screen.queryByRole("textbox",{name:"筛选 template_key 值"})).not.toBeInTheDocument();
+  expect(screen.getByRole("button",{name:"查询"})).toBeDisabled();
+  await user.click(screen.getByRole("button",{name:"重试"}));
+  const query=await screen.findByRole("textbox",{name:"筛选 template_key 值"});
+  await user.type(query,"query-survives-editor-retry");
+  await user.click(screen.getByRole("button",{name:"新增记录"}));
+  const dialog=screen.getByRole("dialog",{name:"新增 notification_templates 记录"});
+  expect(await within(dialog).findByRole("alert")).toHaveTextContent("metadata-3");
+  expect(within(dialog).queryByRole("textbox",{name:"template_key 值"})).not.toBeInTheDocument();
+  await user.click(within(dialog).getByRole("button",{name:"重试"}));
+  await screen.findByRole("textbox",{name:"template_key 值"});
+  expect(query).toHaveValue("query-survives-editor-retry");
+  expect(reads).toBe(4);
+});
+
+it("AC-015 passes newly discovered real fields through the editor into Change Set", async()=>{
+  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input: RequestInfo | URL,init?:RequestInit)=>{
+    if(String(input).includes("/table-field-policies/")) return json(defaultFieldPolicies("notification_templates",[...columns,{name:"new_field",type:"string",nullable:true}]));
+    return readFetch(input,init);
+  })));
+  const user=userEvent.setup();renderPage();
+  await user.click(await screen.findByRole("button",{name:"新增记录"}));
+  await user.click(await screen.findByRole("checkbox",{name:"包含 new_field"}));
+  await user.type(screen.getByRole("textbox",{name:"new_field 值"}),"fresh schema value");
+  await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
+  const changeSet=screen.getByRole("dialog",{name:"ADD Change Set"});
+  expect(within(changeSet).getByText("new_field",{exact:true})).toBeVisible();
+  expect(within(changeSet).getByText("fresh schema value",{exact:true})).toBeVisible();
+});
+
+it("AC-015/019 shows fresh MODIFY defaults in Change Set while retaining the original record version", async()=>{
+  const freshColumns=[...columns,{name:"new_default",type:"string" as const,nullable:true},{name:"new_null",type:"string" as const,nullable:true}];
+  const freshRow={...row,new_default:"database default",new_null:null};
+  const writes: unknown[]=[];
+  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input: RequestInfo | URL,init?:RequestInit)=>{
+    const url=String(input);
+    if(url.includes("/table-field-policies/"))return json(defaultFieldPolicies("notification_templates",freshColumns));
+    if(url.endsWith("/query")&&JSON.parse(String(init?.body)).conditions?.[0]?.field==="id")return json({columns:freshColumns,rows:[freshRow],record_versions:["1"],page:{page_number:1,page_size:1,total_count:1,total_pages:1}});
+    if(url.endsWith("/release-orders")&&init?.method==="POST"){
+      writes.push(JSON.parse(String(init.body)));
+      return json({error:{code:"record_version_conflict",message:"stale original version",request_id:"drift-conflict"}},409);
+    }
+    return readFetch(input,init,{...mutationPolicy,allow_modify:true});
+  })));
+  const user=userEvent.setup();renderPage();
+  const modify=await screen.findByRole("button",{name:"修改记录 41"});
+  await waitFor(()=>expect(modify).toBeEnabled());await user.click(modify);
+  expect(await screen.findByRole("textbox",{name:"new_default 值"})).toHaveValue("database default");
+  await user.type(screen.getByRole("textbox",{name:"body 值"}),"my change");
+  await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
+  const review=screen.getByRole("dialog",{name:"MODIFY Change Set"});
+  expect(within(review).getAllByText("database default")).toHaveLength(2);
+  await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
+  await screen.findByText("drift-conflict",{exact:false});
+  expect(writes).toEqual([{title:"notification_templates 配置变更",table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",expected_record_version:"0",content:{template_key:"welcome",subject:null,body:"my change",new_default:"database default",new_null:null}}]}]);
+  expect(screen.getByRole("button",{name:"确认并保存草稿"})).toBeDisabled();
+  expect(within(review).getByText("my change")).toBeVisible();
 });

@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { CombinedQueryForm } from "./CombinedQueryForm";
 import type { FieldPolicyField } from "../../api/field-policies";
 
-export function field(name: string, overrides: Partial<FieldPolicyField["effective"]> = {}, column_type = "string"): FieldPolicyField {
+export function field(name: string, overrides: Partial<FieldPolicyField["effective"]> = {}, column_type: FieldPolicyField["column_type"] = "string"): FieldPolicyField {
   return {field_name:name,column_type,nullable:true,generated:false,auto_increment:false,has_default:false,state:"active",warning:"",policy:null,audit:null,
     effective:{field_name:name,display_name:name,description:"",display_order:0,is_visible:true,is_queryable:true,query_operators:["exact"],ui_type:"text",ui_options:{options:[]},editable_on_add:true,editable_on_modify:true,is_required:false,enabled:true,...overrides}};
 }
@@ -139,4 +139,22 @@ it("removing a set value does not reuse the removed date control's local state f
  await user.click(screen.getByRole("button",{name:"at 添加集合值"}));
  await user.click(screen.getByRole("button",{name:"at 删除集合值 1"}));
  expect(screen.getByLabelText("筛选 at 集合值 1 日期")).toHaveValue("");
+});
+it("AC-003/015 uses the latest metadata schema for default exact query and sorting", async () => {
+  const current = [field("new_field"), field("changed", {}, "string")];
+  current[0]!.state = "missing";
+  current[1]!.state = "incompatible";
+  current[1]!.warning = "原数字控件与当前类型不兼容";
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({table_name:"items",fields:current,query_capacity:{max_conditions:256,max_values_per_condition:100,queryable_fields:2,supported:true}}))));
+  const submit = vi.fn();
+  render(<CombinedQueryForm tableName="items" columns={[{name:"removed",type:"string",nullable:false},{name:"changed",type:"int64",nullable:false}]} onSubmit={submit} onClear={()=>{}} />);
+  const input = await screen.findByRole("textbox", {name:"筛选 new_field 值"});
+  expect(screen.queryByRole("textbox", {name:"筛选 removed 值"})).not.toBeInTheDocument();
+  expect(screen.queryByRole("option", {name:"removed"})).not.toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("已回退文本输入");
+  const user = userEvent.setup();
+  await user.type(input, "new text");
+  await user.type(screen.getByRole("textbox", {name:"筛选 changed 值"}), "now text");
+  await user.click(screen.getByRole("button", {name:"查询"}));
+  expect(submit).toHaveBeenCalledWith({conditions:[{field:"changed",operator:"exact",value:"now text"},{field:"new_field",operator:"exact",value:"new text"}],pageNumber:1});
 });

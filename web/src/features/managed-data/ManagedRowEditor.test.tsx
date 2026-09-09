@@ -98,7 +98,7 @@ import type { FieldPolicyField, FieldPolicy } from "../../api/field-policies";
 function fieldPolicy(name: string, patch: Partial<FieldPolicy> = {}): FieldPolicyField {
   const effective = { field_name: name, display_name: name, description: "", display_order: 0, is_visible: true, is_queryable: true,
     query_operators: ["exact"], ui_type: "text", ui_options: { options: [] }, editable_on_add: true, editable_on_modify: true, is_required: false, enabled: true, ...patch } as FieldPolicyField["effective"];
-  return { field_name: name, column_type: "decimal(30,9)", nullable: false, generated: false, auto_increment: false, has_default: false, state: "active", warning: "", policy: effective, effective, audit: null };
+  return { field_name: name, column_type: "decimal", nullable: false, generated: false, auto_increment: false, has_default: false, state: "active", warning: "", policy: effective, effective, audit: null };
 }
 
 it("AC-009/010 keeps omitted, explicit NULL and empty distinct; rejects required empty but accepts zero and false", async () => {

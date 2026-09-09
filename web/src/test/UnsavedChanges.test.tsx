@@ -1,3 +1,4 @@
+import { defaultFieldPolicies } from "./field-policy-fixture";
 import { withDefaultRecordVersions } from "./managed-data-fixture";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
@@ -12,7 +13,7 @@ const audit = { creator: "fixture", modifier: "fixture", created_at: "2026-09-07
 const query = { ...audit, code: "query_v1", name: "查询基线", description: "说明", type_code: "page_query", default_order_field: "id", default_order_direction: "DESC", default_page_size: 20, max_page_size: 200, status: "DRAFT" };
 const mutation = { ...audit, code: "mutation_v1", name: "变更基线", description: "说明", type_code: "single_table_mutation", allow_add: true, allow_modify: true, allow_delete: true, create_operator_field: null, create_time_field: null, modify_operator_field: null, modify_time_field: null, status: "DRAFT" };
 const assignment = { ...audit, table_name: "items", query_policy_code: "query_v1", mutation_policy_code: "mutation_v1", enabled: true };
-const columns = [{ name: "id", type: "uint64", nullable: false }, { name: "name", type: "string", nullable: false }, { name: "note", type: "string", nullable: true }];
+const columns = [{ name: "id", type: "uint64", nullable: false }, { name: "name", type: "string", nullable: false }, { name: "note", type: "string", nullable: true }] as const;
 const row = { id: "1", name: "original", note: null };
 const savedDraft={id:"12345678123456781234567812345678",title:"items 配置变更",table_name:"items",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{operation:"MODIFY",id:"1",expected_record_version:"0",content:{name:"originalchanged"},before:row,fields:[]}]};
 function json(value: unknown, status = 200) { value = withDefaultRecordVersions(value);
@@ -22,7 +23,7 @@ const rejection = () => json({ error: { code: "invalid_mutation_content", messag
 function backend({ active = false, write }: { active?: boolean; write?: (url: string, init: RequestInit) => Promise<Response> } = {}) {
   const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
-    if (url.includes("/table-field-policies/")) return json({ table_name: "notification_templates", query_capacity: {max_conditions:256,max_values_per_condition:100,queryable_fields:0,supported:true}, fields: [] });
+    if (url.includes("/table-field-policies/")) return json(defaultFieldPolicies("items", columns));
     if (init?.method && init.method !== "GET" && !url.endsWith("/query")) {
       if (write) return write(url, init);
       throw new Error(`Unexpected write ${url}`);
