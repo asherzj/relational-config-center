@@ -25,6 +25,7 @@ import { useManagedDataQuery } from "./queries";
 import { useManagedDataMutationWorkflow, type ManagedDataMutationIntent } from "./mutation-workflow";
 import { ConfiguredRowEditor } from "./ConfiguredRowEditor";
 import { ChangeSetDialog } from "./ChangeSetDialog";
+import { CurrentFieldDisplayStatus, CurrentFieldName, CurrentFieldValue, orderDisplayedFields, useCurrentFieldDisplay } from "../field-display/CurrentFieldDisplay";
 
 const initialQuerySpec: QuerySpec = { conditions: [], pageNumber: 1 };
 
@@ -46,7 +47,7 @@ export function ManagedDataPage() {
  const draftWrite=useReleaseWrite("create");
  const navigate=useNavigate();
  const [search]=useSearchParams();
- const [selectedRows,setSelectedRows]=useState<Map<string,{id:string;version:string}>>(()=>new Map());
+ const [selectedRows,setSelectedRows]=useState<Map<string,{id:string;version:string;row:Record<string,string|null>}>>(()=>new Map());
  const [batchReview,setBatchReview]=useState(false);
  const [batchPage,setBatchPage]=useState(0);
  const [saving,setSaving]=useState(false);
@@ -61,6 +62,9 @@ export function ManagedDataPage() {
     : enabledPolicies[0]?.tableName ?? "";
   const destination=useDraftDestination(selectedTable,search.get("draft")??"");
   const result = useManagedDataQuery(selectedTable, querySpec);
+  const currentDisplay = useCurrentFieldDisplay(selectedTable, Boolean(result.data));
+  const [displayReadyTable,setDisplayReadyTable]=useState("");
+  useEffect(()=>{if(currentDisplay.display.configuration)setDisplayReadyTable(selectedTable)},[currentDisplay.display.configuration,selectedTable]);
   const [queryColumns, setQueryColumns] = useState<{table: string; columns: ManagedDataColumn[]}>();
   useEffect(() => { if (result.data) setQueryColumns({table: selectedTable, columns: result.data.columns}); }, [selectedTable, result.data]);
   const selectedPolicy = enabledPolicies.find((policy) => policy.tableName === selectedTable);
@@ -159,6 +163,7 @@ export function ManagedDataPage() {
           )}
 
           {queryColumns?.table === selectedTable && <CombinedQueryForm key={selectedTable} tableName={selectedTable} columns={queryColumns.columns} maxPageSize={queryPolicy.data?.maxPageSize} defaultPageSize={queryPolicy.data?.defaultPageSize}
+            openingConfigurationSource={{configuration:currentDisplay.display.configuration,error:currentDisplay.error,retry:currentDisplay.retry}}
             onSubmit={setQuerySpec} onClear={() => { const needsRefetch = isInitialQuerySpec(querySpec); setQuerySpec(initialQuerySpec); if (needsRefetch) void result.refetch(); }} />}
 
 
@@ -167,20 +172,20 @@ export function ManagedDataPage() {
               <ErrorState error={result.error} onRetry={() => void result.refetch()} />
             ) : (
               <>
+                {displayReadyTable===selectedTable&&<CurrentFieldDisplayStatus pending={currentDisplay.pending} error={currentDisplay.error} onRetry={()=>void currentDisplay.retry()}/>}
                 {canEdit&&<div className="flex items-center gap-3 p-4"><p>已明确选择 {selectedRows.size} 项</p><Button disabled={!selectedRows.size||Boolean(capabilityReasons.DELETE)} onClick={()=>{setBatchPage(0);setBatchReview(true)}}>删除已选 {selectedRows.size} 项</Button><Button disabled={!selectedRows.size} onClick={()=>setSelectedRows(new Map())}>清空选择</Button></div>}
                 <div className="table-scroll">
                   <Table className="policy-table managed-data-table">
-                    <TableHeader><TableRow>{canEdit&&<TableHead>选择</TableHead>}{result.data.columns.map((column) => (
+                    <TableHeader><TableRow>{canEdit&&<TableHead>选择</TableHead>}{orderDisplayedFields(currentDisplay.display, result.data.columns, column => column.name, true).map((column) => (
                       <TableHead key={column.name} scope="col">
-                        <strong>{column.name}</strong>
-                        <small>{column.type} · {column.nullable ? "可为 NULL" : "非 NULL"}</small>
+                        <CurrentFieldName display={currentDisplay.display} name={column.name} detail={`${column.type} · ${column.nullable ? "可为 NULL" : "非 NULL"}`} />
                       </TableHead>
                     ))}<TableHead scope="col">操作</TableHead></TableRow></TableHeader>
                     <TableBody>{result.data.rows.length === 0 ? (
-                      <TableRow><TableCell className="managed-data-no-rows" colSpan={result.data.columns.length + 1}>没有符合条件的配置内容</TableCell></TableRow>
+                      <TableRow><TableCell className="managed-data-no-rows" colSpan={orderDisplayedFields(currentDisplay.display,result.data.columns,column=>column.name,true).length+1+(canEdit?1:0)}>没有符合条件的配置内容</TableCell></TableRow>
                     ) : result.data.rows.map((row, rowIndex) => (
-                      <TableRow key={String(row.id ?? rowIndex)}>{canEdit&&<TableCell><Checkbox aria-label={`选择记录 ${row.id??"未知"}`} checked={typeof row.id==="string"&&selectedRows.has(row.id)} disabled={typeof row.id!=="string"||Boolean(capabilityReasons.DELETE)||(!selectedRows.has(row.id)&&selectedRows.size>=1000)} onCheckedChange={checked=>{const id=row.id;if(typeof id!=="string")return;setSelectedRows(current=>{const next=new Map(current);if(checked===true)next.set(id,{id,version:result.data.recordVersions[rowIndex]!});else next.delete(id);return next})}}/></TableCell>}{result.data.columns.map((column) => (
-                        <TableCell key={column.name}><CellValue value={row[column.name] ?? null} /></TableCell>
+                      <TableRow key={String(row.id ?? rowIndex)}>{canEdit&&<TableCell><Checkbox aria-label={`选择记录 ${row.id??"未知"}`} checked={typeof row.id==="string"&&selectedRows.has(row.id)} disabled={typeof row.id!=="string"||Boolean(capabilityReasons.DELETE)||(!selectedRows.has(row.id)&&selectedRows.size>=1000)} onCheckedChange={checked=>{const id=row.id;if(typeof id!=="string")return;setSelectedRows(current=>{const next=new Map(current);if(checked===true)next.set(id,{id,version:result.data.recordVersions[rowIndex]!,row});else next.delete(id);return next})}}/></TableCell>}{orderDisplayedFields(currentDisplay.display, result.data.columns, column => column.name, true).map((column) => (
+                        <TableCell key={column.name}><CurrentFieldValue display={currentDisplay.display} name={column.name} value={row[column.name] ?? null}><CellValue value={row[column.name] ?? null} /></CurrentFieldValue></TableCell>
                       ))}<TableCell className="managed-data-actions">
                         <Button variant="ghost" icon={<Pencil size={14} />} aria-label={`修改记录 ${row.id ?? "未知"}`} disabled={typeof row.id !== "string" || Boolean(capabilityReasons.MODIFY)} title={typeof row.id !== "string" ? "记录缺少可用的 id" : capabilityReasons.MODIFY} aria-describedby={capabilityReasons.MODIFY ? "mutation-modify-reason" : undefined} onClick={() => send({ type: "open-editor", operation: "MODIFY", row, expectedVersion: result.data.recordVersions[rowIndex] })}>修改</Button>
                         <Button variant="ghost" icon={<Trash2 size={14} />} aria-label={`删除记录 ${row.id ?? "未知"}`} disabled={typeof row.id !== "string" || Boolean(capabilityReasons.DELETE)} title={typeof row.id !== "string" ? "记录缺少可用的 id" : capabilityReasons.DELETE} aria-describedby={capabilityReasons.DELETE ? "mutation-delete-reason" : undefined} onClick={() => send({ type: "review-delete", row, expectedVersion: result.data.recordVersions[rowIndex] })}>删除</Button>
@@ -234,6 +239,7 @@ export function ManagedDataPage() {
             onReview={(content, snapshot) => changes.send({ type: "review-content", content, snapshot })}
           />}
           <ChangeSetDialog
+            fieldDisplay={currentDisplay.display}
             draftAction={<Button variant="primary" disabled={!canEdit||!destination.valid||changes.view.reviewDisabled||saving||draftWrite.pending||draftRecordConflict} onClick={()=>{if(changes.view.draftInput)void saveDraft(changes.view.draftInput)}}>{draftWrite.pending?"正在保存草稿…":draftWrite.unresolved?"使用原请求重试":"确认并保存草稿"}</Button>}
             draftLocked={draftWrite.pending||draftWrite.unresolved}
             draftFeedback={<>{destination.picker(saving||draftWrite.pending||draftWrite.unresolved)}{draftWrite.unresolved&&<p role="alert">草稿保存结果待确认。原请求已保留，刷新后仍可找回。</p>}</>}
@@ -250,7 +256,7 @@ export function ManagedDataPage() {
             onEdit={() => changes.send({ type: "edit-pending" })}
             onCancel={() => send({ type: "cancel-pending" })}
           />
-    {batchReview&&<Drawer open eyebrow="发布草稿" title="删除所选记录" onClose={()=>{if(!saving&&!draftWrite.pending&&!draftWrite.unresolved)setBatchReview(false)}} footer={<><Button disabled={saving||draftWrite.pending||draftWrite.unresolved} onClick={()=>setBatchReview(false)}>取消删除</Button><Button disabled={!canEdit||!destination.valid||Boolean(capabilityReasons.DELETE)||saving||draftWrite.pending} onClick={()=>void saveDraft({table_name:selectedTable,items:Array.from(selectedRows.values()).map(row=>({operation:"DELETE",id:row.id,expected_record_version:row.version,content:{}}))})}>{draftWrite.unresolved?"使用原请求重试":"确认并保存草稿"}</Button></>}><p>将所选 {selectedRows.size} 项加入同表草稿。现在不会删除配置。</p><fieldset disabled={saving||draftWrite.pending||draftWrite.unresolved}><ReleaseItemPager count={selectedRows.size} page={batchPage} onPage={setBatchPage} label="待删除明细"/></fieldset><ol start={batchPage*releasePageSize+1}>{Array.from(selectedRows.values()).slice(batchPage*releasePageSize,(batchPage+1)*releasePageSize).map((row,index)=><li key={row.id}>明细 {batchPage*releasePageSize+index+1} · 记录 {row.id} · 记录基线 {row.version}</li>)}</ol>{destination.picker(saving||draftWrite.pending||draftWrite.unresolved)}{Boolean(draftWrite.error)&&<ErrorState error={draftWrite.error}/>}</Drawer>}
+    {batchReview&&<Drawer open eyebrow="发布草稿" title="删除所选记录" onClose={()=>{if(!saving&&!draftWrite.pending&&!draftWrite.unresolved)setBatchReview(false)}} footer={<><Button disabled={saving||draftWrite.pending||draftWrite.unresolved} onClick={()=>setBatchReview(false)}>取消删除</Button><Button disabled={!canEdit||!destination.valid||Boolean(capabilityReasons.DELETE)||saving||draftWrite.pending} onClick={()=>void saveDraft({table_name:selectedTable,items:Array.from(selectedRows.values()).map(row=>({operation:"DELETE",id:row.id,expected_record_version:row.version,content:{}}))})}>{draftWrite.unresolved?"使用原请求重试":"确认并保存草稿"}</Button></>}><p>将所选 {selectedRows.size} 项加入同表草稿。现在不会删除配置。</p><fieldset disabled={saving||draftWrite.pending||draftWrite.unresolved}><ReleaseItemPager count={selectedRows.size} page={batchPage} onPage={setBatchPage} label="待删除明细"/></fieldset><ol start={batchPage*releasePageSize+1}>{Array.from(selectedRows.values()).slice(batchPage*releasePageSize,(batchPage+1)*releasePageSize).map((selected,index)=><li key={selected.id}><details><summary>明细 {batchPage*releasePageSize+index+1} · 记录 {selected.id} · 记录基线 {selected.version}</summary><dl>{orderDisplayedFields(currentDisplay.display,result.data?.columns??[],column=>column.name).map(column=><div key={column.name} className="border-b py-2"><dt><CurrentFieldName display={currentDisplay.display} name={column.name} detail={column.type}/></dt><dd><CurrentFieldValue display={currentDisplay.display} name={column.name} value={selected.row[column.name]??null}><CellValue value={selected.row[column.name]??null}/></CurrentFieldValue></dd></div>)}</dl></details></li>)}</ol>{destination.picker(saving||draftWrite.pending||draftWrite.unresolved)}{Boolean(draftWrite.error)&&<ErrorState error={draftWrite.error}/>}</Drawer>}
     </main>
   );
 }

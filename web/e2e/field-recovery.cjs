@@ -57,7 +57,7 @@ const origin=process.env.RCC_WEB_URL,output=process.env.RCC_E2E_OUTPUT||'/tmp/rc
   assert.equal(await custom.inputValue(),'original-custom');
   assert.equal(await custom.getAttribute('data-recovery-witness'),'same-input');
   assert.equal(await page.getByLabel('筛选 渠道 值 自定义值',{exact:true}).inputValue(),'query-retained');
-  assert.equal(reads,openingReads);
+  assert.equal(reads,openingReads+1,'session recovery may refresh the live list display once while open query/editor configurations stay frozen');
   await custom.focus();await page.keyboard.press('Tab');assert.notEqual(await page.evaluate(()=>document.activeElement.tagName),'BODY');
   await page.evaluate(async()=>Promise.all(document.getAnimations().map(animation=>animation.finished.catch(()=>{}))));
   await page.screenshot({path:path.join(output,'desktop-recovered.png')});

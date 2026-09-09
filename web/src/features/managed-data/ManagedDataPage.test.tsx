@@ -110,6 +110,64 @@ describe("配置内容管理页面", () => {
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/tables/notification_templates/query"))).toHaveLength(2);
   });
 
+  it("按当前字段配置隐藏和排序列表列，并用真实字段和值消除重复标签歧义", async () => {
+    const columns = [
+      { name: "beta", type: "string", nullable: false },
+      { name: "internal", type: "string", nullable: false },
+      { name: "id", type: "uint64", nullable: false },
+      { name: "alpha", type: "string", nullable: false },
+    ];
+    const field = (name: string, displayName: string, displayOrder: number, isVisible = true, optionValue?: string) => ({
+      field_name: name, column_type: name === "id" ? "uint64" : "string", nullable: false, generated: false,
+      auto_increment: false, has_default: false, state: "active", warning: "", audit: null,
+      policy: null,
+      effective: { field_name: name, display_name: displayName, description: "", display_order: displayOrder,
+        is_visible: isVisible, is_queryable: true, query_operators: ["exact"], ui_type: optionValue ? "select" : "text",
+        ui_options: { options: optionValue ? [{ label: "启用", value: optionValue }] : [] }, editable_on_add: true,
+        editable_on_modify: true, is_required: false, enabled: true },
+    });
+    let fieldPolicyReads = 0;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/table-policies")) return json({ policies: [enabledPolicy] });
+      if (url.includes("/table-field-policies/")) {
+        fieldPolicyReads++;
+        return json({ table_name: "notification_templates", query_capacity: { max_conditions: 256, max_values_per_condition: 100, queryable_fields: 4, supported: true }, fields: [
+          field("beta", "状态", 5, true, "b"), field("internal", "内部字段", 0, false), field("id", "编号", 1), field("alpha", "状态", 5, true, "a"),
+        ] });
+      }
+      if (url.endsWith("/tables/notification_templates/query")) return json({
+        columns, rows: [{ beta: "b", internal: "secret", id: "1", alpha: "a" }, { beta: "b", internal: "hidden", id: "2", alpha: "a" }],
+        page: { page_number: 1, page_size: 20, total_count: 2, total_pages: 1 },
+      });
+      if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+      if (url.includes("/query-policies/")) return json({code:"notification_page_query_v1",name:"Query",description:"",type_code:"page_query",default_order_field:"id",default_order_direction:"DESC",default_page_size:20,max_page_size:100,status:"ACTIVE",creator:"fixture",modifier:"fixture",created_at:"2026-08-25T09:00:00Z",updated_at:"2026-08-25T09:00:00Z"});
+      if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
+      if (url.includes("/mutation-policies/")) return json({code:"notification_full_mutation_v1",name:"Mutation",description:"",type_code:"single_table_mutation",allow_add:true,allow_modify:true,allow_delete:true,create_operator_field:"",create_time_field:"",modify_operator_field:"",modify_time_field:"",status:"ACTIVE",creator:"fixture",modifier:"fixture",created_at:"2026-08-25T09:00:00Z",updated_at:"2026-08-25T09:00:00Z"});
+      throw new Error(`unexpected request ${url}`);
+    });
+    vi.stubGlobal("fetch", withSession(fetchMock));
+    const user = userEvent.setup();
+
+    renderPage();
+
+    expect(await screen.findAllByText("启用")).toHaveLength(4);
+    const headers = await screen.findAllByRole("columnheader");
+    expect(headers.map(header => header.textContent)).toEqual(expect.arrayContaining([expect.stringMatching(/^编号id/), expect.stringMatching(/^状态alpha/), expect.stringMatching(/^状态beta/)]));
+    expect(headers.findIndex(header => header.textContent?.startsWith("编号"))).toBeLessThan(headers.findIndex(header => header.textContent?.startsWith("状态alpha")));
+    expect(headers.findIndex(header => header.textContent?.startsWith("状态alpha"))).toBeLessThan(headers.findIndex(header => header.textContent?.startsWith("状态beta")));
+    expect(screen.queryByRole("columnheader", { name: /internal/ })).not.toBeInTheDocument();
+    expect(screen.queryByText("secret")).not.toBeInTheDocument();
+    expect(screen.getAllByLabelText("真实值：a")).toHaveLength(2);
+    expect(screen.getAllByLabelText("真实值：b")).toHaveLength(2);
+    expect(fieldPolicyReads).toBe(1);
+    await user.click(screen.getByRole("checkbox", { name: "选择记录 1" }));
+    await user.click(await screen.findByRole("button", { name: "删除已选 1 项" }));
+    await user.click(screen.getByText(/明细 1 · 记录 1/));
+    expect(await screen.findByText("secret")).toBeVisible();
+    expect(screen.getAllByText("内部字段")).not.toHaveLength(0);
+  });
+
   it("切换 enabled Managed Table 时重置 Query Spec 并查询所选表的动态列", async () => {
     const auditPolicy = { ...enabledPolicy, table_name: "audit_messages" };
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {

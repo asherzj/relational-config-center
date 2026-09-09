@@ -15,6 +15,15 @@ function setup(fields: FieldPolicyField[]) {
   return submit;
 }
 afterEach(()=>vi.unstubAllGlobals());
+it("freezes the first successful direct configuration without requesting again for a new response object", async()=>{
+ const configuration={table_name:"items",fields:[field("name")],query_capacity:{max_conditions:256,max_values_per_condition:100,queryable_fields:1,supported:true}};
+ const fetchMock=vi.fn(async()=>new Response(JSON.stringify(configuration)));
+ vi.stubGlobal("fetch",fetchMock);
+ render(<CombinedQueryForm tableName="items" columns={[{name:"name",type:"string",nullable:true}]} onSubmit={()=>{}} onClear={()=>{}} />);
+ await screen.findByRole("textbox",{name:"筛选 name 值"});
+ await new Promise(resolve=>setTimeout(resolve,20));
+ expect(fetchMock).toHaveBeenCalledTimes(1);
+});
 it("AC-004 directly displays only queryable fields and submits entered conditions after collapsing", async()=>{
   const submit=setup([field("channel",{display_name:"渠道"}),field("priority",{},"int64"),field("hidden",{is_queryable:false})]);
   const user=userEvent.setup();

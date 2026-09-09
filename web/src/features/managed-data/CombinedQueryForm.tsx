@@ -9,10 +9,11 @@ import { Label } from "../../components/shadcn/label";
 import { FieldValueInput } from "./FieldValueInput";
 import { conditionFromDraft, createConditionDraft, queryOperatorLabels, validateQueryDraft, type ManagedDataColumn, type QueryConditionDraft, type QuerySpec, type QueryOperator } from "./model";
 
-type Props = { tableName: string; columns: ManagedDataColumn[]; maxPageSize?: number; defaultPageSize?: number; onSubmit: (spec: QuerySpec) => void; onClear: () => void };
+type OpeningConfigurationSource = { configuration?: FieldPolicies; error: unknown; retry: () => unknown };
+type Props = { tableName: string; columns: ManagedDataColumn[]; maxPageSize?: number; defaultPageSize?: number; onSubmit: (spec: QuerySpec) => void; onClear: () => void; openingConfigurationSource?: OpeningConfigurationSource };
 
 // The opening-time configuration and drafts survive collapsing and session recovery.
-export function CombinedQueryForm({ tableName, columns: previousColumns, onSubmit, onClear, maxPageSize = 200, defaultPageSize }: Props) {
+export function CombinedQueryForm({ tableName, columns: previousColumns, onSubmit, onClear, maxPageSize = 200, defaultPageSize, openingConfigurationSource }: Props) {
   const [configuration, setConfiguration] = useState<FieldPolicies>();
   const [failure, setFailure] = useState<unknown>();
   const [attempt, setAttempt] = useState(0);
@@ -25,10 +26,16 @@ export function CombinedQueryForm({ tableName, columns: previousColumns, onSubmi
   const [error, setError] = useState<string | null>(null);
   const contentId = useId();
   useEffect(() => {
+    if (openingConfigurationSource) {
+      if (!configuration && openingConfigurationSource.configuration) setConfiguration(openingConfigurationSource.configuration);
+      return;
+    }
+    if (configuration) return;
     let active = true;
     void getFieldPolicies(tableName).then(data => { if (active) setConfiguration(data); }, error => { if (active) setFailure(error); });
     return () => { active = false; };
-  }, [tableName, attempt]);
+  }, [tableName, attempt, configuration, openingConfigurationSource]);
+  const openingFailure = configuration ? undefined : openingConfigurationSource?.error ?? failure;
   const columns = configuration ? fieldPolicyColumns(configuration) : previousColumns;
   const fields = configuration?.fields.filter(field => field.effective.is_queryable && columns.some(column => column.name === field.field_name)) ?? [];
   fields.sort((a, b) => a.effective.display_order - b.effective.display_order || a.field_name.localeCompare(b.field_name));
@@ -41,7 +48,7 @@ export function CombinedQueryForm({ tableName, columns: previousColumns, onSubmi
   };
   return <section className="query-builder" aria-label="查询条件">
     <header><div><strong>组合筛选</strong><small>填写的条件以 AND 连接，未填写的字段不参与筛选。</small></div><Button variant="secondary" aria-expanded={expanded} aria-controls={contentId} onClick={() => setExpanded(!expanded)}>{expanded ? "收起筛选" : "展开筛选"}</Button></header>
-    {failure ? <ErrorState error={failure} onRetry={() => { setFailure(undefined); setAttempt(attempt + 1); }} /> : !configuration ? <LoadingState label="正在读取字段查询配置…" /> : <div id={contentId} hidden={!expanded}>
+    {openingFailure ? <ErrorState error={openingFailure} onRetry={() => { if (openingConfigurationSource) void openingConfigurationSource.retry(); else { setFailure(undefined); setAttempt(attempt + 1); } }} /> : !configuration ? <LoadingState label="正在读取字段查询配置…" /> : <div id={contentId} hidden={!expanded}>
       {!configuration.query_capacity.supported && <p role="alert" className="inline-alert">真实可查询字段共 {configuration.query_capacity.queryable_fields} 个，超过平台上限 {configuration.query_capacity.max_conditions}。请管理员关闭部分字段的查询后重新打开。</p>}
       {fields.length === 0 && <p className="p-4 text-sm text-muted-foreground">此表没有可查询字段，可直接查询全部数据。</p>}
       <div className="grid max-h-[32rem] min-w-0 gap-4 overflow-y-auto p-4 md:grid-cols-2 xl:grid-cols-3">{fields.map(field => {

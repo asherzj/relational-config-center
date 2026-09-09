@@ -88,13 +88,13 @@ function json(value: unknown, status = 200, requestId = "req-change-set") {
 
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  return render(
+  return {...render(
     <QueryClientProvider client={client}>
       <TestRouter initialEntries={["/configuration/managed-data"]}>
         <ToastProvider><AppRoutes /></ToastProvider>
       </TestRouter>
     </QueryClientProvider>,
-  );
+  ),client};
 }
 
 function readFetch(input: RequestInfo | URL, init: RequestInit | undefined, policy = mutationPolicy) {
@@ -652,7 +652,7 @@ it("AC-012 freezes configured query/editor input through same-account recovery a
   expect(editorInput).toHaveValue("editor-kept");
   expect(screen.getByRole("textbox",{name:"body 值"})).toBe(originalBodyInput);
   expect(queryCustom).toHaveValue("query-kept");
-  expect(metadataReads).toBe(2);
+  expect(metadataReads).toBe(3);
   expect(queryReads).toBeGreaterThanOrEqual(2);
   expect(fetchMock.mock.calls.filter(([url,init])=>String(url).endsWith("/release-orders")&&init?.method==="POST")).toHaveLength(0);
   await user.click(screen.getByRole("button",{name:"取消"}));
@@ -666,6 +666,77 @@ it("AC-012 freezes configured query/editor input through same-account recovery a
   await screen.findByRole("heading",{name:"查询规则定义"});
   await user.click(screen.getByRole("link",{name:"配置内容管理"}));
   expect((await screen.findByRole("textbox",{name:"筛选 最新模板 值"})).tagName).toBe("TEXTAREA");
+});
+
+it("重新进入时等待本次字段配置读取再冻结，并且后续实时刷新不重绘查询输入",async()=>{
+ const named=(name:string)=>{
+  const metadata=defaultFieldPolicies("notification_templates",columns);
+  const template=metadata.fields.find(field=>field.field_name==="template_key")!;
+  template.state="active";
+  template.effective={...template.effective,display_name:name,enabled:true};
+  return metadata;
+ };
+ let metadataReads=0,resolveFresh:((response:Response)=>void)|undefined;
+ const fetchMock=vi.fn(async(input:RequestInfo|URL,init?:RequestInit)=>{
+  if(String(input).includes("/table-field-policies/")){
+   metadataReads++;
+   if(metadataReads===1)return json(named("旧模板"));
+   if(metadataReads===2)return new Promise<Response>(resolve=>{resolveFresh=resolve});
+   return json(named("刷新后模板"));
+  }
+  return readFetch(input,init);
+ });
+ vi.stubGlobal("fetch",withAdminSession(fetchMock));
+ const user=userEvent.setup();const {client}=renderPage();
+ await screen.findByRole("textbox",{name:"筛选 旧模板 值"});
+ await user.click(screen.getByRole("link",{name:"查询规则定义"}));
+ await screen.findByRole("heading",{name:"查询规则定义"});
+ await user.click(screen.getByRole("link",{name:"配置内容管理"}));
+ await waitFor(()=>expect(metadataReads).toBe(2));
+ expect(screen.queryByRole("textbox",{name:"筛选 旧模板 值"})).not.toBeInTheDocument();
+ expect(screen.getByText("正在读取字段查询配置…")).toBeVisible();
+ resolveFresh!(json(named("新模板")));
+ const input=await screen.findByRole("textbox",{name:"筛选 新模板 值"});
+ await user.type(input,"kept query");
+ await act(async()=>{await client.refetchQueries({queryKey:["current-field-display"]})});
+ expect(screen.getByRole("textbox",{name:"筛选 新模板 值"})).toBe(input);
+ expect(input).toHaveValue("kept query");
+ expect(screen.queryByRole("textbox",{name:"筛选 刷新后模板 值"})).not.toBeInTheDocument();
+ expect(await screen.findByRole("columnheader",{name:/刷新后模板template_key/})).toBeVisible();
+});
+
+it("列表首次成功后的配置刷新失败独立报错重试，并保留已冻结筛选输入",async()=>{
+ const named=(name:string)=>{
+  const metadata=defaultFieldPolicies("notification_templates",columns);
+  const template=metadata.fields.find(field=>field.field_name==="template_key")!;
+  template.state="active";
+  template.effective={...template.effective,display_name:name,enabled:true};
+  return metadata;
+ };
+ let metadataReads=0;
+ const fetchMock=vi.fn(async(input:RequestInfo|URL,init?:RequestInit)=>{
+  if(String(input).includes("/table-field-policies/")){
+   metadataReads++;
+   if(metadataReads===2)return json({error:{code:"field_policy_unavailable",message:"later display failure",request_id:"display-refresh-1"}},503,"display-refresh-1");
+   return json(named(metadataReads===1?"打开时模板":"恢复后模板"));
+  }
+  return readFetch(input,init);
+ });
+ vi.stubGlobal("fetch",withAdminSession(fetchMock));
+ const user=userEvent.setup();const {client}=renderPage();
+ const input=await screen.findByRole("textbox",{name:"筛选 打开时模板 值"});
+ await user.type(input,"retained query");
+ await act(async()=>{await client.refetchQueries({queryKey:["current-field-display"]})});
+ const result=screen.getByRole("region",{name:"Managed Data 查询结果"});
+ const alert=await within(result).findByRole("alert");
+ expect(alert).toHaveTextContent("字段配置暂时不可用");
+ expect(alert).toHaveTextContent("display-refresh-1");
+ expect(screen.getAllByRole("alert").filter(element=>element.textContent?.includes("字段配置暂时不可用"))).toHaveLength(1);
+ expect(input).toHaveValue("retained query");
+ await user.click(within(alert).getByRole("button",{name:"重试"}));
+ expect(await screen.findByRole("columnheader",{name:/恢复后模板template_key/})).toBeVisible();
+ expect(screen.getByRole("textbox",{name:"筛选 打开时模板 值"})).toBe(input);
+ expect(input).toHaveValue("retained query");
 });
 
 it("AC-012 isolates configured query and editor drafts when the account changes", async () => {
