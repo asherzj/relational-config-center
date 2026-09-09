@@ -21,12 +21,12 @@ func TestMutationPolicyResponseUsesTypedRelationalFieldsAndCatalogAuditNames(t *
 	if err := json.Unmarshal(encoded, &response); err != nil {
 		t.Fatalf("decode Mutation Policy response: %v", err)
 	}
-	for _, required := range []string{"allow_add", "allow_modify", "allow_delete", "create_operator_field", "create_time_field", "modify_operator_field", "modify_time_field", "gmt_created", "gmt_modified"} {
+	for _, required := range []string{"allow_add", "allow_modify", "allow_delete", "create_operator_field", "create_time_field", "modify_operator_field", "modify_time_field", "created_at", "updated_at"} {
 		if _, found := response[required]; !found {
 			t.Fatalf("Mutation Policy response is missing %s: %s", required, encoded)
 		}
 	}
-	for _, forbidden := range []string{"config", "auto_fill", "supports_add", "supports_modify", "supports_delete", "created_at", "updated_at"} {
+	for _, forbidden := range []string{"config", "auto_fill", "supports_add", "supports_modify", "supports_delete", "gmt_created", "gmt_modified"} {
 		if _, found := response[forbidden]; found {
 			t.Fatalf("Mutation Policy response exposed forbidden field %s: %s", forbidden, encoded)
 		}

@@ -24,6 +24,7 @@ func TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite(t *testing.T
 		"../../../deploy/mysql/migrations/003-create-query-policies.sql",
 		"../../../deploy/mysql/migrations/004-create-mutation-policies.sql",
 		"../../../deploy/mysql/migrations/005-expand-table-policy-code-references.sql",
+		"../../../deploy/mysql/migrations/013-policy-audit-timestamps.sql",
 	)
 	maintenance, err := mysqladapter.OpenMaintenance(ctx, integrationConfig(driverConfig).MySQL)
 	if err != nil {
@@ -94,12 +95,12 @@ func TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite(t *testing.T
 		SELECT COUNT(*) FROM information_schema.columns
 		WHERE table_schema = DATABASE()
 		  AND table_name = 'rcc_query_policies'
-		  AND column_name IN ('gmt_created', 'gmt_modified')
+		  AND column_name IN ('created_at', 'updated_at')
 	`).Scan(&queryPolicyAuditColumnCount); err != nil {
 		t.Fatalf("inspect Query Policy audit columns: %v", err)
 	}
 	if queryPolicyAuditColumnCount != 2 {
-		t.Fatalf("expected gmt_created and gmt_modified on Query Policies, found %d columns", queryPolicyAuditColumnCount)
+		t.Fatalf("expected created_at and updated_at on Query Policies, found %d columns", queryPolicyAuditColumnCount)
 	}
 
 	var queryPolicyScalarConstraintCount int
@@ -141,7 +142,7 @@ func TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite(t *testing.T
 		    'allow_add', 'allow_modify', 'allow_delete',
 		    'create_operator_field', 'create_time_field',
 		    'modify_operator_field', 'modify_time_field',
-		    'gmt_created', 'gmt_modified'
+		    'created_at', 'updated_at'
 		  )
 	`).Scan(&mutationPolicyRelationalColumnCount); err != nil {
 		t.Fatalf("inspect Mutation Policy relational columns: %v", err)
@@ -206,7 +207,7 @@ func TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite(t *testing.T
 	`).Scan(&finalColumns); err != nil {
 		t.Fatalf("inspect final Table Policy columns: %v", err)
 	}
-	if finalColumns != "id,table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier,gmt_created,gmt_modified" {
+	if finalColumns != "id,table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier,created_at,updated_at" {
 		t.Fatalf("unexpected final Table Policy shape: %s", finalColumns)
 	}
 
@@ -358,10 +359,10 @@ func TestQueryPolicyHTTPLifecyclePersistsAndFailsClosed(t *testing.T) {
 	listed := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/query-policies", "")
 	if listed.Code != http.StatusOK || strings.Contains(listed.Body.String(), `"id":`) ||
 		!strings.Contains(listed.Body.String(), `"creator":"`+integrationAccountID(t, app)+`"`) ||
-		!strings.Contains(listed.Body.String(), `"gmt_created":`) ||
-		!strings.Contains(listed.Body.String(), `"gmt_modified":`) ||
-		strings.Contains(listed.Body.String(), `"created_at":`) ||
-		strings.Contains(listed.Body.String(), `"updated_at":`) {
+		!strings.Contains(listed.Body.String(), `"created_at":`) ||
+		!strings.Contains(listed.Body.String(), `"updated_at":`) ||
+		strings.Contains(listed.Body.String(), `"gmt_created":`) ||
+		strings.Contains(listed.Body.String(), `"gmt_modified":`) {
 		t.Fatalf("unexpected Query Policy list: HTTP %d %s", listed.Code, listed.Body.String())
 	}
 }
@@ -383,12 +384,12 @@ func TestTablePolicyCodeAssignmentsValidateActiveDefinitionsAndReplaceAtomically
 	if err := json.Unmarshal(created.Body.Bytes(), &contract); err != nil {
 		t.Fatalf("decode Table Policy contract: %v", err)
 	}
-	for _, required := range []string{"table_name", "query_policy_code", "mutation_policy_code", "enabled", "creator", "modifier", "gmt_created", "gmt_modified"} {
+	for _, required := range []string{"table_name", "query_policy_code", "mutation_policy_code", "enabled", "creator", "modifier", "created_at", "updated_at"} {
 		if _, found := contract[required]; !found {
 			t.Fatalf("Table Policy response misses %s: %s", required, created.Body.String())
 		}
 	}
-	for _, forbidden := range []string{"query_policy", "query_policy_config", "mutation_policy", "mutation_policy_config", "allow_add", "allow_modify", "allow_delete", "created_at", "updated_at"} {
+	for _, forbidden := range []string{"query_policy", "query_policy_config", "mutation_policy", "mutation_policy_config", "allow_add", "allow_modify", "allow_delete", "gmt_created", "gmt_modified"} {
 		if _, found := contract[forbidden]; found {
 			t.Fatalf("Table Policy response exposes %s: %s", forbidden, created.Body.String())
 		}
@@ -445,6 +446,7 @@ func TestLegacyPolicyPreflightRejectsUnsupportedAutoFillWithoutPartialRewrite(t 
 		"../../../deploy/mysql/migrations/003-create-query-policies.sql",
 		"../../../deploy/mysql/migrations/004-create-mutation-policies.sql",
 		"../../../deploy/mysql/migrations/005-expand-table-policy-code-references.sql",
+		"../../../deploy/mysql/migrations/013-policy-audit-timestamps.sql",
 		"testdata/007-unsupported-legacy-policy-fixture.sql",
 	)
 	maintenance, err := mysqladapter.OpenMaintenance(ctx, integrationConfig(driverConfig).MySQL)
@@ -568,9 +570,9 @@ func TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed(t *tes
 
 	got := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/mutation-policies/standard_mutation_v1", "")
 	if got.Code != http.StatusOK || !strings.Contains(got.Body.String(), `"modify_time_field":"updated_at"`) ||
-		!strings.Contains(got.Body.String(), `"gmt_created":`) || !strings.Contains(got.Body.String(), `"gmt_modified":`) ||
+		!strings.Contains(got.Body.String(), `"created_at":`) || !strings.Contains(got.Body.String(), `"updated_at":`) ||
 		strings.Contains(got.Body.String(), `"id":`) || strings.Contains(got.Body.String(), `"supports_`) ||
-		strings.Contains(got.Body.String(), `"created_at":`) || strings.Contains(got.Body.String(), `"updated_at":`) {
+		strings.Contains(got.Body.String(), `"gmt_created":`) || strings.Contains(got.Body.String(), `"gmt_modified":`) {
 		t.Fatalf("unexpected persisted Mutation Policy response: HTTP %d %s", got.Code, got.Body.String())
 	}
 
@@ -642,7 +644,7 @@ func TestTablePolicyCreationPersistsDisabledCodeReferencesForHTTPInspection(t *t
 	if len(listResponse.Policies) != 1 {
 		t.Fatalf("expected exactly one Policy, got %s", listed.Body.String())
 	}
-	for _, forbidden := range []string{"id", "query_policy", "query_policy_config", "mutation_policy", "mutation_policy_config", "allow_add", "allow_modify", "allow_delete", "created_at", "updated_at"} {
+	for _, forbidden := range []string{"id", "query_policy", "query_policy_config", "mutation_policy", "mutation_policy_config", "allow_add", "allow_modify", "allow_delete", "gmt_created", "gmt_modified"} {
 		if _, exposed := listResponse.Policies[0][forbidden]; exposed {
 			t.Fatalf("list exposed internal/compatibility field %s: %s", forbidden, listed.Body.String())
 		}

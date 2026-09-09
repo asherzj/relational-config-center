@@ -403,8 +403,8 @@ type queryPolicyResponse struct {
 	Status                application.PolicyStatus `json:"status"`
 	Creator               string                   `json:"creator"`
 	Modifier              string                   `json:"modifier"`
-	CreatedAt             string                   `json:"gmt_created"`
-	UpdatedAt             string                   `json:"gmt_modified"`
+	CreatedAt             string                   `json:"created_at"`
+	UpdatedAt             string                   `json:"updated_at"`
 }
 
 type putMutationPolicyRequest struct {
@@ -455,8 +455,8 @@ type mutationPolicyResponse struct {
 	Status              application.PolicyStatus `json:"status"`
 	Creator             string                   `json:"creator"`
 	Modifier            string                   `json:"modifier"`
-	CreatedAt           string                   `json:"gmt_created"`
-	UpdatedAt           string                   `json:"gmt_modified"`
+	CreatedAt           string                   `json:"created_at"`
+	UpdatedAt           string                   `json:"updated_at"`
 }
 
 func mutationPolicyResponseFor(policy application.MutationPolicy) mutationPolicyResponse {
@@ -487,8 +487,8 @@ type tablePolicyAssignmentResponse struct {
 	Enabled            bool   `json:"enabled"`
 	Creator            string `json:"creator"`
 	Modifier           string `json:"modifier"`
-	CreatedAt          string `json:"gmt_created"`
-	UpdatedAt          string `json:"gmt_modified"`
+	CreatedAt          string `json:"created_at"`
+	UpdatedAt          string `json:"updated_at"`
 }
 
 type tableQueryRequest struct {

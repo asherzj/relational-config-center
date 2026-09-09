@@ -15,8 +15,8 @@ const tablePolicy = {
   enabled: true,
   creator: "local-admin",
   modifier: "local-admin",
-  gmt_created: "2026-08-24T09:00:00Z",
-  gmt_modified: "2026-08-24T10:30:00Z",
+  created_at: "2026-08-24T09:00:00Z",
+  updated_at: "2026-08-24T10:30:00Z",
 };
 
 const discoveryTables = [
@@ -50,22 +50,22 @@ const queryPolicies = [
   {
     code: "strict_page_query_v2", name: "严格分页", description: "", type_code: "page_query",
     default_order_field: "id", default_order_direction: "ASC", default_page_size: 10, max_page_size: 50,
-    status: "ACTIVE", creator: "admin", modifier: "admin", gmt_created: "2026-08-21T09:00:00Z", gmt_modified: "2026-08-21T09:00:00Z",
+    status: "ACTIVE", creator: "admin", modifier: "admin", created_at: "2026-08-21T09:00:00Z", updated_at: "2026-08-21T09:00:00Z",
   },
   {
     code: "standard_page_query_v1", name: "标准分页", description: "", type_code: "page_query",
     default_order_field: "id", default_order_direction: "DESC", default_page_size: 20, max_page_size: 200,
-    status: "ACTIVE", creator: "admin", modifier: "admin", gmt_created: "2026-08-20T09:00:00Z", gmt_modified: "2026-08-20T09:00:00Z",
+    status: "ACTIVE", creator: "admin", modifier: "admin", created_at: "2026-08-20T09:00:00Z", updated_at: "2026-08-20T09:00:00Z",
   },
   {
     code: "draft_page_query_v2", name: "分页草稿", description: "", type_code: "page_query",
     default_order_field: "id", default_order_direction: "ASC", default_page_size: 10, max_page_size: 100,
-    status: "DRAFT", creator: "admin", modifier: "admin", gmt_created: "2026-08-20T09:00:00Z", gmt_modified: "2026-08-20T09:00:00Z",
+    status: "DRAFT", creator: "admin", modifier: "admin", created_at: "2026-08-20T09:00:00Z", updated_at: "2026-08-20T09:00:00Z",
   },
   {
     code: "future_query_v1", name: "未来查询", description: "", type_code: "future_query",
     default_order_field: "id", default_order_direction: "ASC", default_page_size: 10, max_page_size: 50,
-    status: "ACTIVE", creator: "admin", modifier: "admin", gmt_created: "2026-08-20T09:00:00Z", gmt_modified: "2026-08-20T09:00:00Z",
+    status: "ACTIVE", creator: "admin", modifier: "admin", created_at: "2026-08-20T09:00:00Z", updated_at: "2026-08-20T09:00:00Z",
   },
 ];
 
@@ -74,25 +74,25 @@ const mutationPolicies = [
     code: "readonly_mutation_v2", name: "只读变更", description: "", type_code: "single_table_mutation",
     allow_add: false, allow_modify: false, allow_delete: false,
     create_operator_field: null, create_time_field: null, modify_operator_field: null, modify_time_field: null,
-    status: "ACTIVE", creator: "admin", modifier: "admin", gmt_created: "2026-08-21T09:00:00Z", gmt_modified: "2026-08-21T09:00:00Z",
+    status: "ACTIVE", creator: "admin", modifier: "admin", created_at: "2026-08-21T09:00:00Z", updated_at: "2026-08-21T09:00:00Z",
   },
   {
     code: "standard_mutation_v1", name: "标准变更", description: "", type_code: "single_table_mutation",
     allow_add: true, allow_modify: true, allow_delete: false,
     create_operator_field: null, create_time_field: null, modify_operator_field: null, modify_time_field: null,
-    status: "ACTIVE", creator: "admin", modifier: "admin", gmt_created: "2026-08-20T09:00:00Z", gmt_modified: "2026-08-20T09:00:00Z",
+    status: "ACTIVE", creator: "admin", modifier: "admin", created_at: "2026-08-20T09:00:00Z", updated_at: "2026-08-20T09:00:00Z",
   },
   {
     code: "deprecated_mutation_v1", name: "旧变更", description: "", type_code: "single_table_mutation",
     allow_add: false, allow_modify: false, allow_delete: false,
     create_operator_field: null, create_time_field: null, modify_operator_field: null, modify_time_field: null,
-    status: "DEPRECATED", creator: "admin", modifier: "admin", gmt_created: "2026-08-20T09:00:00Z", gmt_modified: "2026-08-20T09:00:00Z",
+    status: "DEPRECATED", creator: "admin", modifier: "admin", created_at: "2026-08-20T09:00:00Z", updated_at: "2026-08-20T09:00:00Z",
   },
   {
     code: "future_mutation_v1", name: "未来变更", description: "", type_code: "future_mutation",
     allow_add: true, allow_modify: true, allow_delete: false,
     create_operator_field: null, create_time_field: null, modify_operator_field: null, modify_time_field: null,
-    status: "ACTIVE", creator: "admin", modifier: "admin", gmt_created: "2026-08-20T09:00:00Z", gmt_modified: "2026-08-20T09:00:00Z",
+    status: "ACTIVE", creator: "admin", modifier: "admin", created_at: "2026-08-20T09:00:00Z", updated_at: "2026-08-20T09:00:00Z",
   },
 ];
 

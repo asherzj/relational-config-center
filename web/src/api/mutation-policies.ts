@@ -31,8 +31,8 @@ function fromDto(dto: MutationPolicyDto): MutationPolicy {
     status: dto.status,
     creator: dto.creator,
     modifier: dto.modifier,
-    createdAt: dto.gmt_created,
-    modifiedAt: dto.gmt_modified,
+    createdAt: dto.created_at,
+    modifiedAt: dto.updated_at,
   };
 }
 

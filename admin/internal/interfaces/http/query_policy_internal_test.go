@@ -20,14 +20,14 @@ func TestQueryPolicyResponseUsesCatalogAuditFieldNames(t *testing.T) {
 	if err := json.Unmarshal(encoded, &response); err != nil {
 		t.Fatalf("decode Query Policy response: %v", err)
 	}
-	for _, required := range []string{"gmt_created", "gmt_modified"} {
+	for _, required := range []string{"created_at", "updated_at"} {
 		if _, found := response[required]; !found {
 			t.Fatalf("Query Policy response is missing %s: %s", required, encoded)
 		}
 	}
-	for _, forbidden := range []string{"created_at", "updated_at"} {
+	for _, forbidden := range []string{"gmt_created", "gmt_modified"} {
 		if _, found := response[forbidden]; found {
-			t.Fatalf("Query Policy response exposed legacy-incompatible field %s: %s", forbidden, encoded)
+			t.Fatalf("Query Policy response exposed legacy audit field %s: %s", forbidden, encoded)
 		}
 	}
 }

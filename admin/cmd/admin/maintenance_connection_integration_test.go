@@ -19,6 +19,7 @@ func TestPolicyMigrationRunsWithoutAccountSchemaOrHTTPConfiguration(t *testing.T
 		"../../../deploy/mysql/migrations/003-create-query-policies.sql",
 		"../../../deploy/mysql/migrations/004-create-mutation-policies.sql",
 		"../../../deploy/mysql/migrations/005-expand-table-policy-code-references.sql",
+		"../../../deploy/mysql/migrations/013-policy-audit-timestamps.sql",
 	)
 	binary := filepath.Join(t.TempDir(), "policy-migrate")
 	build := exec.Command("go", "build", "-o", binary, "../policy-migrate")

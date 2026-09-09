@@ -1,5 +1,5 @@
 import {QueryClient,QueryClientProvider} from "@tanstack/react-query";
-import {fireEvent,render,screen,waitFor,within} from "@testing-library/react";
+import {act,fireEvent,render,screen,waitFor,within} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {afterEach,expect,it,vi} from "vitest";
 import {AppRoutes} from "../../app";
@@ -14,7 +14,7 @@ const order={id,title:"更新渠道展示名称",table_name:"items",applicant_id
 const json=(value:unknown,status=200)=>new Response(JSON.stringify(value, (key,item)=>key==="orders"?item.map((order:{items:unknown[]})=>({...order,item_count:order.items.length,operation_counts:{MODIFY:order.items.length}})):item),{status,headers:{"Content-Type":"application/json"}});
 function mount(path="/configuration/release-orders"){
  const client=new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}});
- return render(<QueryClientProvider client={client}><ToastProvider><TestRouter initialEntries={[path]}><AppRoutes/></TestRouter></ToastProvider></QueryClientProvider>);
+ return {...render(<QueryClientProvider client={client}><ToastProvider><TestRouter initialEntries={[path]}><AppRoutes/></TestRouter></ToastProvider></QueryClientProvider>),client};
 }
 afterEach(()=>{vi.unstubAllGlobals();sessionStorage.clear()});
 it("原申请人或管理员核对最新配置后原子化重新准备已批准普通单",async()=>{
@@ -98,9 +98,9 @@ it("人员姓名重读失败时清除缓存姓名、显示错误标识并允许�
   if(peopleReads===2)return json({error:{code:"release_unavailable",message:"down",request_id:"people-req-2"}},500);
   return json({people:{[order.applicant_id]:peopleReads===1?"缓存申请人":"重试后的申请人"}});
  })));
- const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ const user=userEvent.setup();const {client}=mount(`/configuration/release-orders/${id}`);
  expect((await screen.findAllByText("缓存申请人")).length).toBeGreaterThan(0);
- await user.click(screen.getByRole("button",{name:"重新读取发布单"}));
+ await act(async()=>{await client.refetchQueries({queryKey:["release-order-people",id]})});
  expect(await screen.findByText("人员姓名读取失败，当前仅显示永久账号 ID。")).toBeVisible();
  expect(screen.getByText("错误代码：release_unavailable")).toBeVisible();
  expect(screen.getByText("请求编号：people-req-2")).toBeVisible();
@@ -240,7 +240,7 @@ it("原执行旧键重放返回已发布快照后仍重新读取当前已回滚�
  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();expect(screen.getByText("最新回滚发布单",{exact:false})).toBeVisible();
  expect(writes).toHaveLength(1);expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBe("original-execute-key");expect(sessionStorage.length).toBe(0);
 });
-it("从列表打开持久草稿，并取消后保留历史",async()=>{
+it("从列表的查看详情入口打开持久草稿，并取消后保留历史",async()=>{
  let current=structuredClone(order);const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
   const path=String(input);
@@ -250,7 +250,7 @@ it("从列表打开持久草稿，并取消后保留历史",async()=>{
   return json({policies:[]});
  })));
  const user=userEvent.setup();mount();
- await user.click(await screen.findByRole("link",{name:"更新渠道展示名称"}));
+ await user.click(await screen.findByRole("link",{name:"查看详情：更新渠道展示名称"}));
  expect(await screen.findByText("proposal")).toBeVisible();
  await user.click(screen.getByRole("button",{name:"取消草稿"}));
  await user.type(screen.getByLabelText("取消原因"),"调整计划");

@@ -13,7 +13,7 @@ var (
 
 // TablePolicy assigns one Query Policy and one Mutation Policy to a table.
 // Storage identity stays internal; audit metadata is part of the management
-// projection exposed with the accepted gmt_created/gmt_modified names.
+// projection exposed with the accepted created_at/updated_at names.
 type TablePolicy struct {
 	QueryPolicyCode    string
 	MutationPolicyCode string

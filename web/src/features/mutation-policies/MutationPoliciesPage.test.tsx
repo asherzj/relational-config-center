@@ -23,8 +23,8 @@ const activePolicy = {
   status: "ACTIVE",
   creator: "admin",
   modifier: "admin",
-  gmt_created: "2026-08-22T09:12:08Z",
-  gmt_modified: "2026-08-23T14:26:11Z",
+  created_at: "2026-08-22T09:12:08Z",
+  updated_at: "2026-08-23T14:26:11Z",
 };
 
 const draftPolicy = {
