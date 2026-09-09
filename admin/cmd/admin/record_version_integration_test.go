@@ -174,7 +174,7 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 		if !valid {
 			t.Fatalf("competing publication: %d %s", loser.Code, loser.Body)
 		}
-		rows, err := db.Query("SELECT document FROM rcc_release_orders WHERE table_name=? AND state<>'SUCCEEDED'", table)
+		rows, err := db.Query("SELECT document FROM rcc_release_orders WHERE table_name=? AND state<>'COMPLETED'", table)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -225,7 +225,7 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 				t.Fatalf("loser cleanup: %d %s", cancelled.Code, cancelled.Body)
 			}
 		}
-		for _, query := range []string{"SELECT COUNT(*) FROM rcc_publication_commands WHERE table_name=?", "SELECT COUNT(*) FROM rcc_refresh_notifications WHERE table_name=?", "SELECT COUNT(*) FROM rcc_release_orders WHERE table_name=? AND state='SUCCEEDED'", "SELECT table_version FROM rcc_table_publications WHERE table_name=?", "SELECT command_cursor FROM rcc_table_publications WHERE table_name=?", "SELECT lock_version FROM rcc_record_versions WHERE table_name=? AND LENGTH(record_key)=32"} {
+		for _, query := range []string{"SELECT COUNT(*) FROM rcc_publication_commands WHERE table_name=?", "SELECT COUNT(*) FROM rcc_refresh_notifications WHERE table_name=?", "SELECT COUNT(*) FROM rcc_release_orders WHERE table_name=? AND state='COMPLETED'", "SELECT table_version FROM rcc_table_publications WHERE table_name=?", "SELECT command_cursor FROM rcc_table_publications WHERE table_name=?", "SELECT lock_version FROM rcc_record_versions WHERE table_name=? AND LENGTH(record_key)=32"} {
 			var n int
 			if err := db.QueryRow(query, table).Scan(&n); err != nil || n != committed {
 				t.Fatalf("race must commit once, got %d %v: %s", n, err, query)
@@ -400,10 +400,10 @@ func TestRecordVersionSnapshotAndIndependentResources(t *testing.T) {
 	// Actual publication locks progress per table. Two different records of
 	// that table serialize, while another table can finish independently.
 	reviewer := publicationFixtureReviewer(t, app)
-	firstPath := approvePublication(t, app, reviewer, `{"table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"1","expected_record_version":"2","content":{"label":"held"}}]}`, "resource-first")
-	secondPath := approvePublication(t, app, reviewer, `{"table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"2","expected_record_version":"1","content":{"label":"ordered"}}]}`, "resource-second")
+	firstPath := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"1","expected_record_version":"2","content":{"label":"held"}}]}`, "resource-first")
+	secondPath := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"2","expected_record_version":"1","content":{"label":"ordered"}}]}`, "resource-second")
 	enableMutationPolicy(t, app, "mutation_supplied_id_items", mutationPolicyFixture{AllowAdd: true})
-	otherPath := approvePublication(t, app, reviewer, `{"table_name":"mutation_supplied_id_items","items":[{"operation":"ADD","content":{"id":"other","label":"independent"}}]}`, "resource-other")
+	otherPath := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_supplied_id_items","items":[{"operation":"ADD","content":{"id":"other","label":"independent"}}]}`, "resource-other")
 	holder, err := owner.BeginTx(ctx, nil)
 	if err != nil {
 		t.Fatal(err)

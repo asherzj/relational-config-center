@@ -35,6 +35,7 @@ type ReleaseEvent struct {
 }
 
 type ReleaseOrder struct {
+	Title           string                    `json:"title"`
 	RollbackOfID    string                    `json:"rollback_of_id,omitempty"`
 	RollbackOrderID string                    `json:"rollback_order_id,omitempty"`
 	RollbackPending bool                      `json:"rollback_pending,omitempty"`
@@ -132,6 +133,7 @@ func NewReleaseMutationSemantics(policy MutationPolicy) ReleaseMutationSemantics
 // ReleaseOrderSummary carries bounded catalog information; complete intent and
 // verified publication history are available through the order detail.
 type ReleaseOrderSummary struct {
+	Title           string         `json:"title"`
 	RollbackOfID    string         `json:"rollback_of_id,omitempty"`
 	RollbackOrderID string         `json:"rollback_order_id,omitempty"`
 	RollbackPending bool           `json:"rollback_pending,omitempty"`
@@ -147,7 +149,7 @@ type ReleaseOrderSummary struct {
 }
 
 func (order ReleaseOrder) Summary() ReleaseOrderSummary {
-	result := ReleaseOrderSummary{RollbackOfID: order.RollbackOfID, RollbackOrderID: order.RollbackOrderID, RollbackPending: order.RollbackPending, ID: order.ID, TableName: order.TableName, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
+	result := ReleaseOrderSummary{Title: order.Title, RollbackOfID: order.RollbackOfID, RollbackOrderID: order.RollbackOrderID, RollbackPending: order.RollbackPending, ID: order.ID, TableName: order.TableName, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
 	for _, item := range order.Items {
 		result.OperationCounts[item.Operation]++
 	}

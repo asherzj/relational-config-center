@@ -26,27 +26,36 @@ func (s *publicationSession) advancePublicationVersions(ctx context.Context, pla
 	if s.database.WithContext(ctx).Raw("SELECT COALESCE(MAX(lock_version),0) FROM rcc_record_versions WHERE table_name=? AND record_key=X''", plan.Execution.TableName).Row().Scan(&floor) != nil {
 		return nil, application.ErrReleaseUnavailable
 	}
-	targets, err := s.database.WithContext(ctx).Raw("SELECT record_key FROM rcc_release_targets WHERE table_name=? AND record_key IN ? AND order_id<>? FOR UPDATE", plan.Execution.TableName, keys, plan.OrderID).Rows()
+	targets, err := s.database.WithContext(ctx).Raw("SELECT record_key,order_id FROM rcc_release_targets WHERE table_name=? AND record_key IN ? ORDER BY record_key FOR UPDATE", plan.Execution.TableName, keys).Rows()
 	if err != nil {
 		return nil, application.ErrReleaseUnavailable
 	}
+	owners := map[string]string{}
 	for targets.Next() {
 		var key []byte
-		if targets.Scan(&key) != nil {
+		var owner string
+		if targets.Scan(&key, &owner) != nil {
 			targets.Close()
 			return nil, application.ErrReleaseUnavailable
 		}
-		for i, k := range keys {
-			if bytes.Equal(k, key) {
-				targets.Close()
-				return nil, &application.ReleaseItemError{Index: i, Cause: application.ErrReleaseTargetConflict}
-			}
-		}
+		owners[string(key)] = owner
 	}
 	err = targets.Err()
 	targets.Close()
 	if err != nil {
 		return nil, application.ErrReleaseUnavailable
+	}
+	for i, key := range keys {
+		owner := owners[string(key)]
+		// Quick rollback consumes the original reservation inside this transaction.
+		// A lost reservation must fail, not be silently recreated or ignored.
+		if plan.TargetOrderID != "" {
+			if owner != plan.TargetOrderID {
+				return nil, &application.ReleaseItemError{Index: i, Cause: application.ErrReleaseTargetConflict}
+			}
+		} else if owner != "" && owner != plan.OrderID {
+			return nil, &application.ReleaseItemError{Index: i, Cause: application.ErrReleaseTargetConflict}
+		}
 	}
 	slots := []string{}
 	args := []any{}

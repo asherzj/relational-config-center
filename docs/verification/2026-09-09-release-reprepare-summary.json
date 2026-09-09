@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "issue": 62,
+  "acceptance": "AC-009",
+  "base": "f7a39bafe2e767b706a5f4f158e7972cdfe53af0",
+  "head": "f7a39bafe2e767b706a5f4f158e7972cdfe53af0",
+  "branch": "codex/issue-62-release-reprepare",
+  "worktree": "/private/tmp/rcc-issue-62-reprepare",
+  "gates": {
+    "backend_freeze": {
+      "status": "passed",
+      "input_count": 145,
+      "hashes_unchanged": true,
+      "manifest": "/private/tmp/rcc-release-detail-reference/issue-62-backend-freeze.json"
+    },
+    "mysql_integration": {
+      "status": "passed",
+      "command": "make test-integration",
+      "exit_code": 0,
+      "elapsed_seconds": 2032.998,
+      "pass": 500,
+      "fail": 0,
+      "skip": 0,
+      "summary": "docs/verification/2026-09-09-release-reprepare-mysql-summary.json"
+    },
+    "web_unit": {
+      "status": "passed",
+      "files": 28,
+      "tests": 302
+    },
+    "web_typecheck": {
+      "status": "passed"
+    },
+    "repository_build": {
+      "status": "passed",
+      "command": "make build",
+      "exit_code": 0,
+      "elapsed_seconds": 3.204,
+      "summary": "/private/tmp/rcc-issue-62-final-build-v1.summary.json"
+    },
+    "web_dev_server": {
+      "status": "passed",
+      "command": "pnpm --dir web test:dev",
+      "exit_code": 0,
+      "elapsed_seconds": 1.143,
+      "summary": "/private/tmp/rcc-issue-62-final-web-dev-v1.summary.json"
+    },
+    "repository_test": {
+      "status": "passed",
+      "command": "make test",
+      "exit_code": 0,
+      "elapsed_seconds": 23.965,
+      "summary": "/private/tmp/rcc-issue-62-final-go-test-v1.summary.json"
+    },
+    "standards_review_v2": {
+      "status": "passed",
+      "hard_findings": 0,
+      "accepted_p3": [
+        "copyOrder(..., reprepare bool) obscures the replacement side effects",
+        "copy and reprepare UI implementations contain local duplication"
+      ]
+    },
+    "final_incremental_review": {
+      "status": "passed",
+      "scope": "screenshot timing evidence change",
+      "standards_hard_findings": 0,
+      "standards_new_subjective_findings": 0,
+      "spec_findings": 0,
+      "accepted_p3_unchanged": true
+    },
+    "spec_review": {
+      "status": "passed",
+      "ac_009_core_findings": 0,
+      "out_of_scope": {
+        "finding": "AC-016 cross-action pending-intent exclusion",
+        "owner_issue": 64
+      }
+    },
+    "browser_system": {
+      "status": "passed",
+      "command": "make test-browser",
+      "exit_code": 0,
+      "elapsed_seconds": 131.668,
+      "summary": "/private/tmp/rcc-issue-62-final-go-browser-v1.summary.json"
+    },
+    "browser_acceptance": {
+      "status": "passed_before_screenshot_timing_fix",
+      "command": "make test-browser-acceptance",
+      "exit_code": 0,
+      "elapsed_seconds": 451.376,
+      "suite_count": 17,
+      "named_checks": 223,
+      "cleanup_verified": true,
+      "fixture_rows_unchanged": true,
+      "database_postcheck_present": true,
+      "summary": "/private/tmp/rcc-issue-62-final-three-engine-v1.summary.json",
+      "artifact_summary": "docs/verification/2026-09-09-release-reprepare-browser-full-summary.json",
+      "run_record": "docs/verification/2026-09-09-release-reprepare-browser-full-run.txt",
+      "script_snapshot": "before screenshot-only animations-disabled fix",
+      "engines": {
+        "chromium": "passed",
+        "firefox": "passed",
+        "webkit": "passed"
+      }
+    },
+    "visual_review": {
+      "status": "passed",
+      "diagnosis": "The desktop confirmation screenshot captured the 200ms DialogContent fade/zoom animation. The screenshot-only call now disables finite animations; product code and behavior assertions are unchanged.",
+      "targeted_chromium_release_workflow": {
+        "status": "passed",
+        "suite_count": 5,
+        "named_checks": 42,
+        "exit_code": 0,
+        "elapsed_seconds": 87.2,
+        "cleanup_verified": true,
+        "fixture_rows_unchanged": true,
+        "database_postcheck_present": true,
+        "command_summary": "docs/verification/2026-09-09-release-reprepare-stable-capture-command.json",
+        "artifact_summary": "docs/verification/2026-09-09-release-reprepare-stable-capture-summary.json"
+      },
+      "screenshots": {
+        "docs/verification/2026-09-09-release-reprepare-confirm-desktop.png": "passed_opaque_readable_actions_visible_no_clipping",
+        "docs/verification/2026-09-09-release-reprepare-result-390.png": "passed_readable_no_page_overflow"
+      }
+    }
+  },
+  "snapshots": {
+    "full_patch": "/private/tmp/rcc-release-detail-reference/issue-62-final.patch",
+    "full_manifest": "/private/tmp/rcc-release-detail-reference/issue-62-final-manifest.json",
+    "file_hashes": "/private/tmp/rcc-release-detail-reference/issue-62-final-sha256.txt",
+    "standards_fix_incremental": "/private/tmp/rcc-release-detail-reference/issue-62-review-fix-incremental.patch"
+  },
+  "ready_to_commit": true,
+  "remaining": []
+}

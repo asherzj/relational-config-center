@@ -47,7 +47,7 @@ func TestReleasePublicationAddsFinalRow(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	reviewer := registerAccount(t, app, "publication.reviewer", "publication.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER","PUBLISHER"]`, "1", "publication-roles")
-	path := approvePublication(t, app, reviewer, `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"published","label":"","metadata":"null"}}]}`, "publication-add")
+	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"published","label":"","metadata":"null"}}]}`, "publication-add")
 	response := releaseActorRequest(t, app, reviewer, "POST", path+"/execute", `{"expected_version":"3"}`, "publication-execute")
 	if response.Code != 200 {
 		t.Fatalf("execute: %d %s", response.Code, response.Body)
@@ -118,7 +118,7 @@ func TestPublicationRejectsUntrackedCascade(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowDelete: true})
 	reviewer := registerAccount(t, app, "cascade.reviewer", "cascade.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "cascade-roles")
-	path := approvePublication(t, app, reviewer, `{"table_name":"mutation_delete_parents","items":[{"operation":"DELETE","id":"1","expected_record_version":"0","content":{}}]}`, "cascade")
+	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"DELETE","id":"1","expected_record_version":"0","content":{}}]}`, "cascade")
 	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "cascade-execute")
 	assertIntegrationErrorCode(t, response, 422, "publication_unsupported")
 	row, version := recordVersionRow(t, app, "mutation_delete_parents", "1")
@@ -147,7 +147,7 @@ func TestPublicationSupportsTargetRowTrigger(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	reviewer := registerAccount(t, app, "trigger.reviewer", "trigger.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "trigger-roles")
-	path := approvePublication(t, app, reviewer, `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"triggered","label":"intent"}}]}`, "trigger")
+	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"triggered","label":"intent"}}]}`, "trigger")
 	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "trigger-execute")
 	if response.Code != 200 {
 		t.Fatalf("target trigger: %d %s", response.Code, response.Body)
@@ -189,11 +189,11 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { app.Close() })
-	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
+	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowAdd: true, AllowModify: true})
 	reviewer := registerAccount(t, app, "atomic.reviewer", "atomic.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "atomic-roles")
-	path := approvePublication(t, app, reviewer, `{"table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"committed"}}]}`, "atomic")
-	for _, failure := range []struct{ table, event, condition string }{{"rcc_record_versions", "INSERT", "TRUE"}, {"rcc_publication_commands", "INSERT", "TRUE"}, {"rcc_table_publications", "UPDATE", "NEW.table_version>0"}, {"rcc_refresh_notifications", "INSERT", "TRUE"}, {"rcc_release_targets", "DELETE", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='SUCCEEDED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
+	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"committed"}},{"operation":"ADD","content":{"code":"new-atomic"}}]}`, "atomic")
+	for _, failure := range []struct{ table, event, condition string }{{"rcc_record_versions", "INSERT", "TRUE"}, {"rcc_publication_commands", "INSERT", "TRUE"}, {"rcc_table_publications", "UPDATE", "NEW.table_version>0"}, {"rcc_refresh_notifications", "INSERT", "TRUE"}, {"rcc_release_targets", "INSERT", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='SUCCEEDED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
 		t.Run(failure.table, func(t *testing.T) {
 			statement := fmt.Sprintf("CREATE TRIGGER fail_publication BEFORE %s ON %s FOR EACH ROW BEGIN IF %s THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='injected persistence failure'; END IF; END", failure.event, failure.table, failure.condition)
 			if _, err := owner.Exec(statement); err != nil {
@@ -303,7 +303,7 @@ func TestPublicationRejectsImplicitWritesAndAuditSpoofing(t *testing.T) {
 	for i, body := range []string{`INSERT INTO trigger_side_effect VALUES(1)`, `SET NEW.id=999`, `SET NEW.creator='spoofed'`, `SET NEW.executed_at='2000-01-01'`, `BEGIN SET NEW.label='changed'; INSERT INTO trigger_side_effect VALUES(1); END`, `SET @publication_side_effect=1`} {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			deliveryExec(t, db, "CREATE TRIGGER hidden_write BEFORE INSERT ON mutation_add_items FOR EACH ROW "+body)
-			path := approvePublication(t, app, reviewer, fmt.Sprintf(`{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"unsupported-%d","label":"intent"}}]}`, i), fmt.Sprintf("unsupported-%d", i))
+			path := approvePublication(t, app, reviewer, fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"unsupported-%d","label":"intent"}}]}`, i), fmt.Sprintf("unsupported-%d", i))
 			response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, fmt.Sprintf("unsupported-execute-%d", i))
 			assertIntegrationErrorCode(t, response, 422, "publication_unsupported")
 			var rows, effects int
@@ -316,7 +316,7 @@ func TestPublicationRejectsImplicitWritesAndAuditSpoofing(t *testing.T) {
 		})
 	}
 	// PROCESS is required for visibility of hidden cross-schema FK metadata.
-	path := approvePublication(t, app, reviewer, `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"permissions","label":"intent"}}]}`, "permissions")
+	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"permissions","label":"intent"}}]}`, "permissions")
 	deliveryExec(t, db, `REVOKE PROCESS ON *.* FROM 'rcc_admin'@'%'`)
 	// This fixture has no idle connections, so global privilege changes apply.
 	denied := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "permissions-execute")
@@ -334,7 +334,7 @@ func TestPublicationPublisherHistoryAndApprovalSurvivesRevocation(t *testing.T) 
 	publisher := registerAccount(t, app, "history.publisher", "history.publisher@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "history-reviewer-role")
 	grantReleaseRole(t, app, publisher, `["PUBLISHER"]`, "1", "history-publisher-role")
-	path := approvePublication(t, app, reviewer, `{"table_name":"mutation_auto_fill_items","items":[{"operation":"ADD","content":{"code":"history","status":"active","quantity":"1"}}]}`, "history")
+	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_auto_fill_items","items":[{"operation":"ADD","content":{"code":"history","status":"active","quantity":"1"}}]}`, "history")
 	grantReleaseRole(t, app, reviewer, `["VIEWER"]`, "2", "history-reviewer-revoked")
 	denied := releaseActorRequest(t, app, reviewer, "POST", path+"/execute", `{"expected_version":"3"}`, "revoked-execute")
 	assertIntegrationErrorCode(t, denied, 403, "permission_denied")
@@ -381,7 +381,7 @@ func TestPublicationFrozenChangesAndDescriptions(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_supplied_id_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true})
 	publishedFixtureCommand(t, publicationFixtureRequest(t, app, "ADD", "mutation_supplied_id_items", "", `{"content":{"id":"one","label":"initial"}}`))
 	reviewer := publicationFixtureReviewer(t, app)
-	path := approvePublication(t, app, reviewer, `{"table_name":"mutation_supplied_id_items","items":[{"operation":"MODIFY","id":"one","expected_record_version":"1","content":{"label":"approved"}}]}`, "frozen")
+	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_supplied_id_items","items":[{"operation":"MODIFY","id":"one","expected_record_version":"1","content":{"label":"approved"}}]}`, "frozen")
 	// The schema changed after approval. Failure retains the approved intent and target.
 	deliveryExec(t, db, `ALTER TABLE mutation_supplied_id_items MODIFY label varchar(65) NOT NULL`)
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "frozen-execute"), 409, "release_frozen_changed")
@@ -393,7 +393,8 @@ func TestPublicationFrozenChangesAndDescriptions(t *testing.T) {
 	}
 	success := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "frozen-execute")
 	publishedFixtureCommand(t, success)
-	path = approvePublication(t, app, reviewer, `{"table_name":"mutation_supplied_id_items","items":[{"operation":"MODIFY","id":"one","expected_record_version":"2","content":{"label":"stale"}}]}`, "stale-execution")
+	completePublicationFixture(t, app, path, "frozen-complete")
+	path = approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_supplied_id_items","items":[{"operation":"MODIFY","id":"one","expected_record_version":"2","content":{"label":"stale"}}]}`, "stale-execution")
 	deliveryExec(t, db, `UPDATE mutation_supplied_id_items SET label='newer' WHERE id='one'`)
 	deliveryExec(t, db, `UPDATE rcc_record_versions SET lock_version=lock_version+1 WHERE table_name='mutation_supplied_id_items'`)
 	stale := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "stale-execution")
@@ -411,7 +412,7 @@ func TestPublicationFrozenChangesAndDescriptions(t *testing.T) {
 	if cancelled.Code != 200 {
 		t.Fatal(cancelled.Body)
 	}
-	path = approvePublication(t, app, reviewer, `{"table_name":"mutation_supplied_id_items","items":[{"operation":"MODIFY","id":"one","expected_record_version":"3","content":{"label":"should stay newer"}}]}`, "disabled-valid")
+	path = approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_supplied_id_items","items":[{"operation":"MODIFY","id":"one","expected_record_version":"3","content":{"label":"should stay newer"}}]}`, "disabled-valid")
 	off := policyIntegrationRequest(t, app, "POST", "/api/v1/table-policies/mutation_supplied_id_items/disable", "")
 	if off.Code != 200 {
 		t.Fatal(off.Body)
@@ -441,7 +442,7 @@ func TestPublicationActionCompetitionAndTableOrder(t *testing.T) {
 	session := integrationAdminSession(t, app)
 	cookies, csrf := session.Result().Cookies(), sessionCSRF(t, session)
 	for i, actions := range [][]string{{"execute", "cancel"}, {"execute", "execute"}} {
-		path := approvePublication(t, app, reviewer, fmt.Sprintf(`{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"race-%d","label":"intent"}}]}`, i), fmt.Sprintf("race-%d", i))
+		path := approvePublication(t, app, reviewer, fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"race-%d","label":"intent"}}]}`, i), fmt.Sprintf("race-%d", i))
 		responses := make(chan *httptest.ResponseRecorder, 2)
 		for j, action := range actions {
 			go func(j int, action string) {
@@ -476,7 +477,7 @@ func TestPublicationActionCompetitionAndTableOrder(t *testing.T) {
 	}
 	paths := []string{}
 	for i := range 2 {
-		paths = append(paths, approvePublication(t, app, reviewer, fmt.Sprintf(`{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"ordered-%d","label":"intent"}}]}`, i), fmt.Sprintf("ordered-%d", i)))
+		paths = append(paths, approvePublication(t, app, reviewer, fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"ordered-%d","label":"intent"}}]}`, i), fmt.Sprintf("ordered-%d", i)))
 	}
 	responses := make(chan *httptest.ResponseRecorder, 2)
 	for i, path := range paths {
@@ -563,7 +564,7 @@ func TestPublicationRejectsUnknownNonAutoIncrementIdentity(t *testing.T) {
 	}
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "default_identity", mutationPolicyFixture{AllowAdd: true})
-	unknown := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"default_identity","items":[{"operation":"ADD","content":{"label":"default identity"}}]}`, "unknown-default-id")
+	unknown := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"default_identity","items":[{"operation":"ADD","content":{"label":"default identity"}}]}`, "unknown-default-id")
 	assertIntegrationErrorCode(t, unknown, 422, "publication_unsupported")
 	command := publishedFixtureCommand(t, publicationFixtureRequest(t, app, "ADD", "default_identity", "", `{"content":{"id":"1","label":"explicit identity"}}`))
 	if command.ID != "1" {
@@ -584,7 +585,7 @@ func TestPublicationStoredRowsAreVerifiedBeforeReadOrReplay(t *testing.T) {
 	t.Cleanup(func() { app.Close() })
 	db := deliveryDB(t, driver)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
-	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"verify-storage","label":"trusted"}}]}`, "verify-storage")
+	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"verify-storage","label":"trusted"}}]}`, "verify-storage")
 	publishedFixtureCommand(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "verify-storage-execute"))
 	id := strings.TrimPrefix(path, "/api/v1/release-orders/")
 	var original []byte

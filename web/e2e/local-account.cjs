@@ -18,10 +18,14 @@ function selectedBrowser(playwright) {
 }
 
 function browserOptions() {
-  if (process.env.RCC_E2E_ENGINE && !process.env.RCC_BROWSER_EXECUTABLE) return { headless: true };
-  return process.env.RCC_BROWSER_EXECUTABLE
-    ? { executablePath: process.env.RCC_BROWSER_EXECUTABLE, headless: true }
-    : { channel: 'chrome', headless: true };
+  const options = process.env.RCC_E2E_ENGINE && !process.env.RCC_BROWSER_EXECUTABLE
+    ? { headless: true }
+    : process.env.RCC_BROWSER_EXECUTABLE
+      ? { executablePath: process.env.RCC_BROWSER_EXECUTABLE, headless: true }
+      : { channel: 'chrome', headless: true };
+  return process.env.RCC_E2E_ENGINE === 'firefox'
+    ? { ...options, firefoxUserPrefs: { 'network.proxy.type': 0 } }
+    : options;
 }
 
 async function fixtureRoleAccount(context, baseURL, accountID) {

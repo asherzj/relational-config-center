@@ -3,7 +3,7 @@
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
-const { registerFixtureAccount, authenticatedRequest } = require('./local-account.cjs');
+const { browserOptions, registerFixtureAccount, authenticatedRequest } = require('./local-account.cjs');
 const fs = require('node:fs/promises');
 const { execFileSync } = require('node:child_process');
 
@@ -116,11 +116,13 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     order = await releaseWrite(approvalContext, `/api/v1/release-orders/${draft.id}/approve`, { expected_version: order.version, reason: 'Accessibility publication review' });
     assert.equal(order.history.find((event) => event.action === 'APPROVE')?.actor_id, approverAccount.accountID);
     assert.notEqual(order.applicant_id, approverAccount.accountID, 'approval must use a separate permanent account');
-    return releaseWrite(context, `/api/v1/release-orders/${draft.id}/execute`, { expected_version: order.version });
+    const result = await releaseWrite(context, `/api/v1/release-orders/${draft.id}/execute`, { expected_version: order.version });
+    await releaseWrite(context, `/api/v1/release-orders/${draft.id}/complete`, { expected_version: result.version });
+    return result;
   }
 
   try {
-    browser = await engine.launch({ headless: true });
+    browser = await engine.launch(browserOptions());
     context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     account = await registerFixtureAccount(context, base);
     approvalContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
@@ -245,7 +247,23 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await page.keyboard.press('Shift+Tab');
     assert.equal(await button('确认并保存草稿').evaluate((node) => node === document.activeElement), true);
     await page.keyboard.press('Tab');
-    assert.equal(await button('选择已有草稿').evaluate((node) => node === document.activeElement), true);
+    const releaseTitle = changeSet.getByRole('textbox', { name: '发布单标题', exact: true });
+    assert.equal(await releaseTitle.evaluate((node) => node === document.activeElement), true);
+    await page.keyboard.press('Tab');
+    const tabAfterReleaseTitle = await changeSet.evaluate((dialog) => {
+      const active = document.activeElement;
+      return {
+        insideTopModal: active instanceof Element && dialog.contains(active),
+        tagName: active?.tagName,
+        type: active instanceof HTMLInputElement || active instanceof HTMLButtonElement ? active.type : undefined,
+        id: active?.id,
+        ariaLabel: active?.getAttribute('aria-label'),
+        text: active?.textContent?.trim(),
+        tabIndex: active instanceof HTMLElement ? active.tabIndex : undefined,
+      };
+    });
+    assert.equal(tabAfterReleaseTitle.insideTopModal, true, `Tab from release title escaped the top Change Set: ${JSON.stringify(tabAfterReleaseTitle)}`);
+    assert.equal(tabAfterReleaseTitle.text, '选择已有草稿', `unexpected Tab target after release title: ${JSON.stringify(tabAfterReleaseTitle)}`);
     const changeScroll = page.locator('.change-set-scroll');
     const changeTableScroll = changeScroll.locator('[data-slot="table-container"]');
     assert.ok(await changeTableScroll.evaluate((node) => node.scrollWidth > node.clientWidth));
@@ -269,7 +287,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     }
     assert.ok((await pageOverflow()) <= 1);
     await page.screenshot({ path: `${output}/change-set-320.png` });
-    pass('320px Change Set owns horizontal/vertical overflow and keeps actions reachable', { keyboardPath: ['Shift+Tab -> 确认并保存草稿', 'Tab -> 选择已有草稿'], documentOverflow: await pageOverflow(), scrolling: changeScrollEvidence, footerActions: changeSetActions });
+    pass('320px Change Set owns horizontal/vertical overflow and keeps actions reachable', { keyboardPath: ['Shift+Tab -> 确认并保存草稿', 'Tab -> 发布单标题', 'Tab -> 选择已有草稿'], documentOverflow: await pageOverflow(), scrolling: changeScrollEvidence, footerActions: changeSetActions });
 
     await page.keyboard.press('Escape');
     const nestedLeave = page.getByRole('alertdialog', { name: '放弃未保存的修改？', exact: true });
@@ -306,15 +324,16 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     assert.equal(retained.publication, undefined);
     assert.equal(sql(`SELECT COUNT(*) FROM ${table} WHERE name=${literal(`stage5_${engineName}_invalid`)};`), '0');
     await page.reload();
-    await page.getByRole('heading', { name: `${table} · 已批准`, exact: true }).waitFor();
+    await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();
     await button('取消发布单').click();
     await page.getByRole('textbox', { name: '取消原因', exact: true }).fill('Correct the rejected value without changing the frozen intent');
     await button('确认取消发布单').click();
-    await page.getByRole('heading', { name: `${table} · 已取消`, exact: true }).waitFor();
+    await page.getByText(`${table} · 已取消`, { exact: true }).waitFor();
     await button('复制新草稿').click();
     await button('读取最新配置').click();
     await button('确认最新基线并复制').click();
-    await page.getByRole('heading', { name: `${table} · 草稿`, exact: true }).waitFor();
+    await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();
+    await page.getByText(`${table} · 草稿`, { exact: true }).waitFor();
     await button('编辑草稿').click();
     const copiedNote = page.getByRole('textbox', { name: 'note 申请值', exact: true });
     assert.equal(await copiedNote.getAttribute('readonly'), '');

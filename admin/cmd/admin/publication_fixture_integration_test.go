@@ -42,7 +42,9 @@ func publicationFixtureReviewer(t *testing.T, app *adminApplication) *httptest.R
 // approval/execute path. This fixture returns the actual HTTP response unchanged.
 // Failed approved fixture orders are checked then explicitly cancelled, so the
 // next independent assertion can use that target. Retention itself is covered
-// by TestPublicationAtomicPersistenceFailures without this cleanup.
+// by TestPublicationAtomicPersistenceFailures without this cleanup. Successful
+// fixtures explicitly complete before another independent mutation uses the record;
+// callers still receive the unmodified historical execute response.
 func publicationFixtureRequest(t *testing.T, app *adminApplication, operation, table, id, body string) *httptest.ResponseRecorder {
 	t.Helper()
 	key := fmt.Sprintf("fixture-publication-%d", publicationFixtureSequence.Add(1))
@@ -51,6 +53,12 @@ func publicationFixtureRequest(t *testing.T, app *adminApplication, operation, t
 		if err := json.Unmarshal([]byte(body), &payload); err != nil || payload == nil {
 			return releaseRequest(t, app, "POST", "/api/v1/release-orders", body, key)
 		}
+	}
+	title, exists := payload["title"]
+	if exists {
+		delete(payload, "title")
+	} else {
+		title, _ = json.Marshal(table + " fixture change")
 	}
 	item := map[string]any{"operation": operation, "content": json.RawMessage(`{}`)}
 	for name, value := range payload {
@@ -63,7 +71,7 @@ func publicationFixtureRequest(t *testing.T, app *adminApplication, operation, t
 	if operation != "ADD" {
 		item["id"] = id
 	}
-	input, _ := json.Marshal(map[string]any{"table_name": table, "items": []any{item}})
+	input, _ := json.Marshal(map[string]any{"title": title, "table_name": table, "items": []any{item}})
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", string(input), key+"-create")
 	if created.Code != 201 {
 		return created
@@ -93,6 +101,9 @@ func publicationFixtureRequest(t *testing.T, app *adminApplication, operation, t
 			t.Fatalf("fixture cancellation: %d %s", cancelled.Code, cancelled.Body)
 		}
 	}
+	if result.Code == 200 {
+		completePublicationFixture(t, app, path, key+"-complete")
+	}
 	return result
 }
 
@@ -119,4 +130,9 @@ func versionedPublicationFixture(t *testing.T, app *adminApplication, operation,
 		}
 	}
 	return publicationFixtureRequest(t, app, operation, table, id, body)
+}
+
+func completePublicationFixture(t *testing.T, app *adminApplication, path, key string) domain.ReleaseOrder {
+	t.Helper()
+	return rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/complete", `{"expected_version":"4"}`, key), 200)
 }

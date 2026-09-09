@@ -1,4 +1,4 @@
-import {releaseRequests,type DraftInput} from "../../api/release-orders";
+import {type DraftContentInput} from "../../api/release-orders";
 import {ReleaseItemPager,releasePageSize} from "../release-orders/ReleaseItemPager";
 import {useDraftDestination} from "../release-orders/useDraftDestination";
 import {Drawer} from "../../components/ui/Drawer";
@@ -156,11 +156,11 @@ export function ManagedDataPage() {
       protection.requestLeave(() => changes.send(intent));
     } else changes.send(intent);
   };
- const saveDraft=async(input:DraftInput)=>{
+ const saveDraft=async(input:DraftContentInput)=>{
   if(saving||draftWrite.pending)return;setSaving(true);
   try{
-   const request=draftWrite.unresolved?releaseRequests.create(input):await destination.prepare(input);if(!request)return;
-   const saved=await draftWrite.send({...request,label:`保存 ${selectedTable} 草稿`});
+   const request=draftWrite.unresolved?undefined:await destination.prepare(input);
+   const saved=draftWrite.unresolved?await draftWrite.retry():request?await draftWrite.send({...request,label:`保存 ${selectedTable} 草稿`}):undefined;
    if(saved)protection.afterSave(()=>{changes.send({type:"cancel-pending"});setBatchReview(false);setSelectedRows(new Map());navigate(`/configuration/release-orders/${saved.id}`)});
   }finally{setSaving(false)}
  };
@@ -406,7 +406,7 @@ export function ManagedDataPage() {
             onReview={(content) => changes.send({ type: "review-content", content })}
           />}
           <ChangeSetDialog
-            draftAction={<Button disabled={!canEdit||changes.view.reviewDisabled||saving||draftWrite.pending||draftRecordConflict} onClick={()=>{if(changes.view.draftInput)void saveDraft(changes.view.draftInput)}}>{draftWrite.pending?"正在保存草稿…":draftWrite.unresolved?"使用原请求重试":"确认并保存草稿"}</Button>}
+            draftAction={<Button disabled={!canEdit||!destination.valid||changes.view.reviewDisabled||saving||draftWrite.pending||draftRecordConflict} onClick={()=>{if(changes.view.draftInput)void saveDraft(changes.view.draftInput)}}>{draftWrite.pending?"正在保存草稿…":draftWrite.unresolved?"使用原请求重试":"确认并保存草稿"}</Button>}
             draftLocked={draftWrite.pending||draftWrite.unresolved}
             draftFeedback={<>{destination.picker(saving||draftWrite.pending||draftWrite.unresolved)}{draftWrite.unresolved&&<p role="alert">草稿保存结果待确认。原请求已保留，刷新后仍可找回。</p>}</>}
 
@@ -422,7 +422,7 @@ export function ManagedDataPage() {
             onEdit={() => changes.send({ type: "edit-pending" })}
             onCancel={() => send({ type: "cancel-pending" })}
           />
-    {batchReview&&<Drawer open eyebrow="发布草稿" title="删除所选记录" onClose={()=>{if(!saving&&!draftWrite.pending&&!draftWrite.unresolved)setBatchReview(false)}} footer={<><Button disabled={saving||draftWrite.pending||draftWrite.unresolved} onClick={()=>setBatchReview(false)}>取消删除</Button><Button disabled={!canEdit||Boolean(capabilityReasons.DELETE)||saving||draftWrite.pending} onClick={()=>void saveDraft({table_name:selectedTable,items:Array.from(selectedRows.values()).map(row=>({operation:"DELETE",id:row.id,expected_record_version:row.version,content:{}}))})}>{draftWrite.unresolved?"使用原请求重试":"确认并保存草稿"}</Button></>}><p>将所选 {selectedRows.size} 项加入同表草稿。现在不会删除配置。</p><fieldset disabled={saving||draftWrite.pending||draftWrite.unresolved}><ReleaseItemPager count={selectedRows.size} page={batchPage} onPage={setBatchPage} label="待删除明细"/></fieldset><ol start={batchPage*releasePageSize+1}>{Array.from(selectedRows.values()).slice(batchPage*releasePageSize,(batchPage+1)*releasePageSize).map((row,index)=><li key={row.id}>明细 {batchPage*releasePageSize+index+1} · 记录 {row.id} · 记录基线 {row.version}</li>)}</ol>{destination.picker(saving||draftWrite.pending||draftWrite.unresolved)}{Boolean(draftWrite.error)&&<ErrorState error={draftWrite.error}/>}</Drawer>}
+    {batchReview&&<Drawer open eyebrow="发布草稿" title="删除所选记录" onClose={()=>{if(!saving&&!draftWrite.pending&&!draftWrite.unresolved)setBatchReview(false)}} footer={<><Button disabled={saving||draftWrite.pending||draftWrite.unresolved} onClick={()=>setBatchReview(false)}>取消删除</Button><Button disabled={!canEdit||!destination.valid||Boolean(capabilityReasons.DELETE)||saving||draftWrite.pending} onClick={()=>void saveDraft({table_name:selectedTable,items:Array.from(selectedRows.values()).map(row=>({operation:"DELETE",id:row.id,expected_record_version:row.version,content:{}}))})}>{draftWrite.unresolved?"使用原请求重试":"确认并保存草稿"}</Button></>}><p>将所选 {selectedRows.size} 项加入同表草稿。现在不会删除配置。</p><fieldset disabled={saving||draftWrite.pending||draftWrite.unresolved}><ReleaseItemPager count={selectedRows.size} page={batchPage} onPage={setBatchPage} label="待删除明细"/></fieldset><ol start={batchPage*releasePageSize+1}>{Array.from(selectedRows.values()).slice(batchPage*releasePageSize,(batchPage+1)*releasePageSize).map((row,index)=><li key={row.id}>明细 {batchPage*releasePageSize+index+1} · 记录 {row.id} · 记录基线 {row.version}</li>)}</ol>{destination.picker(saving||draftWrite.pending||draftWrite.unresolved)}{Boolean(draftWrite.error)&&<ErrorState error={draftWrite.error}/>}</Drawer>}
     </main>
   );
 }

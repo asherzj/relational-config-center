@@ -165,7 +165,7 @@ function fixtureSQL() {
     assert.equal(currentOrder.state, 'DRAFT');
     assert.deepEqual(currentOrder.items[0].content, values, 'stored draft must retain the exact submitted content');
     await page.waitForURL(`**/configuration/release-orders/${currentOrder.id}`);
-    await page.getByRole('heading', { name: `${table} · 草稿`, exact: true }).waitFor();
+    await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();
 
     const submitted = await api(context, 'POST', `/api/v1/release-orders/${currentOrder.id}/submit`, { expected_version: currentOrder.version }, expectedFailures.length ? [200, ...expectedFailures] : 200);
     if (submitted.status !== 200) {
@@ -199,7 +199,7 @@ function fixtureSQL() {
       assert.equal(currentOrder.state, 'APPROVED', 'failed publication keeps the approved release retryable');
       assert.deepEqual(currentOrder.items[0].content, values, 'failed publication retains the exact approved input');
       await page.reload();
-      await page.getByRole('heading', { name: `${table} · 已批准`, exact: true }).waitFor();
+      await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();
       return { ...result, stage: 'publication', order: currentOrder, beforePublication, afterPublication };
     }
     currentOrder = result.response;
@@ -207,7 +207,10 @@ function fixtureSQL() {
     assert.equal(currentOrder.publication.commands.length, 1);
     assert.equal(currentOrder.publication.commands[0].operation, operation);
     await page.reload();
-    await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+    await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();
+    await page.getByText(`${table} · 已发布待完结`, { exact: true }).waitFor();
+    // Finish each independent data fixture before a later case uses its identity.
+    await api(publisher, 'POST', `/api/v1/release-orders/${currentOrder.id}/complete`, { expected_version: currentOrder.version });
     return { ...result, response: { ...result.response, id: currentOrder.publication.commands[0].id }, stage: 'publication' };
   }
   async function closeSuccess(operation, expected, commandExpected = expected) {
@@ -508,7 +511,7 @@ function fixtureSQL() {
       const table = 'stage4_explicit_ids';
       sql(`DROP TABLE ${table}; CREATE TABLE ${table}(id DECIMAL(6,2) PRIMARY KEY, label VARCHAR(64)) ENGINE=MyISAM;`);
       const values = { id: '1.235', label: 'nontransactional' };
-      const response = await api(context, 'POST', '/api/v1/release-orders', { table_name: table, items: [{ operation: 'ADD', content: values }] }, 422);
+      const response = await api(context, 'POST', '/api/v1/release-orders', { title: `${table} capability check`, table_name: table, items: [{ operation: 'ADD', content: values }] }, 422);
       assert.equal(response.response.error.code, 'incompatible_table');
       assert.equal(sql(`SELECT COUNT(*) FROM ${table};`), '0', 'a known rejection must leave no persisted row');
       return { engine: 'MyISAM', status: response.status, code: response.response.error.code, rows: '0' };

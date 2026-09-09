@@ -484,7 +484,7 @@ type identityGuardPublication struct {
 func (p *identityGuardPublication) approve(ctx context.Context, table string, content domain.MutationContent) (domain.ReleaseOrder, string, error) {
 	p.sequence++
 	key := fmt.Sprintf("identity-guard-%d", p.sequence)
-	order, err := p.orders.Create(ctx, application.DraftInput{TableName: table, Items: []application.DraftItemInput{{Operation: "ADD", Content: content}}}, key+"-create")
+	order, err := p.orders.Create(ctx, application.DraftInput{Title: "身份保护测试发布单", TableName: table, Items: []application.DraftItemInput{{Operation: "ADD", Content: content}}}, key+"-create")
 	if err != nil {
 		return order, key, err
 	}

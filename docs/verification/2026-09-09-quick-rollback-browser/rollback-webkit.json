@@ -1,0 +1,26 @@
+{
+  "checks": [
+    "separate EDITOR, APPROVER and PUBLISHER accounts complete the forward publication",
+    "completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration",
+    "a lost rollback response recovers the same linked read-only draft with the original request key and reason",
+    "the reverse order needs a fresh independent approval and publication before restoring the actual row and both links",
+    "original and reverse detail links remain visible at 390px without horizontal overflow",
+    "quick rollback is publisher-only, reviews actual current and restoration values, requires a reason and cancels without writes on desktop and 390px",
+    "quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish both orders",
+    "a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends"
+  ],
+  "original_order_id": "a70d2ac9b39b19a6226711bd3b0c4542",
+  "reverse_order_id": "2f06478a30a4fea7c0f3eb03dad7951a",
+  "original_state": "ROLLED_BACK",
+  "reverse_state": "COMPLETED",
+  "rollback_request_replayed_with_same_key": true,
+  "restored_record_version": "2",
+  "quick_original_order_id": "7db7ed60cc2fbbc91ce3c14bb698eeb5",
+  "quick_reverse_order_id": "a989fb03b62aa7a0b687eedab1672632",
+  "quick_actual_publisher_id": "df9cb6c6-9b92-4604-9464-733ac8f5b9ef",
+  "quick_request_replayed_with_same_key_body": true,
+  "quick_preview_reads": 2,
+  "quick_restored_record_version": "4",
+  "competition_completed_order_id": "a5c393fc80f8ff72915d444052fcf596",
+  "browser_errors": []
+}

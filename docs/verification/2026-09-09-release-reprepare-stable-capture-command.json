@@ -1,0 +1,11 @@
+{
+  "worktree": "/private/tmp/rcc-issue-62-reprepare",
+  "command": [
+    "make",
+    "test-browser-acceptance"
+  ],
+  "started_at": "2026-09-08T23:36:15.427901+00:00",
+  "finished_at": "2026-09-08T23:37:42.630114+00:00",
+  "elapsed_seconds": 87.2,
+  "exit_code": 0
+}

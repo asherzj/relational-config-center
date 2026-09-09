@@ -1,0 +1,1077 @@
+{
+  "feature_issue": 64,
+  "parent_spec_issue": 59,
+  "feature_base": "e3b68383bea425f3258f726d34a967ef6b1aa61c",
+  "latest_product_candidate": "V5; V6/V7 modify only E2E locators, key hold duration and verification documentation",
+  "web": {
+    "command": "pnpm --dir web test:run",
+    "log": "rcc-64-web-v7.log",
+    "exit_code": 0,
+    "tests": 330,
+    "files": 28,
+    "duration_seconds": 21.6
+  },
+  "web_other_checks": {
+    "typecheck": 0,
+    "build": 0,
+    "test_dev": {
+      "exit_code": 0,
+      "tests": 2
+    }
+  },
+  "mysql": {
+    "worktree": "/private/tmp/rcc-issue-64-release-detail",
+    "command": "NO_PROXY=127.0.0.1,localhost GOFLAGS=... -json make test-integration",
+    "loopback_proxy_bypass": "127.0.0.1,localhost",
+    "exit_code": 0,
+    "elapsed_seconds": 2084.226,
+    "test_and_subtest_results": {
+      "PASS": 533,
+      "FAIL": 0,
+      "SKIP": 0
+    }
+  },
+  "go_test": {
+    "worktree": "/private/tmp/rcc-issue-64-release-detail",
+    "command": [
+      "make",
+      "test"
+    ],
+    "started_at": "2026-09-09T00:59:32.397154+00:00",
+    "finished_at": "2026-09-09T00:59:56.125834+00:00",
+    "elapsed_seconds": 23.728,
+    "exit_code": 0
+  },
+  "go_build": {
+    "worktree": "/private/tmp/rcc-issue-64-release-detail",
+    "command": [
+      "make",
+      "build"
+    ],
+    "started_at": "2026-09-09T00:59:32.891399+00:00",
+    "finished_at": "2026-09-09T00:59:35.248621+00:00",
+    "elapsed_seconds": 2.357,
+    "exit_code": 0
+  },
+  "reviews": {
+    "merge": {
+      "standards_hard": 0,
+      "spec": 0
+    },
+    "feature_accepted_p3": [
+      "useReleaseWrite scope.split primitive obsession",
+      "ReleaseProgress lifecycle repeated switches",
+      "screenshot capture sequence duplication"
+    ],
+    "latest_incremental": {
+      "source": "V6 to V7 independent Standards / Spec",
+      "standards_hard": 0,
+      "new_subjective": 0,
+      "spec_blockers": 0
+    }
+  },
+  "browser": {
+    "artifact": "/private/tmp/rcc-issue-64-three-engine-v3-20260909",
+    "exit_status": 0,
+    "cleanup_verified": true,
+    "elapsed_seconds": 489.0,
+    "suites": [
+      {
+        "path": "unsaved-changes/result.json",
+        "ok": true,
+        "checks": 14,
+        "page_errors": [],
+        "failure": null
+      },
+      {
+        "path": "rule-clarity/result.json",
+        "ok": true,
+        "checks": 6,
+        "page_errors": [],
+        "failure": null
+      },
+      {
+        "path": "write-recovery/result.json",
+        "ok": true,
+        "checks": 28,
+        "page_errors": [],
+        "failure": null
+      },
+      {
+        "path": "operation-coverage/result.json",
+        "ok": true,
+        "checks": 20,
+        "page_errors": [],
+        "failure": null
+      },
+      {
+        "path": "complex-fields/result.json",
+        "ok": true,
+        "checks": 42,
+        "page_errors": [],
+        "failure": null
+      },
+      {
+        "path": "browser-accessibility/chromium/result.json",
+        "ok": true,
+        "checks": 7,
+        "page_errors": [],
+        "failure": null
+      },
+      {
+        "path": "browser-accessibility/firefox/result.json",
+        "ok": true,
+        "checks": 7,
+        "page_errors": [],
+        "failure": null
+      },
+      {
+        "path": "browser-accessibility/webkit/result.json",
+        "ok": true,
+        "checks": 7,
+        "page_errors": [],
+        "failure": null
+      },
+      {
+        "path": "release-workflow/drafts/runner.log",
+        "ok": true,
+        "checks": 6,
+        "browser_errors": null
+      },
+      {
+        "path": "release-workflow/approvals/runner.log",
+        "ok": true,
+        "checks": 9,
+        "browser_errors": null
+      },
+      {
+        "path": "release-workflow/batches/runner.log",
+        "ok": true,
+        "checks": 5,
+        "browser_errors": null
+      },
+      {
+        "path": "release-workflow/rollback-chromium/runner.log",
+        "ok": true,
+        "checks": 10,
+        "browser_errors": null
+      },
+      {
+        "path": "release-workflow/recovery-chromium/runner.log",
+        "ok": true,
+        "checks": 21,
+        "browser_errors": null
+      },
+      {
+        "path": "release-workflow/rollback-firefox/runner.log",
+        "ok": true,
+        "checks": 10,
+        "browser_errors": null
+      },
+      {
+        "path": "release-workflow/recovery-firefox/runner.log",
+        "ok": true,
+        "checks": 21,
+        "browser_errors": null
+      },
+      {
+        "path": "release-workflow/rollback-webkit/runner.log",
+        "ok": true,
+        "checks": 10,
+        "browser_errors": null
+      },
+      {
+        "path": "release-workflow/recovery-webkit/runner.log",
+        "ok": true,
+        "checks": 21,
+        "browser_errors": null
+      }
+    ],
+    "total_named_checks": 244,
+    "missing": [],
+    "fixture_rows_unchanged": true,
+    "database_postcheck_present": true,
+    "ok": true
+  },
+  "finish_review": {
+    "disposition": "ship",
+    "report": "2026-09-09-release-detail-visual-review.md",
+    "sha256": "a4b22b584d66ffece70b40f6c41c1d87c0e8e47906544b50891c20df6fccc400",
+    "scope": "four stable Chromium views; final fullall v3 evidence version confirmed independently"
+  },
+  "source_candidate_v7": {
+    "base": "e3b68383bea425f3258f726d34a967ef6b1aa61c",
+    "patch_sha256": "ff4a8415c2f887dcd68db3adc648a38fb7cb9e3546779bcd21e8d79f2074e42e",
+    "files": {
+      "docs/admin-release-approvals.md": "cdec792241279e6dd1f8063780714b403500c1a3a15e65d9f23da985ecd6b34c",
+      "web/DESIGN.md": "7c2cd5671cc252570ea8759e6b6dbc2a5c3424a406b2362d5b42ab4e4ee66253",
+      "web/e2e/release-approvals.cjs": "1db1dccf76e473496162b0fb9901050e72eb4e0cfb76651c099f0f386d242895",
+      "web/e2e/release-rollbacks.cjs": "d0498b9dc51f873f50df339f6201a5c778bcb5c5401de151d7b79ddf4be97695",
+      "web/src/components/shadcn/table.tsx": "c1ef6c38309cc9a0d232cf8eca9e02151e649e769dcc3dee11f2db1df7685e3a",
+      "web/src/features/release-orders/QuickRollbackDialog.tsx": "545a50e9289c535fa28215b64f17c4c50c257aead06a043fef437f2fbe045cf5",
+      "web/src/features/release-orders/ReleaseActionDialog.tsx": "c9731d275005609ee497ee52b4f6f15fcd3e925913d4b6d3e711cc21bb205cba",
+      "web/src/features/release-orders/ReleaseDiff.test.tsx": "ff6e4eb6f31ea62eee6acd1469d242c34ec0a115249a8c534beba2402563504b",
+      "web/src/features/release-orders/ReleaseDiff.tsx": "f2788973acade877f60a5cd0819a3a5a07c8a90990e355c812cf1ccb1d5a0a7c",
+      "web/src/features/release-orders/ReleaseDraftEditor.tsx": "85454b28d550da7ead2807c80e5a427c4defbbf1e7aae41d93fc7ea5deff33a4",
+      "web/src/features/release-orders/ReleaseOrdersPage.test.tsx": "da537538a2953d6040979fac967f094df100f87b755958e1ba801ecf697b0b1b",
+      "web/src/features/release-orders/ReleaseOrdersPage.tsx": "ecb19893d7b509400e3fa6268169cc99d6e8aeb359af7e3cddc3c381876327a4",
+      "web/src/features/release-orders/ReleasePerson.tsx": "df6d6e2a48c2423f0ae31f9e753bbce2b8f095ecaeb887bddd1b700c19659d08",
+      "web/src/features/release-orders/ReleaseRecovery.tsx": "c9481220150defc60132ef042760d4a13cdbeb712d9825e729a95851c9cbdbef",
+      "web/src/features/release-orders/release-journal.ts": "477eb32f47a0237271893f6dcf6d05308074444c08def6b18c173978cbd7d382",
+      "web/src/features/release-orders/useReleaseWrite.ts": "729d2ade0e79eb8df3811cddf67d47d74e0fff9986907401c36408dbd4cf1d65",
+      "web/src/styles.css": "029155c24b87a07a69e658e8543071de9901d6100140580933a8e2ed6d69ae66",
+      "docs/verification/2026-09-09-release-detail.md": "469bd93e4a0830115dc8f8963971a701f0d948a82308832333510301a04ce154",
+      "web/src/features/release-orders/ReleaseHistory.tsx": "0622c3550b9c48ac65efa7a9a57d83e3584f12c19bb8732e8c8e2352e365f9f2",
+      "web/src/features/release-orders/ReleaseProgress.tsx": "8c054c8e489fd2ce7002cfd89092111c14ee97a0f4e5e6684c85df86113bfd6a",
+      "web/src/features/release-orders/ReleaseReview.tsx": "5fc2e94dc3cc6c5e0ebe87cd944d43363e31e53e8f2d22dfbfbebdf26035439a",
+      "web/src/features/release-orders/ReleaseTime.tsx": "1c02a3ed9922ec94e15bb6f84395c3e972880ab38a826cce4f0b7648f6834032"
+    }
+  },
+  "go_browser": {
+    "worktree": "/private/tmp/rcc-issue-64-release-detail",
+    "command": [
+      "make",
+      "test-browser"
+    ],
+    "started_at": "2026-09-09T03:16:56.594483+00:00",
+    "finished_at": "2026-09-09T03:19:19.230270+00:00",
+    "elapsed_seconds": 142.636,
+    "exit_code": 0
+  },
+  "browser_acceptance_run": {
+    "worktree": "/private/tmp/rcc-issue-64-release-detail",
+    "command": [
+      "make",
+      "test-browser-acceptance"
+    ],
+    "started_at": "2026-09-09T03:20:06.111520+00:00",
+    "finished_at": "2026-09-09T03:28:15.100366+00:00",
+    "elapsed_seconds": 488.99,
+    "exit_code": 0
+  },
+  "documenter": {
+    "disposition": "no-op",
+    "scope": "现有唯一 web/DESIGN 与冻结产品及稳定图一致；设计文档无需修改",
+    "source_sha256": "d1e9121cec0009c104622ef84da8c60f4a355a68e5d0cabf01e95ab627ef661e",
+    "review_time_boundary": "记录生成在最终全量runner退出前；最终功能验收由browser_acceptance_run单独证明"
+  },
+  "screenshots": [
+    {
+      "file": "2026-09-09-release-detail-approved-desktop.png",
+      "source": "/private/tmp/rcc-issue-64-three-engine-v3-20260909/release-workflow/approvals/release-detail-approved-desktop.png",
+      "sha256": "6984e0e5df55d1ff20c35fc3290de74f910198c58e29c207776c3083c8995975"
+    },
+    {
+      "file": "2026-09-09-release-detail-approved-390.png",
+      "source": "/private/tmp/rcc-issue-64-three-engine-v3-20260909/release-workflow/approvals/release-detail-approved-390.png",
+      "sha256": "69a06d04cb55059cc1d0c1b6939cf14e39d7fbf4dad270f42ed2c600d8ed2ee0"
+    },
+    {
+      "file": "2026-09-09-release-detail-original-result-390.png",
+      "source": "/private/tmp/rcc-issue-64-three-engine-v3-20260909/release-workflow/rollback-chromium/release-rollback-original-mobile.png",
+      "sha256": "4a79f89fb9bff48edd298321b278239af630ed962489045410e1cad47ac9291d"
+    },
+    {
+      "file": "2026-09-09-release-detail-restoration-390.png",
+      "source": "/private/tmp/rcc-issue-64-three-engine-v3-20260909/release-workflow/rollback-chromium/release-quick-rollback-result-mobile.png",
+      "sha256": "367f48a4a7860989c68fd225a30ddfd6ec6ac147f25912c200305d93b88fb7bb"
+    }
+  ],
+  "backend_freeze": {
+    "base": "e3b68383bea425f3258f726d34a967ef6b1aa61c",
+    "checked_inputs": 148,
+    "mismatches": [],
+    "additional_inputs": [],
+    "unchanged_during_full_run": true
+  },
+  "red_green_logs": {
+    "rcc-64-web-v7.log": {
+      "sha256": "9f5f63068da4dbe3866ada535fa8761a700c55048808386d26661140ecc617eb",
+      "bytes": 350
+    },
+    "rcc-64-results-green.log": {
+      "sha256": "03b0d11dfae140237427092500ea2eacc20acb3ea4dd6c372620b8cd62377161",
+      "bytes": 247
+    },
+    "rcc-64-diff-green.log": {
+      "sha256": "4f34017e94d47e54ed02b43b170a6e122a7f3bc6d9cfdca0a18534dd935da9f4",
+      "bytes": 232
+    },
+    "rcc-64-stage-people-red.log": {
+      "sha256": "b6f05a81a0d8e011ddc2829f8eb88acaf73870f84625adde6f8e4412dca00eed",
+      "bytes": 3458
+    },
+    "rcc-64-exclusion-red.log": {
+      "sha256": "a5ec6932d0f7e0a9e08df141f23897b2b4930f6447f5c5fd6be386f1d9faa190",
+      "bytes": 2134
+    },
+    "rcc-64-stages-green.log": {
+      "sha256": "2390c64cb6aa0e5e413731c4c79ceeac990bbf382788b17afec14bd247ce55ea",
+      "bytes": 247
+    },
+    "rcc-64-exclusion-green.log": {
+      "sha256": "9ef45a5194b50bf763828c79f84448d3f5a01cf6f463749047ccef95e24e5bc7",
+      "bytes": 247
+    },
+    "rcc-64-reprepare-session-green.log": {
+      "sha256": "0cca6d826da86d1a245055e1910ed5f90e8f3af94137785a64028dfa82422795",
+      "bytes": 247
+    },
+    "rcc-64-stage-people-green.log": {
+      "sha256": "35f78f0d9e3ba19fe8646bf2a3909bdbe172410b4fefe288b27de2e6f08d3c78",
+      "bytes": 247
+    },
+    "rcc-64-stages-red.log": {
+      "sha256": "e88f7be2987d62a37b0aaa2b5da1e22e751e8f8e22f5d580af45c0e688d8aa2e",
+      "bytes": 15260
+    },
+    "rcc-64-diff-red.log": {
+      "sha256": "b13fcf87e9f45155e9e165071194f6b6e4cda0d24a46d6e69bcd0d3628742c71",
+      "bytes": 19306
+    },
+    "rcc-64-keyboard-scroll-green.log": {
+      "sha256": "b1c1a899edd54b836fc6a68f0bd04d4cbe6ae6d72eed00e4f51aa3cd82c43ce2",
+      "bytes": 232
+    },
+    "rcc-64-omitted-red.log": {
+      "sha256": "ca7b9bc63e24cc400d529ec123717231063de89a65eff467aa53f696e0838752",
+      "bytes": 1251
+    },
+    "rcc-64-omitted-green.log": {
+      "sha256": "175706fb49241407aca5e35a36ba4aad942fd44602289fb91fe90072abaddea0",
+      "bytes": 232
+    },
+    "rcc-64-results-red.log": {
+      "sha256": "eb564ec1d8cfce5ff3dcb1cba3933cf56180b5391df0782038de949372bdcabd",
+      "bytes": 943
+    },
+    "rcc-64-build-v7.log": {
+      "sha256": "f344ee5d3d37d34ae6709a280df314a757c566e422b7854f4df121dfa5145017",
+      "bytes": 719
+    },
+    "rcc-64-keyboard-scroll-red.log": {
+      "sha256": "e210718cfb2d162def5e64982c923f8bbb3f3f08326109d01edf27075a8916f0",
+      "bytes": 16032
+    },
+    "rcc-64-testdev-v7.log": {
+      "sha256": "455ebf10a191870e4d253dd632c7de317e35c11055709ef7352dc64e264b86ab",
+      "bytes": 447
+    },
+    "rcc-64-typecheck-v7.log": {
+      "sha256": "39415af2bd8464ea8aabf6d9c4242fb0f21e3daf7a486fc53277ca4a09cdfccd",
+      "bytes": 110
+    }
+  },
+  "diagnostics": {
+    "clipboard_permission": [
+      {
+        "grant": false,
+        "iteration": 1,
+        "exit_code": 1,
+        "elapsed_seconds": 1.696,
+        "output": "{\"variant\":\"chromium\",\"before\":{\"focus\":true,\"secure\":true,\"clipboard\":true,\"permission\":\"prompt\"},\"result\":\"复制失败:NotAllowedError:Failed to execute 'writeText' on 'Clipboard': Write permission denied.\"}\n{\"variant\":\"chrome\",\"before\":{\"focus\":true,\"secure\":true,\"clipboard\":true,\"permission\":\"granted\"},\"result\":\"已复制发布单号\"}",
+        "error": ""
+      },
+      {
+        "grant": false,
+        "iteration": 2,
+        "exit_code": 1,
+        "elapsed_seconds": 1.595,
+        "output": "{\"variant\":\"chromium\",\"before\":{\"focus\":true,\"secure\":true,\"clipboard\":true,\"permission\":\"prompt\"},\"result\":\"复制失败:NotAllowedError:Failed to execute 'writeText' on 'Clipboard': Write permission denied.\"}\n{\"variant\":\"chrome\",\"before\":{\"focus\":true,\"secure\":true,\"clipboard\":true,\"permission\":\"granted\"},\"result\":\"已复制发布单号\"}",
+        "error": ""
+      },
+      {
+        "grant": false,
+        "iteration": 3,
+        "exit_code": 1,
+        "elapsed_seconds": 1.492,
+        "output": "{\"variant\":\"chromium\",\"before\":{\"focus\":true,\"secure\":true,\"clipboard\":true,\"permission\":\"prompt\"},\"result\":\"复制失败:NotAllowedError:Failed to execute 'writeText' on 'Clipboard': Write permission denied.\"}\n{\"variant\":\"chrome\",\"before\":{\"focus\":true,\"secure\":true,\"clipboard\":true,\"permission\":\"granted\"},\"result\":\"已复制发布单号\"}",
+        "error": ""
+      },
+      {
+        "grant": true,
+        "iteration": 1,
+        "exit_code": 0,
+        "elapsed_seconds": 1.624,
+        "output": "{\"variant\":\"chromium\",\"before\":{\"focus\":true,\"secure\":true,\"clipboard\":true,\"permission\":\"granted\"},\"result\":\"已复制发布单号\"}\n{\"variant\":\"chrome\",\"before\":{\"focus\":true,\"secure\":true,\"clipboard\":true,\"permission\":\"granted\"},\"result\":\"已复制发布单号\"}",
+        "error": ""
+      },
+      {
+        "grant": true,
+        "iteration": 2,
+        "exit_code": 0,
+        "elapsed_seconds": 1.684,
+        "output": "{\"variant\":\"chromium\",\"before\":{\"focus\":true,\"secure\":true,\"clipboard\":true,\"permission\":\"granted\"},\"result\":\"已复制发布单号\"}\n{\"variant\":\"chrome\",\"before\":{\"focus\":true,\"secure\":true,\"clipboard\":true,\"permission\":\"granted\"},\"result\":\"已复制发布单号\"}",
+        "error": ""
+      },
+      {
+        "grant": true,
+        "iteration": 3,
+        "exit_code": 0,
+        "elapsed_seconds": 1.591,
+        "output": "{\"variant\":\"chromium\",\"before\":{\"focus\":true,\"secure\":true,\"clipboard\":true,\"permission\":\"granted\"},\"result\":\"已复制发布单号\"}\n{\"variant\":\"chrome\",\"before\":{\"focus\":true,\"secure\":true,\"clipboard\":true,\"permission\":\"granted\"},\"result\":\"已复制发布单号\"}",
+        "error": ""
+      }
+    ],
+    "field_rowheader": [
+      {
+        "semantic": false,
+        "exit": 1,
+        "output": "{\"legacyCount\":0,\"roleCount\":1,\"headers\":[\"iduint64\"],\"aria\":\"- table:\\n  - rowgroup:\\n    - row \\\"id uint64 2 未提交\\\":\\n      - rowheader \\\"id uint64\\\"\\n      - cell \\\"2\\\"\\n      - cell \\\"未提交\\\"\"}",
+        "error": ""
+      },
+      {
+        "semantic": true,
+        "exit": 0,
+        "output": "{\"legacyCount\":0,\"roleCount\":1,\"headers\":[\"iduint64\"],\"aria\":\"- table:\\n  - rowgroup:\\n    - row \\\"id uint64 2 未提交\\\":\\n      - rowheader \\\"id uint64\\\"\\n      - cell \\\"2\\\"\\n      - cell \\\"未提交\\\"\"}",
+        "error": ""
+      }
+    ],
+    "keyboard_discarded_feedback": [
+      {
+        "settled": false,
+        "iteration": 1,
+        "exit_code": 1,
+        "seconds": 4.769,
+        "measurements": [
+          {
+            "name": "webkit",
+            "values": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "bounds": {
+              "left": 0,
+              "width": 342,
+              "total": 560,
+              "right": 584,
+              "edge": 366
+            }
+          },
+          {
+            "name": "chromium",
+            "values": [
+              0,
+              0,
+              6,
+              6,
+              9,
+              9,
+              13,
+              13,
+              13,
+              13,
+              19,
+              19
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          },
+          {
+            "name": "firefox",
+            "values": [
+              1,
+              5,
+              19,
+              35,
+              53,
+              75,
+              107,
+              130,
+              174,
+              181,
+              194,
+              200
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          }
+        ],
+        "error": ""
+      },
+      {
+        "settled": false,
+        "iteration": 2,
+        "exit_code": 1,
+        "seconds": 4.64,
+        "measurements": [
+          {
+            "name": "webkit",
+            "values": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              1,
+              1
+            ],
+            "bounds": {
+              "left": 41,
+              "width": 342,
+              "total": 560,
+              "right": 543,
+              "edge": 366
+            }
+          },
+          {
+            "name": "chromium",
+            "values": [
+              0,
+              0,
+              6,
+              6,
+              8,
+              8,
+              8,
+              13,
+              13,
+              13,
+              20,
+              20
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          },
+          {
+            "name": "firefox",
+            "values": [
+              0,
+              13,
+              13,
+              25,
+              25,
+              34,
+              56,
+              73,
+              126,
+              138,
+              163,
+              190
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          }
+        ],
+        "error": ""
+      },
+      {
+        "settled": false,
+        "iteration": 3,
+        "exit_code": 1,
+        "seconds": 4.687,
+        "measurements": [
+          {
+            "name": "webkit",
+            "values": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              1,
+              2,
+              2,
+              4,
+              5,
+              5
+            ],
+            "bounds": {
+              "left": 40,
+              "width": 342,
+              "total": 560,
+              "right": 544,
+              "edge": 366
+            }
+          },
+          {
+            "name": "chromium",
+            "values": [
+              0,
+              0,
+              0,
+              7,
+              7,
+              10,
+              10,
+              14,
+              14,
+              21,
+              21,
+              21
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          },
+          {
+            "name": "firefox",
+            "values": [
+              0,
+              2,
+              3,
+              41,
+              49,
+              85,
+              85,
+              119,
+              139,
+              160,
+              184,
+              203
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          }
+        ],
+        "error": ""
+      },
+      {
+        "settled": true,
+        "iteration": 1,
+        "exit_code": 0,
+        "seconds": 9.993,
+        "measurements": [
+          {
+            "name": "webkit",
+            "values": [
+              40,
+              80,
+              120,
+              160,
+              200,
+              218
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          },
+          {
+            "name": "chromium",
+            "values": [
+              40,
+              80,
+              120,
+              160,
+              200,
+              218
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          },
+          {
+            "name": "firefox",
+            "values": [
+              35,
+              71,
+              106,
+              141,
+              177,
+              212,
+              218
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          }
+        ],
+        "error": ""
+      },
+      {
+        "settled": true,
+        "iteration": 2,
+        "exit_code": 1,
+        "seconds": 16.737,
+        "measurements": [],
+        "error": "page.waitForFunction: Timeout 15000ms exceeded.\n    at /private/tmp/rcc-64-clipboard-diagnostics/keyboard-scroll.cjs:3:1206 {\n  log: [],\n  name: 'TimeoutError'\n}"
+      },
+      {
+        "settled": true,
+        "iteration": 3,
+        "exit_code": 0,
+        "seconds": 10.011,
+        "measurements": [
+          {
+            "name": "webkit",
+            "values": [
+              40,
+              80,
+              120,
+              160,
+              200,
+              218
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          },
+          {
+            "name": "chromium",
+            "values": [
+              40,
+              80,
+              120,
+              160,
+              200,
+              218
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          },
+          {
+            "name": "firefox",
+            "values": [
+              35,
+              71,
+              106,
+              141,
+              177,
+              212,
+              218
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          }
+        ],
+        "error": ""
+      }
+    ],
+    "keyboard_final_key_hold": [
+      {
+        "iteration": 1,
+        "exit_code": 0,
+        "seconds": 6.731,
+        "measurements": [
+          {
+            "name": "webkit",
+            "values": [
+              28,
+              57,
+              85,
+              115,
+              145,
+              177,
+              207,
+              227,
+              232,
+              233,
+              234,
+              235
+            ],
+            "bounds": {
+              "left": 235,
+              "width": 342,
+              "total": 560,
+              "right": 349,
+              "edge": 366
+            }
+          },
+          {
+            "name": "chromium",
+            "values": [
+              31,
+              57,
+              109,
+              153,
+              193,
+              216,
+              218,
+              218,
+              218,
+              218,
+              218,
+              218
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          },
+          {
+            "name": "firefox",
+            "values": [
+              31,
+              64,
+              99,
+              138,
+              172,
+              207,
+              216,
+              218,
+              218,
+              218,
+              218,
+              218
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          }
+        ],
+        "error": ""
+      },
+      {
+        "iteration": 2,
+        "exit_code": 0,
+        "seconds": 6.753,
+        "measurements": [
+          {
+            "name": "webkit",
+            "values": [
+              28,
+              55,
+              86,
+              121,
+              152,
+              182,
+              214,
+              227,
+              231,
+              233,
+              234,
+              234
+            ],
+            "bounds": {
+              "left": 234,
+              "width": 342,
+              "total": 560,
+              "right": 350,
+              "edge": 366
+            }
+          },
+          {
+            "name": "chromium",
+            "values": [
+              31,
+              57,
+              111,
+              152,
+              189,
+              216,
+              218,
+              218,
+              218,
+              218,
+              218,
+              218
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          },
+          {
+            "name": "firefox",
+            "values": [
+              32,
+              62,
+              99,
+              135,
+              171,
+              207,
+              217,
+              218,
+              218,
+              218,
+              218,
+              218
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          }
+        ],
+        "error": ""
+      },
+      {
+        "iteration": 3,
+        "exit_code": 0,
+        "seconds": 6.88,
+        "measurements": [
+          {
+            "name": "webkit",
+            "values": [
+              26,
+              53,
+              84,
+              115,
+              152,
+              181,
+              212,
+              226,
+              231,
+              233,
+              234,
+              234
+            ],
+            "bounds": {
+              "left": 234,
+              "width": 342,
+              "total": 560,
+              "right": 350,
+              "edge": 366
+            }
+          },
+          {
+            "name": "chromium",
+            "values": [
+              40,
+              71,
+              111,
+              153,
+              192,
+              215,
+              218,
+              218,
+              218,
+              218,
+              218,
+              218
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          },
+          {
+            "name": "firefox",
+            "values": [
+              31,
+              64,
+              99,
+              137,
+              170,
+              205,
+              217,
+              218,
+              218,
+              218,
+              218,
+              218
+            ],
+            "bounds": {
+              "left": 218,
+              "width": 342,
+              "total": 560,
+              "right": 366,
+              "edge": 366
+            }
+          }
+        ],
+        "error": ""
+      }
+    ]
+  },
+  "failed_gate_history": [
+    {
+      "candidate": "V2",
+      "gate": "fullall v1",
+      "exit_code": 2,
+      "seconds": 358.593,
+      "failure": "downloaded Chromium clipboard permission denied"
+    },
+    {
+      "candidate": "V5",
+      "gate": "GoBrowser v2",
+      "exit_code": 2,
+      "seconds": 142.965,
+      "failure": "exact field text locator excludes nested type; replaced with real rowheader locator"
+    },
+    {
+      "candidate": "V6",
+      "gate": "fullall v2",
+      "exit_code": 2,
+      "seconds": 475.161,
+      "failure": "WebKit combines zero-duration ArrowRight burst; physical key duration fixed; database postcheck was not reached"
+    }
+  ]
+}

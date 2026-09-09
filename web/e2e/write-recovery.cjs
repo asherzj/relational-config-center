@@ -32,6 +32,10 @@ async function waitDatabase() {
   let browser; let context; let page; let failure; let stopped = false; let release;
   let requests = []; let faults = [];
   const button = name => page.getByRole('button', { name, exact: true });
+  const waitRelease = async (state, title = `${table} recovery change`) => {
+    await page.getByRole('heading', { name: title, exact: true }).waitFor();
+    await page.getByText(`${table} · ${state}`, { exact: true }).waitFor();
+  };
   const uncertain = () => page.getByRole('alert', { name: '提交结果尚未确认', exact: true });
   const check = (name, details) => { passed.push(name); evidence.push({ case: name, ...details }); console.log('PASS', name, JSON.stringify(details)); writeFileSync(`${output}/progress.json`, JSON.stringify({ passed, evidence }, null, 2)); };
   const auditCount = (entity = table) => Number(sql(`SELECT COUNT(*) FROM stage2_write_audit WHERE entity=${literal(entity)};`));
@@ -128,13 +132,13 @@ async function waitDatabase() {
     const prepare = async (operation, name) => {
       const id = operation === 'ADD' ? undefined : seed(name);
       const item = { operation, content: operation === 'DELETE' ? {} : { name: operation === 'MODIFY' ? `${name}_saved` : name }, ...(id ? { id, expected_record_version: '0' } : {}) };
-      const draft = await api(applicant, 'POST', '/api/v1/release-orders', { table_name: table, items: [item] }, 201);
+      const draft = await api(applicant, 'POST', '/api/v1/release-orders', { title: `${table} recovery change`, table_name: table, items: [item] }, 201);
       const order = await approve(draft);
       context = publisher;
       // Enter through a real in-app history entry so pending Back exercises
       // the router blocker, not a fresh tab's about:blank document.
       await open('/configuration/release-orders');
-      await page.getByRole('link', { name: order.id, exact: true }).click();
+      await page.getByRole('row').filter({ hasText: order.id }).getByRole('link', { name: order.title, exact: true }).click();
       await button('执行发布').click();
       return { order, id, path: `/api/v1/release-orders/${order.id}/execute` };
     };
@@ -166,7 +170,7 @@ async function waitDatabase() {
         await page.reload();
         await button('恢复原发布请求').click();
       } else await button('使用原请求重试').click();
-      await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+      await waitRelease('已发布待完结');
       const attempts = executeRequests(path);
       assert.equal(attempts.length, 2);
       assert.deepEqual(attempts[0], attempts[1]);
@@ -228,7 +232,7 @@ async function waitDatabase() {
     const beforeRetry = executeRequests(readback.path).length;
     failReadback = false;
     await button('重试').click();
-    await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+    await waitRelease('已发布待完结');
     assert.equal(executeRequests(readback.path).length, beforeRetry);
     check('known publication followed by detail read failure recovers with GET only', { attempts: executeRequests(readback.path), commands: commands(readback.order.id) });
 
@@ -249,14 +253,14 @@ async function waitDatabase() {
     assert.equal(executeRequests(double.path).length, 1);
     assert.equal(commands(double.order.id), 1);
     release(); release = null;
-    await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+    await waitRelease('已发布待完结');
     await published(double.order, doubleName);
     check('double-click, Enter and pending back/close execute once', { attempts: executeRequests(double.path), commands: commands(double.order.id) });
 
     context = applicant;
     await managed(); await addEditor('stage2_validation', 'invalid-state');
     await button('确认并保存草稿').click();
-    await page.getByRole('heading', { name: `${table} · 草稿`, exact: true }).waitFor();
+    await waitRelease('草稿', `${table} 配置变更`);
     assert.equal(rowCount('stage2_validation'), 0);
     const invalidDraft = await read(new URL(page.url()).pathname.split('/').at(-1));
     const invalidOrder = await approve(invalidDraft);
@@ -280,11 +284,11 @@ async function waitDatabase() {
     await button('取消发布单').click();
     await page.getByRole('textbox', { name: '取消原因', exact: true }).fill('Correct the rejected ENUM value in a new proposal');
     await button('确认取消发布单').click();
-    await page.getByRole('heading', { name: `${table} · 已取消`, exact: true }).waitFor();
+    await waitRelease('已取消', `${table} 配置变更`);
     await button('复制新草稿').click();
     await button('读取最新配置').click();
     await button('确认最新基线并复制').click();
-    await page.getByRole('heading', { name: `${table} · 草稿`, exact: true }).waitFor();
+    await waitRelease('草稿', `${table} 配置变更`);
     const correctedID = new URL(page.url()).pathname.split('/').at(-1);
     assert.notEqual(correctedID, invalidOrder.id);
     await button('编辑草稿').click();
@@ -300,7 +304,7 @@ async function waitDatabase() {
     const validOrder = await approve(corrected);
     context = publisher; await open(`/configuration/release-orders/${validOrder.id}`);
     await button('执行发布').click(); await button('确认发布到数据库').click();
-    await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+    await waitRelease('已发布待完结', `${table} 配置变更`);
     await published(validOrder, 'stage2_validation');
     assert.equal((await read(invalidOrder.id)).state, 'CANCELLED');
     assert.equal(commands(invalidOrder.id), 0);
@@ -358,7 +362,7 @@ async function waitDatabase() {
       await sleep(300);
     }
     assert.equal(replayStatuses.at(-1), 200);
-    await page.getByRole('heading', { name: `${table} · 已发布`, exact: true }).waitFor();
+    await waitRelease('已发布待完结');
     const outageAttempts = executeRequests(outage.path);
     assert.ok(outageAttempts.length >= 2);
     for (const attempt of outageAttempts) assert.deepEqual(attempt, original);

@@ -16,11 +16,87 @@ func releaseRequest(t *testing.T, app *adminApplication, method, path, body, key
 	return accountRequestFrom(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session), "192.0.2.1:1234", map[string]string{"Idempotency-Key": key})
 }
 
+// AC-010: the public draft contract persists the applicant's readable title.
+func TestReleaseDraftTitlePersistsAndReloads(t *testing.T) {
+	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
+	body := `{"title":"渠道配置 🚀 变更","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposed"}}]}`
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "draft-title-create")
+	if created.Code != 201 {
+		t.Fatalf("create titled draft: %d %s", created.Code, created.Body)
+	}
+	var order struct{ ID, Title string }
+	if err := json.Unmarshal(created.Body.Bytes(), &order); err != nil {
+		t.Fatal(err)
+	}
+	if order.ID == "" || order.Title != "渠道配置 🚀 变更" {
+		t.Fatalf("titled draft: %s", created.Body)
+	}
+	read := releaseRequest(t, app, "GET", "/api/v1/release-orders/"+order.ID, "", "")
+	if read.Code != 200 || read.Body.String() != created.Body.String() {
+		t.Fatalf("reload titled draft: %d %s", read.Code, read.Body)
+	}
+	list := releaseRequest(t, app, "GET", "/api/v1/release-orders?limit=20", "", "")
+	if list.Code != 200 || !strings.Contains(list.Body.String(), `"title":"渠道配置 🚀 变更"`) {
+		t.Fatalf("list titled draft: %d %s", list.Code, list.Body)
+	}
+}
+
+// AC-010: title length is counted in Unicode code points and blank titles are invalid.
+func TestReleaseDraftTitleUnicodeValidation(t *testing.T) {
+	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
+	request := func(title, key string) *httptest.ResponseRecorder {
+		body, err := json.Marshal(map[string]any{
+			"title": title, "table_name": "mutation_delete_parents",
+			"items": []any{map[string]any{"operation": "MODIFY", "id": "1", "expected_record_version": "0", "content": map[string]string{"code": "proposed"}}},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return releaseRequest(t, app, "POST", "/api/v1/release-orders", string(body), key)
+	}
+	assertIntegrationErrorCode(t, request(" \t ", "draft-title-blank"), 422, "release_title_invalid")
+	assertIntegrationErrorCode(t, request(strings.Repeat("界", 101), "draft-title-long"), 422, "release_title_invalid")
+	if accepted := request(strings.Repeat("🚀", 100), "draft-title-boundary"); accepted.Code != 201 {
+		t.Fatalf("100-character title rejected: %d %s", accepted.Code, accepted.Body)
+	}
+}
+
+// AC-010: title and item changes share one draft CAS and freeze together on submit.
+func TestReleaseDraftTitleEditCASAndFreeze(t *testing.T) {
+	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"原始标题","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"first"}}]}`, "draft-title-cas-create")
+	if created.Code != 201 {
+		t.Fatal(created.Body)
+	}
+	var draft struct{ ID string }
+	if err := json.Unmarshal(created.Body.Bytes(), &draft); err != nil {
+		t.Fatal(err)
+	}
+	path := "/api/v1/release-orders/" + draft.ID
+	updated := releaseRequest(t, app, "PUT", path, `{"title":"审批前的新标题","table_name":"mutation_delete_parents","expected_version":"1","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"second"}}]}`, "draft-title-cas-update")
+	if updated.Code != 200 || !strings.Contains(updated.Body.String(), `"title":"审批前的新标题"`) || !strings.Contains(updated.Body.String(), `"code":"second"`) {
+		t.Fatalf("update title and content: %d %s", updated.Code, updated.Body)
+	}
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", path, `{"title":"过期窗口标题","table_name":"mutation_delete_parents","expected_version":"1","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"stale"}}]}`, "draft-title-cas-stale"), 409, "release_version_conflict")
+	current := releaseRequest(t, app, "GET", path, "", "")
+	if current.Body.String() != updated.Body.String() {
+		t.Fatalf("stale update changed title or detail: %s", current.Body)
+	}
+	submitted := releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"2"}`, "draft-title-submit")
+	if submitted.Code != 200 || !strings.Contains(submitted.Body.String(), `"title":"审批前的新标题"`) {
+		t.Fatalf("submit titled draft: %d %s", submitted.Code, submitted.Body)
+	}
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", path, `{"title":"提交后篡改","table_name":"mutation_delete_parents","expected_version":"3","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"changed"}}]}`, "draft-title-frozen"), 422, "release_state_invalid")
+}
+
 // AC-012: the authenticated public API persists an intent, never a business write.
 func TestReleaseDraftSaveAndReload(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true, AllowDelete: true})
-	saved := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposed"}}]}`, "draft-create-0001")
+	saved := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposed"}}]}`, "draft-create-0001")
 	if saved.Code != 201 {
 		t.Fatalf("save draft: %d %s", saved.Code, saved.Body)
 	}
@@ -51,7 +127,7 @@ func TestReleaseDraftSaveAndReload(t *testing.T) {
 func TestReleaseDraftCASCancelAndIdempotency(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true, AllowDelete: true})
-	body := `{"table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"first"}}]}`
+	body := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"first"}}]}`
 	first := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "draft-create-0002")
 	if first.Code != 201 {
 		t.Fatal(first.Body)
@@ -63,7 +139,7 @@ func TestReleaseDraftCASCancelAndIdempotency(t *testing.T) {
 	var order struct{ ID string }
 	_ = json.Unmarshal(first.Body.Bytes(), &order)
 	path := "/api/v1/release-orders/" + order.ID
-	update := `{"table_name":"mutation_delete_parents","expected_version":"1","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"second"}}]}`
+	update := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","expected_version":"1","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"second"}}]}`
 	saved := releaseRequest(t, app, "PUT", path, update, "draft-update-0001")
 	if saved.Code != 200 {
 		t.Fatalf("update: %d %s", saved.Code, saved.Body)
@@ -93,7 +169,7 @@ func TestReleaseDraftCASCancelAndIdempotency(t *testing.T) {
 func TestReleaseDraftDiffAndServerBaseline(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
-	body := `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"draft","label":"","nullable_value":null,"metadata":"null"}}]}`
+	body := `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"draft","label":"","nullable_value":null,"metadata":"null"}}]}`
 	r := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "draft-semantics-01")
 	if r.Code != 201 {
 		t.Fatalf("ADD draft: %d %s", r.Code, r.Body)
@@ -127,7 +203,7 @@ func TestReleaseDraftDiffAndServerBaseline(t *testing.T) {
 	}
 	_ = order
 	enableMutationPolicy(t, app, "mutation_auto_fill_items", mutationPolicyFixture{AllowAdd: true, CreateOperatorField: releaseString("creator"), CreateTimeField: releaseString("occurred_at")})
-	auto := `{"table_name":"mutation_auto_fill_items","items":[{"operation":"ADD","content":{"code":"auto","status":"active","quantity":"1"}}]}`
+	auto := `{"title":"集成测试发布单","table_name":"mutation_auto_fill_items","items":[{"operation":"ADD","content":{"code":"auto","status":"active","quantity":"1"}}]}`
 	r = releaseRequest(t, app, "POST", "/api/v1/release-orders", auto, "draft-auto-fill-01")
 	if r.Code != 201 {
 		t.Fatalf("automatic draft: %d %s", r.Code, r.Body)
@@ -142,9 +218,9 @@ func TestReleaseDraftDiffAndServerBaseline(t *testing.T) {
 			}
 		}
 	}
-	forged := `{"table_name":"mutation_auto_fill_items","items":[{"operation":"ADD","content":{"creator":"forged","code":"auto","status":"active","quantity":"1"}}]}`
+	forged := `{"title":"集成测试发布单","table_name":"mutation_auto_fill_items","items":[{"operation":"ADD","content":{"creator":"forged","code":"auto","status":"active","quantity":"1"}}]}`
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", forged, "draft-forged-auto"), 422, "invalid_mutation_content")
-	before := `{"table_name":"mutation_add_items","items":[{"operation":"ADD","before":{"label":"forged"},"content":{"code":"draft","label":""}}]}`
+	before := `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","before":{"label":"forged"},"content":{"code":"draft","label":""}}]}`
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", before, "draft-forged-before"), 400, "invalid_request")
 }
 
@@ -165,7 +241,7 @@ func TestReleaseDraftMissingIdentityAndTombstone(t *testing.T) {
 	} {
 		t.Run(test.table, func(t *testing.T) {
 			enableMutationPolicy(t, app, test.table, mutationPolicyFixture{AllowAdd: true, AllowDelete: true})
-			body, _ := json.Marshal(map[string]any{"table_name": test.table, "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"id": test.first, "label": "draft"}}}})
+			body, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": test.table, "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"id": test.first, "label": "draft"}}}})
 			draft := releaseRequest(t, app, "POST", "/api/v1/release-orders", string(body), "draft-identity-initial-"+test.table)
 			if draft.Code != 201 {
 				t.Fatalf("missing identity: %d %s", draft.Code, draft.Body)
@@ -186,7 +262,7 @@ func TestReleaseDraftMissingIdentityAndTombstone(t *testing.T) {
 			}
 			deleted := publicationFixtureRequest(t, app, "DELETE", test.table, test.equivalent, `{"expected_version":"1"}`)
 			assertMutationAffected(t, deleted)
-			body, _ = json.Marshal(map[string]any{"table_name": test.table, "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"id": test.equivalent, "label": "recreated draft"}}}})
+			body, _ = json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": test.table, "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"id": test.equivalent, "label": "recreated draft"}}}})
 			draft = releaseRequest(t, app, "POST", "/api/v1/release-orders", string(body), "draft-identity-tombstone-"+test.table)
 			if draft.Code != 201 {
 				t.Fatal(draft.Body)
@@ -228,7 +304,7 @@ func TestReleaseDraftCurrentAuthorizationAndListing(t *testing.T) {
 	req := func(account *httptest.ResponseRecorder, method, path, body, key string) *httptest.ResponseRecorder {
 		return accountRequestFrom(app, method, path, body, account.Result().Cookies(), sessionCSRF(t, account), "192.0.2.1:1234", map[string]string{"Idempotency-Key": key})
 	}
-	body := `{"table_name":"mutation_delete_parents","items":[{"operation":"DELETE","id":"1","expected_record_version":"0"}]}`
+	body := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"DELETE","id":"1","expected_record_version":"0"}]}`
 	assertIntegrationErrorCode(t, req(editor, "POST", "/api/v1/release-orders", body, "draft-role-0001"), 403, "permission_denied")
 	assign(editor, `["PUBLISHER"]`, "1", "draft-publisher-001")
 	assertIntegrationErrorCode(t, req(editor, "POST", "/api/v1/release-orders", body, "draft-role-0001"), 403, "permission_denied")
@@ -248,7 +324,7 @@ func TestReleaseDraftCurrentAuthorizationAndListing(t *testing.T) {
 	}
 	path := "/api/v1/release-orders/" + order.ID
 	assign(other, `["EDITOR"]`, "1", "draft-other-00001")
-	update := `{"table_name":"mutation_delete_parents","expected_version":"1","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"intruder"}}]}`
+	update := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","expected_version":"1","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"intruder"}}]}`
 	assertIntegrationErrorCode(t, req(other, "PUT", path, update, "draft-other-edit-01"), 403, "permission_denied")
 	assertIntegrationErrorCode(t, req(other, "POST", path+"/cancel", `{"expected_version":"1","reason":"intruder"}`, "draft-other-cancel"), 403, "permission_denied")
 	read := req(other, "GET", path, "", "")
@@ -324,7 +400,7 @@ func TestReleaseDraftSchemaReadiness(t *testing.T) {
 func TestReleaseDraftKnownAddUpdateRequiresOriginalBaseline(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowDelete: true})
-	body := `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"7","code":"draft","label":"proposed"}}]}`
+	body := `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"7","code":"draft","label":"proposed"}}]}`
 	saved := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "draft-add-original")
 	if saved.Code != 201 {
 		t.Fatal(saved.Body)
@@ -336,7 +412,7 @@ func TestReleaseDraftKnownAddUpdateRequiresOriginalBaseline(t *testing.T) {
 		t.Fatal(add.Body)
 	}
 	assertMutationAffected(t, publicationFixtureRequest(t, app, "DELETE", "mutation_add_items", "7", `{"expected_version":"1"}`))
-	update := `{"table_name":"mutation_add_items","expected_version":"1","items":[{"operation":"ADD","content":{"id":"7","code":"draft","label":"edited"}}]}`
+	update := `{"title":"集成测试发布单","table_name":"mutation_add_items","expected_version":"1","items":[{"operation":"ADD","content":{"id":"7","code":"draft","label":"edited"}}]}`
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", "/api/v1/release-orders/"+order.ID, update, "draft-add-missing"), 422, "record_version_required")
 	update = strings.Replace(update, `"operation":"ADD"`, `"operation":"ADD","expected_record_version":"0"`, 1)
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", "/api/v1/release-orders/"+order.ID, update, "draft-add-stale"), 409, "record_version_conflict")
@@ -354,7 +430,7 @@ func TestReleaseDraftPreviewRebuildsMissingAddBaseline(t *testing.T) {
 	if _, err := db.Exec("INSERT INTO rcc_record_versions VALUES('mutation_add_items',X'',9)"); err != nil {
 		t.Fatal(err)
 	}
-	body := `{"table_name":"mutation_add_items","items":[{"operation":"ADD","expected_record_version":"0","content":{"id":"7","code":"preview","label":"retained"}}]}`
+	body := `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","expected_record_version":"0","content":{"id":"7","code":"preview","label":"retained"}}]}`
 	preview := releaseRequest(t, app, "POST", "/api/v1/release-orders/preview", body, "")
 	if preview.Code != 200 {
 		t.Fatalf("preview: %d %s", preview.Code, preview.Body)
@@ -390,7 +466,7 @@ func TestReleaseDraftConcurrentAndAtomicStorage(t *testing.T) {
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	_ = integrationAdminSession(t, app)
-	body := `{"table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"retry"}}]}`
+	body := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"retry"}}]}`
 	responses := make(chan *httptest.ResponseRecorder, 2)
 	start := make(chan struct{})
 	for range 2 {
@@ -407,7 +483,7 @@ func TestReleaseDraftConcurrentAndAtomicStorage(t *testing.T) {
 	var order struct{ ID string }
 	_ = json.Unmarshal(a.Body.Bytes(), &order)
 	path := "/api/v1/release-orders/" + order.ID
-	update := `{"table_name":"mutation_delete_parents","expected_version":"1","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"next"}}]}`
+	update := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","expected_version":"1","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"next"}}]}`
 	start = make(chan struct{})
 	for _, key := range []string{"draft-race-window1", "draft-race-window2"} {
 		go func(key string) { <-start; responses <- releaseRequest(t, app, "PUT", path, update, key) }(key)
@@ -477,10 +553,10 @@ func TestReleaseDraftRejectsLossySnapshotAndRetainsSavedSchema(t *testing.T) {
 		t.Fatal(err)
 	}
 	enableMutationPolicy(t, app, "draft_binary", mutationPolicyFixture{AllowDelete: true})
-	r := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"draft_binary","items":[{"operation":"DELETE","id":"1","expected_record_version":"0"}]}`, "draft-binary-reject")
+	r := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"draft_binary","items":[{"operation":"DELETE","id":"1","expected_record_version":"0"}]}`, "draft-binary-reject")
 	assertIntegrationErrorCode(t, r, 422, "incompatible_table")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
-	body := `{"table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"saved history"}}]}`
+	body := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"saved history"}}]}`
 	saved := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "draft-history-schema")
 	if saved.Code != 201 {
 		t.Fatal(saved.Body)
@@ -498,7 +574,7 @@ func TestReleaseDraftRejectsLossySnapshotAndRetainsSavedSchema(t *testing.T) {
 		t.Fatal(err)
 	}
 	enableMutationPolicy(t, app, "mutation_auto_fill_items", mutationPolicyFixture{AllowAdd: true, CreateOperatorField: stringPointer("creator"), CreateTimeField: stringPointer("occurred_at")})
-	invalid := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"mutation_auto_fill_items","items":[{"operation":"ADD","content":{"code":"invalid-auto","status":"active","quantity":"1"}}]}`, "draft-operator-capacity")
+	invalid := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_auto_fill_items","items":[{"operation":"ADD","content":{"code":"invalid-auto","status":"active","quantity":"1"}}]}`, "draft-operator-capacity")
 	assertIntegrationErrorCode(t, invalid, 422, "operator_field_incompatible")
 
 }
@@ -506,7 +582,7 @@ func TestReleaseDraftRejectsLossySnapshotAndRetainsSavedSchema(t *testing.T) {
 func TestReleaseDraftReplayUsesCurrentActionsAndRejectsChangedDigest(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
-	body := `{"table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"same request"}}]}`
+	body := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"same request"}}]}`
 	saved := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "draft-replay-current")
 	if saved.Code != 201 {
 		t.Fatal(saved.Body)

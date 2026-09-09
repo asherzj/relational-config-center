@@ -51,7 +51,7 @@ func (r *ReleaseOrders) Rollback(ctx context.Context, id string, input CancelRel
 		if original.Version != input.ExpectedVersion {
 			return ErrReleaseVersionConflict
 		}
-		if original.State != "SUCCEEDED" {
+		if original.State != "COMPLETED" || original.RollbackOfID != "" {
 			return ErrReleaseState
 		}
 		if original.RollbackPending {
@@ -73,9 +73,9 @@ func (r *ReleaseOrders) Rollback(ctx context.Context, id string, input CancelRel
 			return ErrReleaseUnavailable
 		}
 		stamp := now.UTC().Format(time.RFC3339Nano)
-		result = ReleaseOrder{ID: hex.EncodeToString(randomID[:]), RollbackOfID: id, TableName: original.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "ROLLBACK_REQUEST", ActorID: actor, At: stamp, Version: "1", Reason: input.Reason, RelatedOrderID: id}}}
+		result = ReleaseOrder{Title: rollbackTitle(original.Title), ID: hex.EncodeToString(randomID[:]), RollbackOfID: id, TableName: original.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "ROLLBACK_REQUEST", ActorID: actor, At: stamp, Version: "1", Reason: input.Reason, RelatedOrderID: id}}}
 		original.RollbackOrderID, original.RollbackPending = result.ID, true
-		if err := appendRollbackEvent(&original, actor, stamp, "ROLLBACK_REQUEST", input.Reason, result.ID); err != nil {
+		if err := appendRelatedReleaseEvent(&original, actor, stamp, "ROLLBACK_REQUEST", input.Reason, result.ID); err != nil {
 			return err
 		}
 		if err := s.SaveReleaseOrder(ctx, original, false); err != nil {
@@ -95,7 +95,7 @@ func (r *ReleaseOrders) prepareOrder(ctx context.Context, s ReleaseOrderSession,
 		if err != nil {
 			return nil, err
 		}
-		if original.State != "SUCCEEDED" || !original.RollbackPending || original.RollbackOrderID != order.ID {
+		if original.State != "COMPLETED" || !original.RollbackPending || original.RollbackOrderID != order.ID {
 			return nil, ErrRollbackConflict
 		}
 		return r.reverseItems(ctx, s, original)
@@ -226,7 +226,7 @@ func verifyRollbackResult(original ReleaseOrder, result domain.PublicationResult
 	return nil
 }
 
-func appendRollbackEvent(order *ReleaseOrder, actor, stamp, action, reason, related string) error {
+func appendRelatedReleaseEvent(order *ReleaseOrder, actor, stamp, action, reason, related string) error {
 	version, err := strconv.ParseUint(order.Version, 10, 64)
 	if err != nil || version == math.MaxUint64 {
 		return ErrReleaseVersionConflict
@@ -246,7 +246,7 @@ func (r *ReleaseOrders) finishRollback(ctx context.Context, s ReleaseOrderSessio
 	if err != nil {
 		return err
 	}
-	if original.State != "SUCCEEDED" || !original.RollbackPending || original.RollbackOrderID != order.ID {
+	if original.State != "COMPLETED" || !original.RollbackPending || original.RollbackOrderID != order.ID {
 		return ErrRollbackConflict
 	}
 	original.RollbackPending = false
@@ -262,7 +262,7 @@ func (r *ReleaseOrders) finishRollback(ctx context.Context, s ReleaseOrderSessio
 	if err != nil {
 		return err
 	}
-	if err := appendRollbackEvent(&original, actor, now.UTC().Format(time.RFC3339Nano), action, "", order.ID); err != nil {
+	if err := appendRelatedReleaseEvent(&original, actor, now.UTC().Format(time.RFC3339Nano), action, "", order.ID); err != nil {
 		return err
 	}
 	return s.SaveReleaseOrder(ctx, original, false)
@@ -282,4 +282,12 @@ func releaseMutationValues(schema domain.TableSchema, content MutationContent, a
 		}
 		return domain.ParseColumnValue(column, value)
 	})
+}
+
+func rollbackTitle(title string) string {
+	runes := []rune("回滚：" + title)
+	if len(runes) > 100 {
+		runes = runes[:100]
+	}
+	return string(runes)
 }

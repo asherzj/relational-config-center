@@ -70,14 +70,14 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	action := func(a actor, order domain.ReleaseOrder, name, reason string) domain.ReleaseOrder {
 		body, _ := json.Marshal(map[string]string{"expected_version": order.Version, "reason": reason})
 		// Submit and execute accept the expected version without an opinion.
-		if name == "submit" || name == "execute" {
+		if name == "submit" || name == "execute" || name == "complete" {
 			body, _ = json.Marshal(map[string]string{"expected_version": order.Version})
 		}
 		return decode(request(a, "POST", "/api/v1/release-orders/"+order.ID+"/"+name, string(body), order.ID+"-"+name, 200))
 	}
 	orders := map[string]domain.ReleaseOrder{}
 	for _, state := range []string{"DRAFT", "PENDING_APPROVAL", "APPROVED", "REJECTED", "CANCELLED"} {
-		payload := fmt.Sprintf(`{"table_name":"history_items","items":[{"operation":"ADD","content":{"id":%q,"value":"","metadata":"null"}}]}`, strings.ToLower(state))
+		payload := fmt.Sprintf(`{"title":"集成测试发布单","table_name":"history_items","items":[{"operation":"ADD","content":{"id":%q,"value":"","metadata":"null"}}]}`, strings.ToLower(state))
 		order := decode(request(editor, "POST", "/api/v1/release-orders", payload, "history-create-"+state, 201))
 		switch state {
 		case "PENDING_APPROVAL":
@@ -93,16 +93,17 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 		}
 		orders[order.ID] = order
 	}
-	forward := decode(request(editor, "POST", "/api/v1/release-orders", `{"table_name":"history_items","items":[{"operation":"MODIFY","id":"forward","expected_record_version":"0","content":{"value":"发布后新值","metadata":"null"}}]}`, "history-create-forward", 201))
+	forward := decode(request(editor, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"history_items","items":[{"operation":"MODIFY","id":"forward","expected_record_version":"0","content":{"value":"发布后新值","metadata":"null"}}]}`, "history-create-forward", 201))
 	forward = action(editor, forward, "submit", "")
 	forward = action(reviewer, forward, "approve", "正向批准意见")
 	forward = action(publisher, forward, "execute", "")
+	forward = action(publisher, forward, "complete", "")
 	inverse := decode(request(editor, "POST", "/api/v1/release-orders/"+forward.ID+"/rollback", fmt.Sprintf(`{"expected_version":%q,"reason":"反向申请理由"}`, forward.Version), "history-create-inverse", 201))
 	inverse = action(editor, inverse, "submit", "")
 	inverse = action(reviewer, inverse, "approve", "反向批准意见")
 	inverse = action(publisher, inverse, "execute", "")
 	forward = decode(request(viewer, "GET", "/api/v1/release-orders/"+forward.ID, "", "", 200))
-	if forward.State != "ROLLED_BACK" || inverse.State != "SUCCEEDED" || forward.RollbackOrderID != inverse.ID || inverse.RollbackOfID != forward.ID {
+	if forward.State != "ROLLED_BACK" || inverse.State != "COMPLETED" || forward.RollbackOrderID != inverse.ID || inverse.RollbackOfID != forward.ID {
 		t.Fatal("rollback history missing")
 	}
 	orders[forward.ID], orders[inverse.ID] = forward, inverse
@@ -117,7 +118,7 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 			if event.Action == "APPROVE" || event.Action == "REJECT" {
 				want = reviewer.id
 			}
-			if event.Action == "EXECUTE" || event.Action == "ROLLED_BACK" {
+			if event.Action == "EXECUTE" || event.Action == "COMPLETE" || event.Action == "ROLLED_BACK" {
 				want = publisher.id
 			}
 			if event.ActorID != want {

@@ -218,12 +218,17 @@ func decodeStoredReleaseOrder(encoded []byte) (domain.ReleaseOrder, error) {
 }
 
 // Reserve enough room for required terminating actions and future rollback
-// linkage; a large approval/result must never make cancellation impossible.
+// linkage; a large approval/result must never prevent cancellation or completion.
 func releaseDocumentBudget(order domain.ReleaseOrder) int {
 	state := order.State
-	if state == "SUCCEEDED" && order.RollbackOrderID != "" {
+	if state == "COMPLETED" {
+		if order.RollbackOrderID == "" {
+			// Completion consumes up to 4 KiB of the forward result's 64 KiB
+			// reserve; the remaining 60 KiB still funds ordinary rollback.
+			return application.ReleaseResultBytes - application.ReleaseContinuationHeadroom + 4096
+		}
 		// A newly accepted association must leave room to terminate. Cancellation
-		// or rejection consumes that room even while the original stays SUCCEEDED.
+		// or rejection consumes that room even while the original stays COMPLETED.
 		if order.RollbackPending {
 			return application.ReleaseResultBytes - application.ReleaseTransportHeadroom - 4096
 		}
@@ -233,4 +238,22 @@ func releaseDocumentBudget(order domain.ReleaseOrder) int {
 		return application.ReleaseResultBytes - application.ReleaseTransportHeadroom
 	}
 	return application.ReleaseResultBytes - application.ReleaseContinuationHeadroom
+}
+
+func (a *Adapter) AccountDisplayNames(ctx context.Context, ids []string) (map[string]string, error) {
+	result := map[string]string{}
+	for start := 0; start < len(ids); start += 100 {
+		end := start + 100
+		if end > len(ids) {
+			end = len(ids)
+		}
+		var people []struct{ ID, DisplayName string }
+		if err := a.gorm.WithContext(ctx).Table(accountTable).Select("id,display_name").Where("id IN ?", ids[start:end]).Scan(&people).Error; err != nil {
+			return nil, application.ErrReleaseUnavailable
+		}
+		for _, person := range people {
+			result[person.ID] = person.DisplayName
+		}
+	}
+	return result, nil
 }

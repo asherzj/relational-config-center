@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
 )
@@ -22,6 +23,7 @@ const ReleaseContinuationHeadroom = 64 << 10
 const ReleaseTransportHeadroom = 1024
 
 var (
+	ErrReleaseTitle               = errors.New("release title must contain 1 to 100 characters")
 	ErrReleaseCrossTable          = errors.New("release item belongs to another table")
 	ErrReleaseItemLimit           = errors.New("release must contain 1 to 1000 items")
 	ErrReleaseResultLimit         = errors.New("release result exceeds 8 MiB")
@@ -64,6 +66,7 @@ type DraftItemInput struct {
 }
 
 type DraftInput struct {
+	Title           string           `json:"title"`
 	TableName       string           `json:"table_name"`
 	Items           []DraftItemInput `json:"items"`
 	ExpectedVersion string           `json:"expected_version"`
@@ -90,6 +93,7 @@ type ReleaseOrderStore interface {
 	ExecutePublication(context.Context, func(PublicationSession) error) error
 	GetReleaseOrder(context.Context, string) (domain.ReleaseOrder, error)
 	ListReleaseOrders(context.Context, domain.ReleaseFilter) ([]domain.ReleaseOrderSummary, error)
+	AccountDisplayNames(context.Context, []string) (map[string]string, error)
 }
 
 type ReleaseOrders struct {
@@ -123,6 +127,9 @@ func (r *ReleaseOrders) Create(ctx context.Context, input DraftInput, key string
 		if input.ExpectedVersion != "" {
 			return ErrReleaseInvalid
 		}
+		if err := validateReleaseTitle(input.Title); err != nil {
+			return err
+		}
 		items, err := r.prepare(ctx, s, input, false)
 		if err != nil {
 			return err
@@ -136,13 +143,20 @@ func (r *ReleaseOrders) Create(ctx context.Context, input DraftInput, key string
 			return ErrReleaseUnavailable
 		}
 		stamp := now.UTC().Format(time.RFC3339Nano)
-		result = ReleaseOrder{ID: hex.EncodeToString(idBytes), TableName: input.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "CREATE", ActorID: actor, At: stamp, Version: "1"}}}
+		result = ReleaseOrder{Title: input.Title, ID: hex.EncodeToString(idBytes), TableName: input.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "CREATE", ActorID: actor, At: stamp, Version: "1"}}}
 		if err = s.SaveReleaseOrder(ctx, result, true); err != nil {
 			return err
 		}
 		return s.CompleteReleaseRequest(ctx, actor, "create", key, result)
 	})
 	return result, err
+}
+
+func validateReleaseTitle(title string) error {
+	if !utf8.ValidString(title) || strings.TrimSpace(title) == "" || utf8.RuneCountInString(title) > 100 {
+		return ErrReleaseTitle
+	}
+	return nil
 }
 
 func releaseDigest(input any) []byte {
@@ -158,9 +172,32 @@ func (r *ReleaseOrders) Get(ctx context.Context, id string) (ReleaseOrder, error
 	return r.store.GetReleaseOrder(ctx, id)
 }
 
+// People resolves only identities already visible in this order. It does not
+// expose account search or role-management data to ordinary viewers.
+func (r *ReleaseOrders) People(ctx context.Context, id string) (map[string]string, error) {
+	order, err := r.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	seen := map[string]bool{order.ApplicantID: true}
+	for _, event := range order.History {
+		seen[event.ActorID] = true
+	}
+	if order.Publication != nil {
+		seen[order.Publication.PublisherID] = true
+	}
+	ids := make([]string, 0, len(seen))
+	for id := range seen {
+		if id != "" {
+			ids = append(ids, id)
+		}
+	}
+	return r.store.AccountDisplayNames(ctx, ids)
+}
+
 func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) []string {
 	actions := []string{}
-	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute", "rollback"} {
+	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute", "rollback", "complete", "quick-rollback", "reprepare"} {
 		if releaseOrderActionState(order, action) && authorizeReleaseAction(ctx, order, action) == nil {
 			actions = append(actions, action)
 		}
@@ -168,7 +205,7 @@ func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) 
 	return actions
 }
 func releaseActionRole(action string) AccountRoles {
-	if action == "execute" {
+	if action == "execute" || action == "complete" || action == "quick-rollback" {
 		return RolePublisher
 	}
 	if action == "approve" || action == "reject" {
@@ -187,17 +224,17 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
 		}
 		return nil
 	}
-	if action == "execute" || action == "copy" || action == "rollback" || actor == order.ApplicantID {
+	if action == "execute" || action == "complete" || action == "quick-rollback" || action == "copy" || action == "rollback" || actor == order.ApplicantID {
 		return nil
 	}
-	if action == "cancel" {
+	if action == "cancel" || action == "reprepare" {
 		_, err := requireRole(ctx, RoleAdmin)
 		return err
 	}
 	return ErrPermissionDenied
 }
 func releaseOrderActionState(order ReleaseOrder, action string) bool {
-	if order.RollbackOfID != "" && (action == "edit" || action == "copy") {
+	if order.RollbackOfID != "" && (action == "edit" || action == "copy" || action == "complete" || action == "quick-rollback" || action == "rollback" || action == "reprepare") {
 		return false
 	}
 	if action == "rollback" && order.RollbackPending {
@@ -208,8 +245,12 @@ func releaseOrderActionState(order ReleaseOrder, action string) bool {
 
 func releaseActionState(state, action string) bool {
 	switch action {
-	case "rollback":
+	case "reprepare":
+		return state == "APPROVED"
+	case "complete", "quick-rollback":
 		return state == "SUCCEEDED"
+	case "rollback":
+		return state == "COMPLETED"
 	case "execute":
 		return state == "APPROVED"
 	case "copy":
@@ -446,6 +487,9 @@ func (r *ReleaseOrders) Update(ctx context.Context, id string, input DraftInput,
 		if input.TableName != order.TableName {
 			return ErrReleaseInvalid
 		}
+		if err := validateReleaseTitle(input.Title); err != nil {
+			return err
+		}
 		for index, item := range input.Items {
 			if item.Operation == "ADD" && item.Content["id"] != nil {
 				if err := ValidateRecordVersion(item.ExpectedRecordVersion); err != nil {
@@ -458,6 +502,7 @@ func (r *ReleaseOrders) Update(ctx context.Context, id string, input DraftInput,
 		if err != nil {
 			return err
 		}
+		order.Title = input.Title
 		order.Items = items
 		return nil
 	})
@@ -485,9 +530,10 @@ func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitRelea
 		order.Items = items
 		order.Frozen = &domain.ReleaseExecutionSnapshot{Schema: schema, Mutation: domain.NewReleaseMutationSemantics(p)}
 		order.FrozenDigest = hex.EncodeToString(releaseDigest(struct {
+			Title     string
 			Items     []ReleaseItem
 			Execution *domain.ReleaseExecutionSnapshot
-		}{items, order.Frozen}))
+		}{order.Title, items, order.Frozen}))
 		targets := []domain.ActiveTarget{}
 		for index, item := range items {
 			if len(item.RecordKey) > 0 {
@@ -499,6 +545,15 @@ func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitRelea
 		}
 		order.State = "PENDING_APPROVAL"
 		return nil
+	})
+}
+
+// Complete ends a successful ordinary publication without changing its data or
+// claiming downstream delivery. The workflow and target release commit together.
+func (r *ReleaseOrders) Complete(ctx context.Context, id string, input SubmitReleaseInput, key string) (ReleaseOrder, error) {
+	return r.changeOrder(ctx, id, input.ExpectedVersion, "complete", key, input, func(s ReleaseOrderSession, order *ReleaseOrder) error {
+		order.State = "COMPLETED"
+		return s.ReleaseTargets(ctx, order.ID)
 	})
 }
 
@@ -590,7 +645,7 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 		if order.Version != version {
 			return ErrReleaseVersionConflict
 		}
-		if order.RollbackOfID != "" && (action == "edit" || action == "copy") {
+		if order.RollbackOfID != "" && (action == "edit" || action == "copy" || action == "reprepare") {
 			return ErrRollbackLocked
 		}
 		if !releaseOrderActionState(order, action) {
@@ -630,7 +685,7 @@ func (r *ReleaseOrders) List(ctx context.Context, filter ReleaseFilter) ([]domai
 		return nil, ErrReleaseInvalid
 	}
 	switch filter.State {
-	case "", "DRAFT", "PENDING_APPROVAL", "APPROVED", "SUCCEEDED", "REJECTED", "CANCELLED", "ROLLED_BACK":
+	case "", "DRAFT", "PENDING_APPROVAL", "APPROVED", "SUCCEEDED", "COMPLETED", "REJECTED", "CANCELLED", "ROLLED_BACK":
 	default:
 		return nil, ErrReleaseInvalid
 	}
@@ -661,6 +716,17 @@ type CopyReleaseInput struct {
 }
 
 func (r *ReleaseOrders) Copy(ctx context.Context, id string, input CopyReleaseInput, key string) (ReleaseOrder, error) {
+	return r.copyOrder(ctx, id, input, key, false)
+}
+
+// Reprepare atomically retires one approved ordinary order and creates a fresh
+// editable draft from the caller-confirmed current record baselines. Approval
+// never crosses the boundary between the two orders.
+func (r *ReleaseOrders) Reprepare(ctx context.Context, id string, input CopyReleaseInput, key string) (ReleaseOrder, error) {
+	return r.copyOrder(ctx, id, input, key, true)
+}
+
+func (r *ReleaseOrders) copyOrder(ctx context.Context, id string, input CopyReleaseInput, key string, reprepare bool) (ReleaseOrder, error) {
 	actor, err := requireRole(ctx, RoleEditor)
 	if err != nil {
 		return ReleaseOrder{}, err
@@ -670,13 +736,20 @@ func (r *ReleaseOrders) Copy(ctx context.Context, id string, input CopyReleaseIn
 	}
 	var result ReleaseOrder
 	err = r.store.ExecuteReleaseOrder(ctx, func(s ReleaseOrderSession) error {
-		operation := "copy:" + id
+		action := "copy"
+		if reprepare {
+			action = "reprepare"
+		}
+		operation := action + ":" + id
 		previous, err := s.BeginReleaseRequest(ctx, actor, operation, key, releaseDigest(input))
 		if err != nil {
 			return err
 		}
 		source, err := s.GetReleaseOrder(ctx, id)
 		if err != nil {
+			return err
+		}
+		if err := authorizeReleaseAction(ctx, source, action); err != nil {
 			return err
 		}
 		if previous != nil {
@@ -692,7 +765,7 @@ func (r *ReleaseOrders) Copy(ctx context.Context, id string, input CopyReleaseIn
 		if source.RollbackOfID != "" {
 			return ErrRollbackLocked
 		}
-		if !releaseActionState(source.State, "copy") {
+		if !releaseOrderActionState(source, action) {
 			return ErrReleaseState
 		}
 		if len(input.Items) != len(source.Items) {
@@ -726,7 +799,23 @@ func (r *ReleaseOrders) Copy(ctx context.Context, id string, input CopyReleaseIn
 			return ErrReleaseUnavailable
 		}
 		stamp := now.UTC().Format(time.RFC3339Nano)
-		result = ReleaseOrder{ID: hex.EncodeToString(idBytes), CopiedFromID: source.ID, TableName: source.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "COPY", ActorID: actor, At: stamp, Version: "1"}}}
+		historyAction := "COPY"
+		if reprepare {
+			historyAction = "REPREPARE"
+		}
+		result = ReleaseOrder{Title: source.Title, ID: hex.EncodeToString(idBytes), CopiedFromID: source.ID, TableName: source.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: historyAction, ActorID: actor, At: stamp, Version: "1", RelatedOrderID: source.ID}}}
+		if reprepare {
+			source.State = "CANCELLED"
+			if err := appendRelatedReleaseEvent(&source, actor, stamp, "REPREPARE", "重新准备", result.ID); err != nil {
+				return err
+			}
+			if err := s.SaveReleaseOrder(ctx, source, false); err != nil {
+				return err
+			}
+			if err := s.ReleaseTargets(ctx, source.ID); err != nil {
+				return err
+			}
+		}
 		if err := s.SaveReleaseOrder(ctx, result, true); err != nil {
 			return err
 		}

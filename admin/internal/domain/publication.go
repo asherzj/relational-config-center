@@ -37,7 +37,7 @@ type PublicationCommand struct {
 func (order ReleaseOrder) VerifyPublication() error {
 	result := order.Publication
 	if result == nil {
-		if order.State == "SUCCEEDED" || order.State == "ROLLED_BACK" {
+		if order.State == "SUCCEEDED" || order.State == "COMPLETED" || order.State == "ROLLED_BACK" {
 			return ErrCanonicalRow
 		}
 		return nil

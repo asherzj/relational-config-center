@@ -14,7 +14,7 @@ const mutation = { ...audit, code: "mutation_v1", name: "变更基线", descript
 const assignment = { ...audit, table_name: "items", query_policy_code: "query_v1", mutation_policy_code: "mutation_v1", enabled: true };
 const columns = [{ name: "id", type: "uint64", nullable: false }, { name: "name", type: "string", nullable: false }, { name: "note", type: "string", nullable: true }];
 const row = { id: "1", name: "original", note: null };
-const savedDraft={id:"12345678123456781234567812345678",table_name:"items",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{operation:"MODIFY",id:"1",expected_record_version:"0",content:{name:"originalchanged"},before:row,fields:[]}]};
+const savedDraft={id:"12345678123456781234567812345678",title:"items 配置变更",table_name:"items",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{operation:"MODIFY",id:"1",expected_record_version:"0",content:{name:"originalchanged"},before:row,fields:[]}]};
 function json(value: unknown, status = 200) { value = withDefaultRecordVersions(value);
   return new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } }); }
 const rejection = () => json({ error: { code: "invalid_mutation_content", message: "invalid", request_id: "req-preserved" } }, 400);
@@ -358,7 +358,7 @@ describe("table assignments and managed row drafts", () => {
     await act(() => router.navigate("/platform/query-policies"));
     expect(await screen.findByRole("alertdialog", { name: "正在提交，请稍候" })).toBeVisible();
     await act(async () => resolve(json(savedDraft,201)));
-    expect(await screen.findByRole("heading", { name: "items · 草稿" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "items 配置变更" })).toBeVisible();
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
     expect(router.state.location.pathname).toBe(`/configuration/release-orders/${savedDraft.id}`);
     expect(unloadPrevented()).toBe(false);

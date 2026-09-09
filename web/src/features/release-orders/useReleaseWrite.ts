@@ -1,7 +1,7 @@
 import {useQueryClient} from "@tanstack/react-query";
-import {useRef,useState} from "react";
+import {useEffect,useRef,useState} from "react";
 import {useWorkspaceIdentity} from "../accounts/ProtectedWorkspace";
-import {forgetReleaseRequest,pendingReleaseRequests,rememberReleaseRequest,sendReleaseRequest,uncertainReleaseError,type PendingReleaseRequest} from "./release-journal";
+import {conflictingReleaseRequest,finishReleaseRequest,releaseJournalChanged,releaseRequestSending,startReleaseRequest,forgetReleaseRequest,pendingReleaseRequests,rememberReleaseRequest,sendReleaseRequest,uncertainReleaseError,type PendingReleaseRequest} from "./release-journal";
 import {ApiError} from "../../api/client";
 import type {ReleaseOrder} from "../../api/release-orders";
 
@@ -9,9 +9,17 @@ export function useReleaseWrite(scope:string){
  const accountID=useWorkspaceIdentity()!.account.id;
  const client=useQueryClient();
  const [pending,setPending]=useState(false),[error,setError]=useState<unknown>(),[unresolved,setUnresolved]=useState(()=>pendingReleaseRequests(accountID).some(item=>item.scope===scope&&!item.rejection));
+ const [,refresh]=useState(0);
+ useEffect(()=>{const update=()=>refresh(value=>value+1);window.addEventListener(releaseJournalChanged,update);return()=>window.removeEventListener(releaseJournalChanged,update)},[]);
+ const storedRequest=pendingReleaseRequests(accountID).find(item=>item.scope===scope);
+ const sharedPending=Boolean(storedRequest&&releaseRequestSending(accountID,storedRequest.key));
+ const scopeID=scope.split(":").at(-1);
+ const blocked=Boolean(scopeID&&conflictingReleaseRequest(accountID,`/api/v1/release-orders/${scopeID}`,scope));
  const busy=useRef(false),confirmedRebuild=useRef<string|undefined>(undefined);
  const send=async(input:Omit<PendingReleaseRequest,"scope"|"key">):Promise<ReleaseOrder|undefined>=>{
-  if(busy.current)return;busy.current=true;setPending(true);setError(undefined);
+  if(busy.current)return;
+  if(conflictingReleaseRequest(accountID,input.path,scope)){setError(new ApiError("release_request_pending","此发布单已有结果待确认的请求，请先恢复原请求。",409));return;}
+  busy.current=true;setPending(true);setError(undefined);
   const stored=pendingReleaseRequests(accountID).find(item=>item.scope===scope);
   if(stored?.rejection&&confirmedRebuild.current!==stored.key){
    setError(new ApiError("release_rebuild_required","仍有待重建的原申请，请先查看最新状态与配置并明确确认重建。",409));
@@ -20,6 +28,7 @@ export function useReleaseWrite(scope:string){
   confirmedRebuild.current=undefined;
   const previous=stored?.rejection?undefined:stored;
   const intent=previous??{...input,scope,key:crypto.randomUUID()};
+  if(!startReleaseRequest(accountID,intent.key)){busy.current=false;setPending(false);return;}
   let recorded=false;
   try{
    // Persist before dispatch, so a refresh during the request is also recoverable.
@@ -30,7 +39,15 @@ export function useReleaseWrite(scope:string){
    void client.invalidateQueries({queryKey:["release-orders"]});
    if(order.publication)void client.invalidateQueries({queryKey:["managed-data"]});
    void client.invalidateQueries({queryKey:["release-order",order.id]});
-   if(order.rollback_of_id)void client.invalidateQueries({queryKey:["release-order",order.rollback_of_id]});
+   void client.invalidateQueries({queryKey:["release-order-people",order.id]});
+   if(order.rollback_of_id){
+    void client.invalidateQueries({queryKey:["release-order",order.rollback_of_id]});
+    void client.invalidateQueries({queryKey:["release-order-people",order.rollback_of_id]});
+   }
+   if(order.copied_from_id){
+    void client.invalidateQueries({queryKey:["release-order",order.copied_from_id]});
+    void client.invalidateQueries({queryKey:["release-order-people",order.copied_from_id]});
+   }
    return order;
   }catch(cause){
    if(!recorded){setError(new ApiError("release_journal_unavailable","浏览器无法保存完整请求，尚未发送。当前输入和已有待恢复请求保留，请释放浏览器存储空间后重试。",0));setUnresolved(Boolean(previous));return;}
@@ -43,9 +60,14 @@ export function useReleaseWrite(scope:string){
    if(rejected)rememberReleaseRequest(accountID,{...intent,rejection:cause.code as PendingReleaseRequest["rejection"]});
    else if(stored?.rejection&&!keep)rememberReleaseRequest(accountID,{...intent,rejection:stored.rejection});
    else if(!keep)forgetReleaseRequest(accountID,intent.key);
-  }finally{busy.current=false;setPending(false)}
+ }finally{finishReleaseRequest(accountID,intent.key);busy.current=false;setPending(false)}
  };
- return {send,pending,error,unresolved,clearError:()=>setError(undefined),confirmRebuild:()=>{
+ const retry=()=>{
+  const stored=pendingReleaseRequests(accountID).find(item=>item.scope===scope&&!item.rejection);
+  if(!stored)return Promise.resolve(undefined);
+  return send({path:stored.path,method:stored.method,body:stored.body,label:stored.label});
+ };
+ return {send,retry,pending:pending||sharedPending,blocked,error,unresolved,clearError:()=>setError(undefined),confirmRebuild:()=>{
   confirmedRebuild.current=pendingReleaseRequests(accountID).find(item=>item.scope===scope&&item.rejection)?.key;
  }};
 }

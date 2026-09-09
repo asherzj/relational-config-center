@@ -1,5 +1,7 @@
 # Context Map
 
+Project-wide language is defined in the [root glossary](./CONTEXT.md).
+
 ## Contexts
 
 - [Admin](./admin/CONTEXT.md): governs which existing relational configuration tables may be managed and how their rows may be queried or changed

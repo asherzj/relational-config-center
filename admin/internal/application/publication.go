@@ -20,15 +20,18 @@ var (
 type PublicationSession interface {
 	ReleaseOrderSession
 	LockPublicationTable(context.Context, string) error
+	LockUnchangedPublication(context.Context, domain.ReleaseOrder, domain.TableSchema) error
 	CommitPublication(context.Context, PublicationPlan) (domain.PublicationResult, error)
 }
 type PublicationPlan struct {
 	OrderID, PublisherID, SchemaDigest string
-	At                                 time.Time
-	Schema                             domain.TableSchema
-	Execution                          domain.TableExecutionSchema
-	Policy                             domain.MutationPolicy
-	Items                              []PublicationItem
+	// TargetOrderID is the still-owning original for an atomic quick restoration.
+	TargetOrderID string
+	At            time.Time
+	Schema        domain.TableSchema
+	Execution     domain.TableExecutionSchema
+	Policy        domain.MutationPolicy
+	Items         []PublicationItem
 }
 type PublicationItem struct {
 	Intent domain.ReleaseItem
@@ -63,9 +66,10 @@ func (r *ReleaseOrders) Execute(ctx context.Context, id string, input SubmitRele
 			return ErrReleaseFrozenChanged
 		}
 		digest := hex.EncodeToString(releaseDigest(struct {
+			Title     string
 			Items     []ReleaseItem
 			Execution *domain.ReleaseExecutionSnapshot
-		}{order.Items, order.Frozen}))
+		}{order.Title, order.Items, order.Frozen}))
 		if digest != order.FrozenDigest {
 			return ErrReleaseFrozenChanged
 		}
@@ -115,10 +119,16 @@ func (r *ReleaseOrders) Execute(ctx context.Context, id string, input SubmitRele
 		}
 		order.Publication = &result
 		order.State = "SUCCEEDED"
+		if order.RollbackOfID != "" {
+			order.State = "COMPLETED"
+		}
 		if err := r.finishRollback(ctx, s, *order, true); err != nil {
 			return err
 		}
-		return s.ReleaseTargets(ctx, order.ID)
+		if order.RollbackOfID != "" {
+			return s.ReleaseTargets(ctx, order.ID)
+		}
+		return nil
 	})
 }
 func publicationContent(schema domain.TableSchema, p domain.MutationPolicy, item ReleaseItem, actor string, now time.Time) (domain.MutationContent, error) {

@@ -85,10 +85,10 @@ func TestReleaseBatchEdgeDraftValidation(t *testing.T) {
 		{"cross-table", "mutation_delete_parents", `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"kept"}}`, `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"discarded"}},{"table_name":"mutation_add_items","operation":"ADD","content":{"code":"cross","label":"cross"}}`, "release_cross_table"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			created := releaseRequest(t, app, "POST", "/api/v1/release-orders", fmt.Sprintf(`{"table_name":%q,"items":[%s]}`, tc.table, tc.original), tc.name+"-create")
+			created := releaseRequest(t, app, "POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"items":[%s]}`, tc.table, tc.original), tc.name+"-create")
 			order := batchEdgeOrder(t, created, 201)
 			path := "/api/v1/release-orders/" + order.ID
-			response := releaseRequest(t, app, "PUT", path, fmt.Sprintf(`{"table_name":%q,"expected_version":"1","items":[%s]}`, tc.table, tc.replacement), tc.name+"-replace")
+			response := releaseRequest(t, app, "PUT", path, fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"expected_version":"1","items":[%s]}`, tc.table, tc.replacement), tc.name+"-replace")
 			assertIntegrationErrorCode(t, response, 422, tc.code)
 			batchEdgeIndex(t, response, 1)
 			current := releaseRequest(t, app, "GET", path, "", "")
@@ -111,7 +111,7 @@ func TestReleaseBatchEdgeRequestLimitsPreserveDraft(t *testing.T) {
 	app, db := batchEdgeApplication(t)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	item := `{"operation":"ADD","content":{"code":"kept","label":"kept"}}`
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"mutation_add_items","items":[`+item+`]}`, "limits-create")
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[`+item+`]}`, "limits-create")
 	order := batchEdgeOrder(t, created, 201)
 	path := "/api/v1/release-orders/" + order.ID
 	for _, tc := range []struct {
@@ -123,7 +123,7 @@ func TestReleaseBatchEdgeRequestLimitsPreserveDraft(t *testing.T) {
 		{"body", `{"operation":"ADD","content":{"code":"large","label":"` + strings.Repeat("x", 1<<20) + `"}}`, "request_body_too_large", 400},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			body := `{"table_name":"mutation_add_items","expected_version":"1","items":[` + tc.items + `]}`
+			body := `{"title":"集成测试发布单","table_name":"mutation_add_items","expected_version":"1","items":[` + tc.items + `]}`
 			response := releaseRequest(t, app, "PUT", path, body, "limits-"+tc.name)
 			assertIntegrationErrorCode(t, response, tc.status, tc.code)
 			current := releaseRequest(t, app, "GET", path, "", "")
@@ -142,7 +142,7 @@ func TestReleaseBatchEdgeOverlappingSubmissions(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	paths := make([]string, 2)
 	for i, ids := range [][]int{{10, 20}, {30, 20}} {
-		body := fmt.Sprintf(`{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"%d","code":"exclusive-%d","label":"draft"}},{"operation":"ADD","content":{"id":"%d","code":"shared","label":"draft"}}]}`, ids[0], i, ids[1])
+		body := fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"%d","code":"exclusive-%d","label":"draft"}},{"operation":"ADD","content":{"id":"%d","code":"shared","label":"draft"}}]}`, ids[0], i, ids[1])
 		order := batchEdgeOrder(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", body, fmt.Sprintf("overlap-create-%d", i)), 201)
 		paths[i] = "/api/v1/release-orders/" + order.ID
 	}
@@ -203,7 +203,7 @@ func TestReleaseBatchEdgeStaleMemberRollsBack(t *testing.T) {
 	app, db := batchEdgeApplication(t, `INSERT INTO mutation_add_items(id,code,label) VALUES(10,'ten','old'),(30,'thirty','old')`)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	publishedFixtureCommand(t, publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"id":"20","code":"twenty","label":"old"}}`))
-	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"must-rollback"}},{"operation":"DELETE","id":"30","expected_record_version":"0","content":{}},{"operation":"ADD","content":{"code":"must-rollback","label":"new"}},{"operation":"MODIFY","id":"20","expected_record_version":"1","content":{"label":"stale"}}]}`, "stale-batch")
+	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"must-rollback"}},{"operation":"DELETE","id":"30","expected_record_version":"0","content":{}},{"operation":"ADD","content":{"code":"must-rollback","label":"new"}},{"operation":"MODIFY","id":"20","expected_record_version":"1","content":{"label":"stale"}}]}`, "stale-batch")
 	before := releaseRequest(t, app, "GET", path, "", "")
 	// Simulate a supported external maintenance writer that advances the known
 	// version together with its business change; only id 20 has a version row.
@@ -244,7 +244,7 @@ func TestReleaseBatchEdgeMidwayConstraintRollback(t *testing.T) {
 		status                       int
 	}{{"check", "bad-check", "rollback", "mutation_unavailable", 503}, {"unique", "thirty", "valid", "duplicate_key", 409}} {
 		t.Run(tc.name, func(t *testing.T) {
-			body := fmt.Sprintf(`{"table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"must-rollback"}},{"operation":"DELETE","id":"20","expected_record_version":"0","content":{}},{"operation":"ADD","content":{"code":"early-add","label":"valid"}},{"operation":"ADD","content":{"code":%q,"label":%q}}]}`, tc.code, tc.label)
+			body := fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"must-rollback"}},{"operation":"DELETE","id":"20","expected_record_version":"0","content":{}},{"operation":"ADD","content":{"code":"early-add","label":"valid"}},{"operation":"ADD","content":{"code":%q,"label":%q}}]}`, tc.code, tc.label)
 			path := approvePublication(t, app, reviewer, body, "constraint-"+tc.name)
 			before := releaseRequest(t, app, "GET", path, "", "")
 			response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "constraint-execute-"+tc.name)
@@ -276,7 +276,7 @@ func TestReleaseBatchEdgeAutoIncrementAndIndependentRequests(t *testing.T) {
 		`CREATE TABLE batch_auto_items(id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,label VARCHAR(64) NOT NULL) ENGINE=InnoDB`,
 		`SET GLOBAL auto_increment_increment=3`, `SET GLOBAL auto_increment_offset=2`)
 	enableMutationPolicy(t, app, "batch_auto_items", mutationPolicyFixture{AllowAdd: true})
-	body := `{"table_name":"batch_auto_items","items":[{"operation":"ADD","content":{"label":"first"}},{"operation":"ADD","content":{"label":"second"}},{"operation":"ADD","content":{"label":"third"}}]}`
+	body := `{"title":"集成测试发布单","table_name":"batch_auto_items","items":[{"operation":"ADD","content":{"label":"first"}},{"operation":"ADD","content":{"label":"second"}},{"operation":"ADD","content":{"label":"third"}}]}`
 	reviewer := publicationFixtureReviewer(t, app)
 	paths := []string{approvePublication(t, app, reviewer, body, "auto-one"), approvePublication(t, app, reviewer, body, "auto-two")}
 	if paths[0] == paths[1] {
@@ -319,7 +319,7 @@ func TestReleaseBatchEdgeAutoIncrementAndIndependentRequests(t *testing.T) {
 		`SELECT COUNT(*) FROM rcc_publication_commands`:                                        6,
 		`SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=1`:                        6,
 		`SELECT COUNT(*) FROM rcc_refresh_notifications`:                                       2,
-		`SELECT COUNT(*) FROM rcc_release_targets`:                                             0,
+		`SELECT COUNT(*) FROM rcc_release_targets`:                                             6,
 		`SELECT table_version FROM rcc_table_publications WHERE table_name='batch_auto_items'`: 2,
 	})
 }
@@ -332,7 +332,7 @@ func TestReleaseBatchEdgeIndependentUniqueConflict(t *testing.T) {
 	reviewer := publicationFixtureReviewer(t, app)
 	paths := []string{}
 	for i := range 2 {
-		body := fmt.Sprintf(`{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"exclusive-%d","label":"valid"}},{"operation":"ADD","content":{"code":"shared-business-key","label":"valid"}}]}`, i)
+		body := fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"exclusive-%d","label":"valid"}},{"operation":"ADD","content":{"code":"shared-business-key","label":"valid"}}]}`, i)
 		paths = append(paths, approvePublication(t, app, reviewer, body, fmt.Sprintf("independent-%d", i)))
 	}
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_orders WHERE state='APPROVED'`: 2, `SELECT COUNT(*) FROM rcc_release_targets`: 0})
@@ -383,7 +383,7 @@ func TestReleaseBatchEdgeIndependentUniqueConflict(t *testing.T) {
 		`SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=1`:                          2,
 		`SELECT COUNT(*) FROM rcc_publication_commands`:                                          2,
 		`SELECT COUNT(*) FROM rcc_refresh_notifications`:                                         1,
-		`SELECT COUNT(*) FROM rcc_release_targets`:                                               0,
+		`SELECT COUNT(*) FROM rcc_release_targets`:                                               2,
 		`SELECT table_version FROM rcc_table_publications WHERE table_name='mutation_add_items'`: 1,
 		`SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%'`:             1,
 	})
@@ -394,7 +394,7 @@ func TestReleaseBatchEdgeIndependentUniqueConflict(t *testing.T) {
 func TestReleaseBatchExistingEnumPrimaryKeys(t *testing.T) {
 	app, db := batchEdgeApplication(t, `CREATE TABLE batch_enum_keys(id ENUM('alpha','beta','gamma') COLLATE utf8mb4_0900_ai_ci PRIMARY KEY,label VARCHAR(64) NOT NULL) ENGINE=InnoDB`, `INSERT INTO batch_enum_keys VALUES('alpha','original'),('beta','delete')`)
 	enableMutationPolicy(t, app, "batch_enum_keys", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
-	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"table_name":"batch_enum_keys","items":[{"operation":"MODIFY","id":"ALPHA","expected_record_version":"0","content":{"label":"changed"}},{"operation":"DELETE","id":"beta","expected_record_version":"0","content":{}}]}`, "enum-batch")
+	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"集成测试发布单","table_name":"batch_enum_keys","items":[{"operation":"MODIFY","id":"ALPHA","expected_record_version":"0","content":{"label":"changed"}},{"operation":"DELETE","id":"beta","expected_record_version":"0","content":{}}]}`, "enum-batch")
 	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "enum-execute")
 	order := batchEdgeOrder(t, response, 200)
 	if order.Publication == nil || len(order.Publication.Commands) != 2 || order.Publication.Commands[0].ID != "alpha" || order.Publication.Commands[1].ID != "beta" || !order.Publication.Commands[1].Final.Deleted {
@@ -404,8 +404,8 @@ func TestReleaseBatchExistingEnumPrimaryKeys(t *testing.T) {
 	if replay.Code != 200 || replay.Body.String() != response.Body.String() {
 		t.Fatal("ENUM replay changed")
 	}
-	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM batch_enum_keys WHERE id='alpha' AND label='changed'`: 1, `SELECT COUNT(*) FROM batch_enum_keys`: 1, `SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=1`: 2, `SELECT COUNT(*) FROM rcc_publication_commands`: 2, `SELECT COUNT(*) FROM rcc_release_targets`: 0})
-	missing := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"batch_enum_keys","items":[{"operation":"ADD","content":{"id":"gamma","label":"unsupported"}}]}`, "enum-missing")
+	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM batch_enum_keys WHERE id='alpha' AND label='changed'`: 1, `SELECT COUNT(*) FROM batch_enum_keys`: 1, `SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=1`: 2, `SELECT COUNT(*) FROM rcc_publication_commands`: 2, `SELECT COUNT(*) FROM rcc_release_targets`: 2})
+	missing := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"batch_enum_keys","items":[{"operation":"ADD","content":{"id":"gamma","label":"unsupported"}}]}`, "enum-missing")
 	assertIntegrationErrorCode(t, missing, 422, "release_snapshot_unsupported")
 }
 
@@ -414,7 +414,7 @@ func TestReleaseBatchCopyInvalidItemIsLocated(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	first := `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"first"}}`
 	second := `{"operation":"MODIFY","id":"2","expected_record_version":"0","content":{"code":"second"}}`
-	body := `{"table_name":"mutation_delete_parents","items":[` + first + `,` + second + `]}`
+	body := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[` + first + `,` + second + `]}`
 	created := batchEdgeOrder(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "copy-batch-create"), 201)
 	path := "/api/v1/release-orders/" + created.ID
 	cancelled := releaseRequest(t, app, "POST", path+"/cancel", `{"expected_version":"1","reason":"rework"}`, "copy-batch-cancel")

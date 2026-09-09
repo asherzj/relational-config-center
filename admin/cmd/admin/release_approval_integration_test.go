@@ -12,6 +12,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	tcmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -21,7 +22,7 @@ import (
 func TestReleaseSubmitFreezesIntent(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true, AllowDelete: true})
-	body := `{"table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposed"}}]}`
+	body := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposed"}}]}`
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "approval-create-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
@@ -41,7 +42,7 @@ func TestReleaseSubmitFreezesIntent(t *testing.T) {
 	if order.State != "PENDING_APPROVAL" || order.Version != "2" || len(order.FrozenDigest) != 64 {
 		t.Fatalf("not frozen: %s", submitted.Body)
 	}
-	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", path, `{"table_name":"mutation_delete_parents","expected_version":"2","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"changed"}}]}`, "approval-edit-01"), 422, "release_state_invalid")
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", path, `{"title":"集成测试发布单","table_name":"mutation_delete_parents","expected_version":"2","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"changed"}}]}`, "approval-edit-01"), 422, "release_state_invalid")
 	row, version := recordVersionRow(t, app, "mutation_delete_parents", "1")
 	if *row["code"] != "delete-rollback" || version != "0" {
 		t.Fatalf("submit wrote business row: %v %s", row, version)
@@ -54,7 +55,7 @@ func TestReleaseTargetsCompeteAndCancelReleases(t *testing.T) {
 	enableMutationPolicy(t, app, "record_identity_ci", mutationPolicyFixture{AllowAdd: true})
 	paths := make([]string, 2)
 	for i, id := range []string{"Résumé", "RESUME"} {
-		raw, _ := json.Marshal(map[string]any{"table_name": "record_identity_ci", "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"id": id, "label": "draft"}}}})
+		raw, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": "record_identity_ci", "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"id": id, "label": "draft"}}}})
 		created := releaseRequest(t, app, "POST", "/api/v1/release-orders", string(raw), fmt.Sprintf("target-create-%d", i))
 		if created.Code != 201 {
 			t.Fatal(created.Body)
@@ -115,6 +116,62 @@ func grantReleaseRole(t *testing.T, app *adminApplication, actor *httptest.Respo
 	}
 }
 
+// AC-011: any viewer can resolve only the permanent account IDs already exposed
+// by one order, and profile changes affect the current display without rewriting history.
+func TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin(t *testing.T) {
+	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
+	editor := registerAccount(t, app, "people.editor", "people.editor@example.com", "correct horse battery staple")
+	reviewer := registerAccount(t, app, "people.reviewer", "people.reviewer@example.com", "correct horse battery staple")
+	publisher := registerAccount(t, app, "people.publisher", "people.publisher@example.com", "correct horse battery staple")
+	viewer := registerAccount(t, app, "people.viewer", "people.viewer@example.com", "correct horse battery staple")
+	grantReleaseRole(t, app, editor, `["EDITOR"]`, "1", "people-editor-role")
+	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "people-reviewer-role")
+	grantReleaseRole(t, app, publisher, `["PUBLISHER"]`, "1", "people-publisher-role")
+	created := releaseActorRequest(t, app, editor, "POST", "/api/v1/release-orders", `{"title":"验证人员归属","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"people","label":"intent"}}]}`, "people-create")
+	if created.Code != 201 {
+		t.Fatal(created.Body)
+	}
+	var order struct{ ID string }
+	if err := json.Unmarshal(created.Body.Bytes(), &order); err != nil {
+		t.Fatal(err)
+	}
+	path := "/api/v1/release-orders/" + order.ID
+	if submitted := releaseActorRequest(t, app, editor, "POST", path+"/submit", `{"expected_version":"1"}`, "people-submit"); submitted.Code != 200 {
+		t.Fatal(submitted.Body)
+	}
+	if approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"2","reason":"人员独立审批"}`, "people-approve"); approved.Code != 200 {
+		t.Fatal(approved.Body)
+	}
+	if published := releaseActorRequest(t, app, publisher, "POST", path+"/execute", `{"expected_version":"3"}`, "people-execute"); published.Code != 200 {
+		t.Fatal(published.Body)
+	}
+	for _, change := range []struct {
+		actor *httptest.ResponseRecorder
+		name  string
+	}{{editor, "当前申请人"}, {reviewer, "当前审批人"}, {publisher, "当前发布人"}} {
+		response := releaseActorRequest(t, app, change.actor, "PATCH", "/api/v1/auth/profile", fmt.Sprintf(`{"display_name":%q}`, change.name), "")
+		if response.Code != 200 {
+			t.Fatalf("rename %s: %d %s", change.name, response.Code, response.Body)
+		}
+	}
+	people := releaseActorRequest(t, app, viewer, "GET", path+"/people", "", "")
+	if people.Code != 200 {
+		t.Fatalf("viewer reads related people: %d %s", people.Code, people.Body)
+	}
+	var result struct {
+		People map[string]string `json:"people"`
+	}
+	if err := json.Unmarshal(people.Body.Bytes(), &result); err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]string{accountID(t, editor): "当前申请人", accountID(t, reviewer): "当前审批人", accountID(t, publisher): "当前发布人"}
+	if !reflect.DeepEqual(result.People, want) {
+		t.Fatalf("related people: %#v, want %#v", result.People, want)
+	}
+	assertIntegrationErrorCode(t, releaseActorRequest(t, app, viewer, "GET", "/api/v1/account-roles?limit=20", "", ""), 403, "permission_denied")
+}
+
 // AC-020/024/025: a current, independent approver decides once; a historical
 // approval survives revocation while new requests still require current grants.
 func TestReleaseApprovalCurrentRolesAndHistory(t *testing.T) {
@@ -122,7 +179,7 @@ func TestReleaseApprovalCurrentRolesAndHistory(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	admin := integrationAdminSession(t, app)
 	reviewer := registerAccount(t, app, "release.reviewer", "release.reviewer@example.com", "correct horse battery staple")
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"approved","label":"new"}}]}`, "review-create-01")
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"approved","label":"new"}}]}`, "review-create-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}
@@ -177,7 +234,7 @@ func TestReleaseRejectedCopyRechecksBaseline(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	reviewer := registerAccount(t, app, "copy.reviewer", "copy.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "copy-reviewer-01")
-	original := `{"table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposal"}}]}`
+	original := `{"title":"调整删除保护配置","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposal"}}]}`
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", original, "copy-original-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
@@ -193,7 +250,7 @@ func TestReleaseRejectedCopyRechecksBaseline(t *testing.T) {
 	if rejected.Code != 200 {
 		t.Fatal(rejected.Body)
 	}
-	updated := publicationFixtureRequest(t, app, "MODIFY", "mutation_delete_parents", "1", `{"expected_version":"0","content":{"code":"new baseline"}}`)
+	updated := publicationFixtureRequest(t, app, "MODIFY", "mutation_delete_parents", "1", `{"title":"刷新复制基线","expected_version":"0","content":{"code":"new baseline"}}`)
 	assertMutationAffected(t, updated)
 	body := `{"expected_version":"3","confirmed":true,"items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposal"}}]}`
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/copy", body, "copy-request-01"), 409, "record_version_conflict")
@@ -208,13 +265,13 @@ func TestReleaseRejectedCopyRechecksBaseline(t *testing.T) {
 		t.Fatalf("copy: %d %s", copied.Code, copied.Body)
 	}
 	var result struct {
-		ID, State, Version string
-		CopiedFromID       string `json:"copied_from_id"`
-		History            []struct{ Action string }
-		Items              []struct{ Before map[string]*string }
+		ID, Title, State, Version string
+		CopiedFromID              string `json:"copied_from_id"`
+		History                   []struct{ Action string }
+		Items                     []struct{ Before map[string]*string }
 	}
 	json.Unmarshal(copied.Body.Bytes(), &result)
-	if result.ID == order.ID || result.State != "DRAFT" || result.Version != "1" || result.CopiedFromID != order.ID || len(result.History) != 1 || result.History[0].Action != "COPY" || *result.Items[0].Before["code"] != "new baseline" {
+	if result.ID == order.ID || result.Title != "调整删除保护配置" || result.State != "DRAFT" || result.Version != "1" || result.CopiedFromID != order.ID || len(result.History) != 1 || result.History[0].Action != "COPY" || *result.Items[0].Before["code"] != "new baseline" {
 		t.Fatalf("incorrect copied draft: %s", copied.Body)
 	}
 	replay := releaseRequest(t, app, "POST", path+"/copy", confirmed, "copy-request-01")
@@ -242,7 +299,7 @@ func TestReleaseWorkflowAtomicityAndCompetition(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	reviewer := registerAccount(t, app, "race.reviewer", "race.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "race-grant-01")
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposal"}}]}`, "atomic-create-01")
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposal"}}]}`, "atomic-create-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}
@@ -337,7 +394,7 @@ func TestReleaseFreezeTracksExecutionSemantics(t *testing.T) {
 	freeze := func() string {
 		t.Helper()
 		sequence++
-		created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"proposal","label":"intent"}}]}`, fmt.Sprintf("schema-create-%02d", sequence))
+		created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"proposal","label":"intent"}}]}`, fmt.Sprintf("schema-create-%02d", sequence))
 		if created.Code != 201 {
 			t.Fatal(created.Body)
 		}
@@ -401,7 +458,7 @@ func TestReleaseFreezeTracksExecutionSemantics(t *testing.T) {
 	if got := freeze(); got != plain {
 		t.Fatal("description-only table comment changed execution semantics")
 	}
-	preview := releaseRequest(t, app, "POST", "/api/v1/release-orders/preview", `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"201","code":"known","label":"known"}}]}`, "")
+	preview := releaseRequest(t, app, "POST", "/api/v1/release-orders/preview", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"201","code":"known","label":"known"}}]}`, "")
 	if preview.Code != 200 || strings.Contains(preview.Body.String(), `"record_table"`) || strings.Contains(preview.Body.String(), `"record_key"`) {
 		t.Fatalf("preview leaked internal identity: %s", preview.Body)
 	}
@@ -418,7 +475,7 @@ func TestReleaseFreezeMetadataVisibility(t *testing.T) {
 	}
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"permission","label":"intent"}}]}`, "metadata-create-01")
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"permission","label":"intent"}}]}`, "metadata-create-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}
@@ -446,7 +503,7 @@ func TestReleaseFreezeMetadataVisibility(t *testing.T) {
 	if cancelled.Code != 200 {
 		t.Fatal(cancelled.Body)
 	}
-	created = releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"restricted","label":"intent"}}]}`, "metadata-create-02")
+	created = releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"restricted","label":"intent"}}]}`, "metadata-create-02")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}
@@ -486,7 +543,7 @@ func TestReleaseFreezeMetadataVisibility(t *testing.T) {
 func TestReleaseSubmitRevalidatesBaselineAndRules(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
-	body := `{"table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposal"}}]}`
+	body := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposal"}}]}`
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "revalidate-create-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
@@ -582,7 +639,7 @@ func TestReleaseAutoIncrementZeroIdentity(t *testing.T) {
 		t.Fatalf("fixture did not generate identity: %d %v", generated, err)
 	}
 	for i, code := range []string{"first zero proposal", "second zero proposal"} {
-		body, _ := json.Marshal(map[string]any{"table_name": "mutation_add_items", "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"id": "0", "code": code, "label": "intent"}}}})
+		body, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": "mutation_add_items", "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"id": "0", "code": code, "label": "intent"}}}})
 		assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", string(body), fmt.Sprintf("zero-create-%d", i)), 422, "release_auto_id_ambiguous")
 	}
 	var targets int
@@ -599,7 +656,7 @@ func TestReleaseAutoIncrementZeroIdentity(t *testing.T) {
 	defer exact.Close()
 	paths := []string{}
 	for i := range 2 {
-		body := fmt.Sprintf(`{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"0","code":"literal-zero-%d","label":"intent"}}]}`, i)
+		body := fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"0","code":"literal-zero-%d","label":"intent"}}]}`, i)
 		created := releaseRequest(t, exact, "POST", "/api/v1/release-orders", body, fmt.Sprintf("literal-zero-create-%d", i))
 		if created.Code != 201 {
 			t.Fatal(created.Body)
@@ -693,7 +750,7 @@ func TestReleaseFreezeMetadataGrantNameIdentity(t *testing.T) {
 			if err := limited.QueryRow("SELECT COUNT(*) FROM information_schema.TRIGGERS WHERE EVENT_OBJECT_SCHEMA=DATABASE() AND EVENT_OBJECT_TABLE='mutation_add_items'").Scan(&hidden); err != nil || hidden != 0 {
 				t.Fatalf("target trigger must actually be hidden: %d %v", hidden, err)
 			}
-			created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"case-`+tc.name+`","label":"intent"}}]}`, "case-create-"+tc.name)
+			created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"case-`+tc.name+`","label":"intent"}}]}`, "case-create-"+tc.name)
 			if created.Code != 201 {
 				t.Fatal(created.Body)
 			}
@@ -729,7 +786,7 @@ func TestReleaseFreezeMetadataGrantNameIdentity(t *testing.T) {
 			t.Fatal(err)
 		}
 		defer atApp.Close()
-		created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"account-at","label":"intent"}}]}`, "at-account-create")
+		created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"account-at","label":"intent"}}]}`, "at-account-create")
 		if created.Code != 201 {
 			t.Fatal(created.Body)
 		}
@@ -797,7 +854,7 @@ func TestReleaseFreezeMetadataCaseInsensitiveNames(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer restricted.Close()
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"same-case","label":"intent"}}]}`, "same-case-create")
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"same-case","label":"intent"}}]}`, "same-case-create")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}
