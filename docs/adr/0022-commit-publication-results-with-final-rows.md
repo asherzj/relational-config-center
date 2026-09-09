@@ -7,3 +7,5 @@ Admin 最终行格式 `rcc-admin-mysql-row-v1` 用明确字段类型、编码、
 为防止发布成功却遗漏其他行的变化，当前仅接纳封闭表达式的单条 BEFORE SET NEW 目标行触发器，拒绝改变主键、生成列或自动审计字段；使用需要显式 PROCESS 权限的全局 InnoDB 字典识别跨 schema 级联，业务表元数据锁保持至事务完成。接受任意 SQL 触发器会要求完整副作用追踪；本期选择可验证的保守边界，具体限制见发布契约文档。
 
 目标占用时机由 [ADR-0023](./0023-keep-published-orders-open-for-quick-rollback.md) 调整：普通成功保留全部真实身份的占用，人工完结释放；普通反向成功直接结束并释放。所有变化仍与相应成功结果共同提交。
+
+[ADR-0024](./0024-multitable-drafts-reserve-targets-and-record-executions.md) 扩展至同一数据源内的多表整单事务，并将实际结果归于变更明细及成功执行记录；命令和通知区分同主单两次执行。本ADR的真实结果、版本及原子提交要求继续有效。目标实现由规格 #81 跟踪。

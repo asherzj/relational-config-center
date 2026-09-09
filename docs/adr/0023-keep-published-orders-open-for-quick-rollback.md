@@ -13,3 +13,5 @@ status: accepted
 快速回滚和普通审批回滚成功后，原单标记已回滚并结束，回滚结果自身也直接结束并释放占用，不进入新的待完结阶段或提供“回滚这次回滚”的入口。再次发布需要新建普通发布单并重新审批。
 
 以上业务边界由用户于 2026-09-08 确认。当前 [#60](https://github.com/asherzj/relational-config-center/issues/60) 落实普通发布待完结、真实目标保护、人工完结及完结后的普通审批回滚收尾；[#63](https://github.com/asherzj/relational-config-center/issues/63) 落实整单恢复预览、填写原因后的免审批快速回滚，以及未知结果按原请求恢复。预览和执行都核对真实当前业务行、版本与执行语义，包括绕过 RCC 版本的外部 SQL；执行在原占用保护下原子恢复，成功结果直接完结。完整已确认范围与验收见[规格 #59](https://github.com/asherzj/relational-config-center/issues/59)。用户明确不存在旧发布单数据，本次不设计旧发布单数据兼容；该决定不代表 Server/Client 分发或下游接收已接通。
+
+后续[ADR-0024](./0024-multitable-drafts-reserve-targets-and-record-executions.md) 将占用前移至草稿、支持多表整单，并以原单内成功执行记录替代独立回滚单；完结后不再允许回滚。该目标决策已确认，交付由规格 #81 跟踪，本文其余未被替代的正向审批与一致性规则继续有效。
