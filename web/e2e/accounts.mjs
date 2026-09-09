@@ -325,7 +325,6 @@ try {
   assert.equal(baseline.id, addPublication.publication.commands[0].id);
   assert.equal(baseline.version, '1');
   await page.getByRole('button', { name: `修改记录 ${baseline.id}`, exact: true }).click();
-  await page.getByLabel('包含 body', { exact: true }).check();
   await page.getByLabel('body 值', { exact: true }).fill('browser system configuration');
   await page.getByRole('button', { name: '查看 Change Set', exact: true }).click();
 

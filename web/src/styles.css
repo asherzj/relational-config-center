@@ -228,10 +228,21 @@
 .mutation-capability-notes span { padding: 5px 8px; border-radius: 5px; background: var(--muted); }
 .mutation-content-fields { margin-top: 16px; display: grid; gap: 12px; }
 .mutation-content-field { margin: 0; padding: 18px 0; display: grid; grid-template-columns: minmax(150px, .75fr) minmax(180px, 1fr) auto; align-items: end; gap: 12px; border: 0; border-bottom: 1px solid var(--line); }
-.mutation-content-field legend { padding: 0 6px; color: var(--ink); font-size: 13px; font-weight: 600; }
-.mutation-content-field legend small { margin-left: 8px; color: var(--muted-foreground); font-size: 12px; font-weight: 600; }
+.mutation-content-field--modify { grid-template-columns: minmax(0, 1fr) auto; }
+.mutation-content-field legend { max-width: 100%; padding: 0; color: var(--ink); font-size: 13px; font-weight: 600; }
+.mutation-field-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; overflow-wrap: anywhere; }
+.mutation-content-field legend small { color: var(--muted-foreground); font-size: 12px; font-weight: 400; }
 .include-field { min-height: 40px; display: flex; align-items: center; gap: 7px; color: var(--foreground); font-size: 12px; font-weight: 600; }
 .include-field [data-slot="checkbox"] { width: 17px; height: 17px; margin: 0; accent-color: var(--accent); }
+.mutation-null-toggle { min-width: 124px; min-height: 36px; padding: 8px 12px; align-self: end; justify-self: start; border: 1px solid var(--input); border-radius: 8px; cursor: pointer; }
+.mutation-null-toggle:hover { background: var(--accent); }
+.mutation-null-toggle[data-checked="true"] { border-color: var(--foreground); background: var(--accent); }
+.mutation-null-toggle:focus-within { outline: 2px solid var(--ring); outline-offset: 2px; }
+.mutation-null-toggle[data-disabled="true"] { opacity: .5; cursor: not-allowed; background: transparent; }
+@media (min-width: 621px) {
+  .mutation-content-field--not-null { grid-template-columns: minmax(150px, .75fr) minmax(0, 1fr); }
+  .mutation-content-field--modify.mutation-content-field--not-null { grid-template-columns: minmax(0, 1fr); }
+}
 
 .feedback-state { min-height: 280px; padding: 48px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--muted-foreground); text-align: center; }
 .feedback-state > svg { box-sizing: content-box; width: 26px; height: 26px; padding: 17px; margin-bottom: 4px; border-radius: 18px; color: var(--muted-foreground); background: var(--muted); stroke-width: 1.5; }
@@ -577,8 +588,9 @@ input::placeholder, textarea::placeholder { color: var(--muted-foreground); opac
   .modal-layer:has(.leave-protection-layer) { z-index: 80; }
   .drawer-backdrop, .modal-backdrop { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: rgb(24 24 27 / 26%); pointer-events: auto; cursor: default; }
   .drawer, .app-dialog { pointer-events: auto; }
-  .change-set-dialog { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; }
+  .change-set-dialog { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto; }
   .change-set-scroll { min-height: 0; overflow: auto; }
+  .change-set-scroll:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
   .change-set-dialog > header h2 { margin-top: 8px; line-height: 1.4; }
   .mutation-success-dialog > h2 { margin: 0; padding: 24px 24px 0; }
   .app-dialog { outline: none; }
@@ -587,6 +599,29 @@ input::placeholder, textarea::placeholder { color: var(--muted-foreground); opac
 
 @layer components {
   .change-set-feedback { min-height: 0; max-height: 42dvh; overflow: auto; }
+  .draft-destination { display: grid; gap: 12px; min-width: 0; margin-block: 20px; }
+  .change-set-feedback .draft-destination { margin: 0; padding: 20px 24px; border-top: 1px solid var(--border); }
+  .draft-destination-fields, .draft-destination-title, .draft-destination-picker { display: grid; gap: 8px; min-width: 0; align-content: start; }
+  .draft-destination-fields-open { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .draft-destination-title-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .draft-destination-title-meta > span { color: var(--muted-foreground); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .draft-destination-title-entry { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 12px; }
+  .draft-destination-title-entry > input:only-child { grid-column: 1 / -1; }
+  .draft-destination-title-entry > input, .draft-destination-picker > select { min-width: 0; width: 100%; }
+  .draft-destination-hint { margin: 0; color: var(--muted-foreground); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+  .draft-destination-pagination { display: flex; flex-wrap: wrap; gap: 8px; }
+  .draft-destination-pagination > .button { min-height: 32px; padding: 6px 12px; font-size: 12px; }
+  .draft-destination .feedback-state { min-height: 0; padding: 12px 16px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: start; justify-content: start; text-align: left; }
+  .draft-destination .feedback-state > svg { width: 18px; height: 18px; padding: 0; margin: 0; background: transparent; }
+  .draft-destination .feedback-state > span, .draft-destination .feedback-state > button { grid-column: 2; overflow-wrap: anywhere; }
+  .draft-destination .feedback-state > strong { font-size: 13px; overflow-wrap: anywhere; }
+  @media (max-width: 620px) {
+    .change-set-dialog > header, .change-set-dialog > footer { padding-inline: 16px; }
+    .change-set-feedback .draft-destination { padding: 16px; }
+    .draft-destination-fields-open, .draft-destination-title-entry { grid-template-columns: minmax(0, 1fr); }
+    .draft-destination-title-entry > .button { justify-self: start; }
+    .change-set-dialog > footer > .button { min-width: 0; flex: 1 1 120px; white-space: normal; }
+  }
   .record-conflict-review { display: grid; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--line); background: var(--surface-soft); font-size: 13px; }
   .record-conflict-review > p { margin: 0; line-height: 1.5; }
   .record-conflict-review > button { justify-self: start; }

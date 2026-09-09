@@ -116,6 +116,7 @@ export const managedDataQueryResponseDtoSchema = z.object({
     name: z.string().min(1),
     type: managedDataColumnTypeSchema,
     nullable: z.boolean(),
+    generated: z.boolean().optional(),
   })),
   rows: z.array(z.record(z.string(), z.string().nullable())),
   record_versions: z.array(z.string().max(20).regex(/^(0|[1-9][0-9]*)$/).pipe(z.string().refine((v) => BigInt(v) <= 18446744073709551615n))),
