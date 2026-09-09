@@ -1,0 +1,17 @@
+---
+status: accepted
+---
+
+# Manage current Table Field Policy interactions independently from execution
+
+An administrator configuring a channel field needs a Chinese display name, a small static choice list and suitable input controls. Saving those settings must not make a prohibited database write legal, and changing a label must not rewrite old release results. The confirmed field interaction specification (#71) therefore adds Table Field Policies to the Policy Catalog as current interaction configuration.
+
+`rcc_table_field_policies` stores one row per real table/field, enforced by a unique key, with display/query/input flags, an explicit control type, nullable JSON control options and prefill, enabled state and authoring audit. Control types default to text; no automatic type inference is introduced. SQL NULL prefill means no configured prefill; JSON null means an explicit empty database value. The additive014 migration and fresh schema are equivalent, contain no foreign keys, and preserve existing release orders, requests, versions, notifications and business rows.
+
+The protected administrator HTTP service validates the complete candidate against live metadata and the existing Mutation Policy's auto-fill sources before writing. One transaction locks the table assignment, upserts field rows while preserving their permanent storage identity and creation audit, and removes omitted rules. This retains the Catalog's last-write-wins convention without revisions or optimistic locks. A failure rolls back the full replacement. An unchanged persisted incompatible rule may be disabled after Schema drift; editing or reenabling it requires full validation. Uncertain outcomes require a readback and deliberate user decision, never an automatic resend.
+
+The read contract separates missing, disabled, active and incompatible states from infrastructure failure. Missing/disabled configurations yield text and exact defaults; incompatibility preserves the original rule, explains the mismatch and supplies safe fallback interaction settings. A field absent from the live schema does not become a writable field. Reads fail explicitly when metadata or the catalog cannot be obtained. This permits downstream Web consumers to hold one opening-time configuration for an edit form while historical display can read current labels.
+
+This decision extends the Policy Catalog membership in ADR-0016 but does not change its execution permission boundary. Query Policy and Mutation Policy remain authoritative for business execution. Table Field Policy visibility, queryability, editability and required flags are Web guidance; business requests remain subject to existing roles, actual schema types/constraints, server-managed fields, record versions, independent approvals and publication checks. Table Field Policies are not included in Policy Snapshot or release execution schema/semantic snapshots, and no display snapshots are added. Persisted before/final values continue to be the source of historical results, as required by ADR-0022.
+
+Consequences: administrators can replace interaction settings without versioning execution policies; readers must handle failure and drift explicitly; existing labels can change on historical views while original names and values remain available for verification. Remote options, schema administration, enum authorization and production history cleanup remain outside this decision. The precise HTTP shapes and migration operations are maintained in [the field policy contract](../admin-field-policies.md).

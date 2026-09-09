@@ -38,3 +38,7 @@ DRAFT、PENDING_APPROVAL、APPROVED、SUCCEEDED、COMPLETED、REJECTED、CANCELL
 完结后的普通回滚仍需独立审批；反向成功自身直接 COMPLETED，原单 ROLLED_BACK，禁止连续反向操作。并发动作由单据版本收敛，相同成功请求键返回原业务结果，当前权限仍须有效。COMPLETED 与其他已发布状态一样要求可信完整的 Publication；缺失或损坏不能经详情、列表或原键重放绕过校验。决策见 [ADR-0023](adr/0023-keep-published-orders-open-for-quick-rollback.md)。
 
 待完结期间，当前 PUBLISHER/ADMIN 也可先审阅整单恢复预览，再填写原因并执行免审批快速回滚，不限定原发布人。预览与执行核对当前业务值、记录版本和 Schema/规则语义；成功后原单 ROLLED_BACK、反向结果直接 COMPLETED，原占用同事务释放。未知结果保留原预览摘要、原因和请求键，按原正文恢复；不会自动替换预览或重复执行。接口与恢复步骤见[快速回滚指南](admin-release-rollbacks.md#免审批快速回滚t4--63)。
+
+## 字段交互管理升级
+
+完成013后在停写窗口执行014，部署配套Admin/Web。此迁移仅新增表字段规则，不清理任何旧发布单、业务行或版本；Ready会明确提示缺失结构。详见[字段规则契约与升级说明](admin-field-policies.md)。

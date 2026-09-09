@@ -665,3 +665,16 @@ input::placeholder, textarea::placeholder { color: var(--muted-foreground); opac
 .release-recovery { display: block; min-width: 0; overflow-wrap: anywhere; }
 
 .release-diff-scroll:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+
+/* Field policy management reuses the rule drawer and semantic controls. */
+.field-policy-section { display: grid; gap: 16px; border-top: 1px solid var(--border); padding-top: 20px; }
+.field-policy-section h3 { font-size: 14px; font-weight: 600; }
+.field-policy-toggle { display: flex; align-items: center; gap: 10px; min-height: 30px; }
+.field-policy-checks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
+.field-policy-metadata { color: var(--muted-foreground); font-size: 12px; overflow-wrap: anywhere; }
+.field-policy-options { display: grid; gap: 12px; }
+.field-policy-options > p { color: var(--muted-foreground); font-size: 13px; }
+.field-policy-option { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto; align-items: end; gap: 12px; }
+.field-policy-summary { display: grid; gap: 12px; padding: 12px 0; font-size: 13px; overflow-wrap: anywhere; }
+.field-policy-summary dt { color: var(--muted-foreground); }
+@media (max-width: 620px) { .field-policy-option { grid-template-columns: minmax(0,1fr); border-bottom: 1px solid var(--border); padding-bottom: 12px; } }

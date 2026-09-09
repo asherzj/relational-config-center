@@ -28,3 +28,8 @@ type QueryPolicy = domain.QueryPolicy
 type QueryResult = domain.QueryResult
 type QuerySpec = domain.QuerySpec
 type TablePolicy = domain.TablePolicy
+
+type TableFieldPolicy = domain.TableFieldPolicy
+type FieldOption = domain.FieldOption
+
+type FieldUIOptions = domain.FieldUIOptions
