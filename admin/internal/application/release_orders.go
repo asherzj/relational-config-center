@@ -186,6 +186,9 @@ func (r *ReleaseOrders) People(ctx context.Context, id string) (map[string]strin
 	if order.Publication != nil {
 		seen[order.Publication.PublisherID] = true
 	}
+	if order.Rollback != nil {
+		seen[order.Rollback.PublisherID] = true
+	}
 	ids := make([]string, 0, len(seen))
 	for id := range seen {
 		if id != "" {
@@ -250,7 +253,7 @@ func releaseActionState(state, action string) bool {
 	case "complete", "quick-rollback":
 		return state == "SUCCEEDED"
 	case "rollback":
-		return state == "COMPLETED"
+		return false
 	case "execute":
 		return state == "APPROVED"
 	case "copy":

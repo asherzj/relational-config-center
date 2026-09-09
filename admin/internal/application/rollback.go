@@ -2,8 +2,6 @@ package application
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"math"
 	"regexp"
@@ -20,73 +18,13 @@ var (
 	ErrRollbackRestoreMismatch = errors.New("original business values cannot be restored")
 )
 
-// Rollback saves a new immutable reverse intent. Only Execute owns business DML.
-// The original's lock serializes applications, cancellation and reverse success.
+// Rollback's former separate-order route is retired. The only restoration is
+// the publisher's reviewed QuickRollback of an unfinished original order.
 func (r *ReleaseOrders) Rollback(ctx context.Context, id string, input CancelReleaseInput, key string) (ReleaseOrder, error) {
-	actor, err := requireRole(ctx, RoleEditor)
-	if err != nil {
+	if _, err := requireRole(ctx, RolePublisher); err != nil {
 		return ReleaseOrder{}, err
 	}
-	if !roleRequestKey.MatchString(key) {
-		return ReleaseOrder{}, ErrReleaseInvalid
-	}
-	var result ReleaseOrder
-	err = r.store.ExecuteReleaseOrder(ctx, func(s ReleaseOrderSession) error {
-		operation := "rollback:" + id
-		previous, err := s.BeginReleaseRequest(ctx, actor, operation, key, releaseDigest(input))
-		if err != nil {
-			return err
-		}
-		original, err := s.GetReleaseOrder(ctx, id)
-		if err != nil {
-			return err
-		}
-		if previous != nil {
-			result = *previous
-			return nil
-		}
-		if strings.TrimSpace(input.Reason) == "" || len(input.Reason) > 2000 || ValidateRecordVersion(input.ExpectedVersion) != nil || input.ExpectedVersion == "0" {
-			return ErrReleaseInvalid
-		}
-		if original.Version != input.ExpectedVersion {
-			return ErrReleaseVersionConflict
-		}
-		if original.State != "COMPLETED" || original.RollbackOfID != "" {
-			return ErrReleaseState
-		}
-		if original.RollbackPending {
-			return ErrRollbackConflict
-		}
-		if _, err := s.LockAndReadTableExecutionSchema(ctx, original.TableName); err != nil {
-			return err
-		}
-		items, err := r.reverseItems(ctx, s, original)
-		if err != nil {
-			return err
-		}
-		now, err := s.DatabaseTime(ctx)
-		if err != nil {
-			return err
-		}
-		var randomID [16]byte
-		if _, err := rand.Read(randomID[:]); err != nil {
-			return ErrReleaseUnavailable
-		}
-		stamp := now.UTC().Format(time.RFC3339Nano)
-		result = ReleaseOrder{Title: rollbackTitle(original.Title), ID: hex.EncodeToString(randomID[:]), RollbackOfID: id, TableName: original.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "ROLLBACK_REQUEST", ActorID: actor, At: stamp, Version: "1", Reason: input.Reason, RelatedOrderID: id}}}
-		original.RollbackOrderID, original.RollbackPending = result.ID, true
-		if err := appendRelatedReleaseEvent(&original, actor, stamp, "ROLLBACK_REQUEST", input.Reason, result.ID); err != nil {
-			return err
-		}
-		if err := s.SaveReleaseOrder(ctx, original, false); err != nil {
-			return err
-		}
-		if err := s.SaveReleaseOrder(ctx, result, true); err != nil {
-			return err
-		}
-		return s.CompleteReleaseRequest(ctx, actor, operation, key, result)
-	})
-	return result, err
+	return ReleaseOrder{}, ErrReleaseState
 }
 
 func (r *ReleaseOrders) prepareOrder(ctx context.Context, s ReleaseOrderSession, order ReleaseOrder) ([]ReleaseItem, error) {

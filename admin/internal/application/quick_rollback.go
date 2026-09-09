@@ -2,9 +2,7 @@ package application
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/hex"
-	"strings"
 	"time"
 
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
@@ -114,7 +112,7 @@ func (r *ReleaseOrders) QuickRollback(ctx context.Context, id string, input Quic
 			return nil
 		}
 		digest, err := hex.DecodeString(input.PreviewDigest)
-		if err != nil || len(digest) != 32 || strings.TrimSpace(input.Reason) == "" || len(input.Reason) > 2000 {
+		if err != nil || len(digest) != 32 || len(input.Reason) > 2000 {
 			return ErrReleaseInvalid
 		}
 		preview, snapshot, err := r.prepareQuickRollback(ctx, s, original, input.ExpectedVersion)
@@ -128,20 +126,10 @@ func (r *ReleaseOrders) QuickRollback(ctx context.Context, id string, input Quic
 		if err != nil {
 			return err
 		}
-		var randomID [16]byte
-		if _, err = rand.Read(randomID[:]); err != nil {
-			return ErrReleaseUnavailable
-		}
 		stamp := now.UTC().Format(time.RFC3339Nano)
-		result = ReleaseOrder{ID: hex.EncodeToString(randomID[:]), Title: rollbackTitle(original.Title), RollbackOfID: id, TableName: original.TableName, ApplicantID: actor, State: "COMPLETED", Version: "1", Items: preview.Items, Frozen: original.Frozen, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "QUICK_ROLLBACK", ActorID: actor, At: stamp, Version: "1", Reason: input.Reason, RelatedOrderID: id}}}
-		result.FrozenDigest = hex.EncodeToString(releaseDigest(struct {
-			Title     string
-			Items     []ReleaseItem
-			Execution *domain.ReleaseExecutionSnapshot
-		}{result.Title, result.Items, result.Frozen}))
-		plan := PublicationPlan{OrderID: result.ID, TargetOrderID: original.ID, PublisherID: actor, At: now, Schema: snapshot.schema, SchemaDigest: hex.EncodeToString(releaseDigest(result.Frozen.Schema)), Execution: result.Frozen.Schema, Policy: snapshot.mutationPolicy}
+		plan := PublicationPlan{ExecutionKind: "ROLLBACK", OrderID: original.ID, TargetOrderID: original.ID, PublisherID: actor, At: now, Schema: snapshot.schema, SchemaDigest: hex.EncodeToString(releaseDigest(original.Frozen.Schema)), Execution: original.Frozen.Schema, Policy: snapshot.mutationPolicy}
 		idColumn, _ := snapshot.schema.Column("id")
-		for _, item := range result.Items {
+		for _, item := range preview.Items {
 			entry := PublicationItem{Intent: item}
 			if item.ID == nil {
 				return ErrReleaseUnavailable
@@ -167,17 +155,16 @@ func (r *ReleaseOrders) QuickRollback(ctx context.Context, id string, input Quic
 		if err = verifyRollbackResult(original, publication, snapshot.schema, snapshot.mutationPolicy); err != nil {
 			return err
 		}
-		result.Publication = &publication
-		original.State, original.RollbackOrderID, original.RollbackPending = "ROLLED_BACK", result.ID, false
-		if err = appendRelatedReleaseEvent(&original, actor, stamp, "QUICK_ROLLBACK", input.Reason, result.ID); err != nil {
-			return err
-		}
-		if err = s.SaveReleaseOrder(ctx, result, true); err != nil {
+		original.Rollback = &publication
+		original.Executions = append(original.Executions, domain.SummarizeExecution(publication))
+		original.State = "ROLLED_BACK"
+		if err = appendRelatedReleaseEvent(&original, actor, stamp, "QUICK_ROLLBACK", input.Reason, ""); err != nil {
 			return err
 		}
 		if err = s.SaveReleaseOrder(ctx, original, false); err != nil {
 			return err
 		}
+		result = original
 		if err = s.ReleaseTargets(ctx, original.ID); err != nil {
 			return err
 		}

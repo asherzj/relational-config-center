@@ -134,3 +134,18 @@ T5 同时修正 FLOAT 主键的有损短文本权重与 FLOAT/DOUBLE 的正负�
 
 拟新增的 `rcc_table_field_policies` 设计同样采用 `created_at` / `updated_at`。
 013 不创建字段规则表；该表仍属于待实现的字段规则功能。
+
+## 原单成功执行（014）
+
+完成 013 后，在停写维护窗口应用
+[`014-original-order-executions.sql`](./014-original-order-executions.sql)。它建立
+`rcc_release_details` 和 `rcc_release_executions`，为 Command 与通知增加
+`execution_id`，将通知主键改为 `(execution_id, table_name)`。原单发布及回滚
+分别保存一次成功执行；申请、发布实际结果和回滚实际结果按项独立保存于明细。
+
+迁移可重跑，不删除业务数据、控制历史、旧请求或通知，不提供旧发布单 JSON
+转换或新旧双写。旧 Command 和通知仅补 `legacy:<order_id>` 技术身份，保留
+原内容和状态；同表多条旧通知仍独立，重跑不覆盖已存在的执行身份。
+已有旧发布单数据时，保持停写并确认留存及环境切换方案。新安装使用最终
+`init/001-schema.sql`。启动就绪检查要求完整新结构，详情拒绝旧整单格式。
+详见[升级与原单操作指南](../../../docs/admin-release-upgrade.md)。

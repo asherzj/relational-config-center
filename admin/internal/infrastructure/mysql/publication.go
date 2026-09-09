@@ -56,7 +56,8 @@ func (s *publicationSession) CommitPublication(ctx context.Context, plan applica
 		return domain.PublicationResult{}, application.ErrReleaseUnavailable
 	}
 	version++
-	result := domain.PublicationResult{TableVersion: strconv.FormatUint(version, 10), PublisherID: plan.PublisherID, ExecutedAt: plan.At.UTC().Format(time.RFC3339Nano), Commands: []domain.PublicationCommand{}, Notification: domain.RefreshNotification{ID: plan.OrderID, TableVersion: strconv.FormatUint(version, 10), Status: "NOT_CONNECTED"}}
+	executionID := plan.OrderID + ":" + plan.ExecutionKind
+	result := domain.PublicationResult{ExecutionID: executionID, Kind: plan.ExecutionKind, TableVersion: strconv.FormatUint(version, 10), PublisherID: plan.PublisherID, ExecutedAt: plan.At.UTC().Format(time.RFC3339Nano), Commands: []domain.PublicationCommand{}, Notification: domain.RefreshNotification{ID: executionID, TableVersion: strconv.FormatUint(version, 10), Status: "NOT_CONNECTED"}}
 	ids := make([]any, len(plan.Items))
 	for i, item := range plan.Items {
 		ids[i] = item.ID
@@ -174,7 +175,7 @@ func (s *publicationSession) CommitPublication(ctx context.Context, plan applica
 			return domain.PublicationResult{}, &application.ReleaseItemError{Index: index, Cause: application.ErrInvalidMutation}
 		}
 		cursor++
-		command := domain.PublicationCommand{OrderID: plan.OrderID, Sequence: strconv.FormatUint(cursor, 10), TableName: plan.Execution.TableName, TableVersion: result.TableVersion, Operation: item.Intent.Operation, ID: actualID, RecordVersion: versions[index], Before: before, Final: final}
+		command := domain.PublicationCommand{ExecutionID: executionID, ExecutionKind: plan.ExecutionKind, OrderID: plan.OrderID, Sequence: strconv.FormatUint(cursor, 10), TableName: plan.Execution.TableName, TableVersion: result.TableVersion, Operation: item.Intent.Operation, ID: actualID, RecordVersion: versions[index], Before: before, Final: final}
 		encoded, err := json.Marshal(command)
 		if err != nil {
 			return domain.PublicationResult{}, application.ErrReleaseUnavailable
@@ -183,11 +184,11 @@ func (s *publicationSession) CommitPublication(ctx context.Context, plan applica
 		if commandBytes > application.ReleaseResultBytes {
 			return domain.PublicationResult{}, application.ErrReleaseResultLimit
 		}
-		placeholders = append(placeholders, "(?,?,?,?)")
-		arguments = append(arguments, command.TableName, command.Sequence, plan.OrderID, encoded)
+		placeholders = append(placeholders, "(?,?,?,?,?)")
+		arguments = append(arguments, command.TableName, command.Sequence, plan.OrderID, executionID, encoded)
 		result.Commands = append(result.Commands, command)
 	}
-	if err := s.database.WithContext(ctx).Exec("INSERT INTO rcc_publication_commands(table_name,sequence,order_id,document) VALUES"+strings.Join(placeholders, ","), arguments...).Error; err != nil {
+	if err := s.database.WithContext(ctx).Exec("INSERT INTO rcc_publication_commands(table_name,sequence,order_id,execution_id,document) VALUES"+strings.Join(placeholders, ","), arguments...).Error; err != nil {
 		return domain.PublicationResult{}, application.ErrReleaseUnavailable
 	}
 	if err := s.database.WithContext(ctx).Exec(`UPDATE rcc_table_publications SET table_version=?,command_cursor=? WHERE table_name=?`, version, cursor, plan.Execution.TableName).Error; err != nil {
@@ -197,7 +198,7 @@ func (s *publicationSession) CommitPublication(ctx context.Context, plan applica
 	if err != nil {
 		return domain.PublicationResult{}, application.ErrReleaseUnavailable
 	}
-	if err = s.database.WithContext(ctx).Exec(`INSERT INTO rcc_refresh_notifications(order_id,table_name,table_version,document) VALUES(?,?,?,?)`, plan.OrderID, plan.Execution.TableName, version, encoded).Error; err != nil {
+	if err = s.database.WithContext(ctx).Exec(`INSERT INTO rcc_refresh_notifications(order_id,execution_id,table_name,table_version,document) VALUES(?,?,?,?,?)`, plan.OrderID, executionID, plan.Execution.TableName, version, encoded).Error; err != nil {
 		return domain.PublicationResult{}, application.ErrReleaseUnavailable
 	}
 	return result, nil

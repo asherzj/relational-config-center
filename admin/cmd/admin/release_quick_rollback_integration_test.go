@@ -72,19 +72,16 @@ func TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult(t *testing.
 	body := quickRollbackBody("4", preview.Digest, "恢复整单配置")
 	response := releaseActorRequest(t, app, publisher, "POST", path+"/quick-rollback", body, "quick-mixed-execute")
 	reverse := rollbackOrderResponse(t, response, 200)
-	if reverse.State != "COMPLETED" || reverse.Title != "回滚：渠道配置修正" || reverse.RollbackOfID != original.ID || reverse.Publication == nil || reverse.Publication.PublisherID != accountID(t, publisher) || reverse.ApplicantID != accountID(t, publisher) || reverse.Publication.TableVersion != "2" {
-		t.Fatal("missing actual terminal reverse result", reverse)
-	}
-	if len(reverse.History) != 1 || reverse.History[0].Action != "QUICK_ROLLBACK" || reverse.History[0].Reason != "恢复整单配置" || reverse.History[0].ActorID != accountID(t, publisher) {
-		t.Fatal("quick rollback fabricated approval or lost reason", reverse.History)
+	if reverse.State != "ROLLED_BACK" || reverse.ID != original.ID || reverse.Rollback == nil || reverse.Rollback.PublisherID != accountID(t, publisher) || reverse.ApplicantID != original.ApplicantID || reverse.Rollback.TableVersion != "2" {
+		t.Fatal("missing original rollback result", reverse)
 	}
 	current := rollbackOrderResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
-	if current.State != "ROLLED_BACK" || current.Version != "5" || current.RollbackOrderID != reverse.ID || current.RollbackPending || !reflect.DeepEqual(current.Publication, original.Publication) {
-		t.Fatal("original not terminal or publication replaced", current)
+	if !reflect.DeepEqual(current.Items, original.Items) || !reflect.DeepEqual(current.Publication, original.Publication) || len(current.History) != len(original.History)+1 {
+		t.Fatal("original application overwritten")
 	}
 	event := current.History[len(current.History)-1]
-	if event.Action != "QUICK_ROLLBACK" || event.ActorID != accountID(t, publisher) || event.Reason != "恢复整单配置" || event.RelatedOrderID != reverse.ID {
-		t.Fatal("original history did not record actual execution", event)
+	if event.Action != "QUICK_ROLLBACK" || event.ActorID != accountID(t, publisher) || event.Reason != "恢复整单配置" {
+		t.Fatal("rollback history missing", event)
 	}
 	for _, id := range []string{"10", "20"} {
 		row, version := recordVersionRow(t, app, "mutation_add_items", id)
@@ -96,7 +93,7 @@ func TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult(t *testing.
 			t.Fatal("mixed restore missed row or version", row, version)
 		}
 	}
-	generated := reverse.Publication.Commands[2]
+	generated := reverse.Rollback.Commands[2]
 	if generated.Operation != "DELETE" || !generated.Final.Deleted || generated.ID != original.Publication.Commands[0].ID || generated.RecordVersion != "2" {
 		t.Fatal("generated row was not restored to absence", generated)
 	}
@@ -106,12 +103,12 @@ func TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult(t *testing.
 	}
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, publisher, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, "changed reason"), "quick-mixed-execute"), 409, "idempotency_conflict")
 	for _, action := range []string{"complete", "rollback", "quick-rollback"} {
-		invalid := `{"expected_version":"1","reason":"no reverse again"}`
+		invalid := `{"expected_version":"5","reason":"no reverse again"}`
 		if action == "complete" {
-			invalid = `{"expected_version":"1"}`
+			invalid = `{"expected_version":"5"}`
 		}
 		if action == "quick-rollback" {
-			invalid = quickRollbackBody("1", preview.Digest, "no reverse again")
+			invalid = quickRollbackBody("5", preview.Digest, "no reverse again")
 		}
 		assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+reverse.ID+"/"+action, invalid, "quick-terminal-"+action), 422, "release_state_invalid")
 	}
@@ -192,7 +189,7 @@ func TestQuickRollbackRequiresItsOriginalRetainedTargets(t *testing.T) {
 	}
 }
 
-func TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndReason(t *testing.T) {
+func TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole(t *testing.T) {
 	app, _ := batchEdgeApplication(t, `INSERT INTO mutation_add_items(id,code,label) VALUES(10,'quick-role','old')`)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowModify: true})
 	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"权限与审阅","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"published"}}]}`, "quick-role")
@@ -211,7 +208,7 @@ func TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndReason(
 	}
 	grantReleaseRole(t, app, actor, `["PUBLISHER"]`, "3", "quick-role-publisher")
 	preview := readQuickPreview(t, app, actor, path, "4")
-	for i, body := range []string{quickRollbackBody("4", "", "reason"), quickRollbackBody("4", preview.Digest, "  "), quickRollbackBody("4", preview.Digest, strings.Repeat("界", 667)), `{"expected_version":"4","reason":"no preview"}`} {
+	for i, body := range []string{quickRollbackBody("4", "", "reason"), quickRollbackBody("4", preview.Digest, strings.Repeat("界", 667)), `{"expected_version":"4","reason":"no preview"}`} {
 		assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, fmt.Sprintf("quick-role-invalid-%d", i)), 422, "release_invalid")
 	}
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("3", preview.Digest, "stale version"), "quick-role-stale"), 409, "release_version_conflict")
@@ -221,7 +218,7 @@ func TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndReason(
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, "quick-role-execute"), 403, "permission_denied")
 	grantReleaseRole(t, app, actor, `["ADMIN"]`, "5", "quick-role-admin")
 	result := rollbackOrderResponse(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, "quick-role-execute"), 200)
-	if result.Publication.PublisherID != accountID(t, actor) {
+	if result.Rollback.PublisherID != accountID(t, actor) {
 		t.Fatal("current administrator was not recorded")
 	}
 	grantReleaseRole(t, app, actor, `["VIEWER"]`, "6", "quick-role-revoke-replay")
@@ -322,7 +319,8 @@ func TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets
 		{"rcc_publication_commands", "INSERT", "TRUE"},
 		{"rcc_table_publications", "UPDATE", "NEW.table_version>1"},
 		{"rcc_refresh_notifications", "INSERT", "TRUE"},
-		{"rcc_release_orders", "INSERT", "NEW.state='COMPLETED'"},
+		{"rcc_release_details", "UPDATE", "NEW.rollback IS NOT NULL"},
+		{"rcc_release_executions", "INSERT", "NEW.kind='ROLLBACK'"},
 		{"rcc_release_orders", "UPDATE", "NEW.state='ROLLED_BACK'"},
 		{"rcc_release_targets", "DELETE", "TRUE"},
 		{"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"},
@@ -354,7 +352,7 @@ func TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets
 		})
 	}
 	result := rollbackOrderResponse(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, "quick-fault-execute"), 200)
-	if result.Publication.TableVersion != "2" || result.Publication.Commands[0].Sequence != "3" || result.Publication.Commands[1].Sequence != "4" {
+	if result.Rollback.TableVersion != "2" || result.Rollback.Commands[0].Sequence != "3" || result.Rollback.Commands[1].Sequence != "4" {
 		t.Fatal("failed attempts advanced public publication progress", result.Publication)
 	}
 }
@@ -452,7 +450,7 @@ func TestQuickRollbackCanTerminateAtAcceptedPublicationCapacity(t *testing.T) {
 	response := releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, "quick-capacity-execute")
 	reverse := rollbackOrderResponse(t, response, 200)
 	original := rollbackOrderResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
-	if reverse.State != "COMPLETED" || original.State != "ROLLED_BACK" {
+	if reverse.State != "ROLLED_BACK" || original.State != "ROLLED_BACK" {
 		t.Fatal("legal large publication could not terminate")
 	}
 	replay := releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, "quick-capacity-execute")

@@ -25,6 +25,7 @@ type PublicationSession interface {
 }
 type PublicationPlan struct {
 	OrderID, PublisherID, SchemaDigest string
+	ExecutionKind                      string
 	// TargetOrderID is the still-owning original for an atomic quick restoration.
 	TargetOrderID string
 	At            time.Time
@@ -84,7 +85,7 @@ func (r *ReleaseOrders) Execute(ctx context.Context, id string, input SubmitRele
 		if err != nil {
 			return err
 		}
-		plan := PublicationPlan{OrderID: order.ID, PublisherID: actor, At: now, Schema: snapshot.schema, SchemaDigest: hex.EncodeToString(releaseDigest(schema)), Execution: schema, Policy: p}
+		plan := PublicationPlan{ExecutionKind: "PUBLICATION", OrderID: order.ID, PublisherID: actor, At: now, Schema: snapshot.schema, SchemaDigest: hex.EncodeToString(releaseDigest(schema)), Execution: schema, Policy: p}
 		idColumn, _ := snapshot.schema.Column("id")
 		for _, item := range order.Items {
 			entry := PublicationItem{Intent: item}
@@ -118,6 +119,7 @@ func (r *ReleaseOrders) Execute(ctx context.Context, id string, input SubmitRele
 			}
 		}
 		order.Publication = &result
+		order.Executions = append(order.Executions, domain.SummarizeExecution(result))
 		order.State = "SUCCEEDED"
 		if order.RollbackOfID != "" {
 			order.State = "COMPLETED"

@@ -15,12 +15,12 @@ function fieldValue(field: Field) {
   }
 }
 
-export function PublicationResult({result,people={}}:{result:Result;people?:Record<string,string>}) {
+export function PublicationResult({result,people={},restoration=false}:{result:Result;people?:Record<string,string>;restoration?:boolean}) {
   const [requestedPage,setPage]=useState(0);
   const page=Math.min(requestedPage,Math.max(0,Math.ceil(result.commands.length/releasePageSize)-1));
   return (
     <section className="my-6 break-all" aria-label="发布结果">
-      <h2 className="text-lg font-semibold">数据库发布结果</h2>
+      <h2 className="text-lg font-semibold">{restoration?"数据库恢复结果":"数据库发布结果"}</h2>
       <div className="my-2 flex items-center gap-2"><span>执行人：</span><ReleasePerson id={result.publisher_id} name={people[result.publisher_id]}/></div>
       <p>数据库执行时间：{result.executed_at}</p>
       <p>表发布版本：{result.table_version}</p>

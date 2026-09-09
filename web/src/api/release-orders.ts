@@ -19,6 +19,8 @@ const canonicalRowSchema=z.object({format:z.literal("rcc-admin-mysql-row-v1"),sc
 const publicationSchema=z.object({table_version:version,publisher_id:z.string(),executed_at:z.string(),notification:z.object({id:z.string(),table_version:version,status:z.literal("NOT_CONNECTED")}),commands:z.array(z.object({order_id:z.string(),sequence:version,table_name:z.string(),table_version:version,operation:z.enum(["ADD","MODIFY","DELETE"]),id:z.string(),record_version:version,before:canonicalRowSchema,final:canonicalRowSchema})).min(1)});
 export const releaseOrderSchema=z.object({
  publication:publicationSchema.optional(),
+ rollback:publicationSchema.optional(),
+ executions:z.array(z.object({id:z.string(),kind:z.enum(["PUBLICATION","ROLLBACK"]),actor_id:z.string(),executed_at:z.string(),table_versions:z.record(z.string(),version),item_count:z.number().int(),outcome:z.literal("SUCCEEDED")})).optional(),
  copied_from_id:z.string().optional(),rollback_of_id:z.string().optional(),rollback_order_id:z.string().optional(),rollback_pending:z.boolean().optional().default(false),frozen_digest:z.string().optional(),id:z.string(),title:z.string(),table_name:z.string(),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","APPROVED","SUCCEEDED","COMPLETED","REJECTED","CANCELLED","ROLLED_BACK"]),version,
  items:z.array(draftItemSchema.extend({id:z.string().nullable(),expected_record_version:z.string(),before:content.nullable(),fields:z.array(releaseFieldSchema)})),
  history:z.array(z.object({action:z.string(),actor_id:z.string(),at:z.string(),version,reason:z.string(),related_order_id:z.string().optional()})),created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),

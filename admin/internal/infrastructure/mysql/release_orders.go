@@ -6,12 +6,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	mysqldriver "github.com/go-sql-driver/mysql"
 	"sort"
 	"time"
 
 	"github.com/asherzj/relational-config-center/admin/internal/application"
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
+	mysqldriver "github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -70,10 +70,35 @@ func readReleaseOrder(ctx context.Context, db *gorm.DB, id string, lock bool) (d
 	if err != nil {
 		return domain.ReleaseOrder{}, application.ErrReleaseUnavailable
 	}
-	return decodeStoredReleaseOrder(encoded)
+	var order domain.ReleaseOrder
+	if json.Unmarshal(encoded, &order) != nil {
+		return order, application.ErrReleaseUnavailable
+	}
+	// A legacy aggregate document is deliberately unsupported, not migrated.
+	if len(order.Items) > 0 || order.Publication != nil || order.Rollback != nil {
+		return domain.ReleaseOrder{}, application.ErrReleaseUnavailable
+	}
+	var summary domain.ReleaseOrderSummary
+	if json.Unmarshal(encoded, &summary) != nil || summary.ItemCount < 0 || summary.ItemCount > 1000 {
+		return domain.ReleaseOrder{}, application.ErrReleaseUnavailable
+	}
+	order.Items = make([]domain.ReleaseItem, summary.ItemCount)
+	if err := readReleaseDetails(ctx, db, &order, true, lock); err != nil {
+		return domain.ReleaseOrder{}, err
+	}
+	if len(order.Items) != summary.ItemCount {
+		return domain.ReleaseOrder{}, application.ErrReleaseUnavailable
+	}
+	return order, nil
 }
 func (a *Adapter) GetReleaseOrder(ctx context.Context, id string) (domain.ReleaseOrder, error) {
-	return readReleaseOrder(ctx, a.gorm, id, false)
+	var order domain.ReleaseOrder
+	err := a.gorm.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var err error
+		order, err = readReleaseOrder(ctx, tx, id, false)
+		return err
+	}, &sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true})
+	return order, err
 }
 func (s *releaseOrderSession) GetReleaseOrder(ctx context.Context, id string) (domain.ReleaseOrder, error) {
 	if err := s.available(); err != nil {
@@ -85,12 +110,18 @@ func (s *releaseOrderSession) SaveReleaseOrder(ctx context.Context, order domain
 	if err := s.available(); err != nil {
 		return err
 	}
-	encoded, err := json.Marshal(order)
+	encoded, err := encodeReleaseHeader(order)
 	if err != nil {
 		return application.ErrReleaseUnavailable
 	}
 	if len(encoded) > releaseDocumentBudget(order) {
 		return application.ErrReleaseResultLimit
+	}
+	previousCount := 0
+	if !create {
+		if err = s.database.WithContext(ctx).Raw(`SELECT JSON_EXTRACT(document,'$.item_count') FROM rcc_release_orders WHERE id=? FOR UPDATE`, order.ID).Row().Scan(&previousCount); err != nil || previousCount < 0 || previousCount > 1000 {
+			return application.ErrReleaseUnavailable
+		}
 	}
 	if create {
 		err = s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_orders(id,table_name,applicant_id,state,version,document) VALUES(?,?,?,?,?,?)`, order.ID, order.TableName, order.ApplicantID, order.State, order.Version, encoded).Error
@@ -100,7 +131,7 @@ func (s *releaseOrderSession) SaveReleaseOrder(ctx context.Context, order domain
 	if err != nil {
 		return application.ErrReleaseUnavailable
 	}
-	return nil
+	return s.saveReleaseDetails(ctx, order, previousCount)
 }
 func (s *releaseOrderSession) BeginReleaseRequest(ctx context.Context, actor, operation, key string, digest []byte) (*domain.ReleaseOrder, error) {
 	if err := s.available(); err != nil {
@@ -119,9 +150,24 @@ func (s *releaseOrderSession) BeginReleaseRequest(ctx context.Context, actor, op
 	if result == nil {
 		return nil, nil
 	}
-	order, err := decodeStoredReleaseOrder(result)
-	if err != nil {
-		return nil, err
+	var order domain.ReleaseOrder
+	if json.Unmarshal(result, &order) != nil {
+		return nil, application.ErrReleaseUnavailable
+	}
+	if order.Publication != nil && len(order.Publication.Commands) > 0 || order.Rollback != nil && len(order.Rollback.Commands) > 0 {
+		return nil, application.ErrReleaseUnavailable
+	}
+	if order.Publication != nil || order.Rollback != nil {
+		// Match every ordinary write's request → order → details lock order.
+		var locked string
+		if err := s.database.WithContext(ctx).Raw(`SELECT id FROM rcc_release_orders WHERE id=? FOR UPDATE`, order.ID).Row().Scan(&locked); err != nil {
+			return nil, application.ErrReleaseUnavailable
+		}
+		if err := readReleaseDetails(ctx, s.database, &order, false, true); err != nil {
+			return nil, err
+		}
+	} else if order.VerifyPublication() != nil {
+		return nil, application.ErrReleaseUnavailable
 	}
 	return &order, nil
 }
@@ -129,7 +175,7 @@ func (s *releaseOrderSession) CompleteReleaseRequest(ctx context.Context, actor,
 	if err := s.available(); err != nil {
 		return err
 	}
-	encoded, err := json.Marshal(order)
+	encoded, err := encodeReleaseRequestResult(order)
 	if err != nil {
 		return application.ErrReleaseUnavailable
 	}
@@ -162,11 +208,11 @@ func (a *Adapter) ListReleaseOrders(ctx context.Context, filter domain.ReleaseFi
 		if rows.Scan(&encoded) != nil {
 			return nil, application.ErrReleaseUnavailable
 		}
-		order, err := decodeStoredReleaseOrder(encoded)
-		if err != nil {
-			return nil, err
+		var summary domain.ReleaseOrderSummary
+		if json.Unmarshal(encoded, &summary) != nil {
+			return nil, application.ErrReleaseUnavailable
 		}
-		result = append(result, order.Summary())
+		result = append(result, summary)
 	}
 	if rows.Err() != nil {
 		return nil, application.ErrReleaseUnavailable

@@ -589,17 +589,17 @@ func TestPublicationStoredRowsAreVerifiedBeforeReadOrReplay(t *testing.T) {
 	publishedFixtureCommand(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "verify-storage-execute"))
 	id := strings.TrimPrefix(path, "/api/v1/release-orders/")
 	var original []byte
-	if err := db.QueryRow(`SELECT document FROM rcc_release_orders WHERE id=?`, id).Scan(&original); err != nil {
+	if err := db.QueryRow(`SELECT publication FROM rcc_release_details WHERE order_id=? AND position=0`, id).Scan(&original); err != nil {
 		t.Fatal(err)
 	}
-	for _, jsonPath := range []string{"$.publication.commands[0].final.checksum", "$.publication.commands[0].before.schema_digest", "$.publication.commands[0].id"} {
-		deliveryExec(t, db, `UPDATE rcc_release_orders SET document=JSON_SET(document,?,'damaged') WHERE id=?`, jsonPath, id)
-		for _, read := range []string{path, "/api/v1/release-orders"} {
+	for _, jsonPath := range []string{"$.final.checksum", "$.before.schema_digest", "$.id"} {
+		deliveryExec(t, db, `UPDATE rcc_release_details SET publication=JSON_SET(publication,?,'damaged') WHERE order_id=? AND position=0`, jsonPath, id)
+		for _, read := range []string{path} {
 			assertIntegrationErrorCode(t, releaseRequest(t, app, "GET", read, "", ""), 503, "release_unavailable")
 		}
-		deliveryExec(t, db, `UPDATE rcc_release_orders SET document=? WHERE id=?`, original, id)
+		deliveryExec(t, db, `UPDATE rcc_release_details SET publication=? WHERE order_id=? AND position=0`, original, id)
 	}
-	deliveryExec(t, db, `UPDATE rcc_release_requests SET result=JSON_SET(result,'$.publication.commands[0].final.fields[0].value','incorrect') WHERE operation=?`, "execute:"+id)
+	deliveryExec(t, db, `UPDATE rcc_release_details SET publication=JSON_SET(publication,'$.final.fields[0].value','incorrect') WHERE order_id=?`, id)
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "verify-storage-execute"), 503, "release_unavailable")
 	var n int
 	db.QueryRow(`SELECT COUNT(*) FROM mutation_add_items WHERE code='verify-storage'`).Scan(&n)

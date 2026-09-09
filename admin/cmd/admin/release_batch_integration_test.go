@@ -212,23 +212,22 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 	}
 	// AC-041: exercise the complete reverse under the same executable's default
 	// four-second transaction budget, without repeating the forward fixture.
-	request(path+"/complete", `{"expected_version":"4"}`, "thousand-complete", cookies, csrf)
-	reverseBytes := request(path+"/rollback", `{"expected_version":"5","reason":"restore all 1000 actual results"}`, "thousand-rollback", cookies, csrf)
+	previewBytes := request(path+"/quick-rollback/preview", `{"expected_version":"4"}`, "thousand-preview", cookies, csrf)
+	var preview quickPreviewResponse
+	if json.Unmarshal(previewBytes, &preview) != nil || len(preview.Items) != 1000 {
+		t.Fatal("incomplete restoration preview")
+	}
+	body := quickRollbackBody("4", preview.Digest, "")
+	restored := request(path+"/quick-rollback", body, "thousand-restore", cookies, csrf)
 	var reverse domain.ReleaseOrder
-	if json.Unmarshal(reverseBytes, &reverse) != nil || reverse.RollbackOfID != order.ID || len(reverse.Items) != 1000 {
-		t.Fatal("incomplete reverse draft")
+	if json.Unmarshal(restored, &reverse) != nil || reverse.State != "ROLLED_BACK" || reverse.ID != order.ID || reverse.Rollback.TableVersion != "2" || len(reverse.Rollback.Commands) != 1000 {
+		t.Fatal("incomplete original rollback")
 	}
-	reversePath := "/api/v1/release-orders/" + reverse.ID
-	request(reversePath+"/submit", `{"expected_version":"1"}`, "thousand-reverse-submit", cookies, csrf)
-	request(reversePath+"/approve", `{"expected_version":"2","reason":"reviewed all reverse items"}`, "thousand-reverse-approve", reviewCookies, reviewCSRF)
-	restored := request(reversePath+"/execute", `{"expected_version":"3"}`, "thousand-reverse-execute", cookies, csrf)
-	if json.Unmarshal(restored, &reverse) != nil || reverse.State != "COMPLETED" || reverse.Publication.TableVersion != "2" || len(reverse.Publication.Commands) != 1000 {
-		t.Fatal("incomplete reverse publication")
+	if string(request(path+"/quick-rollback", body, "thousand-restore", cookies, csrf)) != string(restored) {
+		t.Fatal("rollback original-key result changed")
 	}
-	if string(request(reversePath+"/execute", `{"expected_version":"3"}`, "thousand-reverse-execute", cookies, csrf)) != string(restored) {
-		t.Fatal("reverse original-key result changed")
-	}
-	for index, command := range reverse.Publication.Commands {
+
+	for index, command := range reverse.Rollback.Commands {
 		sourceIndex := len(order.Publication.Commands) - 1 - index
 		if command.ID != order.Publication.Commands[sourceIndex].ID || command.RecordVersion != "2" || command.Final.Deleted != (sourceIndex >= 666) {
 			t.Fatalf("incorrect inverse %d", index)
@@ -236,7 +235,7 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 	}
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM mutation_add_items`: 666, `SELECT COUNT(*) FROM mutation_add_items WHERE id<=666 AND label='old'`: 666, `SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=2`: 1000, `SELECT COUNT(*) FROM rcc_publication_commands`: 2000, `SELECT COUNT(*) FROM rcc_refresh_notifications`: 2, `SELECT COUNT(*) FROM rcc_release_targets`: 0})
 	current := rollbackOrderResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
-	if current.State != "ROLLED_BACK" || current.RollbackOrderID != reverse.ID {
+	if current.State != "ROLLED_BACK" || current.ID != reverse.ID {
 		t.Fatal("thousand inverse missing original association")
 	}
 }
@@ -346,9 +345,7 @@ func TestReleaseBatchBudgetRetainsCancellationHeadroom(t *testing.T) {
 	if len(encoded) > 8<<20-64<<10 || len(encoded) < 8<<20-64<<10-1000 {
 		t.Fatalf("fixture bytes %d", len(encoded))
 	}
-	if _, err := db.Exec(`UPDATE rcc_release_orders SET document=?,version=? WHERE id=?`, encoded, order.Version, order.ID); err != nil {
-		t.Fatal(err)
-	}
+	seedReleaseWorkflowHistory(t, db, order)
 	approval := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"`+order.Version+`","reason":"`+strings.Repeat("<", 2000)+`"}`, "headroom-approve")
 	if approval.Code != 422 {
 		t.Fatalf("approval must reserve termination capacity: status %d bytes %d", approval.Code, approval.Body.Len())

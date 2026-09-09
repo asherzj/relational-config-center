@@ -97,16 +97,23 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	forward = action(editor, forward, "submit", "")
 	forward = action(reviewer, forward, "approve", "正向批准意见")
 	forward = action(publisher, forward, "execute", "")
-	forward = action(publisher, forward, "complete", "")
-	inverse := decode(request(editor, "POST", "/api/v1/release-orders/"+forward.ID+"/rollback", fmt.Sprintf(`{"expected_version":%q,"reason":"反向申请理由"}`, forward.Version), "history-create-inverse", 201))
-	inverse = action(editor, inverse, "submit", "")
-	inverse = action(reviewer, inverse, "approve", "反向批准意见")
-	inverse = action(publisher, inverse, "execute", "")
-	forward = decode(request(viewer, "GET", "/api/v1/release-orders/"+forward.ID, "", "", 200))
-	if forward.State != "ROLLED_BACK" || inverse.State != "COMPLETED" || forward.RollbackOrderID != inverse.ID || inverse.RollbackOfID != forward.ID {
-		t.Fatal("rollback history missing")
+	previewBytes := request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback/preview", `{"expected_version":"4"}`, "", 200)
+	var preview quickPreviewResponse
+	if json.Unmarshal(previewBytes, &preview) != nil {
+		t.Fatal("preview decode")
 	}
-	orders[forward.ID], orders[inverse.ID] = forward, inverse
+	forward = decode(request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback", quickRollbackBody("4", preview.Digest, "事后可选原因"), "history-restore", 200))
+	if forward.State != "ROLLED_BACK" || forward.Rollback == nil || len(forward.Executions) != 2 {
+		t.Fatal("original rollback history missing")
+	}
+	orders[forward.ID] = forward
+	completed := decode(request(editor, "POST", "/api/v1/release-orders", `{"title":"完结历史","table_name":"history_items","items":[{"operation":"ADD","content":{"id":"completed","value":"done"}}]}`, "history-completed", 201))
+	completed = action(editor, completed, "submit", "")
+	completed = action(reviewer, completed, "approve", "completed approval")
+	completed = action(publisher, completed, "execute", "")
+	completed = action(publisher, completed, "complete", "")
+	orders[completed.ID] = completed
+
 	states := map[string]bool{}
 	for _, order := range orders {
 		states[order.State] = true
@@ -118,7 +125,7 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 			if event.Action == "APPROVE" || event.Action == "REJECT" {
 				want = reviewer.id
 			}
-			if event.Action == "EXECUTE" || event.Action == "COMPLETE" || event.Action == "ROLLED_BACK" {
+			if event.Action == "EXECUTE" || event.Action == "COMPLETE" || event.Action == "ROLLED_BACK" || event.Action == "QUICK_ROLLBACK" {
 				want = publisher.id
 			}
 			if event.ActorID != want {
@@ -155,7 +162,7 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	ownerSettings := settings.Clone()
 	ownerSettings.User, ownerSettings.MultiStatements = "root", true
 	migrationOwner := deliveryDB(t, ownerSettings)
-	for _, file := range []string{"009-record-versions.sql", "010-release-drafts.sql", "011-release-targets.sql", "012-publication.sql"} {
+	for _, file := range []string{"009-record-versions.sql", "010-release-drafts.sql", "011-release-targets.sql", "012-publication.sql", "014-original-order-executions.sql"} {
 		migration, err := os.ReadFile("../../../deploy/mysql/migrations/" + file)
 		if err != nil {
 			t.Fatal(err)
@@ -192,7 +199,7 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	}
 	// Authorization still applies to replay: the surviving viewer reads history,
 	// and cannot assume the disabled publisher's old successful request identity.
-	request(viewer, "POST", "/api/v1/release-orders/"+inverse.ID+"/execute", `{"expected_version":"3"}`, inverse.ID+"-execute", 403)
+	request(viewer, "POST", "/api/v1/release-orders/"+forward.ID+"/execute", `{"expected_version":"3"}`, forward.ID+"-execute", 403)
 	process.stop(t)
 	for _, secret := range []string{"history password long enough", editor.cookies[0].Value, reviewer.csrf, "发布后新值"} {
 		if strings.Contains(process.output.String(), secret) {

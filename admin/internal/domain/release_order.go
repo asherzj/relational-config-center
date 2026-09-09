@@ -39,6 +39,8 @@ type ReleaseOrder struct {
 	RollbackOfID    string                    `json:"rollback_of_id,omitempty"`
 	RollbackOrderID string                    `json:"rollback_order_id,omitempty"`
 	RollbackPending bool                      `json:"rollback_pending,omitempty"`
+	Rollback        *PublicationResult        `json:"rollback,omitempty"`
+	Executions      []ReleaseExecution        `json:"executions,omitempty"`
 	Publication     *PublicationResult        `json:"publication,omitempty"`
 	CopiedFromID    string                    `json:"copied_from_id,omitempty"`
 	Frozen          *ReleaseExecutionSnapshot `json:"frozen,omitempty"`

@@ -417,8 +417,34 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	}
 	deliveryExec(t, owner, string(publicationMigration))
 	deliveryExec(t, owner, "RENAME TABLE rcc_refresh_notifications TO interrupted_notifications")
-	rejectIncomplete("010, 011 and 012")
+	rejectIncomplete("014")
 	deliveryExec(t, owner, "RENAME TABLE interrupted_notifications TO rcc_refresh_notifications")
+	// Existing technical records may contain multiple old orders for one table.
+	// The longest supported old order ID must fit the migration identity too.
+	for index, id := range []string{strings.Repeat("a", 32), strings.Repeat("b", 32)} {
+		deliveryExec(t, owner, `INSERT INTO rcc_publication_commands(table_name,sequence,order_id,document) VALUES('legacy_policy',?,?,JSON_OBJECT('legacy','unchanged command','sequence',?))`, index+1, id, index+1)
+		deliveryExec(t, owner, `INSERT INTO rcc_refresh_notifications(order_id,table_name,table_version,document) VALUES(?,'legacy_policy',?,JSON_OBJECT('id',?,'status','NOT_CONNECTED'))`, id, index+1, id)
+	}
+	technicalQueries := []string{`SELECT table_name,sequence,order_id,document FROM rcc_publication_commands WHERE table_name=? ORDER BY sequence`, `SELECT order_id,table_name,table_version,document FROM rcc_refresh_notifications WHERE table_name=? ORDER BY order_id`}
+	preservedTechnical := []string{schemaMetadata(t, owner, technicalQueries[0], "legacy_policy"), schemaMetadata(t, owner, technicalQueries[1], "legacy_policy")}
+	executionMigration, err := os.ReadFile("../../../deploy/mysql/migrations/014-original-order-executions.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	deliveryExec(t, owner, string(executionMigration))
+	deliveryExec(t, owner, string(executionMigration))
+	for index, query := range technicalQueries {
+		if schemaMetadata(t, owner, query, "legacy_policy") != preservedTechnical[index] {
+			t.Fatal("migration rewrote or removed old technical records")
+		}
+	}
+	for _, table := range []string{"rcc_publication_commands", "rcc_refresh_notifications"} {
+		var count int
+		if err := owner.QueryRow("SELECT COUNT(*) FROM " + table + " WHERE execution_id=CONCAT('legacy:',order_id) AND LENGTH(execution_id)=39").Scan(&count); err != nil || count != 2 {
+			t.Fatalf("legacy technical identities: %s count=%d error=%v", table, count, err)
+		}
+	}
+
 	deliveryExec(t, owner, "CREATE DATABASE fresh_accounts CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
 	freshDriver := ownerDriver
 	freshDriver.DBName = "fresh_accounts"
@@ -429,8 +455,8 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	}
 	deliveryExec(t, fresh, string(schema))
 	for _, query := range []string{
-		`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_TYPE,IS_NULLABLE,COALESCE(COLUMN_DEFAULT,'<null>'),COALESCE(COLLATION_NAME,''),EXTRA FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_targets','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications') ORDER BY TABLE_NAME,ORDINAL_POSITION`,
-		`SELECT TABLE_NAME,INDEX_NAME,NON_UNIQUE,SEQ_IN_INDEX,COLUMN_NAME,COALESCE(SUB_PART,0) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_targets','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications') ORDER BY TABLE_NAME,INDEX_NAME,SEQ_IN_INDEX`,
+		`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_TYPE,IS_NULLABLE,COALESCE(COLUMN_DEFAULT,'<null>'),COALESCE(COLLATION_NAME,''),EXTRA FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_details','rcc_release_executions','rcc_release_targets','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications') ORDER BY TABLE_NAME,ORDINAL_POSITION`,
+		`SELECT TABLE_NAME,INDEX_NAME,NON_UNIQUE,SEQ_IN_INDEX,COLUMN_NAME,COALESCE(SUB_PART,0) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_details','rcc_release_executions','rcc_release_targets','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications') ORDER BY TABLE_NAME,INDEX_NAME,SEQ_IN_INDEX`,
 		`SELECT TABLE_NAME,COLUMN_NAME,REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=? AND REFERENCED_TABLE_NAME IS NOT NULL ORDER BY TABLE_NAME,COLUMN_NAME`,
 	} {
 		upgraded := schemaMetadata(t, owner, query, driver.DBName)
@@ -469,8 +495,12 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	}
 	for _, table := range []string{"rcc_record_versions", "rcc_release_orders", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_account_role_history"} {
 		var count int
-		if err := owner.QueryRow("SELECT COUNT(*) FROM " + table).Scan(&count); err != nil || count != 0 {
-			t.Fatalf("migration fabricated %s: %d %v", table, count, err)
+		expected := 0
+		if table == "rcc_publication_commands" || table == "rcc_refresh_notifications" {
+			expected = 2
+		}
+		if err := owner.QueryRow("SELECT COUNT(*) FROM " + table).Scan(&count); err != nil || count != expected {
+			t.Fatalf("migration changed %s count: %d %v", table, count, err)
 		}
 	}
 	cookies, _, data := processCredentials(t, p, "/api/v1/auth/register", `{"username":"upgraded.user","email":"upgraded@example.com","password":"upgraded password long enough"}`)

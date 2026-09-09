@@ -196,14 +196,36 @@ CREATE TABLE IF NOT EXISTS rcc_publication_commands (
  table_name varbinary(256) NOT NULL,
  sequence bigint unsigned NOT NULL,
  order_id varbinary(32) NOT NULL,
+ execution_id varbinary(64) NOT NULL,
  document json NOT NULL,
  PRIMARY KEY(table_name,sequence),
  KEY publication_order(order_id)
 ) ENGINE=InnoDB;
 CREATE TABLE IF NOT EXISTS rcc_refresh_notifications (
  order_id varbinary(32) NOT NULL,
+ execution_id varbinary(64) NOT NULL,
  table_name varbinary(256) NOT NULL,
  table_version bigint unsigned NOT NULL,
  document json NOT NULL,
- PRIMARY KEY(order_id)
+ PRIMARY KEY(execution_id,table_name)
+) ENGINE=InnoDB;
+-- Each detail retains its application and both actual results independently.
+CREATE TABLE IF NOT EXISTS rcc_release_details (
+ order_id varbinary(32) NOT NULL,
+ position int unsigned NOT NULL,
+ table_name varbinary(256) NOT NULL,
+ application json NOT NULL,
+ publication json NULL,
+ rollback json NULL,
+ PRIMARY KEY(order_id,position),
+ KEY release_detail_table(table_name,order_id)
+) ENGINE=InnoDB;
+-- Successful executions only; the detail table owns actual per-item rows.
+CREATE TABLE IF NOT EXISTS rcc_release_executions (
+ order_id varbinary(32) NOT NULL,
+ kind varchar(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ execution_id varbinary(64) NOT NULL,
+ document json NOT NULL,
+ PRIMARY KEY(order_id,kind),
+ CONSTRAINT release_execution_kind CHECK(kind IN ('PUBLICATION','ROLLBACK'))
 ) ENGINE=InnoDB;

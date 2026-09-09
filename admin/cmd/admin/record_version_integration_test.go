@@ -186,6 +186,11 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 			if err := rows.Scan(&document); err != nil || json.Unmarshal(document, &draft) != nil {
 				t.Fatalf("read losing draft: %v", err)
 			}
+			// Workflow/frozen metadata stays in the header; application details
+			// now come from the public detail contract, not an embedded array.
+			frozen := draft.Frozen
+			draft = rollbackOrderResponse(t, releaseRequest(t, app, "GET", "/api/v1/release-orders/"+draft.ID, "", ""), 200)
+			draft.Frozen = frozen
 			losers++
 			if len(draft.Items) != 1 || draft.Items[0].ExpectedRecordVersion != baseline || draft.Publication != nil {
 				t.Fatalf("loser changed its baseline or published: %+v", draft)

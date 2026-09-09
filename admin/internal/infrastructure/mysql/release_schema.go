@@ -5,13 +5,15 @@ import (
 	"errors"
 )
 
-var ErrReleaseSchemaIncomplete = errors.New("release order schema is incomplete; apply migrations 010, 011 and 012")
+var ErrReleaseSchemaIncomplete = errors.New("release order schema is incomplete; apply migrations 010, 011, 012 and 014")
 
 func (a *Adapter) releaseSchemaReady(ctx context.Context) error {
 	for table, required := range map[string]map[string]string{
+		"rcc_release_details":       {"order_id": "varbinary(32)", "position": "int unsigned", "table_name": "varbinary(256)", "application": "json", "publication": "json", "rollback": "json"},
+		"rcc_release_executions":    {"order_id": "varbinary(32)", "kind": "varchar(16)", "execution_id": "varbinary(64)", "document": "json"},
 		"rcc_table_publications":    {"table_name": "varbinary(256)", "table_version": "bigint unsigned", "command_cursor": "bigint unsigned"},
-		"rcc_publication_commands":  {"table_name": "varbinary(256)", "sequence": "bigint unsigned", "order_id": "varbinary(32)", "document": "json"},
-		"rcc_refresh_notifications": {"order_id": "varbinary(32)", "table_name": "varbinary(256)", "table_version": "bigint unsigned", "document": "json"},
+		"rcc_publication_commands":  {"table_name": "varbinary(256)", "sequence": "bigint unsigned", "order_id": "varbinary(32)", "execution_id": "varbinary(64)", "document": "json"},
+		"rcc_refresh_notifications": {"execution_id": "varbinary(64)", "order_id": "varbinary(32)", "table_name": "varbinary(256)", "table_version": "bigint unsigned", "document": "json"},
 		"rcc_release_targets":       {"table_name": "varbinary(256)", "record_key": "binary(32)", "order_id": "varbinary(32)"},
 		"rcc_release_orders":        {"id": "varbinary(32)", "table_name": "varbinary(256)", "applicant_id": "varbinary(36)", "state": "varchar(32)", "version": "bigint unsigned", "document": "json"},
 		"rcc_release_requests":      {"actor_id": "varbinary(36)", "operation": "varbinary(96)", "request_key": "varbinary(64)", "digest": "binary(32)", "result": "json"},
@@ -26,10 +28,10 @@ func (a *Adapter) releaseSchemaReady(ctx context.Context) error {
 		}
 		for _, c := range columns {
 			nullable := "NO"
-			if c.Name == "result" {
+			if c.Name == "result" || c.Name == "publication" || c.Name == "rollback" {
 				nullable = "YES"
 			}
-			if required[c.Name] != c.Type || c.Nullable != nullable || c.Engine != "InnoDB" || c.Name == "state" && c.Collation != "ascii_bin" {
+			if required[c.Name] != c.Type || c.Nullable != nullable || c.Engine != "InnoDB" || (c.Name == "state" || c.Name == "kind") && c.Collation != "ascii_bin" {
 				return ErrReleaseSchemaIncomplete
 			}
 		}
@@ -49,13 +51,19 @@ func (a *Adapter) releaseSchemaReady(ctx context.Context) error {
 			primary = "table_name,sequence"
 		}
 		if table == "rcc_refresh_notifications" {
-			primary = "order_id"
+			primary = "execution_id,table_name"
 		}
 		if table == "rcc_release_targets" {
 			primary = "table_name,record_key"
 		}
 		if table == "rcc_release_requests" {
 			primary = "actor_id,operation,request_key"
+		}
+		if table == "rcc_release_details" {
+			primary = "order_id,position"
+		}
+		if table == "rcc_release_executions" {
+			primary = "order_id,kind"
 		}
 		found := false
 		for _, index := range indexes {
