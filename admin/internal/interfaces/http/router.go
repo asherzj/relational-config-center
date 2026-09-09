@@ -608,9 +608,10 @@ type tableQueryResponse struct {
 }
 
 type tableQueryColumnResponse struct {
-	Name     string                 `json:"name"`
-	Type     application.ColumnType `json:"type"`
-	Nullable bool                   `json:"nullable"`
+	Name      string                 `json:"name"`
+	Type      application.ColumnType `json:"type"`
+	Nullable  bool                   `json:"nullable"`
+	Generated bool                   `json:"generated,omitempty"`
 }
 
 type tableQueryPageResponse struct {
@@ -623,7 +624,7 @@ type tableQueryPageResponse struct {
 func queryResponse(result application.QueryResult) tableQueryResponse {
 	columns := make([]tableQueryColumnResponse, 0, len(result.Columns))
 	for _, column := range result.Columns {
-		columns = append(columns, tableQueryColumnResponse{Name: column.Name, Type: column.Type, Nullable: column.Nullable})
+		columns = append(columns, tableQueryColumnResponse{Name: column.Name, Type: column.Type, Nullable: column.Nullable, Generated: column.Generated})
 	}
 	rows := make([]map[string]*string, 0, len(result.Rows))
 	for _, resultRow := range result.Rows {

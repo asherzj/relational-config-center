@@ -334,7 +334,6 @@ describe("table assignments and managed row drafts", () => {
     const edit = await screen.findByRole("button", { name: "修改记录 1" });
     await waitFor(() => expect(edit).toBeEnabled());
     await user.click(edit);
-    await user.click(screen.getByRole("checkbox", { name: "包含 name" }));
     await user.type(screen.getByRole("textbox", { name: "name 值" }), "changed");
     await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
     const execute = screen.getByRole("button", { name: "确认并保存草稿" });
@@ -371,10 +370,8 @@ describe("table assignments and managed row drafts", () => {
     const edit = await screen.findByRole("button", { name: "修改记录 1" });
     await waitFor(() => expect(edit).toBeEnabled());
     await user.click(edit);
-    await user.click(screen.getByRole("checkbox", { name: "包含 name" }));
     await user.type(screen.getByRole("textbox", { name: "name 值" }), "x");
     await user.keyboard("{Backspace}");
-    await user.click(screen.getByRole("checkbox", { name: "包含 name" }));
     expect(unloadPrevented()).toBe(false);
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

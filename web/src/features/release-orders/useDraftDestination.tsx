@@ -6,6 +6,7 @@ import {useWorkspaceIdentity} from "../accounts/ProtectedWorkspace";
 import {Button} from "../../components/ui/Button";
 import {NativeSelect} from "../../components/shadcn/native-select";
 import {Input} from "../../components/shadcn/input";
+import {Label} from "../../components/shadcn/label";
 import {ErrorState} from "../../components/ui/Feedback";
 
 export function useDraftDestination(table:string,initialID=""){
@@ -30,6 +31,36 @@ export function useDraftDestination(table:string,initialID=""){
    return releaseRequests.edit(order.id,body);
   }catch(cause){setError(cause);return undefined}
  };
- const picker=(disabled:boolean)=><section className="grid gap-2 my-3" aria-label="草稿去向"><p>一单同表，最多 1,000 项。整单提交审批与发布。</p>{!selected&&<div className="grid gap-2"><label htmlFor="new-release-title">发布单标题</label><Input id="new-release-title" value={title} required aria-invalid={Boolean(titleError)} aria-describedby={`new-release-title-count${titleError?" new-release-title-error":""}`} disabled={disabled} onChange={event=>setTitle(event.target.value)}/><span id="new-release-title-count" className="text-xs text-muted-foreground">{Array.from(title).length} / 100 字符</span>{titleError&&<small id="new-release-title-error" className="field-error">{titleError}</small>}</div>}{!open?<Button disabled={disabled} onClick={()=>setOpen(true)}>选择已有草稿</Button>:<><label>保存到草稿<NativeSelect aria-label="保存到草稿" disabled={disabled} value={selected} onChange={event=>setSelected(event.target.value)}><option value="">新建草稿</option>{selected&&!list.data?.orders.some(order=>order.id===selected)&&<option value={selected}>{selected}</option>}{list.data?.orders.filter(order=>!order.rollback_of_id&&order.allowed_actions.includes("edit")).map(order=><option key={order.id} value={order.id}>{order.title} · {order.id} · 版本 {order.version}</option>)}</NativeSelect></label>{list.isPending&&<p>正在读取本人同表草稿…</p>}{list.isError&&<ErrorState error={list.error}/>}<div className="flex gap-2"><Button disabled={disabled||!after} onClick={()=>setAfter("")}>草稿首页</Button><Button disabled={disabled||!list.data?.next_cursor} onClick={()=>setAfter(list.data!.next_cursor)}>更多草稿</Button></div></>}{Boolean(error)&&<ErrorState error={error}/>}</section>;
+ const picker=(disabled:boolean)=><section className="draft-destination" aria-label="草稿去向">
+  <div className={`draft-destination-fields${open&&!selected?" draft-destination-fields-open":""}`}>
+   {!selected&&<div className="draft-destination-title">
+    <div className="draft-destination-title-meta">
+     <Label htmlFor="new-release-title">发布单标题</Label>
+     <span id="new-release-title-count">{Array.from(title).length} / 100 字符</span>
+    </div>
+    <div className="draft-destination-title-entry">
+     <Input id="new-release-title" value={title} required aria-invalid={Boolean(titleError)} aria-describedby={`new-release-title-count${titleError?" new-release-title-error":""}`} disabled={disabled} onChange={event=>setTitle(event.target.value)}/>
+     {!open&&<Button disabled={disabled} onClick={()=>setOpen(true)}>选择已有草稿</Button>}
+    </div>
+    {titleError&&<small id="new-release-title-error" className="field-error">{titleError}</small>}
+   </div>}
+   {open&&<div className="draft-destination-picker">
+    <Label htmlFor="release-draft-destination">保存到草稿</Label>
+    <NativeSelect id="release-draft-destination" aria-label="保存到草稿" disabled={disabled} value={selected} onChange={event=>setSelected(event.target.value)}>
+     <option value="">新建草稿</option>
+     {selected&&!list.data?.orders.some(order=>order.id===selected)&&<option value={selected}>{selected}</option>}
+     {list.data?.orders.filter(order=>!order.rollback_of_id&&order.allowed_actions.includes("edit")).map(order=><option key={order.id} value={order.id}>{order.title} · {order.id} · 版本 {order.version}</option>)}
+    </NativeSelect>
+    {list.isPending&&<p className="draft-destination-hint">正在读取本人同表草稿…</p>}
+    {list.isError&&<ErrorState error={list.error}/>}
+    <div className="draft-destination-pagination">
+     <Button variant="ghost" disabled={disabled||!after} onClick={()=>setAfter("")}>草稿首页</Button>
+     <Button variant="ghost" disabled={disabled||!list.data?.next_cursor} onClick={()=>setAfter(list.data!.next_cursor)}>更多草稿</Button>
+    </div>
+   </div>}
+  </div>
+  <p className="draft-destination-hint">一单同表，最多 1,000 项。整单提交审批与发布。</p>
+  {Boolean(error)&&<ErrorState error={error}/>}
+ </section>;
  return {prepare,picker,valid:Boolean(selected)||!titleError};
 }

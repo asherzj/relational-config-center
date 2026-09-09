@@ -228,7 +228,6 @@ describe("Managed Data draft confirmation", () => {
     const user = userEvent.setup();
     renderPage();
     await user.click(await screen.findByRole("button", { name: "修改记录 41" }));
-    await user.click(screen.getByRole("checkbox", { name: "包含 body" }));
     await user.type(screen.getByRole("textbox", { name: "body 值" }), "operator-intent");
     signedIn = false;
     act(() => window.dispatchEvent(new CustomEvent(businessSessionInvalid, { detail: { code: "session_invalid" } })));
@@ -303,7 +302,6 @@ describe("Managed Data draft confirmation", () => {
     const user = userEvent.setup();
     renderPage();
     await user.click(await screen.findByRole("button", { name: "修改记录 41" }));
-    await user.click(screen.getByRole("checkbox", { name: "包含 body" }));
     await user.type(screen.getByRole("textbox", { name: "body 值" }), "operator-intent");
     await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
     // Finish the visible dialog's animation-frame focus before interrupting it.
@@ -361,12 +359,11 @@ it("preserves a stale change, reads latest separately, and requires an explicit 
   const modify = await screen.findByRole("button", { name: "修改记录 41" });
   await waitFor(() => expect(modify).toBeEnabled());
   await user.click(modify);
-  await user.click(screen.getByRole("checkbox", { name: "包含 body" }));
   await user.type(screen.getByRole("textbox", { name: "body 值" }), "my pending input");
   await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
   await user.click(screen.getByRole("button", { name: "确认并保存草稿" }));
   await screen.findByText("stale-33", { exact: false });
-  expect(writes).toEqual([{title:"notification_templates 配置变更",table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",content:{body:"my pending input"},expected_record_version:"9007199254740993"}]}]);
+  expect(writes).toEqual([{title:"notification_templates 配置变更",table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",content:{template_key:"welcome",subject:null,body:"my pending input"},expected_record_version:"9007199254740993"}]}]);
   expect(screen.getByRole("button", { name: "确认并保存草稿" })).toBeDisabled();
   expect(latestReads).toBe(0);
   await user.click(screen.getByRole("button", { name: "查看最新值" }));
@@ -381,12 +378,12 @@ it("preserves a stale change, reads latest separately, and requires an explicit 
   expect(writes).toHaveLength(1);
   await user.click(screen.getByRole("button", { name: "确认并保存草稿" }));
   await waitFor(() => expect(writes).toHaveLength(2));
-  expect(writes[1]).toEqual({title:"notification_templates 配置变更",table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",content:{body:"my pending input"},expected_record_version:"9007199254740994"}]});
+  expect(writes[1]).toEqual({title:"notification_templates 配置变更",table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",content:{template_key:"welcome",subject:null,body:"my pending input"},expected_record_version:"9007199254740994"}]});
 });
 
 it("从现有 Change Set 保存发布草稿，不调用记录写接口",async()=>{
  const writes:RequestInit[]=[];const releaseID="11111111222222223333333344444444";
- const saved={id:releaseID,title:"notification_templates 配置变更",table_name:"notification_templates",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-07T08:00:00Z",updated_at:"2026-09-07T08:00:00Z",history:[],allowed_actions:["edit","cancel"],items:[{operation:"MODIFY",id:"41",expected_record_version:"0",content:{body:"draft only"},before:row,fields:[]}]};
+ const saved={id:releaseID,title:"notification_templates 配置变更",table_name:"notification_templates",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-07T08:00:00Z",updated_at:"2026-09-07T08:00:00Z",history:[],allowed_actions:["edit","cancel"],items:[{operation:"MODIFY",id:"41",expected_record_version:"0",content:{template_key:"welcome",subject:null,body:"draft only"},before:row,fields:[]}]};
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
   if(String(input)==="/api/v1/release-orders"&&init?.method==="POST"){writes.push(init);return json(saved,201)}
   if(String(input)===`/api/v1/release-orders/${releaseID}`)return json(saved);
@@ -395,12 +392,12 @@ it("从现有 Change Set 保存发布草稿，不调用记录写接口",async()=
  })));
  const user=userEvent.setup();renderPage();
  await user.click(await screen.findByRole("button",{name:"修改记录 41"}));
- await user.click(screen.getByLabelText("包含 body"));await user.type(screen.getByLabelText("body 值"),"draft only");
+ await user.type(screen.getByLabelText("body 值"),"draft only");
  await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
  await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
  expect(await screen.findByRole("heading",{name:"notification_templates 配置变更"})).toBeVisible();
  expect(writes).toHaveLength(1);
- expect(JSON.parse(String(writes[0].body))).toEqual({title:"notification_templates 配置变更",table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",expected_record_version:"0",content:{body:"draft only"}}]});
+ expect(JSON.parse(String(writes[0].body))).toEqual({title:"notification_templates 配置变更",table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",expected_record_version:"0",content:{template_key:"welcome",subject:null,body:"draft only"}}]});
 });
 });
 
@@ -419,7 +416,7 @@ it.each(["ADD","MODIFY","DELETE"] as const)("%s 的唯一确认保存草稿并�
  if(operation==="DELETE")await user.click(await screen.findByRole("button",{name:"删除记录 41"}));
  else {
   await user.click(await screen.findByRole("button",{name:operation==="ADD"?"新增记录":"修改记录 41"}));
-  await user.click(screen.getByLabelText("包含 body"));
+  if(operation==="ADD")await user.click(screen.getByLabelText("包含 body"));
   if(operation==="ADD"){await user.click(screen.getByLabelText("包含 template_key"));await user.type(screen.getByLabelText("template_key 值"),"new-key")}
   await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
  }
@@ -440,7 +437,7 @@ it.each(["ADD","MODIFY","DELETE"] as const)("%s 的唯一确认保存草稿并�
  await user.click(within(dialog).getByRole("button",{name:"确认并保存草稿"}));
  expect(await screen.findByRole("heading",{name:operation==="ADD"?"新增消息模板":"notification_templates 配置变更"})).toBeVisible();
  const item=JSON.parse(String(writes[0]!.body)).items[0];expect(writes).toHaveLength(1);expect(item.operation).toBe(operation);
- expect(item.content).toEqual(operation==="DELETE"?{}:operation==="ADD"?{body:"",template_key:"new-key"}:{body:""});
+ expect(item.content).toEqual(operation==="DELETE"?{}:operation==="ADD"?{body:"",template_key:"new-key"}:{template_key:"welcome",subject:null,body:""});
  if(operation!=="ADD"){expect(item.id).toBe("41");expect(item.expected_record_version).toBe("0")}
 });
 
@@ -544,7 +541,7 @@ it("已有草稿去向不列出不可编辑的反向草稿",async()=>{
   return readFetch(input,init,{...mutationPolicy,allow_modify:true});
  })));
  const user=userEvent.setup();renderPage();
- await user.click(await screen.findByRole("button",{name:"修改记录 41"}));await user.click(screen.getByLabelText("包含 body"));await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
+ await user.click(await screen.findByRole("button",{name:"修改记录 41"}));await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
  await user.click(screen.getByRole("button",{name:"选择已有草稿"}));
  expect(await screen.findByRole("option",{name:`消息模板草稿 · ${editableID} · 版本 1`})).toBeVisible();expect(screen.queryByRole("option",{name:`消息模板草稿 · ${reverseID} · 版本 1`})).not.toBeInTheDocument();
 });

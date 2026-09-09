@@ -28,7 +28,7 @@ import {ReleasePerson} from "./ReleasePerson";
 export const releaseStateLabels={DRAFT:"草稿",PENDING_APPROVAL:"待审批",APPROVED:"已批准",SUCCEEDED:"已发布待完结",COMPLETED:"已完结",REJECTED:"已拒绝",CANCELLED:"已取消",ROLLED_BACK:"已回滚"};
 export function ReleaseOrdersPage(){
  const {id}=useParams();
- return <main className="workspace"><ReleaseRecovery/><div className="page-heading"><div><h1>发布单</h1><p>配置经独立审批后发布；发布成功表示数据库已提交，分发尚未接入。</p></div></div>{id?<ReleaseDetail key={id} id={id}/>:<ReleaseList/>}</main>;
+ return <main className="workspace"><ReleaseRecovery/><div className="page-heading"><div><h1>发布单</h1></div></div>{id?<ReleaseDetail key={id} id={id}/>:<ReleaseList/>}</main>;
 }
 function ReleaseList(){
  const [input,setInput]=useState({table_name:"",applicant_id:"",state:"",id:""});
