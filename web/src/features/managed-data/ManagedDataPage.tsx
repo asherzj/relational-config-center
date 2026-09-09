@@ -186,7 +186,6 @@ export function ManagedDataPage() {
  <div className="page-heading">
         <div>
           <h1>配置内容管理</h1>
-          <p>查找和维护配置记录，按当前表规则核对每一次变更。</p>
         </div>
         <div className="page-heading-actions">
           <Button variant="secondary" icon={<RefreshCw size={16} />} disabled={!selectedTable || result.isFetching} onClick={() => void result.refetch()}>重新查询</Button>
@@ -417,7 +416,7 @@ export function ManagedDataPage() {
             onReview={(content) => changes.send({ type: "review-content", content })}
           />}
           <ChangeSetDialog
-            draftAction={<Button disabled={!canEdit||!destination.valid||changes.view.reviewDisabled||saving||draftWrite.pending||draftRecordConflict} onClick={()=>{if(changes.view.draftInput)void saveDraft(changes.view.draftInput)}}>{draftWrite.pending?"正在保存草稿…":draftWrite.unresolved?"使用原请求重试":"确认并保存草稿"}</Button>}
+            draftAction={<Button variant="primary" disabled={!canEdit||!destination.valid||changes.view.reviewDisabled||saving||draftWrite.pending||draftRecordConflict} onClick={()=>{if(changes.view.draftInput)void saveDraft(changes.view.draftInput)}}>{draftWrite.pending?"正在保存草稿…":draftWrite.unresolved?"使用原请求重试":"确认并保存草稿"}</Button>}
             draftLocked={draftWrite.pending||draftWrite.unresolved}
             draftFeedback={<>{destination.picker(saving||draftWrite.pending||draftWrite.unresolved)}{draftWrite.unresolved&&<p role="alert">草稿保存结果待确认。原请求已保留，刷新后仍可找回。</p>}</>}
 

@@ -122,11 +122,14 @@ function fixtureSQL() {
     assert.deepEqual((await changed.json()).roles, roles);
   }
   async function edit(values) {
+    const adding = await page.getByRole('dialog', { name: /^新增 .* 记录$/ }).count() === 1;
     for (const [name, value] of Object.entries(values)) {
-      await checkbox(`包含 ${name}`).check();
+      if (adding) await checkbox(`包含 ${name}`).check();
+      else assert.equal(await checkbox(`包含 ${name}`).count(), 0, 'MODIFY fields are editable without an inclusion toggle');
       if (value === null) await checkbox(`${name} 使用 NULL`).check();
       else {
-        if (await checkbox(`${name} 使用 NULL`).isChecked()) await checkbox(`${name} 使用 NULL`).uncheck();
+        const nullToggle = checkbox(`${name} 使用 NULL`);
+        if (await nullToggle.count() && await nullToggle.isChecked()) await nullToggle.uncheck();
         await input(name).fill(value);
       }
     }
@@ -144,6 +147,14 @@ function fixtureSQL() {
     }
   }
   async function execute(table, operation, values, id, status = 200) {
+    let expectedContent = values;
+    if (operation === 'MODIFY') {
+      const original = (await api(context, 'POST', `/api/v1/tables/${table}/query`, { conditions: [{ field: 'id', operator: 'exact', value: id }] })).response;
+      const assignment = (await api(context, 'GET', `/api/v1/table-policies/${table}`)).response;
+      const policy = (await api(context, 'GET', `/api/v1/mutation-policies/${assignment.mutation_policy_code}`)).response;
+      const reserved = new Set(['id', policy.create_operator_field, policy.create_time_field, policy.modify_operator_field, policy.modify_time_field]);
+      expectedContent = { ...Object.fromEntries(original.columns.filter(column => !column.generated && !reserved.has(column.name)).map(column => [column.name, original.rows[0][column.name]])), ...values };
+    }
     await preview(operation, values);
     const requestedStatuses = Array.isArray(status) ? status : [status];
     const expectedFailures = requestedStatuses.filter(candidate => candidate >= 400);
@@ -153,7 +164,7 @@ function fixtureSQL() {
     assert.equal(draft.body.table_name, table);
     assert.equal(draft.body.items.length, 1);
     assert.equal(draft.body.items[0].operation, operation);
-    assert.deepEqual(draft.body.items[0].content, values, 'release draft content must preserve included values and omissions');
+    assert.deepEqual(draft.body.items[0].content, expectedContent, 'release draft content must preserve edited and unchanged original values');
     if (id !== undefined) assert.equal(draft.body.items[0].id, id, 'record identity must travel in JSON');
     assert.deepEqual(previewDifferences, [], 'Change Set must preserve exact values');
     assert.ok(draft.requestId);
@@ -163,7 +174,7 @@ function fixtureSQL() {
     }
     currentOrder = draft.response;
     assert.equal(currentOrder.state, 'DRAFT');
-    assert.deepEqual(currentOrder.items[0].content, values, 'stored draft must retain the exact submitted content');
+    assert.deepEqual(currentOrder.items[0].content, expectedContent, 'stored draft must retain the exact submitted content');
     await page.waitForURL(`**/configuration/release-orders/${currentOrder.id}`);
     await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();
 
@@ -172,7 +183,7 @@ function fixtureSQL() {
       const retained = await api(context, 'GET', `/api/v1/release-orders/${currentOrder.id}`);
       currentOrder = retained.response;
       assert.equal(currentOrder.state, 'DRAFT');
-      assert.deepEqual(currentOrder.items[0].content, values);
+      assert.deepEqual(currentOrder.items[0].content, expectedContent);
       return { ...submitted, stage: 'submit', order: currentOrder };
     }
     currentOrder = submitted.response;
@@ -182,7 +193,7 @@ function fixtureSQL() {
       const retained = await api(context, 'GET', `/api/v1/release-orders/${currentOrder.id}`);
       currentOrder = retained.response;
       assert.equal(currentOrder.state, 'PENDING_APPROVAL');
-      assert.deepEqual(currentOrder.items[0].content, values);
+      assert.deepEqual(currentOrder.items[0].content, expectedContent);
       return { ...approved, stage: 'approval', order: currentOrder };
     }
     currentOrder = approved.response;
@@ -197,7 +208,7 @@ function fixtureSQL() {
       const retained = await api(context, 'GET', `/api/v1/release-orders/${currentOrder.id}`);
       currentOrder = retained.response;
       assert.equal(currentOrder.state, 'APPROVED', 'failed publication keeps the approved release retryable');
-      assert.deepEqual(currentOrder.items[0].content, values, 'failed publication retains the exact approved input');
+      assert.deepEqual(currentOrder.items[0].content, expectedContent, 'failed publication retains the exact approved input');
       await page.reload();
       await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();
       return { ...result, stage: 'publication', order: currentOrder, beforePublication, afterPublication };
@@ -229,9 +240,11 @@ function fixtureSQL() {
     assert.equal(await back.isEnabled(), true, 'definitive pre-order rejection must unlock retained input for editing');
     await back.click();
     for (const [name, value] of Object.entries(expected)) {
-      assert.equal(await checkbox(`包含 ${name}`).isChecked(), true, `${name} inclusion must remain selected`);
+      if (rejected.body.items[0].operation === 'ADD') assert.equal(await checkbox(`包含 ${name}`).isChecked(), true, `${name} inclusion must remain selected`);
+      else assert.equal(await checkbox(`包含 ${name}`).count(), 0);
       assert.equal(await input(name).inputValue(), value ?? '', `${name} rejected input must remain editable`);
-      assert.equal(await checkbox(`${name} 使用 NULL`).isChecked(), value === null, `${name} rejected NULL state`);
+      const nullToggle = checkbox(`${name} 使用 NULL`);
+      assert.equal(await nullToggle.count() ? await nullToggle.isChecked() : false, value === null, `${name} rejected NULL state`);
     }
   }
   async function reopened(table, id, expected) {
@@ -240,7 +253,8 @@ function fixtureSQL() {
     for (const [name, value] of Object.entries(expected)) {
       if (name === 'id') continue;
       assert.equal(await input(name).inputValue(), value ?? '', `${name} reopened editor`);
-      assert.equal(await checkbox(`${name} 使用 NULL`).isChecked(), value === null, `${name} NULL state`);
+      const nullToggle = checkbox(`${name} 使用 NULL`);
+      assert.equal(await nullToggle.count() ? await nullToggle.isChecked() : false, value === null, `${name} NULL state`);
     }
   }
   async function run(name, fn) {
@@ -540,10 +554,10 @@ function fixtureSQL() {
       await edit({ empty_text: 'only other field' }); await execute('stage4_complex', 'MODIFY', { empty_text: 'only other field' }, id);
       assert.equal(sql(`SELECT HEX(note) FROM stage4_complex WHERE id=${id};`), hex(note).toUpperCase());
       await closeSuccess('MODIFY'); await managed('stage4_complex'); await button(`修改记录 ${id}`).click();
-      await checkbox('包含 note').check(); await execute('stage4_complex', 'MODIFY', { note }, id);
+      await execute('stage4_complex', 'MODIFY', { note }, id);
       assert.equal(sql(`SELECT HEX(note) FROM stage4_complex WHERE id=${id};`), hex(note).toUpperCase());
       await closeSuccess('MODIFY'); await managed('stage4_complex'); await button(`修改记录 ${id}`).click();
-      await checkbox('包含 note').check(); await button('note 值：转换为 LF 再编辑').click();
+      await button('note 值：转换为 LF 再编辑').click();
       assert.equal(await input('note').getAttribute('readonly'), null);
       const normalized = note.replace(/\r\n?/g, '\n') + '\nexplicit edit';
       await input('note').fill(normalized); await execute('stage4_complex', 'MODIFY', { note: normalized }, id);
@@ -632,8 +646,10 @@ function fixtureSQL() {
       assert.equal(sql(`SELECT CONCAT_WS('|',base_value,stored_value,virtual_value) FROM stage4_generated WHERE id=${id};`), '9|18|10');
       await closeSuccess('ADD');
       for (const field of ['stored_value', 'virtual_value']) {
-        await managed('stage4_generated'); await button(`修改记录 ${id}`).click(); const values = { [field]: '123' }; await edit(values);
-        const rejected = await execute('stage4_generated', 'MODIFY', values, id, 422);
+        await managed('stage4_generated'); await button(`修改记录 ${id}`).click();
+        assert.equal(await input(field).count(), 0, 'generated columns must be excluded from the MODIFY editor');
+        const current = (await api(context, 'POST', '/api/v1/tables/stage4_generated/query', { conditions: [{ field: 'id', operator: 'exact', value: id }] })).response;
+        const rejected = await api(context, 'POST', '/api/v1/release-orders', { title: 'Reject generated column input', table_name: 'stage4_generated', items: [{ operation: 'MODIFY', id, expected_record_version: current.record_versions[0], content: { [field]: '123' } }] }, 422);
         assert.equal(rejected.response.error.code, 'invalid_mutation_content');
         assert.equal(sql(`SELECT CONCAT_WS('|',base_value,stored_value,virtual_value) FROM stage4_generated WHERE id=${id};`), '9|18|10');
       }

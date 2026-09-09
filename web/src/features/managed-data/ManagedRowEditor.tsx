@@ -1,6 +1,7 @@
 import { RecordConflictReview, type RecordConflictReviewProps } from "./RecordConflictReview";
 import { Input } from "../../components/shadcn/input";
 import { Checkbox } from "../../components/shadcn/checkbox";
+import { Badge } from "../../components/shadcn/badge";
 import { Label } from "../../components/shadcn/label";
 import { useState } from "react";
 import { ManagedTextInput } from "./ManagedTextInput";
@@ -27,17 +28,17 @@ type Props = RecordConflictReviewProps & {
   onReview: (content: MutationContent) => void;
 };
 
-function initialFields(columns: readonly ManagedDataColumn[], original?: Record<string, string | null>) {
+function initialFields(columns: readonly ManagedDataColumn[], operation: Props["operation"], original?: Record<string, string | null>) {
   return Object.fromEntries(columns.map((column) => [column.name, {
-    included: false,
+    included: operation === "MODIFY",
     value: original?.[column.name] ?? "",
     isNull: original?.[column.name] === null,
   }])) as Record<string, FieldDraft>;
 }
 
 export function ManagedRowEditor({ open, error, tableName, operation, columns, original, autoFillFields, reviewDisabled, recheckError, onRetryRecheck, onClose, onReview, ...conflictReview }: Props) {
-  const writableColumns = columns.filter((column) => (operation === "ADD" || column.name !== "id") && !autoFillFields.has(column.name));
-  const [baseline] = useState(() => initialFields(writableColumns, original));
+  const writableColumns = columns.filter((column) => (operation === "ADD" || (column.name !== "id" && !column.generated)) && !autoFillFields.has(column.name));
+  const [baseline] = useState(() => initialFields(writableColumns, operation, original));
   const [fields, setFields] = useState<Record<string, FieldDraft>>(baseline);
   // Include the controls as well as values: omitted, NULL and empty are distinct,
   // and temporarily omitted typed input still belongs to this draft.
@@ -48,7 +49,7 @@ export function ManagedRowEditor({ open, error, tableName, operation, columns, o
   };
   const content = Object.fromEntries(writableColumns.flatMap((column) => {
     const draft = fields[column.name];
-    if (!draft?.included) return [];
+    if (!draft || (operation === "ADD" && !draft.included)) return [];
     return [[column.name, draft.isNull ? null : draft.value]];
   })) as MutationContent;
 
@@ -62,20 +63,26 @@ export function ManagedRowEditor({ open, error, tableName, operation, columns, o
     >
       {error != null && <ErrorState error={error} />}
       <RecordConflictReview {...conflictReview} />
-      <p className="form-note">每个字段分别选择是否包含在请求中；NULL 与空字符串具有不同语义。</p>
+      <p className="form-note">{operation === "MODIFY"
+        ? "已带入原记录的值，可直接编辑。未改动的字段保留原值；NULL 与空字符串不同。"
+        : "每个字段分别选择是否包含在请求中；NULL 与空字符串具有不同语义。"}</p>
       {operation === "ADD" && <p className="form-note">id 由数据库自增生成时，请保持不包含；非自增主键需要填写 id。</p>}
       {recheckError !== undefined && recheckError !== null && <ErrorState error={recheckError} onRetry={onRetryRecheck} />}
       <div className="mutation-content-fields">
         {writableColumns.map((column) => {
           const draft = fields[column.name] ?? { included: false, value: "", isNull: false };
+          const included = operation === "MODIFY" || draft.included;
           return (
-            <fieldset key={column.name} className="mutation-content-field">
-              <legend>{column.name}<small>{column.type} · {column.nullable ? "可为 NULL" : "非 NULL"}</small></legend>
-              <Label className="include-field"><Checkbox aria-label={`包含 ${column.name}`} checked={draft.included} onCheckedChange={(checked) => update(column.name, { included: checked === true })} />包含在请求中</Label>
+            <fieldset key={column.name} className={`mutation-content-field${operation === "MODIFY" ? " mutation-content-field--modify" : ""}${!column.nullable ? " mutation-content-field--not-null" : ""}`}>
+              <legend><span className="mutation-field-heading">{column.name}<small>{column.type}</small><Badge variant={column.nullable ? "outline" : "secondary"}>{column.nullable ? "允许 NULL" : "不允许 NULL"}</Badge></span></legend>
+              {operation === "ADD" && <Label className="include-field"><Checkbox aria-label={`包含 ${column.name}`} checked={draft.included} onCheckedChange={(checked) => update(column.name, { included: checked === true })} />包含在请求中</Label>}
               <div className="field"><span>值</span>{column.type === "string" || column.type === "json"
-                ? <ManagedTextInput label={`${column.name} 值`} disabled={!draft.included || draft.isNull} value={draft.value} onChange={(value) => update(column.name, { value })} />
-                : <Input aria-label={`${column.name} 值`} disabled={!draft.included || draft.isNull} value={draft.value} onChange={(event) => update(column.name, { value: event.target.value })} />}</div>
-              <Label className="include-field"><Checkbox aria-label={`${column.name} 使用 NULL`} disabled={!draft.included || !column.nullable} checked={draft.isNull} onCheckedChange={(checked) => update(column.name, { isNull: checked === true })} />NULL</Label>
+                ? <ManagedTextInput label={`${column.name} 值`} disabled={!included || draft.isNull} value={draft.value} onChange={(value) => update(column.name, { value })} />
+                : <Input aria-label={`${column.name} 值`} disabled={!included || draft.isNull} value={draft.value} onChange={(event) => update(column.name, { value: event.target.value })} />}</div>
+              {column.nullable && <Label className="include-field mutation-null-toggle" data-disabled={!included} data-checked={draft.isNull}>
+                <Checkbox aria-label={`${column.name} 使用 NULL`} disabled={!included} checked={draft.isNull} onCheckedChange={(checked) => update(column.name, { isNull: checked === true })} />
+                {draft.isNull ? "已设为 NULL" : "设为 NULL"}
+              </Label>}
             </fieldset>
           );
         })}

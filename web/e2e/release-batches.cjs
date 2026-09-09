@@ -104,7 +104,6 @@ const output = process.env.RCC_E2E_OUTPUT;
     await page.goto(`${base}/configuration/managed-data`);
     await page.getByLabel('Managed Table', { exact: true }).selectOption(table);
     await button(page, '修改记录 1').click();
-    await page.getByLabel('包含 label', { exact: true }).check();
     await page.getByLabel('label 值', { exact: true }).fill('initial batch intent');
     await button(page, '查看 Change Set').click();
     await button(page, '确认并保存草稿').click();

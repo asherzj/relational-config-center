@@ -36,21 +36,21 @@ export function AppShell() {
           <Button variant="ghost" className="icon-button" aria-label="关闭导航" onClick={() => setMobileNavOpen(false)}><X size={20} /></Button>
         </div>
         <nav>
-          {administrator && <section className="nav-group" aria-labelledby="people-navigation-title">
-            <div id="people-navigation-title" className="nav-group-title">平台人员管理</div>
-            <NavLink to="/platform/account-roles" onClick={() => setMobileNavOpen(false)}><ShieldCheck size={18} />账号角色</NavLink>
-          </section>}
+          <section className="nav-group" aria-labelledby="configuration-navigation-title">
+            <div id="configuration-navigation-title" className="nav-group-title">配置管理</div>
+            <NavLink to="/configuration/release-orders" onClick={() => setMobileNavOpen(false)}><FileSearch size={18} />发布单</NavLink>
+            <NavLink to="/configuration/managed-data" onClick={() => setMobileNavOpen(false)}><Table2 size={18} />配置内容管理</NavLink>
+          </section>
           <section className="nav-group" aria-labelledby="table-navigation-title">
             <div id="table-navigation-title" className="nav-group-title">表配置管理</div>
             <NavLink to="/platform/query-policies" onClick={() => setMobileNavOpen(false)}><FileSearch size={18} />查询规则定义</NavLink>
             <NavLink to="/platform/mutation-policies" onClick={() => setMobileNavOpen(false)}><ArrowLeftRight size={18} />变更规则定义</NavLink>
             <NavLink to="/platform/table-policies" onClick={() => setMobileNavOpen(false)}><Layers3 size={18} />表规则分配</NavLink>
           </section>
-          <section className="nav-group" aria-labelledby="configuration-navigation-title">
-            <div id="configuration-navigation-title" className="nav-group-title">配置管理</div>
-            <NavLink to="/configuration/release-orders" onClick={() => setMobileNavOpen(false)}><FileSearch size={18} />发布单</NavLink>
- <NavLink to="/configuration/managed-data" onClick={() => setMobileNavOpen(false)}><Table2 size={18} />配置内容管理</NavLink>
-          </section>
+          {administrator && <section className="nav-group" aria-labelledby="people-navigation-title">
+            <div id="people-navigation-title" className="nav-group-title">平台人员管理</div>
+            <NavLink to="/platform/account-roles" onClick={() => setMobileNavOpen(false)}><ShieldCheck size={18} />账号角色</NavLink>
+          </section>}
         </nav>
         <div className="sidebar-account">
           <Separator />
