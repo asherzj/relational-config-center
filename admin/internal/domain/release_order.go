@@ -4,6 +4,9 @@ package domain
 // Before means no record, while a nil field value means SQL NULL. Content omits
 // unsupplied fields. Automatic fields remain deferred until actual publication.
 type ReleaseItem struct {
+	DetailID              string          `json:"detail_id"`
+	TableName             string          `json:"table_name"`
+	ConcurrencyKeys       [][]byte        `json:"concurrency_keys,omitempty"`
 	Operation             string          `json:"operation"`
 	ID                    *JSONString     `json:"id"`
 	ExpectedRecordVersion string          `json:"expected_record_version"`

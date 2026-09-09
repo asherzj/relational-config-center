@@ -11,7 +11,6 @@ import (
 
 	"github.com/asherzj/relational-config-center/admin/internal/application"
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
-	mysqldriver "github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -220,7 +219,7 @@ func (a *Adapter) ListReleaseOrders(ctx context.Context, filter domain.ReleaseFi
 	return result, nil
 }
 
-// Sorted target locks make a whole submitted set atomic and avoid opposite lock
+// Sorted target locks make a whole saved set atomic and avoid opposite lock
 // order for overlapping sets. Unknown auto-increment ids contribute no target.
 func (s *releaseOrderSession) ReserveReleaseTargets(ctx context.Context, orderID string, targets []domain.ActiveTarget) error {
 	if err := s.available(); err != nil {
@@ -234,13 +233,16 @@ func (s *releaseOrderSession) ReserveReleaseTargets(ctx context.Context, orderID
 		return bytes.Compare(targets[i].RecordKey, targets[j].RecordKey) < 0
 	})
 	for _, target := range targets {
-		err := s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_targets(table_name,record_key,order_id) VALUES(?,?,?)`, target.TableName, target.RecordKey, orderID).Error
-		var mysqlError *mysqldriver.MySQLError
-		if errors.As(err, &mysqlError) && mysqlError.Number == 1062 {
-			return &application.ReleaseItemError{Index: target.ItemIndex, Cause: application.ErrReleaseTargetConflict}
-		}
+		err := s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_targets(table_name,record_key,order_id) VALUES(?,?,?) ON DUPLICATE KEY UPDATE order_id=order_id`, target.TableName, target.RecordKey, orderID).Error
 		if err != nil {
 			return application.ErrReleaseUnavailable
+		}
+		var owner string
+		if err := s.database.WithContext(ctx).Raw(`SELECT order_id FROM rcc_release_targets WHERE table_name=? AND record_key=? FOR UPDATE`, target.TableName, target.RecordKey).Row().Scan(&owner); err != nil {
+			return application.ErrReleaseUnavailable
+		}
+		if owner != orderID {
+			return &application.ReleaseItemError{Index: target.ItemIndex, Cause: &application.ReleaseTargetConflict{TableName: target.TableName, OrderID: owner}}
 		}
 	}
 	return nil
@@ -249,10 +251,10 @@ func (s *releaseOrderSession) ReleaseTargets(ctx context.Context, orderID string
 	if err := s.available(); err != nil {
 		return err
 	}
-	if err := s.database.WithContext(ctx).Exec(`DELETE FROM rcc_release_targets WHERE order_id=?`, orderID).Error; err != nil {
-		return application.ErrReleaseUnavailable
+	if err := s.ReplaceReleaseTargets(ctx, orderID, nil); err != nil {
+		return err
 	}
-	return nil
+	return s.ReplaceReleaseTableReferences(ctx, orderID, nil)
 }
 
 func decodeStoredReleaseOrder(encoded []byte) (domain.ReleaseOrder, error) {

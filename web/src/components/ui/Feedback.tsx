@@ -2,6 +2,8 @@ import { Skeleton } from "../shadcn/skeleton";
 import { AlertCircle, RefreshCw, Search } from "lucide-react";
 import { presentError } from "../../api/error-messages";
 import { Button } from "./Button";
+import { ApiError } from "../../api/client";
+import { TargetConflict } from "./TargetConflict";
 
 export function LoadingState({ label = "正在加载…" }: { label?: string }) {
   return (
@@ -28,9 +30,10 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
     <div className="feedback-state feedback-error" role="alert">
       <AlertCircle aria-hidden="true" />
       <strong>{presented.message}</strong>
+      {error instanceof ApiError && error.targetConflict && <TargetConflict {...error.targetConflict}/>}
       {presented.requestId && <span>请求编号：{presented.requestId}</span>}
       {onRetry && (
-        <Button variant="secondary" icon={<RefreshCw size={16} />} onClick={onRetry}>
+        <Button type="button" variant="secondary" icon={<RefreshCw size={16} />} onClick={onRetry}>
           重试
         </Button>
       )}

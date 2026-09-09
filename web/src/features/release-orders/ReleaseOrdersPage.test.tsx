@@ -10,7 +10,7 @@ import {testAdminIdentity,withAdminSession} from "../../test/account-session";
 const id="12345678123456781234567812345678";
 const rollbackID="87654321876543218765432187654321";
 const repreparedID="abcdefabcdefabcdefabcdefabcdefab";
-const order={id,title:"更新渠道展示名称",table_name:"items",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-07T08:00:00Z",updated_at:"2026-09-07T08:00:00Z",history:[{action:"CREATE",actor_id:testAdminIdentity.account.id,version:"1",at:"2026-09-07T08:00:00Z",reason:""}],allowed_actions:["edit","cancel"],items:[{operation:"MODIFY",id:"1",expected_record_version:"0",before:{id:"1",label:"original"},content:{label:"proposal"},fields:[{name:"id",type:"uint64",nullable:false,editable:false,before_state:"value",before:"1",proposed_state:"omitted",proposed:null},{name:"label",type:"string",nullable:true,editable:true,before_state:"value",before:"original",proposed_state:"value",proposed:"proposal"}]}]};
+const order={id,title:"更新渠道展示名称",table_name:"items",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-07T08:00:00Z",updated_at:"2026-09-07T08:00:00Z",history:[{action:"CREATE",actor_id:testAdminIdentity.account.id,version:"1",at:"2026-09-07T08:00:00Z",reason:""}],allowed_actions:["edit","cancel"],items:[{detail_id:"1".repeat(32),table_name:"items",operation:"MODIFY",id:"1",expected_record_version:"0",before:{id:"1",label:"original"},content:{label:"proposal"},fields:[{name:"id",type:"uint64",nullable:false,editable:false,before_state:"value",before:"1",proposed_state:"omitted",proposed:null},{name:"label",type:"string",nullable:true,editable:true,before_state:"value",before:"original",proposed_state:"value",proposed:"proposal"}]}]};
 const json=(value:unknown,status=200)=>new Response(JSON.stringify(value, (key,item)=>key==="orders"?item.map((order:{items:unknown[]})=>({...order,item_count:order.items.length,operation_counts:{MODIFY:order.items.length}})):item),{status,headers:{"Content-Type":"application/json"}});
 function mount(path="/configuration/release-orders"){
  const client=new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}});
@@ -47,7 +47,7 @@ it("原申请人或管理员核对最新配置后原子化重新准备已批准�
  expect(await screen.findByText("重新准备自",{exact:false})).toBeVisible();
  expect(screen.getByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
  await waitFor(()=>expect(writes).toHaveLength(1));
- expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"3",confirmed:true,items:[{operation:"MODIFY",id:"1",expected_record_version:"2",content:{label:"proposal"}}]});
+ expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"3",confirmed:true,items:[{detail_id:"1".repeat(32),table_name:"items",operation:"MODIFY",id:"1",expected_record_version:"2",content:{label:"proposal"}}]});
  expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBeTruthy();
 });
 
@@ -194,7 +194,7 @@ it("编辑冲突保留输入，读取最新后必须明确重建再保存",async
  await user.click(screen.getByRole("button",{name:"基于最新发布单重建"}));
  await user.click(screen.getByRole("button",{name:"保存草稿修改"}));
  await waitFor(()=>expect(writes).toHaveLength(2));
- expect(JSON.parse(String(writes[1].body))).toMatchObject({expected_version:"2",items:[{content:{label:"my retained proposal"}}]});
+ expect(JSON.parse(String(writes[1].body))).toMatchObject({expected_version:"2",changes:{upserts:[{content:{label:"my retained proposal"}}]}});
 });
 
 it("发布单标题按 Unicode 字符计数并允许 100 个 emoji",async()=>{
@@ -291,7 +291,7 @@ it("已知 ADD 冲突后查看缺行墓碑并明确重建，保留当前申请�
  await user.click(screen.getByRole("button",{name:"基于最新配置重建"}));
  await user.click(screen.getByRole("button",{name:"保存草稿修改"}));
  await waitFor(()=>expect(writes).toHaveLength(2));expect(previews).toBe(2);
- expect(JSON.parse(String(writes[1].body))).toMatchObject({expected_version:"1",items:[{operation:"ADD",expected_record_version:"2",content:{id:"1",label:"proposal"}}]});
+ expect(JSON.parse(String(writes[1].body))).toMatchObject({expected_version:"1",changes:{upserts:[{operation:"ADD",expected_record_version:"2",content:{id:"1",label:"proposal"}}]}});
 });
 
 it("未知请求重试得到明确版本冲突后，可核对并用新请求重建",async()=>{
@@ -319,7 +319,7 @@ it("未知请求重试得到明确版本冲突后，可核对并用新请求重�
  await user.click(await screen.findByRole("button",{name:"基于最新发布单重建"}));
  await user.click(screen.getByRole("button",{name:"保存草稿修改"}));
  await waitFor(()=>expect(writes).toHaveLength(3));
- expect(JSON.parse(String(writes[2]!.body))).toMatchObject({expected_version:"2",items:[{content:{label:"retained after unknown"}}]});
+ expect(JSON.parse(String(writes[2]!.body))).toMatchObject({expected_version:"2",changes:{upserts:[{content:{label:"retained after unknown"}}]}});
  expect(new Headers(writes[2]!.headers).get("Idempotency-Key")).not.toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
 });
 
@@ -377,7 +377,7 @@ it("刷新后原请求被明确拒绝仍保留申请，核对后才能确认重�
  await user.click(await screen.findByRole("button",{name:"查看最新状态与配置"}));
  const rebuild=await screen.findByRole("button",{name:"确认重建并保存草稿"});expect(rebuild).toBeEnabled();expect(writes).toHaveLength(2);
  await user.click(rebuild);await waitFor(()=>expect(writes).toHaveLength(3));
- expect(JSON.parse(String(writes[2]!.body))).toMatchObject({expected_version:"2",items:[{content:{label:"unique recovered intent"}}]});
+ expect(JSON.parse(String(writes[2]!.body))).toMatchObject({expected_version:"2",changes:{upserts:[{content:{label:"unique recovered intent"}}]}});
  expect(new Headers(writes[2]!.headers).get("Idempotency-Key")).not.toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
 });
 
@@ -498,8 +498,8 @@ it("仅 PUBLISHER 执行原审批，丢响应后跨刷新使用原键确认并�
  expect(screen.getByText("刷新通知：notice · 分发尚未接入")).toBeVisible();expect(sessionStorage.length).toBe(0);
 });
 
-it("编辑任意明细并移除另一项，保存仍提交整张草稿",async()=>{
- const second={...order.items[0]!,id:"2",content:{label:"second"},fields:order.items[0]!.fields.map(field=>field.name==="label"?{...field,proposed:"second"}:field)};
+it("分页编辑及删除只提交本次明细变化和整单版本",async()=>{
+ const second={...order.items[0]!,detail_id:"2".repeat(32),id:"2",content:{label:"second"},fields:order.items[0]!.fields.map(field=>field.name==="label"?{...field,proposed:"second"}:field)};
  const current={...order,items:[order.items[0]!,second]};const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(init?.method==="PUT"){writes.push(init);return json({...current,version:"2"})}return json(current)})));
  const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
@@ -509,12 +509,12 @@ it("编辑任意明细并移除另一项，保存仍提交整张草稿",async()=
  await user.selectOptions(screen.getByLabelText("编辑明细"),"0");
  await user.click(screen.getByRole("button",{name:"移除此明细"}));
  await user.click(screen.getByRole("button",{name:"保存草稿修改"}));
- await waitFor(()=>expect(writes).toHaveLength(1));expect(JSON.parse(String(writes[0]!.body))).toMatchObject({expected_version:"1",items:[{id:"2",content:{label:"second edited"}}]});
- expect(JSON.parse(String(writes[0]!.body)).items).toHaveLength(1);
+ await waitFor(()=>expect(writes).toHaveLength(1));expect(JSON.parse(String(writes[0]!.body))).toMatchObject({expected_version:"1",changes:{upserts:[{detail_id:"2".repeat(32),id:"2",content:{label:"second edited"}}],delete_detail_ids:["1".repeat(32)]}});
+ expect(JSON.parse(String(writes[0]!.body)).items).toBeUndefined();
 });
 
 it("千项预览可定位最后一项，审批仍包含整单",async()=>{
- const large={...order,state:"PENDING_APPROVAL",applicant_id:"another-account",allowed_actions:["approve"],items:Array.from({length:1000},(_,index)=>({...order.items[0]!,id:String(index+1),content:{label:`item-${index+1}`},fields:order.items[0]!.fields.map(field=>field.name==="label"?{...field,proposed:`item-${index+1}`}:field)}))};
+ const large={...order,state:"PENDING_APPROVAL",applicant_id:"another-account",allowed_actions:["approve"],items:Array.from({length:1000},(_,index)=>({...order.items[0]!,detail_id:String(index+1).padStart(32,"0"),id:String(index+1),content:{label:`item-${index+1}`},fields:order.items[0]!.fields.map(field=>field.name==="label"?{...field,proposed:`item-${index+1}`}:field)}))};
  const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(String(input).endsWith("/approve")){writes.push(init);return json({...large,state:"APPROVED",version:"2"})}return json(large)})));
  const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
@@ -530,7 +530,7 @@ it("大单与待恢复请求超出浏览器保存容量时发送前拒绝并保�
  const key=`rcc:release-requests:${testAdminIdentity.account.id}`;
  const previous=JSON.stringify([{scope:"create",path:"/api/v1/release-orders",method:"POST",body:JSON.stringify({title:"原申请标题",table_name:"items",items:[{operation:"ADD",content:{label:"original intent"}}]}),key:"original-key",label:"已有原请求"}]);
  sessionStorage.setItem(key,previous);
- const large={...order,items:Array.from({length:1000},(_,index)=>({...order.items[0]!,id:String(index+1)}))};let writes=0;
+ const large={...order,items:Array.from({length:1000},(_,index)=>({...order.items[0]!,detail_id:String(index+1).padStart(32,"0"),id:String(index+1)}))};let writes=0;
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(init?.method==="PUT")writes++;return json(large)})));
  const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
  await user.click(await screen.findByRole("button",{name:"编辑草稿"}));
@@ -539,7 +539,7 @@ it("大单与待恢复请求超出浏览器保存容量时发送前拒绝并保�
 });
 
 it("千项编辑器只列当前20项并能直接编辑第1000项",async()=>{
- const large={...order,items:Array.from({length:1000},(_,index)=>({...order.items[0]!,id:String(index+1),content:{label:`item-${index+1}`}}))};const writes:RequestInit[]=[];
+ const large={...order,items:Array.from({length:1000},(_,index)=>({...order.items[0]!,detail_id:String(index+1).padStart(32,"0"),id:String(index+1),content:{label:`item-${index+1}`}}))};const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(_input,init)=>{if(init?.method==="PUT")writes.push(init);return json(large)})));
  const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
  await user.click(await screen.findByRole("button",{name:"编辑草稿"}));
@@ -550,7 +550,7 @@ it("千项编辑器只列当前20项并能直接编辑第1000项",async()=>{
  await user.clear(screen.getByLabelText("label 申请值"));await user.type(screen.getByLabelText("label 申请值"),"last edited");
  await user.click(screen.getByRole("button",{name:"保存草稿修改"}));
  await waitFor(()=>expect(writes).toHaveLength(1));
- const items=JSON.parse(String(writes[0]!.body)).items;expect(items).toHaveLength(1000);expect(items[999].content.label).toBe("last edited");expect(items[0].content.label).toBe("item-1");
+ const input=JSON.parse(String(writes[0]!.body));expect(input.items).toBeUndefined();expect(input.changes.upserts).toHaveLength(1);expect(input.changes.upserts[0].detail_id).toBe("1000".padStart(32,"0"));expect(input.changes.upserts[0].content.label).toBe("last edited");
 });
 
 it("完结丢响应后保留原请求并阻止另一个终止动作直到恢复",async()=>{

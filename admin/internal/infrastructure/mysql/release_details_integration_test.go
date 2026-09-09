@@ -4,6 +4,7 @@ package mysql
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"testing"
 	"time"
@@ -13,7 +14,8 @@ import (
 )
 
 // The adapter owns the lock protocol. Independent order owners must be able to
-// read and grow their details together, including the empty storage state.
+// read and grow their details, targets and table references together, including
+// the empty storage state. No empty index-range lock may serialize their inserts.
 func TestIndependentReleaseDetailGrowthDoesNotLockIndexGaps(t *testing.T) {
 	ctx, adapter, _, _ := identityGuardDatabase(t)
 	for _, initial := range []int{0, 1} {
@@ -44,7 +46,14 @@ func TestIndependentReleaseDetailGrowthDoesNotLockIndexGaps(t *testing.T) {
 							return operation.Err()
 						}
 						order.Items = append(order.Items, domain.ReleaseItem{Operation: "ADD"})
-						return s.SaveReleaseOrder(operation, order, false)
+						if err := s.SaveReleaseOrder(operation, order, false); err != nil {
+							return err
+						}
+						key := sha256.Sum256([]byte(id))
+						if err := s.ReplaceReleaseTargets(operation, id, []domain.ActiveTarget{{TableName: "fixture", RecordKey: key[:]}}); err != nil {
+							return err
+						}
+						return s.ReplaceReleaseTableReferences(operation, id, []string{"fixture"})
 					})
 				}(id)
 			}

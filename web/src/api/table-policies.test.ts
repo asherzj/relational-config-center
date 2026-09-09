@@ -38,6 +38,7 @@ describe("Table Policy API contract", () => {
       table_name: "notification_templates",
       query_policy_code: "standard_query_v1",
       mutation_policy_code: "standard_mutation_v1",
+      concurrency_key: [],
     });
   });
 

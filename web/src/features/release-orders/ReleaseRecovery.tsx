@@ -62,6 +62,11 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
       setNeedsDraftUpdate(changed);if(!changed)setRebuilt(releaseRequests.action("submit",intent.id,latest.version));
      }
     }
+   }else if(intent.action==="edit-details"){
+    if(latest?.allowed_actions.includes("edit")){
+     const snapshot=await releaseOrders.preview({table_name:intent.input.table_name,items:intent.input.changes.upserts??[]});setPreview(snapshot);
+     setRebuilt(releaseRequests.edit(intent.id,{...intent.input,expected_version:latest.version,changes:{...intent.input.changes,upserts:(intent.input.changes.upserts??[]).map((entry,index)=>({...entry,expected_record_version:snapshot.items[index]!.expected_record_version}))}}));
+    }
    }else if(intent.action==="copy"||intent.action==="reprepare"){
     if(latest?.allowed_actions.includes(intent.action)){
      const snapshot=await releaseOrders.preview({table_name:latest.table_name,items:intent.input.items});setPreview(snapshot);
@@ -75,7 +80,7 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
    }
   }catch(cause){setError(cause)}finally{setReading(false)}
  };
- const confirmLabel=action==="cancel"?`确认按最新状态取消${current?.state==="DRAFT"?"草稿":"发布单"}`:action==="create"||action==="edit"?"确认重建并保存草稿":`确认按最新状态${action?releaseActionLabels[action]:"重建"}`;
+ const confirmLabel=action==="cancel"?`确认按最新状态取消${current?.state==="DRAFT"?"草稿":"发布单"}`:action==="create"||action==="edit"||action==="edit-details"?"确认重建并保存草稿":`确认按最新状态${action?releaseActionLabels[action]:"重建"}`;
  return <><p role="alert">服务器已明确拒绝原请求。原申请保留，请查看最新状态与配置后决定是否重建。</p>
   <Button disabled={!action||!allowed||reading||write.pending} onClick={()=>void inspect()}>{reading?"正在检查…":"查看最新状态与配置"}</Button>{reading&&<LoadingState label="正在检查最新状态与配置…"/>}
   {current&&<><p>最新发布单版本：{current.version}，状态：{current.state}</p>{current.rollback_order_id&&<p>当前关联回滚发布单：<Link to={`/configuration/release-orders/${current.rollback_order_id}`}>{current.rollback_order_id}</Link></p>}<ReleaseDiff order={current}/></>}
@@ -98,5 +103,6 @@ function PendingIntent({item}:{item:PendingReleaseRequest}){
  if(intent.action==="submit")return <details className="my-2"><summary>查看原申请内容</summary><p>提交单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
  if(intent.action==="rollback")return <details className="my-2"><summary>查看原申请内容</summary><p>原发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>回滚原因：{intent.input.reason}</p></details>;
  if(intent.action==="cancel"||intent.action==="approve"||intent.action==="reject")return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="cancel"?"取消原因":"审批意见"}：{intent.input.reason}</p></details>;
+ if(intent.action==="edit-details")return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.input.table_name} · 整单版本 {intent.input.expected_version}</p><p>删除明细：{intent.input.changes.delete_detail_ids?.join("、")||"无"}</p><p>明细顺序：{intent.input.changes.detail_order?.join("、")||"保持"}</p>{intent.input.changes.upserts?.map((entry,index)=><div key={entry.detail_id??index}><strong>{entry.operation} · {entry.id??entry.content.id??"待生成 id"}</strong><dl>{Object.entries(entry.content).map(([name,value])=><div key={name} className="break-all"><dt>{name}</dt><dd className="whitespace-pre-wrap">{value===null?"SQL NULL":`值：${value}`}</dd></div>)}</dl></div>)}</details>;
  return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="copy"?`复制原单 ${intent.id}`:intent.action==="reprepare"?`重新准备原单 ${intent.id}`:intent.input.table_name}</p>{intent.input.items.map((entry,index)=><div key={index}><strong>{entry.operation} · {entry.id??entry.content.id??"待生成 id"}</strong><dl>{Object.entries(entry.content).map(([field,value])=><div key={field} className="break-all"><dt>{field}</dt><dd className="whitespace-pre-wrap">{value===null?"SQL NULL":value===""?"空字符串（\"\"）":<>值：{value}</>}</dd></div>)}</dl></div>)}</details>;
 }

@@ -1,0 +1,1549 @@
+{
+  "issue": 83,
+  "parent": 81,
+  "base": "950a319669120ac3cd16af0cad68a9a6164672f3",
+  "mysql": "8.4",
+  "database_acceptance": "Serial after measured OOM; at most one task-owned MySQL container. Business-level concurrency preserved.",
+  "admin_manifest_count": 228,
+  "admin_latest_pass": 228,
+  "admin_missing": [],
+  "admin_unresolved_failures": {},
+  "admin_tests": {
+    "TestAccountControlTablesCannotBeDiscoveredOrManaged": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 9.42
+    },
+    "TestAccountMaintenanceCorrectEmailPreservesOwnershipAndSessions": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 12.34
+    },
+    "TestAccountMaintenanceDisableAndEnableDoNotReviveSessions": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 14.24
+    },
+    "TestAccountMaintenanceIndependentConnectionAndAtomicFailures": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 11.83
+    },
+    "TestAccountMaintenanceResetDisabledAccountPreservesDraftDestruction": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 11.81
+    },
+    "TestAccountMaintenanceResetPasswordRevokesEverySession": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 16.93
+    },
+    "TestAccountProcessCapacityNeverEvictsValidState": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 16.72
+    },
+    "TestAccountProcessDatabaseFailuresRemain503And504": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 16.48
+    },
+    "TestAccountProcessHTTPSCookiesAndSensitiveMaterials": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 15.15
+    },
+    "TestAccountProcessRequiresCompleteAuthenticationSchema": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 17.47
+    },
+    "TestAccountProcessRestartPreservesSessionsAndRateWindows": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 15.49
+    },
+    "TestAccountProcessStopAllowsPendingRequestHeader": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 10.68
+    },
+    "TestAccountRoleUpgradePreservesAccountsAndGrants": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 15.23
+    },
+    "TestAccountUpgradeFromLegacyMatchesFreshSchema": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 15.79
+    },
+    "TestAdminExternalProcessForcesShutdownAtConfiguredBoundAndStillClosesApplication": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 0.14
+    },
+    "TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 10.58
+    },
+    "TestAdminExternalProcessServesHealthAndEnforcesAuthDefault": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 5.33
+    },
+    "TestAdminExternalProcessWaitsForIncompleteRequestHeadersOnShutdown": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 5.33
+    },
+    "TestAdminProcessHelper": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 0
+    },
+    "TestAdminProcessRejectsInvalidConfiguration": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 4.07
+    },
+    "TestAdminProcessRejectsRemovedAuthenticationConfiguration": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 2.96
+    },
+    "TestAdminProcessRejectsUnavailableRequiredDatabase": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 3.39
+    },
+    "TestAdminProcessServesUnauthenticatedLiveness": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 15.09
+    },
+    "TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 13.3
+    },
+    "TestAssignedDeprecatedPolicyDefinitionsRemainQueryable": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 13.17
+    },
+    "TestBusinessAPIsRequireSessionAndCSRF": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 12.16
+    },
+    "TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 13.97
+    },
+    "TestConcurrentAccountsOwnTheirBusinessChanges": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 13.86
+    },
+    "TestCurrentSessionUsesRolePermissionMatrix": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 15.23
+    },
+    "TestDatabaseTableDetailReturnsLiveMetadataAndStableNotFoundError": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 14.79
+    },
+    "TestDatabaseTableListDiscoversOnlyOrdinaryBaseTables": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 12.99
+    },
+    "TestDraftAllTargetTypesReleaseOnEveryTerminalAction": {
+      "action": "pass",
+      "source": "ddl-green",
+      "elapsed": 32.97
+    },
+    "TestDraftConcurrencyKeyDatabaseEquality": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 10.49
+    },
+    "TestDraftConcurrencyKeyProtectsValuesAndDefinition": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.15
+    },
+    "TestDraftIncrementalEditsReplaceTargetsAtomically": {
+      "action": "pass",
+      "source": "ddl-green",
+      "elapsed": 8.2
+    },
+    "TestDraftKeyEligibilityDefaultsAndAutoIDReferences": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.24
+    },
+    "TestDraftReservationsBeginOnSaveAndEndOnCancel": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.21
+    },
+    "TestDraftSaveAndKeyDefinitionRaceCannotBypassReferences": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 10.36
+    },
+    "TestDraftSharedKeyReferencesReleaseOnlyAfterLastDetail": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.54
+    },
+    "TestDraftSubmitRejectsChangedTargetIdentity": {
+      "action": "pass",
+      "source": "ddl-green",
+      "elapsed": 8.24
+    },
+    "TestDraftTargetReplacementRollsBackOnPersistenceFailure": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 8.14
+    },
+    "TestEnabledTablePolicyQueriesExactRowsWithPolicyDefaults": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 11.73
+    },
+    "TestExactQueryUsesANDValidatedSortAndPreservesAnEmptyRequestedPage": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 13.98
+    },
+    "TestExternalDDLRaceFailsSafelyWithoutStorageDetails": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 14.41
+    },
+    "TestHealthDistinguishesRunningProcessFromRequiredInfrastructure": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 11.65
+    },
+    "TestInFlightQueryKeepsOnePolicySnapshotWhileReplacementAffectsNextRequest": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 13.3
+    },
+    "TestLastEnabledAdministratorCannotBeRemovedOrDisabled": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 14.39
+    },
+    "TestLegacyPolicyPreflightRejectsUnsupportedAutoFillWithoutPartialRewrite": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 13.43
+    },
+    "TestLocalAccountCSRFAndServiceFailure": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 13.76
+    },
+    "TestLocalAccountCancelledLoginReleasesReservation": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 13.38
+    },
+    "TestLocalAccountConcurrentSessionsActivityAndExpiry": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 13.91
+    },
+    "TestLocalAccountCurrentAndAllSessionRevocation": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 10.71
+    },
+    "TestLocalAccountDatabaseLockTimeoutIs504": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 13.11
+    },
+    "TestLocalAccountFailuresAndCredentialBoundaries": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 12.48
+    },
+    "TestLocalAccountHTTPFieldContract": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 12.29
+    },
+    "TestLocalAccountHTTPSCookiesAndPreauthExpiry": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 11.63
+    },
+    "TestLocalAccountLoginAfterLogout": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 12.49
+    },
+    "TestLocalAccountLoginSettlementFailurePreservesPreviousSession": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 13.3
+    },
+    "TestLocalAccountMaintenanceAuthorizesBeforeInputs": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 12.41
+    },
+    "TestLocalAccountNormalizedUniquenessAndAtomicRegistration": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 13.06
+    },
+    "TestLocalAccountPasswordChangeRevokesAllSessions": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 13.82
+    },
+    "TestLocalAccountPersistedSessionDeadlines": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 13.29
+    },
+    "TestLocalAccountProfileChangesAffectOnlyCurrentAccount": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 12.37
+    },
+    "TestLocalAccountRateLimitsAcrossIPsAndWindows": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 14.22
+    },
+    "TestLocalAccountRegistrationCreatesCurrentIdentity": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 12.92
+    },
+    "TestLocalAccountRegistrationRateLimit": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 12.72
+    },
+    "TestLocalAccountSecurityChangesWinAgainstVerifiedLogin": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 18.64
+    },
+    "TestLocalAccountStoredSecretsAndAbsoluteExpiry": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 11.83
+    },
+    "TestLocalAccountSuccessClearsFailureCountAndIPLimit": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 17.35
+    },
+    "TestLocalAccountSuccessfulLoginPreservesOutstandingReservations": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 11.98
+    },
+    "TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 14.83
+    },
+    "TestLocalManagedTableFixtureRejectsIncompatibleExistingTableWithoutAssignment": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 13.98
+    },
+    "TestLocalManagedTableFixtureRejectsLifecycleConflictsWithoutReactivation": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 13.34
+    },
+    "TestMaintainerBootstrapsAdministratorAndAssignsRoles": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 13.43
+    },
+    "TestMutationAddFailsClosedAndUsesTheLatestPolicySnapshot": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 13.8
+    },
+    "TestMutationAddFailsClosedForInvalidLivePolicyAndSchema": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 13.92
+    },
+    "TestMutationAddFailsClosedWhenPolicyCatalogIsUnavailable": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 11.23
+    },
+    "TestMutationPolicyAddsRowAndReturnsJSONStringID": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 13.86
+    },
+    "TestMutationPolicyAutoFillUsesAccountOperatorAndDatabaseTimeAndRejectsManagedInput": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 12.33
+    },
+    "TestMutationPolicyDeleteDefaultsToDeniedThenUsesTheCurrentReplacement": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 13.83
+    },
+    "TestMutationPolicyDeleteFailsClosedBeforeExecution": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 13.57
+    },
+    "TestMutationPolicyDeleteFailsClosedForInvalidCurrentPolicyAndLiveTable": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 12.44
+    },
+    "TestMutationPolicyDeleteFailsClosedForStaleAutoFillSchemaRules": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 12.29
+    },
+    "TestMutationPolicyDeleteFailsClosedForUnsupportedLiveColumns": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 13.5
+    },
+    "TestMutationPolicyDeleteMapsMissingRowsToNotFound": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 12.37
+    },
+    "TestMutationPolicyDeleteRollsBackDatabaseFailures": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 13.51
+    },
+    "TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 12.55
+    },
+    "TestMutationPolicyMapsMySQLUniqueKeyViolationsToConflict": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 13.24
+    },
+    "TestMutationPolicyPatchAutoFillUsesModifySlotsAndRejectsManagedInput": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 13.1
+    },
+    "TestMutationPolicyPatchFailsClosedForCurrentPolicyAndSchema": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 14.91
+    },
+    "TestMutationPolicyPatchMapsUniqueKeyConflictsAndRollsBack": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 16.16
+    },
+    "TestMutationPolicyPatchRejectsInvalidAndNonWritableFields": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 13.63
+    },
+    "TestMutationPolicyPatchRollsBackDatabaseFailures": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 12.82
+    },
+    "TestMutationPolicyPatchUsesLatestPolicyAndLiveSchema": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 14.06
+    },
+    "TestMutationPolicyPatchesOnlySubmittedFieldsWithJSONStringSemantics": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 15.66
+    },
+    "TestMutationPolicyRejectsMissingRequiredFieldsAndRollsBackDatabaseFailures": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 11.37
+    },
+    "TestMutationPolicyReturnsARequiredNonAutoIncrementID": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 12.77
+    },
+    "TestMutationPolicyReturnsExplicitAutoIncrementID": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 12.94
+    },
+    "TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 12.52
+    },
+    "TestOldRecordWriteRoutesAreRemoved": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 8.4
+    },
+    "TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 15.23
+    },
+    "TestOriginalOrderRollbackPreservesApplicationAndBothExecutions": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 10.54
+    },
+    "TestPolicyAuditMigrationPreservesDataAndIsRestartable": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 13.68
+    },
+    "TestPolicyAuditMigrationRejectsAmbiguousOrMissingColumnsBeforeDDL": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 12.77
+    },
+    "TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 8.84
+    },
+    "TestPolicyMigrationRunsWithoutAccountSchemaOrHTTPConfiguration": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 14.09
+    },
+    "TestPolicyReplacementAndDisableAffectTheNextQuery": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 35.52
+    },
+    "TestPublicationActionCompetitionAndTableOrder": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 12.21
+    },
+    "TestPublicationAtomicPersistenceFailures": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 10.2
+    },
+    "TestPublicationCommitUnknownSurvivesExecutableRestart": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 11.76
+    },
+    "TestPublicationFloatIdentityMaintenanceKeepsOldVersions": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 13.69
+    },
+    "TestPublicationFloatValuesAndIdentityRoundTrip": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 20.24
+    },
+    "TestPublicationFrozenChangesAndDescriptions": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.97
+    },
+    "TestPublicationIdentityCanonicalAndDelete": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 10.34
+    },
+    "TestPublicationPublisherHistoryAndApprovalSurvivesRevocation": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 7.73
+    },
+    "TestPublicationRejectsImplicitWritesAndAuditSpoofing": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 10.91
+    },
+    "TestPublicationRejectsUnknownNonAutoIncrementIdentity": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.03
+    },
+    "TestPublicationRejectsUntrackedCascade": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 8.69
+    },
+    "TestPublicationSessionCannotBeReusedAfterTransaction": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 11.65
+    },
+    "TestPublicationSessionLocksHiddenForeignKeyDDL": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 11.1
+    },
+    "TestPublicationStoredRowsAreVerifiedBeforeReadOrReplay": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 8.81
+    },
+    "TestPublicationSupportsTargetRowTrigger": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.2
+    },
+    "TestQueryFailsClosedWhenLiveSchemaBecomesInvalid": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 12.1
+    },
+    "TestQueryFailsClosedWhenPolicyCatalogIsUnavailable": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 14.33
+    },
+    "TestQueryPolicyAppliesMembershipNullAndEmptyStringSemantics": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 12.03
+    },
+    "TestQueryPolicyAppliesOpenAndClosedRanges": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 13.27
+    },
+    "TestQueryPolicyContainsTreatsWildcardsAndEscapeCharacterLiterally": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 13.92
+    },
+    "TestQueryPolicyEnforcesLimitsAndRequestSortWithoutCorrection": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 11.43
+    },
+    "TestQueryPolicyHTTPLifecyclePersistsAndFailsClosed": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 11.52
+    },
+    "TestQueryPolicyMapsDatabaseTimeoutToSafeGatewayTimeout": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 16.01
+    },
+    "TestQueryPolicyParsesConditionValuesByLiveType": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 16.06
+    },
+    "TestQueryPolicyQuotesManagedTableNameAsIdentifier": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 13.01
+    },
+    "TestQueryPolicyRejectsEveryUnsupportedFullRowType": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 11.2
+    },
+    "TestQueryPolicyReturnsEverySupportedLiveTypeAsLosslessJSONString": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 34.11
+    },
+    "TestQueryPolicySnapshotCorruptionFailsClosed": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 135.84
+    },
+    "TestQuerySnapshotSessionCannotBeReusedAfterTransaction": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 12.22
+    },
+    "TestQuickRollbackCanTerminateAtAcceptedPublicationCapacity": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 10.32
+    },
+    "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.28
+    },
+    "TestQuickRollbackConstraintFailureRollsBackEarlierItems": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 8.41
+    },
+    "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 11.28
+    },
+    "TestQuickRollbackPreviewShowsWholeRestorationWithoutWriting": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.89
+    },
+    "TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 10.07
+    },
+    "TestQuickRollbackRejectsDatabaseEffectsThatCannotRestoreOriginalValues": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 8.25
+    },
+    "TestQuickRollbackRejectsUnversionedExternalChangesBeforePreviewAndExecution": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.39
+    },
+    "TestQuickRollbackRequiresItsOriginalRetainedTargets": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 8.65
+    },
+    "TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.69
+    },
+    "TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 8.64
+    },
+    "TestRecordVersionAddDeleteRecreateAndRollback": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 19.35
+    },
+    "TestRecordVersionCompareAndSwap": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 23.53
+    },
+    "TestRecordVersionControlStorageFailureRollsBackBusinessWrites": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 13.33
+    },
+    "TestRecordVersionLegacyBaseline": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 13.06
+    },
+    "TestRecordVersionLosslessMaintenanceFloor": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 14.16
+    },
+    "TestRecordVersionMySQLPrimaryKeyEquivalence": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 22.91
+    },
+    "TestRecordVersionRealConcurrentWriters": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 10.52
+    },
+    "TestRecordVersionRejectsNonTransactionalBusinessWrite": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 16.54
+    },
+    "TestRecordVersionSchemaReadinessAndRestartableMigration": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 24.64
+    },
+    "TestRecordVersionSnapshotAndIndependentResources": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 17.01
+    },
+    "TestRegisteredAccountIsViewer": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 13.81
+    },
+    "TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOneSnapshot": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 13.76
+    },
+    "TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 12.38
+    },
+    "TestRelationalMutationPolicyIsSoleAuthorizationSourceAndDeprecatedExecutes": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 13.15
+    },
+    "TestReleaseApprovalCurrentRolesAndHistory": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 15.42
+    },
+    "TestReleaseAutoIncrementZeroIdentity": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 9.38
+    },
+    "TestReleaseBatchBudgetRetainsCancellationHeadroom": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 19.94
+    },
+    "TestReleaseBatchCopyInvalidItemIsLocated": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 18.25
+    },
+    "TestReleaseBatchDuplicateIdentityDoesNotReplaceDraft": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 15.32
+    },
+    "TestReleaseBatchEdgeAutoIncrementAndIndependentRequests": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.37
+    },
+    "TestReleaseBatchEdgeDraftValidation": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 10.27
+    },
+    "TestReleaseBatchEdgeIndependentUniqueConflict": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 13.28
+    },
+    "TestReleaseBatchEdgeMidwayConstraintRollback": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 19.29
+    },
+    "TestReleaseBatchEdgeOverlappingSubmissions": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 9.03
+    },
+    "TestReleaseBatchEdgeRequestLimitsPreserveDraft": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 8.47
+    },
+    "TestReleaseBatchEdgeStaleMemberRollsBack": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 10.13
+    },
+    "TestReleaseBatchExistingEnumPrimaryKeys": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 9.34
+    },
+    "TestReleaseBatchExpandedResultBudgetRollsBack": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 12.32
+    },
+    "TestReleaseBatchFieldBudget": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 7.66
+    },
+    "TestReleaseCompletionAtPublicationCapacityClosesRollbackWindow": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 12.37
+    },
+    "TestReleaseCompletionPermanentlyClosesRollbackWindow": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 9.12
+    },
+    "TestReleaseCompletionPersistenceFailureIsAtomic": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 10.13
+    },
+    "TestReleaseCompletionProtectsActualAndDeletedIDs": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 9.21
+    },
+    "TestReleaseCompletionReleasesWithoutRepublishing": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 11.5
+    },
+    "TestReleaseCompletionRequiresTrustedPublicationOnReadAndReplay": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 10.08
+    },
+    "TestReleaseCompletionRetainsKnownTargets": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 9.18
+    },
+    "TestReleaseCompletionRolesConcurrencyAndReplay": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 15.57
+    },
+    "TestReleaseDraftCASCancelAndIdempotency": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 11.16
+    },
+    "TestReleaseDraftConcurrentAndAtomicStorage": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.24
+    },
+    "TestReleaseDraftCurrentAuthorizationAndListing": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 16.31
+    },
+    "TestReleaseDraftDiffAndServerBaseline": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 13.04
+    },
+    "TestReleaseDraftKnownAddUpdateRequiresOriginalBaseline": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 9.53
+    },
+    "TestReleaseDraftMissingIdentityAndTombstone": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 12.44
+    },
+    "TestReleaseDraftPreviewRebuildsMissingAddBaseline": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 9.34
+    },
+    "TestReleaseDraftRejectsLossySnapshotAndRetainsSavedSchema": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 13.7
+    },
+    "TestReleaseDraftReplayUsesCurrentActionsAndRejectsChangedDigest": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 12.61
+    },
+    "TestReleaseDraftSaveAndReload": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 38.26
+    },
+    "TestReleaseDraftSchemaReadiness": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 10.29
+    },
+    "TestReleaseDraftTitleEditCASAndFreeze": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.36
+    },
+    "TestReleaseDraftTitlePersistsAndReloads": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 13.21
+    },
+    "TestReleaseDraftTitleUnicodeValidation": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 17.91
+    },
+    "TestReleaseExecutionSchemaHoldsMetadataLock": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 14.17
+    },
+    "TestReleaseFreezeMetadataCaseInsensitiveNames": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 10.91
+    },
+    "TestReleaseFreezeMetadataGrantNameIdentity": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 10.25
+    },
+    "TestReleaseFreezeMetadataVisibility": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 10.16
+    },
+    "TestReleaseFreezeTracksExecutionSemantics": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 10.26
+    },
+    "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 16.43
+    },
+    "TestReleaseMixedBatchPublication": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 8.5
+    },
+    "TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 19.26
+    },
+    "TestReleasePublicationAddsFinalRow": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.52
+    },
+    "TestReleaseRejectedCopyRechecksBaseline": {
+      "action": "pass",
+      "source": "admin-shard-0",
+      "elapsed": 13.91
+    },
+    "TestReleaseReprepareFailureKeepsApprovedOrderAndTarget": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 8.28
+    },
+    "TestReleaseReprepareReplacesApprovedOrderWithEditableDraft": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 9.01
+    },
+    "TestReleaseReprepareRequiresCurrentApplicantEditorOrAdmin": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 8.93
+    },
+    "TestReleaseRollbackRestoresBusinessFieldsWithNewAudit": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 9.21
+    },
+    "TestReleaseRollbackRestoresDeletedEnumIdentity": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 8.23
+    },
+    "TestReleaseRollbackRestoresStoredTimeDuration": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 8.07
+    },
+    "TestReleaseRollbackUnwindsUniqueValueDependencies": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 16.61
+    },
+    "TestReleaseSubmitFreezesIntent": {
+      "action": "pass",
+      "source": "ddl-green",
+      "elapsed": 8.48
+    },
+    "TestReleaseSubmitRevalidatesBaselineAndRules": {
+      "action": "pass",
+      "source": "ddl-green",
+      "elapsed": 8.94
+    },
+    "TestReleaseTargetsCompeteAndCancelReleases": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 8.61
+    },
+    "TestReleaseThousandItemsThroughExecutable": {
+      "action": "pass",
+      "source": "admin-final",
+      "elapsed": 23.86
+    },
+    "TestReleaseWorkflowAtomicityAndCompetition": {
+      "action": "pass",
+      "source": "admin-serial",
+      "elapsed": 7.69
+    },
+    "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 11.31
+    },
+    "TestRoleChangeIsAuditedAndIdempotent": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 11.75
+    },
+    "TestRoleChangeRaceAndAuditFailureDoNotLeavePartialGrants": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 11.87
+    },
+    "TestRoleChangesAndAccountMaintenanceAreConcurrentSafe": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 13.14
+    },
+    "TestStartupRequiresTheProtectedPolicyCatalog": {
+      "action": "pass",
+      "source": "admin-shard-3",
+      "elapsed": 13.36
+    },
+    "TestTablePolicyCodeAssignmentsValidateActiveDefinitionsAndReplaceAtomically": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 13.35
+    },
+    "TestTablePolicyCreationPersistsDisabledCodeReferencesForHTTPInspection": {
+      "action": "pass",
+      "source": "admin-shard-1",
+      "elapsed": 13.9
+    },
+    "TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence": {
+      "action": "pass",
+      "source": "admin-shard-2",
+      "elapsed": 11.08
+    }
+  },
+  "runs": {
+    "admin-shard-0": {
+      "log": "/private/tmp/rcc-issue83-admin-shard-0.jsonl",
+      "sha256": "937c47258956aaa48e251dd50c836b6a582be059d0a4d38e99a47d29b49246f1",
+      "exit_code": 1,
+      "top_level": {
+        "pass": 43,
+        "fail": 5,
+        "skip": 0
+      },
+      "all_test_events": {
+        "pass": 67,
+        "fail": 5,
+        "skip": 0
+      },
+      "packages": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "action": "fail",
+          "elapsed": 893.673
+        }
+      ]
+    },
+    "admin-shard-1": {
+      "log": "/private/tmp/rcc-issue83-admin-shard-1.jsonl",
+      "sha256": "de29572ef82fa872fffa944ec46cb30c282c27f1b8b706db84a0bd9509327801",
+      "exit_code": 1,
+      "top_level": {
+        "pass": 47,
+        "fail": 10,
+        "skip": 0
+      },
+      "all_test_events": {
+        "pass": 114,
+        "fail": 12,
+        "skip": 0
+      },
+      "packages": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "action": "fail",
+          "elapsed": 957.24
+        }
+      ]
+    },
+    "admin-shard-2": {
+      "log": "/private/tmp/rcc-issue83-admin-shard-2.jsonl",
+      "sha256": "b7312236a2e3f29b8dc811547ef61ee8b286165b6dfb5e75362af97c5531b819",
+      "exit_code": 1,
+      "top_level": {
+        "pass": 39,
+        "fail": 5,
+        "skip": 0
+      },
+      "all_test_events": {
+        "pass": 74,
+        "fail": 12,
+        "skip": 0
+      },
+      "packages": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "action": "fail",
+          "elapsed": 896.983
+        }
+      ]
+    },
+    "admin-shard-3": {
+      "log": "/private/tmp/rcc-issue83-admin-shard-3.jsonl",
+      "sha256": "e32affa0d1fb5db6fa5496e8fa4893c833ba5a3aa3630148302e455698ea78ad",
+      "exit_code": 1,
+      "top_level": {
+        "fail": 10,
+        "pass": 46,
+        "skip": 0
+      },
+      "all_test_events": {
+        "fail": 12,
+        "pass": 65,
+        "skip": 0
+      },
+      "packages": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "action": "fail",
+          "elapsed": 944.959
+        }
+      ]
+    },
+    "admin-serial": {
+      "log": "/private/tmp/rcc-issue83-admin-serial.jsonl",
+      "sha256": "d0fccb0ea8b8222d401c8935d7a413727ccd970341667f98143f75a87ba6cc42",
+      "exit_code": 1,
+      "top_level": {
+        "pass": 49,
+        "fail": 6,
+        "skip": 0
+      },
+      "all_test_events": {
+        "pass": 100,
+        "fail": 6,
+        "skip": 0
+      },
+      "packages": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "action": "fail",
+          "elapsed": 580.359
+        }
+      ]
+    },
+    "admin-final": {
+      "log": "/private/tmp/rcc-issue83-admin-final.jsonl",
+      "sha256": "08504699b62a74427f0feb97277f8b3a7028436006921b5ad44ad7d164aa7935",
+      "exit_code": 0,
+      "top_level": {
+        "pass": 54,
+        "fail": 0,
+        "skip": 0
+      },
+      "all_test_events": {
+        "pass": 106,
+        "fail": 0,
+        "skip": 0
+      },
+      "packages": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "action": "pass",
+          "elapsed": 561.499
+        }
+      ]
+    },
+    "ddl-green": {
+      "log": "/private/tmp/rcc-issue83-ddl-green.jsonl",
+      "sha256": "6fb00a75bbe636eb9d2d8c009cc93c923d6fd0fc46862e576a7b0e93f72c58f2",
+      "exit_code": 0,
+      "top_level": {
+        "pass": 5,
+        "fail": 0,
+        "skip": 0
+      },
+      "all_test_events": {
+        "pass": 9,
+        "fail": 0,
+        "skip": 0
+      },
+      "packages": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "action": "pass",
+          "elapsed": 68.05
+        }
+      ]
+    },
+    "adapter-final": {
+      "log": "/private/tmp/rcc-issue83-adapter-final.jsonl",
+      "sha256": "a7bbc63e3208c2915a5557b743391a6f69e44b2827076d1cd5e6da9567fbe064",
+      "exit_code": 0,
+      "top_level": {
+        "pass": 15,
+        "fail": 0,
+        "skip": 0
+      },
+      "all_test_events": {
+        "pass": 36,
+        "fail": 0,
+        "skip": 0
+      },
+      "packages": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+          "action": "pass",
+          "elapsed": 92.705
+        }
+      ],
+      "tests": {
+        "TestDraftBaselineAndPublicationSerializeBeforeSnapshot": {
+          "action": "pass",
+          "elapsed": 9.61
+        },
+        "TestPublicationJSONIdentityDoesNotUseURLPathSegments": {
+          "action": "pass",
+          "elapsed": 9.14
+        },
+        "TestExplicitIdentityRejectsNontransactionalTableBeforeWriting": {
+          "action": "pass",
+          "elapsed": 8.36
+        },
+        "TestExplicitIdentityReturnedAutoIDMustRemainSchemaAddressable": {
+          "action": "pass",
+          "elapsed": 8.23
+        },
+        "TestExplicitIdentityKeepsEngineStableUntilInsertTransactionEnds": {
+          "action": "pass",
+          "elapsed": 9.15
+        },
+        "TestExplicitIdentityReadPermissionFailureAfterInsertRollsBack": {
+          "action": "pass",
+          "elapsed": 9.26
+        },
+        "TestExplicitIdentityNeverReturnsExistingRowAfterTriggerChangesKey": {
+          "action": "pass",
+          "elapsed": 9.19
+        },
+        "TestPublicationRejectsIdentityCreatedAfterApproval": {
+          "action": "pass",
+          "elapsed": 8.5
+        },
+        "TestExplicitIdentityAutoResultBelongsToThisInsert": {
+          "action": "pass",
+          "elapsed": 10.25
+        },
+        "TestLegacyBackfillNormalizesDefaultsAndProducesStableTechnologyNeutralCodes": {
+          "action": "pass",
+          "elapsed": 0
+        },
+        "TestLegacyBackfillMapsOnlyStandardAuditAutoFill": {
+          "action": "pass",
+          "elapsed": 0
+        },
+        "TestLegacyBackfillReportsLiteralArbitraryAndNonMirroredRules": {
+          "action": "pass",
+          "elapsed": 0
+        },
+        "TestValidContractionPolicyCodeRejectsTechnologyPrefixes": {
+          "action": "pass",
+          "elapsed": 0
+        },
+        "TestMutationStorageValueErrorsAreEditableButOtherDatabaseFailuresRemainUnavailable": {
+          "action": "pass",
+          "elapsed": 0
+        },
+        "TestIndependentReleaseDetailGrowthDoesNotLockIndexGaps": {
+          "action": "pass",
+          "elapsed": 9.25
+        }
+      }
+    },
+    "http-final": {
+      "log": "/private/tmp/rcc-issue83-http-final.jsonl",
+      "sha256": "709880a19c732098af88df5c5166ea82a50fae80680a447e20b28ff48e167b9f",
+      "exit_code": 0,
+      "top_level": {
+        "pass": 17,
+        "fail": 0,
+        "skip": 0
+      },
+      "all_test_events": {
+        "pass": 20,
+        "fail": 0,
+        "skip": 0
+      },
+      "packages": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+          "action": "pass",
+          "elapsed": 102.037
+        }
+      ],
+      "tests": {
+        "TestHTTPDependsOnApplicationRatherThanDomainOrInfrastructure": {
+          "action": "pass",
+          "elapsed": 0
+        },
+        "TestSharedBusinessServicesDoNotStoreRequestIdentity": {
+          "action": "pass",
+          "elapsed": 0
+        },
+        "TestReleaseDraftSessionCannotWriteBusinessRows": {
+          "action": "pass",
+          "elapsed": 0
+        },
+        "TestMutationPolicyResponseUsesTypedRelationalFieldsAndCatalogAuditNames": {
+          "action": "pass",
+          "elapsed": 0
+        },
+        "TestQueryPolicyResponseUsesCatalogAuditFieldNames": {
+          "action": "pass",
+          "elapsed": 0
+        },
+        "TestReleaseWorkflowPublicRoutes": {
+          "action": "pass",
+          "elapsed": 0
+        },
+        "TestRecoveryRedactsPanics": {
+          "action": "pass",
+          "elapsed": 0
+        },
+        "TestRemovedMutationRoutesCannotBeRevivedByEncodedIdentity": {
+          "action": "pass",
+          "elapsed": 9.47
+        },
+        "TestRawPathMutationRoutingPreservesAPIGuards": {
+          "action": "pass",
+          "elapsed": 7.99
+        },
+        "TestAPIRejectsOldBearerCredentialsWhileHealthRemainsPublic": {
+          "action": "pass",
+          "elapsed": 8.12
+        },
+        "TestAPIAccessLogIsStructuredAndRedactsRequestDetails": {
+          "action": "pass",
+          "elapsed": 7.95
+        },
+        "TestAPIAccessLogUsesRouteTemplatesWithoutDynamicTableOrRowValues": {
+          "action": "pass",
+          "elapsed": 8.16
+        },
+        "TestAPIRequestIDAcceptsOnlyTightlyValidatedValues": {
+          "action": "pass",
+          "elapsed": 8.19
+        },
+        "TestAPIBodyLimitRejectsOversizedJSONWithStableError": {
+          "action": "pass",
+          "elapsed": 8.14
+        },
+        "TestAPIDoesNotOfferCrossOriginCredentialAccess": {
+          "action": "pass",
+          "elapsed": 8.86
+        },
+        "TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely": {
+          "action": "pass",
+          "elapsed": 24.48
+        },
+        "TestAPIUnknownRoutesUseTheSafeErrorEnvelope": {
+          "action": "pass",
+          "elapsed": 8.22
+        }
+      }
+    }
+  },
+  "web": {
+    "files": 28,
+    "tests": 329,
+    "coverage": "328 PASS in web-reviewed.log plus client-stream.test.ts 1 PASS in web-stream-escalated.log after sandbox TCP EPERM",
+    "skipped_final": 0,
+    "build_exit": 0,
+    "dev_checks": 2,
+    "after_layout_fix": {
+      "file": "src/features/release-orders/ReleaseOrdersPage.test.tsx",
+      "passed": 52,
+      "failed": 0,
+      "skipped": 0,
+      "log": "/private/tmp/rcc-issue83-web-layout-final.log",
+      "production_build_exit": 0
+    }
+  },
+  "review": {
+    "standards": {
+      "reviewer": "/root/issue_82/standards_review",
+      "unresolved": 0,
+      "latest_increment": "DDL identity comparison and 390px inner-fieldset overflow; 0 unresolved"
+    },
+    "spec": {
+      "reviewer": "/root/execution_record_facts",
+      "unresolved": 0,
+      "latest_increment": "DDL identity comparison; 0 unresolved"
+    }
+  },
+  "scope": "AC-002/003/004/005; T3 full multitable composition remains #84.",
+  "browser": {
+    "system_path": "real browser -> same-origin Vite -> authenticated Admin -> disposable MySQL",
+    "full_run": "Earlier full run retained passing accounts and six relevant paths; release-batches old request assertion failed, corrected and rerun below.",
+    "final_runs": {
+      "browser-reviewed-2": {
+        "log": "/private/tmp/rcc-issue83-browser-reviewed-2.log",
+        "exit_code": 0,
+        "sha256": "6f5952e6a021e1ab4d6b10a6fbf1af565a626a5696e901be2e787db315e174d3"
+      },
+      "browser-layout-final": {
+        "log": "/private/tmp/rcc-issue83-browser-layout-final.log",
+        "exit_code": 0,
+        "sha256": "8b227b2b8d6beb9dd05a66e30edfde4a7a9ecc7425016c07743f14ea3e8f0c0e"
+      }
+    },
+    "screenshots": {
+      "draft-key-config-mobile.png": {
+        "sha256": "3e1f42d226b30e5bf296eb9627f8cf633200bcecfa0143f00d44f1ca4d199d1e",
+        "visual_review": "passed"
+      },
+      "draft-target-conflict-desktop.png": {
+        "sha256": "c13a7cfffd34059a6a9163c015c81469fe057479bd6bb4126a7c08d3f387383e",
+        "visual_review": "passed"
+      },
+      "draft-version-conflict-mobile.png": {
+        "sha256": "ca3fe2df1ea13849b488209b6bb8ed046886164ba7165843e27d808c234e5187",
+        "visual_review": "passed"
+      },
+      "draft-admin-cancel.png": {
+        "sha256": "f3028ff213a81212e468ba79dc7088a71aed725260adb127da4ebe3441f9292e",
+        "visual_review": "passed"
+      }
+    },
+    "page_errors": []
+  }
+}

@@ -99,7 +99,7 @@ See [role bootstrap, recovery and HTTP contracts](../../../docs/admin-account-ro
 ## 发布草稿与在途目标（010 / 011）
 
 完成 009 后顺序执行 `010-release-drafts.sql` 和 `011-release-targets.sql`。
-010 持久保存草稿/历史及按账号、动作、请求标识的成功结果；011 建立提交时取得的已知记录唯一目标。
+010 持久保存草稿/历史及按账号、动作、请求标识的成功结果；011 建立记录唯一目标，015 起提前到保存草稿取得。
 两者均可重跑，不能清空旧请求、历史或占用来恢复服务。Ready 检查控制结构和 InnoDB，
 完整前不恢复业务服务；新安装的 001 已包含相同定义。
 
@@ -149,3 +149,9 @@ T5 同时修正 FLOAT 主键的有损短文本权重与 FLOAT/DOUBLE 的正负�
 已有旧发布单数据时，保持停写并确认留存及环境切换方案。新安装使用最终
 `init/001-schema.sql`。启动就绪检查要求完整新结构，详情拒绝旧整单格式。
 详见[升级与原单操作指南](../../../docs/admin-release-upgrade.md)。
+
+## 草稿目标与并发管控键（015）
+
+完成 014 后，在停写窗口执行 [`015-draft-target-reservations.sql`](./015-draft-target-reservations.sql)。它为 Table Policy 增加非空 JSON 字段 `concurrency_key`（默认 `[]`），建立 `rcc_release_table_references(table_name, order_id)`，保护没有具体主键的未结束明细。目标仍使用 `rcc_release_targets`，主键身份算法不变，附加键使用独立编码命名空间。
+
+迁移可重跑，保留业务数据、规则、历史、原请求和已有目标；不会回填、转换或删除旧发布单数据。新旧 Admin/Web 不能并行运行。已有旧发布单时继续保持停写并明确环境切换与留存方案；不借新引用表为空来接受旧单。Ready 必须看见新字段及完整 InnoDB 引用表结构，新安装 `001-schema.sql` 与升级后结构一致。

@@ -81,6 +81,7 @@ CREATE TABLE `rcc_table_policies` (
   `modifier` varchar(64) NOT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `concurrency_key` json NOT NULL DEFAULT (JSON_ARRAY()),
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_table_name` (`table_name`),
   KEY `idx_table_policy_query_code` (`query_policy_code`),
@@ -228,4 +229,10 @@ CREATE TABLE IF NOT EXISTS rcc_release_executions (
  document json NOT NULL,
  PRIMARY KEY(order_id,kind),
  CONSTRAINT release_execution_kind CHECK(kind IN ('PUBLICATION','ROLLBACK'))
+) ENGINE=InnoDB;
+
+CREATE TABLE rcc_release_table_references (
+ table_name varbinary(256) NOT NULL,
+ order_id varbinary(32) NOT NULL,
+ PRIMARY KEY(table_name,order_id), KEY release_reference_order(order_id)
 ) ENGINE=InnoDB;

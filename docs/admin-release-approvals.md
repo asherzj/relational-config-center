@@ -26,13 +26,13 @@ ADMIN 也不能审批自己的单据。一位独立审批人决定一次即足�
 
 复制前用已有只读 `/release-orders/preview` 读取原申请与当前记录的差异。复制 `items` 的操作、id 和申请内容必须与原单一致，但每个已知目标要明确携带刚核对的 `expected_record_version`。记录在预览与复制之间变化就拒绝。复制不修改源单，创建新的永久申请人和 `COPY` 历史，通过 `copied_from_id` 关联原单；新单须重新核对、提交和审批。不再创建反向草稿。
 
-重新准备同样先用 `/release-orders/preview` 核对最新配置，并逐项提交原操作、原 id、原申请内容和新读取的 `expected_record_version`；`confirmed` 必须为 `true`。确认成功后，源单改为 CANCELLED 并释放其全部在途目标，同时创建继承原标题且可编辑的新 DRAFT。新单申请人是实际操作者，源单与新单各保存一条 `REPREPARE` 关联历史，`copied_from_id` 指向源单；新单须重新提交并由另一人审批，旧批准不能复用。上述源单取消、目标释放、新单与双方历史、成功幂等结果在一个 MySQL 事务内提交；任何明确失败都保留原 APPROVED、旧审批和目标占用。
+重新准备同样先用 `/release-orders/preview` 核对最新配置，并逐项提交原操作、原 id、原申请内容和新读取的 `expected_record_version`；`confirmed` 必须为 `true`。确认成功后，源单改为 CANCELLED 并释放其全部在途目标，同时创建继承原标题且可编辑的新 DRAFT，并为新草稿重新取得完整目标。新单申请人是实际操作者，源单与新单各保存一条 `REPREPARE` 关联历史，`copied_from_id` 指向源单；新单须重新提交并由另一人审批，旧批准不能复用。上述源单取消、目标释放、新单与双方历史、成功幂等结果在一个 MySQL 事务内提交；任何明确失败都保留原 APPROVED、旧审批和目标占用。
 
 ## 冻结与真实数据库身份
 
 提交在同一 MySQL 事务内先对实际业务表执行 `SELECT id ... LIMIT 0`，保持元数据锁，然后重新解析规则、校验内容并读取记录基线。即使新增省略自增 id，也先稳定表定义再准备内容。提交不写业务记录、不分配 Record Version。
 
-`RecordBaseline.TableName` 和 `ReleaseItem.RecordTable` 保留 T2/T3 的真实物理表名，`RecordKey` 继续使用同一 MySQL 主键比较权重、墓碑和维护基线。申请参数中的表名及字符串 id 不作为独立身份。`rcc_release_targets` 的唯一键是实际表名与同一记录键；提交按固定顺序取得全部已知目标，与状态、冻结内容、历史和成功请求结果共同提交。任意失败整体回滚。未知自增 id 不建立推测目标。自增列显式输入 `0` 且当前 SQL mode 没有 `NO_AUTO_VALUE_ON_ZERO` 时，数据库仍会生成新身份；草稿/预览/提交返回 `422 release_auto_id_ambiguous`，调用者应省略 id。开启该模式后，0 是真实已知身份，按普通记录基线和目标唯一性校验。
+`RecordBaseline.TableName` 和 `ReleaseItem.RecordTable` 保留 T2/T3 的真实物理表名，`RecordKey` 继续使用同一 MySQL 主键比较权重、墓碑和维护基线。申请参数中的表名及字符串 id 不作为独立身份。`rcc_release_targets` 的唯一键是实际表名与同一记录键；草稿保存按固定顺序取得全部主键及已配置管控键目标，提交继续核实本单所有权，与状态、冻结内容、历史和成功请求结果共同提交。任意失败整体回滚。未知自增 id 不建立推测目标。自增列显式输入 `0` 且当前 SQL mode 没有 `NO_AUTO_VALUE_ON_ZERO` 时，数据库仍会生成新身份；草稿/预览/提交返回 `422 release_auto_id_ambiguous`，调用者应省略 id。开启该模式后，0 是真实已知身份，按普通记录基线和目标唯一性校验。
 
 持久 `frozen` 是 `mysql-8.4-execution-v1` 格式的完整固定投影和变更规则执行字段。`frozen_digest` 覆盖准备后的明细和执行快照。内部记录身份、原始执行元数据不会从详情、列表或 preview 输出；公开详情保留完整字段差异及摘要。
 
@@ -54,7 +54,7 @@ ADMIN 也不能审批自己的单据。一位独立审批人决定一次即足�
 
 ## 升级与恢复
 
-已有 007 本地账号结构的部署在停写维护窗口按顺序应用 008～014。`011-release-targets.sql` 建立在途目标，`012-publication.sql` 建立发布进度、Command 和通知；不能只完成审批结构就恢复新版服务。新安装的 `001-schema.sql` 包含完整定义。008～014 可重跑且保留既有控制数据，007 一次性迁移按[迁移说明](../deploy/mysql/migrations/README.md)确认后处理。Ready 校验控制表列、InnoDB 和完整唯一主键，缺失或不兼容时拒绝就绪。
+已有 007 本地账号结构的部署在停写维护窗口按顺序应用 008～015。`011-release-targets.sql` 建立在途目标，`012-publication.sql` 建立发布进度、Command 和通知；`015-draft-target-reservations.sql` 增加管控键定义和未结束表引用；不能只完成审批结构就恢复新版服务。新安装的 `001-schema.sql` 包含完整定义。008～015 可重跑且保留既有控制数据，007 一次性迁移按[迁移说明](../deploy/mysql/migrations/README.md)确认后处理。Ready 校验控制表列、InnoDB 和完整唯一主键，缺失或不兼容时拒绝就绪。
 
 Web 将草稿和发布动作（含提交、批准、拒绝、取消、复制、重新准备、执行、完结、快速回滚）的原请求内容、键及账号在发送前保存到当前标签页的 sessionStorage。未知结果保持原键和完整正文；重新准备未知时同一账号恢复同一请求，只在服务端返回明确失败后才重新核对并生成新键。只有 APPROVER 的账号也能恢复自己的审批请求，账号切换不会重放别人的请求。明确状态/记录/目标冲突后仍保留原意，读取最新状态与差异、显式确认后才生成新请求。普通草稿提交基线陈旧时须先明确更新草稿基线；回滚恢复基线不能更新。
 

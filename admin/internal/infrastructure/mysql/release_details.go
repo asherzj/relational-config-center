@@ -59,7 +59,11 @@ func (s *releaseOrderSession) saveReleaseDetails(ctx context.Context, order doma
 			rollback = value
 		}
 		values = append(values, "(?,?,?,?,?,?)")
-		arguments = append(arguments, order.ID, index, order.TableName, applicationJSON, publication, rollback)
+		table := item.TableName
+		if table == "" {
+			table = order.TableName
+		}
+		arguments = append(arguments, order.ID, index, table, applicationJSON, publication, rollback)
 		if len(values) == 100 || index == len(order.Items)-1 {
 			if err = s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_details(order_id,position,table_name,application,publication,rollback) VALUES`+strings.Join(values, ",")+` ON DUPLICATE KEY UPDATE table_name=VALUES(table_name),application=VALUES(application),publication=VALUES(publication),rollback=VALUES(rollback)`, arguments...).Error; err != nil {
 				return application.ErrReleaseUnavailable

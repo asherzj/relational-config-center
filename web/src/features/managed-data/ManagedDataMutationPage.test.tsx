@@ -533,7 +533,7 @@ it("明确勾选两行后加入本人同表已有草稿，保留原明细和各�
  await user.selectOptions(await screen.findByLabelText("保存到草稿"),existingID);
  await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
  await waitFor(()=>expect(writes).toHaveLength(1));
- expect(JSON.parse(String(writes[0]!.body))).toEqual({title:"继续整理消息模板",table_name:"notification_templates",expected_version:"4",items:[{operation:"ADD",expected_record_version:"",content:{template_key:"kept",body:"kept"}},{operation:"DELETE",id:"41",expected_record_version:"7",content:{}},{operation:"DELETE",id:"42",expected_record_version:"8",content:{}}]});
+ expect(JSON.parse(String(writes[0]!.body))).toEqual({title:"继续整理消息模板",table_name:"notification_templates",expected_version:"4",changes:{upserts:[{operation:"DELETE",id:"41",expected_record_version:"7",content:{}},{operation:"DELETE",id:"42",expected_record_version:"8",content:{}}]}});
 });
 
 it("已有草稿去向不列出不可编辑的反向草稿",async()=>{

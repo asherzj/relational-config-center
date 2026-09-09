@@ -189,6 +189,7 @@ describe("表规则分配页面", () => {
       table_name: "message_templates",
       query_policy_code: "standard_page_query_v1",
       mutation_policy_code: "standard_mutation_v1",
+      concurrency_key: [],
     });
     expect(await screen.findByText("表规则已创建并保持未启用")).toBeVisible();
   });
@@ -395,6 +396,7 @@ describe("表规则分配页面", () => {
       table_name: "notification_templates",
       query_policy_code: "strict_page_query_v2",
       mutation_policy_code: "readonly_mutation_v2",
+      concurrency_key: [],
     });
     expect(await screen.findByText("表规则已替换")).toBeVisible();
   });

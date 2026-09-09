@@ -23,8 +23,7 @@ func TestReleaseCompletionRetainsKnownTargets(t *testing.T) {
 	if published.State != "SUCCEEDED" {
 		t.Fatal("ordinary publication must await completion")
 	}
-	conflict := rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"100","expected_record_version":"1","content":{"label":"overlap"}}]}`, "completion-overlap-create"), 201)
-	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+conflict.ID+"/submit", `{"expected_version":"1"}`, "completion-overlap-submit"), 409, "release_target_conflict")
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"100","expected_record_version":"1","content":{"label":"overlap"}}]}`, "completion-overlap-create"), 409, "release_target_conflict")
 	other := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"200","expected_record_version":"0","content":{"label":"unrelated"}}]}`, "completion-other")
 	rollbackOrderResponse(t, releaseRequest(t, app, "POST", other+"/execute", `{"expected_version":"3"}`, "completion-other-execute"), 200)
 	row, version := recordVersionRow(t, app, "mutation_add_items", "200")
@@ -88,18 +87,19 @@ func TestReleaseCompletionProtectsActualAndDeletedIDs(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"generated","label":"published"}},{"operation":"DELETE","id":"100","expected_record_version":"0","content":{}}]}`, "completion-identities")
 	published := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "completion-identities-execute"), 200)
-	drafts := []string{}
+	bodies := []string{}
 	for index, item := range []string{
 		fmt.Sprintf(`{"operation":"MODIFY","id":%q,"expected_record_version":"1","content":{"label":"overlap"}}`, published.Publication.Commands[0].ID),
 		`{"operation":"ADD","content":{"id":"100","code":"recreated","label":"new"}}`,
 	} {
-		draft := rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[`+item+`]}`, fmt.Sprintf("completion-identity-create-%d", index)), 201)
-		drafts = append(drafts, draft.ID)
-		assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+draft.ID+"/submit", `{"expected_version":"1"}`, fmt.Sprintf("completion-identity-submit-%d", index)), 409, "release_target_conflict")
+		body := `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[` + item + `]}`
+		bodies = append(bodies, body)
+		assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", body, fmt.Sprintf("completion-identity-create-%d", index)), 409, "release_target_conflict")
 	}
 	completePublicationFixture(t, app, path, "completion-identities-complete")
-	for index, id := range drafts {
-		rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+id+"/submit", `{"expected_version":"1"}`, fmt.Sprintf("completion-identity-submit-%d", index)), 200)
+	for index, body := range bodies {
+		draft := rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", body, fmt.Sprintf("completion-identity-create-%d", index)), 201)
+		rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+draft.ID+"/submit", `{"expected_version":"1"}`, fmt.Sprintf("completion-identity-submit-%d", index)), 200)
 	}
 
 }
@@ -172,7 +172,9 @@ func TestReleaseCompletionPersistenceFailureIsAtomic(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"100","expected_record_version":"0","content":{"label":"published"}}]}`, "completion-atomic")
 	original := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "completion-atomic-execute"), 200)
-	conflict := rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"100","expected_record_version":"1","content":{"label":"next"}}]}`, "completion-atomic-conflict"), 201)
+	conflictBody := `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"100","expected_record_version":"1","content":{"label":"next"}}]}`
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", conflictBody, "completion-atomic-conflict"), 409, "release_target_conflict")
+
 	for _, failure := range []struct{ table, event, condition string }{{"rcc_release_targets", "DELETE", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='COMPLETED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
 		t.Run(failure.table, func(t *testing.T) {
 			deliveryExec(t, db, fmt.Sprintf("CREATE TRIGGER fail_completion BEFORE %s ON %s FOR EACH ROW BEGIN IF %s THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='completion storage boundary'; END IF; END", failure.event, failure.table, failure.condition))
@@ -182,7 +184,7 @@ func TestReleaseCompletionPersistenceFailureIsAtomic(t *testing.T) {
 			if !reflect.DeepEqual(original, current) {
 				t.Fatal("failed completion changed order")
 			}
-			assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+conflict.ID+"/submit", `{"expected_version":"1"}`, "completion-atomic-submit"), 409, "release_target_conflict")
+			assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", conflictBody, "completion-atomic-conflict"), 409, "release_target_conflict")
 			row, version := recordVersionRow(t, app, "mutation_add_items", "100")
 			if *row["label"] != "published" || version != "1" {
 				t.Fatal("completion failure changed configuration")
@@ -190,7 +192,7 @@ func TestReleaseCompletionPersistenceFailureIsAtomic(t *testing.T) {
 		})
 	}
 	completePublicationFixture(t, app, path, "completion-atomic-complete")
-	rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+conflict.ID+"/submit", `{"expected_version":"1"}`, "completion-atomic-submit"), 200)
+	rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", conflictBody, "completion-atomic-conflict"), 201)
 }
 
 func TestReleaseCompletionRequiresTrustedPublicationOnReadAndReplay(t *testing.T) {

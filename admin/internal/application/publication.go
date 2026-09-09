@@ -50,11 +50,11 @@ func (r *ReleaseOrders) Execute(ctx context.Context, id string, input SubmitRele
 		return r.store.ExecutePublication(ctx, func(s PublicationSession) error { publication = s; return change(s) })
 	}
 	return r.changeOrderUsing(ctx, id, input.ExpectedVersion, "execute", key, input, execute, func(s ReleaseOrderSession, order *ReleaseOrder) error {
-		schema, err := s.LockAndReadTableExecutionSchema(ctx, order.TableName)
-		if err != nil {
+		if err := publication.LockPublicationTable(ctx, order.TableName); err != nil {
 			return err
 		}
-		if err = publication.LockPublicationTable(ctx, schema.TableName); err != nil {
+		schema, err := s.LockAndReadTableExecutionSchema(ctx, order.TableName)
+		if err != nil {
 			return err
 		}
 		snapshot, err := r.snapshots.resolve(ctx, s, order.TableName, mutationPolicySnapshot)

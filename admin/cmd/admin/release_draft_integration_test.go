@@ -255,6 +255,7 @@ func TestReleaseDraftMissingIdentityAndTombstone(t *testing.T) {
 			if err := db.QueryRow("SELECT COUNT(*) FROM rcc_record_versions WHERE table_name=?", test.table).Scan(&count); err != nil || count != 0 {
 				t.Fatalf("draft allocated versions: %d %v", count, err)
 			}
+			rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+saved["id"].(string)+"/cancel", `{"expected_version":"1","reason":"end missing baseline fixture"}`, "end-initial-"+test.table), 200)
 			addBody, _ := json.Marshal(map[string]any{"content": map[string]string{"id": test.first, "label": "real"}})
 			add := publicationFixtureRequest(t, app, "ADD", test.table, "", string(addBody))
 			if add.Code != 200 {
@@ -271,6 +272,7 @@ func TestReleaseDraftMissingIdentityAndTombstone(t *testing.T) {
 			if saved["items"].([]any)[0].(map[string]any)["expected_record_version"] != "2" {
 				t.Fatalf("lost tombstone: %s", draft.Body)
 			}
+			rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+saved["id"].(string)+"/cancel", `{"expected_version":"1","reason":"end tombstone baseline fixture"}`, "end-tombstone-"+test.table), 200)
 			if _, err := db.Exec("INSERT INTO rcc_record_versions VALUES(?,X'',9007199254740993)", test.table); err != nil {
 				t.Fatal(err)
 			}
@@ -398,7 +400,7 @@ func TestReleaseDraftSchemaReadiness(t *testing.T) {
 }
 
 func TestReleaseDraftKnownAddUpdateRequiresOriginalBaseline(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app, db := batchEdgeApplication(t)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowDelete: true})
 	body := `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"7","code":"draft","label":"proposed"}}]}`
 	saved := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "draft-add-original")
@@ -407,11 +409,9 @@ func TestReleaseDraftKnownAddUpdateRequiresOriginalBaseline(t *testing.T) {
 	}
 	var order struct{ ID string }
 	_ = json.Unmarshal(saved.Body.Bytes(), &order)
-	add := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"id":"7","code":"other","label":"other"}}`)
-	if add.Code != 200 {
-		t.Fatal(add.Body)
-	}
-	assertMutationAffected(t, publicationFixtureRequest(t, app, "DELETE", "mutation_add_items", "7", `{"expected_version":"1"}`))
+	// External maintenance can invalidate an unpublished missing-row baseline.
+	deliveryExec(t, db, `INSERT INTO rcc_record_versions(table_name,record_key,lock_version) SELECT table_name,record_key,2 FROM rcc_release_targets WHERE order_id=?`, order.ID)
+
 	update := `{"title":"集成测试发布单","table_name":"mutation_add_items","expected_version":"1","items":[{"operation":"ADD","content":{"id":"7","code":"draft","label":"edited"}}]}`
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", "/api/v1/release-orders/"+order.ID, update, "draft-add-missing"), 422, "record_version_required")
 	update = strings.Replace(update, `"operation":"ADD"`, `"operation":"ADD","expected_record_version":"0"`, 1)
@@ -500,9 +500,12 @@ func TestReleaseDraftConcurrentAndAtomicStorage(t *testing.T) {
 	ownerDriver := *driver
 	ownerDriver.User = "root"
 	owner := deliveryDB(t, &ownerDriver)
+	deliveryExec(t, owner, `INSERT INTO mutation_delete_parents(id,code) VALUES(2,'storage-fault-fixture')`)
 	if _, err := owner.Exec(`CREATE TRIGGER reject_release_result BEFORE UPDATE ON rcc_release_requests FOR EACH ROW BEGIN IF NEW.result IS NOT NULL AND OLD.result IS NULL THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='injected release storage failure'; END IF; END`); err != nil {
 		t.Fatal(err)
 	}
+	// A disjoint target reaches the storage fault after the earlier draft acquired id 1.
+	body = strings.Replace(body, `"id":"1"`, `"id":"2"`, 1)
 	failure := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "draft-storage-failure")
 	assertIntegrationErrorCode(t, failure, 503, "release_unavailable")
 	list := releaseRequest(t, app, "GET", "/api/v1/release-orders", "", "")

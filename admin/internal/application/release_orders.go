@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -58,6 +59,7 @@ type ReleaseField = domain.ReleaseField
 type ReleaseFilter = domain.ReleaseFilter
 
 type DraftItemInput struct {
+	DetailID              string          `json:"detail_id,omitempty"`
 	TableName             string          `json:"table_name,omitempty"`
 	Operation             string          `json:"operation"`
 	ID                    *JSONString     `json:"id"`
@@ -66,6 +68,7 @@ type DraftItemInput struct {
 }
 
 type DraftInput struct {
+	Changes         *DraftChanges    `json:"changes,omitempty"`
 	Title           string           `json:"title"`
 	TableName       string           `json:"table_name"`
 	Items           []DraftItemInput `json:"items"`
@@ -80,6 +83,9 @@ type ReleaseOrderSession interface {
 	ReadRollbackBaselines(context.Context, domain.TableSchema, []any, domain.ReleaseOrder) ([]domain.RecordBaseline, error)
 	LockAndReadTableExecutionSchema(context.Context, string) (domain.TableExecutionSchema, error)
 	ReserveReleaseTargets(context.Context, string, []domain.ActiveTarget) error
+	ReplaceReleaseTargets(context.Context, string, []domain.ActiveTarget) error
+	ReadConcurrencyKeys(context.Context, domain.TableSchema, []string, []domain.Row) ([][]byte, error)
+	ReplaceReleaseTableReferences(context.Context, string, []string) error
 	ReleaseTargets(context.Context, string) error
 	GetReleaseOrder(context.Context, string) (domain.ReleaseOrder, error)
 	SaveReleaseOrder(context.Context, domain.ReleaseOrder, bool) error
@@ -124,7 +130,7 @@ func (r *ReleaseOrders) Create(ctx context.Context, input DraftInput, key string
 			result = *previous
 			return nil
 		}
-		if input.ExpectedVersion != "" {
+		if input.ExpectedVersion != "" || input.Changes != nil {
 			return ErrReleaseInvalid
 		}
 		if err := validateReleaseTitle(input.Title); err != nil {
@@ -147,9 +153,12 @@ func (r *ReleaseOrders) Create(ctx context.Context, input DraftInput, key string
 		if err = s.SaveReleaseOrder(ctx, result, true); err != nil {
 			return err
 		}
+		if err := replaceDraftTargets(ctx, s, result); err != nil {
+			return err
+		}
 		return s.CompleteReleaseRequest(ctx, actor, "create", key, result)
 	})
-	return result, err
+	return result, r.describeTargetConflict(ctx, err)
 }
 
 func validateReleaseTitle(title string) error {
@@ -276,7 +285,7 @@ func (r *ReleaseOrders) prepareInput(ctx context.Context, s ReleaseOrderSession,
 	if protectedTable(input.TableName) {
 		return nil, ErrProtectedTable
 	}
-	if len(input.Items) < 1 || len(input.Items) > 1000 {
+	if len(input.Items) > 1000 {
 		return nil, ErrReleaseItemLimit
 	}
 	if input.TableName == "" || len(input.TableName) > 256 {
@@ -323,7 +332,19 @@ func (r *ReleaseOrders) prepareInput(ctx context.Context, s ReleaseOrderSession,
 	}
 	items := make([]ReleaseItem, 0, len(input.Items))
 	seen := map[string]bool{}
+	detailIDs := map[string]bool{}
 	for index, item := range input.Items {
+		if item.DetailID == "" {
+			id, err := newDetailID()
+			if err != nil {
+				return nil, err
+			}
+			item.DetailID = id
+		}
+		if decoded, err := hex.DecodeString(item.DetailID); err != nil || len(decoded) != 16 || detailIDs[item.DetailID] {
+			return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseInvalid}
+		}
+		detailIDs[item.DetailID] = true
 		prepared, err := prepareReleaseItem(snapshot.schema, snapshot.mutationPolicy, item, baselines[index], refreshBaseline, source != nil)
 		if err != nil {
 			return nil, &ReleaseItemError{Index: index, Cause: err}
@@ -336,6 +357,9 @@ func (r *ReleaseOrders) prepareInput(ctx context.Context, s ReleaseOrderSession,
 			seen[key] = true
 		}
 		items = append(items, prepared...)
+	}
+	if err := prepareConcurrencyTargets(ctx, s, snapshot, items); err != nil {
+		return nil, err
 	}
 	encoded, err := json.Marshal(items)
 	if err != nil {
@@ -448,7 +472,7 @@ func prepareReleaseItem(schema domain.TableSchema, policy domain.MutationPolicy,
 			return nil, ErrRecordVersionConflict
 		}
 	}
-	result := ReleaseItem{Operation: item.Operation, ID: item.ID, ExpectedRecordVersion: baseline.Version, Content: item.Content, Before: baseline.Row, RecordKey: baseline.Key, RecordTable: baseline.TableName, Fields: []ReleaseField{}}
+	result := ReleaseItem{DetailID: item.DetailID, TableName: schema.Name, Operation: item.Operation, ID: item.ID, ExpectedRecordVersion: baseline.Version, Content: item.Content, Before: baseline.Row, RecordKey: baseline.Key, RecordTable: baseline.TableName, Fields: []ReleaseField{}}
 	if result.Content == nil {
 		result.Content = MutationContent{}
 	}
@@ -493,6 +517,18 @@ func (r *ReleaseOrders) Update(ctx context.Context, id string, input DraftInput,
 		if err := validateReleaseTitle(input.Title); err != nil {
 			return err
 		}
+		if input.Changes != nil {
+			if input.Items != nil {
+				return ErrReleaseInvalid
+			}
+			items, err := r.editDraftDetails(ctx, s, *order, *input.Changes)
+			if err != nil {
+				return err
+			}
+			order.Title = input.Title
+			order.Items = items
+			return replaceDraftTargets(ctx, s, *order)
+		}
 		for index, item := range input.Items {
 			if item.Operation == "ADD" && item.Content["id"] != nil {
 				if err := ValidateRecordVersion(item.ExpectedRecordVersion); err != nil {
@@ -507,7 +543,7 @@ func (r *ReleaseOrders) Update(ctx context.Context, id string, input DraftInput,
 		}
 		order.Title = input.Title
 		order.Items = items
-		return nil
+		return replaceDraftTargets(ctx, s, *order)
 	})
 }
 
@@ -517,6 +553,14 @@ type SubmitReleaseInput struct {
 
 func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitReleaseInput, key string) (ReleaseOrder, error) {
 	return r.changeOrder(ctx, id, input.ExpectedVersion, "submit", key, input, func(s ReleaseOrderSession, order *ReleaseOrder) error {
+		if len(order.Items) == 0 {
+			return ErrReleaseItemLimit
+		}
+		// Acquire the draft's read guard before metadata or catalog can establish
+		// a snapshot. Publication and rollback hold the same guard exclusively.
+		if _, err := s.GetTablePolicy(ctx, order.TableName); err != nil {
+			return err
+		}
 		schema, err := s.LockAndReadTableExecutionSchema(ctx, order.TableName)
 		if err != nil {
 			return err
@@ -524,6 +568,17 @@ func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitRelea
 		items, err := r.prepareOrder(ctx, s, *order)
 		if err != nil {
 			return err
+		}
+		for index, item := range items {
+			// A maintenance write may change values without advancing the platform
+			// version; DDL may change equality weights without changing values.
+			// Only an explicit save may replace the acknowledged baseline/targets.
+			saved := order.Items[index]
+			if !bytes.Equal(releaseDigest(item.Before), releaseDigest(saved.Before)) ||
+				item.RecordTable != saved.RecordTable || !bytes.Equal(item.RecordKey, saved.RecordKey) ||
+				!slices.EqualFunc(item.ConcurrencyKeys, saved.ConcurrencyKeys, bytes.Equal) {
+				return &ReleaseItemError{Index: index, Cause: ErrRecordVersionConflict}
+			}
 		}
 		snapshot, err := r.snapshots.resolve(ctx, s, order.TableName, mutationPolicySnapshot)
 		if err != nil {
@@ -678,7 +733,7 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 		result = order
 		return s.CompleteReleaseRequest(ctx, actor, operation, key, result)
 	})
-	return result, err
+	return result, r.describeTargetConflict(ctx, err)
 }
 func (r *ReleaseOrders) List(ctx context.Context, filter ReleaseFilter) ([]domain.ReleaseOrderSummary, error) {
 	if _, err := requireRole(ctx, RoleViewer); err != nil {
@@ -776,7 +831,10 @@ func (r *ReleaseOrders) copyOrder(ctx context.Context, id string, input CopyRele
 		}
 		for i, entry := range input.Items {
 			saved := source.Items[i]
-			expected := DraftItemInput{Operation: saved.Operation, ID: saved.ID, Content: saved.Content}
+			if entry.TableName != "" && entry.TableName != saved.TableName {
+				return ErrReleaseCrossTable
+			}
+			expected := DraftItemInput{DetailID: entry.DetailID, TableName: entry.TableName, Operation: saved.Operation, ID: saved.ID, Content: saved.Content}
 			if expected.Operation == "ADD" {
 				expected.ID = nil
 			}
@@ -822,7 +880,10 @@ func (r *ReleaseOrders) copyOrder(ctx context.Context, id string, input CopyRele
 		if err := s.SaveReleaseOrder(ctx, result, true); err != nil {
 			return err
 		}
+		if err := replaceDraftTargets(ctx, s, result); err != nil {
+			return err
+		}
 		return s.CompleteReleaseRequest(ctx, actor, operation, key, result)
 	})
-	return result, err
+	return result, r.describeTargetConflict(ctx, err)
 }

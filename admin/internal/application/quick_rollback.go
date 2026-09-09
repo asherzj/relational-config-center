@@ -50,11 +50,11 @@ func (r *ReleaseOrders) prepareQuickRollback(ctx context.Context, s PublicationS
 	if original.Publication == nil || original.VerifyPublication() != nil {
 		return fail(ErrReleaseUnavailable)
 	}
-	schema, err := s.LockAndReadTableExecutionSchema(ctx, original.TableName)
-	if err != nil {
+	if err := s.LockPublicationTable(ctx, original.TableName); err != nil {
 		return fail(err)
 	}
-	if err = s.LockPublicationTable(ctx, schema.TableName); err != nil {
+	schema, err := s.LockAndReadTableExecutionSchema(ctx, original.TableName)
+	if err != nil {
 		return fail(err)
 	}
 	snapshot, err := r.snapshots.resolve(ctx, s, original.TableName, mutationPolicySnapshot)

@@ -82,6 +82,7 @@ export const databaseTableListDtoSchema = z.object({
 });
 
 export const tablePolicyDtoSchema = z.object({
+  concurrency_key: z.array(z.string()).optional().default([]),
   table_name: z.string(),
   query_policy_code: z.string(),
   mutation_policy_code: z.string(),
@@ -144,6 +145,7 @@ export const managedDataQueryResponseDtoSchema = z.object({
 export const adminErrorDtoSchema = z.object({
   error: z.object({
     item_index: z.number().int().nonnegative().optional(),
+    table_name: z.string().optional(), order_id: z.string().optional(), applicant_id: z.string().optional(),
     code: z.string(),
     message: z.string(),
     request_id: z.string(),

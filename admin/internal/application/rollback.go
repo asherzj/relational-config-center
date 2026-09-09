@@ -40,7 +40,7 @@ func (r *ReleaseOrders) prepareOrder(ctx context.Context, s ReleaseOrderSession,
 	}
 	input := DraftInput{TableName: order.TableName}
 	for _, item := range order.Items {
-		entry := DraftItemInput{Operation: item.Operation, ID: item.ID, ExpectedRecordVersion: item.ExpectedRecordVersion, Content: item.Content}
+		entry := DraftItemInput{DetailID: item.DetailID, TableName: item.TableName, Operation: item.Operation, ID: item.ID, ExpectedRecordVersion: item.ExpectedRecordVersion, Content: item.Content}
 		if entry.Operation == "ADD" {
 			entry.ID = nil
 		}
@@ -64,7 +64,8 @@ func (r *ReleaseOrders) reverseItems(ctx context.Context, s ReleaseOrderSession,
 	for index := range original.Publication.Commands {
 		command := original.Publication.Commands[len(original.Publication.Commands)-1-index]
 		id := domain.JSONString(command.ID)
-		item := DraftItemInput{ID: &id, ExpectedRecordVersion: command.RecordVersion, Content: MutationContent{}}
+		source := original.Items[len(original.Items)-1-index]
+		item := DraftItemInput{DetailID: source.DetailID, TableName: source.TableName, ID: &id, ExpectedRecordVersion: command.RecordVersion, Content: MutationContent{}}
 		switch command.Operation {
 		case "ADD":
 			item.Operation = "DELETE"

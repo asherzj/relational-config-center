@@ -168,7 +168,7 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 		if json.Unmarshal(loser.Body.Bytes(), &failure) != nil {
 			t.Fatal(loser.Body)
 		}
-		// Another submitted order can reserve the target before the winner
+		// Another saved draft can reserve the target before the winner
 		// commits. After commit, the same fixed baseline is stale (or deleted).
 		valid := loser.Code == 409 && (failure.Error.Code == "release_target_conflict" || failure.Error.Code == "record_version_conflict") || command.Operation == "DELETE" && loser.Code == 404 && failure.Error.Code == "mutation_row_not_found"
 		if !valid {
@@ -220,8 +220,8 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 			t.Fatal(err)
 		}
 		rows.Close()
-		if losers > 1 || failure.Error.Code == "release_target_conflict" && len(drafts) != 1 {
-			t.Fatalf("target refusal must retain exactly its unsubmitted draft: %d", len(drafts))
+		if losers > 1 || failure.Error.Code == "release_target_conflict" && losers != 0 {
+			t.Fatalf("save-time target refusal must leave no losing order: %d", len(drafts))
 		}
 		for _, draft := range drafts {
 			cancelled := releaseRequest(t, app, "POST", "/api/v1/release-orders/"+draft.ID+"/cancel", `{"expected_version":"1","reason":"concurrent loser cleanup"}`, "race-cleanup-"+draft.ID)

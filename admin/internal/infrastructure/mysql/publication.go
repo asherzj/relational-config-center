@@ -28,9 +28,11 @@ func (s *publicationSession) LockPublicationTable(ctx context.Context, table str
 	if err := s.database.WithContext(ctx).Exec(`INSERT INTO rcc_table_publications(table_name,table_version,command_cursor) VALUES(?,0,0) ON DUPLICATE KEY UPDATE table_name=table_name`, table).Error; err != nil {
 		return application.ErrReleaseUnavailable
 	}
-	// Lock current catalog definitions before the first consistent snapshot read.
+	// Drafts hold this policy row FOR SHARE before their first consistent read.
+	// The exclusive guard keeps business writes and target release from crossing
+	// a saved baseline, while independent draft saves may still run together.
 	var queryCode, mutationCode string
-	if err := s.database.WithContext(ctx).Raw(`SELECT query_policy_code,mutation_policy_code FROM rcc_table_policies WHERE table_name=? FOR SHARE`, table).Row().Scan(&queryCode, &mutationCode); err != nil {
+	if err := s.database.WithContext(ctx).Raw(`SELECT query_policy_code,mutation_policy_code FROM rcc_table_policies WHERE table_name=? FOR UPDATE`, table).Row().Scan(&queryCode, &mutationCode); err != nil {
 		return application.ErrReleaseUnavailable
 	}
 	for _, policy := range []struct{ table, code string }{{"rcc_query_policies", queryCode}, {"rcc_mutation_policies", mutationCode}} {

@@ -40,6 +40,7 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 			return
 		}
 		for i := range items {
+			items[i].ConcurrencyKeys = nil
 			items[i].RecordKey = nil
 			items[i].RecordTable = ""
 		}
@@ -122,6 +123,7 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 			return
 		}
 		for i := range preview.Items {
+			preview.Items[i].ConcurrencyKeys = nil
 			preview.Items[i].RecordKey = nil
 			preview.Items[i].RecordTable = ""
 		}
@@ -232,6 +234,7 @@ func releaseResponse(order application.ReleaseOrder, actions []string) any {
 	// Internal execution metadata and database identity are persisted, not client input.
 	order.Frozen = nil
 	for i := range order.Items {
+		order.Items[i].ConcurrencyKeys = nil
 		order.Items[i].RecordKey = nil
 		order.Items[i].RecordTable = ""
 	}
@@ -248,6 +251,10 @@ func writeReleaseError(c *gin.Context, err error) bool {
 	if errors.As(err, &itemError) {
 		c.Set("release_item_index", itemError.Index)
 	}
+	var conflict *application.ReleaseTargetConflict
+	if errors.As(err, &conflict) {
+		c.Set("release_target_conflict", conflict)
+	}
 	status, code, message := 503, "release_unavailable", "release order storage is unavailable"
 	switch {
 	case errors.Is(err, application.ErrRollbackConflict):
@@ -260,6 +267,10 @@ func writeReleaseError(c *gin.Context, err error) bool {
 		status, code, message = 403, "permission_denied", "the current account cannot perform this release action"
 	case errors.Is(err, application.ErrSession):
 		status, code, message = 401, "authentication_required", "an authenticated account is required"
+	case errors.Is(err, application.ErrConcurrencyKeyValue):
+		status, code, message = 422, "concurrency_key_value_required", "supply determinable values for every concurrency key field"
+	case errors.Is(err, application.ErrConcurrencyKeyInvalid):
+		status, code, message = 422, "concurrency_key_invalid", "concurrency key is incompatible with current fields or automatic values"
 	case errors.Is(err, application.ErrInvalidMutation):
 		status, code, message = 422, "invalid_mutation_content", "mutation content is invalid"
 	case errors.Is(err, application.ErrMissingRequiredField):
@@ -290,7 +301,7 @@ func writeReleaseError(c *gin.Context, err error) bool {
 	case errors.Is(err, application.ErrReleaseAutoIDAmbiguous):
 		status, code, message = 422, "release_auto_id_ambiguous", "zero would generate an auto-increment id in the current database mode; omit id instead"
 	case errors.Is(err, application.ErrReleaseTargetConflict):
-		status, code, message = 409, "release_target_conflict", "a known record is reserved by another submitted release order"
+		status, code, message = 409, "release_target_conflict", "a target is reserved by an unfinished release order"
 	case errors.Is(err, application.ErrReleaseVersionConflict):
 		status, code, message = 409, "release_version_conflict", "release order changed; read the latest version and explicitly rebuild"
 	case errors.Is(err, application.ErrReleaseIdempotencyConflict):

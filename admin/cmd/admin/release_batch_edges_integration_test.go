@@ -95,6 +95,9 @@ func TestReleaseBatchEdgeDraftValidation(t *testing.T) {
 			if current.Code != 200 || current.Body.String() != created.Body.String() {
 				t.Fatalf("invalid replacement altered draft: %s", current.Body)
 			}
+			// Keep each invalid replacement's unchanged-content assertion, then end
+			// the independent fixture before another case uses the same target.
+			batchEdgeOrder(t, releaseRequest(t, app, "POST", path+"/cancel", `{"expected_version":"1","reason":"end validation fixture"}`, tc.name+"-cancel"), 200)
 		})
 	}
 	batchEdgeCounts(t, db, map[string]int{
@@ -118,7 +121,6 @@ func TestReleaseBatchEdgeRequestLimitsPreserveDraft(t *testing.T) {
 		name, items, code string
 		status            int
 	}{
-		{"empty", "", "release_item_limit", 422},
 		{"1001", strings.Repeat(item+",", 1000) + item, "release_item_limit", 422},
 		{"body", `{"operation":"ADD","content":{"code":"large","label":"` + strings.Repeat("x", 1<<20) + `"}}`, "request_body_too_large", 400},
 	} {
@@ -132,7 +134,13 @@ func TestReleaseBatchEdgeRequestLimitsPreserveDraft(t *testing.T) {
 			}
 		})
 	}
-	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_orders`: 1, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'edit:%'`: 0, `SELECT COUNT(*) FROM mutation_add_items`: 0})
+	// Removing the last detail is now a valid atomic save; submission stays invalid.
+	empty := batchEdgeOrder(t, releaseRequest(t, app, "PUT", path, `{"title":"empty","table_name":"mutation_add_items","expected_version":"1","items":[]}`, "limits-empty"), 200)
+	if len(empty.Items) != 0 || empty.Version != "2" {
+		t.Fatal("empty replacement was not saved")
+	}
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"2"}`, "limits-empty-submit"), 422, "release_item_limit")
+	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_orders`: 1, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'edit:%'`: 1, `SELECT COUNT(*) FROM mutation_add_items`: 0})
 }
 
 // AC-039: each competing batch has an exclusive target plus a shared target.
@@ -141,9 +149,11 @@ func TestReleaseBatchEdgeOverlappingSubmissions(t *testing.T) {
 	app, db := batchEdgeApplication(t)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	paths := make([]string, 2)
+	bodies := make([]string, 2)
 	for i, ids := range [][]int{{10, 20}, {30, 20}} {
-		body := fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"%d","code":"exclusive-%d","label":"draft"}},{"operation":"ADD","content":{"id":"%d","code":"shared","label":"draft"}}]}`, ids[0], i, ids[1])
-		order := batchEdgeOrder(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", body, fmt.Sprintf("overlap-create-%d", i)), 201)
+		body := fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","expected_version":"1","changes":{"upserts":[{"operation":"ADD","content":{"id":"%d","code":"exclusive-%d","label":"draft"}},{"operation":"ADD","content":{"id":"%d","code":"shared","label":"draft"}}]}}`, ids[0], i, ids[1])
+		bodies[i] = body
+		order := batchEdgeOrder(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"empty","table_name":"mutation_add_items","items":[]}`, fmt.Sprintf("overlap-create-%d", i)), 201)
 		paths[i] = "/api/v1/release-orders/" + order.ID
 	}
 	session := integrationAdminSession(t, app)
@@ -157,7 +167,7 @@ func TestReleaseBatchEdgeOverlappingSubmissions(t *testing.T) {
 	for i := range paths {
 		go func(i int) {
 			<-start
-			results <- outcome{i, accountRequestFrom(app, "POST", paths[i]+"/submit", `{"expected_version":"1"}`, cookies, csrf, "192.0.2.1:1234", map[string]string{"Idempotency-Key": fmt.Sprintf("overlap-submit-%d", i)})}
+			results <- outcome{i, accountRequestFrom(app, "PUT", paths[i], bodies[i], cookies, csrf, "192.0.2.1:1234", map[string]string{"Idempotency-Key": fmt.Sprintf("overlap-save-%d", i)})}
 		}(i)
 	}
 	close(start)
@@ -166,7 +176,7 @@ func TestReleaseBatchEdgeOverlappingSubmissions(t *testing.T) {
 		result := <-results
 		if result.response.Code == 200 {
 			if winner != -1 {
-				t.Fatal("both overlapping batches submitted")
+				t.Fatal("both overlapping batches saved")
 			}
 			winner = result.index
 		} else {
@@ -181,18 +191,18 @@ func TestReleaseBatchEdgeOverlappingSubmissions(t *testing.T) {
 	batchEdgeCounts(t, db, map[string]int{
 		`SELECT COUNT(*) FROM rcc_release_targets`: 2,
 		fmt.Sprintf(`SELECT COUNT(*) FROM rcc_release_targets WHERE order_id='%s'`, strings.TrimPrefix(paths[loser], "/api/v1/release-orders/")): 0,
-		`SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'submit:%'`:                                                              1,
+		`SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'edit:%'`:                                                                1,
 		`SELECT COUNT(*) FROM mutation_add_items`:                                                                                                0,
 		`SELECT COUNT(*) FROM rcc_record_versions`:                                                                                               0,
 	})
 	losingOrder := batchEdgeOrder(t, releaseRequest(t, app, "GET", paths[loser], "", ""), 200)
-	if losingOrder.State != "DRAFT" || losingOrder.Version != "1" {
-		t.Fatal("failed submit changed order")
+	if losingOrder.State != "DRAFT" || losingOrder.Version != "1" || len(losingOrder.Items) != 0 {
+		t.Fatal("failed save changed empty draft")
 	}
 	batchEdgeOrder(t, releaseRequest(t, app, "POST", paths[winner]+"/cancel", `{"expected_version":"2","reason":"release complete target set"}`, "overlap-cancel-winner"), 200)
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_targets`: 0})
 	// Reuse the failed original request key to prove no durable failed request remains.
-	batchEdgeOrder(t, releaseRequest(t, app, "POST", paths[loser]+"/submit", `{"expected_version":"1"}`, fmt.Sprintf("overlap-submit-%d", loser)), 200)
+	batchEdgeOrder(t, releaseRequest(t, app, "PUT", paths[loser], bodies[loser], fmt.Sprintf("overlap-save-%d", loser)), 200)
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_targets`: 2})
 	batchEdgeOrder(t, releaseRequest(t, app, "POST", paths[loser]+"/cancel", `{"expected_version":"2","reason":"done"}`, "overlap-cancel-loser"), 200)
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_targets`: 0})

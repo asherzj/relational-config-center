@@ -119,6 +119,7 @@ describe("uncertain writes", () => {
     "release_snapshot_unsupported", "release_metadata_permission", "release_cross_table",
     "release_item_limit", "release_result_limit", "release_field_limit", "release_duplicate_target",
     "release_invalid", "rollback_locked", "rollback_restore_mismatch",
+    "concurrency_key_invalid", "concurrency_key_in_use", "concurrency_key_value_required",
   ])("allows correction after recognized release %s rejection", (code) => {
     expect(isUncertainWriteError(new ApiError(code, "release rejected", 422))).toBe(false);
   });

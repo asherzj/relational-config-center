@@ -150,7 +150,9 @@ func TestReleaseReprepareFailureKeepsApprovedOrderAndTarget(t *testing.T) {
 		t.Fatalf("idempotent recovery changed draft: %d %s", replay.Code, replay.Body)
 	}
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, applicant, "POST", path+"/reprepare", strings.Replace(body, "reprepare-atomic", "changed-intent", 1), "reprepare-atomic-apply"), 409, "idempotency_conflict")
-	assertReprepareStorageCounts(t, owner, 2, 0, 1)
+	// The replacement draft takes the reservation in the same transaction that
+	// releases the cancelled approval's ownership.
+	assertReprepareStorageCounts(t, owner, 2, 1, 1)
 }
 
 func approvedOrderForReprepare(t *testing.T, app *adminApplication, applicant, reviewer *httptest.ResponseRecorder, key string) string {

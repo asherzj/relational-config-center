@@ -161,8 +161,7 @@ func TestQuickRollbackRejectsUnversionedExternalChangesBeforePreviewAndExecution
 			t.Fatal("failed restoration partially applied", row, version)
 		}
 	}
-	draft := rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"占用验证","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"10","expected_record_version":"1","content":{"label":"next"}},{"operation":"MODIFY","id":"20","expected_record_version":"1","content":{"label":"next"}}]}`, "quick-external-conflict"), 201)
-	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+draft.ID+"/submit", `{"expected_version":"1"}`, "quick-external-submit"), 409, "release_target_conflict")
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"占用验证","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"10","expected_record_version":"1","content":{"label":"next"}},{"operation":"MODIFY","id":"20","expected_record_version":"1","content":{"label":"next"}}]}`, "quick-external-conflict"), 409, "release_target_conflict")
 }
 
 // Fault at the storage boundary: a quick restoration must use its original's
@@ -313,7 +312,9 @@ func TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets
 	grantReleaseRole(t, app, actor, `["PUBLISHER"]`, "1", "quick-fault-role")
 	preview := readQuickPreview(t, app, actor, path, "4")
 	body := quickRollbackBody("4", preview.Digest, "restore atomically")
-	conflicting := rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"目标仍保护","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"10","expected_record_version":"1","content":{"label":"next"}},{"operation":"MODIFY","id":"20","expected_record_version":"1","content":{"label":"next"}}]}`, "quick-fault-conflict"), 201)
+	conflictBody := `{"title":"目标仍保护","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"10","expected_record_version":"1","content":{"label":"next"}},{"operation":"MODIFY","id":"20","expected_record_version":"1","content":{"label":"next"}}]}`
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", conflictBody, "quick-fault-conflict"), 409, "release_target_conflict")
+
 	for _, failure := range []struct{ table, event, condition string }{
 		{"rcc_record_versions", "UPDATE", "NEW.lock_version>1"},
 		{"rcc_publication_commands", "INSERT", "TRUE"},
@@ -344,7 +345,7 @@ func TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets
 					t.Fatal("failed reverse partially changed row", row, version)
 				}
 			}
-			assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+conflicting.ID+"/submit", `{"expected_version":"1"}`, "quick-fault-conflict-submit"), 409, "release_target_conflict")
+			assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", conflictBody, "quick-fault-conflict"), 409, "release_target_conflict")
 			list := releaseRequest(t, app, "GET", "/api/v1/release-orders?state=COMPLETED&table_name=mutation_add_items", "", "")
 			if list.Code != 200 || !strings.Contains(list.Body.String(), `"orders":[]`) {
 				t.Fatal("failed reverse left a result record", list.Body)
