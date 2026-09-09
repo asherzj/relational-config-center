@@ -5,15 +5,17 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from ".
 import { Badge } from "../../components/shadcn/badge";
 import { DatabaseZap, Plus, RefreshCw, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { EmptyState, ErrorState, LoadingState } from "../../components/ui/Feedback";
 import { formatTimestamp, incompatibilityReasonLabels } from "./model";
 import { useDatabaseTables, useTablePolicies } from "./queries";
+import { FieldPolicyDrawer } from "./FieldPolicyDrawer";
 import { TablePolicyDrawer } from "./TablePolicyDrawer";
 
 export function TablePoliciesPage() {
   const canManage = useAccountRole("ADMIN");
+ const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { tableName } = useParams<{ tableName?: string }>();
   const discovery = useDatabaseTables();
@@ -62,13 +64,13 @@ export function TablePoliciesPage() {
               <TableCell className="rule-identity"><code>{policy.tableName}</code></TableCell><TableCell className="rule-pair"><div><small>查询</small><code>{policy.queryPolicyCode}</code></div><div><small>变更</small><code>{policy.mutationPolicyCode}</code></div></TableCell>
               <TableCell><Badge variant="outline" className={`status-badge ${policy.enabled ? "status-active" : "status-draft"}`}>{policy.enabled ? "已启用" : "未启用"}</Badge></TableCell>
               <TableCell className="timestamp">{formatTimestamp(policy.modifiedAt)}<small>{policy.modifier}</small></TableCell>
-              <TableCell><div className="row-actions"><Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}`)}>查看</Button></div></TableCell>
+              <TableCell><div className="row-actions"><Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}`)}>查看</Button>{canManage && <Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}?mode=fields`)}>字段配置</Button>}</div></TableCell>
             </TableRow>)}
           </TableBody></Table></div>
         )}
         <footer className="catalog-footer"><span>共 {policies.data?.length ?? 0} 个表规则</span><span>显示 {filteredPolicies.length} 个</span><Button className="catalog-refresh" variant="ghost" icon={<RefreshCw size={15} />} onClick={() => { void policies.refetch(); void discovery.refetch(); }}>刷新</Button></footer>
       </section>
-      <TablePolicyDrawer tableName={tableName} />
+      {tableName && searchParams.get("mode") === "fields" ? <FieldPolicyDrawer key={tableName} tableName={tableName} /> : <TablePolicyDrawer tableName={tableName} />}
     </main>
   );
 }

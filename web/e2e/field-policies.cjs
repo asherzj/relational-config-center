@@ -1,0 +1,97 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const { chromium } = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
+const { browserOptions, registerFixtureAccount } = require('./local-account.cjs');
+const origin = process.env.RCC_WEB_URL;
+const output = process.env.RCC_E2E_OUTPUT || '/tmp/rcc-field-policies-browser';
+(async () => {
+ fs.mkdirSync(output, { recursive: true });
+ const browser = await chromium.launch(browserOptions());
+ const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+ const checks=[];const errors=[];
+ try {
+  await registerFixtureAccount(context, origin);
+  const page = await context.newPage();page.setDefaultTimeout(10000);page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(`${origin}/platform/table-policies`);
+  const row=page.getByRole('row').filter({has:page.getByText('notification_templates',{exact:true})});
+  await row.getByRole('button',{name:'字段配置',exact:true}).click();
+  await page.getByRole('heading',{name:'字段配置',exact:true}).waitFor();
+  const save=async()=>{await Promise.all([page.waitForResponse(r=>r.url().endsWith('/api/v1/table-field-policies/notification_templates')&&r.request().method()==='PUT'&&r.status()===200),page.getByRole('button',{name:'保存全部字段配置',exact:true}).click()]);await page.getByRole('button',{name:'保存全部字段配置',exact:true}).waitFor();};
+  const fields=page.getByRole('combobox',{name:'真实字段',exact:true});await fields.selectOption('channel');
+  await page.getByRole('button',{name:'配置此字段',exact:true}).click();
+  await page.getByLabel('显示名称',{exact:true}).fill('通知渠道');
+  await page.getByLabel('字段说明',{exact:true}).fill('选择中文名称，保存渠道编码');
+  await page.getByLabel('显示顺序',{exact:true}).fill('8');
+  await page.getByLabel('录入控件',{exact:true}).selectOption('select');
+  for(const [index,label,value] of [[1,'邮件','EMAIL'],[2,'短信','SMS']]){
+   await page.getByRole('button',{name:'添加选项',exact:true}).click();
+   await page.getByLabel(`选项名称 ${index}`,{exact:true}).fill(label);
+   await page.getByLabel(`实际值 ${index}`,{exact:true}).fill(value);
+  }
+  await page.getByLabel('新增预填方式',{exact:true}).selectOption('value');
+  await page.getByLabel('新增预填值',{exact:true}).fill('EMAIL');
+  await page.getByLabel('录入时必填',{exact:true}).check();
+  await page.getByLabel('显示名称',{exact:true}).scrollIntoViewIfNeeded();
+  await page.screenshot({path:path.join(output,'desktop-edit.png'),fullPage:false});
+  await fields.selectOption('subject');await fields.selectOption('channel');assert.equal(await page.getByLabel('显示名称',{exact:true}).inputValue(),'通知渠道');
+  await page.getByRole('button',{name:'关闭',exact:true}).last().click();
+  await page.getByRole('button',{name:'继续编辑',exact:true}).click();
+  checks.push('field switching and unsaved close preserve all input');
+  await save();
+  await page.getByRole('button',{name:'关闭',exact:true}).last().click();
+  await row.getByRole('button',{name:'字段配置',exact:true}).click();await fields.selectOption('channel');
+  assert.equal(await page.getByLabel('显示名称',{exact:true}).inputValue(),'通知渠道');
+  assert.equal(await page.getByLabel('字段说明',{exact:true}).inputValue(),'选择中文名称，保存渠道编码');
+  assert.equal(await page.getByLabel('录入控件',{exact:true}).inputValue(),'select');
+  assert.equal(await page.getByLabel('实际值 2',{exact:true}).inputValue(),'SMS');
+  assert.equal(await page.getByLabel('新增预填值',{exact:true}).inputValue(),'EMAIL');
+  checks.push('real HTTP save and reopen preserve display, controls, options and default');
+  await fields.selectOption('priority');await page.getByRole('button',{name:'配置此字段',exact:true}).click();
+  await page.getByLabel('录入控件',{exact:true}).selectOption('number');
+  await page.getByLabel('最小值（可选）',{exact:true}).fill('0');await page.getByLabel('最大值（可选）',{exact:true}).fill('200');await page.getByLabel('步长（可选）',{exact:true}).fill('1');
+  await save();await fields.selectOption('channel');checks.push('number min/max/step use editable string controls and save with the full table');
+  await page.getByLabel('选项名称 1',{exact:true}).scrollIntoViewIfNeeded();
+  await page.getByText('字段配置已保存',{exact:true}).waitFor({state:'hidden'});
+  await page.screenshot({path:path.join(output,'desktop-options.png'),fullPage:false});
+  await page.setViewportSize({width:390,height:844});
+  await page.getByLabel('选项名称 1',{exact:true}).focus();await page.keyboard.press('Tab');
+  assert.equal(await page.getByLabel('实际值 1',{exact:true}).evaluate(el=>el===document.activeElement),true,'keyboard Tab did not reach the option value');
+  await page.getByLabel('选项名称 2',{exact:true}).scrollIntoViewIfNeeded();
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'mobile page overflow');
+  await page.screenshot({path:path.join(output,'mobile-options.png'),fullPage:false});
+  await page.getByLabel('启用此字段规则',{exact:true}).uncheck();
+  await save();
+  await page.getByRole('button',{name:'关闭',exact:true}).last().click();
+  await row.getByRole('button',{name:'字段配置',exact:true}).click();await fields.selectOption('channel');
+  assert.equal(await page.getByLabel('启用此字段规则',{exact:true}).isChecked(),false);
+  assert.equal(await page.getByLabel('实际值 1',{exact:true}).inputValue(),'EMAIL');
+  checks.push('390px layout and disable preserve complete configuration');
+  // Validation is a real Admin response; local input must remain available.
+  await page.getByLabel('显示名称',{exact:true}).fill(' ');
+  await page.getByRole('button',{name:'保存全部字段配置',exact:true}).click();
+  await page.getByRole('alert').filter({hasText:'名称须为1至200字'}).waitFor();
+  assert.equal(await page.getByLabel('显示名称',{exact:true}).inputValue(),' ');
+  await page.getByLabel('显示名称',{exact:true}).fill('通知渠道');
+  // Drop the response after a real successful PUT to exercise uncertain recovery.
+  await page.getByLabel('字段说明',{exact:true}).fill('未知结果保留输入');
+  await page.route('**/api/v1/table-field-policies/notification_templates',async route=>{
+   if(route.request().method()==='PUT'){await route.fetch();await route.abort('failed');}else await route.continue();
+  });
+  await page.getByRole('button',{name:'保存全部字段配置',exact:true}).click();
+  await page.getByText('提交结果尚未确认',{exact:true}).waitFor();
+  assert.equal(await page.getByRole('button',{name:'保存全部字段配置',exact:true}).isDisabled(),true);
+  await page.getByRole('button',{name:'只读核对当前配置',exact:true}).click();
+  await page.getByRole('button',{name:'已核对，保留输入并返回编辑',exact:true}).click();
+  assert.equal(await page.getByLabel('字段说明',{exact:true}).inputValue(),'未知结果保留输入');
+  checks.push('invalid configuration and dropped successful response preserve input; read-only recovery gates retry');
+  await page.unroute('**/api/v1/table-field-policies/notification_templates');
+  await save();
+  await page.getByRole('button',{name:'关闭',exact:true}).last().click();
+  assert.equal(await row.getByRole('button',{name:'字段配置',exact:true}).evaluate(el=>el===document.activeElement),true,'drawer close did not restore focus');
+  checks.push('keyboard Tab reaches option values and closing restores the entry focus');
+  assert.deepEqual(errors,[]);
+  fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({browser:browser.version(),checks,errors},null,2));
+  console.log(JSON.stringify({checks,errors}));
+ } catch(error) {const page=context.pages()[0];if(page){await page.screenshot({path:path.join(output,"failure.png"),fullPage:true}).catch(()=>{});fs.writeFileSync(path.join(output,"failure.txt"),await page.locator("body").innerText().catch(()=>"unavailable"));}throw error;} finally {await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1});
