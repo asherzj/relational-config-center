@@ -38,7 +38,7 @@ export function QuickRollbackDialog({order,onClose}:{order:ReleaseOrder;onClose:
   <div className="grid gap-2"><label htmlFor={reasonID}>快速回滚原因</label><Textarea id={reasonID} required disabled={write.pending||write.unresolved} value={reason} aria-invalid={Boolean(error)} aria-describedby={error?errorID:undefined} onChange={event=>setReason(event.target.value)}/>{error&&<p id={errorID} role="alert" className="text-destructive">{error}</p>}</div>
   {Boolean(write.error)&&<ErrorState error={write.error}/>} {rejected&&<p>原原因已保留。请关闭此窗口，查看最新状态与配置后重新审阅恢复预览。</p>} {write.unresolved&&<p role="alert">结果待确认。原恢复预览、原因与请求标识已保留，请使用原请求重试。</p>}
   </div>
-  <footer className="flex flex-wrap justify-end gap-3 border-t pt-4"><Button ref={cancelRef} onClick={close} disabled={write.pending}>取消快速回滚</Button><Button variant="danger" disabled={!allowed||rejected||write.pending||(!write.unresolved&&(!preview.data||preview.isFetching||preview.isError||!reason.trim()||Boolean(error)))} onClick={async()=>{
+  <footer className="flex flex-wrap justify-end gap-3 border-t pt-4"><Button ref={cancelRef} onClick={close} disabled={write.pending}>取消快速回滚</Button><Button variant="danger" disabled={write.blocked||!allowed||rejected||write.pending||(!write.unresolved&&(!preview.data||preview.isFetching||preview.isError||!reason.trim()||Boolean(error)))} onClick={async()=>{
    const result=write.unresolved?await write.retry():preview.data?await write.send({...releaseRequests.quickRollback(order.id,version,preview.data.preview_digest,reason),label:`快速回滚 ${order.title}`}):undefined;
    if(result)protection.afterSave(()=>{onClose();navigate(`/configuration/release-orders/${result.id}`)});
   }}>{write.pending?"正在处理…":write.unresolved?"使用原请求重试":"确认整单快速回滚"}</Button></footer>

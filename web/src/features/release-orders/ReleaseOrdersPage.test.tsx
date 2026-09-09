@@ -1,5 +1,5 @@
 import {QueryClient,QueryClientProvider} from "@tanstack/react-query";
-import {fireEvent,render,screen,waitFor} from "@testing-library/react";
+import {fireEvent,render,screen,waitFor,within} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {afterEach,expect,it,vi} from "vitest";
 import {AppRoutes} from "../../app";
@@ -84,11 +84,11 @@ it("详情同时展示标题、相关人员当前姓名、首字头像和永久 
  mount(`/configuration/release-orders/${id}`);
  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
  expect((await screen.findAllByText("申请人阿青")).length).toBeGreaterThan(0);
- expect(screen.getByText("审批人小白")).toBeVisible();
+ expect(screen.getAllByText("审批人小白")[0]).toBeVisible();
  expect(screen.getAllByText("申").length).toBeGreaterThan(0);
- expect(screen.getByText("审")).toBeVisible();
+ expect(screen.getAllByText("审")[0]).toBeVisible();
  expect(screen.getAllByText(order.applicant_id).length).toBeGreaterThan(0);
- expect(screen.getByText(reviewerID)).toBeVisible();
+ expect(screen.getAllByText(reviewerID)[0]).toBeVisible();
 });
 it("人员姓名重读失败时清除缓存姓名、显示错误标识并允许独立重试",async()=>{
  let peopleReads=0;
@@ -484,7 +484,7 @@ it("原业务结果重放成功后重新读取已挂载详情的当前版本",as
  await user.click(await screen.findByRole("button",{name:"编辑草稿"}));
  await user.click(screen.getByRole("button",{name:"保存草稿修改"}));
  await user.click(await screen.findByRole("button",{name:"使用原请求重试"}));
- expect(await screen.findByText("发布单版本：3")).toBeVisible();
+ await waitFor(()=>expect(within(screen.getByRole("region",{name:"基本信息"})).getByText("发布单版本").parentElement).toHaveTextContent("发布单版本3"));
  expect(await screen.findByText("latest committed")).toBeVisible();
 });
 
@@ -540,7 +540,7 @@ it("仅有审批角色的人填写意见批准冻结单据",async()=>{
  await user.type(screen.getByLabelText("审批意见"),"已核对变更范围");
  await user.click(screen.getByRole("button",{name:"确认批准"}));
  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
- expect(await screen.findByText("首次审批人")).toBeVisible();expect(peopleReads).toBe(2);
+ expect((await screen.findAllByText("首次审批人"))[0]).toBeVisible();expect(peopleReads).toBe(2);
  expect(writes).toHaveLength(1);expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"2",reason:"已核对变更范围"});
 });
 
@@ -782,4 +782,114 @@ it.each(["VIEWER","EDITOR","APPROVER"])("当前 %s 即使详情旧权限含快�
  mount(`/configuration/release-orders/${id}`);
  expect(await screen.findByRole("heading",{name:order.title})).toBeVisible();
  expect(screen.queryByRole("button",{name:"快速回滚"})).not.toBeInTheDocument();expect(previewReads).toBe(0);
+});
+
+it("重新准备发送前响应未知时，关闭和刷新仍阻止同单取消与执行并恢复原正文和键",async()=>{
+ const approved={...order,state:"APPROVED",version:"3",allowed_actions:["cancel","execute","reprepare"],frozen_digest:"a".repeat(64)};
+ const draft={...order,id:repreparedID,copied_from_id:id};const writes:RequestInit[]=[];let attempts=0;
+ const identity={...testAdminIdentity,account:{...testAdminIdentity.account,roles:["EDITOR","PUBLISHER"]}};
+ vi.stubGlobal("fetch",vi.fn(async(input,init)=>{
+  const path=String(input);
+  if(path.includes("/auth/"))return json(identity);
+  if(path.endsWith("/preview"))return json({table_name:"items",items:order.items});
+  if(path.endsWith("/reprepare")){writes.push(init!);if(++attempts===1)throw new TypeError("disconnected before dispatch");return json(draft,201)}
+  if(path.endsWith("/people"))return json({people:{}});
+  if(path===`/api/v1/release-orders/${repreparedID}`)return json(draft);
+  if(init?.method==="POST")throw new Error(`unexpected conflicting write ${path}`);
+  return json(approved);
+ }));
+ const user=userEvent.setup();let page=mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"重新准备"}));await user.click(screen.getByRole("button",{name:"读取最新配置"}));
+ await user.click(await screen.findByRole("button",{name:"继续重新准备"}));await user.click(screen.getByRole("button",{name:"取消旧单并创建新草稿"}));
+ await screen.findByRole("button",{name:"使用原请求重试"});
+ await user.click(screen.getByRole("button",{name:"取消"}));
+ await user.click(screen.getAllByRole("button",{name:"关闭"}).at(-1)!);
+ const discard=await screen.findByRole("button",{name:"放弃修改并离开"});await user.click(discard);
+ expect(screen.getByRole("button",{name:"取消发布单"})).toBeDisabled();expect(screen.getByRole("button",{name:"执行发布"})).toBeDisabled();
+ page.unmount();page=mount(`/configuration/release-orders/${id}`);
+ expect(await screen.findByRole("button",{name:"执行发布"})).toBeDisabled();expect(screen.getByRole("button",{name:"取消发布单"})).toBeDisabled();
+ await user.click(screen.getByRole("button",{name:"恢复原发布请求"}));await screen.findByText(/复制自/);
+ expect(writes).toHaveLength(2);expect(writes[1]!.body).toBe(writes[0]!.body);expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
+});
+it("已回滚详情默认实际原发布结果并可读取可信恢复结果或申请差异",async()=>{
+ const row=(value:string)=>({format:"rcc-admin-mysql-row-v1",schema_digest:"a".repeat(64),deleted:false,fields:[{name:"generated",type:"varchar(40)",encoding:"text",value}],checksum:"b".repeat(64)});
+ const publication=(value:string)=>({table_version:"8",publisher_id:order.applicant_id,executed_at:order.updated_at,notification:{id:"notice",table_version:"8",status:"NOT_CONNECTED"},commands:[{order_id:id,sequence:"9",table_name:"items",table_version:"8",operation:"MODIFY",id:"1",record_version:"3",before:row("before"),final:row(value)}]});
+ const original={...order,state:"ROLLED_BACK",rollback_order_id:rollbackID,publication:publication("actual original generated"),allowed_actions:[]};
+ const reverse={...order,id:rollbackID,state:"COMPLETED",rollback_of_id:id,publication:publication("actual restored generated"),allowed_actions:[]};
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json(String(input).endsWith(rollbackID)?reverse:original))));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ expect(await screen.findByText("值：actual original generated")).toBeVisible();expect(screen.queryByText("proposal")).not.toBeInTheDocument();
+ await user.click(screen.getByRole("button",{name:"恢复结果"}));expect(await screen.findByText("值：actual restored generated")).toBeVisible();expect(screen.queryByText("值：actual original generated")).not.toBeInTheDocument();
+ await user.click(screen.getByRole("button",{name:"申请差异"}));expect(await screen.findByText("proposal")).toBeVisible();
+ await user.click(screen.getByRole("button",{name:"原发布结果"}));expect(await screen.findByText("值：actual original generated")).toBeVisible();
+});
+
+it("详情四阶段与最近五条历史可展开，并复制真实单号",async()=>{
+ const events=Array.from({length:8},(_,index)=>({action:index===7?"REJECT":"EDIT",actor_id:order.applicant_id,version:String(index+1),at:order.created_at,reason:`审阅记录 ${index+1}`}));
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json({...order,state:"REJECTED",allowed_actions:["copy"],history:events}))));
+ const user=userEvent.setup();const copy=vi.spyOn(navigator.clipboard,"writeText").mockResolvedValue();mount(`/configuration/release-orders/${id}`);
+ const progress=await screen.findByRole("list",{name:"发布阶段"});expect(within(progress).getAllByRole("listitem")).toHaveLength(4);
+ expect(within(progress).getByText("已拒绝")).toBeVisible();expect(within(progress).getByText("未发布")).toBeVisible();expect(within(progress).queryByText("已完结")).not.toBeInTheDocument();
+ const history=screen.getByRole("region",{name:"操作历史"});expect(within(history).getAllByRole("listitem")).toHaveLength(5);expect(within(history).queryByText("审阅记录 3")).not.toBeInTheDocument();expect(within(history).getAllByRole("listitem")[0]).toHaveTextContent("审阅记录 8");
+ await user.click(within(history).getByRole("button",{name:"查看全部 8 条记录"}));expect(within(history).getAllByRole("listitem")).toHaveLength(8);
+ await user.click(screen.getByRole("button",{name:"复制发布单号"}));expect(copy).toHaveBeenCalledWith(id);expect(await screen.findByText("已复制发布单号")).toBeVisible();
+});
+
+it.each([
+ ["DRAFT","准备中","待发布后完结"],["PENDING_APPROVAL","待审批","待发布后完结"],["APPROVED","待执行","待发布后完结"],["SUCCEEDED","数据库已发布","待人工完结"],["COMPLETED","数据库已发布","已完结"],["REJECTED","未发布","已终止"],["CANCELLED","未发布","已终止"],["ROLLED_BACK","数据库已发布","已回滚"],
+])("%s 详情使用真实阶段",async(state,progress,ending)=>{
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json({...order,state,allowed_actions:[]}))));
+ mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("list",{name:"发布阶段"}));
+ expect(stages.getByText(progress)).toBeVisible();expect(stages.getAllByRole("listitem")[3]).toHaveTextContent(ending);
+ if(["REJECTED","CANCELLED","ROLLED_BACK"].includes(state))expect(stages.getAllByRole("listitem")[3]).not.toHaveClass("is-complete");
+});
+it("快速回滚结果的审批阶段明确无需新审批",async()=>{
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json({...order,state:"COMPLETED",rollback_of_id:rollbackID,allowed_actions:[],history:[{...order.history[0],action:"QUICK_ROLLBACK"}]}))));
+ mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("list",{name:"发布阶段"}));expect(stages.getByText("无需再次审批")).toBeVisible();expect(stages.getAllByRole("listitem")[1]).not.toHaveClass("is-complete");
+});
+it("步骤人员时间来自提交而非创建，完结显示真实完结操作者",async()=>{
+ const events=[{action:"CREATE",actor_id:"creator",at:"2026-09-01T01:00:00Z"},{action:"SUBMIT",actor_id:"submitter",at:"2026-09-02T02:00:00Z"},{action:"APPROVE",actor_id:"approver",at:"2026-09-03T03:00:00Z"},{action:"EXECUTE",actor_id:"publisher",at:"2026-09-04T04:00:00Z"},{action:"COMPLETE",actor_id:"closer",at:"2026-09-05T05:00:00Z"}].map((event,index)=>({...event,version:String(index+1),reason:""}));
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{submitter:"提交人",approver:"审批人",publisher:"发布人",closer:"完结人"}}):json({...order,state:"COMPLETED",history:events,allowed_actions:[]}))));
+ mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("list",{name:"发布阶段"}));
+ const steps=stages.getAllByRole("listitem");expect(await within(steps[0]!).findByText("提交人")).toBeVisible();expect(steps[0]!.querySelector("time")).toHaveAttribute("datetime",events[1]!.at);expect(within(steps[0]!).queryByText("creator")).not.toBeInTheDocument();
+ expect(within(steps[3]!).getByText("完结人")).toBeVisible();expect(steps[3]!.querySelector("time")).toHaveAttribute("datetime",events[4]!.at);
+ expect(within(screen.getByRole("region",{name:"操作历史"})).getByText("完结了发布单")).toBeVisible();
+});
+
+it("重新准备未知后明确拒绝，必须读取最新版本和差异才可用新键重建",async()=>{
+ const approved={...order,state:"APPROVED",version:"3",allowed_actions:["cancel","execute","reprepare"]};let current=approved;
+ const writes:RequestInit[]=[];let previews=0;
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  const path=String(input);if(path.endsWith("/people"))return json({people:{}});
+  if(path.endsWith("/preview")){previews++;return json({table_name:"items",items:order.items.map(item=>({...item,expected_record_version:previews===1?"0":"2",fields:item.fields.map(field=>field.name==="label"?{...field,before:previews===1?"original":"fresh reviewed value"}:field)}))})}
+  if(path.endsWith("/reprepare")){writes.push(init!);if(writes.length===1)throw new TypeError("unknown");if(writes.length===2){current={...approved,version:"4"};return json({error:{code:"release_version_conflict",message:"updated",request_id:"changed"}},409)}return json({...order,id:repreparedID,copied_from_id:id})}
+  return json(current);
+ })));
+ const user=userEvent.setup();let page=mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"重新准备"}));await user.click(screen.getByRole("button",{name:"读取最新配置"}));await user.click(screen.getByRole("button",{name:"继续重新准备"}));await user.click(screen.getByRole("button",{name:"取消旧单并创建新草稿"}));await screen.findByRole("button",{name:"使用原请求重试"});
+ page.unmount();page=mount(`/configuration/release-orders/${id}`);await user.click(await screen.findByRole("button",{name:"恢复原发布请求"}));await screen.findByRole("button",{name:"查看最新状态与配置"});
+ expect(screen.queryByRole("button",{name:"确认按最新状态重新准备"})).not.toBeInTheDocument();expect(previews).toBe(1);
+ await user.click(screen.getByRole("button",{name:"查看最新状态与配置"}));expect(await screen.findByText("fresh reviewed value")).toBeVisible();await user.click(screen.getByRole("button",{name:"确认按最新状态重新准备"}));
+ await waitFor(()=>expect(writes).toHaveLength(3));expect(writes[0]!.body).toBe(writes[1]!.body);expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[1]!.headers).get("Idempotency-Key"));expect(new Headers(writes[2]!.headers).get("Idempotency-Key")).not.toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));expect(JSON.parse(String(writes[2]!.body))).toMatchObject({expected_version:"4",items:[{expected_record_version:"2",content:{label:"proposal"}}]});
+});
+it.each([false,true])("重新准备会话中断隐藏浮层，重新登录后按账号隔离原请求（切换账号=%s）",async(otherAccount)=>{
+ let signedIn=true;let currentIdentity={...testAdminIdentity,account:{...testAdminIdentity.account,roles:["EDITOR","PUBLISHER"]}};
+ const approved={...order,state:"APPROVED",version:"3",allowed_actions:["cancel","execute","reprepare"]};const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",vi.fn(async(input,init)=>{
+  const path=String(input);
+  if(path.endsWith("/auth/csrf"))return json({csrf_token:"preauth"});
+  if(path.endsWith("/auth/login")){signedIn=true;if(otherAccount)currentIdentity={...currentIdentity,account:{...currentIdentity.account,id:"00000000-0000-4000-8000-000000000099"}};return json(currentIdentity)}
+  if(path.includes("/auth/"))return signedIn?json(currentIdentity):json({error:{code:"session_invalid",message:"expired",request_id:"expired"}},401);
+  if(path.endsWith("/people"))return json({people:{}});
+  if(path.endsWith("/preview"))return json({table_name:"items",items:order.items});
+  if(path.endsWith("/reprepare")){writes.push(init!);if(writes.length===1){signedIn=false;return json({error:{code:"session_invalid",message:"expired",request_id:"expired"}},401)}return json({...order,id:repreparedID,copied_from_id:id})}
+  return json(approved);
+ }));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"重新准备"}));await user.click(screen.getByRole("button",{name:"读取最新配置"}));await user.click(screen.getByRole("button",{name:"继续重新准备"}));await user.click(screen.getByRole("button",{name:"取消旧单并创建新草稿"}));
+ expect(await screen.findByRole("dialog",{name:"登录会话已中断"})).toBeVisible();expect(screen.getByRole("alertdialog",{hidden:true})).not.toBeVisible();
+ await user.type(await screen.findByLabelText("用户名"),"test.user");await user.type(screen.getByLabelText("密码"),"correct horse battery staple");await user.click(screen.getByRole("button",{name:"登录"}));
+ await waitFor(()=>expect(screen.queryByRole("dialog",{name:"登录会话已中断"})).not.toBeInTheDocument());
+ if(otherAccount){expect(screen.queryByRole("region",{name:"待处理发布请求"})).not.toBeInTheDocument();expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();expect(writes).toHaveLength(1)}
+ else {await user.click(await screen.findByRole("button",{name:"使用原请求重试"}));await waitFor(()=>expect(writes).toHaveLength(2));expect(writes[1]!.body).toBe(writes[0]!.body);expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"))}
 });

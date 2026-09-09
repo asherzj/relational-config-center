@@ -603,3 +603,29 @@ input::placeholder, textarea::placeholder { color: var(--muted-foreground); opac
   .write-recovery-snapshot pre { white-space: pre-wrap; overflow-wrap: anywhere; }
   .confirm-dialog { max-height: calc(100dvh - 32px); overflow: auto; }
 }
+
+/* Release detail keeps long IDs and row values inside their own review surface. */
+.release-detail { display: grid; gap: 20px; }
+.release-panel { min-width: 0; padding: 24px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+.release-detail-overview { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: 20px; }
+.release-info { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px 28px; }
+.release-info > div { min-width: 0; }
+.release-info dt { margin-bottom: 8px; color: var(--muted-foreground); font-size: 12px; }
+.release-info dd { min-width: 0; margin: 0; }
+.release-action-list { display: flex; flex-direction: column; gap: 12px; }
+.release-action-list > * { width: 100%; }
+.release-progress { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; list-style: none; }
+.release-progress li { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.release-step-icon { display: flex; flex: 0 0 36px; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 50%; color: var(--muted-foreground); }
+.release-progress p { color: var(--muted-foreground); font-size: 12px; margin-top: 4px; }
+.release-progress .is-current .release-step-icon { color: var(--primary-foreground); background: var(--primary); border-color: var(--primary); }
+.release-progress .is-complete .release-step-icon { color: var(--success); background: var(--success-soft); border-color: var(--success); }
+.release-diff-item summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 8px; }
+@media (max-width: 1100px) { .release-detail-overview { grid-template-columns: minmax(0,1fr); } .release-action-list { flex-direction: row; flex-wrap: wrap; } .release-action-list > * { width: auto; } }
+@media (max-width: 620px) { .release-panel { padding: 16px; } .release-info { grid-template-columns: minmax(0,1fr); } .release-progress { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px 12px; } .release-progress li { gap: 8px; } .release-step-icon { width: 30px; height: 30px; flex-basis: 30px; } }
+
+.release-diff-before { background: var(--danger-soft); }
+.release-diff-after { background: var(--success-soft); }
+.release-recovery { display: block; min-width: 0; overflow-wrap: anywhere; }
+
+.release-diff-scroll:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }

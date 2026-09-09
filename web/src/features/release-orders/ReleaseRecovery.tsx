@@ -16,7 +16,7 @@ export function ReleaseRecovery({scopeFilter}:{scopeFilter?:string}){
  useEffect(()=>{const update=()=>setRequests(pendingReleaseRequests(accountID));window.addEventListener(releaseJournalChanged,update);return()=>window.removeEventListener(releaseJournalChanged,update)},[accountID]);
  const selected=requests.filter(item=>!scopeFilter||item.scope===scopeFilter);
  if(!selected.length)return null;
- return <section className="inline-alert mb-6" aria-label="待处理发布请求"><h2>待处理发布请求</h2>{selected.map(item=><div key={item.key} className="mt-3"><p>{item.label}</p><PendingIntent item={item}/>{item.rejection?<RejectedRequest item={item}/>:<RecoveryRequest item={item}/>}</div>)}</section>;
+ return <section className="inline-alert release-recovery mb-6" aria-label="待处理发布请求"><h2>待处理发布请求</h2>{selected.map(item=><div key={item.key} className="mt-3"><p>{item.label}</p><PendingIntent item={item}/>{item.rejection?<RejectedRequest item={item}/>:<RecoveryRequest item={item}/>}</div>)}</section>;
 }
 function requestAction(item:PendingReleaseRequest){try{return decodeReleaseRequest(item).action}catch{return undefined}}
 function RecoveryRequest({item}:{item:PendingReleaseRequest}){
@@ -82,7 +82,7 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
   {preview&&<><p>{action==="quick-rollback"?"重新审阅整单恢复预览，确认后将使用新的请求标识执行：":"原申请与最新记录基线的差异："}</p><ReleaseDiff order={{items:preview.items}} beforeLabel={action==="quick-rollback"?"当前值":undefined} proposedLabel={action==="quick-rollback"?"恢复值":undefined}/></>}
   {needsDraftUpdate&&current&&<p>草稿记录基线已变化，请先<Link to={`/configuration/release-orders/${current.id}`}>编辑草稿并核对最新配置</Link>，再重新检查提交。</p>}
   {action==="quick-rollback"&&current&&!current.allowed_actions.includes("quick-rollback")&&<p>当前发布单已不能快速回滚，原原因保留供核对。</p>}
-  {(current||preview)&&(action!=="quick-rollback"||Boolean(rebuilt))&&<Button disabled={!allowed||reading||write.pending||!rebuilt} onClick={async()=>{
+  {(current||preview)&&(action!=="quick-rollback"||Boolean(rebuilt))&&<Button disabled={write.blocked||!allowed||reading||write.pending||!rebuilt} onClick={async()=>{
    if(!rebuilt)return;write.confirmRebuild();const result=await write.send({...rebuilt,label:item.label});
    if(result)protection.afterSave(()=>navigate(`/configuration/release-orders/${result.id}`));
   }}>{confirmLabel}</Button>}

@@ -5,7 +5,7 @@ import {ReleaseRecovery} from "./ReleaseRecovery";
 import {ReleaseDraftEditor} from "./ReleaseDraftEditor";
 import {useEffect,useState} from "react";
 import {useWorkspaceIdentity} from "../accounts/ProtectedWorkspace";
-import {pendingReleaseRequests,releaseJournalChanged} from "./release-journal";
+import {pendingReleaseRequests,releaseJournalChanged,releaseRequestOrder} from "./release-journal";
 import {useQuery} from "@tanstack/react-query";
 import {Link,useParams} from "react-router-dom";
 import {releaseOrders,type ReleaseStateAction} from "../../api/release-orders";
@@ -15,8 +15,12 @@ import {NativeSelect} from "../../components/shadcn/native-select";
 import {Table,TableHeader,TableBody,TableRow,TableHead,TableCell} from "../../components/shadcn/table";
 import {ErrorState,LoadingState} from "../../components/ui/Feedback";
 import {useAccountRole} from "../accounts/roles";
-import {PublicationResult} from "./PublicationResult";
-import {ReleaseDiff} from "./ReleaseDiff";
+import {useToast} from "../../components/ui/Toast";
+import {ReleaseTime} from "./ReleaseTime";
+import {ReleaseProgress} from "./ReleaseProgress";
+import {ReleaseHistory} from "./ReleaseHistory";
+import {ReleaseReview} from "./ReleaseReview";
+
 import {QuickRollbackDialog} from "./QuickRollbackDialog";
 import {ReleasePerson} from "./ReleasePerson";
 
@@ -43,9 +47,11 @@ function ReleaseList(){
 }
 function ReleaseDetail({id}:{id:string}){
  const accountID=useWorkspaceIdentity()!.account.id;
+ const {showToast}=useToast();
+ const [copyError,setCopyError]=useState(false);
  const [requests,setRequests]=useState(()=>pendingReleaseRequests(accountID));
  useEffect(()=>{const update=()=>setRequests(pendingReleaseRequests(accountID));window.addEventListener(releaseJournalChanged,update);return()=>window.removeEventListener(releaseJournalChanged,update)},[accountID]);
- const requestPending=requests.some(item=>!item.rejection&&item.path.startsWith(`/api/v1/release-orders/${id}/`));
+ const requestPending=requests.some(item=>!item.rejection&&releaseRequestOrder(item)===id);
  const query=useQuery({queryKey:["release-order",id],queryFn:()=>releaseOrders.get(id),retry:shouldRetryQuery});
  const people=useQuery({queryKey:["release-order-people",id],queryFn:()=>releaseOrders.people(id),enabled:query.isSuccess,retry:shouldRetryQuery});
  const [action,setAction]=useState<ReleaseStateAction>();
@@ -63,13 +69,21 @@ function ReleaseDetail({id}:{id:string}){
  const peopleCode=people.error instanceof ApiError?people.error.code:"unknown_error";
  const names=people.isError?{}:people.data?.people??{};
  const reverse=Boolean(order.rollback_of_id);
- return <><Link to="/configuration/release-orders">返回发布单列表</Link><section className="my-6 break-all"><h2 className="text-xl font-semibold">{order.title}</h2><p>{order.table_name} · {releaseStateLabels[order.state]}</p><p>单号：{order.id}</p><div className="my-2 flex items-center gap-2"><span>申请人：</span><ReleasePerson id={order.applicant_id} name={names[order.applicant_id]}/></div><p>发布单版本：{order.version}</p><div className="flex flex-wrap gap-3 mt-4"><Button onClick={()=>{void query.refetch();void people.refetch()}}>重新读取发布单</Button>{!reverse&&canEdit&&order.allowed_actions.includes("edit")&&<><Button onClick={()=>setEditing(true)}>编辑草稿</Button><Link className="button" to={`/configuration/managed-data?table_name=${encodeURIComponent(order.table_name)}&draft=${order.id}`}>添加明细</Link></>}{canEdit&&order.allowed_actions.includes("submit")&&<Button variant="primary" onClick={()=>setAction("submit")}>提交审批</Button>}{canApprove&&order.allowed_actions.includes("approve")&&<Button variant="primary" onClick={()=>setAction("approve")}>批准发布单</Button>}{canApprove&&order.allowed_actions.includes("reject")&&<Button onClick={()=>setAction("reject")}>拒绝发布单</Button>}{canEdit&&order.allowed_actions.includes("cancel")&&<Button onClick={()=>setAction("cancel")}>{order.state==="DRAFT"?"取消草稿":"取消发布单"}</Button>}{canPublish&&order.allowed_actions.includes("execute")&&<Button variant="primary" onClick={()=>setAction("execute")}>执行发布</Button>}{!reverse&&canPublish&&order.allowed_actions.includes("quick-rollback")&&<Button variant="danger" disabled={requestPending} onClick={()=>setQuickRollback(true)}>快速回滚</Button>}{!reverse&&canPublish&&order.allowed_actions.includes("complete")&&<Button variant="primary" disabled={requestPending} onClick={()=>setAction("complete")}>完结发布单</Button>}{!reverse&&canEdit&&order.allowed_actions.includes("reprepare")&&<Button onClick={()=>setReprepare(true)}>重新准备</Button>}{!reverse&&canEdit&&order.allowed_actions.includes("copy")&&<Button onClick={()=>setCopy(true)}>复制新草稿</Button>}{canEdit&&!order.rollback_pending&&order.allowed_actions.includes("rollback")&&<Button variant="primary" disabled={requestPending} onClick={()=>setAction("rollback")}>申请回滚</Button>}</div></section>
- {peopleFailure&&<section className="inline-alert mb-4" role="alert"><div><strong>人员姓名读取失败，当前仅显示永久账号 ID。</strong><span>{peopleFailure.message}</span><span>错误代码：{peopleCode}</span>{peopleFailure.requestId&&<span>请求编号：{peopleFailure.requestId}</span>}</div><Button variant="secondary" disabled={people.isFetching} onClick={()=>void people.refetch()}>{people.isFetching?"正在读取人员姓名…":"重新读取人员姓名"}</Button></section>}
+ const approver=[...order.history].reverse().find(event=>event.action==="APPROVE");
+ return <div className="release-detail min-w-0"><nav aria-label="发布单位置" className="text-xs text-muted-foreground">配置管理 / 发布单 / <span aria-current="page">详情</span></nav><div className="flex flex-wrap justify-between gap-3"><Link className="underline underline-offset-4" to="/configuration/release-orders">返回发布单列表</Link><Button onClick={()=>{void query.refetch();void people.refetch()}}>重新读取发布单</Button></div>
+ <ReleaseProgress order={order} people={names}/>
+ <div className="release-detail-overview">
+  <section className="release-panel min-w-0" aria-label="基本信息"><h2 className="text-xl font-semibold break-all">{order.title}</h2><p className="mt-2 mb-6 text-muted-foreground break-all">{order.table_name} · {releaseStateLabels[order.state]}</p>
+   <dl className="release-info"><div><dt>发布单号</dt><dd className="font-mono break-all">{order.id}<Button variant="ghost" className="ml-1" onClick={async()=>{try{await navigator.clipboard.writeText(order.id);setCopyError(false);showToast("已复制发布单号")}catch{setCopyError(true)}}}>复制发布单号</Button>{copyError&&<p role="alert">复制失败，请选择单号手动复制。</p>}</dd></div><div><dt>申请人</dt><dd><ReleasePerson id={order.applicant_id} name={names[order.applicant_id]}/></dd></div><div><dt>创建时间</dt><dd><ReleaseTime value={order.created_at}/></dd></div><div><dt>审批人</dt><dd>{approver?<ReleasePerson id={approver.actor_id} name={names[approver.actor_id]}/>:order.rollback_of_id&&order.history.some(event=>event.action==="QUICK_ROLLBACK")?"快速回滚无需新审批":"尚无批准记录"}</dd></div><div><dt>发布单版本</dt><dd>{order.version}</dd></div>{order.publication&&<div><dt>发布人</dt><dd><ReleasePerson id={order.publication.publisher_id} name={names[order.publication.publisher_id]}/></dd></div>}</dl>
+  </section>
+  <section className="release-panel min-w-0" aria-label="发布操作"><h2 className="text-lg font-semibold mb-4">发布操作</h2><p className="font-medium">{releaseStateLabels[order.state]}</p><p className="my-3 text-muted-foreground">本次操作始终针对全部 {order.items.length.toLocaleString("en-US")} 项变更，分页与筛选仅用于审阅。</p>{requestPending&&<p role="status" className="mb-3">此单已有请求正在处理或结果待确认。请先恢复原请求，其他写入暂不可用。</p>}<div className="release-action-list">{!reverse&&canEdit&&order.allowed_actions.includes("edit")&&<><Button disabled={requestPending} onClick={()=>setEditing(true)}>编辑草稿</Button>{requestPending?<Button disabled>添加明细</Button>:<Link className="button" to={`/configuration/managed-data?table_name=${encodeURIComponent(order.table_name)}&draft=${order.id}`}>添加明细</Link>}</>}{canEdit&&order.allowed_actions.includes("submit")&&<Button variant="primary" disabled={requestPending} onClick={()=>setAction("submit")}>提交审批</Button>}{canApprove&&order.allowed_actions.includes("approve")&&<Button variant="primary" disabled={requestPending} onClick={()=>setAction("approve")}>批准发布单</Button>}{canApprove&&order.allowed_actions.includes("reject")&&<Button disabled={requestPending} onClick={()=>setAction("reject")}>拒绝发布单</Button>}{canEdit&&order.allowed_actions.includes("cancel")&&<Button disabled={requestPending} onClick={()=>setAction("cancel")}>{order.state==="DRAFT"?"取消草稿":"取消发布单"}</Button>}{canPublish&&order.allowed_actions.includes("execute")&&<Button variant="primary" disabled={requestPending} onClick={()=>setAction("execute")}>执行发布</Button>}{!reverse&&canPublish&&order.allowed_actions.includes("quick-rollback")&&<Button variant="danger" disabled={requestPending} onClick={()=>setQuickRollback(true)}>快速回滚</Button>}{!reverse&&canPublish&&order.allowed_actions.includes("complete")&&<Button variant="primary" disabled={requestPending} onClick={()=>setAction("complete")}>完结发布单</Button>}{!reverse&&canEdit&&order.allowed_actions.includes("reprepare")&&<Button disabled={requestPending} onClick={()=>setReprepare(true)}>重新准备</Button>}{!reverse&&canEdit&&order.allowed_actions.includes("copy")&&<Button disabled={requestPending} onClick={()=>setCopy(true)}>复制新草稿</Button>}{canEdit&&!order.rollback_pending&&order.allowed_actions.includes("rollback")&&<Button variant="primary" disabled={requestPending} onClick={()=>setAction("rollback")}>申请回滚</Button>}</div>{order.allowed_actions.length===0&&<p className="text-muted-foreground">当前状态和权限下没有可执行操作。</p>}</section>
+ </div>
+ {peopleFailure&&<section className="inline-alert mb-4 min-w-0 flex-wrap" role="alert"><div><strong>人员姓名读取失败，当前仅显示永久账号 ID。</strong><span>{peopleFailure.message}</span><span>错误代码：{peopleCode}</span>{peopleFailure.requestId&&<span>请求编号：{peopleFailure.requestId}</span>}</div><Button variant="secondary" disabled={people.isFetching} onClick={()=>void people.refetch()}>{people.isFetching?"正在读取人员姓名…":"重新读取人员姓名"}</Button></section>}
  {order.rollback_pending&&<p className="inline-alert mb-4">这张已发布单已有回滚申请处理中。</p>}{order.frozen_digest&&<p className="mb-4">{reverse?"回滚意图":"提交内容"}已冻结，审批和发布以这份差异为准。</p>}{order.copied_from_id&&<p className="mb-4">{order.history[0]?.action==="REPREPARE"?"重新准备自":"复制自"} <Link to={`/configuration/release-orders/${order.copied_from_id}`}>{order.copied_from_id}</Link></p>}{order.rollback_of_id&&<p className="mb-4">回滚原发布单 <Link to={`/configuration/release-orders/${order.rollback_of_id}`}>{order.rollback_of_id}</Link>；明细来自原发布的实际结果，不可编辑或复制。</p>}{order.rollback_order_id&&<p className="mb-4">最新回滚发布单 <Link to={`/configuration/release-orders/${order.rollback_order_id}`}>{order.rollback_order_id}</Link></p>}
- <ReleaseDiff order={order}/>{order.publication&&<PublicationResult result={order.publication} people={names}/>}<h2 className="text-lg font-semibold mb-3">操作历史</h2><ol className="grid gap-3">{order.history.map(event=><li key={event.version} className="border-b pb-3 break-all"><p>{event.action} · 版本 {event.version}</p><ReleasePerson id={event.actor_id} name={names[event.actor_id]}/><time className="block">{event.at}</time>{event.reason&&<p>{event.reason}</p>}{event.related_order_id&&<p>关联发布单：<Link to={`/configuration/release-orders/${event.related_order_id}`}>{event.related_order_id}</Link></p>}</li>)}</ol>
+ <ReleaseReview order={order} people={names}/><ReleaseHistory order={order} people={names}/>
  {editing&&<ReleaseDraftEditor order={order} onClose={()=>setEditing(false)}/>}
  {action&&<ReleaseActionDialog order={order} action={action} onClose={()=>setAction(undefined)}/>}
  {quickRollback&&<QuickRollbackDialog order={order} onClose={()=>setQuickRollback(false)}/>}
  {copy&&<CopyDraftDialog order={order} onClose={()=>setCopy(false)}/>}
- {reprepare&&<ReprepareDraftDialog order={order} onClose={()=>setReprepare(false)}/>}</>;
+ {reprepare&&<ReprepareDraftDialog order={order} onClose={()=>setReprepare(false)}/>}</div>;
 }

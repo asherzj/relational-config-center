@@ -23,4 +23,19 @@ export async function sendReleaseRequest(accountID:string,value:PendingReleaseRe
  if(businessSession().credentials?.accountID!==accountID)throw new ApiError("stale_session","请使用原申请账号恢复此请求。",0);
  return releaseOrders.write(value.path,value.method,value.body,value.key);
 }
-export function uncertainReleaseError(error:unknown){return isUncertainWriteError(error)||(error instanceof ApiError&&error.status>=500)}
+export function uncertainReleaseError(error:unknown){return isUncertainWriteError(error)||(error instanceof ApiError&&(error.status>=500||error.status===401||error.status===403))}
+
+// All actions targeting the same order share an exclusion boundary. The durable
+// journal survives reload; this in-memory set also excludes simultaneous replay.
+const sending=new Set<string>();
+export const releaseRequestOrder=(request:Pick<PendingReleaseRequest,"path">)=>request.path.match(/^\/api\/v1\/release-orders\/([a-f0-9]{32})(?:\/|$)/)?.[1];
+export function conflictingReleaseRequest(accountID:string,path:string,scope:string){
+ const id=releaseRequestOrder({path});
+ return id&&pendingReleaseRequests(accountID).find(item=>!item.rejection&&item.scope!==scope&&releaseRequestOrder(item)===id);
+}
+export function releaseRequestSending(accountID:string,key:string){return sending.has(`${accountID}:${key}`)}
+export function startReleaseRequest(accountID:string,key:string){
+ if(releaseRequestSending(accountID,key))return false;
+ sending.add(`${accountID}:${key}`);window.dispatchEvent(new Event(releaseJournalChanged));return true;
+}
+export function finishReleaseRequest(accountID:string,key:string){sending.delete(`${accountID}:${key}`);window.dispatchEvent(new Event(releaseJournalChanged))}

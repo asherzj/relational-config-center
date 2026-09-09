@@ -215,15 +215,44 @@ const output = process.env.RCC_E2E_OUTPUT;
 
     await applicantPage.goto(forwardURL);
     await heading(applicantPage, '已回滚').waitFor();
+    const actualResult=applicantPage.getByRole('region',{name:'发布结果',exact:true});
+    await actualResult.getByText(`值：T8 ${engineName} browser published value`,{exact:true}).waitFor();
+    await button(applicantPage,'恢复结果').click();await actualResult.getByText('值：Rollback seed',{exact:true}).waitFor();
+    await button(applicantPage,'申请差异').click();await applicantPage.getByRole('region',{name:'变更内容',exact:true}).getByText(`T8 ${engineName} browser published value`,{exact:true}).waitFor();
+    await button(applicantPage,'原发布结果').click();await actualResult.getByText(`值：T8 ${engineName} browser published value`,{exact:true}).waitFor();
+    const history=applicantPage.getByRole('region',{name:'操作历史',exact:true});assert.equal(await history.getByRole('listitem').count(),5);
+    await history.getByRole('button',{name:`查看全部 ${original.history.length} 条记录`,exact:true}).click();assert.equal(await history.getByRole('listitem').count(),original.history.length);
+    await history.getByRole('button',{name:'收起为最近 5 条',exact:true}).click();assert.equal(await history.getByRole('listitem').count(),5);
+    check('rolled-back detail switches actual original/restoration results and requested differences, with recent-five history and full expansion');
+
     await applicantPage.getByText('最新回滚发布单', { exact: false }).waitFor();
     await applicantPage.setViewportSize({ width: 390, height: 844 });
     await applicantPage.getByLabel('主导航', { exact: true }).waitFor({ state: 'hidden' });
+    await button(applicantPage,'申请差异').click();
+    const fieldScroll=applicantPage.getByRole('region',{name:'明细 1 字段对比，可横向滚动',exact:true});
+    let fieldFocused=false;
+    for(let step=0;step<15&&!fieldFocused;step++){
+      await applicantPage.keyboard.press('Tab');
+      fieldFocused=await fieldScroll.evaluate(element=>element===document.activeElement);
+    }
+    assert.equal(fieldFocused,true,'Tab must reach the actual field-table scroll container');
+    assert.equal(await fieldScroll.evaluate(element=>element.scrollLeft),0);
+    // A physical key is held briefly; zero-duration bursts are combined by WebKit.
+    for(let step=0;step<12;step++)await applicantPage.keyboard.press('ArrowRight',{delay:100});
+    await applicantPage.waitForFunction(()=>{const element=document.querySelector('.release-diff-scroll');return element&&element.scrollLeft>0&&element.scrollLeft>=element.scrollWidth-element.clientWidth-1});
+    const fieldBounds=await fieldScroll.evaluate(element=>{const viewport=element.getBoundingClientRect(),column=element.querySelector('thead th:last-child').getBoundingClientRect();return {left:element.scrollLeft,width:element.clientWidth,total:element.scrollWidth,columnLeft:column.left,columnRight:column.right,viewportLeft:viewport.left,viewportRight:viewport.right}});assert.ok(fieldBounds.total>fieldBounds.width&&fieldBounds.left>0);
+    assert.ok(fieldBounds.columnLeft>=fieldBounds.viewportLeft-1&&fieldBounds.columnRight<=fieldBounds.viewportRight+1,'the entire proposed-value column must be within the scroll viewport');
+    await fieldScroll.getByRole('columnheader',{name:'申请值',exact:true}).waitFor();
+    check('390px keyboard Tab reaches the actual diff scroll container and ArrowRight reveals the complete proposed-value column');
+    await button(applicantPage,'原发布结果').click();
     await assertMobileLayout(applicantPage, 'release-rollback-original');
+    await applicantPage.evaluate(() => scrollTo(0, 0));
     if (output) await applicantPage.screenshot({ path: join(output, 'release-rollback-original-mobile.png'), fullPage: true, animations: 'disabled' });
     await applicantPage.goto(reverseURL);
     await heading(applicantPage, '已完结', true).waitFor();
     await applicantPage.getByText('回滚原发布单', { exact: false }).waitFor();
     await assertMobileLayout(applicantPage, 'release-rollback-reverse');
+    await applicantPage.evaluate(() => scrollTo(0, 0));
     if (output) await applicantPage.screenshot({ path: join(output, 'release-rollback-reverse-mobile.png'), fullPage: true, animations: 'disabled' });
     check('original and reverse detail links remain visible at 390px without horizontal overflow');
 
@@ -336,6 +365,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     await publishPage.getByRole('link', { name: quickOriginal.id, exact: true }).first().waitFor();
     await publishPage.setViewportSize({ width: 390, height: 844 });
     await assertMobileLayout(publishPage, 'release-quick-rollback-result');
+    await publishPage.evaluate(() => scrollTo(0, 0));
     if (output) await publishPage.screenshot({ path: join(output, 'release-quick-rollback-result-mobile.png'), fullPage: true, animations: 'disabled' });
     check('quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish both orders');
 
