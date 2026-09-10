@@ -52,7 +52,7 @@ function ReleaseList(){
  <footer className="catalog-footer"><Button disabled={!filters.after} onClick={()=>setFilters({...filters,after:""})}>回到首页</Button><Button disabled={!list.data.next_cursor} onClick={()=>setFilters({...filters,after:list.data.next_cursor})}>下一页</Button></footer>
  </>}</>;
 }
-function ReleaseDetail({id}:{id:string}){
+export function ReleaseDetail({id,listPath="/configuration/release-orders",listLabel="发布单"}:{id:string;listPath?:string;listLabel?:string}){
  const {showToast}=useToast();
  const [copyError,setCopyError]=useState(false);
  const {requests,accountID}=useReleaseJournal();
@@ -68,15 +68,16 @@ function ReleaseDetail({id}:{id:string}){
  const canEdit=useAccountRole("EDITOR");
  const canPublish=useAccountRole("PUBLISHER");
 
- if(query.isPending)return <LoadingState/>;
- if(!query.data)return <ErrorState error={query.error} onRetry={()=>void query.refetch()}/>;
+ const navigation=<><nav aria-label="发布单位置" className="text-xs text-muted-foreground">配置管理 / {listLabel} / <span aria-current="page">详情</span></nav><div><Link className="underline underline-offset-4" to={listPath}>返回{listLabel}列表</Link></div></>;
+ if(query.isPending)return <div className="release-detail min-w-0">{navigation}<LoadingState/></div>;
+ if(!query.data)return <div className="release-detail min-w-0">{navigation}<ErrorState error={query.error} onRetry={()=>void query.refetch()}/></div>;
  const order=query.data;
  const peopleFailure=people.isError?presentError(people.error):undefined;
  const peopleCode=people.error instanceof ApiError?people.error.code:"unknown_error";
  const names=people.isError?{}:people.data?.people??{};
  const publication=order.executions.find(execution=>execution.kind==="PUBLICATION");
  const approver=[...order.history].reverse().find(event=>event.action==="APPROVE");
- return <CurrentFieldDisplayProvider tableNames={releaseTables(order)}><div className="release-detail min-w-0"><nav aria-label="发布单位置" className="text-xs text-muted-foreground">配置管理 / 发布单 / <span aria-current="page">详情</span></nav><div><Link className="underline underline-offset-4" to="/configuration/release-orders">返回发布单列表</Link></div>
+ return <CurrentFieldDisplayProvider tableNames={releaseTables(order)}><div className="release-detail min-w-0">{navigation}
  {query.isError&&<ErrorState error={query.error} onRetry={()=>void query.refetch()}/>}
  <ReleaseProgress order={order} people={names}/>
  <div className="release-detail-overview">

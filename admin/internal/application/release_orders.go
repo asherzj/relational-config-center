@@ -96,6 +96,7 @@ type ReleaseOrderSession interface {
 
 type ReleaseOrderStore interface {
 	releaseApprovalReader
+	ReadReleaseOrderList(context.Context, func(ReleaseOrderListReader) error) error
 	ExecuteReleaseOrder(context.Context, func(ReleaseOrderSession) error) error
 	ExecutePublication(context.Context, func(PublicationSession) error) error
 	ReadReleaseHeader(context.Context, string) (domain.ReleaseHeader, error)
@@ -796,13 +797,8 @@ func (r *ReleaseOrders) List(ctx context.Context, filter ReleaseFilter) ([]domai
 	if _, err := requireRole(ctx, RoleViewer); err != nil {
 		return nil, err
 	}
-	if filter.Limit < 1 || filter.Limit > 100 || len(filter.TableName) > 256 || len(filter.ApplicantID) > 36 || len(filter.ID) > 32 || len(filter.After) > 32 {
-		return nil, ErrReleaseInvalid
-	}
-	switch filter.State {
-	case "", "DRAFT", "PENDING_APPROVAL", "APPROVED", "SUCCEEDED", "COMPLETED", "REJECTED", "CANCELLED", "ROLLED_BACK":
-	default:
-		return nil, ErrReleaseInvalid
+	if err := validateReleaseFilter(filter); err != nil {
+		return nil, err
 	}
 	orders, err := r.store.ListReleaseOrders(ctx, filter)
 	if err != nil {

@@ -1,0 +1,59 @@
+{
+  "valid_tests": [
+    {
+      "test": "TestNotificationCenterSubmittedViewsExcludeUnsubmittedDrafts",
+      "log": "ac012-mysql-final.txt",
+      "result": "PASS"
+    },
+    {
+      "test": "TestNotificationCenterCurrentEligibilityAndDurableHandledHistory",
+      "log": "ac012-mysql-final.txt",
+      "result": "PASS"
+    },
+    {
+      "test": "TestNotificationCenterFiltersBeforePaginationAndProtectsIdentity",
+      "log": "ac012-mysql-final.txt",
+      "result": "PASS"
+    },
+    {
+      "test": "TestNotificationCenterRejectsIncompatibleHistoryAndDirectoryFailure",
+      "log": "scope-and-regressions.txt",
+      "result": "PASS"
+    },
+    {
+      "test": "TestReleaseDraftCurrentAuthorizationAndListing",
+      "log": "scope-and-regressions.txt",
+      "result": "PASS"
+    },
+    {
+      "test": "TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin",
+      "log": "scope-and-regressions.txt",
+      "result": "PASS"
+    },
+    {
+      "test": "TestTableApprovalPartialProgressAndFinalApproval",
+      "log": "scope-and-regressions.txt",
+      "result": "PASS"
+    },
+    {
+      "test": "TestTableApprovalSnapshotMembershipFallbackAndHistory",
+      "log": "scope-and-regressions.txt",
+      "result": "PASS"
+    },
+    {
+      "test": "TestTableApprovalFallbackMatrixAndEmptySnapshot",
+      "log": "scope-and-regressions.txt",
+      "result": "PASS"
+    },
+    {
+      "test": "TestTableApprovalAccountAvailabilityAndDurableHistory",
+      "log": "scope-and-regressions.txt",
+      "result": "PASS"
+    }
+  ],
+  "total": 10,
+  "notes": [
+    "The historical-success test in ac012-mysql-final.txt was superseded by the incompatible-history rejection test.",
+    "The production change only removed that compatibility branch; the other three AC012 tests use complete current snapshots and remain applicable."
+  ]
+}

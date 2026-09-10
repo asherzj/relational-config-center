@@ -1,6 +1,6 @@
 import { useAccountRole, roleLabels } from "../features/accounts/roles";
 import { useWorkspaceIdentity } from "../features/accounts/ProtectedWorkspace";
-import { ArrowLeftRight, ChevronRight, Database, FileSearch, Layers3, Menu, ShieldCheck, Table2, X } from "lucide-react";
+import { ArrowLeftRight, Bell, ChevronRight, Database, FileSearch, Layers3, Menu, ShieldCheck, Table2, X } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Button } from "./ui/Button";
@@ -39,6 +39,7 @@ export function AppShell() {
           <section className="nav-group" aria-labelledby="configuration-navigation-title">
             <div id="configuration-navigation-title" className="nav-group-title">配置管理</div>
             <NavLink to="/configuration/release-orders" onClick={() => setMobileNavOpen(false)}><FileSearch size={18} />发布单</NavLink>
+            <NavLink to="/configuration/notifications" onClick={() => setMobileNavOpen(false)}><Bell size={18} />通知中心</NavLink>
             <NavLink to="/configuration/managed-data" onClick={() => setMobileNavOpen(false)}><Table2 size={18} />配置内容管理</NavLink>
           </section>
           <section className="nav-group" aria-labelledby="table-navigation-title">

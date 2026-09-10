@@ -1,0 +1,5 @@
+ok  	github.com/asherzj/relational-config-center/admin/internal/application	0.658s
+ok  	github.com/asherzj/relational-config-center/admin/internal/domain	0.586s
+ok  	github.com/asherzj/relational-config-center/admin/internal/interfaces/http	0.601s
+ok  	github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql	0.488s
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	20.832s

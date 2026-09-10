@@ -72,6 +72,8 @@ type RecordBaseline struct {
 type ReleaseFilter struct {
 	TableName, ApplicantID, State, ID, After string
 	Limit                                    int
+	SubmittedOnly                            bool
+	ReviewedBy                               string
 }
 
 // Execution metadata retains NULL separately from text. Sections have a fixed,

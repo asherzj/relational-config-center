@@ -1,0 +1,5 @@
+go version go1.27.0 darwin/arm64
+v24.19.0
+10.28.2
+29.7.2 / 29.5.2
+MySQL image: mysql:8.4 (formal integration fixture)

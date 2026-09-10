@@ -56,7 +56,18 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 				return
 			}
 		}
-		list, err := orders.List(c.Request.Context(), application.ReleaseFilter{TableName: c.Query("table_name"), ApplicantID: c.Query("applicant_id"), State: c.Query("state"), ID: c.Query("id"), After: c.Query("after"), Limit: limit})
+		filter := application.ReleaseFilter{TableName: c.Query("table_name"), ApplicantID: c.Query("applicant_id"), State: c.Query("state"), ID: c.Query("id"), After: c.Query("after"), Limit: limit}
+		var list []application.ReleaseOrderSummary
+		var err error
+		next := ""
+		if c.Request.URL.Query().Has("view") {
+			list, next, err = orders.NotificationOrders(c.Request.Context(), c.Query("view"), filter)
+		} else {
+			list, err = orders.List(c.Request.Context(), filter)
+			if len(list) == limit && len(list) > 0 {
+				next = list[len(list)-1].ID
+			}
+		}
 		if writeReleaseError(c, err) {
 			return
 		}
@@ -67,10 +78,6 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 				AllowedActions []string `json:"allowed_actions"`
 			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{ID: order.ID, State: order.State, ApplicantID: order.ApplicantID, TableNames: order.TableNames, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext})}
 			response = append(response, summary)
-		}
-		next := ""
-		if len(list) == limit {
-			next = list[len(list)-1].ID
 		}
 		c.JSON(200, gin.H{"orders": response, "next_cursor": next})
 	})
