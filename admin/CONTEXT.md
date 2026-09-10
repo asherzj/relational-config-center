@@ -105,11 +105,11 @@ The review of a submitted Release Order's frozen content through decisions made 
 _Avoid_: Login, publication, self-confirmation
 
 **Table Approval（表审批）**:
-An authorized person's approval or rejection covering one Managed Table's changes within a submitted Release Order. Approval by one eligible person satisfies that table's requirement, and one person's decision may cover several tables for which they are eligible.
+An authorized person's approval or rejection covering one Managed Table's changes within a submitted Release Order, retaining the person, qualification source, names, opinion and time of the decision. Approval by one eligible person completes that table's requirement; one action covers all tables still pending for that person.
 _Avoid_: Approval of an individual record, publication, approval of another table
 
 **Approval Assignment Snapshot（审批分配快照）**:
-The roles assigned to review each involved Managed Table when a Release Order is submitted. Role membership remains current, while later changes to the table's role assignment do not replace this snapshot or invalidate decisions already completed lawfully.
+The role identities and names assigned to review each involved Managed Table when a Release Order is submitted, including an explicitly empty assignment. Membership and eligibility remain current, while later table reassignment does not replace the snapshot or invalidate decisions already completed lawfully.
 _Avoid_: Policy Snapshot, frozen membership, current table assignment
 
 **Record Version（记录并发版本）**:

@@ -29,6 +29,12 @@ func (a *Adapter) executeReleaseTransaction(ctx context.Context, execute func(*r
 	if tx.Error != nil {
 		return application.ErrReleaseUnavailable
 	}
+	// Every release write takes authorization before request, order and details.
+	var authLock int
+	if err := tx.Raw(`SELECT id FROM rcc_auth_control_lock WHERE id=1 FOR UPDATE`).Row().Scan(&authLock); err != nil {
+		_ = tx.Rollback().Error
+		return application.ErrReleaseUnavailable
+	}
 	s := &releaseOrderSession{&querySnapshotSession{adapter: a, database: tx}}
 	s.active.Store(true)
 	defer func() { s.active.Store(false); _ = tx.Rollback().Error }()

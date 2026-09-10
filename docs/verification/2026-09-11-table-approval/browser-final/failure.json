@@ -1,0 +1,12 @@
+{
+  "engine": "chromium",
+  "checks": [
+    "管理员从正式表目录以键盘配置两个表的独立审批角色",
+    "390px 表分配冲突保留空选择，查看最新后明确重选保存",
+    "VIEWER 成员只批准商品表，页面显示真实部分进度，ADMIN 无通用越权",
+    "两个独立角色都通过后，申请人执行真实多表发布"
+  ],
+  "errors": [],
+  "message": "The expression evaluated to a falsy value:\n\n  assert.ok(await ops.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))\n",
+  "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(await ops.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))\n\n    at /private/tmp/rcc-issue-94-table-approval/web/e2e/table-approvals.cjs:93:153"
+}

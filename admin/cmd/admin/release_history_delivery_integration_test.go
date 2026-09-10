@@ -57,9 +57,15 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	for i, grant := range []struct {
 		actor actor
 		role  string
-	}{{editor, "EDITOR"}, {reviewer, "APPROVER"}, {publisher, "PUBLISHER"}} {
+	}{{editor, "EDITOR"}, {publisher, "PUBLISHER"}} {
 		request(admin, "PUT", "/api/v1/account-roles/"+grant.actor.id, fmt.Sprintf(`{"expected_version":"1","roles":[%q]}`, grant.role), fmt.Sprintf("history-role-%d", i), 200)
 	}
+	roleData := request(admin, "POST", "/api/v1/approval-roles", fmt.Sprintf(`{"name":"History reviewers","description":"","enabled":true,"member_ids":[%q]}`, reviewer.id), "history-reviewer-role", 201)
+	var role approvalRoleResult
+	if err := json.Unmarshal(roleData, &role); err != nil {
+		t.Fatal(err)
+	}
+	request(admin, "PUT", "/api/v1/table-policies/history_items/approval-roles", fmt.Sprintf(`{"expected_version":"0","role_ids":[%q]}`, role.ID), "history-reviewer-assignment", 200)
 	decode := func(data []byte) domain.ReleaseOrder {
 		var order domain.ReleaseOrder
 		if err := json.Unmarshal(data, &order); err != nil {
@@ -95,6 +101,14 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 		// Submit and execute accept the expected version without an opinion.
 		if name == "submit" || name == "execute" || name == "complete" {
 			body, _ = json.Marshal(map[string]string{"expected_version": order.Version})
+		}
+		if name == "approve" || name == "reject" {
+			data := request(a, "GET", "/api/v1/release-orders/"+order.ID, "", "", 200)
+			var header domain.ReleaseHeader
+			if err := json.Unmarshal(data, &header); err != nil {
+				t.Fatal(err)
+			}
+			body, _ = json.Marshal(map[string]any{"expected_version": header.Version, "reason": reason, "confirmed_tables": header.ApprovalContext.ApprovableTables, "expected_approval_revision": header.ApprovalContext.Revision})
 		}
 		return decode(request(a, "POST", "/api/v1/release-orders/"+order.ID+"/"+name, string(body), order.ID+"-"+name, 200))
 	}

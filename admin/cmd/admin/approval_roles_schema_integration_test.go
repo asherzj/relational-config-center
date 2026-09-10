@@ -8,7 +8,7 @@ import (
 )
 
 func TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade(t *testing.T) {
-	current := buildSchemaMigrationCommand(t)
+	current := buildSchemaMigrationReleaseAt(t, 6)
 	_, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql", "testdata/006-mutation-fixture.sql")
 	owner := *driver
 	owner.User = "root"
@@ -74,6 +74,8 @@ func TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade(t *testing.
 	fresh.DBName = "approval_fresh"
 	requireSchemaMigrationState(t, current, &fresh, "current", "up")
 	assertBaselinePhysicalSchemaEqual(t, db, deliveryDB(t, &fresh))
+	// Role migration evidence stays pinned to 6; current Admin requires later stages.
+	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), driver, "current", "up")
 	process := accountProcessCommand(t, buildIntegrationAdmin(t), driver)
 	process.ready(t)
 	for _, fault := range []struct{ apply, restore string }{

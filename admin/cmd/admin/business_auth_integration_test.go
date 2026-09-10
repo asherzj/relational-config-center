@@ -127,6 +127,8 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	reviewer := publicationFixtureReviewer(t, app)
+	configurePublicationReviewer(t, app, reviewer, "mutation_snapshot_items")
 	// Prepare and independently approve through the public release workflow.
 	created, err := do(http.MethodPost, "/api/v1/release-orders", `{"items":[{"content":{"code":"response-loss","label":"committed once"},"operation":"ADD","table_name":"mutation_snapshot_items"}],"title":"集成测试发布单"}`, csrf, "response-loss-create")
 	if err != nil {
@@ -149,7 +151,7 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
 	if submitted.StatusCode != 200 {
 		t.Fatalf("submit: %d %s", submitted.StatusCode, payload)
 	}
-	approved := releaseActorRequest(t, app, publicationFixtureReviewer(t, app), "POST", path+"/approve", `{"expected_version":"2","reason":"independently checked"}`, "response-loss-approve")
+	approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "independently checked"), "response-loss-approve")
 	if approved.Code != 200 {
 		t.Fatalf("approve: %d %s", approved.Code, approved.Body)
 	}
@@ -614,12 +616,13 @@ func approveActorPublication(t *testing.T, app *adminApplication, applicant, rev
 	if err := json.Unmarshal(created.Body.Bytes(), &order); err != nil {
 		t.Fatal(err)
 	}
+	configurePublicationReviewer(t, app, reviewer, order.TableNames...)
 	path := "/api/v1/release-orders/" + order.ID
 	submitted := releaseActorRequest(t, app, applicant, "POST", path+"/submit", `{"expected_version":"1"}`, key+"-submit")
 	if submitted.Code != 200 {
 		t.Fatalf("submit: %d %s", submitted.Code, submitted.Body)
 	}
-	approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"2","reason":"independently checked"}`, key+"-approve")
+	approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "independently checked"), key+"-approve")
 	if approved.Code != 200 {
 		t.Fatalf("approve: %d %s", approved.Code, approved.Body)
 	}

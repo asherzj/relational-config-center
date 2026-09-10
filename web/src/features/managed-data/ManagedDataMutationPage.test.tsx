@@ -559,7 +559,7 @@ it("明确勾选两行后加入本人跨表已有草稿，保留原明细和各�
 
 it("已有草稿去向只列出当前可编辑的草稿",async()=>{
  const editableID="11111111222222223333333344444444",readonlyID="55555555666666667777777788888888";
- const summary=(id:string,extra:object={})=>({id,title:"消息模板草稿",table_names:["notification_templates"],applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",allowed_actions:["edit"],item_count:1,operation_counts:{MODIFY:1},...extra});
+ const summary=(id:string,extra:object={})=>({id,title:"消息模板草稿",table_names:["notification_templates"],applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",allowed_actions:["edit"],item_count:1,operation_counts:{MODIFY:1},approvals:[],approval_context:{revision:"draft",tables:[],approvable_tables:[]},...extra});
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
   if(String(input).startsWith("/api/v1/release-orders?"))return json({orders:[summary(editableID),summary(readonlyID,{allowed_actions:["submit","cancel"]})],next_cursor:""});
   return readFetch(input,init,{...mutationPolicy,allow_modify:true});

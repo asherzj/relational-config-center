@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-94-table-approval/web
+> vitest run src/features/table-policies/TablePoliciesPage.test.tsx -t '表审批分配跨完整'
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-94-table-approval/web
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 15 skipped (16)
+   Start at  03:42:28
+   Duration  2.22s (transform 496ms, setup 253ms, import 816ms, tests 463ms, environment 580ms)
+

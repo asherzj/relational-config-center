@@ -1,0 +1,23 @@
+
+> @relational-config-center/web@0.0.0 typecheck /private/tmp/rcc-issue-94-table-approval/web
+> tsc --noEmit
+
+src/features/release-orders/ReleaseOrdersPage.test.tsx(1257,65): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'exact' does not exist in type 'ByRoleOptions'.
+src/features/release-orders/ReleaseOrdersPage.test.tsx(1258,60): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'exact' does not exist in type 'ByRoleOptions'.
+src/features/release-orders/ReleaseOrdersPage.test.tsx(1265,54): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'exact' does not exist in type 'ByRoleOptions'.
+src/features/release-orders/ReleaseOrdersPage.test.tsx(1266,58): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'exact' does not exist in type 'ByRoleOptions'.
+src/features/release-orders/ReleaseOrdersPage.test.tsx(1270,67): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'exact' does not exist in type 'ByRoleOptions'.
+src/features/release-orders/ReleaseOrdersPage.test.tsx(1272,48): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'exact' does not exist in type 'ByRoleOptions'.
+ ELIFECYCLE  Command failed with exit code 1.

@@ -1,0 +1,269 @@
+关系型配置中心
+工作空间
+配置管理
+单数据源
+配置管理
+发布单
+配置内容管理
+表配置管理
+查询规则定义
+变更规则定义
+表规则分配
+Browser acceptance
+e2e.3fff921ead75a80c2be6
+申请冲突审阅
+
+快速回滚 浏览器完结与快速回滚竞争
+
+查看原申请内容
+
+服务器已明确拒绝原请求。原申请保留，请查看最新状态与配置后决定是否重建。
+
+查看最新状态与配置
+
+最新发布单版本：5，状态：COMPLETED
+
+ADD 0 · MODIFY 1 · DELETE 0
+
+仅看变更
+
+共 1 项明细
+
+明细 1 · stage1_rollback_chromium_items · MODIFY · 记录 1
+
+记录基线 3
+
+字段	服务器原值	申请值
+name
+string
+	
+值
+T8 chromium browser published value
+	
+值
+Completion wins the reviewed quick rollback
+
+updated_at
+datetime
+	
+值
+2026-09-10 20:49:04.898105
+	
+发布时生成
+
+updated_by
+string
+	
+值
+8ac3da58-7ccb-47e5-8a0b-fcd3dff7b3e0
+	
+发布时生成
+
+当前发布单已不能快速回滚，原原因保留供核对。
+
+发布单
+配置管理 / 发布单 / 详情
+返回发布单列表
+准备
+
+已准备
+
+B
+Browser acceptance
+8b07d3d7-9ac4-4bf4-93c3-8d52cf104278
+
+2026/09/11 04:49:06
+
+审批
+
+已批准
+
+B
+Browser acceptance
+dc172548-76c0-4760-8517-1627dec730bd
+
+2026/09/11 04:49:06
+
+发布
+
+数据库已发布
+
+B
+Browser acceptance
+8ac3da58-7ccb-47e5-8a0b-fcd3dff7b3e0
+
+2026/09/11 04:49:06
+
+完结
+
+已完结
+
+7
+7fd0ef64-d082-41c8-9081-da8900f36023
+7fd0ef64-d082-41c8-9081-da8900f36023
+
+2026/09/11 04:49:06
+
+浏览器完结与快速回滚竞争
+
+stage1_rollback_chromium_items · 已完结
+
+发布单号
+385238b41d1188bd6eb1f9c96e024a25复制发布单号
+申请人
+B
+Browser acceptance
+8b07d3d7-9ac4-4bf4-93c3-8d52cf104278
+创建时间
+2026/09/11 04:49:06
+最近审批人
+B
+Browser acceptance
+dc172548-76c0-4760-8517-1627dec730bd
+发布单版本
+5
+发布人
+B
+Browser acceptance
+8ac3da58-7ccb-47e5-8a0b-fcd3dff7b3e0
+发布操作
+
+已完结
+
+本单共 1 项变更。审批按本人可审批表确认，发布与取消针对整单；分页与筛选仅用于审阅。
+
+快速回滚
+
+当前状态和权限下没有可执行操作。
+
+提交内容已冻结，审批和发布以这份差异为准。
+
+已通过 1 / 1 表
+
+每表任一合格成员通过即可，所有表通过后才能整单发布。已完成决定保留。
+
+stage1_rollback_chromium_items
+已通过
+
+提交时分配：Rollback review 14608c31-42c6-4297-99e9-13416aa34eeb
+
+Rollback review 14608c31-42c6-4297-99e9-13416aa34eeb · aab7e349-f85d-4431-bf5c-584fd28bfffe
+
+资格来源：Rollback review 14608c31-42c6-4297-99e9-13416aa34eeb
+
+Rollback review 14608c31-42c6-4297-99e9-13416aa34eeb · aab7e349-f85d-4431-bf5c-584fd28bfffe
+
+B
+Browser acceptance
+dc172548-76c0-4760-8517-1627dec730bd
+2026/09/11 04:49:06
+
+Independent approval
+
+变更内容
+申请差异
+原发布结果
+
+共 1 项结果
+
+数据库发布结果
+执行人：
+B
+Browser acceptance
+8ac3da58-7ccb-47e5-8a0b-fcd3dff7b3e0
+
+数据库执行时间：2026-09-10T20:49:06.530513Z
+
+stage1_rollback_chromium_items · 表发布版本 4 · 刷新通知 385238b41d1188bd6eb1f9c96e024a25:PUBLICATION · 分发尚未接入
+
+明细 1 · stage1_rollback_chromium_items · MODIFY · 记录 1
+
+表内变更序号：4 · 记录并发版本：4
+
+Schema 摘要：068710a2b5f65cee78e06f583a0694b1f6c1efbc3683f806f92849c53dbaa1c2
+
+最终行校验和：35639343268efe1434aa5172de7f7d7e7685caa4e4b52c92b10ed5799902095d
+
+字段	实际 before	实际 final
+category
+varchar(32)
+	SQL NULL	SQL NULL
+created_at
+datetime(6)
+	值：2026-09-10 20:43:21.012543	值：2026-09-10 20:43:21.012543
+created_by
+varchar(64)
+	值：fixture	值：fixture
+id
+bigint unsigned
+	值：1	值：1
+name
+varchar(64)
+	值：T8 chromium browser published value	值：Completion wins the reviewed quick rollback
+note
+varchar(255)
+	值：engine chromium	值：engine chromium
+priority
+int
+	值：1	值：1
+state
+enum('draft','active','paused')
+	值：active	值：active
+updated_at
+datetime(6)
+	值：2026-09-10 20:49:04.898105	值：2026-09-10 20:49:06.530513
+updated_by
+varchar(64)
+	值：8ac3da58-7ccb-47e5-8a0b-fcd3dff7b3e0	值：8ac3da58-7ccb-47e5-8a0b-fcd3dff7b3e0
+操作历史
+
+完结了发布单
+
+COMPLETE · 版本 5
+
+2026/09/11 04:49:06
+7
+7fd0ef64-d082-41c8-9081-da8900f36023
+7fd0ef64-d082-41c8-9081-da8900f36023
+
+发布到数据库
+
+EXECUTE · 版本 4
+
+2026/09/11 04:49:06
+B
+Browser acceptance
+8ac3da58-7ccb-47e5-8a0b-fcd3dff7b3e0
+
+通过了审批表
+
+APPROVE · 版本 3
+
+2026/09/11 04:49:06
+B
+Browser acceptance
+dc172548-76c0-4760-8517-1627dec730bd
+
+处理表范围：stage1_rollback_chromium_items
+
+stage1_rollback_chromium_items · Rollback review 14608c31-42c6-4297-99e9-13416aa34eeb（aab7e349-f85d-4431-bf5c-584fd28bfffe）
+
+Independent approval
+
+提交了审批
+
+SUBMIT · 版本 2
+
+2026/09/11 04:49:06
+B
+Browser acceptance
+8b07d3d7-9ac4-4bf4-93c3-8d52cf104278
+
+创建了草稿
+
+CREATE · 版本 1
+
+2026/09/11 04:49:06
+B
+Browser acceptance
+8b07d3d7-9ac4-4bf4-93c3-8d52cf104278

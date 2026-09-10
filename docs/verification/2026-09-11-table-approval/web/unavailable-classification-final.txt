@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-94-table-approval/web
+> vitest run src/features/release-orders/ReleaseOrdersPage.test.tsx -t '无人审批明确拒绝' --maxWorkers=1
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-94-table-approval/web
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 73 skipped (75)
+   Start at  04:48:59
+   Duration  2.55s (transform 623ms, setup 277ms, import 967ms, tests 778ms, environment 422ms)
+

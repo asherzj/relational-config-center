@@ -1,0 +1,27 @@
+[
+  [
+    "text/json",
+    "Chinese, emoji, LF, TAB, surrounding spaces and long text",
+    "exact submitted bytes for TEXT; MySQL canonical JSON, including integer > 2^53"
+  ],
+  [
+    "null/empty/omitted",
+    "SQL NULL, JSON literal null, JSON string \"null\", empty string and omitted ADD/MODIFY",
+    "distinct values; default on ADD, retain on MODIFY"
+  ],
+  [
+    "numeric/temporal",
+    "uint64 IDs above 2^53 and 2^63, near upper bound; signed/unsigned endpoints, DECIMAL, UTC microseconds",
+    "string HTTP, exact SQL and reopened editor"
+  ],
+  [
+    "defaults/generated",
+    "ordinary expression default explicit/omitted/Auto Fill; real STORED/VIRTUAL generated",
+    "ordinary values writable, Auto Fill succeeds, generated writes rejected"
+  ],
+  [
+    "storage limits",
+    "VARCHAR too long and signed TINYINT out of range",
+    "stable editable rejection, rollback, successful corrected retry"
+  ]
+]

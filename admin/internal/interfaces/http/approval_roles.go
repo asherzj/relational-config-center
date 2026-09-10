@@ -118,6 +118,8 @@ func approvalRoleResponse(role application.ApprovalRole) gin.H {
 }
 func writeApprovalRoleError(c *gin.Context, err error) {
 	switch {
+	case errors.Is(err, application.ErrTableApprovalVersion):
+		writeError(c, 409, "table_approval_conflict", "table approval assignment changed; review the latest version")
 	case errors.Is(err, application.ErrApprovalRoleNotSaved):
 		writeError(c, 503, "approval_role_not_saved", "this attempt was not committed; the content can be corrected and saved again")
 	case errors.Is(err, application.ErrApprovalRoleFields):

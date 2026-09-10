@@ -1,6 +1,6 @@
 import {useState} from "react";
 import {useNavigate} from "react-router-dom";
-import {draftFromOrder,releaseOrders,releaseRequests,releaseActionRole,releaseActionRequiresReason,loadReleaseForEdit,type ReleaseOrder,type ReleaseHeader,type ReleaseStateAction,type DraftItem} from "../../api/release-orders";
+import {canReviewRelease,decodeReleaseRequest,draftFromOrder,releaseOrders,releaseRequests,releaseActionRole,releaseActionRequiresReason,loadReleaseForEdit,type ReleaseOrder,type ReleaseHeader,type ReleaseStateAction,type DraftItem} from "../../api/release-orders";
 import {Drawer} from "../../components/ui/Drawer";
 import {Button} from "../../components/ui/Button";
 import {ConfirmDialog} from "../../components/ui/ConfirmDialog";
@@ -11,22 +11,31 @@ import {useAccountRole} from "../accounts/roles";
 import {useReleaseWrite} from "./useReleaseWrite";
 import {PagedReleaseDetails} from "./PagedReleaseDetails";
 import {ReleaseDiff} from "./ReleaseDiff";
+import {ApprovalScope,ReleaseApprovals} from "./ReleaseApprovals";
 import {PendingIntent,pendingRequestReason} from "./ReleaseRequestReview";
 
 export function ReleaseActionDialog({order,action,onClose}:{order:ReleaseHeader;action:ReleaseStateAction;onClose:()=>void}){
  const write=useReleaseWrite(`${action}:${order.id}`);
  const [reason,setReason]=useState<string>(()=>pendingRequestReason(write.storedRequest));
- const allowed=useAccountRole(releaseActionRole(action))&&(order.allowed_actions.includes(action)||Boolean(write.storedRequest));
+ const [confirmedOrder]=useState(order);
+ const approval=action==="approve"||action==="reject";
+ const globalAllowed=useAccountRole(releaseActionRole(action));
+ const allowed=approval?(canReviewRelease(order,action)||write.unresolved):globalAllowed&&(order.allowed_actions.includes(action)||Boolean(write.storedRequest));
+ let original:ReturnType<typeof decodeReleaseRequest>|undefined;
+ try{original=write.storedRequest?decodeReleaseRequest(write.storedRequest):undefined}catch{/* Preserve an unreadable original envelope without deriving another request. */}
+ const scope=original&&(original.action==="approve"||original.action==="reject")?{approvable_tables:original.input.confirmed_tables}:confirmedOrder.approval_context;
  const protection=useDraftProtection(Boolean(reason)||write.unresolved,write.pending);
  const labels={complete:["完结发布单","确认完结"],execute:["执行发布","确认发布到数据库"],submit:["提交审批","确认提交审批"],approve:["批准发布单","确认批准"],reject:["拒绝发布单","确认拒绝"],cancel:order.state==="DRAFT"?["取消草稿","确认取消草稿"]:["取消发布单","确认取消发布单"]};
  const reasonLabel=action==="cancel"?"取消原因":"审批意见";
- return <Drawer open eyebrow="发布单" title={labels[action][0]!} onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>关闭</Button><Button variant={action==="cancel"||action==="reject"?"danger":"primary"} disabled={write.blocked||!allowed||write.pending||(releaseActionRequiresReason(action)&&(!reason.trim())&&!write.unresolved)} onClick={async()=>{
-  const result=write.unresolved?await write.retry():await write.send({...releaseRequests.action(action,order.id,order.version,reason),label:`${labels[action][0]} ${order.id}`});if(result)protection.afterSave(()=>{onClose();});
+ return <Drawer open eyebrow="发布单" title={labels[action][0]!} onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>关闭</Button><Button variant={action==="cancel"||action==="reject"?"danger":"primary"} disabled={write.blocked||Boolean(write.storedRequest?.rejection)||!allowed||write.pending||(releaseActionRequiresReason(action)&&(!reason.trim())&&!write.unresolved)} onClick={async()=>{
+  const result=write.unresolved?await write.retry():await write.send({...releaseRequests.action(action,order.id,confirmedOrder.version,reason,confirmedOrder.approval_context),label:`${labels[action][0]} ${order.id}`});if(result)protection.afterSave(()=>{onClose();});
  }}>{write.pending?"正在处理…":labels[action][1]}</Button></>}>
  {action==="complete"?<p>完结将释放全部目标记录的占用，并关闭快速回滚。配置内容保持不变，完结后不能再回滚此单。分发尚未接入。</p>:action==="execute"?<p>发布将在一个事务中提交全部配置、版本和历史。成功仅表示数据库生效，分发尚未接入。</p>:action==="submit"?<p>请核对以下差异。提交后内容将被冻结，已知记录会被此单占用，等待其他审批人确认。</p>:<label>{reasonLabel}<Input aria-label={reasonLabel} value={reason} maxLength={2000} disabled={write.pending||write.unresolved} onChange={event=>setReason(event.target.value)}/></label>}
- <p>全部 {order.item_count.toLocaleString("en-US")} 项将一起{action==="execute"?"发布":action==="approve"?"批准":action==="submit"?"提交":"处理"}，预览分页不改变操作范围。</p>
- {write.storedRequest&&<PendingIntent item={write.storedRequest}/>}<PagedReleaseDetails order={order}/>
- {Boolean(write.error)&&<ErrorState error={write.error}/>} {write.unresolved&&<p role="alert">原请求与意见已保留；再次点击同一操作将提交原请求。</p>}
+ {approval?<ApprovalScope context={scope} rejection={action==="reject"}/>:<p>全部 {confirmedOrder.item_count.toLocaleString("en-US")} 项将一起{action==="execute"?"发布":action==="submit"?"提交":"处理"}，预览分页不改变操作范围。</p>}
+ {action==="submit"&&<ReleaseApprovals order={order}/>}
+ {approval&&!allowed&&<p role="alert">当前已无可审批范围。原意见保留，请重新审阅当前资格。</p>}
+ {write.storedRequest&&<PendingIntent item={write.storedRequest}/>}<PagedReleaseDetails order={confirmedOrder}/>
+ {Boolean(write.error)&&<ErrorState error={write.error}/>} {write.storedRequest?.rejection&&<p role="alert">审批或进度已变化，原意见与确认范围已保留。请关闭窗口，在“申请冲突审阅”中查看最新内容并明确确认。</p>} {write.unresolved&&<p role="alert">原请求与意见已保留；再次点击同一操作将提交原请求。</p>}
  </Drawer>;
 }
 export function CopyDraftDialog({order,onClose}:{order:ReleaseHeader;onClose:()=>void}){

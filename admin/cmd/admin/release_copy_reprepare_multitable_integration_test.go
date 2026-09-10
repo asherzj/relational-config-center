@@ -171,13 +171,13 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
 	applicant := registerAccount(t, app, "reprepare.multi.owner", "reprepare.multi.owner@example.com", "correct horse battery staple")
 	reviewer := registerAccount(t, app, "reprepare.multi.reviewer", "reprepare.multi.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, applicant, `["EDITOR"]`, "1", "reprepare-multi-owner-role")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "reprepare-multi-reviewer-role")
+	configurePublicationReviewer(t, app, reviewer, "reprepare_multi_a", "reprepare_multi_b")
 	admin := integrationAdminSession(t, app)
 
 	source := rollbackOrderResponse(t, releaseActorRequest(t, app, applicant, "POST", "/api/v1/release-orders", `{"title":"reprepare current multitable baselines","items":[{"table_name":"reprepare_multi_a","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"next-a"}},{"table_name":"reprepare_multi_b","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"next-b"}}]}`, "reprepare-multi-create"), 201)
 	path := "/api/v1/release-orders/" + source.ID
 	source = rollbackOrderResponse(t, releaseActorRequest(t, app, applicant, "POST", path+"/submit", `{"expected_version":"1"}`, "reprepare-multi-submit"), 200)
-	source = rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"2","reason":"independent multitable approval"}`, "reprepare-multi-approve"), 200)
+	source = rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "independent multitable approval"), "reprepare-multi-approve"), 200)
 	deliveryExec(t, db, `UPDATE reprepare_multi_b SET code='drift-b' WHERE id=1`)
 	previewInput := map[string]any{"title": source.Title, "items": derivedDraftItems(source)}
 	previewBody, _ := json.Marshal(previewInput)
@@ -329,7 +329,7 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
 	draftPath := "/api/v1/release-orders/" + reprepared.ID
 	submitted := rollbackOrderResponse(t, releaseActorRequest(t, app, admin, "POST", draftPath+"/submit", `{"expected_version":"1"}`, "reprepare-multi-resubmit"), 200)
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, admin, "POST", draftPath+"/approve", `{"expected_version":"2","reason":"self approval must not carry"}`, "reprepare-multi-self-approve"), 403, "permission_denied")
-	approvedReplacement := rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", draftPath+"/approve", `{"expected_version":"2","reason":"fresh independent review"}`, "reprepare-multi-independent-approve"), 200)
+	approvedReplacement := rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", draftPath+"/approve", confirmedApprovalBody(t, app, reviewer, draftPath, "fresh independent review"), "reprepare-multi-independent-approve"), 200)
 	if approvedReplacement.State != "APPROVED" || submitted.State != "PENDING_APPROVAL" {
 		t.Fatal("replacement did not require fresh approval")
 	}

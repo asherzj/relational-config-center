@@ -48,6 +48,7 @@ type ApprovalRoleChange struct {
 }
 
 type ApprovalRoleRepository interface {
+	TableApprovalRepository
 	ListApprovalRoles(context.Context, string, string, int) ([]ApprovalRole, error)
 	GetApprovalRole(context.Context, string) (ApprovalRole, error)
 	SaveApprovalRole(context.Context, ApprovalRoleChange) (ApprovalRole, error)

@@ -563,7 +563,7 @@ it("仅有审批角色的人填写意见批准冻结单据",async()=>{
  let current={...order,applicant_id:applicantID,state:"PENDING_APPROVAL",version:"2",allowed_actions:["approve","reject"],frozen_digest:"a".repeat(64),history:[{action:"CREATE",actor_id:applicantID,version:"1",at:"2026-09-07T08:00:00Z",reason:""},{action:"SUBMIT",actor_id:applicantID,version:"2",at:"2026-09-07T09:00:00Z",reason:""}]};
  const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",vi.fn(async(input,init)=>{
-  if(String(input).startsWith("/api/v1/auth/"))return json({...testAdminIdentity,account:{...testAdminIdentity.account,roles:["APPROVER"]}});
+  if(String(input).startsWith("/api/v1/auth/"))return json({...testAdminIdentity,account:{...testAdminIdentity.account,roles:["VIEWER"]}});
   if(String(input).endsWith("/people")){peopleReads++;return json({people:peopleReads===1?{[applicantID]:"当前申请人"}:{[applicantID]:"当前申请人",[reviewerID]:"首次审批人"}})}
   if(String(input).endsWith("/approve")){writes.push(init!);current={...current,state:"APPROVED",version:"3",allowed_actions:[],history:[...current.history,{action:"APPROVE",actor_id:reviewerID,version:"3",at:"2026-09-07T10:00:00Z",reason:"已核对变更范围"}]};return json(current)}
   if(String(input)===`/api/v1/release-orders/${id}`)return json(current);
@@ -577,13 +577,13 @@ it("仅有审批角色的人填写意见批准冻结单据",async()=>{
  await user.click(screen.getByRole("button",{name:"确认批准"}));
  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
  expect((await screen.findAllByText("首次审批人"))[0]).toBeVisible();expect(peopleReads).toBe(2);
- expect(writes).toHaveLength(1);expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"2",reason:"已核对变更范围"});
+ expect(writes).toHaveLength(1);expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"2",reason:"已核对变更范围",confirmed_tables:["items"],expected_approval_revision:"fixture-approval-1"});
 });
 
 it("审批状态冲突跨刷新保留原意见，查看最新后才显式重建",async()=>{
  let current={...order,applicant_id:"other-applicant",state:"PENDING_APPROVAL",version:"2",allowed_actions:["approve","reject"]};const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",vi.fn(async(input,init)=>{
-  if(String(input).startsWith("/api/v1/auth/"))return json({...testAdminIdentity,account:{...testAdminIdentity.account,roles:["APPROVER"]}});
+  if(String(input).startsWith("/api/v1/auth/"))return json({...testAdminIdentity,account:{...testAdminIdentity.account,roles:["VIEWER"]}});
   if(String(input).endsWith("/approve")){writes.push(init!);if(writes.length===1){current={...current,version:"3"};return json({error:{code:"release_version_conflict",message:"changed",request_id:"cas"}},409)}current={...current,state:"APPROVED",version:"4",allowed_actions:[]};return json(current)}
   if(String(input)===`/api/v1/release-orders/${id}`)return json(current);return json({orders:[current],next_cursor:""});
  }));
@@ -593,7 +593,7 @@ it("审批状态冲突跨刷新保留原意见，查看最新后才显式重建"
  await user.click(await screen.findByText("查看原申请内容"));expect(await screen.findByText("审批意见：保留这条意见")).toBeVisible();
  await user.click(screen.getByRole("button",{name:"查看最新状态与配置"}));await user.click(await screen.findByRole("button",{name:"确认按最新状态批准发布单"}));
  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();expect(writes).toHaveLength(2);
- expect(JSON.parse(String(writes[1]!.body))).toEqual({expected_version:"3",reason:"保留这条意见"});expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).not.toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
+ expect(JSON.parse(String(writes[1]!.body))).toEqual({expected_version:"3",reason:"保留这条意见",confirmed_tables:["items"],expected_approval_revision:"fixture-approval-1"});expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).not.toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
 });
 
 it("仅 PUBLISHER 执行原审批，丢响应后跨刷新使用原键确认并显示最终值",async()=>{
@@ -641,7 +641,7 @@ it("分页编辑及删除只提交本次明细变化和整单版本",async()=>{
  expect(JSON.parse(String(writes[0]!.body)).items).toBeUndefined();
 });
 
-it("千项预览可定位最后一项，审批仍包含整单",async()=>{
+it("千项预览可定位最后一项，审批仍覆盖本人整张表",async()=>{
  const large={...order,state:"PENDING_APPROVAL",applicant_id:"another-account",allowed_actions:["approve"],items:Array.from({length:1000},(_,index)=>({...order.items[0]!,detail_id:String(index+1).padStart(32,"0"),id:String(index+1),content:{label:`item-${index+1}`},fields:order.items[0]!.fields.map(field=>field.name==="label"?{...field,proposed:`item-${index+1}`}:field)}))};
  const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(String(input).endsWith("/approve")){writes.push(init);return json({...large,state:"APPROVED",version:"2"})}return json(large)})));
@@ -649,9 +649,9 @@ it("千项预览可定位最后一项，审批仍包含整单",async()=>{
  const jump=await screen.findByLabelText("定位明细");await user.clear(jump);await user.type(jump,"1000");
  expect(await screen.findByText("item-1000")).toBeVisible();expect(screen.queryByText("item-1")).not.toBeInTheDocument();
  await user.click(screen.getByRole("button",{name:"批准发布单"}));
- expect(await screen.findByText(/全部 1,000 项将一起/)).toBeVisible();
+ expect(screen.getByRole("region",{name:"本次审批范围"})).toHaveTextContent("items");
  await user.type(screen.getByLabelText("审批意见"),"核对整单");await user.click(screen.getByRole("button",{name:"确认批准"}));
- await waitFor(()=>expect(writes).toHaveLength(1));expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"1",reason:"核对整单"});
+ await waitFor(()=>expect(writes).toHaveLength(1));expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"1",reason:"核对整单",confirmed_tables:["items"],expected_approval_revision:"fixture-approval-1"});
 });
 
 it("大单与待恢复请求超出浏览器保存容量时发送前拒绝并保留原请求",async()=>{
@@ -1170,4 +1170,104 @@ it("后台 header 换版本和撤销编辑动作不重挂载输入，也不替�
  expect(screen.getByLabelText("label 申请值")).toBe(input);expect(input).toHaveValue("本窗口独立输入");expect(input).toBeDisabled();
  expect(pendingReleaseRequests(testAdminIdentity.account.id)).toEqual([retained]);
  expect(await screen.findByText("当前身份或发布单状态不允许编辑，已输入内容保留。")).toBeVisible();
+});
+
+it("VIEWER 成员按服务端资格确认表范围，部分批准不能显示整单已批准", async () => {
+ const roles=[{id:"role-products",name:"商品运营"}];
+ const tables=["items","prices"];
+ const approvals=tables.map(table_name=>({table_name,roles,state:"PENDING"}));
+ const context={revision:"scope-1",tables:tables.map(table_name=>({table_name,mode:"ROLE",reason:"由商品运营成员审批",can_approve:table_name==="items"})),approvable_tables:["items"]};
+ let current={...order,applicant_id:"someone-else",state:"PENDING_APPROVAL",version:"2",allowed_actions:["approve","reject"],approvals,approval_context:context,items:[...order.items,{...order.items[0]!,detail_id:"2".repeat(32),table_name:"prices"}]};
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",vi.fn(async(input,init)=>{
+  if(String(input).startsWith("/api/v1/auth/"))return json({...testAdminIdentity,account:{...testAdminIdentity.account,roles:["VIEWER"]}});
+  if(String(input).endsWith("/people"))return json({people:{}});
+  if(String(input).endsWith("/approve")){writes.push(init!);current={...current,version:"3",allowed_actions:[],approvals:[{...approvals[0]!,state:"APPROVED"},approvals[1]!],approval_context:{...context,revision:"scope-2",approvable_tables:[]},history:[...order.history,{action:"APPROVE",actor_id:testAdminIdentity.account.id,at:"2026-09-11T02:00:00Z",version:"3",reason:"只确认负责表"}]};return json(current)}
+  return json(current);
+ }));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"批准发布单"}));
+ expect(screen.getByRole("region",{name:"本次审批范围"})).toHaveTextContent("items");
+ expect(screen.getByRole("region",{name:"本次审批范围"})).not.toHaveTextContent("prices");
+ await user.type(screen.getByLabelText("审批意见"),"只确认负责表");await user.click(screen.getByRole("button",{name:"确认批准"}));
+ await waitFor(()=>expect(writes).toHaveLength(1));
+ expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"2",reason:"只确认负责表",confirmed_tables:["items"],expected_approval_revision:"scope-1"});
+ await waitFor(()=>expect(screen.getByRole("region",{name:"逐表审批进度"})).toHaveTextContent("已通过 1 / 2 表"));
+ expect(within(screen.getByRole("list",{name:"发布阶段"})).queryByText("已批准")).not.toBeInTheDocument();
+});
+
+it("审批资格改变而单据版本不变时保留原范围，明确审阅后才扩展范围", async () => {
+ const tables=["items","prices"],roles=[{id:"role-team",name:"联合审批"}];
+ const initialContext={revision:"members-before",tables:tables.map(table_name=>({table_name,mode:"ROLE",reason:"角色成员审批",can_approve:table_name==="items"})),approvable_tables:["items"]};
+ let current={...order,applicant_id:"independent-applicant",state:"PENDING_APPROVAL",version:"2",allowed_actions:["approve","reject"],approvals:tables.map(table_name=>({table_name,roles,state:"PENDING"})),approval_context:initialContext,items:[...order.items,{...order.items[0]!,detail_id:"2".repeat(32),table_name:"prices"}]};
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",vi.fn(async(input,init)=>{
+  const path=String(input);
+  if(path.startsWith("/api/v1/auth/"))return json({...testAdminIdentity,account:{...testAdminIdentity.account,roles:["VIEWER"]}});
+  if(path.endsWith("/people"))return json({people:{}});
+  if(path.endsWith("/approve")){writes.push(init!);if(writes.length===1)return json({error:{code:"release_approval_conflict",message:"review changed scope",request_id:"scope-conflict"}},409);current={...current,state:"APPROVED",version:"3",allowed_actions:[]};return json(current)}
+  if(path.includes("/release-orders?"))return json({orders:[current],next_cursor:""});
+  return json(current);
+ }));
+ const user=userEvent.setup();let page=mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"批准发布单"}));await user.type(screen.getByLabelText("审批意见"),"原审批意见必须保留");
+ current={...current,approval_context:{revision:"members-after",tables:tables.map(table_name=>({table_name,mode:"ROLE",reason:"新成员资格",can_approve:true})),approvable_tables:tables}};
+ await act(async()=>{await page.client.invalidateQueries({queryKey:["release-order",id]})});
+ expect(screen.getByRole("region",{name:"本次审批范围"})).not.toHaveTextContent("prices");
+ await user.click(screen.getByRole("button",{name:"确认批准"}));
+ await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)[0]?.rejection).toBe("release_approval_conflict"));
+ expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"2",reason:"原审批意见必须保留",confirmed_tables:["items"],expected_approval_revision:"members-before"});
+ page.unmount();page=mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByText("查看原申请内容"));
+ expect(await screen.findByText("审批意见：原审批意见必须保留")).toBeVisible();
+ expect(screen.getByText("原确认表范围：items")).toBeVisible();
+ await user.click(screen.getByRole("button",{name:"查看最新状态与配置"}));
+ expect(await screen.findByRole("region",{name:"本次审批范围"})).toHaveTextContent("prices");
+ await user.click(await screen.findByRole("button",{name:"确认按最新状态批准发布单"}));
+ await waitFor(()=>expect(writes).toHaveLength(2));
+ expect(JSON.parse(String(writes[1]!.body))).toEqual({expected_version:"2",reason:"原审批意见必须保留",confirmed_tables:tables,expected_approval_revision:"members-after"});
+ expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).not.toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
+});
+
+it.each(["ADMIN","APPROVER"])("%s 没有服务端表资格时旧动作也不能提供新审批", async role=>{
+ const pending={...order,applicant_id:"another-person",state:"PENDING_APPROVAL",allowed_actions:["approve","reject"],approvals:[{table_name:"items",roles:[],state:"PENDING"}],approval_context:{revision:"no-eligibility",tables:[{table_name:"items",mode:"ROLE",reason:"由其他角色成员审批",can_approve:false}],approvable_tables:[]}};
+ vi.stubGlobal("fetch",vi.fn(async input=>String(input).startsWith("/api/v1/auth/")?json({...testAdminIdentity,account:{...testAdminIdentity.account,roles:[role]}}):String(input).endsWith("/people")?json({people:{}}):json(pending)));
+ mount(`/configuration/release-orders/${id}`);
+ expect(await screen.findByRole("region",{name:"逐表审批进度"})).toHaveTextContent("由其他角色成员审批");
+ expect(screen.queryByRole("button",{name:"批准发布单"})).not.toBeInTheDocument();
+ expect(screen.queryByRole("button",{name:"拒绝发布单"})).not.toBeInTheDocument();
+});
+
+it.each([false,true])("无人审批明确拒绝后解除原提交并在窗口显示最新问题表（曾未知=%s）",async(previousUnknown)=>{
+ const available={revision:"available-before-submit",tables:[{table_name:"items",mode:"ROLE",reason:"独立成员可审批",can_approve:false}],approvable_tables:[]};
+ let current={...order,allowed_actions:["edit","submit","cancel"],approvals:[{table_name:"items",roles:[{id:"review-role",name:"审批组"}],state:"PENDING"}],approval_context:available};
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  const path=String(input);
+  if(path.endsWith("/people"))return json({people:{}});
+  if(path.endsWith("/submit")){
+   writes.push(init!);
+   if(previousUnknown&&writes.length===1)throw new TypeError("response unavailable");
+   current={...current,approval_context:{revision:"members-gone",tables:[{table_name:"items",mode:"UNAVAILABLE",reason:"缺少独立审批人，请补充启用的角色成员或非申请人 ADMIN",can_approve:false}],approvable_tables:[]}};
+   return json({error:{code:"release_approver_unavailable",message:"independent approver required for [items]",request_id:"no-approver"}},422);
+  }
+  return path.includes("/release-orders?")?json({orders:[current],next_cursor:""}):json(current);
+ })));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"提交审批"}));
+ await user.click(screen.getByRole("button",{name:"确认提交审批"}));
+ if(previousUnknown){
+  expect(await screen.findByText("原请求与意见已保留；再次点击同一操作将提交原请求。")).toBeVisible();
+  await user.click(await originalButton("确认提交审批"));
+ }
+ expect(await screen.findByText("有表缺少独立审批人，请查看各表审批安排并补充合格人员后重新提交。")).toBeVisible();
+ await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
+ const dialog=screen.getByRole("dialog",{name:"提交审批"});
+ expect(within(dialog).getByRole("region",{name:"提交审批安排"})).toHaveTextContent("items");
+ expect(within(dialog).getByText("暂无独立审批人",{exact:true})).toBeVisible();
+ expect(within(dialog).queryByText(/原请求与意见已保留/)).not.toBeInTheDocument();
+ if(previousUnknown){expect(writes[1]!.body).toBe(writes[0]!.body);expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"))}
+ await user.click(within(dialog).getAllByRole("button",{name:"关闭"}).at(-1)!);
+ expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+ expect(screen.getByRole("button",{name:"取消草稿"})).toBeEnabled();
 });

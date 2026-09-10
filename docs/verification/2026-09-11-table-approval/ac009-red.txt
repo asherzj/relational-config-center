@@ -1,0 +1,32 @@
+=== RUN   TestReleaseSubmitRequiresIndependentApprover
+2026/09/11 03:38:58 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: a3dca85c70c5974a55517d43c8403441f287ac08558fa4d9b28006d41d22aa56
+  Test ProcessID: 65171b6a-c43b-4273-8dde-556de70f6e52
+2026/09/11 03:38:58 🐳 Creating container for image mysql:8.4
+2026/09/11 03:38:58 ✅ Container created: 3810f99ec405
+2026/09/11 03:38:58 🐳 Starting container: 3810f99ec405
+2026/09/11 03:38:59 ✅ Container started: 3810f99ec405
+2026/09/11 03:38:59 ⏳ Waiting for container id 3810f99ec405 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 03:39:05 🔔 Container is ready: 3810f99ec405
+{"request_id":"rcc-63292b421000f77eb535d287872d1e45","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-1194bd6295bfb76282cc6a1ced092b15","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":47}
+{"request_id":"rcc-dda1ed788d8829d5e0638c7b3cc9f2d2","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-1a9df2302cc7a1fdf5dd9fb125cda742","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":56}
+{"request_id":"rcc-7d85930e0b534f3cfab59fe8a3fe6fb1","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":24}
+{"request_id":"rcc-dfa0fac6d6c3746ac30bfdfbac81eb47","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":66}
+    table_approval_integration_test.go:57: expected HTTP 422, got 200: {"table_names":["mutation_add_items"],"title":"无人可审批","executions":[],"frozen_digest":"be85086858c85da73975d52d1e63437dd6b993a3e86a71707edae5f1738b3aa9","id":"81e0d664e89de87d89ef3cf44a0b3f4f","applicant_id":"9e4e783e-3b6b-4622-981a-b195ff8c0514","state":"PENDING_APPROVAL","version":"2","items":[{"table_name":"mutation_add_items","detail_id":"039377cd25c885e1a0a31fd404a9c66e","operation":"ADD","id":null,"expected_record_version":"","content":{"code":"no-reviewer","label":"intent"},"before":null,"fields":[{"nullable":false,"editable":true,"name":"id","type":"uint64","before_state":"absent","before":null,"proposed_state":"omitted","proposed":null},{"nullable":false,"editable":true,"name":"code","type":"string","before_state":"absent","before":null,"proposed_state":"value","proposed":"no-reviewer"},{"nullable":false,"editable":true,"name":"label","type":"string","before_state":"absent","before":null,"proposed_state":"value","proposed":"intent"},{"nullable":false,"editable":true,"name":"defaulted_value","type":"string","before_state":"absent","before":null,"proposed_state":"omitted","proposed":null},{"nullable":true,"editable":true,"name":"nullable_value","type":"string","before_state":"absent","before":null,"proposed_state":"omitted","proposed":null},{"nullable":false,"editable":true,"name":"lifecycle","type":"string","before_state":"absent","before":null,"proposed_state":"omitted","proposed":null},{"nullable":true,"editable":true,"name":"quantity","type":"int64","before_state":"absent","before":null,"proposed_state":"omitted","proposed":null},{"nullable":true,"editable":true,"name":"metadata","type":"json","before_state":"absent","before":null,"proposed_state":"omitted","proposed":null},{"nullable":true,"editable":false,"name":"generated_value","type":"string","before_state":"absent","before":null,"proposed_state":"generated","proposed":null}]}],"history":[{"action":"CREATE","actor_id":"9e4e783e-3b6b-4622-981a-b195ff8c0514","at":"2026-09-10T19:39:06.21197Z","version":"1","reason":""},{"action":"SUBMIT","actor_id":"9e4e783e-3b6b-4622-981a-b195ff8c0514","at":"2026-09-10T19:39:06.279363Z","version":"2","reason":""}],"created_at":"2026-09-10T19:39:06.21197Z","updated_at":"2026-09-10T19:39:06.279363Z","item_count":1,"operation_counts":{"ADD":1},"allowed_actions":["cancel"]}
+2026/09/11 03:39:06 🐳 Stopping container: 3810f99ec405
+2026/09/11 03:39:07 ✅ Container stopped: 3810f99ec405
+2026/09/11 03:39:07 🐳 Terminating container: 3810f99ec405
+2026/09/11 03:39:07 🚫 Container terminated: 3810f99ec405
+--- FAIL: TestReleaseSubmitRequiresIndependentApprover (8.89s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	9.392s
+FAIL

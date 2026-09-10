@@ -29,6 +29,7 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 	}
 	if options.ApprovalRoles != nil {
 		registerApprovalRoleRoutes(router, options.ApprovalRoles)
+		registerTableApprovalRoutes(router, options.ApprovalRoles)
 	}
 	if options.ReleaseOrders != nil {
 		registerReleaseOrderRoutes(router, options.ReleaseOrders)

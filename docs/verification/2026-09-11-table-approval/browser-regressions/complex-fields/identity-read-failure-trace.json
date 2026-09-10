@@ -1,0 +1,42 @@
+[
+  {
+    "thread": 305,
+    "command": "Query",
+    "statement": "SELECT @@max_allowed_packet"
+  },
+  {
+    "thread": 305,
+    "command": "Query",
+    "statement": "SET time_zone = '+00:00'"
+  },
+  {
+    "thread": 305,
+    "command": "Close stmt",
+    "statement": ""
+  },
+  {
+    "thread": 305,
+    "command": "Query",
+    "statement": "SELECT * FROM `rcc_query_policies` ORDER BY code ASC"
+  },
+  {
+    "thread": 305,
+    "command": "Close stmt",
+    "statement": ""
+  },
+  {
+    "thread": 305,
+    "command": "Query",
+    "statement": "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ"
+  },
+  {
+    "thread": 305,
+    "command": "Query",
+    "statement": "START TRANSACTION"
+  },
+  {
+    "thread": 305,
+    "command": "Query",
+    "statement": "ROLLBACK"
+  }
+]

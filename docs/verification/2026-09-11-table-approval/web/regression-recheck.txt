@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-94-table-approval/web
+> vitest run src/features/managed-data/ManagedDataMutationPage.test.tsx src/features/managed-data/CombinedQueryForm.test.tsx --no-file-parallelism
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-94-table-approval/web
+
+
+ Test Files  2 passed (2)
+      Tests  43 passed (43)
+   Start at  04:03:42
+   Duration  29.74s (transform 520ms, setup 399ms, import 1.03s, tests 27.09s, environment 1.01s)
+

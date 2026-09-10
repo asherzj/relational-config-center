@@ -1,0 +1,7 @@
+{
+  "engine": "chromium",
+  "checks": [],
+  "errors": [],
+  "message": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('有表缺少独立审批人，请查看各表审批安排并补充合格人员后重新提交。', { exact: true }) to be visible\u001b[22m\n",
+  "stack": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('有表缺少独立审批人，请查看各表审批安排并补充合格人员后重新提交。', { exact: true }) to be visible\u001b[22m\n\n    at /private/tmp/rcc-issue-94-table-approval/web/e2e/table-approvals.cjs:58:85"
+}

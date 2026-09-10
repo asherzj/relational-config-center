@@ -20,15 +20,16 @@ func TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowModify: true})
 
 	applicant := releaseReasonAccount(t, app, "reason.applicant", "EDITOR")
-	reviewer := releaseReasonAccount(t, app, "reason.reviewer", "APPROVER")
+	reviewer := registerAccount(t, app, "reason.reviewer", "reason.reviewer@example.com", "correct horse battery staple")
 	forwardPublisher := releaseReasonAccount(t, app, "reason.forward", "PUBLISHER")
 	rollbackExecutor := releaseReasonAccount(t, app, "reason.rollback", "PUBLISHER")
 	unrelated := registerAccount(t, app, "reason.unrelated", "reason.unrelated@example.com", "correct horse battery staple")
 
 	created := rollbackOrderResponse(t, releaseActorRequest(t, app, applicant, "POST", "/api/v1/release-orders", `{"items":[{"content":{"label":"published"},"expected_record_version":"0","id":"10","operation":"MODIFY","table_name":"mutation_add_items"}],"title":"回滚原因留痕"}`, "reason-create"), 201)
+	configurePublicationReviewer(t, app, reviewer, "mutation_add_items")
 	path := "/api/v1/release-orders/" + created.ID
 	submitted := rollbackOrderResponse(t, releaseActorRequest(t, app, applicant, "POST", path+"/submit", `{"expected_version":"1"}`, "reason-submit"), 200)
-	approved := rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"2","reason":"independent review"}`, "reason-approve"), 200)
+	approved := rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "independent review"), "reason-approve"), 200)
 	published := rollbackOrderResponse(t, releaseActorRequest(t, app, forwardPublisher, "POST", path+"/execute", `{"expected_version":"3"}`, "reason-publish"), 200)
 	preview := readQuickPreview(t, app, rollbackExecutor, path, published.Version)
 	rolled := rollbackOrderResponse(t, releaseActorRequest(t, app, rollbackExecutor, "POST", path+"/quick-rollback", quickRollbackBody(published.Version, preview.Digest, ""), "reason-rollback"), 200)

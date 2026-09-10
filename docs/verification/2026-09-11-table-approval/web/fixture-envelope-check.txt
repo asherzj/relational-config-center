@@ -1,0 +1,2 @@
+PASS fixture envelope preserves explicit reviewed order version/reason, reads actual reviewer context and copies the confirmed scope.
+This is an in-memory request-boundary check; no actual HTTP service, browser or MySQL was used.

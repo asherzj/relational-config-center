@@ -210,7 +210,7 @@ func sessionAuthentication(options RouterOptions) gin.HandlerFunc {
 				required = application.RolePublisher
 			}
 			if c.FullPath() == "/api/v1/release-orders/:id/approve" || c.FullPath() == "/api/v1/release-orders/:id/reject" {
-				required = application.RoleApprover
+				required = application.RoleViewer
 			}
 		}
 		if !operator.Allows(required) {

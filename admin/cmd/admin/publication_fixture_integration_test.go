@@ -28,7 +28,6 @@ func publicationFixtureReviewer(t *testing.T, app *adminApplication) *httptest.R
 	}
 	suffix := fmt.Sprint(publicationFixtureSequence.Add(1))
 	reviewer := registerAccount(t, app, "publication.fixture."+suffix, "publication.fixture."+suffix+"@example.com", "correct horse battery staple")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "publication-fixture-role-"+suffix)
 	publicationFixtureReviewers.byApp[app] = reviewer
 	t.Cleanup(func() {
 		publicationFixtureReviewers.Lock()
@@ -36,6 +35,16 @@ func publicationFixtureReviewer(t *testing.T, app *adminApplication) *httptest.R
 		publicationFixtureReviewers.Unlock()
 	})
 	return reviewer
+}
+
+// configurePublicationReviewer gives an independent fixture account responsibility
+// for the explicitly named tables before submission freezes their assignments.
+func configurePublicationReviewer(t *testing.T, app *adminApplication, reviewer *httptest.ResponseRecorder, tables ...string) {
+	t.Helper()
+	role := tableApprovalRole(t, app, fmt.Sprintf("Fixture review %d", publicationFixtureSequence.Add(1)), reviewer)
+	for _, table := range tables {
+		assignTableApproval(t, app, table, role)
+	}
 }
 
 // Existing row-policy acceptance now observes a real create/submit/independent
@@ -81,11 +90,13 @@ func publicationFixtureRequest(t *testing.T, app *adminApplication, operation, t
 		t.Fatal(err)
 	}
 	path := "/api/v1/release-orders/" + order.ID
+	reviewer := publicationFixtureReviewer(t, app)
+	configurePublicationReviewer(t, app, reviewer, table)
 	submitted := releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"1"}`, key+"-submit")
 	if submitted.Code != 200 {
 		return submitted
 	}
-	approved := releaseActorRequest(t, app, publicationFixtureReviewer(t, app), "POST", path+"/approve", `{"expected_version":"2","reason":"fixture acceptance review"}`, key+"-approve")
+	approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "fixture acceptance review"), key+"-approve")
 	if approved.Code != 200 {
 		t.Fatalf("fixture approval: %d %s", approved.Code, approved.Body)
 	}

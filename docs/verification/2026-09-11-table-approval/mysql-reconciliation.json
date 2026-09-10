@@ -1,0 +1,204 @@
+{
+  "unique_top_level_tests": 33,
+  "tests": [
+    {
+      "test": "TestReleaseSubmitFreezesIntent",
+      "result": "PASS",
+      "duration": "9.10s",
+      "log": "availability-faults-regressions.txt"
+    },
+    {
+      "test": "TestReleaseApprovalCurrentRolesAndHistory",
+      "result": "PASS",
+      "duration": "9.51s",
+      "log": "availability-faults-regressions.txt"
+    },
+    {
+      "test": "TestReleaseWorkflowAtomicityAndCompetition",
+      "result": "PASS",
+      "duration": "8.81s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestReleaseFreezeTracksExecutionSemantics",
+      "result": "PASS",
+      "duration": "8.68s",
+      "log": "availability-faults-regressions.txt"
+    },
+    {
+      "test": "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults",
+      "result": "PASS",
+      "duration": "9.79s",
+      "log": "availability-faults-regressions.txt"
+    },
+    {
+      "test": "TestTableApprovalAccountAvailabilityAndDurableHistory",
+      "result": "PASS",
+      "duration": "12.22s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit",
+      "result": "PASS",
+      "duration": "8.92s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestTableApprovalConcurrentFirstReferenceAndDelete",
+      "result": "PASS",
+      "duration": "9.19s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin",
+      "result": "PASS",
+      "duration": "10.32s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestPublicationPublisherHistoryAndApprovalSurvivesRevocation",
+      "result": "PASS",
+      "duration": "9.74s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestReleaseReprepareReplacesApprovedOrderWithEditableDraft",
+      "result": "PASS",
+      "duration": "9.04s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestReleaseReprepareRequiresCurrentApplicantEditorOrAdmin",
+      "result": "PASS",
+      "duration": "9.73s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestReleaseReprepareFailureKeepsApprovedOrderAndTarget",
+      "result": "PASS",
+      "duration": "9.29s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestTableApprovalAssignmentRetainsReferenceAndOtherPolicy",
+      "result": "PASS",
+      "duration": "9.24s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestReleaseSubmitRequiresIndependentApprover",
+      "result": "PASS",
+      "duration": "9.05s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestTableApprovalPartialProgressAndFinalApproval",
+      "result": "PASS",
+      "duration": "9.73s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestTableApprovalSnapshotMembershipFallbackAndHistory",
+      "result": "PASS",
+      "duration": "9.16s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestTableApprovalFallbackMatrixAndEmptySnapshot",
+      "result": "PASS",
+      "duration": "10.05s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestTableApprovalScopeConcurrencyAndRejection",
+      "result": "PASS",
+      "duration": "11.31s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestTableApprovalQualificationChangesSerializeWithDecisions",
+      "result": "PASS",
+      "duration": "12.35s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts",
+      "result": "PASS",
+      "duration": "15.44s",
+      "log": "mysql-final-targeted.txt"
+    },
+    {
+      "test": "TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade",
+      "result": "PASS",
+      "duration": "16.32s",
+      "log": "schema-regressions.txt"
+    },
+    {
+      "test": "TestSchemaMigrationUpgradesToNextRelease",
+      "result": "PASS",
+      "duration": "21.19s",
+      "log": "schema-regressions.txt"
+    },
+    {
+      "test": "TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery",
+      "result": "PASS",
+      "duration": "12.95s",
+      "log": "schema-regressions.txt"
+    },
+    {
+      "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly",
+      "result": "PASS",
+      "duration": "16.70s",
+      "log": "schema-regressions.txt"
+    },
+    {
+      "test": "TestPublicationJSONIdentityDoesNotUseURLPathSegments",
+      "result": "PASS",
+      "duration": "9.47s",
+      "log": "identity-regressions.txt"
+    },
+    {
+      "test": "TestExplicitIdentityRejectsNontransactionalTableBeforeWriting",
+      "result": "PASS",
+      "duration": "8.84s",
+      "log": "identity-regressions.txt"
+    },
+    {
+      "test": "TestExplicitIdentityReturnedAutoIDMustRemainSchemaAddressable",
+      "result": "PASS",
+      "duration": "8.83s",
+      "log": "identity-regressions.txt"
+    },
+    {
+      "test": "TestExplicitIdentityKeepsEngineStableUntilInsertTransactionEnds",
+      "result": "PASS",
+      "duration": "8.67s",
+      "log": "identity-regressions.txt"
+    },
+    {
+      "test": "TestExplicitIdentityReadPermissionFailureAfterInsertRollsBack",
+      "result": "PASS",
+      "duration": "8.83s",
+      "log": "identity-regressions.txt"
+    },
+    {
+      "test": "TestExplicitIdentityNeverReturnsExistingRowAfterTriggerChangesKey",
+      "result": "PASS",
+      "duration": "8.61s",
+      "log": "identity-regressions.txt"
+    },
+    {
+      "test": "TestPublicationRejectsIdentityCreatedAfterApproval",
+      "result": "PASS",
+      "duration": "9.57s",
+      "log": "identity-regressions.txt"
+    },
+    {
+      "test": "TestExplicitIdentityAutoResultBelongsToThisInsert",
+      "result": "PASS",
+      "duration": "9.87s",
+      "log": "identity-regressions.txt"
+    }
+  ],
+  "note": "Previous failures remain in original logs. Final applicable PASS chosen per test; no full-repository integration run."
+}

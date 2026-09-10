@@ -65,7 +65,7 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 			summary := struct {
 				application.ReleaseOrderSummary
 				AllowedActions []string `json:"allowed_actions"`
-			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{ID: order.ID, State: order.State, ApplicantID: order.ApplicantID})}
+			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{ID: order.ID, State: order.State, ApplicantID: order.ApplicantID, TableNames: order.TableNames, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext})}
 			response = append(response, summary)
 		}
 		next := ""
@@ -242,6 +242,13 @@ func respondReleaseWrite(c *gin.Context, orders *application.ReleaseOrders, resu
 		writeReleaseError(c, application.ErrReleaseUnknown)
 		return
 	}
+	if result.Version == current.Version {
+		result.Approvals = current.Approvals
+	}
+	if result.Approvals == nil {
+		result.Approvals = []application.ReleaseTableApproval{}
+	}
+	result.ApprovalContext = current.ApprovalContext
 	c.JSON(status, releaseResponse(result, orders.AllowedActions(c.Request.Context(), current.Workflow())))
 }
 func releaseResponse(order application.ReleaseOrder, actions []string) any {
@@ -276,6 +283,10 @@ func writeReleaseError(c *gin.Context, err error) bool {
 	}
 	status, code, message := 503, "release_unavailable", "release order storage is unavailable"
 	switch {
+	case errors.Is(err, application.ErrReleaseApproverUnavailable):
+		status, code, message = 422, "release_approver_unavailable", err.Error()
+	case errors.Is(err, application.ErrReleaseApprovalConflict):
+		status, code, message = 409, "release_approval_conflict", "approval progress, qualification or confirmed scope changed; review the latest state"
 	case errors.Is(err, application.ErrRollbackRestoreMismatch):
 		status, code, message = 422, "rollback_restore_mismatch", "current schema, rules or database effects cannot restore every original business value"
 	case errors.Is(err, application.ErrPermissionDenied):

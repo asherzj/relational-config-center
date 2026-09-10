@@ -72,6 +72,9 @@ type DraftInput struct {
 // ReleaseOrderSession exposes only control-data writes and consistent baseline
 // reads. Preparing a draft cannot call business-row mutation methods.
 type ReleaseOrderSession interface {
+	releaseApprovalReader
+	ReferenceReleaseApprovalRoles(context.Context, string, []domain.ReleaseTableApproval) error
+	CurrentReleaseAccount(context.Context, string) (domain.ApprovalAccount, error)
 	AppendReleaseFailure(context.Context, string, domain.ReleaseEvent) error
 	AppendRollbackReason(context.Context, string, domain.ReleaseEvent) error
 	PolicySnapshotReader
@@ -92,6 +95,7 @@ type ReleaseOrderSession interface {
 }
 
 type ReleaseOrderStore interface {
+	releaseApprovalReader
 	ExecuteReleaseOrder(context.Context, func(ReleaseOrderSession) error) error
 	ExecutePublication(context.Context, func(PublicationSession) error) error
 	ReadReleaseHeader(context.Context, string) (domain.ReleaseHeader, error)
@@ -177,7 +181,17 @@ func (r *ReleaseOrders) Get(ctx context.Context, id string) (domain.ReleaseHeade
 	if _, err := requireRole(ctx, RoleViewer); err != nil {
 		return domain.ReleaseHeader{}, err
 	}
-	return r.store.ReadReleaseHeader(ctx, id)
+	header, err := r.store.ReadReleaseHeader(ctx, id)
+	if err != nil {
+		return header, err
+	}
+	order := header.Workflow()
+	if err = r.reviewApprovals(ctx, &order); err != nil {
+		return header, err
+	}
+	header.Approvals = order.Approvals
+	header.ApprovalContext = order.ApprovalContext
+	return header, nil
 }
 
 func (r *ReleaseOrders) DetailPage(ctx context.Context, id, version string, offset, limit int) (domain.ReleaseDetailPage, error) {
@@ -230,7 +244,7 @@ func releaseActionRole(action string) AccountRoles {
 		return RolePublisher
 	}
 	if action == "approve" || action == "reject" {
-		return RoleApprover
+		return RoleViewer
 	}
 	return RoleEditor
 }
@@ -251,7 +265,7 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
 		return err
 	}
 	if action == "approve" || action == "reject" {
-		if actor == order.ApplicantID {
+		if actor == order.ApplicantID || len(order.ApprovalContext.ApprovableTables) == 0 {
 			return ErrPermissionDenied
 		}
 		return nil
@@ -266,7 +280,9 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
 	return ErrPermissionDenied
 }
 func releaseOrderActionState(order ReleaseOrder, action string) bool {
-
+	if action == "execute" && !order.HasCompleteApproval() {
+		return false
+	}
 	return releaseActionState(order.State, action)
 }
 
@@ -634,6 +650,9 @@ func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitRelea
 		if err := s.ReserveReleaseTargets(ctx, order.ID, targets); err != nil {
 			return err
 		}
+		if err := freezeReleaseApprovals(ctx, s, order); err != nil {
+			return err
+		}
 		order.State = "PENDING_APPROVAL"
 		return nil
 	})
@@ -660,7 +679,12 @@ func (r *ReleaseOrders) Cancel(ctx context.Context, id string, input CancelRelea
 
 // An approval records a current independent decision; later role changes do not
 // rewrite that history. Publication checks its own current actor in T5.
-type ReleaseDecisionInput = CancelReleaseInput
+type ReleaseDecisionInput struct {
+	ExpectedVersion          string   `json:"expected_version"`
+	Reason                   string   `json:"reason"`
+	ConfirmedTables          []string `json:"confirmed_tables"`
+	ExpectedApprovalRevision string   `json:"expected_approval_revision"`
+}
 
 func (r *ReleaseOrders) Approve(ctx context.Context, id string, input ReleaseDecisionInput, key string) (ReleaseOrder, error) {
 	return r.decide(ctx, id, "approve", input, key)
@@ -673,12 +697,7 @@ func (r *ReleaseOrders) decide(ctx context.Context, id, action string, input Rel
 		if strings.TrimSpace(input.Reason) == "" || len(input.Reason) > 2000 {
 			return ErrReleaseInvalid
 		}
-		order.State = "APPROVED"
-		if action == "reject" {
-			order.State = "REJECTED"
-			return s.ReleaseTargets(ctx, order.ID)
-		}
-		return nil
+		return applyReleaseDecision(ctx, s, order, action, input)
 	})
 }
 
@@ -696,6 +715,14 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 	}
 	var result ReleaseOrder
 	err = execute(ctx, func(s ReleaseOrderSession) error {
+		currentActor, err := s.CurrentReleaseAccount(ctx, actor)
+		if err != nil {
+			return err
+		}
+		ctx = (AuthenticatedOperator{accountID: actor, roles: currentActor.Roles}).Bind(ctx)
+		if _, err = requireRole(ctx, releaseActionRole(action)); err != nil {
+			return err
+		}
 		// Lock request identity before the order consistently, including retries.
 		operation := action + ":" + id
 		previous, err := s.BeginReleaseRequest(ctx, actor, operation, key, releaseDigest(input))
@@ -707,7 +734,11 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 		if err != nil {
 			return err
 		}
-		if err := authorizeReleaseAction(ctx, order, action); err != nil {
+		if decision, ok := input.(ReleaseDecisionInput); ok {
+			if err := authorizeApprovalRequest(ctx, s, &order, previous, decision); err != nil {
+				return err
+			}
+		} else if err := authorizeReleaseAction(ctx, order, action); err != nil {
 			return err
 		}
 		if previous != nil {
@@ -741,7 +772,17 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 		if cancel, ok := input.(CancelReleaseInput); ok {
 			reason = cancel.Reason
 		}
-		order.History = append(order.History, domain.ReleaseEvent{Action: strings.ToUpper(action), ActorID: actor, At: order.UpdatedAt, Version: order.Version, Reason: reason})
+		event := domain.ReleaseEvent{Action: strings.ToUpper(action), ActorID: actor, At: order.UpdatedAt, Version: order.Version, Reason: reason}
+		if decision, ok := input.(ReleaseDecisionInput); ok {
+			event.Reason = decision.Reason
+			event.TableNames = slices.Clone(decision.ConfirmedTables)
+			for _, approval := range order.Approvals {
+				if slices.Contains(decision.ConfirmedTables, approval.TableName) && approval.Decision != nil {
+					event.ApprovalSources = append(event.ApprovalSources, domain.ReleaseApprovalSource{TableName: approval.TableName, Source: approval.Decision.Source, Roles: approval.Decision.Roles})
+				}
+			}
+		}
+		order.History = append(order.History, event)
 		order.TableNames = releaseTableNames(order.Items)
 		if err = s.SaveReleaseOrder(ctx, order, false); err != nil {
 			return err
@@ -763,7 +804,19 @@ func (r *ReleaseOrders) List(ctx context.Context, filter ReleaseFilter) ([]domai
 	default:
 		return nil, ErrReleaseInvalid
 	}
-	return r.store.ListReleaseOrders(ctx, filter)
+	orders, err := r.store.ListReleaseOrders(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	for i := range orders {
+		order := ReleaseOrder{ID: orders[i].ID, Version: orders[i].Version, State: orders[i].State, ApplicantID: orders[i].ApplicantID, TableNames: orders[i].TableNames, Approvals: orders[i].Approvals}
+		if err := r.reviewApprovals(ctx, &order); err != nil {
+			return nil, err
+		}
+		orders[i].Approvals = order.Approvals
+		orders[i].ApprovalContext = order.ApprovalContext
+	}
+	return orders, nil
 }
 
 // Preview only reads a fresh record baseline for explicit client review. It is

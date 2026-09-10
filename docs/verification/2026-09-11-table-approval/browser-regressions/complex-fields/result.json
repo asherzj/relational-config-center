@@ -1,0 +1,720 @@
+{
+  "ok": true,
+  "browser": "151.0.7922.34",
+  "evidence": [
+    {
+      "case": "TEXT and JSON browser ADD, MODIFY, SQL byte comparison, readback and reopened editor",
+      "ok": true,
+      "http": [
+        0,
+        16
+      ],
+      "id": "1",
+      "textBytes": 12668,
+      "sql": {
+        "id": "1",
+        "note": "  中文🙂第一行\n第二行\t保留空白\n长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t长文本🧪 abc\t\n尾部  \n追加🙂\t  ",
+        "payload": "{\"text\": \"修改🙂\\n\\t \", \"large\": 18446744073709551615}",
+        "nullable_text": null,
+        "empty_text": "",
+        "big_signed": "9223372036854775807",
+        "big_unsigned": "0",
+        "amount": "-123456789012345678901234567890123456789012345.12345678901234567890",
+        "day": "2024-02-29",
+        "clock": "00:00:00.000001",
+        "local_time": "2026-09-07 12:34:56.123456",
+        "instant": "2026-09-07T12:34:56.654321Z",
+        "default_text": "数据库默认🙂"
+      }
+    },
+    {
+      "case": "multiline TEXT query uses the exact browser input without removing LF",
+      "ok": true,
+      "http": [
+        16,
+        18
+      ],
+      "note": "  查询🙂\n下一行\t末尾  ",
+      "matched": 1
+    },
+    {
+      "case": "SQL NULL, JSON null literal and string, empty and omitted values stay distinct",
+      "ok": true,
+      "http": [
+        18,
+        82
+      ],
+      "results": [
+        {
+          "id": "3",
+          "payload": null,
+          "sqlNull": "1"
+        },
+        {
+          "id": "4",
+          "payload": "null",
+          "sqlNull": "0"
+        },
+        {
+          "id": "5",
+          "payload": "\"null\"",
+          "sqlNull": "0"
+        },
+        {
+          "id": "6",
+          "payload": "\"\"",
+          "sqlNull": "0"
+        }
+      ]
+    },
+    {
+      "case": "uint64 auto ID 9007199254740993 survives browser create, query, release MODIFY and reopen",
+      "ok": true,
+      "http": [
+        82,
+        98
+      ],
+      "id": "9007199254740993",
+      "sqlCount": "1"
+    },
+    {
+      "case": "uint64 auto ID 9223372036854775808 survives browser create, query, release MODIFY and reopen",
+      "ok": true,
+      "http": [
+        98,
+        114
+      ],
+      "id": "9223372036854775808",
+      "sqlCount": "1"
+    },
+    {
+      "case": "uint64 auto ID 18446744073709551614 survives browser create, query, release MODIFY and reopen",
+      "ok": true,
+      "http": [
+        114,
+        130
+      ],
+      "id": "18446744073709551614",
+      "sqlCount": "1"
+    },
+    {
+      "case": "ambiguous auto ID zero is rejected while omitted ID publishes the actual generated identity",
+      "ok": true,
+      "http": [
+        130,
+        146
+      ],
+      "ambiguousZeroRejected": true,
+      "responseID": "1",
+      "actualID": "1",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+    },
+    {
+      "case": "non-auto default ID stage4_default_id_constant requires explicit identity before publication",
+      "ok": true,
+      "http": [
+        146,
+        154
+      ],
+      "actualID": "42",
+      "responseID": "42",
+      "missingIDRejected": true
+    },
+    {
+      "case": "non-auto default ID stage4_default_id_expression requires explicit identity before publication",
+      "ok": true,
+      "http": [
+        154,
+        162
+      ],
+      "actualID": "43",
+      "responseID": "43",
+      "missingIDRejected": true
+    },
+    {
+      "case": "identity review: explicit numeric ID returns the stored canonical identity",
+      "ok": true,
+      "http": [
+        162,
+        169
+      ],
+      "submittedID": "00077",
+      "actualID": "77",
+      "responseID": "77"
+    },
+    {
+      "case": "identity matrix: signed integer publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        169,
+        186
+      ],
+      "name": "signed integer",
+      "type": "BIGINT",
+      "input": "-00077",
+      "canonical": "-77",
+      "publishedID": "-77",
+      "queryID": "-77",
+      "responseID": "-77",
+      "sqlID": "\"-77\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: decimal equal value publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        186,
+        203
+      ],
+      "name": "decimal equal value",
+      "type": "DECIMAL(6,2)",
+      "input": "+001.2",
+      "canonical": "1.20",
+      "publishedID": "1.20",
+      "queryID": "1.20",
+      "responseID": "1.20",
+      "sqlID": "\"1.20\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: decimal rounding publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        203,
+        220
+      ],
+      "name": "decimal rounding",
+      "type": "DECIMAL(6,2)",
+      "input": "1.235",
+      "canonical": "1.24",
+      "publishedID": "1.24",
+      "queryID": "1.24",
+      "responseID": "1.24",
+      "sqlID": "\"1.24\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: CHAR trailing spaces publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        220,
+        237
+      ],
+      "name": "CHAR trailing spaces",
+      "type": "CHAR(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
+      "input": "ab  ",
+      "canonical": "ab",
+      "publishedID": "ab",
+      "queryID": "ab",
+      "responseID": "ab",
+      "sqlID": "\"ab\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: VARCHAR trailing spaces publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        237,
+        254
+      ],
+      "name": "VARCHAR trailing spaces",
+      "type": "VARCHAR(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci",
+      "input": "ab  ",
+      "canonical": "ab  ",
+      "publishedID": "ab  ",
+      "queryID": "ab  ",
+      "responseID": "ab  ",
+      "sqlID": "\"ab  \"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: VARCHAR Unicode and URI delimiters publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        254,
+        271
+      ],
+      "name": "VARCHAR Unicode and URI delimiters",
+      "type": "VARCHAR(32)",
+      "input": "键/值 %2F?#",
+      "canonical": "键/值 %2F?#",
+      "publishedID": "键/值 %2F?#",
+      "queryID": "键/值 %2F?#",
+      "responseID": "键/值 %2F?#",
+      "sqlID": "\"键/值 %2F?#\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: ENUM case normalization is rejected before draft creation",
+      "ok": true,
+      "http": [
+        271,
+        273
+      ],
+      "name": "ENUM case normalization",
+      "type": "ENUM('Alpha','Beta')",
+      "input": "alpha",
+      "draftRejection": "release_snapshot_unsupported",
+      "status": 422,
+      "rows": "0",
+      "ordersCreated": "0",
+      "retainedInputReviewed": true,
+      "failureStage": "draft"
+    },
+    {
+      "case": "identity matrix: TIME equal value publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        273,
+        290
+      ],
+      "name": "TIME equal value",
+      "type": "TIME(2)",
+      "input": "01:02:03.700000",
+      "canonical": "01:02:03.70",
+      "publishedID": "01:02:03.70",
+      "queryID": "01:02:03.70",
+      "responseID": "01:02:03.70",
+      "sqlID": "\"01:02:03.70\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: TIME rounding publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        290,
+        307
+      ],
+      "name": "TIME rounding",
+      "type": "TIME(2)",
+      "input": "01:02:03.777",
+      "canonical": "01:02:03.78",
+      "publishedID": "01:02:03.78",
+      "queryID": "01:02:03.78",
+      "responseID": "01:02:03.78",
+      "sqlID": "\"01:02:03.78\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: DATETIME equal value publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        307,
+        324
+      ],
+      "name": "DATETIME equal value",
+      "type": "DATETIME(2)",
+      "input": "2026-09-07 12:34:56.700000",
+      "canonical": "2026-09-07 12:34:56.70",
+      "queryID": "2026-09-07 12:34:56.7",
+      "commandValue": "2026-09-07 12:34:56.70",
+      "publishedID": "2026-09-07 12:34:56.70",
+      "responseID": "2026-09-07 12:34:56.70",
+      "sqlID": "\"2026-09-07 12:34:56.70\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: DATETIME rounding publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        324,
+        341
+      ],
+      "name": "DATETIME rounding",
+      "type": "DATETIME(2)",
+      "input": "2026-09-07 12:34:59.999",
+      "canonical": "2026-09-07 12:35:00.00",
+      "queryID": "2026-09-07 12:35:00",
+      "commandValue": "2026-09-07 12:35:00.00",
+      "publishedID": "2026-09-07 12:35:00.00",
+      "responseID": "2026-09-07 12:35:00.00",
+      "sqlID": "\"2026-09-07 12:35:00.00\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: TIMESTAMP equal value publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        341,
+        358
+      ],
+      "name": "TIMESTAMP equal value",
+      "type": "TIMESTAMP(2)",
+      "input": "2026-09-07T12:34:56.700000Z",
+      "canonical": "2026-09-07T12:34:56.70Z",
+      "queryID": "2026-09-07T12:34:56.7Z",
+      "commandValue": "2026-09-07 12:34:56.70",
+      "publishedID": "2026-09-07T12:34:56.70Z",
+      "responseID": "2026-09-07T12:34:56.70Z",
+      "sqlID": "\"2026-09-07 12:34:56.70\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: TIMESTAMP rounding publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        358,
+        375
+      ],
+      "name": "TIMESTAMP rounding",
+      "type": "TIMESTAMP(2)",
+      "input": "2026-09-07T12:34:59.999Z",
+      "canonical": "2026-09-07T12:35:00.00Z",
+      "queryID": "2026-09-07T12:35:00Z",
+      "commandValue": "2026-09-07 12:35:00.00",
+      "publishedID": "2026-09-07T12:35:00.00Z",
+      "responseID": "2026-09-07T12:35:00.00Z",
+      "sqlID": "\"2026-09-07 12:35:00.00\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: FLOAT exact publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        375,
+        392
+      ],
+      "name": "FLOAT exact",
+      "type": "FLOAT",
+      "input": "0.5",
+      "canonical": "0.5",
+      "publishedID": "0.5",
+      "queryID": "0.5",
+      "responseID": "0.5",
+      "sqlID": "\"0.5\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: FLOAT precision boundary publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        392,
+        409
+      ],
+      "name": "FLOAT precision boundary",
+      "type": "FLOAT",
+      "input": "0.1",
+      "canonical": "0.10000000149011612",
+      "publishedID": "0.10000000149011612",
+      "queryID": "0.10000000149011612",
+      "responseID": "0.10000000149011612",
+      "sqlID": "\"0.1\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: DOUBLE publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        409,
+        426
+      ],
+      "name": "DOUBLE",
+      "type": "DOUBLE",
+      "input": "0.1",
+      "canonical": "0.1",
+      "publishedID": "0.1",
+      "queryID": "0.1",
+      "responseID": "0.1",
+      "sqlID": "\"0.1\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity matrix: DATE publishes a canonical stored key",
+      "ok": true,
+      "http": [
+        426,
+        443
+      ],
+      "name": "DATE",
+      "type": "DATE",
+      "input": "2024-02-29",
+      "canonical": "2024-02-29",
+      "publishedID": "2024-02-29",
+      "queryID": "2024-02-29",
+      "responseID": "2024-02-29",
+      "sqlID": "\"2024-02-29\"",
+      "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      "exactQueryAndReleaseModify": true
+    },
+    {
+      "case": "identity preflight read denial prevents INSERT and preserves the draft",
+      "ok": true,
+      "http": [
+        443,
+        447
+      ],
+      "status": 503,
+      "requestId": "rcc-61ac0e9f8bee39657e6c8a033d79b142",
+      "rows": "0",
+      "statements": [
+        {
+          "thread": 305,
+          "command": "Query",
+          "statement": "SELECT @@max_allowed_packet"
+        },
+        {
+          "thread": 305,
+          "command": "Query",
+          "statement": "SET time_zone = '+00:00'"
+        },
+        {
+          "thread": 305,
+          "command": "Close stmt",
+          "statement": ""
+        },
+        {
+          "thread": 305,
+          "command": "Query",
+          "statement": "SELECT * FROM `rcc_query_policies` ORDER BY code ASC"
+        },
+        {
+          "thread": 305,
+          "command": "Close stmt",
+          "statement": ""
+        },
+        {
+          "thread": 305,
+          "command": "Query",
+          "statement": "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ"
+        },
+        {
+          "thread": 305,
+          "command": "Query",
+          "statement": "START TRANSACTION"
+        },
+        {
+          "thread": 305,
+          "command": "Query",
+          "statement": "ROLLBACK"
+        }
+      ],
+      "insertSent": false,
+      "renewedConnections": [
+        "89",
+        "90",
+        "10",
+        "91",
+        "21"
+      ],
+      "catalogWarmupStatuses": [
+        503,
+        503,
+        503,
+        503,
+        503,
+        200
+      ],
+      "permissionError": "ERROR 1142 (42000) at line 1: SELECT command denied to user 'rcc_admin'@'localhost' for table 'stage4_explicit_ids'\n",
+      "permissionsRestored": true,
+      "originalDraftRequestRecovered": true,
+      "recoveredOrderID": "1971c9bd429ba7f7312375cacb75a50b"
+    },
+    {
+      "case": "publication capability gate rejects a nontransactional table before business DML",
+      "ok": true,
+      "http": [
+        447,
+        448
+      ],
+      "engine": "MyISAM",
+      "status": 422,
+      "code": "incompatible_table",
+      "rows": "0"
+    },
+    {
+      "case": "JSON identity \"\" publishes without path reinterpretation",
+      "ok": true,
+      "http": [
+        448,
+        455
+      ],
+      "id": "",
+      "responseID": "",
+      "requestTransport": "release item JSON",
+      "rows": "1"
+    },
+    {
+      "case": "JSON identity \".\" publishes without path reinterpretation",
+      "ok": true,
+      "http": [
+        455,
+        462
+      ],
+      "id": ".",
+      "responseID": ".",
+      "requestTransport": "release item JSON",
+      "rows": "1"
+    },
+    {
+      "case": "JSON identity \"..\" publishes without path reinterpretation",
+      "ok": true,
+      "http": [
+        462,
+        469
+      ],
+      "id": "..",
+      "responseID": "..",
+      "requestTransport": "release item JSON",
+      "rows": "1"
+    },
+    {
+      "case": "JSON identity \"键/值 %2F?#\" publishes without path reinterpretation",
+      "ok": true,
+      "http": [
+        469,
+        476
+      ],
+      "id": "键/值 %2F?#",
+      "responseID": "键/值 %2F?#",
+      "requestTransport": "release item JSON",
+      "rows": "1"
+    },
+    {
+      "case": "CRLF and standalone CR stay protected through unrelated writes and explicit normalization",
+      "ok": true,
+      "http": [
+        476,
+        503
+      ],
+      "id": "7",
+      "originalHex": "66697273740d0a7365636f6e640d7468697264",
+      "afterExplicitConversionHex": "66697273740a7365636f6e640a74686972640a6578706c696369742065646974"
+    },
+    {
+      "case": "raw CR clipboard selection is preserved in record and query inputs before conversion",
+      "ok": true,
+      "http": [
+        503,
+        512
+      ],
+      "id": "8",
+      "clipboardEvent": "Chromium DataTransfer + ClipboardEvent fixture; no OS clipboard access",
+      "rawHex": "70726566697820e7acace4b880e8a18c0d0a7365636f6e640de69cabe5b0be20737566666978",
+      "convertedMatches": 0
+    },
+    {
+      "case": "ordinary expression defaults allow explicit values and omission defaults",
+      "ok": true,
+      "http": [
+        512,
+        543
+      ],
+      "metadata": "id|auto_increment|\nlabel||\nstamp|DEFAULT_GENERATED|\nexpression_value|DEFAULT_GENERATED|",
+      "explicit": "1",
+      "omitted": "2",
+      "defaulted": {
+        "id": "2",
+        "label": "omitted",
+        "stamp": "2026-09-10 20:47:23.674998",
+        "expression_value": "表达式🙂"
+      },
+      "defaultStampCommand": "2026-09-10 20:47:23.674998"
+    },
+    {
+      "case": "Auto Fill records the publisher identity and one UTC database time",
+      "ok": true,
+      "http": [
+        543,
+        558
+      ],
+      "id": "1",
+      "publisherID": "191ec03f-b891-4913-a308-0934c86fa63d",
+      "stamps": [
+        "2026-09-10 20:47:29.988353",
+        "2026-09-10 20:47:29.988353"
+      ],
+      "after": [
+        "2026-09-10 20:47:29.988353",
+        "2026-09-10 20:47:33.632513"
+      ]
+    },
+    {
+      "case": "stored_value remains rejected as a real generated column",
+      "ok": true,
+      "http": [
+        558,
+        560
+      ],
+      "metadata": "id|auto_increment|\nbase_value||\nstored_value|STORED GENERATED|(`base_value` * 2)\nvirtual_value|VIRTUAL GENERATED|(`base_value` + 1)"
+    },
+    {
+      "case": "virtual_value remains rejected as a real generated column",
+      "ok": true,
+      "http": [
+        560,
+        562
+      ],
+      "metadata": "id|auto_increment|\nbase_value||\nstored_value|STORED GENERATED|(`base_value` * 2)\nvirtual_value|VIRTUAL GENERATED|(`base_value` + 1)"
+    },
+    {
+      "case": "generated fields calculate on omitted ADD and stay unwritable on release MODIFY",
+      "ok": true,
+      "http": [
+        562,
+        583
+      ],
+      "id": "1",
+      "before": "9|18|10",
+      "after": "11|22|12"
+    },
+    {
+      "case": "VARCHAR length is editable rejection with rollback and corrected browser retry",
+      "ok": true,
+      "http": [
+        583,
+        596
+      ],
+      "rejectedRequestId": "rcc-808566e4b935f093453a9745ffe259e6",
+      "retryRequestId": "rcc-b3559c4924e30746c3d3091c60b6e0d1",
+      "failedOrderID": "3229a4602b4d232728799cbc018f7a83",
+      "failureStage": "publication",
+      "retainedApprovedInput": true
+    },
+    {
+      "case": "TINYINT range is editable rejection with rollback and corrected browser retry",
+      "ok": true,
+      "http": [
+        596,
+        609
+      ],
+      "rejectedRequestId": "rcc-64616322c458e2c9112a55e0c66c727c",
+      "retryRequestId": "rcc-1816cbde155ec794a1f2775256144c34",
+      "failedOrderID": "0c3d5de3b511a683a8ab5840c7443d14",
+      "failureStage": "publication",
+      "retainedApprovedInput": true
+    }
+  ],
+  "failures": [],
+  "sqlErrors": [
+    {
+      "case": "VARCHAR length",
+      "diagnostic": "ERROR 1406 (22001) at line 1: Data too long for column 'label' at row 1\n"
+    },
+    {
+      "case": "TINYINT range",
+      "diagnostic": "ERROR 1264 (22003) at line 1: Out of range value for column 'small_value' at row 1\n"
+    }
+  ],
+  "pageErrors": [],
+  "cleanup": {
+    "fixtureRowsEqual": true,
+    "remainingTables": "0",
+    "remainingTablePolicies": "0",
+    "remainingPolicies": "0"
+  }
+}
