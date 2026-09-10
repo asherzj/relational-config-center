@@ -9,6 +9,7 @@ const base=process.env.RCC_WEB_URL,output=process.env.RCC_E2E_OUTPUT;
 const tables=['multitable_browser_a','multitable_browser_b'];
 const button=(page,name)=>page.getByRole('button',{name,exact:true});
 const digest=value=>createHash('sha256').update(value).digest('hex');
+const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_name:item.table_name,operation:item.operation,...(item.operation==='ADD'?{}:{id:item.id}),expected_record_version:item.expected_record_version,content:item.content}));
 (async()=>{
  const browser=await selectedBrowser(playwright).launch(browserOptions());
  const checks=[],errors=[],evidence={checks};
@@ -20,7 +21,7 @@ const digest=value=>createHash('sha256').update(value).digest('hex');
  const shot=async(page,name)=>{if(output)await page.screenshot({path:join(output,name),fullPage:false,animations:'disabled'})};
  const pageFor=async context=>{const page=await context.newPage();page.setDefaultTimeout(20000);page.on('pageerror',error=>errors.push(error.message));page.on('dialog',dialog=>dialog.accept());return page};
  try{
-  const admin=await browser.newContext({viewport:{width:1440,height:1000}});await registerFixtureAccount(admin,base,{roles:['ADMIN']});
+  const admin=await browser.newContext({viewport:{width:1440,height:1000}}),adminPerson=await registerFixtureAccount(admin,base,{roles:['ADMIN']});
   await api(admin,'POST','/api/v1/mutation-policies',{code:'multitable_browser_mutation_v1',name:'多表验收',description:'',type_code:'single_table_mutation',allow_add:true,allow_modify:true,allow_delete:true},201);
   await api(admin,'POST','/api/v1/mutation-policies/multitable_browser_mutation_v1/activate',{});
   for(const table of [...tables,'multitable_browser_large']){
@@ -83,6 +84,48 @@ const digest=value=>createHash('sha256').update(value).digest('hex');
    if(terminal==='complete')assert.equal(current.allowed_actions.includes('quick-rollback'),false);
   }
   check('两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚');
+
+  await page.setViewportSize({width:1440,height:1000});
+  const copyRecord='13',copyVersions=['2','0'];
+  let copySource=await api(editor,'POST','/api/v1/release-orders',{title:'复制核对两表当前基线',items:tables.map((table,index)=>({table_name:table,operation:'MODIFY',id:copyRecord,expected_record_version:copyVersions[index],content:{label:`copy-intent-${index?'b':'a'}`}}))},201);
+  const copySourcePath=`/api/v1/release-orders/${copySource.id}`;
+  copySource=await api(editor,'POST',copySourcePath+'/submit',{expected_version:copySource.version});
+  copySource=await api(reviewer,'POST',copySourcePath+'/reject',{expected_version:copySource.version,reason:'核对最新两表配置后复制'});
+  let baseline=await api(editor,'POST','/api/v1/release-orders',{title:'更新复制基线',items:tables.map((table,index)=>({table_name:table,operation:'MODIFY',id:copyRecord,expected_record_version:copyVersions[index],content:{label:`fresh-copy-${index?'b':'a'}`}}))},201);
+  const baselinePath=`/api/v1/release-orders/${baseline.id}`;
+  baseline=await api(editor,'POST',baselinePath+'/submit',{expected_version:baseline.version});
+  baseline=await api(reviewer,'POST',baselinePath+'/approve',{expected_version:baseline.version,reason:'独立确认新基线'});
+  baseline=await api(editor,'POST',baselinePath+'/execute',{expected_version:baseline.version});
+  await api(editor,'POST',baselinePath+'/complete',{expected_version:baseline.version});
+  let blocker=await api(admin,'POST','/api/v1/release-orders',{title:'占用第二张表',items:[{table_name:tables[1],operation:'MODIFY',id:copyRecord,expected_record_version:'1',content:{label:'later-table-blocker'}}]},201);
+  const blockerPath=`/api/v1/release-orders/${blocker.id}`;
+  await page.goto(`${base}/configuration/release-orders/${copySource.id}`);await button(page,'复制新草稿').click();const copyDrawer=page.getByRole('dialog',{name:'复制新草稿',exact:true});await copyDrawer.getByRole('button',{name:'读取最新配置',exact:true}).click();
+  await copyDrawer.getByText(`明细 2 · ${tables[1]} · MODIFY · 记录 ${copyRecord}`,{exact:true}).click();
+  await copyDrawer.getByText('fresh-copy-b',{exact:true}).waitFor();await copyDrawer.getByText('copy-intent-b',{exact:true}).waitFor();
+  await copyDrawer.getByRole('button',{name:'确认最新基线并复制',exact:true}).click();const conflictTable=copyDrawer.getByText(`冲突表：${tables[1]}`,{exact:true});await conflictTable.waitFor();
+  await copyDrawer.getByRole('link',{name:`占用发布单：${blocker.id}（新窗口查看）`,exact:true}).waitFor();await copyDrawer.getByText('申请人：Browser acceptance',{exact:true}).waitFor();assert.match(adminPerson.accountID,/^[a-f0-9-]{36}$/);
+  assert.equal(await copyDrawer.getByText('fresh-copy-b',{exact:true}).isVisible(),true);assert.equal(await copyDrawer.getByText('copy-intent-b',{exact:true}).isVisible(),true);await conflictTable.scrollIntoViewIfNeeded();await shot(page,'multitable-copy-conflict.png');
+  await copyDrawer.getByRole('button',{name:'关闭',exact:true}).last().click();blocker=await api(admin,'POST',blockerPath+'/cancel',{expected_version:blocker.version,reason:'解除第二表占用'});
+  const latestCopy=await api(editor,'POST','/api/v1/release-orders/preview',{title:copySource.title,items:draftItems(copySource)});
+  const copied=await api(editor,'POST',copySourcePath+'/copy',{expected_version:copySource.version,confirmed:true,items:draftItems({...copySource,items:latestCopy.items})},201);
+  await page.reload();const copyBack=page.getByRole('link',{name:copied.id,exact:true});await copyBack.waitFor();await copyBack.click();
+  const copiedFrom=page.getByText(/^复制自 /);await copiedFrom.waitFor();await copiedFrom.getByRole('link',{name:copySource.id,exact:true}).waitFor();
+  assert.deepEqual(copied.items.map(item=>item.table_name),tables);assert.deepEqual(copied.items.map(item=>item.detail_id),copySource.items.map(item=>item.detail_id));
+  check('复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联');
+
+  const reprepareRecord='12';
+  let reprepareSource=await api(editor,'POST','/api/v1/release-orders',{title:'浏览器多表重新准备',items:tables.map((table,index)=>({table_name:table,operation:'MODIFY',id:reprepareRecord,expected_record_version:'2',content:{label:`reprepare-${index?'b':'a'}`}}))},201);
+  const reprepareSourcePath=`/api/v1/release-orders/${reprepareSource.id}`;
+  reprepareSource=await api(editor,'POST',reprepareSourcePath+'/submit',{expected_version:reprepareSource.version});
+  reprepareSource=await api(reviewer,'POST',reprepareSourcePath+'/approve',{expected_version:reprepareSource.version,reason:'原审批只属于原单'});
+  await page.goto(`${base}/configuration/release-orders/${reprepareSource.id}`);await button(page,'重新准备').click();const reprepareDrawer=page.getByRole('dialog',{name:'重新准备',exact:true});await reprepareDrawer.getByRole('button',{name:'读取最新配置',exact:true}).click();
+  await reprepareDrawer.getByText(`明细 2 · ${tables[1]} · MODIFY · 记录 ${reprepareRecord}`,{exact:true}).waitFor();await reprepareDrawer.getByRole('button',{name:'继续重新准备',exact:true}).click();await page.getByRole('alertdialog',{name:'取消旧单并创建新草稿？',exact:true}).getByRole('button',{name:'取消旧单并创建新草稿',exact:true}).click();
+  const repreparedFrom=page.getByText(/^重新准备自 /);await repreparedFrom.waitFor();const repreparedID=new URL(page.url()).pathname.split('/').at(-1);assert.notEqual(repreparedID,reprepareSource.id);
+  await repreparedFrom.getByRole('link',{name:reprepareSource.id,exact:true}).click();await page.getByText(/ · 已取消$/).waitFor();const reprepareForward=page.getByRole('link',{name:repreparedID,exact:true});await reprepareForward.waitFor();await reprepareForward.click();
+  await button(page,'提交审批').click();await button(page,'确认提交审批').click();await page.getByText(/ · 待审批$/).waitFor();
+  await review.goto(`${base}/configuration/release-orders/${repreparedID}`);await button(review,'批准发布单').click();await review.getByLabel('审批意见',{exact:true}).fill('重新独立核对全部两表明细');await button(review,'确认批准').click();await review.getByText(/ · 已批准$/).waitFor();
+  const reprepared=await api(editor,'GET',`/api/v1/release-orders/${repreparedID}`);assert.equal(reprepared.applicant_id,person.accountID);assert.deepEqual(reprepared.items.map(item=>item.detail_id),reprepareSource.items.map(item=>item.detail_id));
+  await shot(review,'multitable-reprepare-approved.png');check('重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批');
 
   const largePage=await pageFor(editor);await largePage.goto(`${base}/configuration/managed-data?table_name=multitable_browser_large`);await button(largePage,'新增记录').click();
   for(const field of ['id','payload'])await largePage.getByLabel(`包含 ${field}`,{exact:true}).check();await largePage.getByLabel('id 值',{exact:true}).fill('1');

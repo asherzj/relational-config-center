@@ -845,9 +845,17 @@ func (r *ReleaseOrders) copyOrder(ctx context.Context, id string, input CopyRele
 		}
 		for i, entry := range input.Items {
 			saved := source.Items[i]
-			if entry.TableName != "" && entry.TableName != saved.TableName {
-				return ErrReleaseCrossTable
+			if entry.DetailID != "" && entry.DetailID != saved.DetailID {
+				return &ReleaseItemError{Index: i, Cause: ErrReleaseInvalid}
 			}
+			if entry.TableName != "" && entry.TableName != saved.TableName {
+				return &ReleaseItemError{Index: i, Cause: ErrReleaseCrossTable}
+			}
+			// A copy confirmation refreshes record baselines only. The source's
+			// stable detail and table identities remain authoritative, including
+			// for older callers that omitted these now-explicit fields.
+			entry.DetailID, entry.TableName = saved.DetailID, saved.TableName
+			input.Items[i] = entry
 			expected := DraftItemInput{DetailID: entry.DetailID, TableName: entry.TableName, Operation: saved.Operation, ID: saved.ID, Content: saved.Content}
 			if expected.Operation == "ADD" {
 				expected.ID = nil
@@ -875,18 +883,22 @@ func (r *ReleaseOrders) copyOrder(ctx context.Context, id string, input CopyRele
 		}
 		stamp := now.UTC().Format(time.RFC3339Nano)
 		historyAction := "COPY"
+		historyReason := "复制"
 		if reprepare {
 			historyAction = "REPREPARE"
+			historyReason = "重新准备"
 		}
 		result = ReleaseOrder{Title: source.Title, ID: hex.EncodeToString(idBytes), CopiedFromID: source.ID, TableName: source.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: historyAction, ActorID: actor, At: stamp, Version: "1", RelatedOrderID: source.ID}}}
 		if reprepare {
 			source.State = "CANCELLED"
-			if err := appendRelatedReleaseEvent(&source, actor, stamp, "REPREPARE", "重新准备", result.ID); err != nil {
-				return err
-			}
-			if err := s.SaveReleaseOrder(ctx, source, false); err != nil {
-				return err
-			}
+		}
+		if err := appendRelatedReleaseEvent(&source, actor, stamp, historyAction, historyReason, result.ID); err != nil {
+			return err
+		}
+		if err := s.SaveReleaseOrder(ctx, source, false); err != nil {
+			return err
+		}
+		if reprepare {
 			if err := s.ReleaseTargets(ctx, source.ID); err != nil {
 				return err
 			}

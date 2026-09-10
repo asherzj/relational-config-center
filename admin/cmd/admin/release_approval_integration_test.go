@@ -7,15 +7,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/asherzj/relational-config-center/admin/internal/application"
-	mysqldriver "github.com/go-sql-driver/mysql"
-	"github.com/testcontainers/testcontainers-go"
-	tcmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"net/http/httptest"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/asherzj/relational-config-center/admin/internal/application"
+	"github.com/asherzj/relational-config-center/admin/internal/domain"
+	mysqldriver "github.com/go-sql-driver/mysql"
+	"github.com/testcontainers/testcontainers-go"
+	tcmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 )
 
 // AC-018: submitting freezes the verified intent, without writing configuration.
@@ -268,8 +270,9 @@ func TestReleaseRejectedCopyRechecksBaseline(t *testing.T) {
 		t.Fatal(replay.Body)
 	}
 	current := releaseActorRequest(t, app, reviewer, "GET", path, "", "")
-	if current.Body.String() != rejected.Body.String() {
-		t.Fatalf("copy changed source: %s", current.Body)
+	var linked domain.ReleaseOrder
+	if current.Code != 200 || json.Unmarshal(current.Body.Bytes(), &linked) != nil || linked.State != "REJECTED" || len(linked.History) != 4 || linked.History[3].Action != "COPY" || linked.History[3].RelatedOrderID != result.ID {
+		t.Fatalf("copy did not preserve and link source rejection: %s", current.Body)
 	}
 }
 
