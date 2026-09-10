@@ -233,6 +233,7 @@ func respondReleaseWrite(c *gin.Context, orders *application.ReleaseOrders, resu
 func releaseResponse(order application.ReleaseOrder, actions []string) any {
 	// Internal execution metadata and database identity are persisted, not client input.
 	order.Frozen = nil
+	order.FrozenTables = nil
 	for i := range order.Items {
 		order.Items[i].ConcurrencyKeys = nil
 		order.Items[i].RecordKey = nil

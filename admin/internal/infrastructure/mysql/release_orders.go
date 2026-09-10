@@ -113,9 +113,6 @@ func (s *releaseOrderSession) SaveReleaseOrder(ctx context.Context, order domain
 	if err != nil {
 		return application.ErrReleaseUnavailable
 	}
-	if len(encoded) > releaseDocumentBudget(order) {
-		return application.ErrReleaseResultLimit
-	}
 	previousCount := 0
 	if !create {
 		if err = s.database.WithContext(ctx).Raw(`SELECT JSON_EXTRACT(document,'$.item_count') FROM rcc_release_orders WHERE id=? FOR UPDATE`, order.ID).Row().Scan(&previousCount); err != nil || previousCount < 0 || previousCount > 1000 {
@@ -178,9 +175,6 @@ func (s *releaseOrderSession) CompleteReleaseRequest(ctx context.Context, actor,
 	if err != nil {
 		return application.ErrReleaseUnavailable
 	}
-	if len(encoded) > releaseDocumentBudget(order) {
-		return application.ErrReleaseResultLimit
-	}
 	if err = s.database.WithContext(ctx).Exec(`UPDATE rcc_release_requests SET result=? WHERE actor_id=? AND operation=? AND request_key=?`, encoded, actor, operation, key).Error; err != nil {
 		return application.ErrReleaseUnavailable
 	}
@@ -188,10 +182,13 @@ func (s *releaseOrderSession) CompleteReleaseRequest(ctx context.Context, actor,
 }
 func (a *Adapter) ListReleaseOrders(ctx context.Context, filter domain.ReleaseFilter) ([]domain.ReleaseOrderSummary, error) {
 	query := a.gorm.WithContext(ctx).Table("rcc_release_orders").Select("document").Order("id ASC").Limit(filter.Limit)
-	for field, value := range map[string]string{"table_name": filter.TableName, "applicant_id": filter.ApplicantID, "state": filter.State, "id": filter.ID} {
+	for field, value := range map[string]string{"applicant_id": filter.ApplicantID, "state": filter.State, "id": filter.ID} {
 		if value != "" {
 			query = query.Where(field+" = ?", value)
 		}
+	}
+	if filter.TableName != "" {
+		query = query.Where("EXISTS (SELECT 1 FROM rcc_release_details d WHERE d.order_id=rcc_release_orders.id AND d.table_name=?)", filter.TableName)
 	}
 	if filter.After != "" {
 		query = query.Where("id > ?", filter.After)
@@ -264,30 +261,6 @@ func decodeStoredReleaseOrder(encoded []byte) (domain.ReleaseOrder, error) {
 	}
 	return order, nil
 }
-
-// Reserve enough room for required terminating actions and future rollback
-// linkage; a large approval/result must never prevent cancellation or completion.
-func releaseDocumentBudget(order domain.ReleaseOrder) int {
-	state := order.State
-	if state == "COMPLETED" {
-		if order.RollbackOrderID == "" {
-			// Completion consumes up to 4 KiB of the forward result's 64 KiB
-			// reserve; the remaining 60 KiB still funds ordinary rollback.
-			return application.ReleaseResultBytes - application.ReleaseContinuationHeadroom + 4096
-		}
-		// A newly accepted association must leave room to terminate. Cancellation
-		// or rejection consumes that room even while the original stays COMPLETED.
-		if order.RollbackPending {
-			return application.ReleaseResultBytes - application.ReleaseTransportHeadroom - 4096
-		}
-		return application.ReleaseResultBytes - application.ReleaseTransportHeadroom
-	}
-	if state == "CANCELLED" || state == "REJECTED" || state == "ROLLED_BACK" {
-		return application.ReleaseResultBytes - application.ReleaseTransportHeadroom
-	}
-	return application.ReleaseResultBytes - application.ReleaseContinuationHeadroom
-}
-
 func (a *Adapter) AccountDisplayNames(ctx context.Context, ids []string) (map[string]string, error) {
 	result := map[string]string{}
 	for start := 0; start < len(ids); start += 100 {

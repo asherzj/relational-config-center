@@ -299,6 +299,11 @@ func (policyRecord) TableName() string {
 }
 
 func (adapter *Adapter) Create(ctx context.Context, policy domain.TablePolicy, operator string) error {
+	name, err := canonicalTableName(ctx, adapter.gorm, policy.TableName)
+	if err != nil {
+		return fmt.Errorf("resolve Table Policy name: %w", err)
+	}
+	policy.TableName = name
 	record := policyRecord{
 		Table: policy.TableName, QueryPolicyCode: policy.QueryPolicyCode,
 		MutationPolicyCode: policy.MutationPolicyCode, ConcurrencyKey: policy.ConcurrencyKey, Enabled: false,
@@ -318,6 +323,11 @@ func (adapter *Adapter) Create(ctx context.Context, policy domain.TablePolicy, o
 // lifecycle state in the same transaction as the assignment write. This closes
 // the race between application validation and concurrent deprecation.
 func (adapter *Adapter) CreateWithActivePolicyCodes(ctx context.Context, policy domain.TablePolicy, operator string) error {
+	name, err := canonicalTableName(ctx, adapter.gorm, policy.TableName)
+	if err != nil {
+		return fmt.Errorf("resolve Table Policy name: %w", err)
+	}
+	policy.TableName = name
 	return adapter.gorm.WithContext(ctx).Transaction(func(transaction *gorm.DB) error {
 		if err := activeAssignmentDefinitions(transaction, policy.QueryPolicyCode, policy.MutationPolicyCode); err != nil {
 			return err

@@ -1,19 +1,19 @@
-import {useEffect,useState} from "react";
+import {useReleaseJournal} from "./useReleaseJournal";
+import {useState} from "react";
 import {Link,useNavigate} from "react-router-dom";
 import {decodeReleaseRequest,draftFromOrder,releaseActionLabels,releaseActionRole,releaseOrders,releaseRequests,type ReleaseOrder,type ReleaseRequestEnvelope} from "../../api/release-orders";
-import {useWorkspaceIdentity} from "../accounts/ProtectedWorkspace";
 import {useAccountRole} from "../accounts/roles";
 import {Button} from "../../components/ui/Button";
 import {ErrorState,LoadingState} from "../../components/ui/Feedback";
 import {useDraftProtection} from "../../components/ui/LeaveProtection";
-import {pendingReleaseRequests,releaseJournalChanged,type PendingReleaseRequest} from "./release-journal";
+import {type PendingReleaseRequest} from "./release-journal";
 import {useReleaseWrite} from "./useReleaseWrite";
 import {ReleaseDiff} from "./ReleaseDiff";
 
 export function ReleaseRecovery({scopeFilter}:{scopeFilter?:string}){
- const accountID=useWorkspaceIdentity()!.account.id;
- const [requests,setRequests]=useState(()=>pendingReleaseRequests(accountID));
- useEffect(()=>{const update=()=>setRequests(pendingReleaseRequests(accountID));window.addEventListener(releaseJournalChanged,update);return()=>window.removeEventListener(releaseJournalChanged,update)},[accountID]);
+ const {requests,error,pending,reload}=useReleaseJournal();
+ if(error)return <ErrorState error={error} onRetry={()=>void reload()}/>;
+ if(pending&&!requests.length)return <LoadingState label="正在读取原发布请求…"/>;
  const selected=requests.filter(item=>!scopeFilter||item.scope===scopeFilter);
  if(!selected.length)return null;
  return <section className="inline-alert release-recovery mb-6" aria-label="待处理发布请求"><h2>待处理发布请求</h2>{selected.map(item=><div key={item.key} className="mt-3"><p>{item.label}</p><PendingIntent item={item}/>{item.rejection?<RejectedRequest item={item}/>:<RecoveryRequest item={item}/>}</div>)}</section>;

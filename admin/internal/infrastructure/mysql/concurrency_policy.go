@@ -35,6 +35,26 @@ func (c *concurrencyColumns) Scan(value any) error {
 }
 func (concurrencyColumns) GormDataType() string { return "json" }
 
+// Normalize MySQL identifier case without reading a table. Even a dictionary
+// view can establish the RR snapshot, so existence/schema reads must wait until
+// every table guard is held. This scalar read uses the transaction connection.
+func (s *releaseOrderSession) ResolveReleaseTable(ctx context.Context, name string) (string, error) {
+	if err := s.available(); err != nil {
+		return "", err
+	}
+	physical, err := canonicalTableName(ctx, s.database, name)
+	if err != nil {
+		return "", application.ErrReleaseUnavailable
+	}
+	return physical, nil
+}
+
+func canonicalTableName(ctx context.Context, db *gorm.DB, name string) (string, error) {
+	var canonical string
+	err := db.WithContext(ctx).Raw(`SELECT IF(@@lower_case_table_names=0,?,LOWER(?))`, name, name).Row().Scan(&canonical)
+	return canonical, err
+}
+
 // Drafts take a shared lock before reading their Policy Snapshot. Publication
 // and rollback take this guard exclusively through business writes and release.
 // Replacement also takes it exclusively before checking references; no order
@@ -44,7 +64,7 @@ func (s *releaseOrderSession) GetTablePolicy(ctx context.Context, table string) 
 		return domain.TablePolicy{}, err
 	}
 	var record policyRecord
-	err := s.database.WithContext(ctx).Clauses(clause.Locking{Strength: "SHARE"}).Where("table_name = ?", table).First(&record).Error
+	err := s.database.WithContext(ctx).Clauses(clause.Locking{Strength: "SHARE"}).Where("table_name = ? AND BINARY table_name = BINARY ?", table, table).First(&record).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return domain.TablePolicy{}, domain.ErrTablePolicyNotFound
 	}
@@ -52,9 +72,14 @@ func (s *releaseOrderSession) GetTablePolicy(ctx context.Context, table string) 
 }
 
 func (a *Adapter) replaceTablePolicy(ctx context.Context, policy domain.TablePolicy, operator string, active bool) (domain.TablePolicy, error) {
+	var physical string
+	if err := a.gorm.WithContext(ctx).Raw(`SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND (BINARY TABLE_NAME=BINARY ? OR (@@lower_case_table_names<>0 AND TABLE_NAME=?))`, policy.TableName, policy.TableName).Row().Scan(&physical); err != nil {
+		return domain.TablePolicy{}, application.ErrDatabaseTableNotFound
+	}
+	policy.TableName = physical
 	err := a.gorm.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var current policyRecord
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("table_name = ?", policy.TableName).First(&current).Error; err != nil {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("table_name = ? AND BINARY table_name = BINARY ?", policy.TableName, policy.TableName).First(&current).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return domain.ErrTablePolicyNotFound
 			}

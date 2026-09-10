@@ -29,7 +29,7 @@ it("千项混合差异每页20项，仅展开首项且 ADD/DELETE 保持完整",
  const {container}=render(<ReleaseDiff order={{items}}/>);const user=userEvent.setup();
  expect(container.querySelectorAll("details")).toHaveLength(20);expect(container.querySelectorAll("details[open]")).toHaveLength(1);
  expect(screen.getByText("field_1")).toBeVisible();expect(screen.getByText("field_2")).not.toBeVisible();
- await user.click(within(screen.getByLabelText("明细 2")).getByText(/明细 2 · DELETE/));expect(screen.getByText("field_2")).toBeVisible();
+ await user.click(within(screen.getByLabelText("明细 2")).getByText(/明细 2 · .*DELETE/));expect(screen.getByText("field_2")).toBeVisible();
  await user.click(screen.getByRole("button",{name:"下一页明细"}));expect(screen.getByText("field_21")).toBeVisible();
  await user.type(screen.getByRole("textbox",{name:"定位明细"}),"1000");expect(screen.getByText("field_1000")).toBeVisible();
  expect(container.querySelectorAll("details")).toHaveLength(20);expect(screen.getByRole("button",{name:"下一页明细"})).toBeDisabled();

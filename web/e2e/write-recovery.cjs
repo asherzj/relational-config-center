@@ -296,7 +296,7 @@ async function waitDatabase() {
     assert.equal(await page.getByRole('textbox', { name: 'state 申请值', exact: true }).inputValue(), 'invalid-state');
     await page.getByRole('textbox', { name: 'state 申请值', exact: true }).fill('active');
     await button('保存草稿修改').click();
-    await page.getByRole('dialog', { name: `编辑 ${table} 草稿`, exact: true }).waitFor({ state: 'detached' });
+    await page.getByRole('dialog', { name: `编辑多表草稿`, exact: true }).waitFor({ state: 'detached' });
     const corrected = await read(correctedID);
     assert.equal(corrected.items[0].content.state, 'active');
     assert.equal(corrected.copied_from_id, invalidOrder.id);

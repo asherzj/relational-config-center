@@ -341,7 +341,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await button('note 申请值：转换为 LF 再编辑').click();
     assert.equal(await copiedNote.getAttribute('readonly'), null);
     assert.equal(await copiedNote.inputValue(), rawCR.replace(/\r\n?/g, '\n'));
-    await page.getByRole('dialog', { name: `编辑 ${table} 草稿`, exact: true }).locator('.drawer-footer').getByRole('button', { name: '关闭', exact: true }).click();
+    await page.getByRole('dialog', { name: `编辑多表草稿`, exact: true }).locator('.drawer-footer').getByRole('button', { name: '关闭', exact: true }).click();
     await nestedLeave.waitFor();
     await button('放弃修改并离开').click();
     assert.equal(await page.locator('[data-modal-surface="true"]').count(), 0);

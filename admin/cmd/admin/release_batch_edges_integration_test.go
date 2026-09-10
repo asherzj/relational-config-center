@@ -82,7 +82,7 @@ func TestReleaseBatchEdgeDraftValidation(t *testing.T) {
 		{"collation-missing-add", "record_identity_ci", `{"operation":"ADD","content":{"id":"other","label":"kept"}}`, `{"operation":"ADD","expected_record_version":"0","content":{"id":"Café","label":"first"}},{"operation":"ADD","expected_record_version":"0","content":{"id":"CAFE","label":"second"}}`, "release_duplicate_target"},
 		{"pad-space-existing", "record_identity_pad", `{"operation":"MODIFY","id":"key","expected_record_version":"0","content":{"label":"kept"}}`, `{"operation":"DELETE","id":"key ","expected_record_version":"0","content":{}},{"operation":"MODIFY","id":"key","expected_record_version":"0","content":{"label":"discarded"}}`, "release_duplicate_target"},
 		{"pad-space-missing-add", "record_identity_pad", `{"operation":"ADD","content":{"id":"other","label":"kept"}}`, `{"operation":"ADD","expected_record_version":"0","content":{"id":"missing","label":"first"}},{"operation":"ADD","expected_record_version":"0","content":{"id":"missing ","label":"second"}}`, "release_duplicate_target"},
-		{"cross-table", "mutation_delete_parents", `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"kept"}}`, `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"discarded"}},{"table_name":"mutation_add_items","operation":"ADD","content":{"code":"cross","label":"cross"}}`, "release_cross_table"},
+		{"invalid-cross-table-field", "mutation_delete_parents", `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"kept"}}`, `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"discarded"}},{"table_name":"mutation_add_items","operation":"ADD","content":{"not_a_column":"cross"}}`, "invalid_mutation_content"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			created := releaseRequest(t, app, "POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"items":[%s]}`, tc.table, tc.original), tc.name+"-create")
@@ -122,7 +122,7 @@ func TestReleaseBatchEdgeRequestLimitsPreserveDraft(t *testing.T) {
 		status            int
 	}{
 		{"1001", strings.Repeat(item+",", 1000) + item, "release_item_limit", 422},
-		{"body", `{"operation":"ADD","content":{"code":"large","label":"` + strings.Repeat("x", 1<<20) + `"}}`, "request_body_too_large", 400},
+		{"large-invalid-field", `{"operation":"ADD","content":{"not_a_column":"` + strings.Repeat("x", 1<<20) + `"}}`, "invalid_mutation_content", 422},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			body := `{"title":"集成测试发布单","table_name":"mutation_add_items","expected_version":"1","items":[` + tc.items + `]}`

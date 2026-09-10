@@ -351,6 +351,7 @@ describe("表规则分配页面", () => {
     await user.type(screen.getByLabelText("密码"), "correct horse battery staple");
     await user.click(screen.getByRole("button", { name: "登录" }));
     await waitFor(() => expect(screen.queryByRole("heading", { name: "登录本地账号" })).not.toBeInTheDocument());
+ await waitFor(()=>expect(screen.getByRole("combobox",{name:"真实数据库表"})).toBeVisible());
     expect(screen.getByRole("combobox", { name: "真实数据库表" })).toHaveValue("message_templates");
     expect(screen.getByRole("combobox", { name: "Active 查询规则" })).toHaveValue("standard_page_query_v1");
     expect(screen.getByRole("combobox", { name: "Active 变更规则" })).toHaveValue("standard_mutation_v1");

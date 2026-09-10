@@ -96,7 +96,7 @@ describe("rule drafts and navigation protection", () => {
     if (baseline) await user.type(name, baseline);
     expect(unloadPrevented()).toBe(false);
     await user.click(screen.getByRole("button", { name: "取消" }));
-    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await waitFor(()=>expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     expect(router.state.location.pathname).toBe(`/platform/${kind}-policies`);
   });
 
@@ -120,7 +120,7 @@ describe("rule drafts and navigation protection", () => {
       await act(async () => { await user.click(screen.getByRole("button", { name: "放弃修改并离开" })); });
       expect(router.state.location.pathname).toBe(pathname);
       expect(await screen.findByRole("heading", { name: heading, level: 1 })).toBeVisible();
-      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+      await waitFor(()=>expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     };
     await user.click(screen.getByRole("link", { name: "变更规则定义" }));
     await discardAndNavigate("/platform/mutation-policies", "变更规则定义");
@@ -157,7 +157,7 @@ describe("rule drafts and navigation protection", () => {
       await router.navigate(-1);
     });
     expect(router.state.location.pathname).toBe("/platform/query-policies/query_v1");
-    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await waitFor(()=>expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     const currentDraft = await screen.findByRole("textbox", { name: "显示名称" });
     await user.type(currentDraft, "current");
     await act(() => router.navigate(1));
@@ -185,7 +185,7 @@ describe("rule drafts and navigation protection", () => {
     expect(screen.queryByRole("button", { name: "放弃修改并离开" })).not.toBeInTheDocument();
     await act(async () => resolve(rejection()));
     expect(await screen.findByRole("alert")).toHaveTextContent("req-preserved");
-    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await waitFor(()=>expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     expect(name).toHaveValue("保留输入");
     expect(name).toBeEnabled();
     expect(unloadPrevented()).toBe(true);
@@ -197,7 +197,7 @@ describe("rule drafts and navigation protection", () => {
     await act(async () => resolve(json(value, mode === "create" ? 201 : 200)));
     await waitFor(() => expect(router.state.location.search).toBe(""));
     expect(router.state.location.pathname).toBe(`/platform/${kind}-policies/${value.code}`);
-    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await waitFor(()=>expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     expect(unloadPrevented()).toBe(false);
     expect(await screen.findByRole("textbox", { name: "显示名称" })).toBeDisabled();
   });
@@ -283,13 +283,13 @@ describe("table assignments and managed row drafts", () => {
     expect(await screen.findByRole("alertdialog", { name: "正在提交，请稍候" })).toBeVisible();
     await act(async () => resolve(rejection()));
     expect(await screen.findByRole("alert")).toHaveTextContent("req-preserved");
-    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await waitFor(()=>expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     expect(querySelect).toHaveValue("query_v2");
     await submit();
     await act(async () => resolve(json({ ...assignment, table_name: mode === "create" ? "new_items" : "items", query_policy_code: "query_v2" })));
     await waitFor(() => expect(router.state.location.search).toBe(""));
     expect(unloadPrevented()).toBe(false);
-    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await waitFor(()=>expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
   });
 
   it("keeps the same row draft across Change Set, canceled exits and refreshed table catalog", async () => {
@@ -306,7 +306,7 @@ describe("table assignments and managed row drafts", () => {
     await user.click(screen.getByRole("checkbox", { name: "包含 note" }));
     await user.click(screen.getByRole("checkbox", { name: "note 使用 NULL" }));
     await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
-    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await waitFor(()=>expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     await user.keyboard("{Escape}");
     expect(confirmLeave()).toBeVisible();
     await user.click(screen.getByRole("button", { name: "继续编辑" }));
@@ -340,7 +340,7 @@ describe("table assignments and managed row drafts", () => {
     fireEvent.click(execute);
     fireEvent.click(execute);
     await waitFor(() => expect(execute).toBeDisabled());
-    expect(fetch.mock.calls.filter(([url, init]) => String(url) === "/api/v1/release-orders" && init?.method === "POST")).toHaveLength(1);
+    await waitFor(()=>expect(fetch.mock.calls.filter(([url, init]) => String(url) === "/api/v1/release-orders" && init?.method === "POST")).toHaveLength(1));
     await user.keyboard("{Escape}");
     expect(screen.getByRole("dialog", { name: "MODIFY Change Set" })).toBeVisible();
     expect(screen.getByRole("button", { name: "取消 Change Set" })).toBeDisabled();
@@ -348,7 +348,7 @@ describe("table assignments and managed row drafts", () => {
     expect(await screen.findByRole("alertdialog", { name: "正在提交，请稍候" })).toBeVisible();
     await act(async () => resolve(rejection()));
     expect(await screen.findByRole("alert")).toHaveTextContent("req-preserved");
-    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await waitFor(()=>expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     await user.click(screen.getByRole("button", { name: "返回修改" }));
     expect(screen.getByRole("textbox", { name: "name 值" })).toHaveValue("originalchanged");
     expect(screen.getByRole("alert")).toHaveTextContent("req-preserved");
@@ -356,9 +356,10 @@ describe("table assignments and managed row drafts", () => {
     await user.click(screen.getByRole("button", { name: "确认并保存草稿" }));
     await act(() => router.navigate("/platform/query-policies"));
     expect(await screen.findByRole("alertdialog", { name: "正在提交，请稍候" })).toBeVisible();
+    await waitFor(() => expect(fetch.mock.calls.filter(([url, init]) => String(url) === "/api/v1/release-orders" && init?.method === "POST")).toHaveLength(2));
     await act(async () => resolve(json(savedDraft,201)));
     expect(await screen.findByRole("heading", { name: "items 配置变更" })).toBeVisible();
-    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await waitFor(()=>expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     expect(router.state.location.pathname).toBe(`/configuration/release-orders/${savedDraft.id}`);
     expect(unloadPrevented()).toBe(false);
   });

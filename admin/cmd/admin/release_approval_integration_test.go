@@ -804,7 +804,27 @@ func TestReleaseFreezeMetadataCaseInsensitiveNames(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer app.Close()
-	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
+	queryCode, mutationCode := createPolicyDefinitions(t, app, "mutation_add_items", queryPolicyFixture{}, mutationPolicyFixture{AllowAdd: true}, 1)
+	assigned := policyIntegrationRequest(t, app, "POST", "/api/v1/table-policies", tablePolicyCodePayload("MUTATION_ADD_ITEMS", queryCode, mutationCode))
+	if assigned.Code != 201 {
+		t.Fatalf("uppercase policy assignment: %d %s", assigned.Code, assigned.Body.String())
+	}
+	setPolicyAssignmentEnabled(t, app, "MUTATION_ADD_ITEMS", true)
+	duplicateAliases := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"same physical target","items":[{"table_name":"MUTATION_ADD_ITEMS","operation":"ADD","content":{"id":"99","code":"upper","label":"upper"}},{"table_name":"mutation_add_items","operation":"ADD","content":{"id":"99","code":"lower","label":"lower"}}]}`, "case-alias-duplicate")
+	assertIntegrationErrorCode(t, duplicateAliases, 422, "release_duplicate_target")
+	setDraftTestKey(t, app, "mutation_add_items", []string{"code"})
+	aliasOwner := rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"physical key owner","items":[{"table_name":"MUTATION_ADD_ITEMS","operation":"ADD","content":{"id":"98","code":"Alias-Key","label":"owner"}}]}`, "case-alias-owner"), 201)
+	if len(aliasOwner.TableNames) != 1 || aliasOwner.TableNames[0] != "mutation_add_items" || aliasOwner.Items[0].TableName != "mutation_add_items" {
+		t.Fatal("physical name not retained")
+	}
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"physical key contender","items":[{"table_name":"mutation_add_items","operation":"ADD","content":{"id":"97","code":"alias-key","label":"contender"}}]}`, "case-alias-contender"), 409, "release_target_conflict")
+	assignment := policyIntegrationRequest(t, app, "GET", "/api/v1/table-policies/mutation_add_items", "")
+	var policy map[string]any
+	_ = json.Unmarshal(assignment.Body.Bytes(), &policy)
+	changed, _ := json.Marshal(map[string]any{"table_name": "MUTATION_ADD_ITEMS", "query_policy_code": policy["query_policy_code"], "mutation_policy_code": policy["mutation_policy_code"], "concurrency_key": []string{}})
+	assertIntegrationErrorCode(t, policyIntegrationRequest(t, app, "PUT", "/api/v1/table-policies/MUTATION_ADD_ITEMS", string(changed)), 409, "concurrency_key_in_use")
+	rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+aliasOwner.ID+"/cancel", `{"expected_version":"1","reason":"end physical identity fixture"}`, "case-alias-cancel"), 200)
+	setDraftTestKey(t, app, "mutation_add_items", nil)
 	ownerDriver := *driver
 	ownerDriver.User = "root"
 	owner := deliveryDB(t, &ownerDriver)

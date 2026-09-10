@@ -22,7 +22,10 @@ func TestIndependentReleaseDetailGrowthDoesNotLockIndexGaps(t *testing.T) {
 		t.Run(fmt.Sprint(initial), func(t *testing.T) {
 			ids := []string{fmt.Sprintf("detail-%d-a", initial), fmt.Sprintf("detail-%d-b", initial)}
 			for _, id := range ids {
-				order := domain.ReleaseOrder{ID: id, Title: "storage concurrency", ApplicantID: "fixture", TableName: "fixture", State: "DRAFT", Version: "1", Items: make([]domain.ReleaseItem, initial)}
+				order := domain.ReleaseOrder{ID: id, Title: "storage concurrency", ApplicantID: "fixture", TableName: "fixture", State: "DRAFT", Version: "1", Items: []domain.ReleaseItem{}}
+				for range initial {
+					order.Items = append(order.Items, domain.ReleaseItem{TableName: "fixture", Operation: "ADD"})
+				}
 				if err := adapter.ExecuteReleaseOrder(ctx, func(s application.ReleaseOrderSession) error { return s.SaveReleaseOrder(ctx, order, true) }); err != nil {
 					t.Fatal(err)
 				}
@@ -45,7 +48,7 @@ func TestIndependentReleaseDetailGrowthDoesNotLockIndexGaps(t *testing.T) {
 						case <-operation.Done():
 							return operation.Err()
 						}
-						order.Items = append(order.Items, domain.ReleaseItem{Operation: "ADD"})
+						order.Items = append(order.Items, domain.ReleaseItem{TableName: "fixture", Operation: "ADD"})
 						if err := s.SaveReleaseOrder(operation, order, false); err != nil {
 							return err
 						}

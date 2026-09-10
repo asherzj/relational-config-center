@@ -4,11 +4,11 @@
 
 省略主键仅支持 AUTO_INCREMENT。非自增主键即使有 DEFAULT，也需在申请中显式提供 id；否则在准备前返回 publication_unsupported，不能用上次连接的 LAST_INSERT_ID 猜测实际记录。
 
-三个旧 `POST /tables/:table/rows`、`PATCH /tables/:table/rows/:id`、`DELETE /tables/:table/rows/:id` 路由已删除。数据页确认保存草稿。同一路径接受同表 1～1,000 项混合明细；全部校验与提交保持原子性。
+三个旧 `POST /tables/:table/rows`、`PATCH /tables/:table/rows/:id`、`DELETE /tables/:table/rows/:id` 路由已删除。数据页确认保存草稿。同一路径接受同一数据源内多表合计 1～1,000 项混合明细；全部校验与提交保持原子性。
 
 ## 最终行
 
-`PublicationResult` 包含 execution_id、kind、table_version、publisher_id、数据库 executed_at、commands 和 notification。execution_id 为原单 ID 与 PUBLICATION / ROLLBACK 种类组成的唯一执行身份。每个 Command 包含 order_id、execution_id、execution_kind、table_name、sequence、table_version、operation、实际 id、发布后的 record_version、before 和 final。所有版本、游标、ID 均为 JSON 字符串。ADD 的 before 是 absent tombstone；DELETE 的 final 是 tombstone，before 保存实际已删行。记录版本墓碑持续保留；重建不回到零。
+`PublicationResult` 包含 execution_id、kind、按物理表名索引的 table_versions / notifications、publisher_id、数据库 executed_at 和全局有序 commands。table_version / notification 暂为首项表的显示别名，由 #88 移除。execution_id 为原单 ID 与 PUBLICATION / ROLLBACK 种类组成的唯一执行身份。每个 Command 包含 order_id、execution_id、execution_kind、table_name、sequence、table_version、operation、实际 id、发布后的 record_version、before 和 final。所有版本、游标、ID 均为 JSON 字符串。ADD 的 before 是 absent tombstone；DELETE 的 final 是 tombstone，before 保存实际已删行。记录版本墓碑持续保留；重建不回到零。
 
 `before` 与 `final` 的字段顺序为实际 Schema ordinal 顺序。类型使用 information_schema 的原始 COLUMN_TYPE（包括 unsigned、精度、enum 等），Schema digest 为已冻结完整执行定义的 SHA-256。当前数据库读取用显式 UTF-8 CAST 保留数值、零日期、带符号 TIME 时长和微秒；FLOAT 先提升 DOUBLE，避免 MySQL 默认六位有效数文本输出丢失真实位值，普通查询和草稿 before 同样保留实际浮点精度；TIMESTAMP 会话固定 UTC。真实主键从最终行（删除用 before）取得，TIMESTAMP 身份采用 UTC RFC3339 格式，空字符串主键有效。
 
@@ -42,13 +42,17 @@
 
 正式进程的发布期限为 `min(8s, MYSQL_CONNECT_TIMEOUT, MYSQL_READ_TIMEOUT, MYSQL_WRITE_TIMEOUT) × 4/5`，短于 socket 超时；默认 socket 5 秒对应实际发布期限 4 秒。直接 HTTP 组合未传值时回退 8 秒。期限覆盖发布单的全部 POST/PUT 请求，提交前明确超时返回 mutation_timeout；提交确认不确定返回 release_result_unknown。页面保留原 actor/action/key/input，允许查询详情及原键重试，不能因查不到立即换键。成功仅表示数据库生效；notification.status 固定 NOT_CONNECTED，没有投递 worker、远端调用或客户端已收敛的承诺。
 
-## 同表批量执行
+## 多表整单执行
 
 基线与发布前/最终行通过带原请求序号的同表批量读取关联回明细；记录身份仍使用相同的 live 主键类型转换和 MySQL 比较权重，FLOAT 仍提升 DOUBLE，无应用字符串匹配或 SELECT 返回顺序假设。执行先重验全部冻结内容与基线，再在同一事务读取/锁定全部发布前行、执行各项、读取完整最终行、校验实际身份/目标占用并锁定比较整个版本集合，统一推进版本与持久化 Command。任何后续失败回滚先前的业务操作。
 
-每次未知自增 ADD 使用该次 INSERT 协议返回的真实 `LastInsertId`，按无符号十进制字符串无损传递，不从一条多行 INSERT 的首编号推算整组编号。非单位 increment/offset、唯一约束导致的号段空洞均不能改变对应项的实际 id。实际最终 id 还须满足公开 Schema 的解析约束，无法再寻址的值（例如 TINYINT(1) 自增得到 2）使整单回滚。批量 Command 仍按明细顺序拥有各自游标，整单只推进一个 Table Version 和一条刷新通知。
+每次未知自增 ADD 使用该次 INSERT 协议返回的真实 `LastInsertId`，按无符号十进制字符串无损传递，不从一条多行 INSERT 的首编号推算整组编号。非单位 increment/offset、唯一约束导致的号段空洞均不能改变对应项的实际 id。实际最终 id 还须满足公开 Schema 的解析约束，无法再寻址的值（例如 TINYINT(1) 自增得到 2）使整单回滚。批量 Command 仍按明细顺序拥有各自游标，每个涉及表分别推进一个 Table Version 并保存一条刷新通知，结果数组仍按全局冻结顺序组装。
 
-请求、字段、完整结果、终止空间与列表预算见 [混合草稿契约](../admin-release-drafts.md#混合批量与公开预算t6--53)。8 MiB 结果门禁在同一事务内检查，包含数据库实际默认/生成/支持触发器值以及永久原键成功结果，超限不会先提交配置再补历史。列表为有界摘要，详情与原键重放保留完整最终结果。014 完成单表路径存储切换；通知 worker、跨表和文件导入不在 #82 范围。
+发布链路不再使用旧 64 KiB 字段及 8 MiB 整单/结果预算。接受明细的实际 POST/PUT 路由按 1,000 条总数限制，其他 API 和不接受明细的动作仍保留原 envelope 限制。内部 JSON 批量语句到达组装阈值时立即刷新批次，单个大明细仍可独立发送，各批次始终在同一事务，不构成新的整单容量门禁。
+
+取得 MySQL 标量 `lower_case_table_names` 后按数据库名称语义统一表身份，再按稳定表名顺序取得所有 SHARE（草稿）或 UPDATE（执行）保护锁；在此之前不能访问 information_schema 或建立业务 RR 一致性快照。标量名称解析使用当前连接，支持连接池只有一个连接。规则点查同时保留可索引等值条件和二进制精确校验，避免借用 mode0 中另一张大小写表的规则。所有业务 DML 只遍历冻结的全局 Items，回滚遍历其严格逆序，不能按表重组或自动排序依赖。
+
+发布失败的 item_index 使用正向全局位置，快速回滚失败使用恢复倒序位置。表名在明细中明确展示，前端按同一坐标定位。每个实际 Command 的 schema、表版本、游标、通知与记录身份都来自自身表。
 
 ## 原单、逐项结果与成功执行
 
@@ -60,10 +64,10 @@
 数组写回主单。列表仅读取有界摘要，不逐单读取或验证结果明细。
 
 Command 仍属于供分发使用的技术记录，以执行身份区分同一原单的发布与回滚。
-通知主键为 `(execution_id, table_name)`；当前单表每次执行一条通知，两次执行
+通知主键为 `(execution_id, table_name)`；每次执行在每个涉及表上保存一条通知，两次执行
 不会互相覆盖。成功执行、明细实际值、技术记录及幂等结果和业务写入在一个事务中。
 
 幂等快照保留当时流程与申请，但实际 Command 从不可变明细重建，避免另一份
 完整结果。原发布键在回滚后重放当时 SUCCEEDED 响应，回滚键重放 ROLLED_BACK
-响应；当前角色仍须通过鉴权。这个单表聚合读取与请求快照外观由 #84 / #88
+响应；当前角色仍须通过鉴权。这个聚合读取与请求快照外观由 #88
 继续收敛，完整退出条件见 [T1 过渡清单](multitable-release-tickets/t1-transitions.md)。

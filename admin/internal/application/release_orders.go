@@ -79,8 +79,9 @@ type DraftInput struct {
 // reads. Preparing a draft cannot call business-row mutation methods.
 type ReleaseOrderSession interface {
 	PolicySnapshotReader
+	ResolveReleaseTable(context.Context, string) (string, error)
 	ReadRecordBaselines(context.Context, domain.TableSchema, []any) ([]domain.RecordBaseline, error)
-	ReadRollbackBaselines(context.Context, domain.TableSchema, []any, domain.ReleaseOrder) ([]domain.RecordBaseline, error)
+	ReadRollbackBaselines(context.Context, domain.TableSchema, []any, domain.ReleaseOrder, []string) ([]domain.RecordBaseline, error)
 	LockAndReadTableExecutionSchema(context.Context, string) (domain.TableExecutionSchema, error)
 	ReserveReleaseTargets(context.Context, string, []domain.ActiveTarget) error
 	ReplaceReleaseTargets(context.Context, string, []domain.ActiveTarget) error
@@ -150,6 +151,7 @@ func (r *ReleaseOrders) Create(ctx context.Context, input DraftInput, key string
 		}
 		stamp := now.UTC().Format(time.RFC3339Nano)
 		result = ReleaseOrder{Title: input.Title, ID: hex.EncodeToString(idBytes), TableName: input.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "CREATE", ActorID: actor, At: stamp, Version: "1"}}}
+		result.TableNames = releaseTableNames(result.Items)
 		if err = s.SaveReleaseOrder(ctx, result, true); err != nil {
 			return err
 		}
@@ -282,91 +284,116 @@ func (r *ReleaseOrders) prepare(ctx context.Context, s ReleaseOrderSession, inpu
 }
 
 func (r *ReleaseOrders) prepareInput(ctx context.Context, s ReleaseOrderSession, input DraftInput, refreshBaseline bool, source *ReleaseOrder) ([]ReleaseItem, error) {
-	if protectedTable(input.TableName) {
-		return nil, ErrProtectedTable
-	}
 	if len(input.Items) > 1000 {
 		return nil, ErrReleaseItemLimit
 	}
-	if input.TableName == "" || len(input.TableName) > 256 {
-		return nil, ErrReleaseInvalid
-	}
-	snapshot, err := r.snapshots.resolve(ctx, s, input.TableName, mutationPolicySnapshot)
-	if err != nil {
-		return nil, err
-	}
-
-	ids := make([]any, len(input.Items))
-	idColumn, _ := snapshot.schema.Column("id")
-	for index, item := range input.Items {
-		if source == nil && item.ID != nil && len(*item.ID) > ReleaseFieldBytes {
-			return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseFieldLimit}
+	// The aggregate input table remains a shorthand for explicitly single-table
+	// requests. Persisted details always carry their own authoritative identity.
+	groups := map[string][]int{}
+	physical := map[string]string{}
+	for index := range input.Items {
+		item := &input.Items[index]
+		if item.TableName == "" {
+			item.TableName = input.TableName
 		}
-		if item.TableName != "" && item.TableName != input.TableName {
-			return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseCrossTable}
-		}
-		for name, value := range item.Content {
-			if len(name) > 256 || source == nil && value != nil && len(*value) > ReleaseFieldBytes {
-				return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseFieldLimit}
-			}
-		}
-		id := item.ID
-		if item.Operation == "ADD" {
-			id = item.Content["id"]
-		}
-		if id != nil {
-			ids[index], err = domain.ParseColumnValue(idColumn, *id)
-			if err != nil {
-				return nil, &ReleaseItemError{Index: index, Cause: ErrInvalidMutation}
-			}
-		}
-	}
-	var baselines []domain.RecordBaseline
-	if source == nil {
-		baselines, err = s.ReadRecordBaselines(ctx, snapshot.schema, ids)
-	} else {
-		baselines, err = s.ReadRollbackBaselines(ctx, snapshot.schema, ids, *source)
-	}
-	if err != nil {
-		return nil, err
-	}
-	items := make([]ReleaseItem, 0, len(input.Items))
-	seen := map[string]bool{}
-	detailIDs := map[string]bool{}
-	for index, item := range input.Items {
-		if item.DetailID == "" {
-			id, err := newDetailID()
-			if err != nil {
-				return nil, err
-			}
-			item.DetailID = id
-		}
-		if decoded, err := hex.DecodeString(item.DetailID); err != nil || len(decoded) != 16 || detailIDs[item.DetailID] {
+		if item.TableName == "" || len(item.TableName) > 256 {
 			return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseInvalid}
 		}
-		detailIDs[item.DetailID] = true
-		prepared, err := prepareReleaseItem(snapshot.schema, snapshot.mutationPolicy, item, baselines[index], refreshBaseline, source != nil)
-		if err != nil {
-			return nil, &ReleaseItemError{Index: index, Cause: err}
+		if protectedTable(item.TableName) {
+			return nil, &ReleaseItemError{Index: index, Cause: ErrProtectedTable}
 		}
-		key := string(prepared[0].RecordKey)
-		if key != "" {
-			if seen[key] {
-				return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseDuplicateTarget}
+		name, known := physical[item.TableName]
+		if !known {
+			var err error
+			name, err = s.ResolveReleaseTable(ctx, item.TableName)
+			if err != nil {
+				return nil, &ReleaseItemError{Index: index, Cause: err}
 			}
-			seen[key] = true
+			physical[item.TableName] = name
 		}
-		items = append(items, prepared...)
+		item.TableName = name
+		groups[item.TableName] = append(groups[item.TableName], index)
 	}
-	if err := prepareConcurrencyTargets(ctx, s, snapshot, items); err != nil {
-		return nil, err
+	// Every table guard precedes the first catalog or business snapshot read.
+	// Waiting for B after snapshot A exists would otherwise retain stale B rows.
+	tables := sortedTableKeys(groups)
+	for _, table := range tables {
+		if err := guardDraftReleaseTable(ctx, s, table); err != nil {
+			return nil, RemapReleaseItemError(err, groups[table])
+		}
 	}
-	encoded, err := json.Marshal(items)
-	if err != nil {
-		return nil, ErrReleaseUnavailable
-	}
-	if len(encoded) > ReleaseResultBytes-ReleaseContinuationHeadroom {
-		return nil, ErrReleaseResultLimit
+	items := make([]ReleaseItem, len(input.Items))
+	detailIDs := map[string]bool{}
+	for _, table := range tables {
+		positions := groups[table]
+		snapshot, err := r.snapshots.resolve(ctx, s, table, mutationPolicySnapshot)
+		if err != nil {
+			return nil, RemapReleaseItemError(err, positions)
+		}
+		ids := make([]any, len(positions))
+		stableIDs := make([]string, len(positions))
+		idColumn, _ := snapshot.schema.Column("id")
+		for local, index := range positions {
+			item := input.Items[index]
+			stableIDs[local] = item.DetailID
+			for name := range item.Content {
+				if len(name) > 256 {
+					return nil, &ReleaseItemError{Index: index, Cause: ErrInvalidMutation}
+				}
+			}
+			id := item.ID
+			if item.Operation == "ADD" {
+				id = item.Content["id"]
+			}
+			if id != nil {
+				ids[local], err = domain.ParseColumnValue(idColumn, *id)
+				if err != nil {
+					return nil, &ReleaseItemError{Index: index, Cause: ErrInvalidMutation}
+				}
+			}
+		}
+		var baselines []domain.RecordBaseline
+		if source == nil {
+			baselines, err = s.ReadRecordBaselines(ctx, snapshot.schema, ids)
+		} else {
+			baselines, err = s.ReadRollbackBaselines(ctx, snapshot.schema, ids, *source, stableIDs)
+		}
+		if err != nil {
+			return nil, RemapReleaseItemError(err, positions)
+		}
+		groupItems := make([]ReleaseItem, len(positions))
+		seen := map[string]bool{}
+		for local, index := range positions {
+			item := input.Items[index]
+			if item.DetailID == "" {
+				item.DetailID, err = newDetailID()
+				if err != nil {
+					return nil, err
+				}
+			}
+			if decoded, err := hex.DecodeString(item.DetailID); err != nil || len(decoded) != 16 || detailIDs[item.DetailID] {
+				return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseInvalid}
+			}
+			detailIDs[item.DetailID] = true
+			prepared, err := prepareReleaseItem(snapshot.schema, snapshot.mutationPolicy, item, baselines[local], refreshBaseline, source != nil)
+			if err != nil {
+				return nil, &ReleaseItemError{Index: index, Cause: err}
+			}
+			key := string(prepared[0].RecordKey)
+			if key != "" {
+				if seen[key] {
+					return nil, &ReleaseItemError{Index: index, Cause: ErrReleaseDuplicateTarget}
+				}
+				seen[key] = true
+			}
+			groupItems[local] = prepared[0]
+		}
+		if err := prepareConcurrencyTargets(ctx, s, snapshot, groupItems); err != nil {
+			return nil, RemapReleaseItemError(err, positions)
+		}
+		for local, index := range positions {
+			items[index] = groupItems[local]
+		}
 	}
 	return items, nil
 }
@@ -511,9 +538,6 @@ type CancelReleaseInput struct {
 
 func (r *ReleaseOrders) Update(ctx context.Context, id string, input DraftInput, key string) (ReleaseOrder, error) {
 	return r.changeOrder(ctx, id, input.ExpectedVersion, "edit", key, input, func(s ReleaseOrderSession, order *ReleaseOrder) error {
-		if input.TableName != order.TableName {
-			return ErrReleaseInvalid
-		}
 		if err := validateReleaseTitle(input.Title); err != nil {
 			return err
 		}
@@ -521,7 +545,7 @@ func (r *ReleaseOrders) Update(ctx context.Context, id string, input DraftInput,
 			if input.Items != nil {
 				return ErrReleaseInvalid
 			}
-			items, err := r.editDraftDetails(ctx, s, *order, *input.Changes)
+			items, err := r.editDraftDetails(ctx, s, *order, *input.Changes, input.TableName)
 			if err != nil {
 				return err
 			}
@@ -556,12 +580,7 @@ func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitRelea
 		if len(order.Items) == 0 {
 			return ErrReleaseItemLimit
 		}
-		// Acquire the draft's read guard before metadata or catalog can establish
-		// a snapshot. Publication and rollback hold the same guard exclusively.
-		if _, err := s.GetTablePolicy(ctx, order.TableName); err != nil {
-			return err
-		}
-		schema, err := s.LockAndReadTableExecutionSchema(ctx, order.TableName)
+		tables, err := r.resolveReleaseTables(ctx, s, order.Items, false)
 		if err != nil {
 			return err
 		}
@@ -580,18 +599,12 @@ func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitRelea
 				return &ReleaseItemError{Index: index, Cause: ErrRecordVersionConflict}
 			}
 		}
-		snapshot, err := r.snapshots.resolve(ctx, s, order.TableName, mutationPolicySnapshot)
-		if err != nil {
-			return err
-		}
-		p := snapshot.mutationPolicy
 		order.Items = items
-		order.Frozen = &domain.ReleaseExecutionSnapshot{Schema: schema, Mutation: domain.NewReleaseMutationSemantics(p)}
-		order.FrozenDigest = hex.EncodeToString(releaseDigest(struct {
-			Title     string
-			Items     []ReleaseItem
-			Execution *domain.ReleaseExecutionSnapshot
-		}{order.Title, items, order.Frozen}))
+		order.FrozenTables = frozenReleaseTables(tables)
+		// Temporary display alias; execution always resolves the detail's table.
+		first := order.FrozenTables[items[0].TableName]
+		order.Frozen = &first
+		order.FrozenDigest = frozenOrderDigest(*order)
 		targets := []domain.ActiveTarget{}
 		for index, item := range items {
 			if len(item.RecordKey) > 0 {
@@ -727,6 +740,7 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 			reason = cancel.Reason
 		}
 		order.History = append(order.History, domain.ReleaseEvent{Action: strings.ToUpper(action), ActorID: actor, At: order.UpdatedAt, Version: order.Version, Reason: reason})
+		order.TableNames = releaseTableNames(order.Items)
 		if err = s.SaveReleaseOrder(ctx, order, false); err != nil {
 			return err
 		}
@@ -877,6 +891,7 @@ func (r *ReleaseOrders) copyOrder(ctx context.Context, id string, input CopyRele
 				return err
 			}
 		}
+		result.TableNames = releaseTableNames(result.Items)
 		if err := s.SaveReleaseOrder(ctx, result, true); err != nil {
 			return err
 		}

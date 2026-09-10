@@ -240,17 +240,23 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 	}
 }
 
-func TestReleaseBatchFieldBudget(t *testing.T) {
+func TestReleaseBatchLargeFieldDraftPreservesInput(t *testing.T) {
 	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	input, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": "mutation_add_items", "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"code": "oversize", "label": strings.Repeat("x", 65537)}}}})
 	response := releaseRequest(t, app, "POST", "/api/v1/release-orders", string(input), "field-budget")
-	assertIntegrationErrorCode(t, response, 422, "release_field_limit")
+	if response.Code != 201 {
+		t.Fatalf("large field draft: %d %.500s", response.Code, response.Body.String())
+	}
+	var order domain.ReleaseOrder
+	if json.Unmarshal(response.Body.Bytes(), &order) != nil || len(*order.Items[0].Content["label"]) != 65537 {
+		t.Fatal("large draft field truncated")
+	}
 }
 
-// A small request can expand through database defaults. Its full persisted
-// result is bounded before commit, including the exact idempotency result.
-func TestReleaseBatchExpandedResultBudgetRollsBack(t *testing.T) {
+// Database defaults may expand a small request past former JSON budgets.
+// Every actual value and exact replay remains intact in the same transaction.
+func TestReleaseBatchExpandedResultsExceedFormerBudget(t *testing.T) {
 	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
 	rootDriver := *driver
 	rootDriver.User = "root"
@@ -271,28 +277,38 @@ func TestReleaseBatchExpandedResultBudgetRollsBack(t *testing.T) {
 	input, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": "batch_large_result", "items": items})
 	path := approvePublication(t, app, publicationFixtureReviewer(t, app), string(input), "expanded")
 	result := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "expanded-execute")
-	if result.Code != 422 {
-		t.Fatalf("expanded result status %d, response bytes %d", result.Code, result.Body.Len())
+	if result.Code != 200 || result.Body.Len() <= 8<<20 {
+		t.Fatalf("expanded result status %d, response bytes %d, %.500s", result.Code, result.Body.Len(), result.Body.String())
 	}
-	assertIntegrationErrorCode(t, result, 422, "release_result_limit")
+	var order domain.ReleaseOrder
+	if json.Unmarshal(result.Body.Bytes(), &order) != nil || len(order.Publication.Commands) != 130 {
+		t.Fatal("missing expanded results")
+	}
+	for _, command := range order.Publication.Commands {
+		for _, field := range command.Final.Fields {
+			if field.Name == "payload" && (field.Value == nil || *field.Value != strings.Repeat("x", 65536)) {
+				t.Fatal("expanded payload truncated")
+			}
+		}
+	}
 	var rows, commands, versions, requests int
 	for query, dest := range map[string]*int{`SELECT COUNT(*) FROM batch_large_result`: &rows, `SELECT COUNT(*) FROM rcc_publication_commands`: &commands, `SELECT COUNT(*) FROM rcc_record_versions`: &versions, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%'`: &requests} {
 		if err := db.QueryRow(query).Scan(dest); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if rows != 0 || commands != 0 || versions != 0 || requests != 0 {
+	if rows != 130 || commands != 130 || versions != 130 || requests != 1 {
 		t.Fatalf("partial budget effects %d %d %d %d", rows, commands, versions, requests)
 	}
 	current := releaseRequest(t, app, "GET", path, "", "")
-	if !strings.Contains(current.Body.String(), `"state":"APPROVED"`) {
+	if !strings.Contains(current.Body.String(), `"state":"SUCCEEDED"`) {
 		t.Fatal("approval lost")
 	}
 }
 
 // Long-lived history is a persistence fixture; approval and cancellation still
-// use the public API. A capacity rejection must never strand active targets.
-func TestReleaseBatchBudgetRetainsCancellationHeadroom(t *testing.T) {
+// use the public API. Large workflow history must not strand active targets.
+func TestReleaseBatchLargeHistoryCanApproveAndCancel(t *testing.T) {
 	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
@@ -347,12 +363,12 @@ func TestReleaseBatchBudgetRetainsCancellationHeadroom(t *testing.T) {
 	}
 	seedReleaseWorkflowHistory(t, db, order)
 	approval := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"`+order.Version+`","reason":"`+strings.Repeat("<", 2000)+`"}`, "headroom-approve")
-	if approval.Code != 422 {
-		t.Fatalf("approval must reserve termination capacity: status %d bytes %d", approval.Code, approval.Body.Len())
+	if approval.Code != 200 {
+		t.Fatalf("large-history approval: status %d bytes %d", approval.Code, approval.Body.Len())
 	}
-	assertIntegrationErrorCode(t, approval, 422, "release_result_limit")
-	cancelled := releaseRequest(t, app, "POST", path+"/cancel", `{"expected_version":"`+order.Version+`","reason":"`+strings.Repeat("<", 2000)+`"}`, "headroom-cancel")
-	if cancelled.Code != 200 || cancelled.Body.Len() > 8<<20 {
+	approvedVersion := strconv.Itoa(next + 1)
+	cancelled := releaseRequest(t, app, "POST", path+"/cancel", `{"expected_version":"`+approvedVersion+`","reason":"`+strings.Repeat("<", 2000)+`"}`, "headroom-cancel")
+	if cancelled.Code != 200 {
 		t.Fatalf("cancellation: %d bytes %d", cancelled.Code, cancelled.Body.Len())
 	}
 	var targets int

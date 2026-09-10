@@ -53,8 +53,12 @@ const base=process.env.RCC_WEB_URL;
   await page.route(`**/api/v1/release-orders/${committed.id}`,route=>route.request().method()==='PUT'?route.abort('failed'):route.continue());
   await page.getByRole('button',{name:'保存草稿修改',exact:true}).click();await page.getByRole('button',{name:'使用原请求重试',exact:true}).waitFor();
   await page.unroute(`**/api/v1/release-orders/${committed.id}`);
-  await other.reload();await other.getByRole('button',{name:'编辑草稿',exact:true}).click();await other.getByLabel('name 申请值',{exact:true}).fill('newer concurrent draft');await other.getByRole('button',{name:'保存草稿修改',exact:true}).click();await other.getByText('newer concurrent draft',{exact:true}).waitFor();
-  page.once('dialog',dialog=>dialog.accept());await page.reload();await page.getByRole('button',{name:'恢复原发布请求',exact:true}).click();
+  // Same-browser tabs share the durable unresolved request. An independent browser
+  // profile can still race through the server CAS, without overwriting that journal.
+  await other.reload();await other.getByRole('button',{name:'恢复原发布请求',exact:true}).waitFor();
+  const independent=await browser.newContext({storageState:await context.storageState()});
+  const concurrent=await independent.newPage();await concurrent.goto(page.url());await concurrent.getByRole('button',{name:'编辑草稿',exact:true}).click();await concurrent.getByLabel('name 申请值',{exact:true}).fill('newer concurrent draft');const concurrentResponse=concurrent.waitForResponse(response=>response.request().method()==='PUT'&&response.url().endsWith('/'+committed.id));await concurrent.getByRole('button',{name:'保存草稿修改',exact:true}).click();assert.equal((await concurrentResponse).status(),200);await concurrent.getByRole('heading',{name:'编辑多表草稿',exact:true}).waitFor({state:'hidden'});await concurrent.getByText('newer concurrent draft',{exact:true}).waitFor();await independent.close();
+  page.once('dialog',dialog=>dialog.accept());await page.reload();const rejectedReplay=page.waitForResponse(response=>response.request().method()==='PUT'&&response.url().endsWith('/'+committed.id));await page.getByRole('button',{name:'恢复原发布请求',exact:true}).click();const rejectedResponse=await rejectedReplay;assert.equal(rejectedResponse.status(),409,await rejectedResponse.text());
   await page.getByRole('button',{name:'查看最新状态与配置',exact:true}).waitFor();await page.reload();
   await page.getByText('查看原申请内容',{exact:true}).click();await page.getByText('值：recovered rejected intent',{exact:true}).waitFor();
   await page.getByRole('button',{name:'查看最新状态与配置',exact:true}).click();await page.getByRole('button',{name:'确认重建并保存草稿',exact:true}).click();await page.getByText('recovered rejected intent',{exact:true}).waitFor();

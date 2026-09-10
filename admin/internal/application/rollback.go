@@ -53,16 +53,22 @@ func (r *ReleaseOrders) reverseItems(ctx context.Context, s ReleaseOrderSession,
 	if original.Publication == nil || original.VerifyPublication() != nil {
 		return nil, ErrReleaseUnavailable
 	}
-	snapshot, err := r.snapshots.resolve(ctx, s, original.TableName, mutationPolicySnapshot)
-	if err != nil {
-		return nil, err
+	// Callers already acquired every table guard before establishing a snapshot.
+	snapshots := map[string]resolvedPolicySnapshot{}
+	for _, table := range releaseTableNames(original.Items) {
+		snapshot, err := r.snapshots.resolve(ctx, s, table, mutationPolicySnapshot)
+		if err != nil {
+			return nil, err
+		}
+		snapshots[table] = snapshot
 	}
-	reserved := rollbackDeferredFields(original, snapshot.mutationPolicy)
 	input := DraftInput{TableName: original.TableName}
 	// Unwind the actual DML order so later items release any unique values
 	// before earlier items restore them. Error indexes belong to this new order.
 	for index := range original.Publication.Commands {
 		command := original.Publication.Commands[len(original.Publication.Commands)-1-index]
+		snapshot := snapshots[command.TableName]
+		reserved := rollbackDeferredFields(original.FrozenTables[command.TableName], snapshot.mutationPolicy)
 		id := domain.JSONString(command.ID)
 		source := original.Items[len(original.Items)-1-index]
 		item := DraftItemInput{DetailID: source.DetailID, TableName: source.TableName, ID: &id, ExpectedRecordVersion: command.RecordVersion, Content: MutationContent{}}
@@ -118,9 +124,9 @@ func rollbackFieldValue(field domain.CanonicalField) (*domain.JSONString, error)
 	return &result, nil
 }
 
-func rollbackDeferredFields(original ReleaseOrder, current domain.MutationPolicy) map[string]bool {
+func rollbackDeferredFields(frozen domain.ReleaseExecutionSnapshot, current domain.MutationPolicy) map[string]bool {
 	fields := map[string]bool{}
-	for _, p := range []domain.ReleaseMutationSemantics{original.Frozen.Mutation, domain.NewReleaseMutationSemantics(current)} {
+	for _, p := range []domain.ReleaseMutationSemantics{frozen.Mutation, domain.NewReleaseMutationSemantics(current)} {
 		for _, name := range []*string{p.CreateOperatorField, p.CreateTimeField, p.ModifyOperatorField, p.ModifyTimeField} {
 			if name != nil {
 				fields[*name] = true
@@ -128,7 +134,7 @@ func rollbackDeferredFields(original ReleaseOrder, current domain.MutationPolicy
 		}
 	}
 	// VerifyPublication has already validated this frozen column projection.
-	columns, _ := original.Frozen.Schema.Columns()
+	columns, _ := frozen.Schema.Columns()
 	for _, column := range columns {
 		if column.GenerationExpression != nil && *column.GenerationExpression != "" {
 			fields[column.Name] = true
@@ -137,14 +143,15 @@ func rollbackDeferredFields(original ReleaseOrder, current domain.MutationPolicy
 	return fields
 }
 
-func verifyRollbackResult(original ReleaseOrder, result domain.PublicationResult, schema domain.TableSchema, policy domain.MutationPolicy) error {
+func verifyRollbackResult(original ReleaseOrder, result domain.PublicationResult, tables map[string]PublicationTable) error {
 	if original.Publication == nil || len(original.Publication.Commands) != len(result.Commands) {
 		return ErrReleaseUnavailable
 	}
-	deferred := rollbackDeferredFields(original, policy)
 	for index, actual := range result.Commands {
 		source := original.Publication.Commands[len(original.Publication.Commands)-1-index]
-		if actual.ID != source.ID || actual.Final.Deleted != source.Before.Deleted {
+		table := tables[source.TableName]
+		deferred := rollbackDeferredFields(original.FrozenTables[source.TableName], table.Policy)
+		if actual.TableName != source.TableName || actual.ID != source.ID || actual.Final.Deleted != source.Before.Deleted {
 			return &ReleaseItemError{Index: index, Cause: ErrRollbackRestoreMismatch}
 		}
 		fields := map[string]domain.CanonicalField{}
@@ -152,7 +159,7 @@ func verifyRollbackResult(original ReleaseOrder, result domain.PublicationResult
 			fields[field.Name] = field
 		}
 		for _, expected := range source.Before.Fields {
-			column, exists := schema.Column(expected.Name)
+			column, exists := table.Schema.Column(expected.Name)
 			if deferred[expected.Name] || exists && column.Generated {
 				continue
 			}

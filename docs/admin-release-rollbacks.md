@@ -1,6 +1,6 @@
 # 原单内整单回滚
 
-当前 PUBLISHER 或 ADMIN 可在普通发布单 `SUCCEEDED`（已发布待完结）期间预览并一次确认整单恢复，不限定原发布人，无需新审批或必填原因。成功后原单变为 `ROLLED_BACK`，保留原申请、原标题、申请人、审批历史和实际发布结果。`COMPLETED` 与 `ROLLED_BACK` 都不能再回滚。首次切换由 [#82](https://github.com/asherzj/relational-config-center/issues/82) 交付现有单表路径；多表、草稿占用和原因补填由 [#81](https://github.com/asherzj/relational-config-center/issues/81) 后续切片交付。
+当前 PUBLISHER 或 ADMIN 可在普通发布单 `SUCCEEDED`（已发布待完结）期间预览并一次确认整单恢复，不限定原发布人，无需新审批或必填原因。成功后原单变为 `ROLLED_BACK`，保留原申请、原标题、申请人、审批历史和实际发布结果。`COMPLETED` 与 `ROLLED_BACK` 都不能再回滚。原单路径由 [#82](https://github.com/asherzj/relational-config-center/issues/82) 建立，保存时占用由 #83 接入；#84 支持同一数据源多表全局有序明细，发布正序、恢复严格倒序，所有表结果与版本在一次事务中提交。原因补填仍由 #87 交付。
 
 ## 预览和一次确认
 
@@ -38,4 +38,4 @@ Web 在同一个确认窗口中展示“当前值 → 恢复值”，原因选�
 
 Command 与通知都有 `execution_id`；执行身份由原单号和成功类型组成，通知主键为 `(execution_id,table_name)`，同一原单的两次执行不会覆盖。通知状态仍为 `NOT_CONNECTED`，不代表下游已收到。
 
-T1 暂保留单表 `table_name` / `frozen`、`items` 和 `PublicationResult` 聚合读取外观，全部由新表组装，无旧数据读取或双写。详细退出责任见 [T1 过渡清单](design-notes/multitable-release-tickets/t1-transitions.md)。不迁移旧发布单内容，也不自动清理环境数据。
+`items` 是正常的整单输入/输出；实际结果从明细与成功执行组装。主单 `table_name` / `frozen` 及首项表的版本/通知显示别名暂保留至 #88，无旧数据读取或双写。详细退出责任见 [T1 过渡清单](design-notes/multitable-release-tickets/t1-transitions.md)。不迁移旧发布单内容，也不自动清理环境数据。

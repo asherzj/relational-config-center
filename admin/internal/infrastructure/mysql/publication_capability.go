@@ -13,7 +13,7 @@ import (
 
 var publicationDictionaryName = regexp.MustCompile(`^[A-Za-z0-9_]+$`)
 
-func (s *publicationSession) checkPublicationCapability(ctx context.Context, plan application.PublicationPlan) error {
+func (s *publicationSession) checkPublicationCapability(ctx context.Context, plan application.PublicationTable) error {
 	// Full InnoDB dictionary visibility is independent of per-schema SELECT.
 	// Restricted deployments must grant PROCESS explicitly. Dictionary names
 	// outside this verified, unencoded subset are rejected rather than guessed.
@@ -82,7 +82,7 @@ type triggerExpression struct {
 	columns  map[string]bool
 }
 
-func supportedTargetTrigger(body string, plan application.PublicationPlan) bool {
+func supportedTargetTrigger(body string, plan application.PublicationTable) bool {
 	if len(body) > 8192 {
 		return false
 	}

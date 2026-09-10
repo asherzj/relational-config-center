@@ -511,14 +511,14 @@ it("未知草稿请求随后收到明确能力拒绝时仍以原正文和键恢�
  expect(JSON.parse(String(writes[0]!.body)).title).toBe("notification_templates 配置变更");
 });
 
-it("明确勾选两行后加入本人同表已有草稿，保留原明细和各行版本",async()=>{
+it("明确勾选两行后加入本人跨表已有草稿，保留原明细和各行版本",async()=>{
  const existingID="bbbbbbbbccccccccddddddddeeeeeeee";
- const existing={id:existingID,title:"继续整理消息模板",table_name:"notification_templates",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"4",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{operation:"ADD",id:null,expected_record_version:"",content:{template_key:"kept",body:"kept"},before:null,fields:[]}]};
+ const existing={id:existingID,title:"继续整理消息模板",table_name:"other_config",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"4",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{table_name:"other_config",operation:"ADD",id:null,expected_record_version:"",content:{template_key:"kept",body:"kept"},before:null,fields:[]}]};
  const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
   const path=String(input);
   if(path===`/api/v1/release-orders/${existingID}`){if(init?.method==="PUT")writes.push(init);return json(existing)}
-  if(path.startsWith("/api/v1/release-orders?"))return json({orders:[{...existing,item_count:1,operation_counts:{ADD:1}}],next_cursor:""});
+  if(path.startsWith("/api/v1/release-orders?")){expect(new URL(path,"http://localhost").searchParams.has("table_name")).toBe(false);return json({orders:[{...existing,item_count:1,operation_counts:{ADD:1}}],next_cursor:""})};
   if(path.endsWith("/tables/notification_templates/query"))return json({columns,rows:[row,{...row,id:"42"}],record_versions:["7","8"],page:{page_number:1,page_size:20,total_count:2,total_pages:1}});
   return readFetch(input,init,{...mutationPolicy,allow_delete:true});
  })));
@@ -530,7 +530,7 @@ it("明确勾选两行后加入本人同表已有草稿，保留原明细和各�
  await user.selectOptions(await screen.findByLabelText("保存到草稿"),existingID);
  await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
  await waitFor(()=>expect(writes).toHaveLength(1));
- expect(JSON.parse(String(writes[0]!.body))).toEqual({title:"继续整理消息模板",table_name:"notification_templates",expected_version:"4",changes:{upserts:[{operation:"DELETE",id:"41",expected_record_version:"7",content:{}},{operation:"DELETE",id:"42",expected_record_version:"8",content:{}}]}});
+ expect(JSON.parse(String(writes[0]!.body))).toEqual({title:"继续整理消息模板",table_name:"other_config",expected_version:"4",changes:{upserts:[{table_name:"notification_templates",operation:"DELETE",id:"41",expected_record_version:"7",content:{}},{table_name:"notification_templates",operation:"DELETE",id:"42",expected_record_version:"8",content:{}}]}});
 });
 
 it("已有草稿去向不列出不可编辑的反向草稿",async()=>{

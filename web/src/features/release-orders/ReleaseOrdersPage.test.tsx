@@ -1,3 +1,5 @@
+import {IDBObjectStore} from "fake-indexeddb";
+import {rememberReleaseRequest,pendingReleaseRequests,hydrateReleaseRequests} from "./release-journal";
 import {QueryClient,QueryClientProvider} from "@tanstack/react-query";
 import {act,fireEvent,render,screen,waitFor,within} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -73,9 +75,9 @@ it("重新准备响应丢失后跨刷新保留原正文与幂等键并恢复同�
  expect(await screen.findByText(`重新准备原单 ${id}`)).toBeVisible();
  await user.click(screen.getByRole("button",{name:"恢复原发布请求"}));
  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
- expect(writes).toHaveLength(2);expect(writes[1]!.body).toBe(writes[0]!.body);
+ await waitFor(()=>expect(writes).toHaveLength(2));expect(writes[1]!.body).toBe(writes[0]!.body);
  expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
- expect(sessionStorage.length).toBe(0);
+ await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
 });
 it("详情同时展示标题、相关人员当前姓名、首字头像和永久 ID",async()=>{
  const reviewerID="11111111-2222-4333-8444-555555555555";
@@ -140,13 +142,13 @@ it("已完结原单没有回滚入口",async()=>{
 it("原执行旧键重放返回已发布快照后仍重新读取当前已回滚详情",async()=>{
  const published={...order,state:"SUCCEEDED",version:"4",allowed_actions:[]};
  const current={...published,state:"ROLLED_BACK",version:"6",rollback_order_id:rollbackID,rollback_pending:false,history:[...published.history,{action:"ROLLBACK_EXECUTE",actor_id:testAdminIdentity.account.id,version:"6",at:"2026-09-08T09:00:00Z",reason:"",related_order_id:rollbackID}]};
- sessionStorage.setItem(`rcc:release-requests:${testAdminIdentity.account.id}`,JSON.stringify([{scope:`execute:${id}`,path:`/api/v1/release-orders/${id}/execute`,method:"POST",body:'{"expected_version":"3"}',key:"original-execute-key",label:`执行发布 ${id}`}]))
+ await rememberReleaseRequest(testAdminIdentity.account.id,{scope:`execute:${id}`,path:`/api/v1/release-orders/${id}/execute`,method:"POST",body:'{"expected_version":"3"}',key:"original-execute-key",label:`执行发布 ${id}`})
  const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(String(input).endsWith("/execute")){writes.push(init!);return json(published)}if(String(input)===`/api/v1/release-orders/${id}`)return json(current);return json({orders:[],next_cursor:""})})));
  const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
  await user.click(await screen.findByRole("button",{name:"恢复原发布请求"}));
  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();expect(screen.getByText("最新回滚发布单",{exact:false})).toBeVisible();
- expect(writes).toHaveLength(1);expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBe("original-execute-key");expect(sessionStorage.length).toBe(0);
+ await waitFor(()=>expect(writes).toHaveLength(1));expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBe("original-execute-key");await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
 });
 it("从列表的查看详情入口打开持久草稿，并取消后保留历史",async()=>{
  let current=structuredClone(order);const writes:RequestInit[]=[];
@@ -164,7 +166,7 @@ it("从列表的查看详情入口打开持久草稿，并取消后保留历史"
  await user.type(screen.getByLabelText("取消原因"),"调整计划");
  await user.click(screen.getByRole("button",{name:"确认取消草稿"}));
  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
- expect(screen.queryByRole("button",{name:"编辑草稿"})).not.toBeInTheDocument();
+ await waitFor(()=>expect(screen.queryByRole("button",{name:"编辑草稿"})).not.toBeInTheDocument());
  await waitFor(()=>expect(writes).toHaveLength(1));
  expect(JSON.parse(String(writes[0].body))).toEqual({expected_version:"1",reason:"调整计划"});
  expect(new Headers(writes[0].headers).get("Idempotency-Key")).toBeTruthy();
@@ -280,7 +282,8 @@ it("已知 ADD 冲突后查看缺行墓碑并明确重建，保留当前申请�
  const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
  await user.click(await screen.findByRole("button",{name:"编辑草稿"}));
  await user.click(screen.getByRole("button",{name:"保存草稿修改"}));
- await user.click(await screen.findByRole("button",{name:"查看最新配置"}));
+ await waitFor(()=>expect(screen.getByRole("button",{name:"查看最新配置"})).toBeEnabled());
+ await user.click(screen.getByRole("button",{name:"查看最新配置"}));
  await screen.findByText(/记录基线 2/);
  await user.selectOptions(screen.getByLabelText("id 提交方式"),"value");
  await user.clear(screen.getByLabelText("id 申请值"));await user.type(screen.getByLabelText("id 申请值"),"1");
@@ -342,7 +345,7 @@ it("未知请求明确被取消状态拒绝后，保留输入并只读查看终�
  expect(await screen.findByText(/状态：CANCELLED/)).toBeVisible();
  expect(screen.getByRole("button",{name:"基于最新发布单重建"})).toBeDisabled();
  expect(screen.getByLabelText("label 申请值")).toHaveValue("proposal");
- expect(sessionStorage.getItem(`rcc:release-requests:${testAdminIdentity.account.id}`)).toContain("release_state_invalid");
+ expect(JSON.stringify(pendingReleaseRequests(testAdminIdentity.account.id))).toContain("release_state_invalid");
  expect(attempts).toBe(2);
 });
 
@@ -367,12 +370,12 @@ it("刷新后原请求被明确拒绝仍保留申请，核对后才能确认重�
  await user.click(await screen.findByRole("button",{name:"恢复原发布请求"}));
  await user.click(await screen.findByText("查看原申请内容"));
  expect(await screen.findByText("值：unique recovered intent")).toBeVisible();
- expect(sessionStorage.getItem(`rcc:release-requests:${testAdminIdentity.account.id}`)).toContain("unique recovered intent");
+ expect(JSON.stringify(pendingReleaseRequests(testAdminIdentity.account.id))).toContain("unique recovered intent");
  page.unmount();page=mount(`/configuration/release-orders/${id}`);
  await user.click(await screen.findByRole("button",{name:"编辑草稿"}));
  await user.click(screen.getByRole("button",{name:"保存草稿修改"}));
  await waitFor(()=>expect(writes).toHaveLength(2));
- expect(sessionStorage.getItem(`rcc:release-requests:${testAdminIdentity.account.id}`)).toContain("unique recovered intent");
+ expect(JSON.stringify(pendingReleaseRequests(testAdminIdentity.account.id))).toContain("unique recovered intent");
  page.unmount();mount();
  await user.click(await screen.findByRole("button",{name:"查看最新状态与配置"}));
  const rebuild=await screen.findByRole("button",{name:"确认重建并保存草稿"});expect(rebuild).toBeEnabled();expect(writes).toHaveLength(2);
@@ -495,7 +498,7 @@ it("仅 PUBLISHER 执行原审批，丢响应后跨刷新使用原键确认并�
  expect((await screen.findAllByText("发布人小程")).length).toBeGreaterThan(0);expect(screen.getAllByText(identity.account.id).length).toBeGreaterThan(0);
  expect(await screen.findByText("items · 已发布待完结")).toBeVisible();
  expect(screen.getByText("值：actual database value")).toBeVisible();expect(screen.getByText("SQL NULL")).toBeVisible();expect(screen.getByText("JSON：null")).toBeVisible();
- expect(screen.getByText("刷新通知：notice · 分发尚未接入")).toBeVisible();expect(sessionStorage.length).toBe(0);
+ expect(screen.getByText("刷新通知：notice · 分发尚未接入")).toBeVisible();await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
 });
 
 it("分页编辑及删除只提交本次明细变化和整单版本",async()=>{
@@ -527,15 +530,14 @@ it("千项预览可定位最后一项，审批仍包含整单",async()=>{
 });
 
 it("大单与待恢复请求超出浏览器保存容量时发送前拒绝并保留原请求",async()=>{
- const key=`rcc:release-requests:${testAdminIdentity.account.id}`;
- const previous=JSON.stringify([{scope:"create",path:"/api/v1/release-orders",method:"POST",body:JSON.stringify({title:"原申请标题",table_name:"items",items:[{operation:"ADD",content:{label:"original intent"}}]}),key:"original-key",label:"已有原请求"}]);
- sessionStorage.setItem(key,previous);
+ const previous=[{scope:"create",path:"/api/v1/release-orders",method:"POST",body:JSON.stringify({title:"原申请标题",table_name:"items",items:[{operation:"ADD",content:{label:"original intent"}}]}),key:"original-key",label:"已有原请求"}] as const;
+ await rememberReleaseRequest(testAdminIdentity.account.id,previous[0]);
  const large={...order,items:Array.from({length:1000},(_,index)=>({...order.items[0]!,detail_id:String(index+1).padStart(32,"0"),id:String(index+1)}))};let writes=0;
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(init?.method==="PUT")writes++;return json(large)})));
  const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
  await user.click(await screen.findByRole("button",{name:"编辑草稿"}));
- const set=vi.spyOn(Storage.prototype,"setItem").mockImplementation(()=>{throw new DOMException("quota","QuotaExceededError")});
- try{await user.click(screen.getByRole("button",{name:"保存草稿修改"}));expect(await screen.findByText(/浏览器无法保存完整请求/)).toBeVisible();expect(writes).toBe(0);expect(sessionStorage.getItem(key)).toBe(previous)}finally{set.mockRestore()}
+ const set=vi.spyOn(IDBObjectStore.prototype,"put").mockImplementation(()=>{throw new DOMException("quota","QuotaExceededError")});
+ try{await user.click(screen.getByRole("button",{name:"保存草稿修改"}));expect(await screen.findByText(/浏览器无法保存完整请求/)).toBeVisible();expect(writes).toBe(0);await hydrateReleaseRequests(testAdminIdentity.account.id);expect(pendingReleaseRequests(testAdminIdentity.account.id)).toEqual(previous)}finally{set.mockRestore()}
 });
 
 it("千项编辑器只列当前20项并能直接编辑第1000项",async()=>{
@@ -569,7 +571,7 @@ it("完结丢响应后保留原请求并阻止另一个终止动作直到恢复"
  page.unmount();page=mount(`/configuration/release-orders/${id}`);
  await screen.findByText("items · 已完结");expect(screen.queryByRole("button",{name:"申请回滚"})).not.toBeInTheDocument();
  await user.click(screen.getByRole("button",{name:"恢复原发布请求"}));
- await waitFor(()=>expect(sessionStorage.length).toBe(0));
+ await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
  expect(writes).toHaveLength(2);
  expect(writes[0]!.body).toBe(writes[1]!.body);
  expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[1]!.headers).get("Idempotency-Key"));
@@ -624,10 +626,10 @@ it("快速回滚未知结果保留原摘要原因与标识，锁住完结并跨�
  first.unmount();mount(`/configuration/release-orders/${id}`);
  await user.click(await screen.findByRole("button",{name:"恢复原发布请求"}));
  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
- expect(writes).toHaveLength(2);expect(writes[1]!.body).toBe(writes[0]!.body);
+ await waitFor(()=>expect(writes).toHaveLength(2));expect(writes[1]!.body).toBe(writes[0]!.body);
  expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"4",preview_digest:digest,reason:"恢复实际配置"});
  expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
- expect(previewReads).toBe(1);expect(sessionStorage.length).toBe(0);
+ expect(previewReads).toBe(1);await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
 });
 
 it("快速回滚明确拒绝后保留原因，只有主动重读并审阅新预览才重建",async()=>{
@@ -652,7 +654,7 @@ it("快速回滚明确拒绝后保留原因，只有主动重读并审阅新预�
  expect(previewReads).toBe(2);expect(writes).toHaveLength(1);
  await user.click(screen.getByRole("button",{name:"确认按最新状态快速回滚"}));
  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
- expect(writes).toHaveLength(2);expect(JSON.parse(String(writes[1]!.body)).reason).toBe("需要保留的恢复原因");
+ await waitFor(()=>expect(writes).toHaveLength(2));expect(JSON.parse(String(writes[1]!.body)).reason).toBe("需要保留的恢复原因");
  expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).not.toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
 });
 
@@ -717,7 +719,7 @@ it("重新准备发送前响应未知时，关闭和刷新仍阻止同单取消�
  page.unmount();page=mount(`/configuration/release-orders/${id}`);
  expect(await screen.findByRole("button",{name:"执行发布"})).toBeDisabled();expect(screen.getByRole("button",{name:"取消发布单"})).toBeDisabled();
  await user.click(screen.getByRole("button",{name:"恢复原发布请求"}));await screen.findByText(/复制自/);
- expect(writes).toHaveLength(2);expect(writes[1]!.body).toBe(writes[0]!.body);expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
+ await waitFor(()=>expect(writes).toHaveLength(2));expect(writes[1]!.body).toBe(writes[0]!.body);expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
 });
 it("已回滚详情默认实际原发布结果并可读取可信恢复结果或申请差异",async()=>{
  const row=(value:string)=>({format:"rcc-admin-mysql-row-v1",schema_digest:"a".repeat(64),deleted:false,fields:[{name:"generated",type:"varchar(40)",encoding:"text",value}],checksum:"b".repeat(64)});
@@ -800,4 +802,34 @@ it.each([false,true])("重新准备会话中断隐藏浮层，重新登录后按
  await waitFor(()=>expect(screen.queryByRole("dialog",{name:"登录会话已中断"})).not.toBeInTheDocument());
  if(otherAccount){expect(screen.queryByRole("region",{name:"待处理发布请求"})).not.toBeInTheDocument();expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();expect(writes).toHaveLength(1)}
  else {await user.click(await screen.findByRole("button",{name:"使用原请求重试"}));await waitFor(()=>expect(writes).toHaveLength(2));expect(writes[1]!.body).toBe(writes[0]!.body);expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"))}
+});
+
+it("冷账号首次读取持久原请求后只允许恢复原键，不发新请求",async()=>{
+ const account={...testAdminIdentity.account,id:"deadbeef-dead-4000-8000-000000000001"};
+ const body=JSON.stringify({title:order.title,table_name:"items",expected_version:"1",items:[{...order.items[0],content:{label:"cold stored intent"}}]});
+ // Seed the browser boundary directly: this account has never hydrated the
+ // module mirror, unlike the default fixture account in test setup.
+ await new Promise<void>((resolve,reject)=>{const opening=indexedDB.open("rcc-release-requests",1);opening.onsuccess=()=>{const db=opening.result,tx=db.transaction("accounts","readwrite");tx.objectStore("accounts").put([{scope:`edit:${id}`,method:"PUT",path:`/api/v1/release-orders/${id}`,body,key:"cold-original-key",label:"冷启动原申请"}],account.id);tx.oncomplete=()=>{db.close();resolve()};tx.onabort=()=>reject(tx.error)};opening.onerror=()=>reject(opening.error)});
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",vi.fn(async(input,init)=>{
+  if(String(input)==="/api/v1/auth/session")return json({...testAdminIdentity,account});
+  if(init?.method==="PUT"){writes.push(init);return json({...order,applicant_id:account.id,version:"2"})}
+  return String(input).endsWith("/people")?json({people:{}}):json({...order,applicant_id:account.id});
+ }));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await screen.findByText("冷启动原申请");expect(screen.getByRole("button",{name:"编辑草稿"})).toBeDisabled();expect(writes).toHaveLength(0);
+ await user.click(screen.getByRole("button",{name:"恢复原发布请求"}));
+ await waitFor(()=>expect(writes).toHaveLength(1));expect(writes[0]!.body).toBe(body);expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBe("cold-original-key");
+ await waitFor(()=>expect(pendingReleaseRequests(account.id)).toHaveLength(0));
+});
+
+it("另一窗口留下同范围原请求时锁定当前输入，恢复后保留本窗口未保存内容",async()=>{
+ const writes:RequestInit[]=[];vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(init?.method==="PUT")writes.push(init);return String(input).endsWith("/people")?json({people:{}}):json(order)})));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"编辑草稿"}));await user.clear(screen.getByLabelText("label 申请值"));await user.type(screen.getByLabelText("label 申请值"),"this window unsaved");
+ const body=JSON.stringify({title:order.title,table_name:"items",expected_version:"1",items:[{...order.items[0],content:{label:"other window request"}}]});
+ await act(async()=>{await rememberReleaseRequest(testAdminIdentity.account.id,{scope:`edit:${id}`,method:"PUT",path:`/api/v1/release-orders/${id}`,body,key:"other-window-key",label:"另一窗口原请求"})});
+ expect(screen.getByLabelText("label 申请值")).toBeDisabled();expect(screen.getByLabelText("label 申请值")).toHaveValue("this window unsaved");
+ await user.click(screen.getByRole("button",{name:"使用原请求重试"}));await waitFor(()=>expect(writes).toHaveLength(1));
+ await waitFor(()=>expect(screen.getByLabelText("label 申请值")).toBeEnabled());expect(screen.getByLabelText("label 申请值")).toHaveValue("this window unsaved");expect(writes[0]!.body).toBe(body);
 });

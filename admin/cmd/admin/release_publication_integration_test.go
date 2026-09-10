@@ -190,10 +190,13 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 	}
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowAdd: true, AllowModify: true})
+	deliveryExec(t, owner, `CREATE TABLE z_atomic_second(id INT PRIMARY KEY,label VARCHAR(80))`)
+	deliveryExec(t, owner, `INSERT INTO z_atomic_second VALUES(1,'before')`)
+	enableMutationPolicy(t, app, "z_atomic_second", mutationPolicyFixture{AllowModify: true})
 	reviewer := registerAccount(t, app, "atomic.reviewer", "atomic.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "atomic-roles")
-	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"committed"}},{"operation":"ADD","content":{"code":"new-atomic"}}]}`, "atomic")
-	for _, failure := range []struct{ table, event, condition string }{{"rcc_record_versions", "INSERT", "TRUE"}, {"rcc_publication_commands", "INSERT", "TRUE"}, {"rcc_table_publications", "UPDATE", "NEW.table_version>0"}, {"rcc_refresh_notifications", "INSERT", "TRUE"}, {"rcc_release_targets", "INSERT", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='SUCCEEDED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
+	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"committed"}},{"operation":"ADD","content":{"code":"new-atomic"}},{"table_name":"z_atomic_second","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"label":"after"}}]}`, "atomic")
+	for _, failure := range []struct{ table, event, condition string }{{"rcc_record_versions", "INSERT", "TRUE"}, {"rcc_publication_commands", "INSERT", "TRUE"}, {"rcc_table_publications", "UPDATE", "NEW.table_version>0 AND NEW.table_name='z_atomic_second'"}, {"rcc_refresh_notifications", "INSERT", "NEW.table_name='z_atomic_second'"}, {"rcc_release_targets", "INSERT", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='SUCCEEDED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
 		t.Run(failure.table, func(t *testing.T) {
 			statement := fmt.Sprintf("CREATE TRIGGER fail_publication BEFORE %s ON %s FOR EACH ROW BEGIN IF %s THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='injected persistence failure'; END IF; END", failure.event, failure.table, failure.condition)
 			if _, err := owner.Exec(statement); err != nil {
@@ -210,6 +213,11 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 			if version != "0" || *row["code"] != "delete-rollback" {
 				t.Fatal("partial configuration or record version")
 			}
+			second, secondVersion := recordVersionRow(t, app, "z_atomic_second", "1")
+			if secondVersion != "0" || *second["label"] != "before" {
+				t.Fatal("partial second table value/version")
+			}
+			batchEdgeCounts(t, owner, map[string]int{`SELECT COUNT(*) FROM rcc_release_details WHERE publication IS NOT NULL`: 0, `SELECT COUNT(*) FROM rcc_release_executions`: 0, `SELECT COUNT(*) FROM rcc_release_table_references`: 2})
 			current := releaseRequest(t, app, "GET", path, "", "")
 			if !strings.Contains(current.Body.String(), `"state":"APPROVED"`) || strings.Contains(current.Body.String(), `"action":"EXECUTE"`) {
 				t.Fatal(current.Body)
@@ -220,7 +228,7 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			if targets != 1 || commands != 0 || notifications != 0 || requests != 0 || versions != 0 {
+			if targets != 2 || commands != 0 || notifications != 0 || requests != 0 || versions != 0 {
 				t.Fatalf("partial state: targets %d commands %d notifications %d requests %d table versions %d", targets, commands, notifications, requests, versions)
 			}
 		})
@@ -229,6 +237,7 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 	if response.Code != 200 {
 		t.Fatalf("same key retry: %d %s", response.Code, response.Body)
 	}
+	batchEdgeCounts(t, owner, map[string]int{`SELECT COUNT(*) FROM rcc_refresh_notifications`: 2, `SELECT COUNT(*) FROM rcc_table_publications WHERE table_version=1`: 2, `SELECT COUNT(*) FROM z_atomic_second WHERE label='after'`: 1})
 }
 
 func TestOldRecordWriteRoutesAreRemoved(t *testing.T) {

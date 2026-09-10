@@ -38,18 +38,29 @@ func (s *releaseOrderSession) saveReleaseDetails(ctx context.Context, order doma
 	// details are one transaction. Submitted intent is supplied unchanged.
 	var values []string
 	var arguments []any
+	encodedBytes := 0
+	flush := func() error {
+		if len(values) == 0 {
+			return nil
+		}
+		err := s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_details(order_id,position,table_name,application,publication,rollback) VALUES`+strings.Join(values, ",")+` ON DUPLICATE KEY UPDATE table_name=VALUES(table_name),application=VALUES(application),publication=VALUES(publication),rollback=VALUES(rollback)`, arguments...).Error
+		values, arguments, encodedBytes = nil, nil, 0
+		return err
+	}
 	for index, item := range order.Items {
 		applicationJSON, err := json.Marshal(item)
 		if err != nil {
 			return application.ErrReleaseUnavailable
 		}
 		var publication, rollback any
+		itemBytes := len(applicationJSON)
 		if order.Publication != nil {
 			value, e := json.Marshal(order.Publication.Commands[index])
 			if e != nil {
 				return application.ErrReleaseUnavailable
 			}
 			publication = value
+			itemBytes += len(value)
 		}
 		if order.Rollback != nil {
 			value, e := json.Marshal(order.Rollback.Commands[len(order.Items)-1-index])
@@ -57,20 +68,24 @@ func (s *releaseOrderSession) saveReleaseDetails(ctx context.Context, order doma
 				return application.ErrReleaseUnavailable
 			}
 			rollback = value
+			itemBytes += len(value)
 		}
+		// This is a statement assembly threshold, never an accepted-data cap.
+		if len(values) == 100 || encodedBytes+itemBytes > 1<<20 {
+			if err := flush(); err != nil {
+				return application.ErrReleaseUnavailable
+			}
+		}
+		encodedBytes += itemBytes
 		values = append(values, "(?,?,?,?,?,?)")
 		table := item.TableName
 		if table == "" {
 			table = order.TableName
 		}
 		arguments = append(arguments, order.ID, index, table, applicationJSON, publication, rollback)
-		if len(values) == 100 || index == len(order.Items)-1 {
-			if err = s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_details(order_id,position,table_name,application,publication,rollback) VALUES`+strings.Join(values, ",")+` ON DUPLICATE KEY UPDATE table_name=VALUES(table_name),application=VALUES(application),publication=VALUES(publication),rollback=VALUES(rollback)`, arguments...).Error; err != nil {
-				return application.ErrReleaseUnavailable
-			}
-			values = nil
-			arguments = nil
-		}
+	}
+	if err := flush(); err != nil {
+		return application.ErrReleaseUnavailable
 	}
 	// Delete only known prior rows. An empty trailing range would lock gaps
 	// shared with independent orders that are inserting their own details.
@@ -139,7 +154,7 @@ func readReleaseDetails(ctx context.Context, db *gorm.DB, order *domain.ReleaseO
 				return application.ErrReleaseUnavailable
 			}
 			order.Executions = append(order.Executions, execution)
-			result := &domain.PublicationResult{ExecutionID: execution.ID, Kind: execution.Kind, PublisherID: execution.ActorID, ExecutedAt: execution.ExecutedAt, TableVersion: execution.TableVersions[order.TableName], Notification: execution.Notification}
+			result := &domain.PublicationResult{ExecutionID: execution.ID, Kind: execution.Kind, PublisherID: execution.ActorID, ExecutedAt: execution.ExecutedAt, TableVersions: execution.TableVersions, Notifications: execution.Notifications, TableVersion: execution.Notification.TableVersion, Notification: execution.Notification}
 			switch execution.Kind {
 			case "PUBLICATION":
 				order.Publication = result
@@ -160,10 +175,13 @@ func readReleaseDetails(ctx context.Context, db *gorm.DB, order *domain.ReleaseO
 		order.Rollback.Commands = make([]domain.PublicationCommand, len(details))
 	}
 	for index, detail := range details {
-		if detail.Position != index || detail.TableName != order.TableName {
+		if detail.Position != index {
 			return application.ErrReleaseUnavailable
 		}
 		if loadIntent && json.Unmarshal(detail.Application, &order.Items[index]) != nil {
+			return application.ErrReleaseUnavailable
+		}
+		if detail.TableName != order.Items[index].TableName {
 			return application.ErrReleaseUnavailable
 		}
 		if order.Publication != nil && json.Unmarshal(detail.Publication, &order.Publication.Commands[index]) != nil {
