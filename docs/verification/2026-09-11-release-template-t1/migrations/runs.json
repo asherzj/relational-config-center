@@ -1,0 +1,126 @@
+[
+  {
+    "log": "/private/tmp/rcc-101-migration-evidence/01-baseline-before.log",
+    "exit": 1,
+    "top_level_passes": [],
+    "top_level_failures": [
+      "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory"
+    ]
+  },
+  {
+    "log": "/private/tmp/rcc-101-migration-evidence/02-baseline-before-authorized.log",
+    "exit": 1,
+    "top_level_passes": [],
+    "top_level_failures": [
+      "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory"
+    ]
+  },
+  {
+    "log": "/private/tmp/rcc-101-migration-evidence/03-baseline-after.log",
+    "exit": 0,
+    "top_level_passes": [
+      "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory"
+    ],
+    "top_level_failures": []
+  },
+  {
+    "log": "/private/tmp/rcc-101-migration-evidence/04-full-affected.log",
+    "exit": 1,
+    "top_level_passes": [
+      "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory",
+      "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites",
+      "TestSchemaBaselineRecoversUnconfirmedRegistration",
+      "TestSchemaBaselineReleaseUpgradesT1AndRecoversPartialAuditRename",
+      "TestSchemaBaselineRecoversBeforeAttemptWasRecorded",
+      "TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix",
+      "TestSchemaBaselineProcessInterruptionRetainsUnconfirmedState",
+      "TestSchemaBaselineUsesTransactionalVersionLedger",
+      "TestSchemaBaselineRefusesToRecreateLostConfirmedHistory",
+      "TestBaselineGooseInstallationMatchesFrozenAdoptionStructure",
+      "TestSchemaMigrationInitializesEmptyDatabase",
+      "TestSchemaMigrationConcurrentInitialization",
+      "TestSchemaMigrationWaitsForMaintenanceLockWithDeadline",
+      "TestSchemaMigrationPartialDDLRequiresExplicitRecovery",
+      "TestSchemaMigrationUpgradesToNextRelease",
+      "TestReleaseTemplateSchemaMigrationUpgradesVersionFive",
+      "TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery",
+      "TestSchemaMigrationRecoversInterruptedBootstrap",
+      "TestSchemaMigrationProcessInterruptionRequiresSameReleaseRecovery",
+      "TestSchemaMigrationRejectsIncompleteVersionHistory",
+      "TestSchemaMigrationRecoversMissingZeroVersion",
+      "TestSchemaMigrationConnectionDeadlineAndSafeDiagnostics",
+      "TestSchemaMigrationLeavesUnmanagedDatabaseUntouched",
+      "TestSchemaReadinessRejectsUnmanagedStartup",
+      "TestSchemaReadinessRejectsKnownOldRelease"
+    ],
+    "top_level_failures": [
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly"
+    ]
+  },
+  {
+    "log": "/private/tmp/rcc-101-migration-evidence/05-readiness-fixed.log",
+    "exit": 1,
+    "top_level_passes": [
+      "TestSchemaReadinessRejectsUnmanagedStartup",
+      "TestSchemaReadinessRejectsKnownOldRelease"
+    ],
+    "top_level_failures": [
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly"
+    ]
+  },
+  {
+    "log": "/private/tmp/rcc-101-migration-evidence/06-readiness-fixed.log",
+    "exit": 1,
+    "top_level_passes": [
+      "TestSchemaReadinessRejectsUnmanagedStartup",
+      "TestSchemaReadinessRejectsKnownOldRelease"
+    ],
+    "top_level_failures": [
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly"
+    ]
+  },
+  {
+    "log": "/private/tmp/rcc-101-migration-evidence/07-template-index-diagnostic.log",
+    "exit": 1,
+    "top_level_passes": [],
+    "top_level_failures": [
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly"
+    ]
+  },
+  {
+    "log": "/private/tmp/rcc-101-migration-evidence/08-template-index-restored.log",
+    "exit": 0,
+    "top_level_passes": [
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly"
+    ],
+    "top_level_failures": []
+  },
+  {
+    "log": "/private/tmp/rcc-101-migration-evidence/09-readiness-and-historical-stages.log",
+    "exit": 0,
+    "top_level_passes": [
+      "TestSchemaMigrationAddsFieldPoliciesWithoutChangingPublishedState",
+      "TestSchemaReadinessRejectsUnmanagedStartup",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly",
+      "TestSchemaReadinessRejectsKnownOldRelease",
+      "TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts"
+    ],
+    "top_level_failures": []
+  },
+  {
+    "log": "/private/tmp/rcc-101-migration-evidence/10-account-baseline-before.log",
+    "exit": 1,
+    "top_level_passes": [],
+    "top_level_failures": [
+      "TestAccountUpgradeFromLegacyMatchesFreshSchema"
+    ]
+  },
+  {
+    "log": "/private/tmp/rcc-101-migration-evidence/11-account-baseline-fixed.log",
+    "exit": 0,
+    "top_level_passes": [
+      "TestAccountUpgradeFromLegacyMatchesFreshSchema"
+    ],
+    "top_level_failures": []
+  }
+]

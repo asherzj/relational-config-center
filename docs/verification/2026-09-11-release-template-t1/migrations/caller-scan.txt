@@ -1,0 +1,36 @@
+admin/cmd/admin/account_delivery_integration_test.go:351:	schemaMigrate := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_baseline_integration_test.go:56:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_baseline_integration_test.go:250:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_baseline_integration_test.go:296:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_baseline_integration_test.go:404:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_baseline_integration_test.go:450:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_baseline_integration_test.go:498:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_baseline_integration_test.go:559:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_baseline_integration_test.go:580:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_migration_integration_test.go:23:const currentTestSchemaVersion int64 = 8
+admin/cmd/admin/schema_migration_integration_test.go:86:		if err := os.WriteFile(filepath.Join(directory, fmt.Sprintf("%05d_fixture.sql", currentTestSchemaVersion+1)), []byte(fixture), 0644); err != nil {
+admin/cmd/admin/schema_migration_integration_test.go:90:		data, err := os.ReadFile(filepath.Join(directory, fmt.Sprintf("%05d_schema.json", currentTestSchemaVersion)))
+admin/cmd/admin/schema_migration_integration_test.go:102:		if err := os.WriteFile(filepath.Join(directory, fmt.Sprintf("%05d_schema.json", currentTestSchemaVersion+1)), data, 0644); err != nil {
+admin/cmd/admin/schema_migration_integration_test.go:172:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_migration_integration_test.go:199:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_migration_integration_test.go:224:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_migration_integration_test.go:255:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_migration_integration_test.go:307:	first, next := buildSchemaMigrationCommand(t), buildNextSchemaMigrationRelease(t)
+admin/cmd/admin/schema_migration_integration_test.go:394:	previous, current := buildSchemaMigrationReleaseAt(t, 5), buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_migration_integration_test.go:443:	first, next := buildSchemaMigrationCommand(t), buildNextSchemaMigrationRelease(t)
+admin/cmd/admin/schema_migration_integration_test.go:473:	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=? AND is_applied=1`, currentTestSchemaVersion+1).Scan(&versions); err != nil || versions != 1 {
+admin/cmd/admin/schema_migration_integration_test.go:498:	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=?`, currentTestSchemaVersion+1).Scan(&versions); err != nil || versions != 1 {
+admin/cmd/admin/schema_migration_integration_test.go:516:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_migration_integration_test.go:548:	first := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_migration_integration_test.go:615:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_migration_integration_test.go:649:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_migration_integration_test.go:682:	binary := buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_readiness_integration_test.go:46:	binary, migration := buildIntegrationAdmin(t), buildSchemaMigrationCommand(t)
+admin/cmd/admin/schema_readiness_integration_test.go:66:		{"ahead", fmt.Sprintf(`UPDATE rcc_goose_db_version SET version_id=99 WHERE version_id=%d`, currentTestSchemaVersion), fmt.Sprintf(`UPDATE rcc_goose_db_version SET version_id=%d WHERE version_id=99`, currentTestSchemaVersion)},
+admin/cmd/admin/schema_readiness_integration_test.go:68:		{"release_digest", fmt.Sprintf(`UPDATE rcc_schema_migration_attempts SET release_digest=REPEAT('0',64) WHERE target_version=%d`, currentTestSchemaVersion), ""},
+admin/cmd/admin/schema_readiness_integration_test.go:92:				if err := db.QueryRow(`SELECT release_digest FROM rcc_schema_migration_attempts WHERE target_version=?`, currentTestSchemaVersion).Scan(&digest); err != nil {
+admin/cmd/admin/schema_readiness_integration_test.go:116:				deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET release_digest=? WHERE target_version=?`, digest, currentTestSchemaVersion)
+admin/cmd/admin/schema_readiness_integration_test.go:135:	deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET state='RUNNING',finished_at=NULL WHERE target_version=?`, currentTestSchemaVersion)
+admin/cmd/admin/schema_readiness_integration_test.go:163:	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), driver, "current", "up")
+admin/cmd/admin/schema_readiness_integration_test.go:187:	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), driver, "current", "up")
+admin/cmd/admin/schema_field_policy_integration_test.go:61:	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), driver, "current", "up")

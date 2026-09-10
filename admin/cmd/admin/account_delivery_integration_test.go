@@ -495,9 +495,13 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	if policyCatalogSchemaSignature(t, t.Context(), owner) != policyCatalogSchemaSignature(t, t.Context(), fresh) {
 		t.Fatal("historical Policy structure differs from fresh installation")
 	}
-	requireSchemaMigrationState(t, schemaMigrate, driver, "current", "baseline")
+	requireSchemaMigrationState(t, schemaMigrate, driver, "pending", "baseline")
 	if got := baselineDataSnapshot(t, owner); got != preservedBeforeBaseline {
 		t.Fatal("baseline changed historical account, session, policy or business rows")
+	}
+	requireSchemaMigrationState(t, schemaMigrate, driver, "current", "up")
+	if got := baselineDataSnapshot(t, owner, "rcc_release_templates"); got != preservedBeforeBaseline {
+		t.Fatal("explicit upgrade changed historical account, session, policy or business rows")
 	}
 	p := accountProcessCommand(t, binary, driver)
 	p.ready(t)

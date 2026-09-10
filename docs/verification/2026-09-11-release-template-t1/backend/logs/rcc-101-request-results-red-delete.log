@@ -1,0 +1,32 @@
+2026/09/11 05:12:26 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 1e9dc5d4fd1a1aa817bb2b4a1ef6e8832a16db19a797758adf552e125f5edc50
+  Test ProcessID: 54329806-da39-45d5-bf52-d86719f2a3f7
+2026/09/11 05:12:26 🐳 Creating container for image mysql:8.4
+2026/09/11 05:12:26 ✅ Container created: 7ad3791fc36c
+2026/09/11 05:12:26 🐳 Starting container: 7ad3791fc36c
+2026/09/11 05:12:27 ✅ Container started: 7ad3791fc36c
+2026/09/11 05:12:27 ⏳ Waiting for container id 7ad3791fc36c image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:12:33 🔔 Container is ready: 7ad3791fc36c
+{"request_id":"rcc-d456a14a60756a0dc09f4c01eed588fb","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":8}
+{"request_id":"rcc-74a65c9af59a90ff2c6781ce9aebc526","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":47}
+{"request_id":"rcc-fe549fc20a144d2c9b3685fd3366bd8d","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-c9746505a76fbf3e54065c125c412044","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":55}
+{"request_id":"rcc-92cff8f1d450a42a756a277017a061e0","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":6}
+{"request_id":"rcc-63eb0521ef8c9c6d88a0bf4a9471aecc","method":"DELETE","path":"/api/v1/release-templates/:code","status":204,"duration_ms":3}
+{"request_id":"rcc-b84d077534fd63faae319a47f8d410ee","method":"DELETE","path":"/api/v1/release-templates/:code","status":404,"duration_ms":1}
+2026/09/11 05:12:33 🐳 Stopping container: 7ad3791fc36c
+2026/09/11 05:12:34 ✅ Container stopped: 7ad3791fc36c
+2026/09/11 05:12:34 🐳 Terminating container: 7ad3791fc36c
+2026/09/11 05:12:34 🚫 Container terminated: 7ad3791fc36c
+--- FAIL: TestReleaseTemplateHTTPReplaysDeletionWithoutDeletingRecreatedTemplate (7.87s)
+    release_template_integration_test.go:188: deleted template must replay successful removal: 404 {"error":{"code":"release_template_not_found","message":"release template not found","request_id":"rcc-b84d077534fd63faae319a47f8d410ee"}}
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	8.324s
+FAIL

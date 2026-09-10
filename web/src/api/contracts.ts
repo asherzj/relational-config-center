@@ -61,6 +61,30 @@ export const mutationPolicyListDtoSchema = z.object({
   policies: z.array(mutationPolicyDtoSchema),
 });
 
+export const releaseTemplateNodeDtoSchema = z.object({
+  code: z.string(),
+  type: z.enum(["APPROVAL", "PUBLICATION", "COMPLETION"]),
+  name: z.string(),
+  required_role: z.enum(["TABLE_APPROVER", "PUBLISHER"]),
+});
+
+export const releaseTemplateDtoSchema = z.object({
+  code: z.string(),
+  name: z.string(),
+  description: z.string(),
+  type: z.enum(["STANDARD", "EMERGENCY"]),
+  node_list: z.array(releaseTemplateNodeDtoSchema),
+  monitor_list: z.array(z.string()).length(0),
+  enabled: z.boolean(),
+  version: z.string().regex(/^[1-9][0-9]*$/),
+  creator: z.string(),
+  modifier: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+
+export const releaseTemplateListDtoSchema = z.object({ templates: z.array(releaseTemplateDtoSchema) });
+
 export const databaseTableDtoSchema = z.object({
   table_name: z.string(),
   table_comment: z.string(),
@@ -160,6 +184,7 @@ export type QueryPolicyDto = z.infer<typeof queryPolicyDtoSchema>;
 export type PolicyStatusDto = z.infer<typeof policyStatusSchema>;
 export type MutationPolicyDto = z.infer<typeof mutationPolicyDtoSchema>;
 export type MutationPolicyTypeDto = z.infer<typeof mutationPolicyTypeListDtoSchema>["types"][number];
+export type ReleaseTemplateDto = z.infer<typeof releaseTemplateDtoSchema>;
 export type DatabaseTableDto = z.infer<typeof databaseTableDtoSchema>;
 export type TablePolicyDto = z.infer<typeof tablePolicyDtoSchema>;
 export type ManagedDataQueryResponseDto = z.infer<typeof managedDataQueryResponseDtoSchema>;

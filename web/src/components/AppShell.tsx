@@ -1,6 +1,6 @@
 import { useAccountRole, roleLabels } from "../features/accounts/roles";
 import { useWorkspaceIdentity } from "../features/accounts/ProtectedWorkspace";
-import { ArrowLeftRight, ChevronRight, Database, FileSearch, Layers3, Menu, ShieldCheck, Table2, X } from "lucide-react";
+import { ArrowLeftRight, ChevronRight, Database, FileSearch, GitBranchPlus, Layers3, Menu, ShieldCheck, Table2, X } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Button } from "./ui/Button";
@@ -46,6 +46,7 @@ export function AppShell() {
             <NavLink to="/platform/query-policies" onClick={() => setMobileNavOpen(false)}><FileSearch size={18} />查询规则定义</NavLink>
             <NavLink to="/platform/mutation-policies" onClick={() => setMobileNavOpen(false)}><ArrowLeftRight size={18} />变更规则定义</NavLink>
             <NavLink to="/platform/table-policies" onClick={() => setMobileNavOpen(false)}><Layers3 size={18} />表规则分配</NavLink>
+            {administrator && <NavLink to="/platform/release-templates" onClick={() => setMobileNavOpen(false)}><GitBranchPlus size={18} />发布流程模板</NavLink>}
           </section>
           {administrator && <section className="nav-group" aria-labelledby="people-navigation-title">
             <div id="people-navigation-title" className="nav-group-title">平台人员管理</div>

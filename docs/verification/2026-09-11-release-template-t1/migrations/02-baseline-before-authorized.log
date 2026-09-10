@@ -1,0 +1,27 @@
+=== RUN   TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory
+2026/09/11 05:44:49 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 2955a16ab4a6c27e37e47fde166cab2518002294b1fbbdd08bd6759646e06a3b
+  Test ProcessID: 8a677b2d-cdbe-4f72-981d-27b6b0aab3da
+2026/09/11 05:44:49 🐳 Creating container for image mysql:8.4
+2026/09/11 05:44:49 ✅ Container created: 6e59fb3683dd
+2026/09/11 05:44:49 🐳 Starting container: 6e59fb3683dd
+2026/09/11 05:44:49 ✅ Container started: 6e59fb3683dd
+2026/09/11 05:44:49 ⏳ Waiting for container id 6e59fb3683dd image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:44:56 🔔 Container is ready: 6e59fb3683dd
+    schema_baseline_integration_test.go:75: migration [baseline]: want current, got {"state":"pending","current":5,"required":8,"pending":[8],"attempt_id":1,"attempt_version":5,"attempt_digest":"9e1cc534b08b76d1bb262c8b934f6fbc923ddfc233c9b9941bba44a29fa15de3","attempt_operation":"baseline"}
+         (<nil>)
+2026/09/11 05:44:57 🐳 Stopping container: 6e59fb3683dd
+2026/09/11 05:44:58 ✅ Container stopped: 6e59fb3683dd
+2026/09/11 05:44:58 🐳 Terminating container: 6e59fb3683dd
+2026/09/11 05:44:58 🚫 Container terminated: 6e59fb3683dd
+--- FAIL: TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory (9.00s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	9.418s
+FAIL

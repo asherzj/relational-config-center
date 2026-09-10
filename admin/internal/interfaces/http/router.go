@@ -30,6 +30,9 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 	if options.ReleaseOrders != nil {
 		registerReleaseOrderRoutes(router, options.ReleaseOrders)
 	}
+	if options.ReleaseTemplates != nil {
+		registerReleaseTemplateRoutes(router, options.ReleaseTemplates)
+	}
 	if options.FieldPolicies != nil {
 		registerFieldPolicyRoutes(router, options.FieldPolicies)
 	}

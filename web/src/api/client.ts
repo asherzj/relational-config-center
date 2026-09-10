@@ -159,6 +159,8 @@ const definiteWriteRejections = new Set([
   "unauthorized", "cors_origin_forbidden", "cors_preflight_forbidden",
   "session_invalid", "account_disabled", "csrf_invalid",
   "account_roles_conflict",
+  "invalid_release_template", "invalid_release_type", "invalid_release_template_nodes", "release_template_exists",
+  "release_template_conflict", "emergency_template_protected",
   // Release input and capability checks happen before the request can be
   // accepted. Keep authentication, permission, not-found and idempotency
   // responses conservative because they do not prove the original outcome.

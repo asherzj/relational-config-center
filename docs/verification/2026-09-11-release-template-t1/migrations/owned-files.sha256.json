@@ -1,0 +1,7 @@
+{
+  "admin/cmd/admin/schema_baseline_integration_test.go": "74bd01ae1ac979d8229416fa857fa310720ddcb827b3299f8eeacf27aaf14992",
+  "admin/cmd/admin/schema_migration_integration_test.go": "580b1993c0c3bc062b457b92acbe3f638d414760736b5452635a0bb7d5f47f66",
+  "admin/cmd/admin/schema_readiness_integration_test.go": "f7f779474f302e7dd28cc0b989e1b0ce75aeef85a11e7d59bed93106dc9011f7",
+  "admin/cmd/admin/schema_release_details_integration_test.go": "37584ff1b3414a084df38c4050b23df9c7c824d763f9ac481d1154879b20cb4e",
+  "admin/cmd/admin/account_delivery_integration_test.go": "40405cf5f54d8c1c6af84eaafa83390b9ea81d4d0c89a0d0ffedf0ca4d313de6"
+}

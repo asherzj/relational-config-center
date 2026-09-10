@@ -1,0 +1,46 @@
+{
+  "base": "56dff5360e94d904ab85c17cea5cc575919a29b1",
+  "production_changes": [
+    "admin/internal/domain/release_template.go",
+    "admin/internal/application/release_template.go",
+    "admin/internal/infrastructure/mysql/release_templates.go",
+    "admin/internal/infrastructure/mysql/schema_migration_validation.go",
+    "admin/internal/interfaces/http/release_templates.go"
+  ],
+  "test_changes": [
+    "admin/cmd/admin/release_template_integration_test.go"
+  ],
+  "final_integration_exit_code": 0,
+  "final_integration_seconds": 158.419,
+  "top_level_tests_passed": [
+    "TestCurrentSessionUsesRolePermissionMatrix",
+    "TestAccountControlTablesCannotBeDiscoveredOrManaged",
+    "TestDatabaseTableListDiscoversOnlyOrdinaryBaseTables",
+    "TestQueryPolicyHTTPLifecyclePersistsAndFailsClosed",
+    "TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed",
+    "TestReleaseTemplateHTTPMaintainsMultipleTypesWithIdempotencyAndVersions",
+    "TestReleaseTemplateHTTPProtectsEmergencyAndRejectsInvalidNodes",
+    "TestReleaseTemplateHTTPRejectsNonAdministratorManagement",
+    "TestReleaseTemplateHTTPReplaysCommittedReplacementAfterLaterChanges",
+    "TestReleaseTemplateHTTPReplaysEnableAndDisableWithoutChangingLaterState",
+    "TestReleaseTemplateHTTPReplaysDeletionWithoutDeletingRecreatedTemplate",
+    "TestReleaseTemplateHTTPStandardDeletionKeepsReadOnlyReadiness",
+    "TestReleaseTemplateHTTPChecksCurrentAuthorizationBeforeReplayingAllWrites",
+    "TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite",
+    "TestReleaseTemplateHTTPConcurrentRequestsRetainOneResultAndRejectStaleAdministrator",
+    "TestReleaseTemplateHTTPRequiresRequestIdentityAndRejectsChangedTargets",
+    "TestReleaseTemplateHTTPControlTableRejectsGenericManagement"
+  ],
+  "additional_current_test_delta": {
+    "test": "TestReleaseTemplateHTTPProtectsEmergencyAndRejectsInvalidNodes",
+    "change": "Two assertions reject otherwise valid replacements that change the stable code or release type. No production changes.",
+    "exit_code": 0,
+    "log": "logs/rcc-101-request-results-immutable-identity.log"
+  },
+  "unit_and_boundary_exit_codes": [
+    0,
+    0
+  ],
+  "remaining_failed_required_checks": [],
+  "transport_loss_evidence": "Equivalent original operation replay over authenticated public HTTP with real MySQL; first successful response is recorded by harness and then original request is resent. No actual network packet loss claimed."
+}

@@ -160,6 +160,14 @@
 .policy-table td > small { display: block; max-width: 260px; color: var(--muted-foreground); font-size: 12px; line-height: 1.5; }
 .policy-table .unsupported-copy { margin-top: 4px; color: var(--warning); }
 .mutation-policy-table { min-width: 940px; }
+.release-template-table { min-width: 900px; }
+.template-node-summary { display: flex; flex-wrap: wrap; gap: 6px; }
+.template-node-summary span { padding: 3px 8px; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); font-size: 12px; }
+.template-node-list { display: grid; gap: 12px; }
+.template-node { padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); }
+.template-node header { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.template-node-index { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); font-size: 12px; }
+.template-node header .badge { margin-left: auto; }
 .table-policy-table { min-width: 840px; }
 .capability { display: inline-flex; min-width: 36px; justify-content: center; padding: 2px 6px; border-radius: 5px; font-size: 12px; font-weight: 500; white-space: nowrap; }
 .capability-allowed { color: #276c53; background: #eaf4ed; }

@@ -84,6 +84,18 @@ _Avoid_: SQL, GORM query
 A complete field-by-field comparison of one proposed ADD, MODIFY, or DELETE against a Managed Table row, used to review the intended change before authorizing it for publication.
 _Avoid_: Release, revision, audit record
 
+**Release Type（发布方式）**:
+A predefined category of release workflow shared by one or more Release Templates. Standard database publication includes approval, while emergency publication omits approval; the category does not identify one particular template.
+_Avoid_: Release Template Code, deployment environment, rollback order
+
+**Release Template（发布流程模板）**:
+A reusable, named configuration of an ordered release workflow, identified by a stable unique code and one immutable Release Type. It contains Release Node Definitions rather than the progress or results of a particular Release Order. An emergency template must remain available; a standard template may be disabled.
+_Avoid_: Release Order, Release Execution, individual node, SQL template
+
+**Release Node Definition（发布节点定义）**:
+One named step within a Release Template, using a predefined workflow capability and its allowed authority parameters. Its code is unique within that template, and its position follows the sequence allowed by the template's Release Type.
+_Avoid_: Release Execution, workflow progress, arbitrary script, database row change
+
 **Release Order（发布单）**:
 The authoritative record of an ordered collection of proposed changes across Managed Tables in one Managed Data Source and its progression through approval, publication, completion, cancellation, or rollback. It associates the frozen application with its applicant, change details, execution results, and operation history.
 _Avoid_: Change Set, deployment, notification task
@@ -150,6 +162,7 @@ _Avoid_: Published configuration, delivery receipt, cache version
 
 ## Related documents
 
+- [Release Template decision](../docs/adr/0026-configure-release-workflows-with-stable-templates.md): stable template identity, constrained nodes, and lifecycle boundaries.
 - [Multi-table draft targets and execution decision](../docs/adr/0025-multitable-drafts-reserve-targets-and-record-executions.md): the accepted model for multi-table orders, draft reservations, and original-order rollback.
 
 - [Admin technical baseline](../docs/admin-v1-technical-baseline.md): database selection and Managed Table schema requirements.

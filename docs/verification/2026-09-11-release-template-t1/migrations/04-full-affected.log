@@ -1,0 +1,369 @@
+=== RUN   TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory
+2026/09/11 05:47:16 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 86692edc02eead0aaa7de6af6b9cc8fd5e07e4a1dacdaf39f2709e6abdd54c7e
+  Test ProcessID: 3d99c78a-6e48-4439-ae5f-0e09887f8968
+2026/09/11 05:47:16 🐳 Creating container for image mysql:8.4
+2026/09/11 05:47:17 ✅ Container created: 2747f9690cd0
+2026/09/11 05:47:17 🐳 Starting container: 2747f9690cd0
+2026/09/11 05:47:17 ✅ Container started: 2747f9690cd0
+2026/09/11 05:47:17 ⏳ Waiting for container id 2747f9690cd0 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:47:23 🔔 Container is ready: 2747f9690cd0
+{"request_id":"rcc-29dcd09a13765cdd009ffcb6ae725dca","method":"GET","path":"/api/v1/auth/session","status":200,"duration_ms":1}
+{"request_id":"rcc-e9efe8e5f37f4979d277a1361f1db213","method":"GET","path":"/api/v1/release-orders/:id","status":503,"duration_ms":3}
+2026/09/11 05:47:24 🐳 Stopping container: 2747f9690cd0
+2026/09/11 05:47:26 ✅ Container stopped: 2747f9690cd0
+2026/09/11 05:47:26 🐳 Terminating container: 2747f9690cd0
+2026/09/11 05:47:26 🚫 Container terminated: 2747f9690cd0
+--- PASS: TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory (9.59s)
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites
+2026/09/11 05:47:26 🐳 Creating container for image mysql:8.4
+2026/09/11 05:47:26 ✅ Container created: 23c7d88fb353
+2026/09/11 05:47:26 🐳 Starting container: 23c7d88fb353
+2026/09/11 05:47:26 ✅ Container started: 23c7d88fb353
+2026/09/11 05:47:26 ⏳ Waiting for container id 23c7d88fb353 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:47:32 🔔 Container is ready: 23c7d88fb353
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/missing_table
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/missing_column
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/extra_column
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/type
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/default
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/default_containing_table_option_text
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/index
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/check
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/foreign_key
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/engine
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/empty_roles
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/unknown_role
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/zero_role_version
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/required_metadata
+2026/09/11 05:47:34 🐳 Stopping container: 23c7d88fb353
+2026/09/11 05:47:35 ✅ Container stopped: 23c7d88fb353
+2026/09/11 05:47:35 🐳 Terminating container: 23c7d88fb353
+2026/09/11 05:47:35 🚫 Container terminated: 23c7d88fb353
+--- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites (9.33s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/missing_table (0.39s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/missing_column (0.09s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/extra_column (0.08s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/type (0.10s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/default (0.07s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/default_containing_table_option_text (0.08s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/index (0.09s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/check (0.09s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/foreign_key (0.10s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/engine (0.09s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/empty_roles (0.10s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/unknown_role (0.10s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/zero_role_version (0.10s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/required_metadata (0.10s)
+=== RUN   TestSchemaBaselineRecoversUnconfirmedRegistration
+2026/09/11 05:47:35 🐳 Creating container for image mysql:8.4
+2026/09/11 05:47:35 ✅ Container created: 6f43e3a94183
+2026/09/11 05:47:35 🐳 Starting container: 6f43e3a94183
+2026/09/11 05:47:36 ✅ Container started: 6f43e3a94183
+2026/09/11 05:47:36 ⏳ Waiting for container id 6f43e3a94183 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:47:42 🔔 Container is ready: 6f43e3a94183
+2026/09/11 05:47:46 🐳 Stopping container: 6f43e3a94183
+2026/09/11 05:47:46 ✅ Container stopped: 6f43e3a94183
+2026/09/11 05:47:46 🐳 Terminating container: 6f43e3a94183
+2026/09/11 05:47:46 🚫 Container terminated: 6f43e3a94183
+--- PASS: TestSchemaBaselineRecoversUnconfirmedRegistration (11.40s)
+=== RUN   TestSchemaBaselineReleaseUpgradesT1AndRecoversPartialAuditRename
+2026/09/11 05:47:48 🐳 Creating container for image mysql:8.4
+2026/09/11 05:47:48 ✅ Container created: 6aa566dbd5a5
+2026/09/11 05:47:48 🐳 Starting container: 6aa566dbd5a5
+2026/09/11 05:47:48 ✅ Container started: 6aa566dbd5a5
+2026/09/11 05:47:48 ⏳ Waiting for container id 6aa566dbd5a5 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:47:54 🔔 Container is ready: 6aa566dbd5a5
+2026/09/11 05:47:56 🐳 Stopping container: 6aa566dbd5a5
+2026/09/11 05:47:58 ✅ Container stopped: 6aa566dbd5a5
+2026/09/11 05:47:58 🐳 Terminating container: 6aa566dbd5a5
+2026/09/11 05:47:58 🚫 Container terminated: 6aa566dbd5a5
+--- PASS: TestSchemaBaselineReleaseUpgradesT1AndRecoversPartialAuditRename (11.52s)
+=== RUN   TestSchemaBaselineRecoversBeforeAttemptWasRecorded
+2026/09/11 05:47:58 🐳 Creating container for image mysql:8.4
+2026/09/11 05:47:58 ✅ Container created: 89ad398ecccb
+2026/09/11 05:47:58 🐳 Starting container: 89ad398ecccb
+2026/09/11 05:47:58 ✅ Container started: 89ad398ecccb
+2026/09/11 05:47:58 ⏳ Waiting for container id 89ad398ecccb image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:48:05 🔔 Container is ready: 89ad398ecccb
+2026/09/11 05:48:05 🐳 Stopping container: 89ad398ecccb
+2026/09/11 05:48:06 ✅ Container stopped: 89ad398ecccb
+2026/09/11 05:48:06 🐳 Terminating container: 89ad398ecccb
+2026/09/11 05:48:06 🚫 Container terminated: 89ad398ecccb
+--- PASS: TestSchemaBaselineRecoversBeforeAttemptWasRecorded (8.36s)
+=== RUN   TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix
+2026/09/11 05:48:07 🐳 Creating container for image mysql:8.4
+2026/09/11 05:48:07 ✅ Container created: fcef4e667b63
+2026/09/11 05:48:07 🐳 Starting container: fcef4e667b63
+2026/09/11 05:48:07 ✅ Container started: fcef4e667b63
+2026/09/11 05:48:07 ⏳ Waiting for container id fcef4e667b63 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:48:14 🔔 Container is ready: fcef4e667b63
+2026/09/11 05:48:15 🐳 Stopping container: fcef4e667b63
+2026/09/11 05:48:17 ✅ Container stopped: fcef4e667b63
+2026/09/11 05:48:17 🐳 Terminating container: fcef4e667b63
+2026/09/11 05:48:17 🚫 Container terminated: fcef4e667b63
+--- PASS: TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix (10.32s)
+=== RUN   TestSchemaBaselineProcessInterruptionRetainsUnconfirmedState
+2026/09/11 05:48:17 🐳 Creating container for image mysql:8.4
+2026/09/11 05:48:17 ✅ Container created: e6e63df8785d
+2026/09/11 05:48:17 🐳 Starting container: e6e63df8785d
+2026/09/11 05:48:17 ✅ Container started: e6e63df8785d
+2026/09/11 05:48:17 ⏳ Waiting for container id e6e63df8785d image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:48:23 🔔 Container is ready: e6e63df8785d
+2026/09/11 05:48:27 🐳 Stopping container: e6e63df8785d
+2026/09/11 05:48:29 ✅ Container stopped: e6e63df8785d
+2026/09/11 05:48:29 🐳 Terminating container: e6e63df8785d
+2026/09/11 05:48:29 🚫 Container terminated: e6e63df8785d
+--- PASS: TestSchemaBaselineProcessInterruptionRetainsUnconfirmedState (12.29s)
+=== RUN   TestSchemaBaselineUsesTransactionalVersionLedger
+2026/09/11 05:48:29 🐳 Creating container for image mysql:8.4
+2026/09/11 05:48:29 ✅ Container created: 1631ddee1b7c
+2026/09/11 05:48:29 🐳 Starting container: 1631ddee1b7c
+2026/09/11 05:48:29 ✅ Container started: 1631ddee1b7c
+2026/09/11 05:48:29 ⏳ Waiting for container id 1631ddee1b7c image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:48:36 🔔 Container is ready: 1631ddee1b7c
+2026/09/11 05:48:36 🐳 Stopping container: 1631ddee1b7c
+2026/09/11 05:48:37 ✅ Container stopped: 1631ddee1b7c
+2026/09/11 05:48:37 🐳 Terminating container: 1631ddee1b7c
+2026/09/11 05:48:37 🚫 Container terminated: 1631ddee1b7c
+--- PASS: TestSchemaBaselineUsesTransactionalVersionLedger (8.42s)
+=== RUN   TestSchemaBaselineRefusesToRecreateLostConfirmedHistory
+2026/09/11 05:48:38 🐳 Creating container for image mysql:8.4
+2026/09/11 05:48:38 ✅ Container created: fadaf0613fae
+2026/09/11 05:48:38 🐳 Starting container: fadaf0613fae
+2026/09/11 05:48:38 ✅ Container started: fadaf0613fae
+2026/09/11 05:48:38 ⏳ Waiting for container id fadaf0613fae image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:48:44 🔔 Container is ready: fadaf0613fae
+2026/09/11 05:48:45 🐳 Stopping container: fadaf0613fae
+2026/09/11 05:48:47 ✅ Container stopped: fadaf0613fae
+2026/09/11 05:48:47 🐳 Terminating container: fadaf0613fae
+2026/09/11 05:48:47 🚫 Container terminated: fadaf0613fae
+--- PASS: TestSchemaBaselineRefusesToRecreateLostConfirmedHistory (9.35s)
+=== RUN   TestBaselineGooseInstallationMatchesFrozenAdoptionStructure
+2026/09/11 05:48:47 🐳 Creating container for image mysql:8.4
+2026/09/11 05:48:47 ✅ Container created: 249d12b5abab
+2026/09/11 05:48:47 🐳 Starting container: 249d12b5abab
+2026/09/11 05:48:47 ✅ Container started: 249d12b5abab
+2026/09/11 05:48:47 ⏳ Waiting for container id 249d12b5abab image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:48:53 🔔 Container is ready: 249d12b5abab
+2026/09/11 05:48:56 🐳 Stopping container: 249d12b5abab
+2026/09/11 05:48:57 ✅ Container stopped: 249d12b5abab
+2026/09/11 05:48:57 🐳 Terminating container: 249d12b5abab
+2026/09/11 05:48:57 🚫 Container terminated: 249d12b5abab
+--- PASS: TestBaselineGooseInstallationMatchesFrozenAdoptionStructure (10.79s)
+=== RUN   TestSchemaMigrationInitializesEmptyDatabase
+2026/09/11 05:48:58 🐳 Creating container for image mysql:8.4
+2026/09/11 05:48:58 ✅ Container created: 687ae3174f53
+2026/09/11 05:48:58 🐳 Starting container: 687ae3174f53
+2026/09/11 05:48:58 ✅ Container started: 687ae3174f53
+2026/09/11 05:48:58 ⏳ Waiting for container id 687ae3174f53 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:49:04 🔔 Container is ready: 687ae3174f53
+2026/09/11 05:49:06 🐳 Stopping container: 687ae3174f53
+2026/09/11 05:49:07 ✅ Container stopped: 687ae3174f53
+2026/09/11 05:49:07 🐳 Terminating container: 687ae3174f53
+2026/09/11 05:49:07 🚫 Container terminated: 687ae3174f53
+--- PASS: TestSchemaMigrationInitializesEmptyDatabase (9.36s)
+=== RUN   TestSchemaMigrationConcurrentInitialization
+2026/09/11 05:49:07 🐳 Creating container for image mysql:8.4
+2026/09/11 05:49:07 ✅ Container created: dba2e99aa663
+2026/09/11 05:49:07 🐳 Starting container: dba2e99aa663
+2026/09/11 05:49:07 ✅ Container started: dba2e99aa663
+2026/09/11 05:49:07 ⏳ Waiting for container id dba2e99aa663 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:49:14 🔔 Container is ready: dba2e99aa663
+2026/09/11 05:49:15 🐳 Stopping container: dba2e99aa663
+2026/09/11 05:49:16 ✅ Container stopped: dba2e99aa663
+2026/09/11 05:49:16 🐳 Terminating container: dba2e99aa663
+2026/09/11 05:49:16 🚫 Container terminated: dba2e99aa663
+--- PASS: TestSchemaMigrationConcurrentInitialization (9.31s)
+=== RUN   TestSchemaMigrationWaitsForMaintenanceLockWithDeadline
+2026/09/11 05:49:17 🐳 Creating container for image mysql:8.4
+2026/09/11 05:49:17 ✅ Container created: 1fea4b6ad9b0
+2026/09/11 05:49:17 🐳 Starting container: 1fea4b6ad9b0
+2026/09/11 05:49:17 ✅ Container started: 1fea4b6ad9b0
+2026/09/11 05:49:17 ⏳ Waiting for container id 1fea4b6ad9b0 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:49:23 🔔 Container is ready: 1fea4b6ad9b0
+2026/09/11 05:49:24 🐳 Stopping container: 1fea4b6ad9b0
+2026/09/11 05:49:25 ✅ Container stopped: 1fea4b6ad9b0
+2026/09/11 05:49:25 🐳 Terminating container: 1fea4b6ad9b0
+2026/09/11 05:49:25 🚫 Container terminated: 1fea4b6ad9b0
+--- PASS: TestSchemaMigrationWaitsForMaintenanceLockWithDeadline (9.27s)
+=== RUN   TestSchemaMigrationPartialDDLRequiresExplicitRecovery
+2026/09/11 05:49:26 🐳 Creating container for image mysql:8.4
+2026/09/11 05:49:26 ✅ Container created: 73039a00a6a6
+2026/09/11 05:49:26 🐳 Starting container: 73039a00a6a6
+2026/09/11 05:49:26 ✅ Container started: 73039a00a6a6
+2026/09/11 05:49:26 ⏳ Waiting for container id 73039a00a6a6 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:49:32 🔔 Container is ready: 73039a00a6a6
+2026/09/11 05:49:35 🐳 Stopping container: 73039a00a6a6
+2026/09/11 05:49:37 ✅ Container stopped: 73039a00a6a6
+2026/09/11 05:49:37 🐳 Terminating container: 73039a00a6a6
+2026/09/11 05:49:37 🚫 Container terminated: 73039a00a6a6
+--- PASS: TestSchemaMigrationPartialDDLRequiresExplicitRecovery (11.25s)
+=== RUN   TestSchemaMigrationUpgradesToNextRelease
+2026/09/11 05:49:38 🐳 Creating container for image mysql:8.4
+2026/09/11 05:49:38 ✅ Container created: 54df90ef1fd9
+2026/09/11 05:49:38 🐳 Starting container: 54df90ef1fd9
+2026/09/11 05:49:38 ✅ Container started: 54df90ef1fd9
+2026/09/11 05:49:38 ⏳ Waiting for container id 54df90ef1fd9 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:49:44 🔔 Container is ready: 54df90ef1fd9
+2026/09/11 05:49:48 🐳 Stopping container: 54df90ef1fd9
+2026/09/11 05:49:49 ✅ Container stopped: 54df90ef1fd9
+2026/09/11 05:49:49 🐳 Terminating container: 54df90ef1fd9
+2026/09/11 05:49:49 🚫 Container terminated: 54df90ef1fd9
+--- PASS: TestSchemaMigrationUpgradesToNextRelease (12.15s)
+=== RUN   TestReleaseTemplateSchemaMigrationUpgradesVersionFive
+2026/09/11 05:49:50 🐳 Creating container for image mysql:8.4
+2026/09/11 05:49:50 ✅ Container created: 96af814dee84
+2026/09/11 05:49:50 🐳 Starting container: 96af814dee84
+2026/09/11 05:49:50 ✅ Container started: 96af814dee84
+2026/09/11 05:49:50 ⏳ Waiting for container id 96af814dee84 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:49:56 🔔 Container is ready: 96af814dee84
+2026/09/11 05:50:01 🐳 Stopping container: 96af814dee84
+2026/09/11 05:50:02 ✅ Container stopped: 96af814dee84
+2026/09/11 05:50:02 🐳 Terminating container: 96af814dee84
+2026/09/11 05:50:02 🚫 Container terminated: 96af814dee84
+--- PASS: TestReleaseTemplateSchemaMigrationUpgradesVersionFive (13.20s)
+=== RUN   TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery
+2026/09/11 05:50:03 🐳 Creating container for image mysql:8.4
+2026/09/11 05:50:03 ✅ Container created: 74c6227c41dd
+2026/09/11 05:50:03 🐳 Starting container: 74c6227c41dd
+2026/09/11 05:50:03 ✅ Container started: 74c6227c41dd
+2026/09/11 05:50:03 ⏳ Waiting for container id 74c6227c41dd image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:50:09 🔔 Container is ready: 74c6227c41dd
+2026/09/11 05:50:12 🐳 Stopping container: 74c6227c41dd
+2026/09/11 05:50:14 ✅ Container stopped: 74c6227c41dd
+2026/09/11 05:50:14 🐳 Terminating container: 74c6227c41dd
+2026/09/11 05:50:14 🚫 Container terminated: 74c6227c41dd
+--- PASS: TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery (11.64s)
+=== RUN   TestSchemaMigrationRecoversInterruptedBootstrap
+2026/09/11 05:50:14 🐳 Creating container for image mysql:8.4
+2026/09/11 05:50:14 ✅ Container created: 96e3c7b0f57d
+2026/09/11 05:50:14 🐳 Starting container: 96e3c7b0f57d
+2026/09/11 05:50:14 ✅ Container started: 96e3c7b0f57d
+2026/09/11 05:50:14 ⏳ Waiting for container id 96e3c7b0f57d image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:50:20 🔔 Container is ready: 96e3c7b0f57d
+2026/09/11 05:50:21 🐳 Stopping container: 96e3c7b0f57d
+2026/09/11 05:50:23 ✅ Container stopped: 96e3c7b0f57d
+2026/09/11 05:50:23 🐳 Terminating container: 96e3c7b0f57d
+2026/09/11 05:50:23 🚫 Container terminated: 96e3c7b0f57d
+--- PASS: TestSchemaMigrationRecoversInterruptedBootstrap (9.18s)
+=== RUN   TestSchemaMigrationProcessInterruptionRequiresSameReleaseRecovery
+2026/09/11 05:50:25 🐳 Creating container for image mysql:8.4
+2026/09/11 05:50:25 ✅ Container created: 94f55de5081c
+2026/09/11 05:50:25 🐳 Starting container: 94f55de5081c
+2026/09/11 05:50:25 ✅ Container started: 94f55de5081c
+2026/09/11 05:50:25 ⏳ Waiting for container id 94f55de5081c image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:50:31 🔔 Container is ready: 94f55de5081c
+2026/09/11 05:50:40 🐳 Stopping container: 94f55de5081c
+2026/09/11 05:50:41 ✅ Container stopped: 94f55de5081c
+2026/09/11 05:50:41 🐳 Terminating container: 94f55de5081c
+2026/09/11 05:50:41 🚫 Container terminated: 94f55de5081c
+--- PASS: TestSchemaMigrationProcessInterruptionRequiresSameReleaseRecovery (18.14s)
+=== RUN   TestSchemaMigrationRejectsIncompleteVersionHistory
+2026/09/11 05:50:42 🐳 Creating container for image mysql:8.4
+2026/09/11 05:50:42 ✅ Container created: 535efb7e2cab
+2026/09/11 05:50:42 🐳 Starting container: 535efb7e2cab
+2026/09/11 05:50:42 ✅ Container started: 535efb7e2cab
+2026/09/11 05:50:42 ⏳ Waiting for container id 535efb7e2cab image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:50:48 🔔 Container is ready: 535efb7e2cab
+2026/09/11 05:50:50 🐳 Stopping container: 535efb7e2cab
+2026/09/11 05:50:51 ✅ Container stopped: 535efb7e2cab
+2026/09/11 05:50:51 🐳 Terminating container: 535efb7e2cab
+2026/09/11 05:50:51 🚫 Container terminated: 535efb7e2cab
+--- PASS: TestSchemaMigrationRejectsIncompleteVersionHistory (9.79s)
+=== RUN   TestSchemaMigrationRecoversMissingZeroVersion
+2026/09/11 05:50:51 🐳 Creating container for image mysql:8.4
+2026/09/11 05:50:51 ✅ Container created: d779bcdd6089
+2026/09/11 05:50:51 🐳 Starting container: d779bcdd6089
+2026/09/11 05:50:51 ✅ Container started: d779bcdd6089
+2026/09/11 05:50:51 ⏳ Waiting for container id d779bcdd6089 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:50:58 🔔 Container is ready: d779bcdd6089
+2026/09/11 05:50:59 🐳 Stopping container: d779bcdd6089
+2026/09/11 05:51:00 ✅ Container stopped: d779bcdd6089
+2026/09/11 05:51:00 🐳 Terminating container: d779bcdd6089
+2026/09/11 05:51:00 🚫 Container terminated: d779bcdd6089
+--- PASS: TestSchemaMigrationRecoversMissingZeroVersion (9.41s)
+=== RUN   TestSchemaMigrationConnectionDeadlineAndSafeDiagnostics
+--- PASS: TestSchemaMigrationConnectionDeadlineAndSafeDiagnostics (1.19s)
+=== RUN   TestSchemaMigrationLeavesUnmanagedDatabaseUntouched
+2026/09/11 05:51:02 🐳 Creating container for image mysql:8.4
+2026/09/11 05:51:02 ✅ Container created: 7ad6a3a61c36
+2026/09/11 05:51:02 🐳 Starting container: 7ad6a3a61c36
+2026/09/11 05:51:02 ✅ Container started: 7ad6a3a61c36
+2026/09/11 05:51:02 ⏳ Waiting for container id 7ad6a3a61c36 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:51:08 🔔 Container is ready: 7ad6a3a61c36
+2026/09/11 05:51:09 🐳 Stopping container: 7ad6a3a61c36
+2026/09/11 05:51:10 ✅ Container stopped: 7ad6a3a61c36
+2026/09/11 05:51:10 🐳 Terminating container: 7ad6a3a61c36
+2026/09/11 05:51:10 🚫 Container terminated: 7ad6a3a61c36
+--- PASS: TestSchemaMigrationLeavesUnmanagedDatabaseUntouched (8.38s)
+=== RUN   TestSchemaReadinessRejectsUnmanagedStartup
+2026/09/11 05:51:10 🐳 Creating container for image mysql:8.4
+2026/09/11 05:51:10 ✅ Container created: 57b0a00e11e2
+2026/09/11 05:51:10 🐳 Starting container: 57b0a00e11e2
+2026/09/11 05:51:10 ✅ Container started: 57b0a00e11e2
+2026/09/11 05:51:10 ⏳ Waiting for container id 57b0a00e11e2 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:51:16 🔔 Container is ready: 57b0a00e11e2
+2026/09/11 05:51:18 🐳 Stopping container: 57b0a00e11e2
+2026/09/11 05:51:20 ✅ Container stopped: 57b0a00e11e2
+2026/09/11 05:51:20 🐳 Terminating container: 57b0a00e11e2
+2026/09/11 05:51:20 🚫 Container terminated: 57b0a00e11e2
+--- PASS: TestSchemaReadinessRejectsUnmanagedStartup (9.93s)
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly
+2026/09/11 05:51:20 🐳 Creating container for image mysql:8.4
+2026/09/11 05:51:20 ✅ Container created: 64bf098e1530
+2026/09/11 05:51:20 🐳 Starting container: 64bf098e1530
+2026/09/11 05:51:20 ✅ Container started: 64bf098e1530
+2026/09/11 05:51:20 ⏳ Waiting for container id 64bf098e1530 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:51:26 🔔 Container is ready: 64bf098e1530
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_release_templates
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key
+=== NAME  TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== NAME  TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key
+    testing.go:2062: test executed panic(nil) or runtime.Goexit: subtest may have called FailNow on a parent test
+2026/09/11 05:51:30 🐳 Stopping container: 64bf098e1530
+2026/09/11 05:51:31 ✅ Container stopped: 64bf098e1530
+2026/09/11 05:51:31 🐳 Terminating container: 64bf098e1530
+2026/09/11 05:51:31 🚫 Container terminated: 64bf098e1530
+--- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly (11.77s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged (0.13s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead (0.12s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown (0.12s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest (0.13s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column (0.17s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default (0.16s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index (0.18s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy (0.22s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_release_templates (0.20s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key (0.19s)
+=== RUN   TestSchemaReadinessRejectsKnownOldRelease
+2026/09/11 05:51:31 🐳 Creating container for image mysql:8.4
+2026/09/11 05:51:31 ✅ Container created: 336e67dee8f3
+2026/09/11 05:51:31 🐳 Starting container: 336e67dee8f3
+2026/09/11 05:51:32 ✅ Container started: 336e67dee8f3
+2026/09/11 05:51:32 ⏳ Waiting for container id 336e67dee8f3 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:51:38 🔔 Container is ready: 336e67dee8f3
+2026/09/11 05:51:45 🐳 Stopping container: 336e67dee8f3
+2026/09/11 05:51:46 ✅ Container stopped: 336e67dee8f3
+2026/09/11 05:51:46 🐳 Terminating container: 336e67dee8f3
+2026/09/11 05:51:46 🚫 Container terminated: 336e67dee8f3
+--- PASS: TestSchemaReadinessRejectsKnownOldRelease (14.76s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	273.606s
+FAIL

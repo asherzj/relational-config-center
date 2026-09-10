@@ -1,0 +1,111 @@
+=== RUN   TestSchemaReadinessRejectsUnmanagedStartup
+2026/09/11 05:53:55 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: f9843c2f232cb164cb9be2af30e649cae208393555b5fa2605147a4d4fdcfd07
+  Test ProcessID: e513baf5-b7bd-4005-b17e-69ea9eb80604
+2026/09/11 05:53:55 🐳 Creating container for image mysql:8.4
+2026/09/11 05:53:55 ✅ Container created: 050685251b23
+2026/09/11 05:53:55 🐳 Starting container: 050685251b23
+2026/09/11 05:53:55 ✅ Container started: 050685251b23
+2026/09/11 05:53:55 ⏳ Waiting for container id 050685251b23 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:54:02 🔔 Container is ready: 050685251b23
+2026/09/11 05:54:03 🐳 Stopping container: 050685251b23
+2026/09/11 05:54:04 ✅ Container stopped: 050685251b23
+2026/09/11 05:54:04 🐳 Terminating container: 050685251b23
+2026/09/11 05:54:04 🚫 Container terminated: 050685251b23
+--- PASS: TestSchemaReadinessRejectsUnmanagedStartup (9.29s)
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly
+2026/09/11 05:54:04 🐳 Creating container for image mysql:8.4
+2026/09/11 05:54:04 ✅ Container created: e70a711dd74f
+2026/09/11 05:54:04 🐳 Starting container: e70a711dd74f
+2026/09/11 05:54:05 ✅ Container started: e70a711dd74f
+2026/09/11 05:54:05 ⏳ Waiting for container id e70a711dd74f image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:54:11 🔔 Container is ready: e70a711dd74f
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_release_templates
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_check
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_default_emergency_template
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_unique_key
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_check
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unenforced_check
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_engine
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/empty_roles
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown_role
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/zero_role_version
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_engine
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_column
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/older_unconfirmed_attempt
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_required_metadata
+    schema_readiness_integration_test.go:112: readiness: want 200 got 503 {"status":"not_ready"}
+=== NAME  TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly
+    schema_readiness_integration_test.go:121: migration [recover]: exit status 1 schema_mismatch: incompatible control table rcc_release_templates; repair before recovery
+2026/09/11 05:54:18 🐳 Stopping container: e70a711dd74f
+2026/09/11 05:54:19 ✅ Container stopped: e70a711dd74f
+2026/09/11 05:54:19 🐳 Terminating container: e70a711dd74f
+2026/09/11 05:54:19 🚫 Container terminated: e70a711dd74f
+--- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly (14.78s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged (0.13s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead (0.11s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown (0.11s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest (0.13s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column (0.19s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default (0.17s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index (0.47s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy (0.21s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_release_templates (0.21s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key (0.18s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_check (0.23s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_default_emergency_template (0.17s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_unique_key (0.17s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_check (0.19s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unenforced_check (0.16s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_engine (0.17s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/empty_roles (0.16s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown_role (0.20s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/zero_role_version (0.18s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_engine (0.14s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_column (0.13s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/older_unconfirmed_attempt (0.12s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_required_metadata (0.24s)
+=== RUN   TestSchemaReadinessRejectsKnownOldRelease
+2026/09/11 05:54:19 🐳 Creating container for image mysql:8.4
+2026/09/11 05:54:19 ✅ Container created: 8651f97e13c6
+2026/09/11 05:54:19 🐳 Starting container: 8651f97e13c6
+2026/09/11 05:54:19 ✅ Container started: 8651f97e13c6
+2026/09/11 05:54:19 ⏳ Waiting for container id 8651f97e13c6 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:54:26 🔔 Container is ready: 8651f97e13c6
+2026/09/11 05:54:34 🐳 Stopping container: 8651f97e13c6
+2026/09/11 05:54:35 ✅ Container stopped: 8651f97e13c6
+2026/09/11 05:54:35 🐳 Terminating container: 8651f97e13c6
+2026/09/11 05:54:35 🚫 Container terminated: 8651f97e13c6
+--- PASS: TestSchemaReadinessRejectsKnownOldRelease (15.78s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	40.567s
+FAIL

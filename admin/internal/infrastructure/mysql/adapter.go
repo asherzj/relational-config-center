@@ -1152,6 +1152,7 @@ var _ application.QuerySnapshotExecutor = (*Adapter)(nil)
 var _ domain.TablePolicyCatalog = (*Adapter)(nil)
 var _ domain.QueryPolicyCatalog = (*Adapter)(nil)
 var _ domain.MutationPolicyCatalog = (*Adapter)(nil)
+var _ domain.ReleaseTemplateCatalog = (*Adapter)(nil)
 
 func liveTextCapacity(dataType string, capacity sql.NullInt64) uint64 {
 	switch strings.ToLower(dataType) {

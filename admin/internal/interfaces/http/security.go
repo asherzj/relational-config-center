@@ -35,6 +35,7 @@ type RouterOptions struct {
 	Authentication     *application.Authentication
 	AccountRoles       *application.AccountRoleManagement
 	ReleaseOrders      *application.ReleaseOrders
+	ReleaseTemplates   *application.ReleaseTemplateManagement
 	PublicationTimeout time.Duration
 	AccountHTTP        AccountHTTPOptions
 	AccessLog          io.Writer
