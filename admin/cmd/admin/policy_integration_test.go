@@ -201,7 +201,7 @@ func TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite(t *testing.T
 	}
 
 	// The additive T2 migration is idempotent and preserves the catalog data.
-	reservationMigration, err := os.ReadFile("../../../deploy/mysql/migrations/015-draft-target-reservations.sql")
+	reservationMigration, err := os.ReadFile("../../../deploy/mysql/migrations/016-draft-target-reservations.sql")
 	if err != nil {
 		t.Fatal(err)
 	}

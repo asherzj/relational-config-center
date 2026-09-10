@@ -7,6 +7,10 @@ import (
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
 )
 
+// Query capacity also bounds the worst-case IN parameter count (256 × 100).
+const MaximumQueryConditions = 256
+const MaximumQueryValues = 100
+
 var (
 	ErrTablePolicyDisabled      = errors.New("Table Policy is disabled")
 	ErrInvalidQueryCondition    = errors.New("invalid query condition")

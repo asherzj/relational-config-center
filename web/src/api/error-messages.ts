@@ -48,6 +48,8 @@ const errorMessages: Record<string, string> = {
   incompatible_table: "真实数据库表结构不符合 Managed Table 要求。",
   protected_table: "受保护的规则目录表不能分配表规则。",
   database_unavailable: "数据库表发现暂时不可用，请稍后重试。",
+  field_policy_unavailable: "字段配置暂时不可用；如刚进行保存，请先只读核对当前配置。",
+  field_policy_timeout: "字段配置请求超时；如刚进行保存，请先只读核对当前配置。",
   policy_catalog_unavailable: "规则目录暂时不可用，请稍后重试。",
   table_policy_disabled: "该表规则已停用，当前表不再是 Managed Table。",
   invalid_query_condition: "查询条件不符合实时字段类型或查询规则约束。",

@@ -30,7 +30,9 @@ func runMain(standardError *os.File) int {
 		} else if errors.Is(err, mysqladapter.ErrRecordVersionSchemaIncomplete) {
 			fmt.Fprintln(standardError, "startup error: record version schema is incomplete; apply migration 009 (see deploy/mysql/migrations/README.md)")
 		} else if errors.Is(err, mysqladapter.ErrReleaseSchemaIncomplete) {
-			fmt.Fprintln(standardError, "startup error: release order schema is incomplete; apply migrations 010, 011, 012, 014 and 015 (see deploy/mysql/migrations/README.md)")
+			fmt.Fprintln(standardError, "startup error: release order schema is incomplete; apply migrations 010, 011, 012, 015 and 016 (see deploy/mysql/migrations/README.md)")
+		} else if errors.Is(err, mysqladapter.ErrFieldPolicySchemaIncomplete) {
+			fmt.Fprintln(standardError, "startup error: table field policy schema is incomplete; apply migration 014 (see deploy/mysql/migrations/README.md)")
 		} else {
 			fmt.Fprintln(standardError, "startup error: Managed Data Source is unavailable")
 		}

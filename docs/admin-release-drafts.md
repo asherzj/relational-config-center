@@ -133,4 +133,4 @@ ADD 占新值，MODIFY 占旧值和新值，DELETE 占旧值。同单共享业�
 
 目标冲突返回 `409 release_target_conflict`，含 `table_name`、占用 `order_id`、`applicant_id` 和候选整单 `item_index`。Web 提供新窗口查看占用单、当前姓名/永久 ID、错误明细定位；保留本次输入，查看最新草稿后明确重建。重建仅合并本次修改，保留其他窗口对未触及明细的编辑。取消、拒绝、完结及成功回滚释放主键、附加键和表引用；没有自动过期，管理员可通过已有取消动作处理遗留草稿。
 
-部署需在 014 后应用 [015](../deploy/mysql/migrations/015-draft-target-reservations.sql)。实现锁顺序及 T3 接缝见 [T2 交接](design-notes/multitable-release-tickets/t2-targets.md)。
+部署需在 015 后应用 [016](../deploy/mysql/migrations/016-draft-target-reservations.sql)。实现锁顺序及 T3 接缝见 [T2 交接](design-notes/multitable-release-tickets/t2-targets.md)。

@@ -110,3 +110,5 @@ export function rebaseDraftInput(baseline:ReleaseOrder,edited:ReleaseOrder,lates
 }
 
 export function releaseTables(order:{table_names?:string[];table_name:string}) { return order.table_names??(order.table_name?[order.table_name]:[]); }
+
+export function releaseDetailTables(order:Pick<ReleaseOrder,"items"|"table_name">) { return order.items.map(item=>item.table_name??order.table_name); }

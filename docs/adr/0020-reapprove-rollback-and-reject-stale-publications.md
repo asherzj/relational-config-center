@@ -10,4 +10,4 @@ status: accepted
 
 [ADR-0023](./0023-keep-published-orders-open-for-quick-rollback.md) 增量调整发布后的完结与恢复时机：普通回滚只从已完结普通单申请，成功反向结果直接结束；待完结快速回滚的免审批例外由后续工单实现。
 
-后续[ADR-0024](./0024-multitable-drafts-reserve-targets-and-record-executions.md) 将占用前移至草稿、支持多表整单，并以原单内成功执行记录替代独立回滚单；完结后不再允许回滚。该目标决策已确认，交付由规格 #81 跟踪，本文其余未被替代的正向审批与一致性规则继续有效。
+后续[ADR-0025](./0025-multitable-drafts-reserve-targets-and-record-executions.md) 将占用前移至草稿、支持多表整单，并以原单内成功执行记录替代独立回滚单；完结后不再允许回滚。该目标决策已确认，交付由规格 #81 跟踪，本文其余未被替代的正向审批与一致性规则继续有效。

@@ -99,7 +99,7 @@ See [role bootstrap, recovery and HTTP contracts](../../../docs/admin-account-ro
 ## 发布草稿与在途目标（010 / 011）
 
 完成 009 后顺序执行 `010-release-drafts.sql` 和 `011-release-targets.sql`。
-010 持久保存草稿/历史及按账号、动作、请求标识的成功结果；011 建立记录唯一目标，015 起提前到保存草稿取得。
+010 持久保存草稿/历史及按账号、动作、请求标识的成功结果；011 建立记录唯一目标，016 起提前到保存草稿取得。
 两者均可重跑，不能清空旧请求、历史或占用来恢复服务。Ready 检查控制结构和 InnoDB，
 完整前不恢复业务服务；新安装的 001 已包含相同定义。
 
@@ -132,13 +132,18 @@ T5 同时修正 FLOAT 主键的有损短文本权重与 FLOAT/DOUBLE 的正负�
 会在任何表发生变更前拒绝执行，并指出异常表。修正异常后可重跑。
 旧版 Admin 不能使用迁移后的列名；需要回退时，应先停写并反向重命名三张表的两列，再整体回退 Admin/Web。
 
-拟新增的 `rcc_table_field_policies` 设计同样采用 `created_at` / `updated_at`。
-013 不创建字段规则表；该表仍属于待实现的字段规则功能。
+`rcc_table_field_policies` 同样采用 `created_at` / `updated_at`，由014创建；013本身不创建该表。
 
-## 原单成功执行（014）
+## 表字段规则（014）
 
-完成 013 后，在停写维护窗口应用
-[`014-original-order-executions.sql`](./014-original-order-executions.sql)。它建立
+已完成013的数据库在停写维护窗口执行 `014-table-field-policies.sql`，再部署对应Admin/Web。该迁移与新库001采用同一字段规则结构，可重跑且保留已有规则。它只新增控制表，不删除或改写旧发布单、幂等结果、版本、占用、通知或业务行。Ready要求列、类型、可空性、InnoDB和表/字段唯一键完整；已有同名不兼容表不会被CREATE IF NOT EXISTS修正，应停写核对结构，不能删表来通过就绪检查。
+
+交互控件默认text，无auto；JSON NULL语义、原子保存及实时读取见[字段规则契约](../../../docs/admin-field-policies.md)。旧发布单清理属于独立且需明确指定隔离环境的维护工作，绝非014升级前提。
+
+## 原单成功执行（015）
+
+完成 014 后，在停写维护窗口应用
+[`015-original-order-executions.sql`](./015-original-order-executions.sql)。它建立
 `rcc_release_details` 和 `rcc_release_executions`，为 Command 与通知增加
 `execution_id`，将通知主键改为 `(execution_id, table_name)`。原单发布及回滚
 分别保存一次成功执行；申请、发布实际结果和回滚实际结果按项独立保存于明细。
@@ -150,8 +155,8 @@ T5 同时修正 FLOAT 主键的有损短文本权重与 FLOAT/DOUBLE 的正负�
 `init/001-schema.sql`。启动就绪检查要求完整新结构，详情拒绝旧整单格式。
 详见[升级与原单操作指南](../../../docs/admin-release-upgrade.md)。
 
-## 草稿目标与并发管控键（015）
+## 草稿目标与并发管控键（016）
 
-完成 014 后，在停写窗口执行 [`015-draft-target-reservations.sql`](./015-draft-target-reservations.sql)。它为 Table Policy 增加非空 JSON 字段 `concurrency_key`（默认 `[]`），建立 `rcc_release_table_references(table_name, order_id)`，保护没有具体主键的未结束明细。目标仍使用 `rcc_release_targets`，主键身份算法不变，附加键使用独立编码命名空间。
+完成 015 后，在停写窗口执行 [`016-draft-target-reservations.sql`](./016-draft-target-reservations.sql)。它为 Table Policy 增加非空 JSON 字段 `concurrency_key`（默认 `[]`），建立 `rcc_release_table_references(table_name, order_id)`，保护没有具体主键的未结束明细。目标仍使用 `rcc_release_targets`，主键身份算法不变，附加键使用独立编码命名空间。
 
 迁移可重跑，保留业务数据、规则、历史、原请求和已有目标；不会回填、转换或删除旧发布单数据。新旧 Admin/Web 不能并行运行。已有旧发布单时继续保持停写并明确环境切换与留存方案；不借新引用表为空来接受旧单。Ready 必须看见新字段及完整 InnoDB 引用表结构，新安装 `001-schema.sql` 与升级后结构一致。

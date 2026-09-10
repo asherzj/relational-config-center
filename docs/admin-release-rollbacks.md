@@ -34,7 +34,7 @@ Web 在同一个确认窗口中展示“当前值 → 恢复值”，原因选�
 
 ## 存储与过渡边界
 
-新安装使用 `deploy/mysql/init/001-schema.sql`，结构升级应用 `014-original-order-executions.sql`。`rcc_release_orders.document` 只保存流程、冻结元数据和摘要；`rcc_release_details` 每项保存所属表、顺序、申请及两次实际结果；`rcc_release_executions` 只保存成功执行摘要，不嵌入 commands。不存在独立回滚单或执行结果明细表。
+新安装使用 `deploy/mysql/init/001-schema.sql`，结构升级应用 `015-original-order-executions.sql`。`rcc_release_orders.document` 只保存流程、冻结元数据和摘要；`rcc_release_details` 每项保存所属表、顺序、申请及两次实际结果；`rcc_release_executions` 只保存成功执行摘要，不嵌入 commands。不存在独立回滚单或执行结果明细表。
 
 Command 与通知都有 `execution_id`；执行身份由原单号和成功类型组成，通知主键为 `(execution_id,table_name)`，同一原单的两次执行不会覆盖。通知状态仍为 `NOT_CONNECTED`，不代表下游已收到。
 

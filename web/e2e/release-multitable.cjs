@@ -55,10 +55,15 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
   await button(page,'保存草稿修改').click();await page.getByRole('heading',{name:'编辑多表草稿',exact:true}).waitFor({state:'hidden'});
   const reordered=await api(editor,'GET',path);assert.equal(reordered.items[23].detail_id,draft.items[24].detail_id);assert.equal(reordered.items[23].content.label,'last global detail');
   check('无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序');
+  for(const [index,table] of tables.entries())await api(admin,'PUT',`/api/v1/table-field-policies/${table}`,{policies:[{field_name:'label',display_name:`表${index?'乙':'甲'}名称`,description:'多表当前标签',display_order:1,is_visible:false,is_queryable:true,query_operators:['exact'],ui_type:'text',ui_options:{options:[]},editable_on_add:true,editable_on_modify:true,is_required:false,enabled:true}]});
+  await page.reload();
   await button(page,'提交审批').click();await button(page,'确认提交审批').click();await page.getByText(/ · 待审批$/).waitFor();
   await review.goto(`${base}/configuration/release-orders/${id}`);await button(review,'批准发布单').click();await review.getByLabel('审批意见',{exact:true}).fill('reviewed all tables and pages');await button(review,'确认批准').click();await review.getByText(/ · 已批准$/).waitFor();
   await page.reload();await button(page,'执行发布').click();await button(page,'确认发布到数据库').click();await page.getByRole('heading',{name:'数据库发布结果',exact:true}).waitFor();
   let published=await api(editor,'GET',path);assert.equal(published.publication.commands.length,25);assert.equal(Object.keys(published.executions[0].table_versions).length,2);assert.equal(Object.keys(published.publication.notifications).length,2);
+  const secondTableResult=page.getByRole('article').filter({has:page.getByRole('heading',{name:`明细 2 · ${tables[1]} · MODIFY · 记录 1`,exact:true})});
+  await secondTableResult.getByRole('rowheader',{name:/表乙名称/}).waitFor();assert.equal(await secondTableResult.getByText('表甲名称',{exact:true}).count(),0);
+  check('同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final');
   await page.setViewportSize({width:1440,height:1000});await page.getByLabel('定位结果',{exact:true}).fill('25');await page.getByRole('heading',{name:/^明细 25 ·/}).waitFor();await shot(page,'multitable-publication-desktop.png');
   await button(page,'快速回滚').click();await button(page,'确认整单快速回滚').click();await page.getByText(/ · 已回滚$/).waitFor();
   const restored=await api(editor,'GET',path);assert.equal(restored.id,id);assert.equal(restored.executions.length,2);assert.deepEqual(restored.items,published.items);assert.deepEqual(restored.publication,published.publication);assert.deepEqual(restored.rollback.commands.map(command=>command.table_name),published.publication.commands.map(command=>command.table_name).reverse());
@@ -68,6 +73,7 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
   const restoredArticle=page.getByRole('article').filter({has:page.getByRole('heading',{name:`明细 1 · ${firstRestored.table_name} · ${firstRestored.operation} · 记录 ${firstRestored.id}`,exact:true})});
   await restoredArticle.evaluate(element=>element.scrollIntoView({block:'start'}));await page.evaluate(()=>scrollBy(0,-80));
   const restoredValue=restoredArticle.getByText(`值：before-${firstRestored.id}`,{exact:true});await restoredValue.waitFor();
+  const restoredRegion=restoredArticle.getByRole('region');await restoredRegion.focus();for(let step=0;step<8;step++)await page.keyboard.press('ArrowRight');assert.ok(await restoredRegion.evaluate(element=>element.scrollLeft>0));
   assert.ok(await restoredValue.evaluate(element=>{const r=element.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight}));
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await shot(page,'multitable-restoration-mobile-final.png');
   check('独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果');

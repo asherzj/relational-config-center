@@ -1,0 +1,137 @@
+{
+  "premerge_head": "f341a458b8313aa865f3bf0cf96fda131977bea3",
+  "main": "4aeb54ed8664d569555a3800f9a3c21994b1e890",
+  "logs": {
+    "/private/tmp/rcc-merge90-integration.jsonl": {
+      "sha256": "5f356493e7f1339c28f078da1f18e12df0b79b052dd38d444308b3a872aeaf88"
+    },
+    "/private/tmp/rcc-merge90-go-unit-v2.log": {
+      "sha256": "98099c37029d43ec5ac8104f94776af5548ba630b022a7b0e4c3f0bb2428136f"
+    },
+    "/private/tmp/rcc-merge90-go-build.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/private/tmp/rcc-merge90-web-affected.log": {
+      "sha256": "9f1e11bac05a2f96eba377a1a39af6f112d7ff8f3fdcacc9bea420337601a29c"
+    },
+    "/private/tmp/rcc-merge90-web-release-review.log": {
+      "sha256": "104308d147490c14884882996010586a5775360ba0a74d041262101ac477503e"
+    },
+    "/private/tmp/rcc-merge90-web-build-review.log": {
+      "sha256": "49a3fa9c7369943894959dbd9d7eba01912b9748db5efe4afe728890c51ebfa0"
+    },
+    "/private/tmp/rcc-merge90-browser.jsonl": {
+      "sha256": "a9dcb1817c0148e72a557dd84bb3bef51806fa4f35e877a04bb664e915cedd22"
+    },
+    "/private/tmp/rcc-merge90-browser-reviewed.jsonl": {
+      "sha256": "f1159f769f7bcf127af7642e06bb558ebfcee311ad8306f0cc004321882a7dce"
+    },
+    "/private/tmp/rcc-merge90-web-release-final.log": {
+      "sha256": "7c57f390e4006124854716e5737e487adc8df793f47b82b893b5f42f9a2064bc"
+    },
+    "/private/tmp/rcc-merge90-web-build-final.log": {
+      "sha256": "9c5d82da2dde619f8c3fcb1f5edb6048359d7ada09fcd58575cf601abec20e50"
+    }
+  },
+  "integration_cases": [
+    {
+      "test": "TestAccountUpgradeFromLegacyMatchesFreshSchema",
+      "result": "PASS"
+    },
+    {
+      "test": "TestFieldPolicyAC001RoundTrip",
+      "result": "PASS"
+    },
+    {
+      "test": "TestFieldPolicyAC002InvalidConfigurationIsAtomic",
+      "result": "PASS"
+    },
+    {
+      "test": "TestFieldPolicyAC020MigrationPreservesExistingData",
+      "result": "PASS"
+    },
+    {
+      "test": "TestFieldPolicyAC009AC018KeepDatabaseDefaultsAndExecutionBoundary",
+      "result": "PASS"
+    },
+    {
+      "test": "TestMultitableReprepareTransfersChangedTargetsAtomically",
+      "result": "PASS"
+    },
+    {
+      "test": "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults",
+      "result": "PASS"
+    },
+    {
+      "test": "TestMultitableDraftWaitsForAllGuardsBeforeAnySnapshot",
+      "result": "PASS"
+    },
+    {
+      "test": "TestReleaseResetPreservesRecordsAndContinuesPublication",
+      "result": "PASS"
+    },
+    {
+      "test": "TestReleaseResetRefusesUnverifiedTargetsAndSchema",
+      "result": "PASS"
+    },
+    {
+      "test": "TestReleaseResetInterruptedTransactionRollsBackAndRetries",
+      "result": "PASS"
+    }
+  ],
+  "browser_cases": {
+    "TestAccountBrowserSystemPath/draft-targets.cjs": {
+      "result": "PASS",
+      "log": "/private/tmp/rcc-merge90-browser-reviewed.jsonl"
+    },
+    "TestAccountBrowserSystemPath/release-multitable.cjs": {
+      "result": "PASS",
+      "log": "/private/tmp/rcc-merge90-browser-reviewed.jsonl"
+    },
+    "TestAccountBrowserSystemPath/field-recovery.cjs": {
+      "result": "PASS",
+      "log": "/private/tmp/rcc-merge90-browser.jsonl"
+    },
+    "TestAccountBrowserSystemPath/field-display.cjs": {
+      "result": "PASS",
+      "log": "/private/tmp/rcc-merge90-browser.jsonl"
+    },
+    "TestAccountBrowserSystemPath": {
+      "result": "PASS",
+      "log": "/private/tmp/rcc-merge90-browser-reviewed.jsonl"
+    }
+  },
+  "web": {
+    "affected_original": {
+      "total": 239,
+      "pass": 238,
+      "fail": 1
+    },
+    "final_release": {
+      "total": 59,
+      "pass": 59,
+      "fail": 0
+    },
+    "reconciled_affected_total": 241,
+    "note": "182 unaffected non-release cases from original +59 final release cases; original old label assertion failure preserved"
+  },
+  "source_hashes": {
+    "web/src/features/field-display/CurrentFieldDisplay.tsx": "caa2994bb78ef26bf01dbca3101f2bf6a8a8c38fca28762f5eb225e24a1a7328",
+    "web/src/features/release-orders/ReleaseDraftEditor.tsx": "5cbbf50851a30f25fb5668ab6bad0f439797ac839f1c22aa75d79d18c07349e3",
+    "web/src/features/release-orders/ReleaseDiff.tsx": "806a6b82929e758b18a658c5db0c109dde7c0542746a410f318e848186b307cb",
+    "web/src/features/release-orders/PublicationResult.tsx": "fd32386ccb8fb362db58a7d827e866027e0255b723336a3a3160486c50ceb1d6",
+    "web/e2e/release-multitable.cjs": "87c438fa1a4d6ab11db4bbca75249c6996663baab1e6f8a32460b26355d84798",
+    "admin/internal/infrastructure/mysql/release_reset.go": "aed3e6d8d65fb4a6736da5dc803845c5a16b0956f4471e7bb9c234f942df7232",
+    "admin/cmd/admin/account_delivery_integration_test.go": "a3b540c840644417c20fe6112ace7dddcf8483b220e55f3f9f0171b5b6800e3a",
+    "web/src/api/release-orders.ts": "16af35a7f9a5889c3cd66b12ebc3c2b1ba0949079619eccf4f6b2097158e0848",
+    "web/src/features/release-orders/ReleaseOrdersPage.tsx": "6806fe2a2349411f396d017557ab0b3dc9bf2ccc7c8c5e7a2393a3be7d675401",
+    "web/src/features/release-orders/ReleaseRecovery.tsx": "cf5add1ddfd5da42a32b20b5fa9e3c774a3407425cf73390ce11c75fc94eab76"
+  },
+  "final_frontend_recheck": {
+    "test_log": "/private/tmp/rcc-merge90-web-release-final.log",
+    "test_count": 59,
+    "build_log": "/private/tmp/rcc-merge90-web-build-final.log",
+    "result": "PASS",
+    "browser_reuse": "After reviewed browser PASS, only identical map expression extracted into releaseDetailTables; behavior/dependencies/environment unchanged. Final59tests andbuild cover extraction; no repeated browser suite."
+  }
+}

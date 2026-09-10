@@ -119,7 +119,10 @@ func (adapter *Adapter) Ready(ctx context.Context) error {
 	if err := adapter.recordVersionSchemaReady(ctx); err != nil {
 		return err
 	}
-	return adapter.releaseSchemaReady(ctx)
+	if err := adapter.releaseSchemaReady(ctx); err != nil {
+		return err
+	}
+	return adapter.fieldPolicySchemaReady(ctx)
 }
 
 func (adapter *Adapter) ListDatabaseTables(ctx context.Context) ([]domain.DatabaseTable, error) {

@@ -1,0 +1,10 @@
+{
+  "browser": "152.0.7977.83",
+  "checks": [
+    "metadata 503 has explicit query/editor errors and independent retries; no silent defaults; query input survives editor retry",
+    "real missing-cookie session reauthentication keeps same configured input DOM, custom value and query draft despite administrator configuration replacement",
+    "actual draft POST succeeds then response is lost; mobile original-key/body replay returns the same version-1 draft and configured custom value",
+    "reopening query/editor reads latest rules; switching to a second real account discards prior account drafts"
+  ],
+  "errors": []
+}

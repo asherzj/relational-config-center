@@ -8,4 +8,4 @@ Admin 最终行格式 `rcc-admin-mysql-row-v1` 用明确字段类型、编码、
 
 目标占用时机由 [ADR-0023](./0023-keep-published-orders-open-for-quick-rollback.md) 调整：普通成功保留全部真实身份的占用，人工完结释放；普通反向成功直接结束并释放。所有变化仍与相应成功结果共同提交。
 
-[ADR-0024](./0024-multitable-drafts-reserve-targets-and-record-executions.md) 扩展至同一数据源内的多表整单事务，并将实际结果归于变更明细及成功执行记录；命令和通知区分同主单两次执行。本ADR的真实结果、版本及原子提交要求继续有效。目标实现由规格 #81 跟踪。
+[ADR-0025](./0025-multitable-drafts-reserve-targets-and-record-executions.md) 扩展至同一数据源内的多表整单事务，并将实际结果归于变更明细及成功执行记录；命令和通知区分同主单两次执行。本ADR的真实结果、版本及原子提交要求继续有效。目标实现由规格 #81 跟踪。

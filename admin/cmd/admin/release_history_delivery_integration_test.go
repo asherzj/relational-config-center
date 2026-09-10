@@ -162,7 +162,7 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	ownerSettings := settings.Clone()
 	ownerSettings.User, ownerSettings.MultiStatements = "root", true
 	migrationOwner := deliveryDB(t, ownerSettings)
-	for _, file := range []string{"009-record-versions.sql", "010-release-drafts.sql", "011-release-targets.sql", "012-publication.sql", "014-original-order-executions.sql"} {
+	for _, file := range []string{"009-record-versions.sql", "010-release-drafts.sql", "011-release-targets.sql", "012-publication.sql", "015-original-order-executions.sql"} {
 		migration, err := os.ReadFile("../../../deploy/mysql/migrations/" + file)
 		if err != nil {
 			t.Fatal(err)

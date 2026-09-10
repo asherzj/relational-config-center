@@ -30,6 +30,9 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 	if options.ReleaseOrders != nil {
 		registerReleaseOrderRoutes(router, options.ReleaseOrders)
 	}
+	if options.FieldPolicies != nil {
+		registerFieldPolicyRoutes(router, options.FieldPolicies)
+	}
 	router.NoRoute(func(context *gin.Context) {
 		if isAPIRequest(context.Request.URL.Path) {
 			writeError(context, stdhttp.StatusNotFound, "route_not_found", "route not found")

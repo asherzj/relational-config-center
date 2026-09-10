@@ -247,6 +247,9 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await page.keyboard.press('Shift+Tab');
     assert.equal(await button('确认并保存草稿').evaluate((node) => node === document.activeElement), true);
     await page.keyboard.press('Tab');
+    const changeTableScroll = changeSet.getByRole('region', { name: '变更字段对比，可横向滚动', exact: true });
+    assert.equal(await changeTableScroll.evaluate((node) => node === document.activeElement), true, 'Tab wraps to the keyboard-scrollable field comparison');
+    await page.keyboard.press('Tab');
     const releaseTitle = changeSet.getByRole('textbox', { name: '发布单标题', exact: true });
     assert.equal(await releaseTitle.evaluate((node) => node === document.activeElement), true);
     await page.keyboard.press('Tab');
@@ -264,8 +267,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     });
     assert.equal(tabAfterReleaseTitle.insideTopModal, true, `Tab from release title escaped the top Change Set: ${JSON.stringify(tabAfterReleaseTitle)}`);
     assert.equal(tabAfterReleaseTitle.text, '选择已有草稿', `unexpected Tab target after release title: ${JSON.stringify(tabAfterReleaseTitle)}`);
-    const changeScroll = page.locator('.change-set-scroll');
-    const changeTableScroll = changeScroll.locator('[data-slot="table-container"]');
+    const changeScroll = changeTableScroll;
     assert.ok(await changeTableScroll.evaluate((node) => node.scrollWidth > node.clientWidth));
     assert.ok(await changeScroll.evaluate((node) => node.scrollHeight > node.clientHeight));
     await changeTableScroll.evaluate((node) => { node.scrollLeft = node.scrollWidth; });
@@ -287,7 +289,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     }
     assert.ok((await pageOverflow()) <= 1);
     await page.screenshot({ path: `${output}/change-set-320.png` });
-    pass('320px Change Set owns horizontal/vertical overflow and keeps actions reachable', { keyboardPath: ['Shift+Tab -> 确认并保存草稿', 'Tab -> 发布单标题', 'Tab -> 选择已有草稿'], documentOverflow: await pageOverflow(), scrolling: changeScrollEvidence, footerActions: changeSetActions });
+    pass('320px Change Set owns horizontal/vertical overflow and keeps actions reachable', { keyboardPath: ['Shift+Tab -> 确认并保存草稿', 'Tab -> 变更字段对比，可横向滚动', 'Tab -> 发布单标题', 'Tab -> 选择已有草稿'], documentOverflow: await pageOverflow(), scrolling: changeScrollEvidence, footerActions: changeSetActions });
 
     await page.keyboard.press('Escape');
     const nestedLeave = page.getByRole('alertdialog', { name: '放弃未保存的修改？', exact: true });

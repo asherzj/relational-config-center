@@ -7,6 +7,7 @@ import {
   buildChangeSet,
   type ChangeSetOperation,
   type ManagedDataColumn,
+  type ManagedRowSnapshot,
   type ManagedDataMutationOutcome,
   type MutationContent,
 } from "./model";
@@ -39,7 +40,7 @@ type AutoFillTarget = readonly [field: string | null | undefined, kind: "operato
 export type ManagedDataMutationIntent =
   | { type: "open-editor"; operation: "ADD" | "MODIFY"; row?: Record<string, string | null>; expectedVersion?: string }
   | { type: "review-delete"; row: Record<string, string | null>; expectedVersion?: string }
-  | { type: "review-content"; content: MutationContent }
+  | { type: "review-content"; content: MutationContent; snapshot?: ManagedRowSnapshot }
   | { type: "edit-pending" }
   | { type: "cancel-pending" }
   | { type: "retry-recheck" }
@@ -257,8 +258,8 @@ export function useManagedDataMutationWorkflow({ canEdit, tableName, mutationPol
           expectedVersion: editor.expectedVersion,
           operation: editor.operation,
           tableName: editor.tableName,
-          columns: editor.columns,
-          ...(editor.row ? { row: editor.row } : {}),
+          columns: [...(intent.snapshot?.columns ?? editor.columns)],
+          row: intent.snapshot?.original ?? editor.row,
           ...(typeof editor.row?.id === "string" ? { id: editor.row.id } : {}),
           content: intent.content,
           changeSetAutoFillFields: editor.changeSetAutoFillFields,

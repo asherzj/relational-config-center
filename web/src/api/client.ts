@@ -18,6 +18,7 @@ export class ApiError extends Error {
     public readonly retryAfter?: number,
     public readonly itemIndex?: number,
     public readonly targetConflict?: {tableName:string;orderID:string;applicantID:string},
+    public readonly fieldName?: string,
   ) {
     super(message, options);
     this.name = "ApiError";
@@ -110,6 +111,7 @@ export async function request<T>(path: string, options: RequestOptions<T> = {}):
         response.headers.has("Retry-After") ? Number(response.headers.get("Retry-After")) : undefined,
         parsedError.data.error.item_index,
         parsedError.data.error.order_id ? {tableName:parsedError.data.error.table_name??"",orderID:parsedError.data.error.order_id,applicantID:parsedError.data.error.applicant_id??""}:undefined,
+        parsedError.data.error.field_name,
       );
     }
     throw new ApiError(
@@ -143,7 +145,7 @@ export function shouldRetryQuery(failureCount: number, error: unknown): boolean 
 // A 5xx may follow a commit or a failed read of the just-written policy.
 // Catalog not-found responses may also originate from that post-write read.
 const definiteWriteRejections = new Set([
-  "invalid_policy_code", "invalid_query_policy_definition", "query_policy_exists",
+  "invalid_field_policy", "invalid_policy_code", "invalid_query_policy_definition", "query_policy_exists",
   "invalid_policy_transition", "unknown_policy_type", "invalid_query_policy_rules",
   "invalid_mutation_policy_definition", "mutation_policy_exists", "invalid_mutation_policy_rules",
   "invalid_policy_definition", "database_table_not_found", "table_policy_exists",

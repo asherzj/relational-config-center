@@ -31,6 +31,7 @@ var (
 // RouterOptions is the deployment-owned interface of the HTTP safety module.
 // Request-scoped safety behavior remains behind NewRouter.
 type RouterOptions struct {
+	FieldPolicies      *application.TableFieldPolicyManagement
 	Authentication     *application.Authentication
 	AccountRoles       *application.AccountRoleManagement
 	ReleaseOrders      *application.ReleaseOrders

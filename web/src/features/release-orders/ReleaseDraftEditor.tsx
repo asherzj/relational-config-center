@@ -1,6 +1,6 @@
 import {useState} from "react";
 import {ApiError} from "../../api/client";
-import {draftFromOrder,incrementalDraft,rebaseDraftInput,releaseOrders,releaseRequests,releaseTitleError,type ReleaseOrder} from "../../api/release-orders";
+import {draftFromOrder,releaseDetailTables,incrementalDraft,rebaseDraftInput,releaseOrders,releaseRequests,releaseTitleError,type ReleaseOrder} from "../../api/release-orders";
 import {Drawer} from "../../components/ui/Drawer";
 import {Button} from "../../components/ui/Button";
 import {Input} from "../../components/shadcn/input";
@@ -9,6 +9,7 @@ import {ErrorState} from "../../components/ui/Feedback";
 import {useDraftProtection} from "../../components/ui/LeaveProtection";
 import {useAccountRole} from "../accounts/roles";
 import {useReleaseWrite} from "./useReleaseWrite";
+import {CurrentFieldDisplayProvider} from "../field-display/CurrentFieldDisplay";
 import {ReleaseDiff} from "./ReleaseDiff";
 import {ReleaseItemPager,releasePageSize} from "./ReleaseItemPager";
 import {ManagedTextInput} from "../managed-data/ManagedTextInput";
@@ -68,9 +69,9 @@ export function ReleaseDraftEditor({order,onClose}:{order:ReleaseOrder;onClose:(
  {Boolean(write.error)&&<ErrorState error={write.error}/>}
  {write.error instanceof ApiError&&write.error.itemIndex!==undefined&&write.error.itemIndex<items.length&&<Button onClick={()=>setSelected((write.error as ApiError).itemIndex!)}>定位错误明细</Button>}
  {write.unresolved&&<p role="alert">结果待确认。原请求与全部输入已保留，刷新后也可从发布单页使用原请求重试。</p>}
- {conflict&&<section className="inline-alert"><p>{write.error instanceof ApiError&&write.error.code==="release_target_conflict"?"目标被另一张发布单占用。修改后的输入已保留，请核对当前草稿再重建保存。":"发布单已被其他窗口修改。你的输入已保留，请先查看最新发布单。"}</p><Button disabled={reading} onClick={()=>void inspect()}>查看最新发布单</Button>{latest&&<><p>最新发布单版本：{latest.version}，状态：{latest.state}</p><ReleaseDiff order={latest}/><Button disabled={!latest.allowed_actions.includes("edit")||latest.state!=="DRAFT"} onClick={()=>{const rebuilt=rebaseDraftInput(baseline,{...baseline,title,items},latest);setItems(rebuilt.items);setSelected(current=>Math.min(current,Math.max(0,rebuilt.items.length-1)));setTitle(rebuilt.title);setBaseline(latest);setLatest(undefined);write.confirmRebuild();write.clearError()}}>基于最新发布单重建</Button></>}</section>}
+ {conflict&&<section className="inline-alert"><p>{write.error instanceof ApiError&&write.error.code==="release_target_conflict"?"目标被另一张发布单占用。修改后的输入已保留，请核对当前草稿再重建保存。":"发布单已被其他窗口修改。你的输入已保留，请先查看最新发布单。"}</p><Button disabled={reading} onClick={()=>void inspect()}>查看最新发布单</Button>{latest&&<><p>最新发布单版本：{latest.version}，状态：{latest.state}</p><CurrentFieldDisplayProvider tableNames={releaseDetailTables(latest)}><ReleaseDiff order={latest}/></CurrentFieldDisplayProvider><Button disabled={!latest.allowed_actions.includes("edit")||latest.state!=="DRAFT"} onClick={()=>{const rebuilt=rebaseDraftInput(baseline,{...baseline,title,items},latest);setItems(rebuilt.items);setSelected(current=>Math.min(current,Math.max(0,rebuilt.items.length-1)));setTitle(rebuilt.title);setBaseline(latest);setLatest(undefined);write.confirmRebuild();write.clearError()}}>基于最新发布单重建</Button></>}</section>}
 
- {(recordConflict||item?.operation==="ADD")&&<section className="inline-alert"><p>{recordConflict?"配置记录基线已变化，输入保留。请核对最新配置后明确重建。":"更换新增 id 或记录基线变化时，先查看该目标的最新基线。"}</p><Button disabled={reading||write.pending||write.unresolved} onClick={()=>void inspectRecord()}>查看最新配置</Button>{recordLatest&&<><p>已读取服务器最新记录基线；此预览没有保存或执行任何变更。</p><ReleaseDiff order={{...baseline,items:recordLatest.items}}/><Button disabled={write.pending||write.unresolved} onClick={()=>{
+ {(recordConflict||item?.operation==="ADD")&&<section className="inline-alert"><p>{recordConflict?"配置记录基线已变化，输入保留。请核对最新配置后明确重建。":"更换新增 id 或记录基线变化时，先查看该目标的最新基线。"}</p><Button disabled={reading||write.pending||write.unresolved} onClick={()=>void inspectRecord()}>查看最新配置</Button>{recordLatest&&<><p>已读取服务器最新记录基线；此预览没有保存或执行任何变更。</p><CurrentFieldDisplayProvider tableNames={releaseDetailTables(recordLatest)}><ReleaseDiff order={{...baseline,items:recordLatest.items}}/></CurrentFieldDisplayProvider><Button disabled={write.pending||write.unresolved} onClick={()=>{
   setItems(recordLatest.items);setRecordLatest(undefined);write.confirmRebuild();write.clearError();
  }}>基于最新配置重建</Button></>}</section>}
 

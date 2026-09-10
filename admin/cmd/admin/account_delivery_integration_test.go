@@ -417,8 +417,14 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	}
 	deliveryExec(t, owner, string(publicationMigration))
 	deliveryExec(t, owner, "RENAME TABLE rcc_refresh_notifications TO interrupted_notifications")
-	rejectIncomplete("014")
+	rejectIncomplete("015")
 	deliveryExec(t, owner, "RENAME TABLE interrupted_notifications TO rcc_refresh_notifications")
+	rejectIncomplete("015")
+	fieldPolicyMigration, err := os.ReadFile("../../../deploy/mysql/migrations/014-table-field-policies.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	deliveryExec(t, owner, string(fieldPolicyMigration))
 	// Existing technical records may contain multiple old orders for one table.
 	// The longest supported old order ID must fit the migration identity too.
 	for index, id := range []string{strings.Repeat("a", 32), strings.Repeat("b", 32)} {
@@ -427,7 +433,7 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	}
 	technicalQueries := []string{`SELECT table_name,sequence,order_id,document FROM rcc_publication_commands WHERE table_name=? ORDER BY sequence`, `SELECT order_id,table_name,table_version,document FROM rcc_refresh_notifications WHERE table_name=? ORDER BY order_id`}
 	preservedTechnical := []string{schemaMetadata(t, owner, technicalQueries[0], "legacy_policy"), schemaMetadata(t, owner, technicalQueries[1], "legacy_policy")}
-	executionMigration, err := os.ReadFile("../../../deploy/mysql/migrations/014-original-order-executions.sql")
+	executionMigration, err := os.ReadFile("../../../deploy/mysql/migrations/015-original-order-executions.sql")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -445,13 +451,16 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 		}
 	}
 
-	rejectIncomplete("015")
-	reservationMigration, err := os.ReadFile("../../../deploy/mysql/migrations/015-draft-target-reservations.sql")
+	rejectIncomplete("016")
+	reservationMigration, err := os.ReadFile("../../../deploy/mysql/migrations/016-draft-target-reservations.sql")
 	if err != nil {
 		t.Fatal(err)
 	}
 	deliveryExec(t, owner, string(reservationMigration))
 	deliveryExec(t, owner, string(reservationMigration))
+	deliveryExec(t, owner, "RENAME TABLE rcc_table_field_policies TO interrupted_fields")
+	rejectIncomplete("014")
+	deliveryExec(t, owner, "RENAME TABLE interrupted_fields TO rcc_table_field_policies")
 
 	deliveryExec(t, owner, "CREATE DATABASE fresh_accounts CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
 	freshDriver := ownerDriver
@@ -463,8 +472,8 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	}
 	deliveryExec(t, fresh, string(schema))
 	for _, query := range []string{
-		`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_TYPE,IS_NULLABLE,COALESCE(COLUMN_DEFAULT,'<null>'),COALESCE(COLLATION_NAME,''),EXTRA FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_details','rcc_release_executions','rcc_release_targets','rcc_release_table_references','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications') ORDER BY TABLE_NAME,ORDINAL_POSITION`,
-		`SELECT TABLE_NAME,INDEX_NAME,NON_UNIQUE,SEQ_IN_INDEX,COLUMN_NAME,COALESCE(SUB_PART,0) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_details','rcc_release_executions','rcc_release_targets','rcc_release_table_references','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications') ORDER BY TABLE_NAME,INDEX_NAME,SEQ_IN_INDEX`,
+		`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_TYPE,IS_NULLABLE,COALESCE(COLUMN_DEFAULT,'<null>'),COALESCE(COLLATION_NAME,''),EXTRA FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_details','rcc_release_executions','rcc_release_targets','rcc_release_table_references','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications','rcc_table_field_policies') ORDER BY TABLE_NAME,ORDINAL_POSITION`,
+		`SELECT TABLE_NAME,INDEX_NAME,NON_UNIQUE,SEQ_IN_INDEX,COLUMN_NAME,COALESCE(SUB_PART,0) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_details','rcc_release_executions','rcc_release_targets','rcc_release_table_references','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications','rcc_table_field_policies') ORDER BY TABLE_NAME,INDEX_NAME,SEQ_IN_INDEX`,
 		`SELECT TABLE_NAME,COLUMN_NAME,REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=? AND REFERENCED_TABLE_NAME IS NOT NULL ORDER BY TABLE_NAME,COLUMN_NAME`,
 	} {
 		upgraded := schemaMetadata(t, owner, query, driver.DBName)

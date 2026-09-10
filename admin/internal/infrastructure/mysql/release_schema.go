@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-var ErrReleaseSchemaIncomplete = errors.New("release order schema is incomplete; apply migrations 010, 011, 012, 014 and 015")
+var ErrReleaseSchemaIncomplete = errors.New("release order schema is incomplete; apply migrations 010, 011, 012, 015 and 016")
 
 func (a *Adapter) releaseSchemaReady(ctx context.Context) error {
 	rows, err := a.gorm.WithContext(ctx).Raw(`SELECT concurrency_key FROM rcc_table_policies LIMIT 0`).Rows()
