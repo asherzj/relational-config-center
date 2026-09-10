@@ -69,7 +69,7 @@ Web 在请求发送前将原键、路径和申请内容保存在当前标签页�
 
 ## 存储和后续复用
 
-停写升级时，在 007/008/009 之后运行 `deploy/mysql/migrations/010-release-drafts.sql`；新安装的 `001-schema.sql` 包含同一表定义。迁移可重跑，Ready 检查完整字段、InnoDB 和唯一键。新控制表全部受 `rcc_*` 通用表保护：
+停写升级时，在 007/008/009 之后运行 `deploy/mysql/migrations/010-release-drafts.sql`；新安装的 Goose 当前迁移 包含同一表定义。迁移可重跑，Ready 检查完整字段、InnoDB 和唯一键。新控制表全部受 `rcc_*` 通用表保护：
 
 - `rcc_release_orders` 保存不可变单号、发布单标题、申请人、状态/版本及完整草稿文档（含操作历史和永久 Account ID）。
 - `rcc_release_requests` 保存账号/操作/请求键、SHA-256 摘要与原结果，永久保留。

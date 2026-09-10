@@ -1,0 +1,28 @@
+{
+  "baseline": "8b5cd85",
+  "command": "make test-browser",
+  "result": "PASS",
+  "duration_seconds": 162.011,
+  "paths": [
+    "--- PASS: TestAccountBrowserSystemPath (161.29s)",
+    "--- PASS: TestAccountBrowserSystemPath/unsaved-changes.cjs (24.73s)",
+    "--- PASS: TestAccountBrowserSystemPath/rule-clarity.cjs (4.25s)",
+    "--- PASS: TestAccountBrowserSystemPath/release-drafts.cjs (11.85s)",
+    "--- PASS: TestAccountBrowserSystemPath/release-approvals.cjs (21.84s)",
+    "--- PASS: TestAccountBrowserSystemPath/release-batches.cjs (25.52s)",
+    "--- PASS: TestAccountBrowserSystemPath/release-rollbacks.cjs (23.93s)",
+    "--- PASS: TestAccountBrowserSystemPath/field-policies.cjs (10.53s)"
+  ],
+  "field_checks": {
+    "browser": "152.0.7977.83",
+    "checks": [
+      "field switching and unsaved close preserve all input",
+      "real HTTP save and reopen preserve display, controls, options and default",
+      "number min/max/step use editable string controls and save with the full table",
+      "390px layout and disable preserve complete configuration",
+      "invalid configuration and dropped successful response preserve input; read-only recovery gates retry",
+      "keyboard Tab reaches option values and closing restores the entry focus"
+    ],
+    "errors": []
+  }
+}

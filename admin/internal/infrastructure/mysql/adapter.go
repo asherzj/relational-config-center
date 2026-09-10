@@ -97,31 +97,6 @@ func (adapter *Adapter) Close() error {
 	return adapter.pool.Close()
 }
 
-func (adapter *Adapter) Ready(ctx context.Context) error {
-	if err := adapter.pool.PingContext(ctx); err != nil {
-		return fmt.Errorf("ping MySQL: %w", err)
-	}
-	for _, table := range []string{"rcc_table_policies", "rcc_query_policies", "rcc_mutation_policies"} {
-		rows, err := adapter.gorm.WithContext(ctx).Raw("SELECT created_at, updated_at FROM `" + table + "` LIMIT 0").Rows()
-		if err != nil {
-			return fmt.Errorf("Policy Catalog unavailable (apply migration 013 for audit column names): %w", err)
-		}
-		if err := rows.Close(); err != nil {
-			return fmt.Errorf("Policy Catalog unavailable (apply migration 013 for audit column names): %w", err)
-		}
-	}
-	if err := adapter.accountSchemaReady(ctx); err != nil {
-		return err
-	}
-	if err := adapter.accountRoleSchemaReady(ctx); err != nil {
-		return err
-	}
-	if err := adapter.recordVersionSchemaReady(ctx); err != nil {
-		return err
-	}
-	return adapter.releaseSchemaReady(ctx)
-}
-
 func (adapter *Adapter) ListDatabaseTables(ctx context.Context) ([]domain.DatabaseTable, error) {
 	metadata, err := adapter.readTableMetadata(ctx)
 	if err != nil {

@@ -79,7 +79,7 @@ jobs:
   mysql-integration:
     name: MySQL 8.4 integration
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 70
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -141,5 +141,23 @@ jobs:
         with:
           name: browser-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/rcc-browser-acceptance
+          if-no-files-found: error
+          retention-days: 14
+
+  compose-migrations:
+    name: Goose Compose deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Verify real migration images and deployment ordering
+        run: python3 scripts/compose-migration-acceptance.py --artifacts "${{ runner.temp }}/rcc-compose-migrations"
+      - name: Upload Compose migration evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: compose-migrations-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/rcc-compose-migrations
           if-no-files-found: error
           retention-days: 14

@@ -34,7 +34,7 @@ test -e deploy/.env || cp deploy/.env.example deploy/.env
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml up --build
 ```
 
-请在启动前修改 `deploy/.env` 中的数据库密码。该文件不应提交到仓库；不要把上面的复制命令当作覆盖已有 `.env` 的更新方式。Compose 会在全新 MySQL 数据卷中自动执行 `deploy/mysql/init/001-schema.sql` 初始化 Policy Catalog，并在每次启动时幂等应用仅供本地开发使用的 `deploy/mysql/local-fixture/002-notification-templates.sql`。fresh volume，以及尚未包含同名资源或已包含完全相同 fixture 的已有 volume，会获得：
+请在启动前修改 `deploy/.env` 中的数据库密码。该文件不应提交到仓库；不要把上面的复制命令当作覆盖已有 `.env` 的更新方式。Compose 先运行独立 `schema-migrate` 任务，通过 Goose 初始化或向前升级 RCC 控制表；成功后才幂等应用仅供本地开发使用的 `deploy/mysql/local-fixture/002-notification-templates.sql`，fixture 成功后才启动 Admin。fresh volume，以及尚未包含同名资源或已包含完全相同 fixture 的已有 volume，会获得：
 
 - 带 3 条可辨识样例数据的 `notification_templates`；
 - Active 的 `notification_page_query_v1` Query Policy；
@@ -42,6 +42,16 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yml up --build
 - enabled `notification_templates` Table Policy。
 
 fixture 位于独立的 `mysql/local-fixture` 路径，只由本地 Compose 的一次性 `mysql-local-fixture` 服务加载，不属于生产初始化脚本，也不会改变 Admin 只治理既有业务表的生产职责。缺失资源会被补齐，完全相同的资源会原样保留，重复启动不会重复插入样例行或 Policy；若已有 `notification_templates` Schema 不兼容，或同 Code Policy、同表分配与 fixture 的生命周期、执行规则或引用冲突，一次性服务会失败并保留既有资源，不会通过 SQL 接管表、覆盖或复活 Policy、重新启用分配。需要并行启动隔离环境时，可通过 `MYSQL_PUBLISHED_PORT` 和 `ADMIN_PUBLISHED_PORT` 覆盖默认的 3306 和 8080。
+
+已有未接管的数据卷不会自动登记版本，迁移失败或存在未确认操作也会阻止 fixture 和 Admin。先按[迁移手册](docs/schema-migrations.md)核查并备份，在维护窗口显式接管完整旧库：
+
+```bash
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml run --rm schema-migrate status
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml run --rm schema-migrate baseline
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml up
+```
+
+未知或失败结果必须先核查后运行 `schema-migrate recover`。更旧结构先走[历史升级流程](deploy/mysql/migrations/README.md)。生产不加载开发 fixture；维护连接显式执行 `bin/admin/schema-migrate up` 后，Admin 使用正常业务权限连接同一库，只读核查版本、状态与完整控制结构。
 
 直接运行 Admin 时至少需要配置以下变量：
 
@@ -85,7 +95,7 @@ GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送�
 
 工作流当前只在推送到 `main` 和目标为 `main` 的 Pull Request 上运行这四个检查；推送到其他分支不会自动触发这套 CI。是否配置 branch protection、rulesets 或 required checks 由仓库设置决定，不能从本地文档推断为合并保证。
 
-浏览器检查也可以在本地按套件或引擎运行。`all` 包含 `unsaved-changes`、`rule-clarity`、`write-recovery`、`operation-coverage`、`complex-fields`、`browser-accessibility` 和 `release-workflow`。正式发布套件实际执行草稿、独立审批、混合批量，以及按 `RCC_E2E_ENGINES` 逐引擎运行的正向/反向发布和会话、冲突、未知结果恢复；无障碍套件也逐引擎运行。每次运行都应使用独立的空 artifact 目录：
+浏览器检查也可以在本地按套件或引擎运行。`all` 包含 `unsaved-changes`、`rule-clarity`、`write-recovery`、`operation-coverage`、`complex-fields`、`browser-accessibility`、`release-workflow` 和 `field-interactions`。正式发布套件实际执行草稿、独立审批、混合批量，以及按 `RCC_E2E_ENGINES` 逐引擎运行的正向/反向发布和会话、冲突、未知结果恢复；无障碍套件与完整字段流程套件也逐引擎运行，后者分别在桌面和390px验证管理员字段配置、组合查询、自定义值草稿和发布审阅。每次运行都应使用独立的空 artifact 目录：
 
 ```bash
 RCC_E2E_ARTIFACTS=/tmp/rcc-browser-acceptance-$(date +%s) \

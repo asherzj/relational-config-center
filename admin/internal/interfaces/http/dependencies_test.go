@@ -41,7 +41,7 @@ func TestSharedBusinessServicesDoNotStoreRequestIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Shared business services must never regain mutable per-account fields.
-	protected := map[string]bool{"QueryPolicyManagement": true, "MutationPolicyManagement": true, "TablePolicyManagement": true, "AccountRoleManagement": true, "ReleaseOrders": true}
+	protected := map[string]bool{"QueryPolicyManagement": true, "MutationPolicyManagement": true, "TablePolicyManagement": true, "TableFieldPolicyManagement": true, "AccountRoleManagement": true, "ReleaseOrders": true}
 	for _, pkg := range files {
 		for filename, file := range pkg.Files {
 			ast.Inspect(file, func(node ast.Node) bool {

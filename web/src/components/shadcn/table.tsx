@@ -9,6 +9,14 @@ function Table({ className, containerProps, ...props }: React.ComponentProps<"ta
       {...containerProps}
       data-slot="table-container"
       className={cn("relative w-full overflow-x-auto", containerProps?.className)}
+      onKeyDown={(event) => {
+        containerProps?.onKeyDown?.(event)
+        if (event.defaultPrevented || event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+        const region = event.currentTarget
+        if (region.scrollWidth <= region.clientWidth || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return
+        event.preventDefault()
+        region.scrollLeft += event.key === "ArrowRight" ? 48 : -48
+      }}
     >
       <table
         data-slot="table"

@@ -9,7 +9,7 @@ import (
 )
 
 func TestPublicationFloatValuesAndIdentityRoundTrip(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -93,7 +93,7 @@ func TestPublicationFloatValuesAndIdentityRoundTrip(t *testing.T) {
 }
 
 func TestPublicationFloatIdentityMaintenanceKeepsOldVersions(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)

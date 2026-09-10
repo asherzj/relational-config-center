@@ -20,7 +20,7 @@ import (
 
 // AC-018: submitting freezes the verified intent, without writing configuration.
 func TestReleaseSubmitFreezesIntent(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true, AllowDelete: true})
 	body := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposed"}}]}`
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "approval-create-01")
@@ -51,7 +51,7 @@ func TestReleaseSubmitFreezesIntent(t *testing.T) {
 
 // AC-019/022: independent drafts compete for one actual record identity.
 func TestReleaseTargetsCompeteAndCancelReleases(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/010-record-identity-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/010-record-identity-fixture.sql")
 	enableMutationPolicy(t, app, "record_identity_ci", mutationPolicyFixture{AllowAdd: true})
 	paths := make([]string, 2)
 	for i, id := range []string{"Résumé", "RESUME"} {
@@ -119,7 +119,7 @@ func grantReleaseRole(t *testing.T, app *adminApplication, actor *httptest.Respo
 // AC-011: any viewer can resolve only the permanent account IDs already exposed
 // by one order, and profile changes affect the current display without rewriting history.
 func TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	editor := registerAccount(t, app, "people.editor", "people.editor@example.com", "correct horse battery staple")
 	reviewer := registerAccount(t, app, "people.reviewer", "people.reviewer@example.com", "correct horse battery staple")
@@ -175,7 +175,7 @@ func TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin(t *testing.T) {
 // AC-020/024/025: a current, independent approver decides once; a historical
 // approval survives revocation while new requests still require current grants.
 func TestReleaseApprovalCurrentRolesAndHistory(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	admin := integrationAdminSession(t, app)
 	reviewer := registerAccount(t, app, "release.reviewer", "release.reviewer@example.com", "correct horse battery staple")
@@ -230,7 +230,7 @@ func TestReleaseApprovalCurrentRolesAndHistory(t *testing.T) {
 // AC-021: copying a rejected order requires an explicitly reviewed current
 // baseline and retains the source decision without inheriting its approval.
 func TestReleaseRejectedCopyRechecksBaseline(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	reviewer := registerAccount(t, app, "copy.reviewer", "copy.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "copy-reviewer-01")
@@ -287,7 +287,7 @@ func TestReleaseRejectedCopyRechecksBaseline(t *testing.T) {
 // AC-019/023: a storage failure rolls back state, request, history and targets;
 // competing decisions then produce exactly one new workflow event.
 func TestReleaseWorkflowAtomicityAndCompetition(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -380,7 +380,7 @@ func TestReleaseWorkflowAtomicityAndCompetition(t *testing.T) {
 // AC-018: freezing records execution definitions, not changing table statistics
 // or display descriptions. Every observed digest comes from the public submit.
 func TestReleaseFreezeTracksExecutionSemantics(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -468,7 +468,7 @@ func TestReleaseFreezeTracksExecutionSemantics(t *testing.T) {
 // restriction must not make hidden triggers look absent, and schema pattern
 // matching must remain correct under NO_BACKSLASH_ESCAPES.
 func TestReleaseFreezeMetadataVisibility(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -541,7 +541,7 @@ func TestReleaseFreezeMetadataVisibility(t *testing.T) {
 
 // AC-018: a submitted baseline and current rules must both still be valid.
 func TestReleaseSubmitRevalidatesBaselineAndRules(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	body := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposal"}}]}`
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "revalidate-create-01")
@@ -572,7 +572,7 @@ func TestReleaseSubmitRevalidatesBaselineAndRules(t *testing.T) {
 // The execution metadata read holds the actual table definition until the
 // owning transaction completes, even for an ADD with no known record identity.
 func TestReleaseExecutionSchemaHoldsMetadataLock(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -620,7 +620,7 @@ func TestReleaseExecutionSchemaHoldsMetadataLock(t *testing.T) {
 // A zero AUTO_INCREMENT input is not necessarily an actual identity: MySQL's
 // session mode decides whether it generates an id or inserts the literal zero.
 func TestReleaseAutoIncrementZeroIdentity(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -693,7 +693,7 @@ func TestReleaseAutoIncrementZeroIdentity(t *testing.T) {
 
 // A grant on a different case-sensitive object cannot prove trigger visibility.
 func TestReleaseFreezeMetadataGrantNameIdentity(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -804,7 +804,6 @@ func TestReleaseFreezeMetadataCaseInsensitiveNames(t *testing.T) {
 	defer cancel()
 	container, err := tcmysql.Run(ctx, "mysql:8.4",
 		tcmysql.WithDatabase("rcc_test"), tcmysql.WithUsername("rcc_admin"), tcmysql.WithPassword("rcc_password"),
-		tcmysql.WithScripts("../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql"),
 		testcontainers.WithCmd("--lower-case-table-names=1"))
 	if err != nil {
 		t.Fatal(err)
@@ -818,6 +817,7 @@ func TestReleaseFreezeMetadataCaseInsensitiveNames(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	initializeCurrentIntegrationSchema(t, ctx, driver, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)

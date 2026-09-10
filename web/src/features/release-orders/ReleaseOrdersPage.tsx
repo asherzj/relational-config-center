@@ -24,6 +24,7 @@ import {ReleaseReview} from "./ReleaseReview";
 
 import {QuickRollbackDialog} from "./QuickRollbackDialog";
 import {ReleasePerson} from "./ReleasePerson";
+import {CurrentFieldDisplayProvider} from "../field-display/CurrentFieldDisplay";
 
 export const releaseStateLabels={DRAFT:"草稿",PENDING_APPROVAL:"待审批",APPROVED:"已批准",SUCCEEDED:"已发布待完结",COMPLETED:"已完结",REJECTED:"已拒绝",CANCELLED:"已取消",ROLLED_BACK:"已回滚"};
 export function ReleaseOrdersPage(){
@@ -71,7 +72,7 @@ function ReleaseDetail({id}:{id:string}){
  const names=people.isError?{}:people.data?.people??{};
  const reverse=Boolean(order.rollback_of_id);
  const approver=[...order.history].reverse().find(event=>event.action==="APPROVE");
- return <div className="release-detail min-w-0"><nav aria-label="发布单位置" className="text-xs text-muted-foreground">配置管理 / 发布单 / <span aria-current="page">详情</span></nav><div><Link className="underline underline-offset-4" to="/configuration/release-orders">返回发布单列表</Link></div>
+ return <CurrentFieldDisplayProvider tableName={order.table_name}><div className="release-detail min-w-0"><nav aria-label="发布单位置" className="text-xs text-muted-foreground">配置管理 / 发布单 / <span aria-current="page">详情</span></nav><div><Link className="underline underline-offset-4" to="/configuration/release-orders">返回发布单列表</Link></div>
  <ReleaseProgress order={order} people={names}/>
  <div className="release-detail-overview">
   <section className="release-panel min-w-0" aria-label="基本信息"><h2 className="text-xl font-semibold break-all">{order.title}</h2><p className="mt-2 mb-6 text-muted-foreground break-all">{order.table_name} · {releaseStateLabels[order.state]}</p>
@@ -86,5 +87,5 @@ function ReleaseDetail({id}:{id:string}){
  {action&&<ReleaseActionDialog order={order} action={action} onClose={()=>setAction(undefined)}/>}
  {quickRollback&&<QuickRollbackDialog order={order} onClose={()=>setQuickRollback(false)}/>}
  {copy&&<CopyDraftDialog order={order} onClose={()=>setCopy(false)}/>}
- {reprepare&&<ReprepareDraftDialog order={order} onClose={()=>setReprepare(false)}/>}</div>;
+ {reprepare&&<ReprepareDraftDialog order={order} onClose={()=>setReprepare(false)}/>}</div></CurrentFieldDisplayProvider>;
 }

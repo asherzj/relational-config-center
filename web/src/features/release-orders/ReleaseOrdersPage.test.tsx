@@ -6,17 +6,21 @@ import {AppRoutes} from "../../app";
 import {ToastProvider} from "../../components/ui/Toast";
 import {TestRouter} from "../../test/TestRouter";
 import {testAdminIdentity,withAdminSession} from "../../test/account-session";
+import {defaultFieldPolicies} from "../../test/field-policy-fixture";
 
 const id="12345678123456781234567812345678";
 const rollbackID="87654321876543218765432187654321";
 const repreparedID="abcdefabcdefabcdefabcdefabcdefab";
 const order={id,title:"更新渠道展示名称",table_name:"items",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-07T08:00:00Z",updated_at:"2026-09-07T08:00:00Z",history:[{action:"CREATE",actor_id:testAdminIdentity.account.id,version:"1",at:"2026-09-07T08:00:00Z",reason:""}],allowed_actions:["edit","cancel"],items:[{operation:"MODIFY",id:"1",expected_record_version:"0",before:{id:"1",label:"original"},content:{label:"proposal"},fields:[{name:"id",type:"uint64",nullable:false,editable:false,before_state:"value",before:"1",proposed_state:"omitted",proposed:null},{name:"label",type:"string",nullable:true,editable:true,before_state:"value",before:"original",proposed_state:"value",proposed:"proposal"}]}]};
 const json=(value:unknown,status=200)=>new Response(JSON.stringify(value, (key,item)=>key==="orders"?item.map((order:{items:unknown[]})=>({...order,item_count:order.items.length,operation_counts:{MODIFY:order.items.length}})):item),{status,headers:{"Content-Type":"application/json"}});
+let fieldPolicyResponse=()=>json(defaultFieldPolicies("items",[{name:"id",type:"uint64",nullable:false},{name:"label",type:"string",nullable:true}]));
 function mount(path="/configuration/release-orders"){
+ const request=globalThis.fetch;
+ vi.stubGlobal("fetch",(input:RequestInfo|URL,init?:RequestInit)=>String(input).includes("/table-field-policies/")?Promise.resolve(fieldPolicyResponse()):request(input,init));
  const client=new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}});
  return {...render(<QueryClientProvider client={client}><ToastProvider><TestRouter initialEntries={[path]}><AppRoutes/></TestRouter></ToastProvider></QueryClientProvider>),client};
 }
-afterEach(()=>{vi.unstubAllGlobals();sessionStorage.clear()});
+afterEach(()=>{vi.unstubAllGlobals();sessionStorage.clear();fieldPolicyResponse=()=>json(defaultFieldPolicies("items",[{name:"id",type:"uint64",nullable:false},{name:"label",type:"string",nullable:true}]))});
 it("原申请人或管理员核对最新配置后原子化重新准备已批准普通单",async()=>{
  const approved={...order,applicant_id:"original-applicant",state:"APPROVED",version:"3",allowed_actions:["execute","reprepare"],frozen_digest:"a".repeat(64)};
  const freshItems=approved.items.map(item=>({...item,expected_record_version:"2",before:{id:"1",label:"latest database value"},fields:item.fields.map(field=>field.name==="label"?{...field,before:"latest database value"}:field)}));
@@ -822,6 +826,94 @@ it("已回滚详情默认实际原发布结果并可读取可信恢复结果或�
  await user.click(screen.getByRole("button",{name:"恢复结果"}));expect(await screen.findByText("值：actual restored generated")).toBeVisible();expect(screen.queryByText("值：actual original generated")).not.toBeInTheDocument();
  await user.click(screen.getByRole("button",{name:"申请差异"}));expect(await screen.findByText("proposal")).toBeVisible();
  await user.click(screen.getByRole("button",{name:"原发布结果"}));expect(await screen.findByText("值：actual original generated")).toBeVisible();
+});
+
+it("字段名称和选项标签重读后实时更新，但申请 before 与持久化 final 原值不变",async()=>{
+ const row=(value:string)=>({format:"rcc-admin-mysql-row-v1",schema_digest:"a".repeat(64),deleted:false,fields:[{name:"channel",type:"varchar(40)",encoding:"text",value}],checksum:"b".repeat(64)});
+ const current={...order,state:"SUCCEEDED",allowed_actions:[],items:[{...order.items[0]!,fields:[{name:"channel",type:"string",nullable:false,editable:true,before_state:"value",before:"old",proposed_state:"value",proposed:"new"}]}],publication:{table_version:"8",publisher_id:order.applicant_id,executed_at:order.updated_at,notification:{id:"notice",table_version:"8",status:"NOT_CONNECTED"},commands:[{order_id:id,sequence:"9",table_name:"items",table_version:"8",operation:"MODIFY",id:"1",record_version:"3",before:row("old"),final:row("new")}]}};
+ let currentName="渠道";let oldLabel="旧渠道";let newLabel="新渠道";let metadataReads=0;
+ fieldPolicyResponse=()=>{
+  metadataReads++;
+  const configuration=defaultFieldPolicies("items",[{name:"channel",type:"string",nullable:false}]);
+  configuration.fields[0]!.state="active";
+  configuration.fields[0]!.effective={...configuration.fields[0]!.effective,display_name:currentName,is_visible:false,ui_type:"select",ui_options:{options:[{label:oldLabel,value:"old"},{label:newLabel,value:"new"}]},enabled:true};
+  return json(configuration);
+ };
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json(current))));
+ const user=userEvent.setup();const {client}=mount(`/configuration/release-orders/${id}`);
+
+ expect(await screen.findByText("新渠道")).toBeVisible();
+ expect(screen.getByText("旧渠道")).toBeVisible();
+ expect(screen.getByText("渠道")).toBeVisible();
+ expect(screen.getByLabelText("真实值：old")).toBeVisible();
+ expect(screen.getByLabelText("真实值：new")).toBeVisible();
+ currentName="通知渠道";oldLabel="原渠道";newLabel="目标渠道";
+ await act(async()=>{await client.refetchQueries({queryKey:["current-field-display"]})});
+ expect(await screen.findByText("目标渠道")).toBeVisible();
+ expect(screen.getByText("原渠道")).toBeVisible();
+ expect(screen.getByText("通知渠道")).toBeVisible();
+ expect(screen.queryByText("新渠道")).not.toBeInTheDocument();
+ expect(screen.getByLabelText("真实值：new")).toBeVisible();
+ expect(screen.getByRole("region",{name:/变更顺序 9 实际结果/})).toHaveClass("release-diff-scroll");
+ await user.click(screen.getByRole("button",{name:"申请差异"}));
+ expect(await screen.findByText("原渠道")).toBeVisible();
+ expect(screen.getByText("目标渠道")).toBeVisible();
+ expect(screen.getByLabelText("真实值：old")).toBeVisible();
+ expect(screen.getByLabelText("真实值：new")).toBeVisible();
+ expect(metadataReads).toBe(2);
+});
+
+it("字段显示读取失败时保留发布单原始内容，并可独立重试当前标签",async()=>{
+ let reads=0;
+ fieldPolicyResponse=()=>{
+  reads++;
+  if(reads===1)return json({error:{code:"field_policy_unavailable",message:"down",request_id:"field-display-1"}},503);
+  const configuration=defaultFieldPolicies("items",[{name:"id",type:"uint64",nullable:false},{name:"label",type:"string",nullable:true}]);
+  configuration.fields[1]!.state="active";
+  configuration.fields[1]!.effective={...configuration.fields[1]!.effective,display_name:"展示名称",ui_type:"select",ui_options:{options:[{label:"建议值",value:"proposal"}]},enabled:true};
+  return json(configuration);
+ };
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json(order))));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+
+ expect(await screen.findByText("proposal")).toBeVisible();
+ const alert=await screen.findByRole("alert");
+ expect(alert).toHaveTextContent("字段配置暂时不可用");
+ expect(alert).toHaveTextContent("field-display-1");
+ await user.click(within(alert).getByRole("button",{name:"重试"}));
+ expect(await screen.findByText("建议值")).toBeVisible();
+ expect(screen.getByText("展示名称")).toBeVisible();
+ expect(screen.getByLabelText("真实值：proposal")).toBeVisible();
+ expect(reads).toBe(2);
+});
+
+it("同一表的不同发布单在每次查看详情时重读当前显示规则",async()=>{
+ const secondID="22345678123456781234567812345678";
+ const first={...order,title:"第一张发布单"};
+ const second={...order,id:secondID,title:"第二张发布单"};
+ let currentName="字段一";let reads=0;
+ fieldPolicyResponse=()=>{
+  reads++;
+  const configuration=defaultFieldPolicies("items",[{name:"id",type:"uint64",nullable:false},{name:"label",type:"string",nullable:true}]);
+  configuration.fields[1]!.state="active";
+  configuration.fields[1]!.effective={...configuration.fields[1]!.effective,display_name:currentName,enabled:true};
+  return json(configuration);
+ };
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>{
+  const path=String(input);
+  if(path.endsWith("/people"))return json({people:{}});
+  if(path===`/api/v1/release-orders/${id}`)return json(first);
+  if(path===`/api/v1/release-orders/${secondID}`)return json(second);
+  return json({orders:[first,second],next_cursor:""});
+ })));
+ const user=userEvent.setup();mount();
+ await user.click(await screen.findByRole("link",{name:"第一张发布单"}));
+ expect(await screen.findByText("字段一")).toBeVisible();
+ currentName="字段二";
+ await user.click(screen.getByRole("link",{name:"返回发布单列表"}));
+ await user.click(await screen.findByRole("link",{name:"第二张发布单"}));
+ expect(await screen.findByText("字段二")).toBeVisible();
+ expect(reads).toBe(2);
 });
 
 it("详情四阶段与最近五条历史可展开，并复制真实单号",async()=>{

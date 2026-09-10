@@ -39,7 +39,7 @@ func (transport *droppedResponseTransport) RoundTrip(request *http.Request) (*ht
 }
 
 func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/008-mutation-policy-snapshot-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/008-mutation-policy-snapshot-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -215,7 +215,7 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
 }
 
 func TestBusinessAPIsRequireSessionAndCSRF(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
+	app := startIntegrationApplication(t)
 	routes := []struct{ method, path string }{
 		{"GET", "/api/v1/database-tables"}, {"GET", "/api/v1/database-tables/example"},
 		{"GET", "/api/v1/query-policy-types"}, {"GET", "/api/v1/mutation-policy-types"},
@@ -473,7 +473,7 @@ func integrationRouterOptions(app *adminApplication) httpinterface.RouterOptions
 }
 
 func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/008-mutation-policy-snapshot-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/008-mutation-policy-snapshot-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -561,7 +561,7 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
 }
 
 func TestAccountControlTablesCannotBeDiscoveredOrManaged(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
+	app := startIntegrationApplication(t)
 	session := registerAccount(t, app, "control.user", "control@example.com", "correct horse battery staple")
 	grantTestAdministrator(t, app, session)
 	request := func(method, path, body string) *httptest.ResponseRecorder {
@@ -571,7 +571,7 @@ func TestAccountControlTablesCannotBeDiscoveredOrManaged(t *testing.T) {
 	if discovered.Code != 200 || strings.Contains(discovered.Body.String(), "rcc_") {
 		t.Fatalf("control table discovered: %d %s", discovered.Code, discovered.Body.String())
 	}
-	for _, table := range []string{"rcc_accounts", "rcc_login_sessions", "rcc_preauth_credentials", "rcc_auth_rate_limits", "rcc_auth_control_lock", "rcc_account_role_history", "rcc_record_versions", "rcc_release_orders", "rcc_release_requests", "rcc_release_targets", "rcc_table_publications", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_future_control", "RCC_ACCOUNTS"} {
+	for _, table := range []string{"rcc_accounts", "rcc_login_sessions", "rcc_preauth_credentials", "rcc_auth_rate_limits", "rcc_auth_control_lock", "rcc_account_role_history", "rcc_record_versions", "rcc_release_orders", "rcc_release_requests", "rcc_release_targets", "rcc_table_publications", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_goose_db_version", "rcc_schema_migration_attempts", "rcc_future_control", "RCC_ACCOUNTS"} {
 		if response := request("GET", "/api/v1/database-tables/"+table, ""); response.Code != 404 {
 			t.Fatalf("control detail %s: %d %s", table, response.Code, response.Body.String())
 		}

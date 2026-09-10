@@ -134,7 +134,7 @@ func publicationProcessRequest(t *testing.T, p *accountProcess, path, key string
 // transaction whose ACK is lost. A genuinely new executable recovers the same
 // key, cookies and original expected version from persistent storage.
 func TestPublicationCommitUnknownSurvivesExecutableRestart(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)

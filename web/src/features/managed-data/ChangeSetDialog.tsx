@@ -7,18 +7,22 @@ import type { ChangeSet, ChangeSetCell } from "./model";
 
 import { ModalSurface } from "../../components/ui/ModalSurface";
 import { DialogTitle } from "../../components/shadcn/dialog";
+import { CurrentFieldName, CurrentFieldValue, orderDisplayedFields, type CurrentFieldDisplay } from "../field-display/CurrentFieldDisplay";
 
-function Cell({ cell, autoFill }: { cell: ChangeSetCell; autoFill?: boolean }) {
+function Cell({ cell, field, fieldDisplay, autoFill }: { cell: ChangeSetCell; field: string; fieldDisplay: CurrentFieldDisplay; autoFill?: boolean }) {
   const content = cell.state === "value" ? cell.value
     : cell.state === "null" ? "NULL"
       : cell.state === "empty" ? '\"\"'
         : cell.state === "unsubmitted" ? "未提交"
           : "不存在";
-  return <><span className={`change-cell-value cell-${cell.state}`}>{content}</span>{autoFill && cell.state === "unsubmitted" && <small className="auto-fill-label">Auto Fill</small>}</>;
+  const value = cell.state === "value" ? cell.value : cell.state === "empty" ? "" : null;
+  const rendered = <span className={`change-cell-value cell-${cell.state}`}>{content}</span>;
+  return <>{cell.state === "value" || cell.state === "empty" ? <CurrentFieldValue display={fieldDisplay} name={field} value={value}>{rendered}</CurrentFieldValue> : rendered}{autoFill && cell.state === "unsubmitted" && <small className="auto-fill-label">Auto Fill</small>}</>;
 }
 
 type Props = RecordConflictReviewProps & {
   changeSet: ChangeSet | null;
+  fieldDisplay?: CurrentFieldDisplay;
  draftAction?:ReactNode;
  draftFeedback?:ReactNode;
  draftLocked?:boolean;
@@ -30,7 +34,7 @@ type Props = RecordConflictReviewProps & {
   onRetryRecheck?: () => void;
 };
 
-export function ChangeSetDialog({ changeSet, error, pending, onEdit, onCancel, onRetryRecheck, draftAction,draftFeedback,draftLocked,...conflictReview }: Props) {
+export function ChangeSetDialog({ changeSet, fieldDisplay = {}, error, pending, onEdit, onCancel, onRetryRecheck, draftAction,draftFeedback,draftLocked,...conflictReview }: Props) {
   const operation = changeSet?.operation;
   if (!changeSet) return null;
   return (
@@ -38,11 +42,11 @@ export function ChangeSetDialog({ changeSet, error, pending, onEdit, onCancel, o
         <header><span>{operation === "DELETE" ? "尚未执行删除；取消删除会直接关闭此预览。" : "请确认以下变更内容："}</span><DialogTitle>{changeSet.operation} Change Set</DialogTitle></header>
           <Table className="change-set-table" containerProps={{className:"change-set-scroll",role:"region","aria-label":"变更字段对比，可横向滚动",tabIndex:0}}>
             <TableHeader><TableRow><TableHead scope="col">字段</TableHead><TableHead scope="col">原值</TableHead><TableHead scope="col">新值</TableHead></TableRow></TableHeader>
-            <TableBody>{changeSet.rows.map((row) => (
+            <TableBody>{orderDisplayedFields(fieldDisplay, changeSet.rows, row => row.field).map((row) => (
               <TableRow key={row.field} className={row.changed ? "change-row-changed" : "change-row-unchanged"}>
-                <TableHead scope="row">{row.field}{row.changed && <small>变化</small>}</TableHead>
-                <TableCell className={row.changed ? "change-original" : ""}><Cell cell={row.original} /></TableCell>
-                <TableCell className={row.changed ? "change-next" : ""}><Cell cell={row.next} autoFill={row.autoFill} /></TableCell>
+                <TableHead scope="row"><CurrentFieldName display={fieldDisplay} name={row.field} />{row.changed && <small>变化</small>}</TableHead>
+                <TableCell className={row.changed ? "change-original" : ""}><Cell cell={row.original} field={row.field} fieldDisplay={fieldDisplay} /></TableCell>
+                <TableCell className={row.changed ? "change-next" : ""}><Cell cell={row.next} field={row.field} fieldDisplay={fieldDisplay} autoFill={row.autoFill} /></TableCell>
               </TableRow>
             ))}</TableBody>
           </Table>

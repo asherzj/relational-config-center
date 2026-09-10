@@ -17,7 +17,7 @@ import (
 // This intentionally separate system target requires installed Web dependencies
 // and Chromium. It fails (never skips) if that browser environment is unavailable.
 func TestAccountBrowserSystemPath(t *testing.T) {
-	_, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", localManagedTableFixture, "../../../docs/verification/fixtures/stage1_acceptance.sql", "testdata/014-batch-browser.sql")
+	_, driver := startCurrentIntegrationMySQL(t, localManagedTableFixture, "../../../docs/verification/fixtures/stage1_acceptance.sql", "testdata/014-batch-browser.sql")
 	db := deliveryDB(t, driver)
 	maintenance := filepath.Join(t.TempDir(), "account-maintain")
 	build := exec.Command("go", "build", "-o", maintenance, "../account-maintain")
@@ -104,7 +104,7 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 			deliveryExec(t, db, statement)
 		}
 	}
-	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs", "release-drafts.cjs", "release-approvals.cjs", "release-batches.cjs", "release-rollbacks.cjs"} {
+	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs", "release-drafts.cjs", "release-approvals.cjs", "release-batches.cjs", "release-rollbacks.cjs", "field-policies.cjs", "field-inputs.cjs", "combined-query.cjs", "field-recovery.cjs", "field-display.cjs"} {
 		t.Run(script, func(t *testing.T) {
 			command := exec.Command("node", filepath.Join(web, "e2e", script))
 			command.Dir = web

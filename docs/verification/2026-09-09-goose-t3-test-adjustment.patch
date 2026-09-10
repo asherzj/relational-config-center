@@ -1,0 +1,19 @@
+--- frozen/admin/cmd/admin/discovery_integration_test.go
++++ final/admin/cmd/admin/discovery_integration_test.go
+@@ -122 +122,3 @@
+-	ctx, driverConfig := startIntegrationMySQL(t)
++	ctx, driverConfig := startCurrentIntegrationMySQL(t)
++	db := deliveryDB(t, driverConfig)
++	deliveryExec(t, db, `DROP TABLE rcc_table_policies`)
+@@ -129,2 +131,2 @@
+-	if !strings.Contains(err.Error(), "Policy Catalog unavailable") {
+-		t.Fatalf("expected Policy Catalog startup error, got %v", err)
++	if !strings.Contains(err.Error(), "schema_not_ready") || !strings.Contains(err.Error(), "schema-migrate") {
++		t.Fatalf("expected migration guidance for the missing Policy Catalog, got %v", err)
+--- frozen/admin/cmd/admin/schema_baseline_integration_test.go
++++ final/admin/cmd/admin/schema_baseline_integration_test.go
+@@ -130,2 +130,2 @@
+-	// Only the test's clock-sensitive expiry changes, before preservation snapshots.
+-	if _, err := conn.ExecContext(t.Context(), "UPDATE rcc_login_sessions SET expires_at=UTC_TIMESTAMP(6)+INTERVAL 8 HOUR"); err != nil {
++	// Anchor both session expiry and its idle window before preservation snapshots.
++	if _, err := conn.ExecContext(t.Context(), "UPDATE rcc_login_sessions SET expires_at=UTC_TIMESTAMP(6)+INTERVAL 8 HOUR,last_active_at=UTC_TIMESTAMP(6)"); err != nil {

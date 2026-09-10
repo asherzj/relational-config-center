@@ -60,8 +60,12 @@ _Avoid_: Table Policy enabled state, deletion flag, 策略状态
 The identity attributed to the person executing a configuration or policy change. For a change made under a Local Account, it is that account's permanent Account ID; for a publication or rollback it identifies the publisher, separately from the applicant and approver.
 _Avoid_: Display name, deployment identity, auditor
 
+**Table Field Policy（表字段规则）**:
+A current, table-and-field-specific interaction rule guiding Web display, query controls and record entry against a real field. It may be disabled without losing its configuration. It does not grant execution authority, override Query or Mutation Policies, or become a publication display snapshot.
+_Avoid_: Field permission, Schema definition, enum authorization, 字段执行规则
+
 **Policy Catalog（规则目录）**:
-The authoritative collection of Query Policies, Mutation Policies, and enabled or disabled Table Policies. It is governed independently from managed tables, cannot manage itself through the generic table-management capability, and denies generic access when no complete valid Policy assignment can be obtained.
+The authoritative collection of Query Policies, Mutation Policies, Table Field Policies, and enabled or disabled Table Policies. It is governed independently from managed tables, cannot manage itself through the generic table-management capability, and denies generic access when no complete valid Policy assignment can be obtained.
 _Avoid_: Managed table, policy table, 策略目录
 
 **Policy Snapshot（规则快照）**:

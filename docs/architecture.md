@@ -56,14 +56,13 @@ Current DAL choices:
 | Connection pool | `database/sql` |
 | Dynamic queries | Query Specification → policy validation → GORM Clauses |
 | Static and exceptional SQL | GORM repository methods and parameterized `Raw` only when needed |
-| Initial schema | `deploy/mysql/init/001-schema.sql` |
+| Control schema migrations | Embedded Goose migrations through independent `schema-migrate`; one source for current installations and upgrades |
 | Integration tests | Testcontainers with a real MySQL 8.4 container |
 | PostgreSQL | A later independent adapter and query compiler |
 
 Not selected for the first iteration:
 
 - sqlc, because GORM is the single primary DAL;
-- Goose, because there are no existing installations to upgrade yet;
 - GORM AutoMigrate, because the shipped schema remains explicit and reviewable;
 - Kitex/Hertz, because RPC is standardized on grpc-go and Admin HTTP uses Gin;
 - a separately implemented Gateway, until multiple backend APIs require routing or aggregation;
@@ -89,7 +88,7 @@ Dependencies point `interfaces → application → domain` and `infrastructure �
 
 The first iteration ships the Policy Catalog as runtime data (ADR 0005) and proves the generic seam through it:
 
-- The catalog table ships in `deploy/mysql/init/001-schema.sql`; dedicated APIs manage it, and each data request loads its current Policy Snapshot from the database.
+- The catalog tables ship in the embedded Goose migrations; dedicated APIs manage it, and each data request loads its current Policy Snapshot from the database.
 - A saved policy takes effect immediately; draft/activation workflows wait for multi-instance or audit needs.
 - Saving a policy validates its physical table and columns against `information_schema` of the single deployment-configured datasource. Policies cannot store DSNs or reach other databases.
 - Web can discover database tables and their policy state, submit policy-limited AND filters, sorting, and one-based pagination, and prepare ADD/MODIFY/DELETE Release Orders using live column names. Only independently approved publication writes business rows.
@@ -133,14 +132,27 @@ repository does not yet have a general layer dependency graph checker.
 
 TMP-01 is removed. `OpenMaintenance` and `LoadMySQL` initialize maintenance
 connections independently from normal Admin HTTP and required-schema readiness.
+`schema-migrate` uses this maintenance connection for explicit, forward-only
+control-schema upgrades. Goose and its same-session lock stay inside the MySQL
+adapter; the command does not expose the SQL pool or route migration through the
+business Application. Version status is read-only; unfinished attempts require
+verified explicit recovery. Existing databases can be adopted only after complete
+current-structure verification; adoption records the version prefix atomically
+without replaying control SQL or historical backfills. This exceptional schema-maintenance path uses Goose
+and `database/sql` on its locked connection while business persistence continues
+to use GORM. See [the migration runbook and delivery boundary](schema-migrations.md).
 The `account-maintain` composition root invokes `application/AccountMaintenance`
 with the Domain-owned maintenance repository and existing password adapter. It
 uses database authority and exposes no HTTP account-management route. Resets
 commit password and session-version changes with revocation; status changes share
 the authentication transaction lock and retain old session rows for disabled-client
 draft destruction until normal expiry cleanup. Enable never revives an old version.
-The normal build and Admin image distribute the executable. Normal startup and
-readiness inspect required authentication columns, constraints, indexes and the
-admission-lock row through parameterized GORM Raw queries. Missing structures
-fail startup with migration guidance; an empty account directory remains ready.
+The normal build and Admin image distribute the executable. Normal startup and HTTP readiness use a read-only database snapshot to verify migration versions, confirmed attempts, the release digest and the complete control schema. Missing or incompatible structures fail with migration guidance; an empty account directory remains ready. The migration image has its own entry point and maintenance credentials. Compose waits for its successful exit, then for the independent developer fixture, before starting Admin. Current tests and browser acceptance initialize through Goose; the frozen pre-Goose snapshot only represents historical databases.
 See [the complete release evidence](./admin-local-accounts-evidence.md).
+
+The source checks `TestAdminHTTPCompositionCannotRunSchemaMaintenance` and
+`TestCurrentSchemaEntryPointsDoNotRestoreRetiredInitialization` protect the
+separate HTTP/maintenance composition and removal of the former current SQL
+entry point. Real restricted-privilege process tests verify that readiness does
+not write data or migration progress. The existing HTTP/Application and release
+transaction boundary checks continue to apply.

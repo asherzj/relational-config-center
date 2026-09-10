@@ -9,6 +9,7 @@ import {useDraftProtection} from "../../components/ui/LeaveProtection";
 import {pendingReleaseRequests,releaseJournalChanged,type PendingReleaseRequest} from "./release-journal";
 import {useReleaseWrite} from "./useReleaseWrite";
 import {ReleaseDiff} from "./ReleaseDiff";
+import {CurrentFieldDisplayProvider} from "../field-display/CurrentFieldDisplay";
 
 export function ReleaseRecovery({scopeFilter}:{scopeFilter?:string}){
  const accountID=useWorkspaceIdentity()!.account.id;
@@ -78,8 +79,8 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
  const confirmLabel=action==="cancel"?`确认按最新状态取消${current?.state==="DRAFT"?"草稿":"发布单"}`:action==="create"||action==="edit"?"确认重建并保存草稿":`确认按最新状态${action?releaseActionLabels[action]:"重建"}`;
  return <><p role="alert">服务器已明确拒绝原请求。原申请保留，请查看最新状态与配置后决定是否重建。</p>
   <Button disabled={!action||!allowed||reading||write.pending} onClick={()=>void inspect()}>{reading?"正在检查…":"查看最新状态与配置"}</Button>{reading&&<LoadingState label="正在检查最新状态与配置…"/>}
-  {current&&<><p>最新发布单版本：{current.version}，状态：{current.state}</p>{current.rollback_order_id&&<p>当前关联回滚发布单：<Link to={`/configuration/release-orders/${current.rollback_order_id}`}>{current.rollback_order_id}</Link></p>}<ReleaseDiff order={current}/></>}
-  {preview&&<><p>{action==="quick-rollback"?"重新审阅整单恢复预览，确认后将使用新的请求标识执行：":"原申请与最新记录基线的差异："}</p><ReleaseDiff order={{items:preview.items}} beforeLabel={action==="quick-rollback"?"当前值":undefined} proposedLabel={action==="quick-rollback"?"恢复值":undefined}/></>}
+  {current&&<CurrentFieldDisplayProvider tableName={current.table_name}><p>最新发布单版本：{current.version}，状态：{current.state}</p>{current.rollback_order_id&&<p>当前关联回滚发布单：<Link to={`/configuration/release-orders/${current.rollback_order_id}`}>{current.rollback_order_id}</Link></p>}<ReleaseDiff order={current}/></CurrentFieldDisplayProvider>}
+  {preview&&<CurrentFieldDisplayProvider tableName={preview.table_name}><p>{action==="quick-rollback"?"重新审阅整单恢复预览，确认后将使用新的请求标识执行：":"原申请与最新记录基线的差异："}</p><ReleaseDiff order={{items:preview.items}} beforeLabel={action==="quick-rollback"?"当前值":undefined} proposedLabel={action==="quick-rollback"?"恢复值":undefined}/></CurrentFieldDisplayProvider>}
   {needsDraftUpdate&&current&&<p>草稿记录基线已变化，请先<Link to={`/configuration/release-orders/${current.id}`}>编辑草稿并核对最新配置</Link>，再重新检查提交。</p>}
   {action==="quick-rollback"&&current&&!current.allowed_actions.includes("quick-rollback")&&<p>当前发布单已不能快速回滚，原原因保留供核对。</p>}
   {(current||preview)&&(action!=="quick-rollback"||Boolean(rebuilt))&&<Button disabled={write.blocked||!allowed||reading||write.pending||!rebuilt} onClick={async()=>{

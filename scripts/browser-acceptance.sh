@@ -31,7 +31,7 @@ for command in docker node pnpm go curl od tr grep sort cmp; do
 done
 
 case ${RCC_E2E_SUITE:-all} in
-  all|unsaved-changes|rule-clarity|write-recovery|operation-coverage|complex-fields|browser-accessibility|release-workflow) ;;
+  all|unsaved-changes|rule-clarity|write-recovery|operation-coverage|complex-fields|browser-accessibility|release-workflow|field-interactions) ;;
   *) printf 'unknown browser suite: %s\n' "$RCC_E2E_SUITE" >&2; exit 2 ;;
 esac
 
@@ -254,7 +254,7 @@ run_logged 300 "$artifact_root/dependencies-install.log" \
   pnpm --dir "$repo_root/web" install --frozen-lockfile
 browser_engines=${RCC_E2E_ENGINES:-${RCC_E2E_ENGINE:-chromium}}
 browser_engine_list=()
-if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == browser-accessibility || ${RCC_E2E_SUITE:-all} == release-workflow ]]; then
+if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == browser-accessibility || ${RCC_E2E_SUITE:-all} == release-workflow || ${RCC_E2E_SUITE:-all} == field-interactions ]]; then
   engine_ifs=$IFS
   IFS=,
   read -r -a browser_engine_list <<< "$browser_engines"
@@ -263,7 +263,7 @@ if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == browser-accessibi
     case $browser_engine in chromium|firefox|webkit) ;; *) printf 'unknown browser engine: %s\n' "$browser_engine" >&2; exit 2 ;; esac
   done
 fi
-if [[ ${RCC_E2E_SUITE:-all} == browser-accessibility || ${RCC_E2E_SUITE:-all} == release-workflow ]]; then
+if [[ ${RCC_E2E_SUITE:-all} == browser-accessibility || ${RCC_E2E_SUITE:-all} == release-workflow || ${RCC_E2E_SUITE:-all} == field-interactions ]]; then
   playwright_install_targets=("${browser_engine_list[@]}")
 else
   playwright_install_targets=(chromium)
@@ -328,7 +328,13 @@ load_sql() {
   return "$status"
 }
 
-load_sql "$repo_root/deploy/mysql/init/001-schema.sql"
+printf 'Building and applying the current Goose control schema...\n'
+run_logged 300 "$artifact_root/schema-migrate-build.log" \
+  go -C "$repo_root/admin" build -o "$runtime_dir/schema-migrate" ./cmd/schema-migrate
+MYSQL_HOST=127.0.0.1 MYSQL_PORT="$mysql_port" MYSQL_DATABASE=rcc \
+MYSQL_USER=rcc_admin MYSQL_PASSWORD="$mysql_password" MYSQL_TLS_MODE=false \
+  run_logged 300 "$artifact_root/schema-migrate.log" "$runtime_dir/schema-migrate" up
+
 load_sql "$repo_root/deploy/mysql/local-fixture/002-notification-templates.sql"
 load_sql "$repo_root/docs/verification/fixtures/stage1_acceptance.sql"
 load_sql "$repo_root/web/e2e/fixtures/stage1-policies.sql"
@@ -474,6 +480,12 @@ run_browser_suite "release batches" "$repo_root/web/e2e/release-batches.cjs" "$a
 for browser_engine in "${browser_engine_list[@]}"; do
   run_browser_suite "publication and rollback ($browser_engine)" "$repo_root/web/e2e/release-rollbacks.cjs" "$artifact_root/release-workflow/rollback-$browser_engine" 420 "$browser_engine"
   run_browser_suite "session, conflict and unknown recovery ($browser_engine)" "$repo_root/web/e2e/accounts.mjs" "$artifact_root/release-workflow/recovery-$browser_engine" 600 "$browser_engine"
+done
+fi
+
+if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == field-interactions ]]; then
+for browser_engine in "${browser_engine_list[@]}"; do
+  run_browser_suite "field interactions ($browser_engine)" "$repo_root/web/e2e/field-interactions.cjs" "$artifact_root/field-interactions/$browser_engine" 420 "$browser_engine"
 done
 fi
 
