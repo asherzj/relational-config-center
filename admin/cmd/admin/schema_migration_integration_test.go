@@ -597,7 +597,7 @@ func TestSchemaMigrationConnectionDeadlineAndSafeDiagnostics(t *testing.T) {
 
 func TestSchemaMigrationLeavesUnmanagedDatabaseUntouched(t *testing.T) {
 	binary := buildSchemaMigrationCommand(t)
-	_, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	_, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql")
 	requireSchemaMigrationState(t, binary, driver, "unmanaged", "status")
 	for _, operation := range []string{"up", "recover", "down", "reset"} {
 		if output, err := schemaMigrationCommand(binary, driver, operation).CombinedOutput(); err == nil {

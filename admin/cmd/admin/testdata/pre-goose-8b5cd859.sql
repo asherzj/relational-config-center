@@ -1,3 +1,6 @@
+-- Frozen historical pre-Goose control schema from main 8b5cd8592f0fbf02dcd27bb72a8a306fa371993d.
+-- Only for unmanaged-adoption and independent historical structure verification.
+-- Current installations must use schema-migrate up; never evolve this snapshot.
 SET NAMES utf8mb4;
 
 CREATE TABLE `rcc_query_policies` (

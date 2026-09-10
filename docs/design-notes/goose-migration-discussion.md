@@ -27,7 +27,7 @@
 
 ## 已核查事实
 
-- 当前 fresh schema 和历史升级分属两条入口：[初始化 SQL](../../deploy/mysql/init/001-schema.sql)、[历史迁移说明](../../deploy/mysql/migrations/README.md)。
+- 当前 fresh schema 和历史升级分属两条入口：[讨论时的初始化 SQL](https://github.com/asherzj/relational-config-center/blob/94a88058f5fbe6a54d3ad13d7e04c29a78b33b5d/deploy/mysql/init/001-schema.sql)、[历史迁移说明](../../deploy/mysql/migrations/README.md)。
 - [Compose](../../deploy/docker-compose.yml) 在全新 MySQL 数据卷上运行初始化 SQL，随后执行独立的开发 fixture，再启动 Admin；没有 Goose 升级任务。
 - [Admin 镜像](../../deploy/Dockerfile.admin) 包含 Admin 与账号维护命令；[旧 Policy 迁移命令](../../admin/cmd/policy-migrate/main.go) 使用独立维护连接、明确历史 Operator，执行回填与收缩。
 - 历史迁移不是可以统一重放的链；当前说明明确新安装不重跑旧迁移，007 含一次性 DDL。

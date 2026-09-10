@@ -17,7 +17,7 @@ import (
 
 // AC-037: one order freezes, approves and publishes a mixed set together.
 func TestReleaseMixedBatchPublication(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	owner := deliveryDB(t, driver)
 	if _, err := owner.Exec(`INSERT INTO mutation_add_items(id,code,label) VALUES(10,'modify','old'),(20,'delete','old')`); err != nil {
 		t.Fatal(err)
@@ -76,7 +76,7 @@ func TestReleaseMixedBatchPublication(t *testing.T) {
 
 // AC-038: MySQL-equivalent known identities cannot be repeated or partly saved.
 func TestReleaseBatchDuplicateIdentityDoesNotReplaceDraft(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true, AllowDelete: true})
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"kept"}}]}`, "duplicate-base")
 	if created.Code != 201 {
@@ -105,7 +105,7 @@ func TestReleaseBatchDuplicateIdentityDoesNotReplaceDraft(t *testing.T) {
 // AC-037/040: the real executable uses deployment socket/HTTP/transaction
 // budgets, and an original-key retry returns all 1,000 actual results.
 func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	db := deliveryDB(t, driver)
 	values := []string{}
 	for i := 1; i <= 666; i++ {
@@ -242,7 +242,7 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 }
 
 func TestReleaseBatchFieldBudget(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	input, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": "mutation_add_items", "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"code": "oversize", "label": strings.Repeat("x", 65537)}}}})
 	response := releaseRequest(t, app, "POST", "/api/v1/release-orders", string(input), "field-budget")
@@ -252,7 +252,7 @@ func TestReleaseBatchFieldBudget(t *testing.T) {
 // A small request can expand through database defaults. Its full persisted
 // result is bounded before commit, including the exact idempotency result.
 func TestReleaseBatchExpandedResultBudgetRollsBack(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	rootDriver := *driver
 	rootDriver.User = "root"
 	db := deliveryDB(t, &rootDriver)
@@ -294,7 +294,7 @@ func TestReleaseBatchExpandedResultBudgetRollsBack(t *testing.T) {
 // Long-lived history is a persistence fixture; approval and cancellation still
 // use the public API. A capacity rejection must never strand active targets.
 func TestReleaseBatchBudgetRetainsCancellationHeadroom(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)

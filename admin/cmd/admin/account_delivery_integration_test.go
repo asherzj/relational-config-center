@@ -164,7 +164,7 @@ func deliveryCSRF(t *testing.T, data []byte) string {
 	return v.CSRF
 }
 func TestAccountProcessRequiresCompleteAuthenticationSchema(t *testing.T) {
-	_, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	_, driver := startCurrentIntegrationMySQL(t)
 	db := deliveryDB(t, driver)
 	binary := buildIntegrationAdmin(t)
 	good := accountProcessCommand(t, binary, driver)
@@ -190,7 +190,7 @@ func TestAccountProcessRequiresCompleteAuthenticationSchema(t *testing.T) {
 			select {
 			case <-p.done:
 				err := p.waitErr
-				if err == nil || !strings.Contains(p.output.String(), "authentication schema is incomplete; apply migration 007") {
+				if err == nil || !strings.Contains(p.output.String(), "schema_not_ready") {
 					t.Fatalf("missing safe migration diagnostic: %v %s", err, p.output.String())
 				}
 			case <-time.After(3 * time.Second):
@@ -214,7 +214,7 @@ func processCredentials(t *testing.T, p *accountProcess, path, body string) ([]*
 	return (&http.Response{Header: h}).Cookies(), deliveryCSRF(t, data), data
 }
 func TestAccountProcessRestartPreservesSessionsAndRateWindows(t *testing.T) {
-	_, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	_, driver := startCurrentIntegrationMySQL(t)
 	db := deliveryDB(t, driver)
 	binary := buildIntegrationAdmin(t)
 	start := func() *accountProcess {
@@ -307,7 +307,7 @@ func TestAccountProcessRestartPreservesSessionsAndRateWindows(t *testing.T) {
 	}
 }
 func TestAccountProcessDatabaseFailuresRemain503And504(t *testing.T) {
-	_, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	_, driver := startCurrentIntegrationMySQL(t)
 	db := deliveryDB(t, driver)
 	p := accountProcessCommand(t, buildIntegrationAdmin(t), driver, "MYSQL_READ_TIMEOUT=1s")
 	p.ready(t)
@@ -402,7 +402,7 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 			t.Fatal("Admin served before control migrations completed")
 		}
 	}
-	rejectIncomplete("009")
+	rejectIncomplete("schema_not_ready")
 	recordVersionMigration, err := os.ReadFile("../../../deploy/mysql/migrations/009-record-versions.sql")
 	if err != nil {
 		t.Fatal(err)
@@ -424,17 +424,13 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	}
 	deliveryExec(t, owner, string(publicationMigration))
 	deliveryExec(t, owner, "RENAME TABLE rcc_refresh_notifications TO interrupted_notifications")
-	rejectIncomplete("010, 011 and 012")
+	rejectIncomplete("schema_not_ready")
 	deliveryExec(t, owner, "RENAME TABLE interrupted_notifications TO rcc_refresh_notifications")
 	deliveryExec(t, owner, "CREATE DATABASE fresh_accounts CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
 	freshDriver := ownerDriver
 	freshDriver.DBName = "fresh_accounts"
 	fresh := deliveryDB(t, &freshDriver)
-	schema, err := os.ReadFile("../../../deploy/mysql/init/001-schema.sql")
-	if err != nil {
-		t.Fatal(err)
-	}
-	deliveryExec(t, fresh, string(schema))
+	requireSchemaMigrationState(t, schemaMigrate, &freshDriver, "current", "up")
 	for _, query := range []string{
 		`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_TYPE,IS_NULLABLE,COALESCE(COLUMN_DEFAULT,'<null>'),COALESCE(COLLATION_NAME,''),EXTRA FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_targets','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications') ORDER BY TABLE_NAME,ORDINAL_POSITION`,
 		`SELECT TABLE_NAME,INDEX_NAME,NON_UNIQUE,SEQ_IN_INDEX,COLUMN_NAME,COALESCE(SUB_PART,0) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_targets','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications') ORDER BY TABLE_NAME,INDEX_NAME,SEQ_IN_INDEX`,
@@ -568,7 +564,7 @@ func schemaMetadata(t *testing.T, db *sql.DB, query, schema string) string {
 }
 
 func TestAccountProcessHTTPSCookiesAndSensitiveMaterials(t *testing.T) {
-	_, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	_, driver := startCurrentIntegrationMySQL(t)
 	proxy := httptest.NewUnstartedServer(nil)
 	proxy.StartTLS()
 	defer proxy.Close()
@@ -655,7 +651,7 @@ func TestAccountProcessHTTPSCookiesAndSensitiveMaterials(t *testing.T) {
 }
 
 func TestAccountProcessCapacityNeverEvictsValidState(t *testing.T) {
-	_, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	_, driver := startCurrentIntegrationMySQL(t)
 	db := deliveryDB(t, driver)
 	p := accountProcessCommand(t, buildIntegrationAdmin(t), driver)
 	p.ready(t)

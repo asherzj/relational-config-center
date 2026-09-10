@@ -33,8 +33,8 @@ Admin 是 Web 的管理端后端，治理部署配置指定的一个 MySQL datab
 | 动态查询 | Query Spec → Table Policy → MySQL Query Compiler → GORM Clauses |
 | 普通 CRUD | GORM Repository |
 | 特殊 SQL | 仅 Repository 内使用参数化 Raw SQL |
-| 初始化 | `deploy/mysql/init/001-schema.sql` + Docker Compose |
-| Migration | Goose T1 独立维护命令；显式 SQL expand/backfill/contract；存量接管和部署入口切换由 #69/#70 交付 |
+| 初始化 | 独立 `schema-migrate` Goose 任务 + Docker Compose |
+| Migration | 独立 Goose 迁移/接管/恢复；Admin 只读门禁；历史 SQL/Policy 维护保留旧库职责 |
 | 测试 | Go `testing`、`httptest`、Testcontainers、真实 MySQL 8.4 |
 
 不采用 Hertz、Kitex、sqlc、GORM AutoMigrate、自研 Gateway、Redis、消息队列或 PostgreSQL 兼容分支。
@@ -109,7 +109,7 @@ CREATE TABLE `rcc_table_policies` (
 );
 ```
 
-完整定义见 [`001-schema.sql`](../deploy/mysql/init/001-schema.sql)。`rcc_query_policies` 关系化保存 `page_query` 的默认排序和分页标量；`rcc_mutation_policies` 关系化保存操作授权及四个可空审计目标槽。三个表都使用 `created_at` / `updated_at`，具有唯一、查询索引和标量 CHECK，不使用外键或乐观锁。
+完整定义见[嵌入 Goose 迁移](../admin/internal/infrastructure/mysql/migrations/)及其目标结构清单。`rcc_query_policies` 关系化保存 `page_query` 的默认排序和分页标量；`rcc_mutation_policies` 关系化保存操作授权及四个可空审计目标槽。三个表都使用 `created_at` / `updated_at`，具有唯一、查询索引和标量 CHECK，不使用外键或乐观锁。
 
 Policy API 同样返回 `created_at` / `updated_at`。旧库按 [013 升级说明](../deploy/mysql/migrations/README.md#policy-审计时间统一013) 重命名原 `gmt_created` / `gmt_modified` 列，保留时间值，并同步升级 Admin/Web。拟新增的 `rcc_table_field_policies` 也遵循此命名。
 
@@ -370,17 +370,9 @@ MYSQL_WRITE_TIMEOUT
 
 ## 14. 初始化与 Migration
 
-```text
-deploy/
-├── docker-compose.yml
-├── .env.example
-└── mysql/init/
-    └── 001-schema.sql
-```
+当前新安装和后续升级统一执行 `schema-migrate up`，迁移 SQL 与目标结构清单嵌入独立维护二进制。Compose 依次运行迁移任务、独立开发 fixture、Admin；任何一步失败阻止后续启动。存量库先完成适用的历史 SQL/Policy 维护，再显式 `baseline`；未确认迁移须核查后显式 `recover`，禁止自动重试或跳过版本。
 
-`001-schema.sql` 只创建控制面表；`002-dev-users.sh` 使用环境变量创建本地 Admin 读写账号和预留 Server 只读账号。生产账号由部署系统或 DBA 创建。Testcontainers 复用同一 Schema。
-
-Docker 初始化脚本只在空数据目录执行。初始设计未把 Migration 框架纳入第一迭代。当前仓库提供显式 SQL expand/backfill/contract 脚本，使用前应阅读 [`deploy/mysql/migrations/README.md`](../deploy/mysql/migrations/README.md)；仍禁止用 AutoMigrate 修改 Schema。
+Admin 启动和运行中 `/health/ready` 只读核查版本前缀、尝试状态、发行摘要和完整必要结构。维护工具通过 `OpenMaintenance` 独立工作，正常业务连接不需要 DDL 或迁移登记权限。生产数据库账号仍由部署系统或 DBA 管理。当前初始化旧入口已删除；`testdata/pre-goose-8b5cd859.sql` 是冻结旧库测试材料，不能用于当前安装。详见[迁移手册](schema-migrations.md)和[历史升级说明](../deploy/mysql/migrations/README.md)，仍禁止使用 AutoMigrate 修改 Schema。
 
 ## 15. 测试与验收
 
@@ -410,7 +402,7 @@ Admin V1 的 Definition of Done：
 - Web UI：历史范围曾留待另行选择框架；当前正式实现位于 `web/`，按本文 HTTP 契约接入并由 [`web/README.md`](../web/README.md) 说明运行与验收边界。
 - Server/Client：另行设计各自领域模型和 gRPC/Protobuf 契约。
 - PostgreSQL：新增独立 Adapter 与 Compiler。
-- 控制表 Schema 升级：Goose T1 已提供独立 `schema-migrate` 新库初始化、升级、查询和显式恢复，见[迁移维护手册](schema-migrations.md)。存量库严格接管及 Compose/Admin 就绪切换由 #69/#70 继续交付；在此之前，既有安装仍按[历史迁移手册](../deploy/mysql/migrations/README.md) 升级，不能隐式登记 Goose 基线。
+- 控制表 Schema 升级：通过独立 `schema-migrate` 初始化、向前升级、严格接管与显式恢复，见[迁移维护手册](schema-migrations.md)。Compose 先迁移、再独立 fixture、再 Admin；存量库先完成[适用历史步骤](../deploy/mysql/migrations/README.md)后显式接管，不自动登记基线。后续新增控制结构只追加 Goose 迁移和目标结构清单。
 - 多租户、公网访问或真实用户审计：重新设计身份、授权与隔离。
 - 受管记录并发保护、发布和审批已由上述当前契约取代历史规划；规则目录并发控制、缓存、关系查询和 Secret 管理仍待后续设计。
 

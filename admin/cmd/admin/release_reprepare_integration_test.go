@@ -13,7 +13,7 @@ import (
 // AC-009: the approved original and its targets are replaced atomically by a
 // newly reviewed draft owned by the actual initiator. The approval never moves.
 func TestReleaseReprepareReplacesApprovedOrderWithEditableDraft(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	applicant := registerAccount(t, app, "reprepare.applicant", "reprepare.applicant@example.com", "correct horse battery staple")
 	reviewer := registerAccount(t, app, "reprepare.reviewer", "reprepare.reviewer@example.com", "correct horse battery staple")
@@ -81,7 +81,7 @@ func TestReleaseReprepareReplacesApprovedOrderWithEditableDraft(t *testing.T) {
 // AC-009: current ownership is checked at action time. An ADMIN may replace
 // another applicant's approved order, and becomes the new applicant.
 func TestReleaseReprepareRequiresCurrentApplicantEditorOrAdmin(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	applicant := registerAccount(t, app, "reprepare.owner", "reprepare.owner@example.com", "correct horse battery staple")
 	reviewer := registerAccount(t, app, "reprepare.owner.reviewer", "reprepare.owner.reviewer@example.com", "correct horse battery staple")
@@ -114,7 +114,7 @@ func TestReleaseReprepareRequiresCurrentApplicantEditorOrAdmin(t *testing.T) {
 // AC-009: every explicit storage failure rolls back the old cancellation,
 // target release, new draft, both histories and the idempotency record.
 func TestReleaseReprepareFailureKeepsApprovedOrderAndTarget(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)

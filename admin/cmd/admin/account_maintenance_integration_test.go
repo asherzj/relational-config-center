@@ -27,7 +27,7 @@ type maintenanceFixture struct {
 
 func newMaintenanceFixture(t *testing.T) maintenanceFixture {
 	t.Helper()
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)

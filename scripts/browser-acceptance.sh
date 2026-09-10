@@ -328,7 +328,13 @@ load_sql() {
   return "$status"
 }
 
-load_sql "$repo_root/deploy/mysql/init/001-schema.sql"
+printf 'Building and applying the current Goose control schema...\n'
+run_logged 300 "$artifact_root/schema-migrate-build.log" \
+  go -C "$repo_root/admin" build -o "$runtime_dir/schema-migrate" ./cmd/schema-migrate
+MYSQL_HOST=127.0.0.1 MYSQL_PORT="$mysql_port" MYSQL_DATABASE=rcc \
+MYSQL_USER=rcc_admin MYSQL_PASSWORD="$mysql_password" MYSQL_TLS_MODE=false \
+  run_logged 300 "$artifact_root/schema-migrate.log" "$runtime_dir/schema-migrate" up
+
 load_sql "$repo_root/deploy/mysql/local-fixture/002-notification-templates.sql"
 load_sql "$repo_root/docs/verification/fixtures/stage1_acceptance.sql"
 load_sql "$repo_root/web/e2e/fixtures/stage1-policies.sql"

@@ -92,6 +92,12 @@ func checkControlSchema(ctx context.Context, db schemaQuerier, version int64, re
 		if err := db.QueryRowContext(ctx, `SELECT COUNT(*),COALESCE(SUM(id=1),0) FROM rcc_auth_control_lock`).Scan(&rows, &sentinel); err != nil || rows != 1 || sentinel != 1 {
 			return errors.New("schema_mismatch: authentication control lock must retain its single required row")
 		}
+		// The published account schema predates SQL CHECK constraints for these
+		// values. Preserve the existing read-only account readiness invariant.
+		var invalidRoles int
+		if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM rcc_accounts WHERE roles < 1 OR roles > 31 OR role_version < 1`).Scan(&invalidRoles); err != nil || invalidRoles != 0 {
+			return errors.New("schema_mismatch: account roles and role versions must remain valid")
+		}
 	}
 	return nil
 }

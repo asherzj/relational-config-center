@@ -16,7 +16,7 @@ import (
 
 func batchEdgeApplication(t *testing.T, setup ...string) (*adminApplication, *sql.DB) {
 	t.Helper()
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql", "testdata/010-record-identity-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql", "testdata/010-record-identity-fixture.sql")
 	root := *driver
 	root.User = "root"
 	db := deliveryDB(t, &root)

@@ -2,7 +2,7 @@
 
 `schema-migrate` 使用固定版本 Goose 管理 RCC 控制表。它连接一个数据库，不启动 HTTP，不创建管理员或开发样例，不修改使用者的业务表。
 
-当前交付包括 [T1 / #68](https://github.com/asherzj/relational-config-center/issues/68) 的新库初始化、后续升级、查询和显式恢复，以及 [T2 / #69](https://github.com/asherzj/relational-config-center/issues/69) 的严格存量接管；[T3 / #70](https://github.com/asherzj/relational-config-center/issues/70) 负责 Compose、镜像和 Admin 就绪门禁。完成 T3 前，现有 Compose 和测试仍使用旧初始化入口，不能声称部署已切换到 Goose。
+[T1 / #68](https://github.com/asherzj/relational-config-center/issues/68)、[T2 / #69](https://github.com/asherzj/relational-config-center/issues/69) 和 [T3 / #70](https://github.com/asherzj/relational-config-center/issues/70) 分别交付迁移命令、严格存量接管和部署/只读就绪接线。当前新安装来源只有嵌入 Goose 迁移；开发 fixture 独立，历史 SQL 只服务旧库升级。
 
 ## 构建与配置
 
@@ -30,7 +30,7 @@ bin/admin/schema-migrate recover --timeout=5m --lock-timeout=10s
 | `uninitialized` | 没有 RCC 控制结构；用 `up` 初始化。允许目标库已有使用者的业务表。 |
 | `unmanaged` | 已有 RCC 控制表，但未接管；`up` 和 `recover` 都拒绝。按下节核对后显式运行 `baseline`，不手工登记正版本。 |
 | `pending` | 受支持的已完成版本落后于此构建；用 `up` 继续。 |
-| `current` | 本构建所需版本已记录，最后一次尝试已确认。T1 的状态查询仅报告账本；`up` 在锁内另行核查实际结构。Admin 的持续结构门禁由 T3 接入。 |
+| `current` | 本构建所需版本已记录，最后一次尝试已确认。状态查询报告账本；`up` 在锁内另行核查实际结构。Admin 启动和持续就绪同时核查完整结构。 |
 | `recovery_required` | 有未确认尝试或未完成的初始化元数据；普通 `up` 拒绝。按下节核查后显式恢复。 |
 | `incompatible` | 超前、未知、缺失、重复、顺序错误的版本记录或非 InnoDB 版本账本；恢复不能绕过这一状态。使用对应发行版本并核查账本来源。 |
 
@@ -46,7 +46,7 @@ bin/admin/schema-migrate recover --timeout=5m --lock-timeout=10s
 
 1. 按维护窗口停止 Admin 和外部写入者并备份，用 `status` 确认状态。未接管库的 `up` 不会创建迁移账本或静默登记。
 2. 更旧库先按 [历史升级说明](../deploy/mysql/migrations/README.md) 执行合法的历史步骤：001～005、013、当前 `policy-migrate` 收缩，以及适用的 007～012。已执行过的脚本不应盲目重放；已有账号授权、维护基线和发布权限继续由原维护流程负责。
-3. 对完整当前存量库显式运行 `baseline`。命令在 T1 的同一把锁内比较全部已知控制表的列、顺序、类型、NULL、默认值、索引、外键、CHECK 及其执行状态、引擎、字符集和排序规则，并检查认证控制锁的唯一 `id=1` 行。缺失或不兼容时非零退出、指出控制表并给历史升级指引；在通过校验前不创建账本、不改业务或控制数据。
+3. 对完整当前存量库显式运行 `baseline`。命令在 T1 的同一把锁内比较全部已知控制表的列、顺序、类型、NULL、默认值、索引、外键、CHECK 及其执行状态、引擎、字符集和排序规则，并检查认证控制锁的唯一 `id=1` 行，以及账号角色范围和正角色版本等必要控制数据。缺失或不兼容时非零退出、指出控制表并给历史升级指引；在通过校验前不创建账本、不改业务或控制数据。
 4. 只有完整校验通过，才建立 `BASELINING` 尝试并通过 Goose Store 在一个 InnoDB 事务中登记全部基线版本；随后核查并确认 `BASELINED`。不会执行基线 SQL、历史回填或重置账号/会话、Policy、记录版本、发布历史、管理员权限与游标。已有业务表保持不变。
 5. 再运行 `status`。重复 `baseline` 返回已确认的实际状态，不新增记录；已接管的旧版返回 `pending`，后续版本需显式 `up`。
 
@@ -73,6 +73,26 @@ MySQL DDL 可以在失败前已经提交；不要据此假定整份迁移回滚�
 
 已确认尝试对应的整个版本账本丢失属于历史损坏，状态为 `incompatible`。应调查并按备份流程恢复原历史；`recover` 不会借用旧成功记录重建账本，也不会把已经确认的尝试重新当作未完成操作。
 
+## 构建镜像与 Compose
+
+`deploy/Dockerfile.admin` 的 `migration` target 只包含 `schema-migrate`；默认 `admin` target 包含 Admin 与账号/Policy 维护工具。开发 Compose 的迁移任务使用独立维护连接，fixture 使用开发账号，业务进程使用正常业务配置。生产只运行迁移镜像和 Admin，不运行开发 fixture。
+
+```sh
+docker build -f deploy/Dockerfile.admin --target migration -t rcc-schema-migrate .
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml up --build
+# 对已核查的完整存量库显式接管；未接管卷的普通 up 会失败。
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml run --rm schema-migrate baseline
+# 对已核查的未确认操作显式恢复，再重新启动部署。
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml run --rm schema-migrate recover
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml up
+```
+
+Compose 的完成条件链为 MySQL healthy → schema-migrate 成功 → mysql-local-fixture 成功 → Admin。新卷与已接管卷遵循相同流程；未接管、未确认或失败状态阻止后续服务。不要为解决接管问题删除已有数据卷。
+
+Admin 的 `/health/ready` 成功为 200，异常为既有 `503 {"status":"not_ready"}`；liveness 不受迁移状态影响。启动诊断给出安全的 `schema_not_ready` 与维护手册入口。未接管、已知旧版、未知/超前、未确认、摘要不一致或必要结构损坏均拒绝；恢复后已运行进程可再次就绪。检查不改变表、成功版本或业务数据，不取代停写窗口。账号/Policy 维护仍不依赖 HTTP 配置或 Admin 就绪。
+
+`make test-compose-migrations` 自动构建真实镜像，创建专用随机 Compose 项目和数据卷，验证新装、重复部署、未接管阻断与显式接管、未确认阻断与显式恢复，核对顺序和保留数据；结束只清理该专用项目。CI 保存日志与 JSON 结果。`make test-integration` 串行执行真实 MySQL 回归，避免多个包同时争用本地 Docker 资源。
+
 ## 新增迁移
 
 迁移及目标结构清单位于 `admin/internal/infrastructure/mysql/migrations/`，随维护二进制嵌入。第一版基线冻结自 `94a88058f5fbe6a54d3ad13d7e04c29a78b33b5d`，没有把历史一次性脚本改成 Goose 全量历史。
@@ -80,10 +100,10 @@ MySQL DDL 可以在失败前已经提交；不要据此假定整份迁移回滚�
 - 新增唯一、递增的编号，例如 `00003_description.sql`，使用 Goose `Up` 和 `NO TRANSACTION` 注解，显式指定 InnoDB、字符集及排序规则。不要新增 Down。
 - 新版本必须能从已完成版本升级，也能从空库顺序执行。SQL 必须可在声明的恢复条件下安全重试。`IF NOT EXISTS` 不能替代实际结构检查；DML 不能在重放时覆盖已有业务状态。
 - 同时提供 `00003_schema.json`，包含此版本全部 RCC 控制表的目标 `SHOW CREATE TABLE` 定义。使用真实 MySQL 8.4、UTC、utf8mb4 连接生成并审阅，与 SQL 独立检查。命令行 mysql 导出必须带 `--default-character-set=utf8mb4`，否则 CHECK 字面量的字符集会改变比较结果。
-- 清单比较保留列类型、默认值、列注释、索引、约束、引擎、字符集/排序规则，仅忽略表级自增计数和描述性表注释。必要的认证控制锁必须保留唯一 `id=1` 行。后续改变必要控制元数据时，同时扩展验证及真实恢复测试。
+- 清单比较保留列类型、默认值、列注释、索引、约束、引擎、字符集/排序规则，仅忽略表级自增计数和描述性表注释。必要的认证控制锁必须保留唯一 `id=1` 行；账号角色须处于既有有效范围且角色版本为正。后续改变必要控制元数据时，同时扩展验证及真实恢复测试。
 - 已发布 SQL 和清单不可改写；SQL 与清单的前缀摘要绑定持久尝试。前向修复使用新版本，失败中的原版本则先恢复原内容并核查实际结构。
 - 覆盖新安装、旧版升级结构等价、部分成功、进程中断、确认失败及数据保留。T1 的两份测试构建在临时目录追加下一版迁移，不向生产定义添加测试字段或运行时注入入口。
 
-历史 `deploy/mysql/migrations/001`～`013` 及特殊 Policy 维护命令继续承担旧库升级职责。`deploy/mysql/init/001-schema.sql` 只是 T1 到 T3 之间的临时重复入口，删除责任归 #70；不得继续在两处独立演进新的当前结构。
+历史 `deploy/mysql/migrations/001`～`013` 及特殊 Policy 维护命令继续承担旧库升级职责。旧当前初始化入口已删除。`admin/cmd/admin/testdata/pre-goose-8b5cd859.sql` 是冻结的历史接管结构，配套数据来自 T2 的真实账号/审批/发布流程；仅用于旧库测试和独立结构对照，不随新迁移演进。
 
 参见 [ADR-0024](adr/0024-adopt-goose-at-a-verified-control-schema-baseline.md) 和 [完整规格](specs/goose-migrations/spec.md)。

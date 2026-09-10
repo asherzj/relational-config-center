@@ -346,7 +346,7 @@ func registerSecurityAdminClient(t *testing.T, handler http.Handler, store *mysq
 func securityAccountStore(t *testing.T) *mysqladapter.Adapter {
 	t.Helper()
 	ctx := t.Context()
-	container, err := tcmysql.Run(ctx, "mysql:8.4", tcmysql.WithDatabase("rcc_test"), tcmysql.WithUsername("rcc_admin"), tcmysql.WithPassword("rcc_password"), tcmysql.WithScripts("../../../../deploy/mysql/init/001-schema.sql"))
+	container, err := tcmysql.Run(ctx, "mysql:8.4", tcmysql.WithDatabase("rcc_test"), tcmysql.WithUsername("rcc_admin"), tcmysql.WithPassword("rcc_password"))
 	if err != nil {
 		t.Fatalf("real authentication MySQL: %v", err)
 	}
@@ -359,10 +359,17 @@ func securityAccountStore(t *testing.T) *mysqladapter.Adapter {
 	if err != nil {
 		t.Fatal(err)
 	}
-	store, err := mysqladapter.Open(ctx, config.MySQL{Network: parsed.Net, Address: parsed.Addr, Database: parsed.DBName, User: parsed.User, Password: parsed.Passwd, TLSMode: "false", MaxOpenConnections: 4, MaxIdleConnections: 4, ConnectTimeout: 5 * time.Second, ReadTimeout: 5 * time.Second, WriteTimeout: 5 * time.Second})
+	store, err := mysqladapter.OpenMaintenance(ctx, config.MySQL{Network: parsed.Net, Address: parsed.Addr, Database: parsed.DBName, User: parsed.User, Password: parsed.Passwd, TLSMode: "false", MaxOpenConnections: 4, MaxIdleConnections: 4, ConnectTimeout: 5 * time.Second, ReadTimeout: 5 * time.Second, WriteTimeout: 5 * time.Second})
 	if err != nil {
 		t.Fatal(fmt.Errorf("open auth store: %w", err))
 	}
 	t.Cleanup(func() { _ = store.Close() })
+	if _, err := store.MigrateControlSchema(ctx, mysqladapter.SchemaMigrationOptions{LockTimeout: 5 * time.Second}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Ready(ctx); err != nil {
+		t.Fatal(err)
+	}
+
 	return store
 }

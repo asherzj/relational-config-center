@@ -20,9 +20,13 @@ required-schema startup checks and release acceptance. See the [31-AC evidence m
 
 ## Start the development entry
 
-Fresh MySQL installations use `deploy/mysql/init/001-schema.sql`. An existing
-final Policy Catalog uses `deploy/mysql/migrations/007-local-accounts.sql` once.
+Fresh MySQL installations use `schema-migrate up`. An existing
+final Policy Catalog without account tables uses `deploy/mysql/migrations/007-local-accounts.sql` once.
 The account table can be empty. Do not replay this migration on a fresh schema.
+Before starting the current release, finish all applicable historical control
+upgrades, Policy contraction and 013; explicitly run `schema-migrate baseline`
+and confirm `schema-migrate status` reports `current`. Follow the
+[complete adoption sequence](schema-migrations.md#校验并接管现有库).
 
 Remove old deployment Token, disabled-auth and fixed Operator settings, and set:
 
@@ -417,7 +421,7 @@ the original command. The three policy-page suites exercise these paths.
    mysql --login-path=rcc-maintenance rcc < deploy/mysql/migrations/007-local-accounts.sql
    ```
 
-   Fresh installations instead apply `deploy/mysql/init/001-schema.sql` once.
+   Fresh installations instead apply `schema-migrate up` once.
    Do not use the development notification fixture in production. DDL is not
    transactional: if migration fails, keep ingress closed, inspect the schema
    and restore the backup or complete the failed migration under DBA control.
@@ -432,10 +436,15 @@ the original command. The three policy-page suites exercise these paths.
    proxy peers. In a container network use that proxy's exact address/CIDR and
    firewall direct Admin access. The example overwrites forwarded client IP so
    caller-supplied chains cannot defeat limits; never trust arbitrary networks.
-5. Start the new Admin while ingress remains restricted. Startup and readiness
-   inspect required authentication columns/types/collations, non-nullability,
-   InnoDB storage, identity uniqueness, expiry/account indexes, session FK and
-   admission-lock row. Missing structures stop startup with migration 007 guidance;
+5. Complete the applicable 008–012 control upgrades, 013 and current Policy
+   contraction according to the [historical upgrade guide](admin-release-upgrade.md).
+   Explicitly run `schema-migrate baseline`, then verify `schema-migrate status`
+   reports `current` with no unconfirmed operation. An already-adopted deployment
+   uses `up`; unknown results require inspected, explicit `recover`.
+   Start the new Admin while ingress remains restricted. Startup and readiness
+   read migration versions/state and complete required control structure and
+   metadata, including account roles, role versions and the admission-lock row.
+   Missing or incompatible state stops startup with safe migration guidance;
    an empty account directory is healthy and has no default account.
    Run maintenance lookup/reset if needed; it does not depend on Policy Catalog
    or normal HTTP readiness. Register a test account through the intended public

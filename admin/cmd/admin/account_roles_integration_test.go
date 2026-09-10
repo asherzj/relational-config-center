@@ -14,7 +14,7 @@ import (
 
 // AC-001: registration order does not confer permission to change the catalog.
 func TestRegisteredAccountIsViewer(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
+	app := startIntegrationApplication(t)
 	registered := registerAccount(t, app, "roles.viewer", "roles.viewer@example.com", "correct horse battery staple")
 	cookies, csrf := registered.Result().Cookies(), sessionCSRF(t, registered)
 	read := accountRequest(app, "GET", "/api/v1/query-policies", "", cookies, "")
