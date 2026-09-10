@@ -90,7 +90,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     await api(applicant, 'POST', '/api/v1/table-policies', {
       table_name: table, query_policy_code: 'batch_browser_query_v1', mutation_policy_code: 'batch_browser_mutation_v1',
     }, 201);
-    await api(applicant, 'POST', `/api/v1/table-policies/${table}/enable`);
+    await api(applicant, 'POST', `/api/v1/table-policies/${table}/enable`,{expected_version:'1'});
     await setFixtureRoles(applicant, base, (await identity(applicant)).account.id, ['EDITOR', 'PUBLISHER']);
     await registerFixtureAccount(reviewer, base, { roles: ['APPROVER'] });
     page = await applicant.newPage();

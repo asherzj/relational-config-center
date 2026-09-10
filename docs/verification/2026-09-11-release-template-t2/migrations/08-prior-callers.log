@@ -1,0 +1,173 @@
+=== RUN   TestAccountUpgradeFromLegacyMatchesFreshSchema
+2026/09/11 07:12:35 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 3d21aceb2c6c541842a1d444bc8d6dae45f5004afb6b42b7fe3887a8e6def831
+  Test ProcessID: a0d6d81d-d770-48a7-9722-c4d2f9a48ed5
+2026/09/11 07:12:35 🐳 Creating container for image mysql:8.4
+2026/09/11 07:12:35 ✅ Container created: e4119979557b
+2026/09/11 07:12:35 🐳 Starting container: e4119979557b
+2026/09/11 07:12:35 ✅ Container started: e4119979557b
+2026/09/11 07:12:35 ⏳ Waiting for container id e4119979557b image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:12:41 🔔 Container is ready: e4119979557b
+    account_delivery_integration_test.go:491: fresh/upgrade metadata mismatch:
+        rcc_account_role_history|account_id|rcc_accounts|id
+        rcc_login_sessions|account_id|rcc_accounts|id
+        
+        rcc_account_role_history|account_id|rcc_accounts|id
+        rcc_login_sessions|account_id|rcc_accounts|id
+        rcc_table_release_templates|release_type|rcc_release_templates|release_type
+        rcc_table_release_templates|table_policy_id|rcc_table_policies|id
+        rcc_table_release_templates|template_id|rcc_release_templates|id
+2026/09/11 07:12:46 🐳 Stopping container: e4119979557b
+2026/09/11 07:12:48 ✅ Container stopped: e4119979557b
+2026/09/11 07:12:48 🐳 Terminating container: e4119979557b
+2026/09/11 07:12:48 🚫 Container terminated: e4119979557b
+--- FAIL: TestAccountUpgradeFromLegacyMatchesFreshSchema (13.03s)
+=== RUN   TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory
+2026/09/11 07:12:48 🐳 Creating container for image mysql:8.4
+2026/09/11 07:12:48 ✅ Container created: 77779e0ef01b
+2026/09/11 07:12:48 🐳 Starting container: 77779e0ef01b
+2026/09/11 07:12:49 ✅ Container started: 77779e0ef01b
+2026/09/11 07:12:49 ⏳ Waiting for container id 77779e0ef01b image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:12:55 🔔 Container is ready: 77779e0ef01b
+    schema_baseline_integration_test.go:111: explicit upgrade changed historical control or business data
+2026/09/11 07:12:56 🐳 Stopping container: 77779e0ef01b
+2026/09/11 07:12:57 ✅ Container stopped: 77779e0ef01b
+2026/09/11 07:12:57 🐳 Terminating container: 77779e0ef01b
+2026/09/11 07:12:57 🚫 Container terminated: 77779e0ef01b
+--- FAIL: TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory (9.38s)
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly
+2026/09/11 07:12:57 🐳 Creating container for image mysql:8.4
+2026/09/11 07:12:57 ✅ Container created: 3eb5407f4a0c
+2026/09/11 07:12:57 🐳 Starting container: 3eb5407f4a0c
+2026/09/11 07:12:57 ✅ Container started: 3eb5407f4a0c
+2026/09/11 07:12:57 ⏳ Waiting for container id 3eb5407f4a0c image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:13:03 🔔 Container is ready: 3eb5407f4a0c
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_release_templates
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key
+    schema_readiness_integration_test.go:129: fault restoration changed template structure:
+        before:
+        CREATE TABLE `rcc_release_templates` (
+          `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+          `code` varchar(100) NOT NULL,
+          `name` varchar(100) NOT NULL,
+          `description` varchar(500) NOT NULL DEFAULT '',
+          `release_type` varchar(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+          `node_list` json NOT NULL,
+          `monitor_list` json NOT NULL,
+          `enabled` tinyint(1) NOT NULL DEFAULT '1',
+          `version` bigint unsigned NOT NULL DEFAULT '1',
+          `creator` varchar(64) NOT NULL,
+          `modifier` varchar(64) NOT NULL,
+          `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+          `updated_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uk_release_template_code` (`code`),
+          UNIQUE KEY `uk_release_template_id_type` (`id`,`release_type`),
+          KEY `idx_release_template_type_enabled` (`release_type`,`enabled`),
+          CONSTRAINT `chk_emergency_template_enabled` CHECK (((`release_type` <> _ascii'EMERGENCY') or (`enabled` = 1))),
+          CONSTRAINT `chk_release_template_enabled` CHECK ((`enabled` in (0,1))),
+          CONSTRAINT `chk_release_template_monitors` CHECK (((json_type(`monitor_list`) = _utf8mb4'ARRAY') and (json_length(`monitor_list`) = 0))),
+          CONSTRAINT `chk_release_template_nodes` CHECK ((json_type(`node_list`) = _utf8mb4'ARRAY')),
+          CONSTRAINT `chk_release_template_type` CHECK ((`release_type` in (_ascii'STANDARD',_ascii'EMERGENCY'))),
+          CONSTRAINT `chk_release_template_version` CHECK ((`version` > 0))
+        ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Release Template Catalog'
+        after:
+        CREATE TABLE `rcc_release_templates` (
+          `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+          `code` varchar(100) NOT NULL,
+          `name` varchar(100) NOT NULL,
+          `description` varchar(500) NOT NULL DEFAULT '',
+          `release_type` varchar(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+          `node_list` json NOT NULL,
+          `monitor_list` json NOT NULL,
+          `enabled` tinyint(1) NOT NULL DEFAULT '1',
+          `version` bigint unsigned NOT NULL DEFAULT '1',
+          `creator` varchar(64) NOT NULL,
+          `modifier` varchar(64) NOT NULL,
+          `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+          `updated_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uk_release_template_id_type` (`id`,`release_type`),
+          UNIQUE KEY `uk_release_template_code` (`code`),
+          KEY `idx_release_template_type_enabled` (`release_type`,`enabled`),
+          CONSTRAINT `chk_emergency_template_enabled` CHECK (((`release_type` <> _utf8mb4'EMERGENCY') or (`enabled` = 1))),
+          CONSTRAINT `chk_release_template_enabled` CHECK ((`enabled` in (0,1))),
+          CONSTRAINT `chk_release_template_monitors` CHECK (((json_type(`monitor_list`) = _utf8mb4'ARRAY') and (json_length(`monitor_list`) = 0))),
+          CONSTRAINT `chk_release_template_nodes` CHECK ((json_type(`node_list`) = _utf8mb4'ARRAY')),
+          CONSTRAINT `chk_release_template_type` CHECK ((`release_type` in (_utf8mb4'STANDARD',_utf8mb4'EMERGENCY'))),
+          CONSTRAINT `chk_release_template_version` CHECK ((`version` > 0))
+        ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Release Template Catalog'
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_check
+    schema_readiness_integration_test.go:132: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_default_emergency_template
+    schema_readiness_integration_test.go:132: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_unique_key
+    schema_readiness_integration_test.go:132: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_check
+    schema_readiness_integration_test.go:132: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unenforced_check
+    schema_readiness_integration_test.go:132: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_engine
+    schema_readiness_integration_test.go:132: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/empty_roles
+    schema_readiness_integration_test.go:132: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown_role
+    schema_readiness_integration_test.go:132: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/zero_role_version
+    schema_readiness_integration_test.go:132: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_engine
+    schema_readiness_integration_test.go:132: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_column
+    schema_readiness_integration_test.go:132: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/older_unconfirmed_attempt
+    schema_readiness_integration_test.go:132: readiness: want 200 got 503 {"status":"not_ready"}
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_required_metadata
+    schema_readiness_integration_test.go:132: readiness: want 200 got 503 {"status":"not_ready"}
+=== NAME  TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly
+    schema_readiness_integration_test.go:141: migration [recover]: exit status 1 schema_mismatch: incompatible control table rcc_release_templates; repair before recovery
+2026/09/11 07:13:13 🐳 Stopping container: 3eb5407f4a0c
+2026/09/11 07:13:14 ✅ Container stopped: 3eb5407f4a0c
+2026/09/11 07:13:14 🐳 Terminating container: 3eb5407f4a0c
+2026/09/11 07:13:14 🚫 Container terminated: 3eb5407f4a0c
+--- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly (16.61s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged (0.15s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead (0.13s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown (0.15s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest (0.15s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column (0.19s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default (0.23s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index (0.27s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy (0.27s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_release_templates (0.23s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key (0.18s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_check (0.25s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_default_emergency_template (0.21s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_unique_key (0.22s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_check (0.25s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unenforced_check (0.19s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_engine (0.17s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/empty_roles (0.20s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown_role (0.20s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/zero_role_version (0.19s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_engine (0.14s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_column (0.12s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/older_unconfirmed_attempt (0.12s)
+    --- FAIL: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_required_metadata (0.19s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	39.967s
+FAIL

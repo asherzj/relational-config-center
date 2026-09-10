@@ -24,6 +24,7 @@ function databaseTableFromDto(dto: DatabaseTableDto): DatabaseTable {
 
 function tablePolicyFromDto(dto: TablePolicyDto): TablePolicy {
   return {
+    version: dto.version,
     tableName: dto.table_name,
     queryPolicyCode: dto.query_policy_code,
     mutationPolicyCode: dto.mutation_policy_code,
@@ -59,20 +60,20 @@ export async function getTablePolicy(tableName: string): Promise<TablePolicy> {
   return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}`, { schema: tablePolicyDtoSchema }));
 }
 
-export async function createTablePolicy(assignment: TablePolicyAssignment): Promise<TablePolicy> {
-  return tablePolicyFromDto(await request(root, { method: "POST", body: JSON.stringify(assignmentToDto(assignment)), schema: tablePolicyDtoSchema }));
+export async function createTablePolicy({assignment,key}: {assignment: TablePolicyAssignment;key:string}): Promise<TablePolicy> {
+  return tablePolicyFromDto(await request(root, { method: "POST", headers:{"Idempotency-Key":key}, body: JSON.stringify(assignmentToDto(assignment)), schema: tablePolicyDtoSchema }));
 }
 
-export async function replaceTablePolicy(tableName: string, assignment: TablePolicyAssignment): Promise<TablePolicy> {
-  return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}`, { method: "PUT", body: JSON.stringify(assignmentToDto(assignment)), schema: tablePolicyDtoSchema }));
+export async function replaceTablePolicy({tableName,assignment,version,key}: {tableName:string;assignment:TablePolicyAssignment;version:string;key:string}): Promise<TablePolicy> {
+  return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}`, { method: "PUT", headers:{"Idempotency-Key":key}, body: JSON.stringify({...assignmentToDto(assignment),expected_version:version}), schema: tablePolicyDtoSchema }));
 }
 
-export async function enableTablePolicy(tableName: string): Promise<TablePolicy> {
-  return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}/enable`, { method: "POST", schema: tablePolicyDtoSchema }));
+export async function enableTablePolicy({tableName,version,key}: {tableName:string;version:string;key:string}): Promise<TablePolicy> {
+  return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}/enable`, { method: "POST", headers:{"Idempotency-Key":key},body:JSON.stringify({expected_version:version}), schema: tablePolicyDtoSchema }));
 }
 
-export async function disableTablePolicy(tableName: string): Promise<TablePolicy> {
-  return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}/disable`, { method: "POST", schema: tablePolicyDtoSchema }));
+export async function disableTablePolicy({tableName,version,key}: {tableName:string;version:string;key:string}): Promise<TablePolicy> {
+  return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}/disable`, { method: "POST", headers:{"Idempotency-Key":key},body:JSON.stringify({expected_version:version}), schema: tablePolicyDtoSchema }));
 }
 
 export const concurrencyKeyFields=(table:string,mutation:string)=>request(`${root}/${encodeURIComponent(table)}/concurrency-key-fields?${new URLSearchParams({mutation_policy_code:mutation})}`,{schema:z.object({fields:z.array(z.object({name:z.string(),type:z.string(),eligible:z.boolean()}))})});

@@ -1,0 +1,14 @@
+{
+  "admin/internal/infrastructure/mysql/migrations/00001_control_baseline.sql": "df9794a5f3836aab8452d090e8b88c69be619154bc20aca10e55d2f9252a8730",
+  "admin/internal/infrastructure/mysql/migrations/00001_schema.json": "5c36a92035b9382ec3e43de18090f2008e5256c7e238b7a88f976bf23bd85cb4",
+  "admin/internal/infrastructure/mysql/migrations/00002_policy_audit_timestamps.sql": "3a5516b279c2ffbd795998d5641f74e6f07c7810bf4a6b615c0e7ba3490d2476",
+  "admin/internal/infrastructure/mysql/migrations/00002_schema.json": "5472c8a95d62e301b5639b00442d96628194e6103b14b8b687fb55c3c0f53ae8",
+  "admin/internal/infrastructure/mysql/migrations/00003_schema.json": "f0382433976866f5a842703835635da87f42a0b8bde3d31caf0cad07085cc082",
+  "admin/internal/infrastructure/mysql/migrations/00003_table_field_policies.sql": "a9a5c7808ac262ab170a506d88ae5ecb05e7278ddd009cff687005ed770645c2",
+  "admin/internal/infrastructure/mysql/migrations/00004_release_details_and_targets.sql": "3b19f19aa1ff2a6d3a47f4e83fce595e43b7096a59cce1b4bb1d7ee14b31f53e",
+  "admin/internal/infrastructure/mysql/migrations/00004_schema.json": "a5c3f0cc404ef2906e368367d9d2e100b5662524a7815ad73fe086f7122bff35",
+  "admin/internal/infrastructure/mysql/migrations/00005_release_execution_ownership.sql": "eff792fa684428ce89b12184798042ab22258e956688d3037c8409c8074ec02a",
+  "admin/internal/infrastructure/mysql/migrations/00005_schema.json": "a80e24458f579d72abdcfa917417a3e5a8e0199e61545ef8f8e4dad90dd12a1f",
+  "admin/internal/infrastructure/mysql/migrations/00008_release_templates.sql": "93baf3f8dc7b37cfa10ebbad260db49e24da8b386ff6efe64a702c9ce1366223",
+  "admin/internal/infrastructure/mysql/migrations/00008_schema.json": "d96af644b6d3dd98438287698cb929ca787f51130faff22117d9bad865c75dd2"
+}

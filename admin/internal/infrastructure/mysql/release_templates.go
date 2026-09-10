@@ -1,9 +1,7 @@
 package mysql
 
 import (
-	"bytes"
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -36,55 +34,8 @@ type releaseTemplateRecord struct {
 
 func (releaseTemplateRecord) TableName() string { return "rcc_release_templates" }
 
-// Every template write locks its request before its target and saves the result
-// in the same transaction. Replays therefore never consult a later template or
-// a new template that reused the code after deletion.
-func (a *Adapter) executeReleaseTemplateRequest(ctx context.Context, operator, operation, requestKey, digestHex string, write func(*gorm.DB) (domain.ReleaseTemplate, error)) (domain.ReleaseTemplate, error) {
-	digest, err := hex.DecodeString(digestHex)
-	if err != nil || len(digest) != 32 {
-		return domain.ReleaseTemplate{}, fmt.Errorf("write Release Template: invalid request digest")
-	}
-	transaction := a.gorm.WithContext(ctx).Begin()
-	if transaction.Error != nil {
-		return domain.ReleaseTemplate{}, fmt.Errorf("begin Release Template request: %w", transaction.Error)
-	}
-	defer func() { _ = transaction.Rollback().Error }()
-	if err := transaction.Exec(`INSERT INTO rcc_release_requests(actor_id,operation,request_key,digest,result) VALUES(?,?,?,?,NULL) ON DUPLICATE KEY UPDATE request_key=request_key`, operator, operation, requestKey, digest).Error; err != nil {
-		return domain.ReleaseTemplate{}, fmt.Errorf("begin Release Template request: %w", err)
-	}
-	var storedDigest, result []byte
-	if err := transaction.Raw(`SELECT digest,result FROM rcc_release_requests WHERE actor_id=? AND operation=? AND request_key=? FOR UPDATE`, operator, operation, requestKey).Row().Scan(&storedDigest, &result); err != nil {
-		return domain.ReleaseTemplate{}, fmt.Errorf("read Release Template request: %w", err)
-	}
-	if !bytes.Equal(storedDigest, digest) {
-		return domain.ReleaseTemplate{}, domain.ErrReleaseTemplateIdempotencyConflict
-	}
-	var saved domain.ReleaseTemplate
-	if result != nil {
-		if err := json.Unmarshal(result, &saved); err != nil {
-			return domain.ReleaseTemplate{}, fmt.Errorf("read Release Template request result: %w", err)
-		}
-	} else {
-		saved, err = write(transaction)
-		if err != nil {
-			return domain.ReleaseTemplate{}, err
-		}
-		encoded, err := json.Marshal(saved)
-		if err != nil {
-			return domain.ReleaseTemplate{}, fmt.Errorf("encode Release Template result: %w", err)
-		}
-		if err := transaction.Exec(`UPDATE rcc_release_requests SET result=? WHERE actor_id=? AND operation=? AND request_key=?`, encoded, operator, operation, requestKey).Error; err != nil {
-			return domain.ReleaseTemplate{}, fmt.Errorf("save Release Template request result: %w", err)
-		}
-	}
-	if err := transaction.Commit().Error; err != nil {
-		return domain.ReleaseTemplate{}, fmt.Errorf("commit Release Template request: %w", err)
-	}
-	return saved, nil
-}
-
 func (a *Adapter) CreateReleaseTemplate(ctx context.Context, template domain.ReleaseTemplate, operator, requestKey, digestHex string) (domain.ReleaseTemplate, error) {
-	return a.executeReleaseTemplateRequest(ctx, operator, createReleaseTemplateOperation, requestKey, digestHex, func(transaction *gorm.DB) (domain.ReleaseTemplate, error) {
+	return executeManagementRequest(ctx, a, operator, createReleaseTemplateOperation, requestKey, digestHex, func(transaction *gorm.DB) (domain.ReleaseTemplate, error) {
 		record := releaseTemplateRecord{Code: template.Code, Name: template.Name, Description: template.Description, Type: template.Type, Nodes: template.Nodes, MonitorList: []string{}, Enabled: true, Version: 1, Creator: operator, Modifier: operator}
 		if err := transaction.Create(&record).Error; err != nil {
 			var mysqlError *driver.MySQLError
@@ -128,7 +79,7 @@ func readReleaseTemplate(database *gorm.DB, code string) (releaseTemplateRecord,
 }
 
 func (a *Adapter) ReplaceReleaseTemplate(ctx context.Context, template domain.ReleaseTemplate, operator string, expectedVersion uint64, requestKey, digestHex string) (domain.ReleaseTemplate, error) {
-	return a.executeReleaseTemplateRequest(ctx, operator, "release-template:replace", requestKey, digestHex, func(transaction *gorm.DB) (domain.ReleaseTemplate, error) {
+	return executeManagementRequest(ctx, a, operator, "release-template:replace", requestKey, digestHex, func(transaction *gorm.DB) (domain.ReleaseTemplate, error) {
 		current, err := readReleaseTemplate(transaction.Clauses(clause.Locking{Strength: "UPDATE"}), template.Code)
 		if err != nil {
 			return domain.ReleaseTemplate{}, err
@@ -156,7 +107,7 @@ func (a *Adapter) SetReleaseTemplateEnabled(ctx context.Context, code string, en
 	if enabled {
 		action = "enable"
 	}
-	return a.executeReleaseTemplateRequest(ctx, operator, "release-template:"+action, requestKey, digestHex, func(transaction *gorm.DB) (domain.ReleaseTemplate, error) {
+	return executeManagementRequest(ctx, a, operator, "release-template:"+action, requestKey, digestHex, func(transaction *gorm.DB) (domain.ReleaseTemplate, error) {
 		current, err := readReleaseTemplate(transaction.Clauses(clause.Locking{Strength: "UPDATE"}), code)
 		if err != nil {
 			return domain.ReleaseTemplate{}, err
@@ -176,7 +127,7 @@ func (a *Adapter) SetReleaseTemplateEnabled(ctx context.Context, code string, en
 }
 
 func (a *Adapter) DeleteReleaseTemplate(ctx context.Context, code string, expectedVersion uint64, operator, requestKey, digestHex string) error {
-	_, err := a.executeReleaseTemplateRequest(ctx, operator, "release-template:delete", requestKey, digestHex, func(transaction *gorm.DB) (domain.ReleaseTemplate, error) {
+	_, err := executeManagementRequest(ctx, a, operator, "release-template:delete", requestKey, digestHex, func(transaction *gorm.DB) (domain.ReleaseTemplate, error) {
 		current, err := readReleaseTemplate(transaction.Clauses(clause.Locking{Strength: "UPDATE"}), code)
 		if err != nil {
 			return domain.ReleaseTemplate{}, err
@@ -188,6 +139,10 @@ func (a *Adapter) DeleteReleaseTemplate(ctx context.Context, code string, expect
 			return domain.ReleaseTemplate{}, domain.ErrReleaseTemplateVersionConflict
 		}
 		if err := transaction.Delete(&current).Error; err != nil {
+			var mysqlError *driver.MySQLError
+			if errors.As(err, &mysqlError) && mysqlError.Number == 1451 {
+				return domain.ReleaseTemplate{}, domain.ErrReleaseTemplateInUse
+			}
 			return domain.ReleaseTemplate{}, fmt.Errorf("delete Release Template: %w", err)
 		}
 		// Persist the completed removal independently of the deleted row. The

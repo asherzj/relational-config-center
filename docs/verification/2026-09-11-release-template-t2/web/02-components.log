@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-102-table-release-templates/web
+> vitest run src/features/table-policies/TablePoliciesPage.test.tsx src/api/table-policies.test.ts
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-102-table-release-templates/web
+
+
+ Test Files  2 passed (2)
+      Tests  17 passed (17)
+   Start at  07:02:55
+   Duration  4.59s (transform 711ms, setup 485ms, import 966ms, tests 2.77s, environment 1.10s)
+

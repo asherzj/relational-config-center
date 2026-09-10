@@ -3,7 +3,10 @@ package domain
 import (
 	"context"
 	"errors"
+	"regexp"
+	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 type ReleaseType string
@@ -51,4 +54,35 @@ type ReleaseTemplateCatalog interface {
 	ReplaceReleaseTemplate(context.Context, ReleaseTemplate, string, uint64, string, string) (ReleaseTemplate, error)
 	SetReleaseTemplateEnabled(context.Context, string, bool, string, uint64, string, string) (ReleaseTemplate, error)
 	DeleteReleaseTemplate(context.Context, string, uint64, string, string, string) error
+}
+
+var releaseNodeCodePattern = regexp.MustCompile(`^[a-z][a-z0-9_]{0,63}$`)
+
+// ValidateReleaseTemplateNodes validates persisted, already-normalized definitions.
+// It is shared by authoring, association changes and read-only readiness.
+func ValidateReleaseTemplateNodes(kind ReleaseType, nodes []ReleaseTemplateNode) error {
+	var expected []string
+	switch kind {
+	case ReleaseTypeStandard:
+		expected = []string{"APPROVAL", "PUBLICATION", "COMPLETION"}
+	case ReleaseTypeEmergency:
+		expected = []string{"PUBLICATION", "COMPLETION"}
+	default:
+		return ErrInvalidReleaseTemplate
+	}
+	if len(nodes) != len(expected) {
+		return ErrInvalidReleaseTemplate
+	}
+	seen := make(map[string]bool, len(nodes))
+	for i, node := range nodes {
+		role := "PUBLISHER"
+		if node.Type == "APPROVAL" {
+			role = "TABLE_APPROVER"
+		}
+		if !releaseNodeCodePattern.MatchString(node.Code) || seen[node.Code] || node.Type != expected[i] || strings.TrimSpace(node.Name) == "" || utf8.RuneCountInString(node.Name) > 100 || node.RequiredRole != role {
+			return ErrInvalidReleaseTemplate
+		}
+		seen[node.Code] = true
+	}
+	return nil
 }

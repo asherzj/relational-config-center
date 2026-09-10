@@ -9,7 +9,7 @@ import {
   listTablePolicies,
   replaceTablePolicy,
 } from "../../api/table-policies";
-import type { TablePolicy, TablePolicyAssignment } from "./model";
+import type { TablePolicy } from "./model";
 
 export const tablePolicyKeys = {
   list: ["table-policies", "list"] as const,
@@ -39,7 +39,7 @@ function useTablePolicyCommand<TVariables>(command: (variables: TVariables) => P
   return useMutation({
     mutationFn: command,
     onSuccess(policy) {
-      client.setQueryData(tablePolicyKeys.detail(policy.tableName), policy);
+      void client.invalidateQueries({ queryKey: tablePolicyKeys.detail(policy.tableName) });
       void client.invalidateQueries({ queryKey: tablePolicyKeys.list });
       void client.invalidateQueries({ queryKey: tablePolicyKeys.discovery });
     },
@@ -48,7 +48,7 @@ function useTablePolicyCommand<TVariables>(command: (variables: TVariables) => P
 
 export function useCreateTablePolicy() { return useTablePolicyCommand(createTablePolicy); }
 export function useReplaceTablePolicy() {
-  return useTablePolicyCommand(({ tableName, assignment }: { tableName: string; assignment: TablePolicyAssignment }) => replaceTablePolicy(tableName, assignment));
+  return useTablePolicyCommand(replaceTablePolicy);
 }
 export function useEnableTablePolicy() { return useTablePolicyCommand(enableTablePolicy); }
 export function useDisableTablePolicy() { return useTablePolicyCommand(disableTablePolicy); }

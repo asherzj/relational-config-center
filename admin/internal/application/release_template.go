@@ -20,7 +20,6 @@ var (
 )
 
 var templateCodePattern = regexp.MustCompile(`^[a-z][a-z0-9_]*_v[1-9][0-9]*$`)
-var templateNodeCodePattern = regexp.MustCompile(`^[a-z][a-z0-9_]{0,63}$`)
 
 type PutReleaseTemplateNode struct {
 	Code         string `json:"code"`
@@ -140,40 +139,15 @@ func validatedReleaseTemplate(candidate PutReleaseTemplate) (domain.ReleaseTempl
 		return domain.ReleaseTemplate{}, ErrInvalidReleaseTemplate
 	}
 	typeCode := domain.ReleaseType(strings.TrimSpace(candidate.Type))
-	var expected []string
-	switch typeCode {
-	case domain.ReleaseTypeStandard:
-		expected = []string{"APPROVAL", "PUBLICATION", "COMPLETION"}
-	case domain.ReleaseTypeEmergency:
-		expected = []string{"PUBLICATION", "COMPLETION"}
-	default:
+	if typeCode != domain.ReleaseTypeStandard && typeCode != domain.ReleaseTypeEmergency {
 		return domain.ReleaseTemplate{}, ErrUnknownReleaseType
 	}
-	if len(candidate.Nodes) != len(expected) {
-		return domain.ReleaseTemplate{}, ErrInvalidReleaseTemplateNodes
-	}
 	nodes := make([]domain.ReleaseTemplateNode, len(candidate.Nodes))
-	seen := make(map[string]struct{}, len(candidate.Nodes))
-	for i, input := range candidate.Nodes {
-		code := strings.TrimSpace(input.Code)
-		nodeType := strings.TrimSpace(input.Type)
-		name := strings.TrimSpace(input.Name)
-		role := strings.TrimSpace(input.RequiredRole)
-		if !templateNodeCodePattern.MatchString(code) || name == "" || utf8.RuneCountInString(name) > 100 || nodeType != expected[i] {
-			return domain.ReleaseTemplate{}, ErrInvalidReleaseTemplateNodes
-		}
-		if _, duplicate := seen[code]; duplicate {
-			return domain.ReleaseTemplate{}, ErrInvalidReleaseTemplateNodes
-		}
-		seen[code] = struct{}{}
-		requiredRole := "PUBLISHER"
-		if nodeType == "APPROVAL" {
-			requiredRole = "TABLE_APPROVER"
-		}
-		if role != requiredRole {
-			return domain.ReleaseTemplate{}, ErrInvalidReleaseTemplateNodes
-		}
-		nodes[i] = domain.ReleaseTemplateNode{Code: code, Type: nodeType, Name: name, RequiredRole: role}
+	for i, node := range candidate.Nodes {
+		nodes[i] = domain.ReleaseTemplateNode{Code: strings.TrimSpace(node.Code), Type: strings.TrimSpace(node.Type), Name: strings.TrimSpace(node.Name), RequiredRole: strings.TrimSpace(node.RequiredRole)}
+	}
+	if err := domain.ValidateReleaseTemplateNodes(typeCode, nodes); err != nil {
+		return domain.ReleaseTemplate{}, ErrInvalidReleaseTemplateNodes
 	}
 	return domain.ReleaseTemplate{Code: code, Name: name, Description: description, Type: typeCode, Nodes: nodes, MonitorList: []string{}, Enabled: true}, nil
 }

@@ -121,6 +121,8 @@ func writeReleaseTemplateError(c *gin.Context, err error) bool {
 	switch {
 	case errors.Is(err, application.ErrPermissionDenied):
 		writeError(c, stdhttp.StatusForbidden, "permission_denied", "the current account does not have the required role")
+	case errors.Is(err, application.ErrReleaseTemplateInUse):
+		writeError(c, stdhttp.StatusConflict, "release_template_in_use", "release template is referenced by a table")
 	case errors.Is(err, application.ErrReleaseTemplateNotFound):
 		writeError(c, stdhttp.StatusNotFound, "release_template_not_found", "release template not found")
 	case errors.Is(err, application.ErrReleaseTemplateExists):

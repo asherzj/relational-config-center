@@ -31,14 +31,15 @@ var (
 // RouterOptions is the deployment-owned interface of the HTTP safety module.
 // Request-scoped safety behavior remains behind NewRouter.
 type RouterOptions struct {
-	FieldPolicies      *application.TableFieldPolicyManagement
-	Authentication     *application.Authentication
-	AccountRoles       *application.AccountRoleManagement
-	ReleaseOrders      *application.ReleaseOrders
-	ReleaseTemplates   *application.ReleaseTemplateManagement
-	PublicationTimeout time.Duration
-	AccountHTTP        AccountHTTPOptions
-	AccessLog          io.Writer
+	FieldPolicies         *application.TableFieldPolicyManagement
+	Authentication        *application.Authentication
+	AccountRoles          *application.AccountRoleManagement
+	ReleaseOrders         *application.ReleaseOrders
+	ReleaseTemplates      *application.ReleaseTemplateManagement
+	TableReleaseTemplates *application.TableReleaseTemplateManagement
+	PublicationTimeout    time.Duration
+	AccountHTTP           AccountHTTPOptions
+	AccessLog             io.Writer
 }
 
 func publicationDeadline(timeout time.Duration) gin.HandlerFunc {

@@ -177,7 +177,13 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 		t.Fatal(err)
 	}
 	request(admin, "POST", "/api/v1/mutation-policies/"+mutationCode+"/deprecate", "", "", 200)
-	request(admin, "POST", "/api/v1/table-policies/history_items/disable", "", "", 200)
+	var currentPolicy struct {
+		Version string `json:"version"`
+	}
+	if err := json.Unmarshal(request(admin, "GET", "/api/v1/table-policies/history_items", "", "", 200), &currentPolicy); err != nil {
+		t.Fatal(err)
+	}
+	request(admin, "POST", "/api/v1/table-policies/history_items/disable", `{"expected_version":"`+currentPolicy.Version+`"}`, "history-table-disable", 200)
 	deliveryExec(t, f.databaseOwner, `UPDATE rcc_mutation_policies SET name='维护后规则名称' WHERE code=?`, mutationCode)
 	deliveryExec(t, f.databaseOwner, `DROP TABLE history_items`)
 	// Rerun the documented restartable 008–012 migrations on populated controls.

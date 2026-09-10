@@ -71,7 +71,7 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 		{"missing_index", `ALTER TABLE rcc_query_policies DROP INDEX idx_query_policy_status_type`, `ALTER TABLE rcc_query_policies ADD KEY idx_query_policy_status_type(status,type_code)`},
 		{"missing_field_policy", `RENAME TABLE rcc_table_field_policies TO held_field_policies`, `RENAME TABLE held_field_policies TO rcc_table_field_policies`},
 		{"missing_release_templates", `RENAME TABLE rcc_release_templates TO held_release_templates`, `RENAME TABLE held_release_templates TO rcc_release_templates`},
-		{"release_template_unique_key", `ALTER TABLE rcc_release_templates DROP INDEX uk_release_template_code`, `ALTER TABLE rcc_release_templates DROP INDEX idx_release_template_type_enabled, ADD UNIQUE KEY uk_release_template_code(code), ADD KEY idx_release_template_type_enabled(release_type,enabled)`},
+		{"release_template_unique_key", `ALTER TABLE rcc_release_templates DROP INDEX uk_release_template_code`, `ALTER TABLE rcc_release_templates DROP INDEX uk_release_template_id_type, DROP INDEX idx_release_template_type_enabled, ADD UNIQUE KEY uk_release_template_code(code), ADD UNIQUE KEY uk_release_template_id_type(id,release_type), ADD KEY idx_release_template_type_enabled(release_type,enabled)`},
 		{"release_template_check", `ALTER TABLE rcc_release_templates ALTER CHECK chk_release_template_monitors NOT ENFORCED`, `ALTER TABLE rcc_release_templates ALTER CHECK chk_release_template_monitors ENFORCED`},
 		{"missing_default_emergency_template", `UPDATE rcc_release_templates SET code='held_emergency' WHERE code='default_emergency_v1'`, `UPDATE rcc_release_templates SET code='default_emergency_v1' WHERE code='held_emergency'`},
 		{"field_policy_unique_key", `ALTER TABLE rcc_table_field_policies DROP INDEX uk_table_field`, `ALTER TABLE rcc_table_field_policies ADD UNIQUE KEY uk_table_field(table_name,field_name)`},
@@ -110,15 +110,22 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 			if before != baselineDataSnapshot(t, db) {
 				t.Fatal("rejected startup/readiness changed rows")
 			}
+			if fault.name == "release_template_unique_key" {
+				// Keep the referenced composite identity indexed throughout restoration.
+				deliveryExec(t, db, `ALTER TABLE rcc_release_templates ADD UNIQUE KEY restore_template_identity(id,release_type)`)
+			}
 			if fault.restore != "" {
 				deliveryExec(t, db, fault.restore)
 			} else {
 				deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET release_digest=? WHERE target_version=?`, digest, currentTestSchemaVersion)
 			}
-			// MySQL reserializes ASCII-column CHECK literals while rebuilding an
-			// index; restore the original UTF-8 expressions as well as the index.
+			if fault.name == "release_template_unique_key" {
+				deliveryExec(t, db, `ALTER TABLE rcc_release_templates DROP INDEX restore_template_identity`)
+			}
+			// Candidate 9 stores ASCII-column CHECK literals as ASCII after its
+			// identity-index ALTER. Restore the same current-release definition.
 			if fault.name == "release_template_unique_key" || fault.name == "release_template_check" {
-				deliveryExec(t, db, `ALTER TABLE rcc_release_templates DROP CHECK chk_emergency_template_enabled, DROP CHECK chk_release_template_type, ADD CONSTRAINT chk_emergency_template_enabled CHECK (release_type <> _utf8mb4'EMERGENCY' OR enabled=1), ADD CONSTRAINT chk_release_template_type CHECK (release_type IN (_utf8mb4'STANDARD',_utf8mb4'EMERGENCY'))`)
+				deliveryExec(t, db, `ALTER TABLE rcc_release_templates DROP CHECK chk_emergency_template_enabled, DROP CHECK chk_release_template_type, ADD CONSTRAINT chk_emergency_template_enabled CHECK (release_type <> _ascii'EMERGENCY' OR enabled=1), ADD CONSTRAINT chk_release_template_type CHECK (release_type IN (_ascii'STANDARD',_ascii'EMERGENCY'))`)
 			}
 			if fault.name == "release_template_unique_key" {
 				var restoredDefinition string

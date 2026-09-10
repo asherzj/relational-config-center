@@ -35,14 +35,15 @@ func newApplicationWithClock(ctx context.Context, settings config.Config, now fu
 	queries := application.NewManagedTableQuery(mysql, application.NewQueryPolicyTypeRegistry(), application.NewMutationPolicyTypeRegistry())
 	return &adminApplication{
 		handler: httpinterface.NewRouter(discovery, mysql, queryPolicies, mutationPolicies, policies, queries, httpinterface.RouterOptions{
-			FieldPolicies:      application.NewTableFieldPolicyManagement(mysql, mysql, mysql, mysql),
-			Authentication:     application.NewAuthentication(mysql, passwordadapter.NewArgon2id(), now, mysql, application.AuthenticationLimits{Registration: settings.AccountRegisterLimit, LoginIP: settings.AccountLoginIPLimit, LoginFailures: settings.AccountLoginFailureLimit}),
-			AccountRoles:       application.NewAccountRoleManagement(mysql),
-			ReleaseOrders:      application.NewReleaseOrders(mysql),
-			ReleaseTemplates:   application.NewReleaseTemplateManagement(mysql),
-			PublicationTimeout: accountRequestTimeout(settings.MySQL),
-			AccountHTTP:        httpinterface.AccountHTTPOptions{RequestTimeout: accountRequestTimeout(settings.MySQL), PublicOrigin: settings.AccountPublicOrigin, InsecureLocalHTTP: settings.AccountInsecureHTTP, TrustedProxies: settings.AccountTrustedProxies},
-			AccessLog:          os.Stdout,
+			FieldPolicies:         application.NewTableFieldPolicyManagement(mysql, mysql, mysql, mysql),
+			Authentication:        application.NewAuthentication(mysql, passwordadapter.NewArgon2id(), now, mysql, application.AuthenticationLimits{Registration: settings.AccountRegisterLimit, LoginIP: settings.AccountLoginIPLimit, LoginFailures: settings.AccountLoginFailureLimit}),
+			AccountRoles:          application.NewAccountRoleManagement(mysql),
+			ReleaseOrders:         application.NewReleaseOrders(mysql),
+			ReleaseTemplates:      application.NewReleaseTemplateManagement(mysql),
+			TableReleaseTemplates: application.NewTableReleaseTemplateManagement(mysql),
+			PublicationTimeout:    accountRequestTimeout(settings.MySQL),
+			AccountHTTP:           httpinterface.AccountHTTPOptions{RequestTimeout: accountRequestTimeout(settings.MySQL), PublicOrigin: settings.AccountPublicOrigin, InsecureLocalHTTP: settings.AccountInsecureHTTP, TrustedProxies: settings.AccountTrustedProxies},
+			AccessLog:             os.Stdout,
 		}),
 		mysql: mysql,
 	}, nil

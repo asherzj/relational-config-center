@@ -281,9 +281,11 @@ GET  /api/v1/table-policies/{table_name}
 PUT  /api/v1/table-policies/{table_name}
 POST /api/v1/table-policies/{table_name}/enable
 POST /api/v1/table-policies/{table_name}/disable
+GET  /api/v1/table-policies/{table_name}/release-templates
+PUT  /api/v1/table-policies/{table_name}/release-templates/{release_type}
 ```
 
-Query/Mutation Draft 可完整替换或删除，Active/Deprecated 仅允许更新显示元数据。Table Policy POST 创建 disabled assignment；PUT 完整替换并保持状态。Table Policy 没有 DELETE、PATCH、批量或历史 API。
+Query/Mutation Draft 可完整替换或删除，Active/Deprecated 仅允许更新显示元数据。Table Policy POST 创建 disabled assignment；PUT 完整替换并保持状态。Table Policy 没有 DELETE、PATCH、批量或历史 API。所有 Table Policy 写入必须携带 `Idempotency-Key`，PUT 和启停正文必须携带读取到的十进制字符串 `expected_version`；响应提供 `version`。同键原操作重推返回持久原结果，同键异内容返回 `idempotency_conflict`；陈旧版本返回 `table_policy_conflict`。新建仍为 disabled，并在同一事务创建默认应急关联；启用与有效应急关联一起成功。完整关联契约见[表发布流程设置](admin-table-release-templates.md)。
 
 ### Managed Data
 

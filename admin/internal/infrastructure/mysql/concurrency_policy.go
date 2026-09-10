@@ -114,7 +114,7 @@ func (a *Adapter) replaceTablePolicy(ctx context.Context, policy domain.TablePol
 		if err := application.ValidateConcurrencyKey(schema, mutation.policy(), policy.ConcurrencyKey); err != nil {
 			return err
 		}
-		return tx.Model(&policyRecord{}).Where("id = ?", current.ID).Updates(map[string]any{"query_policy_code": policy.QueryPolicyCode, "mutation_policy_code": policy.MutationPolicyCode, "concurrency_key": concurrencyColumns(policy.ConcurrencyKey), "modifier": operator}).Error
+		return tx.Model(&policyRecord{}).Where("id = ?", current.ID).Updates(map[string]any{"query_policy_code": policy.QueryPolicyCode, "mutation_policy_code": policy.MutationPolicyCode, "concurrency_key": concurrencyColumns(policy.ConcurrencyKey), "modifier": operator, "version": gorm.Expr("version + 1")}).Error
 	})
 	if err != nil {
 		return domain.TablePolicy{}, err

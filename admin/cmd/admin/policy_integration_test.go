@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
@@ -833,8 +834,30 @@ func assertIntegrationErrorCode(t *testing.T, response *httptest.ResponseRecorde
 	}
 }
 
+var policyRequestSequence atomic.Uint64
+
 func policyIntegrationRequest(t *testing.T, app *adminApplication, method, path, body string) *httptest.ResponseRecorder {
 	t.Helper()
 	session := integrationAdminSession(t, app)
-	return accountRequest(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session))
+	headers := map[string]string{}
+	if strings.HasPrefix(path, "/api/v1/table-policies") && (method == http.MethodPost || method == http.MethodPut) {
+		headers["Idempotency-Key"] = fmt.Sprintf("policy-test-%d", policyRequestSequence.Add(1))
+		if path != "/api/v1/table-policies" {
+			target := strings.TrimSuffix(strings.TrimSuffix(path, "/enable"), "/disable")
+			current := accountRequest(app, http.MethodGet, target, "", session.Result().Cookies(), "")
+			var snapshot struct {
+				Version string `json:"version"`
+			}
+			_ = json.Unmarshal(current.Body.Bytes(), &snapshot)
+			if snapshot.Version == "" {
+				snapshot.Version = "1"
+			}
+			if body == "" {
+				body = `{"expected_version":"` + snapshot.Version + `"}`
+			} else if !strings.Contains(body, `"expected_version"`) {
+				body = strings.TrimSuffix(body, "}") + `,"expected_version":"` + snapshot.Version + `"}`
+			}
+		}
+	}
+	return accountRequestFrom(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session), "192.0.2.1:1234", headers)
 }

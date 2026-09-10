@@ -479,6 +479,20 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	freshDriver := ownerDriver
 	freshDriver.DBName = "fresh_accounts"
 	fresh := deliveryDB(t, &freshDriver)
+	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, historicalTestSchemaVersion), &freshDriver, "current", "up")
+	preservedBeforeBaseline := baselineDataSnapshot(t, owner)
+	if policyCatalogSchemaSignature(t, t.Context(), owner) != policyCatalogSchemaSignature(t, t.Context(), fresh) {
+		t.Fatal("historical Policy structure differs from fresh installation")
+	}
+	requireSchemaMigrationState(t, schemaMigrate, driver, "pending", "baseline")
+	if got := baselineDataSnapshot(t, owner); got != preservedBeforeBaseline {
+		t.Fatal("baseline changed historical account, session, policy or business rows")
+	}
+	beforeUpgrade := preTemplateDataSnapshot(t, owner)
+	requireSchemaMigrationState(t, schemaMigrate, driver, "current", "up")
+	if got := preTemplateDataSnapshot(t, owner); got != beforeUpgrade {
+		t.Fatal("explicit upgrade changed historical account, session, policy or business rows")
+	}
 	requireSchemaMigrationState(t, schemaMigrate, &freshDriver, "current", "up")
 	for _, query := range []string{
 		`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_TYPE,IS_NULLABLE,COALESCE(COLUMN_DEFAULT,'<null>'),COALESCE(COLLATION_NAME,''),EXTRA FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_details','rcc_release_executions','rcc_release_targets','rcc_release_table_references','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications','rcc_table_field_policies') ORDER BY TABLE_NAME,ORDINAL_POSITION`,
@@ -490,18 +504,6 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 		if upgraded != installed || upgraded == "" {
 			t.Fatalf("fresh/upgrade metadata mismatch:\n%s\n%s", upgraded, installed)
 		}
-	}
-	preservedBeforeBaseline := baselineDataSnapshot(t, owner)
-	if policyCatalogSchemaSignature(t, t.Context(), owner) != policyCatalogSchemaSignature(t, t.Context(), fresh) {
-		t.Fatal("historical Policy structure differs from fresh installation")
-	}
-	requireSchemaMigrationState(t, schemaMigrate, driver, "pending", "baseline")
-	if got := baselineDataSnapshot(t, owner); got != preservedBeforeBaseline {
-		t.Fatal("baseline changed historical account, session, policy or business rows")
-	}
-	requireSchemaMigrationState(t, schemaMigrate, driver, "current", "up")
-	if got := baselineDataSnapshot(t, owner, "rcc_release_templates"); got != preservedBeforeBaseline {
-		t.Fatal("explicit upgrade changed historical account, session, policy or business rows")
 	}
 	p := accountProcessCommand(t, binary, driver)
 	p.ready(t)

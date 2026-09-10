@@ -1,0 +1,34 @@
+=== RUN   TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly
+2026/09/11 07:07:54 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 74299cc8318c2277e88cb33de510c17968644e20326fdd667e80ffe6e9e82eba
+  Test ProcessID: 94c01ccb-5e1b-4acc-98a7-95cdda6fc7c2
+2026/09/11 07:07:54 🐳 Creating container for image mysql:8.4
+2026/09/11 07:07:54 ✅ Container created: d66807f0b65d
+2026/09/11 07:07:54 🐳 Starting container: d66807f0b65d
+2026/09/11 07:07:54 ✅ Container started: d66807f0b65d
+2026/09/11 07:07:54 ⏳ Waiting for container id d66807f0b65d image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:08:01 🔔 Container is ready: d66807f0b65d
+=== RUN   TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_role
+    table_release_schema_integration_test.go:88: invalid referenced emergency nodes must reject readiness: 200 {"status":"ready"}
+=== RUN   TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_node_type
+    table_release_schema_integration_test.go:88: invalid referenced emergency nodes must reject readiness: 200 {"status":"ready"}
+=== RUN   TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/duplicate_node_code
+    table_release_schema_integration_test.go:88: invalid referenced emergency nodes must reject readiness: 200 {"status":"ready"}
+2026/09/11 07:08:05 🐳 Stopping container: d66807f0b65d
+2026/09/11 07:08:07 ✅ Container stopped: d66807f0b65d
+2026/09/11 07:08:07 🐳 Terminating container: d66807f0b65d
+2026/09/11 07:08:07 🚫 Container terminated: d66807f0b65d
+--- FAIL: TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly (13.06s)
+    --- FAIL: TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_role (0.07s)
+    --- FAIL: TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_node_type (0.06s)
+    --- FAIL: TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/duplicate_node_code (0.07s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	13.923s
+FAIL

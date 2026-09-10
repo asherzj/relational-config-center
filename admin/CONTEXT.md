@@ -92,6 +92,10 @@ _Avoid_: Release Template Code, deployment environment, rollback order
 A reusable, named configuration of an ordered release workflow, identified by a stable unique code and one immutable Release Type. It contains Release Node Definitions rather than the progress or results of a particular Release Order. An emergency template must remain available; a standard template may be disabled.
 _Avoid_: Release Order, Release Execution, individual node, SQL template
 
+**Table Release Template（表发布模板关联）**:
+The single selection of a Release Template for one Table Policy and one Release Type. Standard associations may be disabled; an emergency association remains valid while its table is managed and can be replaced without an unavailable interval.
+_Avoid_: Release Node Definition, Release Order instance, per-node configuration
+
 **Release Node Definition（发布节点定义）**:
 One named step within a Release Template, using a predefined workflow capability and its allowed authority parameters. Its code is unique within that template, and its position follows the sequence allowed by the template's Release Type.
 _Avoid_: Release Execution, workflow progress, arbitrary script, database row change

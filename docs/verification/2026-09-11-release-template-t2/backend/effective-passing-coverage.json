@@ -1,0 +1,150 @@
+{
+  "TestCurrentSessionUsesRolePermissionMatrix": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 10.72
+  },
+  "TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.96
+  },
+  "TestBusinessAPIsRequireSessionAndCSRF": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.06
+  },
+  "TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.86
+  },
+  "TestAccountControlTablesCannotBeDiscoveredOrManaged": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.96
+  },
+  "TestDatabaseTableListDiscoversOnlyOrdinaryBaseTables": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.96
+  },
+  "TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.94
+  },
+  "TestLocalManagedTableFixtureRejectsLifecycleConflictsWithoutReactivation": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.92
+  },
+  "TestLocalManagedTableFixtureRejectsIncompatibleExistingTableWithoutAssignment": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.99
+  },
+  "TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.14
+  },
+  "TestQueryPolicyHTTPLifecyclePersistsAndFailsClosed": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.12
+  },
+  "TestTablePolicyCodeAssignmentsValidateActiveDefinitionsAndReplaceAtomically": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.85
+  },
+  "TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.92
+  },
+  "TestTablePolicyCreationPersistsDisabledCodeReferencesForHTTPInspection": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.67
+  },
+  "TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.85
+  },
+  "TestDraftConcurrencyKeyProtectsValuesAndDefinition": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.84
+  },
+  "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 14.88
+  },
+  "TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.89
+  },
+  "TestReleaseTemplateHTTPMaintainsMultipleTypesWithIdempotencyAndVersions": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.84
+  },
+  "TestReleaseTemplateHTTPProtectsEmergencyAndRejectsInvalidNodes": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 10.07
+  },
+  "TestReleaseTemplateHTTPRejectsNonAdministratorManagement": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.84
+  },
+  "TestReleaseTemplateHTTPReplaysCommittedReplacementAfterLaterChanges": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.83
+  },
+  "TestReleaseTemplateHTTPReplaysEnableAndDisableWithoutChangingLaterState": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.61
+  },
+  "TestReleaseTemplateHTTPReplaysDeletionWithoutDeletingRecreatedTemplate": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.84
+  },
+  "TestReleaseTemplateHTTPStandardDeletionKeepsReadOnlyReadiness": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.83
+  },
+  "TestReleaseTemplateHTTPChecksCurrentAuthorizationBeforeReplayingAllWrites": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.8
+  },
+  "TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.66
+  },
+  "TestReleaseTemplateHTTPConcurrentRequestsRetainOneResultAndRejectStaleAdministrator": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.97
+  },
+  "TestReleaseTemplateHTTPRequiresRequestIdentityAndRejectsChangedTargets": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.89
+  },
+  "TestReleaseTemplateHTTPControlTableRejectsGenericManagement": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.06
+  },
+  "TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.63
+  },
+  "TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.03
+  },
+  "TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.02
+  },
+  "TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.0
+  },
+  "TestTableReleaseTemplateHTTPCurrentAuthorizationAndRequiredRequestIdentity": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 9.52
+  },
+  "TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency": {
+    "log": "07-current-http-regressions.log",
+    "seconds": 8.86
+  },
+  "TestConcurrentAccountsOwnTheirBusinessChanges": {
+    "log": "08-actor-request-contract-fixed.log",
+    "seconds": 9.09
+  }
+}

@@ -43,7 +43,7 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
   await api(admin,'POST',`/api/v1/mutation-policies/${mutation}/activate`,{});
   for(const table of [...tables,largeTable]){
    await api(admin,'POST','/api/v1/table-policies',{table_name:table,query_policy_code:'notification_page_query_v1',mutation_policy_code:mutation},201);
-   await api(admin,'POST',`/api/v1/table-policies/${table}/enable`,{});
+   await api(admin,'POST',`/api/v1/table-policies/${table}/enable`,{expected_version:'1'});
   }
   const settings=await pageFor(admin);
   for(const table of tables){

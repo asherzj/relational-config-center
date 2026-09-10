@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -166,10 +167,10 @@ func prepareManagementBrowserPolicies(t *testing.T, admin *accountProcess, maint
 		{"/api/v1/mutation-policies", `{"code":"stage1_mutation_v1","name":"Browser acceptance mutation","description":"Isolated fixture","type_code":"single_table_mutation","allow_add":true,"allow_modify":true,"allow_delete":true,"create_operator_field":"created_by","create_time_field":"created_at","modify_operator_field":"updated_by","modify_time_field":"updated_at"}`, http.StatusCreated},
 		{"/api/v1/mutation-policies/stage1_mutation_v1/activate", "", http.StatusOK},
 		{"/api/v1/table-policies", `{"table_name":"stage1_acceptance_items","query_policy_code":"notification_page_query_v1","mutation_policy_code":"stage1_mutation_v1"}`, http.StatusCreated},
-		{"/api/v1/table-policies/stage1_acceptance_items/enable", "", http.StatusOK},
+		{"/api/v1/table-policies/stage1_acceptance_items/enable", `{"expected_version":"1"}`, http.StatusOK},
 		{"/api/v1/mutation-policies/stage1_mutation_v1/deprecate", "", http.StatusOK},
 	} {
-		status, _, _ := admin.request(t, http.MethodPost, request.path, request.body, cookies, csrf)
+		status, _, _ := admin.requestWithKey(t, http.MethodPost, request.path, request.body, cookies, csrf, fmt.Sprintf("browser-setup-%d", policyRequestSequence.Add(1)))
 		if status != request.want {
 			t.Fatalf("prepare management acceptance %s: status=%d want=%d", request.path, status, request.want)
 		}

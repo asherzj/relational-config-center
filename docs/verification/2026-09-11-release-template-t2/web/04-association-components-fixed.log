@@ -1,0 +1,261 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-102-table-release-templates/web
+> vitest run src/features/table-policies/TableReleaseTemplatesDrawer.test.tsx
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-102-table-release-templates/web
+
+ ❯ src/features/table-policies/TableReleaseTemplatesDrawer.test.tsx (3 tests | 1 failed) 701ms
+     × keeps selected input on version conflict 146ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/table-policies/TableReleaseTemplatesDrawer.test.tsx > table release template settings > keeps selected input on version conflict
+TestingLibraryElementError: Found multiple elements with the role "alert"
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mclass[39m=[32m"feedback-state feedback-error"[39m
+  [33mrole[39m=[32m"alert"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-circle-alert"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<circle[39m
+      [33mcx[39m=[32m"12"[39m
+      [33mcy[39m=[32m"12"[39m
+      [33mr[39m=[32m"10"[39m
+    [36m/>[39m
+    [36m<line[39m
+      [33mx1[39m=[32m"12"[39m
+      [33mx2[39m=[32m"12"[39m
+      [33my1[39m=[32m"8"[39m
+      [33my2[39m=[32m"12"[39m
+    [36m/>[39m
+    [36m<line[39m
+      [33mx1[39m=[32m"12"[39m
+      [33mx2[39m=[32m"12.01"[39m
+      [33my1[39m=[32m"16"[39m
+      [33my2[39m=[32m"16"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [36m<strong>[39m
+    [0m关联已被其他管理员修改；你的选择已保留，请核对最新版本。[0m
+  [36m</strong>[39m
+  [36m<span>[39m
+    [0m请求编号：[0m
+    [0massociation-conflict[0m
+  [36m</span>[39m
+[36m</div>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mrole[39m=[32m"alert"[39m
+[36m>[39m
+  [0m保存结果未知；输入和原请求已保留，再次保存将原样重推。[0m
+[36m</p>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<section[39m
+  [33maria-label[39m=[32m"应急发布关联"[39m
+  [33mclass[39m=[32m"grid min-w-0 gap-3 border-t pt-5"[39m
+[36m>[39m
+  [36m<h3[39m
+    [33mclass[39m=[32m"font-semibold"[39m
+  [36m>[39m
+    [0m应急[0m
+    [0m发布[0m
+  [36m</h3>[39m
+  [36m<p[39m
+    [33mclass[39m=[32m"break-all text-muted-foreground"[39m
+  [36m>[39m
+    [0m当前：[0m
+    [0m模板1 · template_1_v1 · 有效 · v1[0m
+  [36m</p>[39m
+  [36m<fieldset[39m
+    [33mclass[39m=[32m"grid min-w-0 gap-3"[39m
+    [33mdisabled[39m=[32m""[39m
+  [36m>[39m
+    [36m<label[39m
+      [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 field"[39m
+      [33mdata-slot[39m=[32m"label"[39m
+    [36m>[39m
+      [36m<span>[39m
+        [0m应急[0m
+        [0m模板[0m
+      [36m</span>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"group/native-select relative w-full has-[select:disabled]:opacity-50"[39m
+        [33mdata-slot[39m=[32m"native-select-wrapper"[39m
+      [36m>[39m
+        [36m<select[39m
+          [33maria-label[39m=[32m"应急模板"[39m
+          [33mclass[39m=[32m"h-9 w-full min-w-0 appearance-none rounded-md border border-input bg-transparent px-3 py-2 pr-9 text-sm shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 dark:bg-input/30 dark:hover:bg-input/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40"[39m
+          [33mdata-size[39m=[32m"default"[39m
+          [33mdata-slot[39m=[32m"native-select"[39m
+        [36m>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m""[39m
+          [36m>[39m
+            [0m请选择[0m
+            [0m应急[0m
+            [0m模板[0m
+          [36m</option>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m"template_1_v1"[39m
+          [36m>[39m
+            [0m模板1[0m
+            [0m · [0m
+            [0mtemplate_1_v1[0m
+          [36m</option>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m"template_2_v1"[39m
+          [36m>[39m
+            [0m模板2[0m
+            [0m · [0m
+            [0mtemplate_2_v1[0m
+          [36m</option>[39m
+        [36m</select>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"lucide lucide-chevron-down pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 text-muted-foreground opacity-50 select-none"[39m
+          [33mdata-slot[39m=[32m"native-select-icon"[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mheight[39m=[32m"24"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"round"[39m
+          [33mstroke-linejoin[39m=[32m"round"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [33mwidth[39m=[32m"24"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"m6 9 6 6 6-6"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+      [36m</div>[39m
+    [36m</label>[39m
+    [36m<p>[39m
+      [0m应急关联始终启用，不提供停用、解绑或删除。[0m
+    [36m</p>[39m
+  [36m</fieldset>[39m
+  [36m<ol[39m
+    [33maria-label[39m=[32m"应急模板节点"[39m
+    [33mclass[39m=[32m"grid gap-2"[39m
+  [36m>[39m
+    [36m<li[39m
+      [33mclass[39m=[32m"break-words"[39m
+    [36m>[39m
+      [0m1[0m
+      [0m. [0m
+      [0mPUBLICATION[0m
+    [36m</li>[39m
+    [36m<li[39m
+      [33mclass[39m=[32m"break-words"[39m
+    [36m>[39m
+      [0m2[0m
+      [0m. [0m
+      [0mCOMPLETION[0m
+    [36m</li>[39m
+  [36m</ol>[39m
+  [36m<p[39m
+    [33mclass[39m=[32m"break-all text-muted-foreground"[39m
+  [36m>[39m
+    [0m最近修改：[0m
+    [0madmin[0m
+    [0m · [0m
+    [0m2026/9/11 08:00:00[0m
+  [36m</p>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"feedback-state feedback-error"[39m
+    [33mrole[39m=[32m"alert"[39m
+  [36m>[39m
+    [36m<svg[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mclass[39m=[32m"lucide lucide-circle-alert"[39m
+      [33mfill[39m=[32m"none"[39m
+      [33mheight[39m=[32m"24"[39m
+      [33mstroke[39m=[32m"currentColor"[39m
+      [33mstroke-linecap[39m=[32m"round"[39m
+      [33mstroke-linejoin[39m=[32m"round"[39m
+      [33mstroke-width[39m=[32m"2"[39m
+      [33mviewBox[39m=[32m"0 0 24 24"[39m
+      [33mwidth[39m=[32m"24"[39m
+      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+    [36m>[39m
+      [36m<circle[39m
+        [33mcx[39m=[32m"12"[39m
+        [33mcy[39m=[32m"12"[39m
+        [33mr[39m=[32m"10"[39m
+      [36m/>[39m
+      [36m<line[39m
+        [33mx1[39m=[32m"12"[39m
+        [33mx2[39m=[32m"12"[39m
+        [33my1[39m=[32m"8"[39m
+        [33my2[39m=[32m"12"[39m
+      [36m/>[39m
+      [36m<line[39m
+        [33mx1[39m=[32m"12"[39m
+        [33mx2[39m=[32m"12.01"[39m
+        [33my1[39m=[32m"16"[39m
+        [33my2[39m=[32m"16"[39m
+      [36m/>[39m
+    [36m</svg>[39m
+    [36m<strong>[39m
+      [0m关联已被其他管理员修改；你的选择已保留，请核对最新版本。[0m
+    [36m</strong>[39m
+    [36m<span>[39m
+      [0m请求编号：[0m
+      [0massociation-conflict[0m
+    [36m</span>[39m
+  [36m</div>[39m
+  [36m<p[39m
+    [33mrole[39m=[32m"alert"[39m
+  [36m>[39m
+    [0m保存结果未知；输入和原请求已保留，再次保存将原样重推。[0m
+  [36m</p>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"flex flex-wrap gap-2"[39m
+  [36m>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 button"[39m
+      [33mdata-size[39m=[32m"default"[39m
+      [33mdata-slot[39m=[32m"button"[39m
+      [33mdata-variant[39m=[32m"default"[39m
+    [36m>[39m
+      [0m重推应急原请求[0m
+    [36m</button>[39m
+  [36m</div>[39m
+[36m</section>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:20:35
+ ❯ getMultipleElementsFoundError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:23:10
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/features/table-policies/TableReleaseTemplatesDrawer.test.tsx:39:167
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  07:14:45
+   Duration  2.45s (transform 750ms, setup 177ms, import 1.11s, tests 701ms, environment 369ms)
+
+ ELIFECYCLE  Command failed with exit code 1.

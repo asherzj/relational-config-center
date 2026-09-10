@@ -53,7 +53,7 @@ async function waitDatabase() {
     requests = []; faults = [];
     page.on('request', request => {
       const path = new URL(request.url()).pathname;
-      if (path.startsWith('/api/') && !path.startsWith('/api/v1/auth/')) requests.push({ path, method: request.method(), ...(path.endsWith('/query') ? { query: request.postDataJSON() } : {}), ...(path.endsWith('/execute') ? { body: request.postData(), key: request.headers()['idempotency-key'] } : {}) });
+      if (path.startsWith('/api/') && !path.startsWith('/api/v1/auth/')) requests.push({ path, method: request.method(), ...(path.endsWith('/query') ? { query: request.postDataJSON() } : {}), ...((path.endsWith('/execute') || path.startsWith('/api/v1/table-policies')) ? { body: request.postData(), key: request.headers()['idempotency-key'] } : {}) });
     });
     await page.goto(`${base}${path}`);
   }
@@ -471,18 +471,15 @@ async function waitDatabase() {
       const path = `/api/v1/table-policies${operation === 'create' ? '' : `/${assignmentTable}`}${['enable', 'disable'].includes(operation) ? `/${operation}` : ''}`;
       resetAudit(); await fault(path, operation === 'replace' ? 'PUT' : 'POST');
       const label = { create: '创建未启用分配', replace: '检查并替换', enable: '确认启用', disable: '确认停用' }[operation];
-      await button(label).click(); await uncertain().waitFor();
+      await button(label).click(); await page.getByText(/操作结果未知/).waitFor();
       assert.equal(sql(`SELECT ${['enable', 'disable'].includes(operation) ? 'enabled' : 'query_policy_code'} FROM rcc_table_policies WHERE table_name='${assignmentTable}';`), ['enable', 'disable'].includes(operation) ? operation === 'enable' ? '1' : '0' : 'stage1_query_v1');
-      await verifyUnknown(`table assignment ${operation}: persisted change and read-only recovery`, 'rcc_table_policies');
-      await button(['create', 'replace'].includes(operation) ? '我已核对，返回修改' : '我已核对，结束本次核对').click();
-      if (['enable', 'disable'].includes(operation)) {
-        await page.waitForURL(`${base}/platform/table-policies`);
-        await page.getByRole('dialog').waitFor({ state: 'detached' });
-        await page.getByRole('region', { name: '表规则目录', exact: true }).getByRole('row').filter({ hasText: assignmentTable }).getByText(operation === 'enable' ? '已启用' : '未启用', { exact: true }).waitFor();
-      }
-      // Reset clears the mutation observer asynchronously after explicit resume.
-      await uncertain().waitFor({ state: 'detached' });
-      assert.equal(await uncertain().count(), 0); assert.equal(writes().length, 1);
+      assert.equal(writes().length,1);const originalWrite={...writes()[0]};
+      await page.unroute(`**${path}`);await button('重推原请求').click();
+      await page.getByText({create:'表规则已创建并保持未启用',replace:'表规则已替换',enable:'表规则已启用',disable:'表规则已停用'}[operation],{exact:true}).waitFor();
+      assert.equal(writes().length,2);
+      assert.equal(writes()[1].key,originalWrite.key);assert.deepEqual(writes()[1].body,originalWrite.body);
+      assert.equal(auditCount('rcc_table_policies'),1);
+      check(`table assignment ${operation}: original request manually replayed without duplicate database change`, {writes:writes(),originalWrite});
     }
     assert.deepEqual(routeErrors, []);
     assert.deepEqual(pageErrors, []);

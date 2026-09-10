@@ -1,0 +1,30 @@
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-102-table-release-templates/web
+
+ ❯ src/features/table-policies/TablePoliciesPage.test.tsx (15 tests | 1 failed) 2962ms
+     × recovers a state-command version conflict without treating cached data as a successful refresh 201ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/table-policies/TablePoliciesPage.test.tsx > 表规则分配页面 > recovers a state-command version conflict without treating cached data as a successful refresh
+Error: expect(element).not.toBeInTheDocument()
+
+expected document not to contain element, found <button
+  class="inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 button"
+  data-size="default"
+  data-slot="button"
+  data-variant="default"
+>
+  重推原请求
+</button> instead
+ ❯ src/features/table-policies/TablePoliciesPage.test.tsx:247:166
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 14 passed (15)
+   Start at  07:23:16
+   Duration  4.70s (transform 511ms, setup 251ms, import 834ms, tests 2.96s, environment 539ms)
+

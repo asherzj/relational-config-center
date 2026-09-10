@@ -1,0 +1,1661 @@
+=== RUN   TestCurrentSessionUsesRolePermissionMatrix
+2026/09/11 07:29:05 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: abd6cdae3610940778562e777ed103c07fdb61e33ab1eb8ddf100181e3af61e1
+  Test ProcessID: 3c625b46-9508-40d9-82cd-c51d708fe9d0
+2026/09/11 07:29:05 🐳 Creating container for image mysql:8.4
+2026/09/11 07:29:05 ✅ Container created: b5fb3f5d42d2
+2026/09/11 07:29:05 🐳 Starting container: b5fb3f5d42d2
+2026/09/11 07:29:05 ✅ Container started: b5fb3f5d42d2
+2026/09/11 07:29:05 ⏳ Waiting for container id b5fb3f5d42d2 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:29:12 🔔 Container is ready: b5fb3f5d42d2
+{"request_id":"rcc-beab35c1fe25e4034ac092cb9d9eab76","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-65ef6a241e7d9983abae022138d4c9d3","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":47}
+{"request_id":"rcc-3e1696d9eac832123d5119283882552b","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-b849e556905e1092864ec821ed7855a5","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-ee2a87d9521d21b67a279c82506b71c5","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":14}
+{"request_id":"rcc-2c6f603a7474ffad75513fa211d92983","method":"GET","path":"/api/v1/query-policies","status":200,"duration_ms":1}
+{"request_id":"rcc-f775494047608bcf9967cf6c8a63c628","method":"GET","path":"/api/v1/account-roles","status":403,"duration_ms":1}
+{"request_id":"rcc-c28be8a301921a42e58bd6e77a746ed4","method":"POST","path":"/api/v1/tables/:table_name/query","status":404,"duration_ms":3}
+{"request_id":"rcc-69af1d469d399a865b4f07aec2a37938","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":1}
+{"request_id":"rcc-078bade988eb6717c14f6dd2eac33c18","method":"PUT","path":"/api/v1/release-orders/:id","status":403,"duration_ms":1}
+{"request_id":"rcc-5947b30a479a5320b7921b1b8d85c069","method":"POST","path":"/api/v1/release-orders/:id/submit","status":403,"duration_ms":1}
+{"request_id":"rcc-b24e3d3a17f2cb2c9a71971fca1cfe91","method":"POST","path":"/api/v1/release-orders/:id/approve","status":403,"duration_ms":1}
+{"request_id":"rcc-b6ccbdf08b666b80daa757944e9ae6f6","method":"POST","path":"/api/v1/release-orders/:id/reject","status":403,"duration_ms":1}
+{"request_id":"rcc-d7e51efc67fa8bb46a00a2ee93878bc2","method":"POST","path":"/api/v1/release-orders/:id/reprepare","status":403,"duration_ms":1}
+{"request_id":"rcc-d540dff88563374d1599d534761aa3ab","method":"POST","path":"/api/v1/release-orders/:id/execute","status":403,"duration_ms":1}
+{"request_id":"rcc-a5495453319e43419d1f8c8621c767c2","method":"POST","path":"/api/v1/query-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-7dc8a98a39629bd1966f82d45adc285d","method":"PUT","path":"/api/v1/query-policies/:code","status":403,"duration_ms":1}
+{"request_id":"rcc-7cb146d87072b253e71d5aa42eaa2429","method":"POST","path":"/api/v1/mutation-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-8dd3cde0cbb358a655d6804d69d0bac7","method":"PUT","path":"/api/v1/mutation-policies/:code","status":403,"duration_ms":1}
+{"request_id":"rcc-b09f845a5914e34b7c997685cf32a916","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":1}
+{"request_id":"rcc-71d4722a5de2665574f878237265a705","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":1}
+{"request_id":"rcc-ef768cf231eb640ae4cf25cde975c1fc","method":"POST","path":"/api/v1/query-policies/:code/activate","status":403,"duration_ms":1}
+{"request_id":"rcc-ec9d73b44f22cb6c60a2dff35a0e0c41","method":"POST","path":"/api/v1/query-policies/:code/deprecate","status":403,"duration_ms":1}
+{"request_id":"rcc-64272dae4b5152d4f4034a3b653bc3da","method":"PATCH","path":"/api/v1/query-policies/:code/metadata","status":403,"duration_ms":0}
+{"request_id":"rcc-74cb1b00f868b99f7ac40382984ae54a","method":"DELETE","path":"/api/v1/query-policies/:code","status":403,"duration_ms":1}
+{"request_id":"rcc-5ce0021f852dcfa5d7736599759dc38f","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":403,"duration_ms":0}
+{"request_id":"rcc-c49d8f559a3299eb63995ad8cdc881bf","method":"POST","path":"/api/v1/mutation-policies/:code/deprecate","status":403,"duration_ms":1}
+{"request_id":"rcc-0f6fdff7db131e00d33c54421fc037ce","method":"PATCH","path":"/api/v1/mutation-policies/:code/metadata","status":403,"duration_ms":1}
+{"request_id":"rcc-3847b9e0a27b308c849b46fbface0456","method":"DELETE","path":"/api/v1/mutation-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-a4d6dd0fda607185fcd6d32b8f842190","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-70acba9f1b3e2a768644740312beb640","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-fad05d83255fb897bc2f0f6192098a68","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":9}
+{"request_id":"rcc-99fcaceb9354d876ebac27393fff9b38","method":"GET","path":"/api/v1/query-policies","status":200,"duration_ms":1}
+{"request_id":"rcc-040ab8529d5ce9f74305deff16fafb9f","method":"GET","path":"/api/v1/account-roles","status":403,"duration_ms":1}
+{"request_id":"rcc-00c608ebbb6a171cb57acc8e8ce42ae9","method":"POST","path":"/api/v1/tables/:table_name/query","status":404,"duration_ms":2}
+{"request_id":"rcc-f0ce8a9242338ec1552a971f7ffff824","method":"POST","path":"/api/v1/release-orders","status":422,"duration_ms":3}
+{"request_id":"rcc-bffb151f448ca0c4283ef75cb2d54bb8","method":"PUT","path":"/api/v1/release-orders/:id","status":404,"duration_ms":4}
+{"request_id":"rcc-2ab5028f83c2240c0cf004db65d7355e","method":"POST","path":"/api/v1/release-orders/:id/submit","status":404,"duration_ms":3}
+{"request_id":"rcc-413cef3e9f45af9249b174c34b36577c","method":"POST","path":"/api/v1/release-orders/:id/approve","status":403,"duration_ms":0}
+{"request_id":"rcc-398264ba392de774b8f310eecb15214d","method":"POST","path":"/api/v1/release-orders/:id/reject","status":403,"duration_ms":0}
+{"request_id":"rcc-eae2aa6b9c196e8504ea06d83750bc76","method":"POST","path":"/api/v1/release-orders/:id/reprepare","status":404,"duration_ms":4}
+{"request_id":"rcc-e6a82317a041dfb4d5274da38d0aaab7","method":"POST","path":"/api/v1/release-orders/:id/execute","status":403,"duration_ms":0}
+{"request_id":"rcc-97eb0b6fbf39bf7db342bfabeb559980","method":"POST","path":"/api/v1/query-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-6af4eea020f25982cc27fc2e87533bad","method":"PUT","path":"/api/v1/query-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-b29889c8b506522db54118080737dc5a","method":"POST","path":"/api/v1/mutation-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-3f2511a00dcd17d3f71209fba89f3649","method":"PUT","path":"/api/v1/mutation-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-564e7dcd342bc3cd0ad0045d15ed7e83","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":1}
+{"request_id":"rcc-8d460f86d9566c7fdf9846f08f8f7dcf","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":1}
+{"request_id":"rcc-f87c26677b93bcf18fdd9076672a99dc","method":"POST","path":"/api/v1/query-policies/:code/activate","status":403,"duration_ms":0}
+{"request_id":"rcc-80f8d82d03dd22af7447f3a642ae7ab5","method":"POST","path":"/api/v1/query-policies/:code/deprecate","status":403,"duration_ms":0}
+{"request_id":"rcc-ad3a139604fe84e8c9bd9941bf356488","method":"PATCH","path":"/api/v1/query-policies/:code/metadata","status":403,"duration_ms":0}
+{"request_id":"rcc-24b2e307f6a713190fef69ef09f2b9bb","method":"DELETE","path":"/api/v1/query-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-c36647e220511fe95197681db8144771","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":403,"duration_ms":0}
+{"request_id":"rcc-eb5c14c59bccfa550eb5df4463d3156d","method":"POST","path":"/api/v1/mutation-policies/:code/deprecate","status":403,"duration_ms":0}
+{"request_id":"rcc-42545d5653f65cdcea0aa26cf0a34be2","method":"PATCH","path":"/api/v1/mutation-policies/:code/metadata","status":403,"duration_ms":0}
+{"request_id":"rcc-f361e4439d35a2342855a60b53a658bc","method":"DELETE","path":"/api/v1/mutation-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-5d44c0979db21b715a14092a7584967b","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":1}
+{"request_id":"rcc-1383dfcd4032ad522e1b7650b26af923","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-9133eddd51573f9564e8a06c9a5cc46d","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":11}
+{"request_id":"rcc-44c383a509bbf0520118c176d87f514b","method":"GET","path":"/api/v1/query-policies","status":200,"duration_ms":1}
+{"request_id":"rcc-dd8dddea47dbca9fad82b6acb1747dba","method":"GET","path":"/api/v1/account-roles","status":403,"duration_ms":0}
+{"request_id":"rcc-4db65c5ecd07b2cec8c4d3bf6cdd792b","method":"POST","path":"/api/v1/tables/:table_name/query","status":404,"duration_ms":2}
+{"request_id":"rcc-4f1b19ce8e3d67cc6f958caae2bceedc","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":0}
+{"request_id":"rcc-a42fac9d5080ef2e51ff3d184384a3ae","method":"PUT","path":"/api/v1/release-orders/:id","status":403,"duration_ms":0}
+{"request_id":"rcc-a289bbdb8d6659178174da3ce08ed451","method":"POST","path":"/api/v1/release-orders/:id/submit","status":403,"duration_ms":0}
+{"request_id":"rcc-4dbcc8280c75802a1b17e8d883ead6e2","method":"POST","path":"/api/v1/release-orders/:id/approve","status":404,"duration_ms":4}
+{"request_id":"rcc-9c602df0fdc71544f4efadcbeee6f6e8","method":"POST","path":"/api/v1/release-orders/:id/reject","status":404,"duration_ms":4}
+{"request_id":"rcc-f1d01f66da636be649c7bbefce534406","method":"POST","path":"/api/v1/release-orders/:id/reprepare","status":403,"duration_ms":0}
+{"request_id":"rcc-941fa0b4de2b8be5ad5eefbbacac99b4","method":"POST","path":"/api/v1/release-orders/:id/execute","status":403,"duration_ms":0}
+{"request_id":"rcc-45b66c5977103d74a1e4de78cdb443bb","method":"POST","path":"/api/v1/query-policies","status":403,"duration_ms":1}
+{"request_id":"rcc-f3d6cce9281b97b74547336ebd20b81b","method":"PUT","path":"/api/v1/query-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-cb73d2a90785286b1a2893cb507940eb","method":"POST","path":"/api/v1/mutation-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-0046dd512cb4605825c0df2c984f7614","method":"PUT","path":"/api/v1/mutation-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-69dfdd752bd3c02eba435ce72f6f6f6d","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-6f17f0dfee541b55e28f46103aad9791","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-e8887907afefd0cb177a9019ff32490b","method":"POST","path":"/api/v1/query-policies/:code/activate","status":403,"duration_ms":0}
+{"request_id":"rcc-0e2ac90d2674bc9031a9329a02636a27","method":"POST","path":"/api/v1/query-policies/:code/deprecate","status":403,"duration_ms":0}
+{"request_id":"rcc-8f0dfd1f3caf464796933dcb8745b8d7","method":"PATCH","path":"/api/v1/query-policies/:code/metadata","status":403,"duration_ms":0}
+{"request_id":"rcc-532ac0f1cef11869f1da68928f0c9ada","method":"DELETE","path":"/api/v1/query-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-df328e5b2502865e6653a52154453480","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":403,"duration_ms":1}
+{"request_id":"rcc-131036355cffb14254fbd79c422ca67a","method":"POST","path":"/api/v1/mutation-policies/:code/deprecate","status":403,"duration_ms":0}
+{"request_id":"rcc-84a2b3cc70e71a74f91120f4c5812174","method":"PATCH","path":"/api/v1/mutation-policies/:code/metadata","status":403,"duration_ms":0}
+{"request_id":"rcc-6d2f67fc7fe1f8087f948299e6a90078","method":"DELETE","path":"/api/v1/mutation-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-cb6c9db4ac535290d3edb6255d784940","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-4058b6ed3dee97c6002c94fd3837d4ea","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-90d4f615fcbd17e62d7b0ab1a046e4e4","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":10}
+{"request_id":"rcc-6562c8307c710458cd3309a9ea87894d","method":"GET","path":"/api/v1/query-policies","status":200,"duration_ms":1}
+{"request_id":"rcc-8f5eb0360592b59de610252fee7e9f30","method":"GET","path":"/api/v1/account-roles","status":403,"duration_ms":1}
+{"request_id":"rcc-a25dfb847796ef020f7bbc1342dba6ea","method":"POST","path":"/api/v1/tables/:table_name/query","status":404,"duration_ms":2}
+{"request_id":"rcc-9a01d33caae1e15b16fc736aa59e2cb7","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":0}
+{"request_id":"rcc-5def309e5eb53cf6b8bda6333c927274","method":"PUT","path":"/api/v1/release-orders/:id","status":403,"duration_ms":0}
+{"request_id":"rcc-b6aeef78b1d71fb5d809870281753a16","method":"POST","path":"/api/v1/release-orders/:id/submit","status":403,"duration_ms":0}
+{"request_id":"rcc-c315d311dc39fedc5254fe4f3553c94a","method":"POST","path":"/api/v1/release-orders/:id/approve","status":403,"duration_ms":0}
+{"request_id":"rcc-349a86c4de3f31f5e0bbdb3a648044f8","method":"POST","path":"/api/v1/release-orders/:id/reject","status":403,"duration_ms":0}
+{"request_id":"rcc-38432c469f90570ad8669e16044ae540","method":"POST","path":"/api/v1/release-orders/:id/reprepare","status":403,"duration_ms":0}
+{"request_id":"rcc-25fe29288d9251a43e8427e0ca74e541","method":"POST","path":"/api/v1/release-orders/:id/execute","status":404,"duration_ms":5}
+{"request_id":"rcc-7903777e4b0c3ce8acce9dd88bfcabb0","method":"POST","path":"/api/v1/query-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-df6a9d69074d371cc073a54808dbb30a","method":"PUT","path":"/api/v1/query-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-60f254fab02adc9037b37ea81e715097","method":"POST","path":"/api/v1/mutation-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-440db6e728b65e4fe1ea26bbdd6370ab","method":"PUT","path":"/api/v1/mutation-policies/:code","status":403,"duration_ms":1}
+{"request_id":"rcc-5ddb12d546afcfacb080c4f7b3a2920d","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-46e4682b0a8d647403091d2668766884","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-b7e25fd6d6e513204cd4eadf1a64e925","method":"POST","path":"/api/v1/query-policies/:code/activate","status":403,"duration_ms":0}
+{"request_id":"rcc-98afc3a8f1aca00e2153dda3bf495488","method":"POST","path":"/api/v1/query-policies/:code/deprecate","status":403,"duration_ms":0}
+{"request_id":"rcc-62e9f2b37551f3c75fd768dd8109c61a","method":"PATCH","path":"/api/v1/query-policies/:code/metadata","status":403,"duration_ms":0}
+{"request_id":"rcc-2e1c0755f17b4b752dba1e9e4d6e1ec2","method":"DELETE","path":"/api/v1/query-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-948725a841426bd26627fab8c68db6d4","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":403,"duration_ms":0}
+{"request_id":"rcc-94363e25c8a10ecdfb9f92073e8892ce","method":"POST","path":"/api/v1/mutation-policies/:code/deprecate","status":403,"duration_ms":0}
+{"request_id":"rcc-a62ca8dec39698ddc73155d88e6e4666","method":"PATCH","path":"/api/v1/mutation-policies/:code/metadata","status":403,"duration_ms":1}
+{"request_id":"rcc-13d4eb6e2edeca7973af94e9a1c81df9","method":"DELETE","path":"/api/v1/mutation-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-37fa0434cf0abcd0a7485e18adf394f5","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-45375d0e3814aa72464afd3a47d4e234","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-73a6283afd4300e58fd051f82baf196c","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":11}
+{"request_id":"rcc-e46438df3c37299edb6b0f8b991d6a86","method":"GET","path":"/api/v1/query-policies","status":200,"duration_ms":1}
+{"request_id":"rcc-dd29028ee4df259c4d23819f46a90a0a","method":"GET","path":"/api/v1/account-roles","status":200,"duration_ms":1}
+{"request_id":"rcc-bbcf1cf96e8e2d025de90e8aea4b9acd","method":"POST","path":"/api/v1/tables/:table_name/query","status":404,"duration_ms":2}
+{"request_id":"rcc-445d5cbaedb91a572a00b51310fea0d0","method":"POST","path":"/api/v1/release-orders","status":422,"duration_ms":3}
+{"request_id":"rcc-33f15f8ef2f2376b1a368d9b70e44e95","method":"PUT","path":"/api/v1/release-orders/:id","status":404,"duration_ms":4}
+{"request_id":"rcc-96524fdfd912dc197756c54668f8edef","method":"POST","path":"/api/v1/release-orders/:id/submit","status":404,"duration_ms":3}
+{"request_id":"rcc-b086077857d38ef4c9e3c099f7434902","method":"POST","path":"/api/v1/release-orders/:id/approve","status":404,"duration_ms":4}
+{"request_id":"rcc-31fcc00bc83ca6de92b57bae39bb85cf","method":"POST","path":"/api/v1/release-orders/:id/reject","status":404,"duration_ms":3}
+{"request_id":"rcc-4b5a937beb20572d6919448fa341b5a8","method":"POST","path":"/api/v1/release-orders/:id/reprepare","status":404,"duration_ms":4}
+{"request_id":"rcc-df4765cdb453fce819dd1cae2adf9a68","method":"POST","path":"/api/v1/release-orders/:id/execute","status":404,"duration_ms":3}
+{"request_id":"rcc-2859c68280877c3bc3502c572f501984","method":"POST","path":"/api/v1/query-policies","status":400,"duration_ms":0}
+{"request_id":"rcc-cac108a3333dcfd741fa38fc77abea6c","method":"PUT","path":"/api/v1/query-policies/:code","status":400,"duration_ms":1}
+{"request_id":"rcc-cb4ce46f6ae67861fa954298e4b80cd9","method":"POST","path":"/api/v1/mutation-policies","status":400,"duration_ms":0}
+{"request_id":"rcc-cf5562a47e201076b06355f43dcd3e63","method":"PUT","path":"/api/v1/mutation-policies/:code","status":400,"duration_ms":0}
+{"request_id":"rcc-18578633105318e627438984db2f5141","method":"POST","path":"/api/v1/table-policies","status":400,"duration_ms":3}
+{"request_id":"rcc-b18a0afc3c8f4f4448db7d9474f67e06","method":"PUT","path":"/api/v1/table-policies/:table_name","status":422,"duration_ms":0}
+{"request_id":"rcc-0b5428d51901164426446399279d95da","method":"POST","path":"/api/v1/query-policies/:code/activate","status":404,"duration_ms":1}
+{"request_id":"rcc-6b5e6d3564a027b7c39e62beeb61be00","method":"POST","path":"/api/v1/query-policies/:code/deprecate","status":404,"duration_ms":1}
+{"request_id":"rcc-ee43165479be419fc36e1e193dbcc865","method":"PATCH","path":"/api/v1/query-policies/:code/metadata","status":400,"duration_ms":0}
+{"request_id":"rcc-e9f37290eec1c3f7bd6b146e90f10c73","method":"DELETE","path":"/api/v1/query-policies/:code","status":404,"duration_ms":1}
+{"request_id":"rcc-e4969bf01c0d0857dc23801d5a3d3f55","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":404,"duration_ms":1}
+{"request_id":"rcc-708644934302b3a568343580905eb8ec","method":"POST","path":"/api/v1/mutation-policies/:code/deprecate","status":404,"duration_ms":1}
+{"request_id":"rcc-00483c90e972a0990630fd6e94462830","method":"PATCH","path":"/api/v1/mutation-policies/:code/metadata","status":400,"duration_ms":0}
+{"request_id":"rcc-ac4224a499231e6dbbdb459f6a27ab0c","method":"DELETE","path":"/api/v1/mutation-policies/:code","status":404,"duration_ms":1}
+{"request_id":"rcc-a38c5d20f08998a6d88237ce7374ba1e","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":422,"duration_ms":0}
+{"request_id":"rcc-2174e3157b5f27d06213551591693e8e","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":422,"duration_ms":0}
+{"request_id":"rcc-3eb4c5a50db8e39a125026cd7d7f0026","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":9}
+{"request_id":"rcc-63df25a2492fcefd4d1a2ac73a84da1e","method":"GET","path":"/api/v1/query-policies","status":200,"duration_ms":1}
+{"request_id":"rcc-d2e9555a7f45c9c6f57c096b809fc8e9","method":"GET","path":"/api/v1/account-roles","status":403,"duration_ms":0}
+{"request_id":"rcc-170c11b23e9292eb83e9f23515f136e7","method":"POST","path":"/api/v1/tables/:table_name/query","status":404,"duration_ms":2}
+{"request_id":"rcc-b9632dde62675201b9875911da6692e2","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":1}
+{"request_id":"rcc-36e796037f4778985713e01ccb5cecf0","method":"PUT","path":"/api/v1/release-orders/:id","status":403,"duration_ms":0}
+{"request_id":"rcc-730cc5dbc28cbb964c491ecb91c685e1","method":"POST","path":"/api/v1/release-orders/:id/submit","status":403,"duration_ms":0}
+{"request_id":"rcc-3736eec27e345cbd2ba92e21a1bab514","method":"POST","path":"/api/v1/release-orders/:id/approve","status":403,"duration_ms":0}
+{"request_id":"rcc-ca4e1df69f8667f69bd18dacaa5fcd80","method":"POST","path":"/api/v1/release-orders/:id/reject","status":403,"duration_ms":0}
+{"request_id":"rcc-c62d8a3a1d44c02240ae5b5104ecfa3e","method":"POST","path":"/api/v1/release-orders/:id/reprepare","status":403,"duration_ms":1}
+{"request_id":"rcc-e977d06b12bb44b4102783b27c9abe0e","method":"POST","path":"/api/v1/release-orders/:id/execute","status":403,"duration_ms":0}
+{"request_id":"rcc-dd13082cf7f8ef3b331f928b5317b380","method":"POST","path":"/api/v1/query-policies","status":403,"duration_ms":1}
+{"request_id":"rcc-785ca72ca6a68f1518755ccac085796a","method":"PUT","path":"/api/v1/query-policies/:code","status":403,"duration_ms":1}
+{"request_id":"rcc-0557124272c8708e4877f229e3a0f368","method":"POST","path":"/api/v1/mutation-policies","status":403,"duration_ms":1}
+{"request_id":"rcc-14576dedc3568a84d781e35c7220fac3","method":"PUT","path":"/api/v1/mutation-policies/:code","status":403,"duration_ms":1}
+{"request_id":"rcc-08159047fc6b4f05f233b05ffa23f032","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":1}
+{"request_id":"rcc-48396eb4dcc5fec0f48fe90a52b5ce5d","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-0d60e002d63b68c6ddfca0a2e514b4c0","method":"POST","path":"/api/v1/query-policies/:code/activate","status":403,"duration_ms":0}
+{"request_id":"rcc-706ffb3ecbf25bb7491c0e9f55035937","method":"POST","path":"/api/v1/query-policies/:code/deprecate","status":403,"duration_ms":0}
+{"request_id":"rcc-3ea7555de10a9f8ed7e734a5fe1f7be6","method":"PATCH","path":"/api/v1/query-policies/:code/metadata","status":403,"duration_ms":1}
+{"request_id":"rcc-fb88a8988be57e3198b6c55758b21722","method":"DELETE","path":"/api/v1/query-policies/:code","status":403,"duration_ms":1}
+{"request_id":"rcc-19004c2603d8bd7c2f684bb9be2efab0","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":403,"duration_ms":0}
+{"request_id":"rcc-d933cf69bf752ae83592dce6f0253099","method":"POST","path":"/api/v1/mutation-policies/:code/deprecate","status":403,"duration_ms":0}
+{"request_id":"rcc-cb9f0de21568d61f1db23206688dcac5","method":"PATCH","path":"/api/v1/mutation-policies/:code/metadata","status":403,"duration_ms":0}
+{"request_id":"rcc-664f3bee93ba22f3f5d021fbd368063f","method":"DELETE","path":"/api/v1/mutation-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-2f88097ce1c285e699563c847c16e2a7","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":1}
+{"request_id":"rcc-c3c4eec6e351a1ccfced11505736bf98","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-8b984747eba922bf84d2c7ad4c43b65a","method":"GET","path":"/api/v1/database-tables","status":200,"duration_ms":4}
+{"request_id":"rcc-7c74961cfb62218b8233f80432539e87","method":"POST","path":"/api/v1/tables/:table_name/query","status":400,"duration_ms":1}
+{"request_id":"rcc-a8578e5ded210bab24e3d72eb9d9cf70","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":4}
+2026/09/11 07:29:14 🐳 Stopping container: b5fb3f5d42d2
+2026/09/11 07:29:15 ✅ Container stopped: b5fb3f5d42d2
+2026/09/11 07:29:15 🐳 Terminating container: b5fb3f5d42d2
+2026/09/11 07:29:15 🚫 Container terminated: b5fb3f5d42d2
+--- PASS: TestCurrentSessionUsesRolePermissionMatrix (10.72s)
+=== RUN   TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost
+2026/09/11 07:29:15 🐳 Creating container for image mysql:8.4
+2026/09/11 07:29:15 ✅ Container created: be242c99570e
+2026/09/11 07:29:15 🐳 Starting container: be242c99570e
+2026/09/11 07:29:15 ✅ Container started: be242c99570e
+2026/09/11 07:29:15 ⏳ Waiting for container id be242c99570e image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:29:22 🔔 Container is ready: be242c99570e
+{"request_id":"rcc-77ffb18a8d1002c3428af0a137eeb99f","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-21d6fd2a75b9913ca0649c982b85f0d5","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":49}
+{"request_id":"rcc-06ed81dc62b54807318abdad5150295e","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-fa49b957ddd0e4efe82a8fc99868d97e","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":57}
+{"request_id":"rcc-f2cccce918ac0e138f867178cb10ec23","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":17}
+{"request_id":"rcc-ab73fa5b3fd47dfc0df2eb6d0d07fbd1","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-7656da625fdc6fb1ef37cb54794c91e2","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":14}
+{"request_id":"rcc-c0a4527e343a7ff010805df0fefee5ec","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-da992b134e74bd0ea574f7bcc1ddd78e","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":47}
+{"request_id":"rcc-39ef601c3b64f4adc210629d45e50edc","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-00a62d35e1ca1d9e5e3dd0e43c2eb6b2","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":51}
+{"request_id":"rcc-aeff4ca2f0a99d9dd80c9bfa68c5e181","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":20}
+{"request_id":"rcc-ceb5d1391347959b7a1b5b78cbd4d9ce","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":50}
+{"request_id":"rcc-ec0e44a19f0cd035150a05a8852d4677","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-4bc6ad113087279a9ef090c7ff1f45b3","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-3a593ffdc6cb04132496ed8750ad0e21","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":9}
+{"request_id":"rcc-bb75b3d8c698e73a87259bd066082a98","method":"POST","path":"/api/v1/release-orders/:id/approve","status":200,"duration_ms":12}
+{"request_id":"rcc-959720e7af3b4a0416cfcd4dac5b0229","method":"POST","path":"/api/v1/release-orders/:id/execute","status":200,"duration_ms":71}
+{"request_id":"rcc-45899edb574873f1d25965dda33ceb83","method":"POST","path":"/api/v1/release-orders/:id/execute","status":200,"duration_ms":10}
+{"request_id":"rcc-487110ddbf67044329d0eb51653dee76","method":"POST","path":"/api/v1/auth/password","status":204,"duration_ms":66}
+{"request_id":"rcc-68d12df4d83dcb2d076057c3a5053573","method":"GET","path":"/api/v1/auth/session","status":401,"duration_ms":1}
+{"request_id":"rcc-a1ba51b0544d5788dae6eea427080610","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-3e25817d6752b0a7bb562780f04da51a","method":"POST","path":"/api/v1/auth/login","status":401,"duration_ms":49}
+{"request_id":"rcc-608f97cd7f366fa023f174fbb513c505","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-8c48c9aab6e1fb17b3dd03b7395872ec","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":53}
+2026/09/11 07:29:23 🐳 Stopping container: be242c99570e
+2026/09/11 07:29:24 ✅ Container stopped: be242c99570e
+2026/09/11 07:29:24 🐳 Terminating container: be242c99570e
+2026/09/11 07:29:24 🚫 Container terminated: be242c99570e
+--- PASS: TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost (8.96s)
+=== RUN   TestBusinessAPIsRequireSessionAndCSRF
+2026/09/11 07:29:24 🐳 Creating container for image mysql:8.4
+2026/09/11 07:29:24 ✅ Container created: e6d56857a5aa
+2026/09/11 07:29:24 🐳 Starting container: e6d56857a5aa
+2026/09/11 07:29:24 ✅ Container started: e6d56857a5aa
+2026/09/11 07:29:24 ⏳ Waiting for container id e6d56857a5aa image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:29:31 🔔 Container is ready: e6d56857a5aa
+{"request_id":"rcc-672664389c14ceb32731613161fdc4be","method":"GET","path":"/api/v1/database-tables","status":401,"duration_ms":0}
+{"request_id":"rcc-fcfa37c46e1839a60ae2bd5527d8f2cd","method":"GET","path":"/api/v1/database-tables","status":401,"duration_ms":0}
+{"request_id":"rcc-a5aea661416e9134290eefbd07cf0491","method":"GET","path":"/api/v1/database-tables/:table_name","status":401,"duration_ms":0}
+{"request_id":"rcc-4061f98a7db67b0d0720e271576c9b5e","method":"GET","path":"/api/v1/database-tables/:table_name","status":401,"duration_ms":0}
+{"request_id":"rcc-280af3b819984f1a26ec4fb288fc42a0","method":"GET","path":"/api/v1/query-policy-types","status":401,"duration_ms":0}
+{"request_id":"rcc-b2050704ab59f02a43bc8d66d1471dd1","method":"GET","path":"/api/v1/query-policy-types","status":401,"duration_ms":0}
+{"request_id":"rcc-565d2db287a68959688a01a35408a168","method":"GET","path":"/api/v1/mutation-policy-types","status":401,"duration_ms":0}
+{"request_id":"rcc-43a33009b97ccc5c74364c70d83b20e6","method":"GET","path":"/api/v1/mutation-policy-types","status":401,"duration_ms":0}
+{"request_id":"rcc-2df85187d6b70d46196d3dc284d84858","method":"GET","path":"/api/v1/query-policies","status":401,"duration_ms":0}
+{"request_id":"rcc-26eb2d7dccd411e8235f5a5684abc19c","method":"GET","path":"/api/v1/query-policies","status":401,"duration_ms":0}
+{"request_id":"rcc-5c21dd924e6c254efe38733eff39897e","method":"POST","path":"/api/v1/query-policies","status":401,"duration_ms":0}
+{"request_id":"rcc-152b646ed4ddc9a62d284f335aa20b05","method":"POST","path":"/api/v1/query-policies","status":401,"duration_ms":0}
+{"request_id":"rcc-6ebad7e67a44090c21a4efc79d2d726c","method":"GET","path":"/api/v1/query-policies/:code","status":401,"duration_ms":0}
+{"request_id":"rcc-f3e5fb25dbc6ee94ddf707beffb51a3b","method":"GET","path":"/api/v1/query-policies/:code","status":401,"duration_ms":0}
+{"request_id":"rcc-ce78f8e61e5358c7a004be057453f3ff","method":"PUT","path":"/api/v1/query-policies/:code","status":401,"duration_ms":0}
+{"request_id":"rcc-413af119171c1763c7217b1de0dd4ac8","method":"PUT","path":"/api/v1/query-policies/:code","status":401,"duration_ms":0}
+{"request_id":"rcc-2438f8db0f119d8b234b5b39e2b0b4a3","method":"PATCH","path":"/api/v1/query-policies/:code/metadata","status":401,"duration_ms":0}
+{"request_id":"rcc-2a76ed2b0a459978f1a191f6d98848f9","method":"PATCH","path":"/api/v1/query-policies/:code/metadata","status":401,"duration_ms":0}
+{"request_id":"rcc-c21b0f52cc02dc07fe159656a83617cc","method":"POST","path":"/api/v1/query-policies/:code/activate","status":401,"duration_ms":0}
+{"request_id":"rcc-99fb593c61d9e067804bd4bf9a655e93","method":"POST","path":"/api/v1/query-policies/:code/activate","status":401,"duration_ms":0}
+{"request_id":"rcc-a51513d140f9540a024f06dda6ae057d","method":"POST","path":"/api/v1/query-policies/:code/deprecate","status":401,"duration_ms":0}
+{"request_id":"rcc-e9a0f3045ae312528170bc74541acf98","method":"POST","path":"/api/v1/query-policies/:code/deprecate","status":401,"duration_ms":0}
+{"request_id":"rcc-391ca0bf843faa6a32262665c241873a","method":"DELETE","path":"/api/v1/query-policies/:code","status":401,"duration_ms":0}
+{"request_id":"rcc-ed05f456c69e0c7c7bc850203001d01f","method":"DELETE","path":"/api/v1/query-policies/:code","status":401,"duration_ms":0}
+{"request_id":"rcc-bdc8881e52a10f076815571db45ced37","method":"GET","path":"/api/v1/mutation-policies","status":401,"duration_ms":0}
+{"request_id":"rcc-94729dc73a81091e7c1c37144e7a31b4","method":"GET","path":"/api/v1/mutation-policies","status":401,"duration_ms":0}
+{"request_id":"rcc-1e43b6654cb9381e8d06e314cde44f89","method":"POST","path":"/api/v1/mutation-policies","status":401,"duration_ms":0}
+{"request_id":"rcc-24cc314fdc1e4e550147d2ef15b0816b","method":"POST","path":"/api/v1/mutation-policies","status":401,"duration_ms":0}
+{"request_id":"rcc-5821c83b4d3c3971daba19cdd55a069d","method":"GET","path":"/api/v1/mutation-policies/:code","status":401,"duration_ms":0}
+{"request_id":"rcc-934f9272a88901f5916e5d70e1f707e9","method":"GET","path":"/api/v1/mutation-policies/:code","status":401,"duration_ms":0}
+{"request_id":"rcc-864f2f062dc87319343712db158f180a","method":"PUT","path":"/api/v1/mutation-policies/:code","status":401,"duration_ms":0}
+{"request_id":"rcc-11f7f0b322d29a4ab6baf70ed787b77b","method":"PUT","path":"/api/v1/mutation-policies/:code","status":401,"duration_ms":0}
+{"request_id":"rcc-beb817430d9ef2ac48dbc31ec9af232e","method":"PATCH","path":"/api/v1/mutation-policies/:code/metadata","status":401,"duration_ms":0}
+{"request_id":"rcc-41c451bf74fd2737173bbbf5c9aaff87","method":"PATCH","path":"/api/v1/mutation-policies/:code/metadata","status":401,"duration_ms":0}
+{"request_id":"rcc-ca228a7bac39c2c47586e357df598c57","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":401,"duration_ms":0}
+{"request_id":"rcc-9d4baaa9514d1c0ca115483a3d8f651d","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":401,"duration_ms":0}
+{"request_id":"rcc-982d9c3cf427c2b101df15cbcd746f1c","method":"POST","path":"/api/v1/mutation-policies/:code/deprecate","status":401,"duration_ms":0}
+{"request_id":"rcc-dbf539bf73e23e89598b3673f477e416","method":"POST","path":"/api/v1/mutation-policies/:code/deprecate","status":401,"duration_ms":0}
+{"request_id":"rcc-08902628d1a9e6b333e7955762e64fc2","method":"DELETE","path":"/api/v1/mutation-policies/:code","status":401,"duration_ms":0}
+{"request_id":"rcc-7ebf642461572bb21a4c5672aff901a6","method":"DELETE","path":"/api/v1/mutation-policies/:code","status":401,"duration_ms":0}
+{"request_id":"rcc-1834e5d8a64aaf2a2b6a0161d947f0dc","method":"GET","path":"/api/v1/table-policies","status":401,"duration_ms":0}
+{"request_id":"rcc-b3a205ab934c70ebbd3c0740e06e2746","method":"GET","path":"/api/v1/table-policies","status":401,"duration_ms":0}
+{"request_id":"rcc-32d67f4c5219e2edca745d782e421663","method":"POST","path":"/api/v1/table-policies","status":401,"duration_ms":0}
+{"request_id":"rcc-175acb4963f448696f157a5d889ba389","method":"POST","path":"/api/v1/table-policies","status":401,"duration_ms":0}
+{"request_id":"rcc-c7efcb69dc2857eec6e93962101f1bc9","method":"GET","path":"/api/v1/table-policies/:table_name","status":401,"duration_ms":0}
+{"request_id":"rcc-2e9c6e1427912cb7a4ddbf0d6b7f8f9e","method":"GET","path":"/api/v1/table-policies/:table_name","status":401,"duration_ms":0}
+{"request_id":"rcc-a7c5ca4736f5dd20a11afd4440c8b222","method":"PUT","path":"/api/v1/table-policies/:table_name","status":401,"duration_ms":0}
+{"request_id":"rcc-34851e0687fb26d3213179808342b703","method":"PUT","path":"/api/v1/table-policies/:table_name","status":401,"duration_ms":0}
+{"request_id":"rcc-63df44ef232f3af905dd37111053516e","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":401,"duration_ms":0}
+{"request_id":"rcc-e544ba77d92b27ea6047e8e017d99b13","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":401,"duration_ms":0}
+{"request_id":"rcc-da5beefc1b4879f26284359183e8ffca","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":401,"duration_ms":0}
+{"request_id":"rcc-537318ebda7e2f41d9eb7ca4e19ca1fa","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":401,"duration_ms":0}
+{"request_id":"rcc-2e77732292e4ad34020caec84ee73fb3","method":"POST","path":"/api/v1/tables/:table_name/query","status":401,"duration_ms":0}
+{"request_id":"rcc-fe6d612bd0e834a59fa2aa3edb2cfae9","method":"POST","path":"/api/v1/tables/:table_name/query","status":401,"duration_ms":0}
+{"request_id":"rcc-72872efa6064373686a973b131163b83","method":"GET","path":"/api/v1/release-orders","status":401,"duration_ms":0}
+{"request_id":"rcc-5d85135f79451c73220ab1b8dbb33250","method":"GET","path":"/api/v1/release-orders","status":401,"duration_ms":0}
+{"request_id":"rcc-69a97d61ff60d57a810dab5b545f65de","method":"POST","path":"/api/v1/release-orders","status":401,"duration_ms":0}
+{"request_id":"rcc-4fd911de32c0e65fe96b771e7b226c72","method":"POST","path":"/api/v1/release-orders","status":401,"duration_ms":0}
+{"request_id":"rcc-771d889f9ae75a85b4a746d08b417c72","method":"GET","path":"/api/v1/release-orders/:id","status":401,"duration_ms":0}
+{"request_id":"rcc-5b53bc817414c3a72e3b4022df9ab3ee","method":"GET","path":"/api/v1/release-orders/:id","status":401,"duration_ms":0}
+{"request_id":"rcc-9644774b932b38f67650f8bc95e9ddc6","method":"PUT","path":"/api/v1/release-orders/:id","status":401,"duration_ms":0}
+{"request_id":"rcc-37ee18133ff5eb8b65c3652f21d91856","method":"PUT","path":"/api/v1/release-orders/:id","status":401,"duration_ms":0}
+{"request_id":"rcc-968f9f4bec6569743972139ee28f97d5","method":"POST","path":"/api/v1/release-orders/:id/submit","status":401,"duration_ms":0}
+{"request_id":"rcc-463ad59c61414b6f6a43ed0cc8f7706b","method":"POST","path":"/api/v1/release-orders/:id/submit","status":401,"duration_ms":0}
+{"request_id":"rcc-f5fe1717401a0728d1c4be5d652a7e8f","method":"POST","path":"/api/v1/release-orders/:id/approve","status":401,"duration_ms":0}
+{"request_id":"rcc-119649cc709d3b538c26642c9a8ae4f8","method":"POST","path":"/api/v1/release-orders/:id/approve","status":401,"duration_ms":0}
+{"request_id":"rcc-3d869e83bd9ef87049b46ddfcdc76af8","method":"POST","path":"/api/v1/release-orders/:id/reject","status":401,"duration_ms":0}
+{"request_id":"rcc-de7bd62c8b3e8572a07eff74fcd6b074","method":"POST","path":"/api/v1/release-orders/:id/reject","status":401,"duration_ms":0}
+{"request_id":"rcc-cc1746c329e6ebd88d9c768b0ab00335","method":"POST","path":"/api/v1/release-orders/:id/cancel","status":401,"duration_ms":0}
+{"request_id":"rcc-1f20c4ecb79961b1857cbbeab1548296","method":"POST","path":"/api/v1/release-orders/:id/cancel","status":401,"duration_ms":0}
+{"request_id":"rcc-b481b9256364d20b72af3b35e9c61ef1","method":"POST","path":"/api/v1/release-orders/:id/copy","status":401,"duration_ms":0}
+{"request_id":"rcc-51f32b29798f551cf60cade6efebddc9","method":"POST","path":"/api/v1/release-orders/:id/copy","status":401,"duration_ms":0}
+{"request_id":"rcc-41fa459d730b12e9dd286bd391fe33f7","method":"POST","path":"/api/v1/release-orders/:id/reprepare","status":401,"duration_ms":0}
+{"request_id":"rcc-7c2b317a785267b161d74ed69a5aa477","method":"POST","path":"/api/v1/release-orders/:id/reprepare","status":401,"duration_ms":0}
+{"request_id":"rcc-e6ca88cdee4d289b9685386586b174bb","method":"POST","path":"/api/v1/release-orders/:id/execute","status":401,"duration_ms":0}
+{"request_id":"rcc-63ed4914a4f8447ec8da341f14907f6f","method":"POST","path":"/api/v1/release-orders/:id/execute","status":401,"duration_ms":0}
+{"request_id":"rcc-aef464c2d807cc2f0ba213b8090c3d12","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":8}
+{"request_id":"rcc-b95b3a875e08e543f4e0938e272e69e5","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-69718d9a5c32edf379e56e1e49796583","method":"POST","path":"/api/v1/query-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-3660ddccc997c4149d7be12e52f04ffd","method":"PUT","path":"/api/v1/query-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-7e185f00b1abaa060d5c496704429a1d","method":"PATCH","path":"/api/v1/query-policies/:code/metadata","status":403,"duration_ms":0}
+{"request_id":"rcc-4f625da47ea0a18c4fce68b4a1bbaa49","method":"POST","path":"/api/v1/query-policies/:code/activate","status":403,"duration_ms":0}
+{"request_id":"rcc-9e8f9369fbda543783153415f537120f","method":"POST","path":"/api/v1/query-policies/:code/deprecate","status":403,"duration_ms":0}
+{"request_id":"rcc-e62d44fd92c29b59ba0d57ac4c469f97","method":"DELETE","path":"/api/v1/query-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-652b6eb472423d170f191c5604d7adaa","method":"POST","path":"/api/v1/mutation-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-2b38e11c60cbd327bcf2d584ac0589fc","method":"PUT","path":"/api/v1/mutation-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-79d10b14087b5fe6a91f79a2b552c166","method":"PATCH","path":"/api/v1/mutation-policies/:code/metadata","status":403,"duration_ms":0}
+{"request_id":"rcc-28f6ef7a14efc03385227266477b3c1c","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":403,"duration_ms":0}
+{"request_id":"rcc-3d178ea9590b7545e553da5e50ec01cb","method":"POST","path":"/api/v1/mutation-policies/:code/deprecate","status":403,"duration_ms":0}
+{"request_id":"rcc-e8ab52679a7831590ebc9f8f6195cd47","method":"DELETE","path":"/api/v1/mutation-policies/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-bfed5b64c45eb2ae8116ac73f6b60c46","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-07a7d4d5de160e92b8591cfe2b83cdc0","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-dba4da6be95409a2ed0d6156ba4fbd70","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-379574ab1763d4e9675f3c78c734e387","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-d59ae177ab6ecceebe08ea15ea232c58","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-06f78b605759f8c895dd534b8e7d8fa4","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":0}
+{"request_id":"rcc-45fb03e0d43a845f1c3fd010a9425ed7","method":"PUT","path":"/api/v1/release-orders/:id","status":403,"duration_ms":0}
+{"request_id":"rcc-e5c8a1563e7cdf2772374fa3543bb4cb","method":"POST","path":"/api/v1/release-orders/:id/submit","status":403,"duration_ms":0}
+{"request_id":"rcc-5e50c2001af301d21e433e19a021a020","method":"POST","path":"/api/v1/release-orders/:id/approve","status":403,"duration_ms":0}
+{"request_id":"rcc-f86fae5af4ce3165a69f991a86d70e70","method":"POST","path":"/api/v1/release-orders/:id/reject","status":403,"duration_ms":0}
+{"request_id":"rcc-72408e6e6bcac3c415a23b48f3b0833c","method":"POST","path":"/api/v1/release-orders/:id/cancel","status":403,"duration_ms":0}
+{"request_id":"rcc-515a76913418aa73a7a559e52e5adf0e","method":"POST","path":"/api/v1/release-orders/:id/copy","status":403,"duration_ms":0}
+{"request_id":"rcc-f9e41399eee3d2986fbcef0762618e58","method":"POST","path":"/api/v1/release-orders/:id/reprepare","status":403,"duration_ms":0}
+{"request_id":"rcc-54cce86b64ae53551bb1934fd6031dfd","method":"POST","path":"/api/v1/release-orders/:id/execute","status":403,"duration_ms":0}
+{"request_id":"rcc-3b6475be7f0ae0bba0c1124a7262e875","method":"POST","path":"/api/v1/query-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-f51ee4fdd65b9c9f2dd342c9228a9709","method":"POST","path":"/api/v1/query-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-348e825dfcb3a5db332bfec5d67aecc6","method":"GET","path":"/api/v1/query-policies","status":200,"duration_ms":1}
+2026/09/11 07:29:32 🐳 Stopping container: e6d56857a5aa
+2026/09/11 07:29:33 ✅ Container stopped: e6d56857a5aa
+2026/09/11 07:29:33 🐳 Terminating container: e6d56857a5aa
+2026/09/11 07:29:33 🚫 Container terminated: e6d56857a5aa
+--- PASS: TestBusinessAPIsRequireSessionAndCSRF (9.06s)
+=== RUN   TestConcurrentAccountsOwnTheirBusinessChanges
+2026/09/11 07:29:33 🐳 Creating container for image mysql:8.4
+2026/09/11 07:29:33 ✅ Container created: 66fc8ddcf892
+2026/09/11 07:29:33 🐳 Starting container: 66fc8ddcf892
+2026/09/11 07:29:33 ✅ Container started: 66fc8ddcf892
+2026/09/11 07:29:33 ⏳ Waiting for container id 66fc8ddcf892 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:29:40 🔔 Container is ready: 66fc8ddcf892
+{"request_id":"rcc-56b9d3a2490d1008ca67bb11d95f5b00","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-eb84579e1056d6e8a05c143d4661986c","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-1fa36a4ec5c00350eaf861693dfde6f1","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":4}
+{"request_id":"rcc-347e539c221213f7194edd83e71494da","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+=== RUN   TestConcurrentAccountsOwnTheirBusinessChanges/actor_alpha
+=== PAUSE TestConcurrentAccountsOwnTheirBusinessChanges/actor_alpha
+=== RUN   TestConcurrentAccountsOwnTheirBusinessChanges/actor_beta
+=== PAUSE TestConcurrentAccountsOwnTheirBusinessChanges/actor_beta
+=== CONT  TestConcurrentAccountsOwnTheirBusinessChanges/actor_alpha
+=== CONT  TestConcurrentAccountsOwnTheirBusinessChanges/actor_beta
+{"request_id":"rcc-8e6ba86d55d88d77c5e740e086188cba","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":5}
+{"request_id":"rcc-9bd0b2320642244424e0958f2ae98168","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":8}
+{"request_id":"rcc-7ee58c0903e6dbeae2ffa9cbaf8e6e69","method":"PUT","path":"/api/v1/query-policies/:code","status":200,"duration_ms":4}
+{"request_id":"rcc-cb7b7b31c59aa9c7682f1aff9b0c5934","method":"PUT","path":"/api/v1/query-policies/:code","status":200,"duration_ms":3}
+{"request_id":"rcc-68c026fffcc5d8518287795641b48535","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":6}
+{"request_id":"rcc-60f0848d7fd16b4ee364005a6830315f","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":7}
+{"request_id":"rcc-b11044509b53839da4a70e925c2ad4d9","method":"PATCH","path":"/api/v1/query-policies/:code/metadata","status":200,"duration_ms":6}
+{"request_id":"rcc-fdcb901fd0c9fa4c36bb3d44d7d456f9","method":"PATCH","path":"/api/v1/query-policies/:code/metadata","status":200,"duration_ms":5}
+{"request_id":"rcc-f2b069d70b75a44c1618c69f3af09bdf","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":5}
+{"request_id":"rcc-f39726e77e7fa0015c2463ae0127018d","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":5}
+{"request_id":"rcc-59950d316a621ecf9f1ac160ad7a5a60","method":"PUT","path":"/api/v1/mutation-policies/:code","status":200,"duration_ms":4}
+{"request_id":"rcc-af8b10c4f1414a68d4c4e9182f52e724","method":"PUT","path":"/api/v1/mutation-policies/:code","status":200,"duration_ms":3}
+{"request_id":"rcc-67b31715b9d75bc9266b9f1a2a760371","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":5}
+{"request_id":"rcc-d4bad439e8938e0b751d765ad38441bc","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":6}
+{"request_id":"rcc-1794ba1fcaaa923e5578426e9fb8eee1","method":"PATCH","path":"/api/v1/mutation-policies/:code/metadata","status":200,"duration_ms":5}
+{"request_id":"rcc-a8b0499ccb6ad5df32188a40534beea3","method":"POST","path":"/api/v1/table-policies","status":422,"duration_ms":0}
+=== NAME  TestConcurrentAccountsOwnTheirBusinessChanges/actor_alpha
+    business_auth_integration_test.go:288: POST /api/v1/table-policies: 422 {"error":{"code":"invalid_table_policy_request","message":"original request key and observed version are required","request_id":"rcc-a8b0499ccb6ad5df32188a40534beea3"}}
+{"request_id":"rcc-bbdc3a305fe70b9ce985320c41cf9d04","method":"PATCH","path":"/api/v1/mutation-policies/:code/metadata","status":200,"duration_ms":5}
+{"request_id":"rcc-f74d5e4ff1abdd04f92faea78191420e","method":"POST","path":"/api/v1/table-policies","status":422,"duration_ms":1}
+=== NAME  TestConcurrentAccountsOwnTheirBusinessChanges/actor_beta
+    business_auth_integration_test.go:288: POST /api/v1/table-policies: 422 {"error":{"code":"invalid_table_policy_request","message":"original request key and observed version are required","request_id":"rcc-f74d5e4ff1abdd04f92faea78191420e"}}
+2026/09/11 07:29:41 🐳 Stopping container: 66fc8ddcf892
+2026/09/11 07:29:42 ✅ Container stopped: 66fc8ddcf892
+2026/09/11 07:29:42 🐳 Terminating container: 66fc8ddcf892
+2026/09/11 07:29:42 🚫 Container terminated: 66fc8ddcf892
+--- FAIL: TestConcurrentAccountsOwnTheirBusinessChanges (8.75s)
+    --- FAIL: TestConcurrentAccountsOwnTheirBusinessChanges/actor_alpha (0.05s)
+    --- FAIL: TestConcurrentAccountsOwnTheirBusinessChanges/actor_beta (0.05s)
+=== RUN   TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory
+2026/09/11 07:29:42 🐳 Creating container for image mysql:8.4
+2026/09/11 07:29:42 ✅ Container created: 6dbb041e7b40
+2026/09/11 07:29:42 🐳 Starting container: 6dbb041e7b40
+2026/09/11 07:29:42 ✅ Container started: 6dbb041e7b40
+2026/09/11 07:29:42 ⏳ Waiting for container id 6dbb041e7b40 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:29:49 🔔 Container is ready: 6dbb041e7b40
+{"request_id":"rcc-696141d261a8e638a724c41d2c9ed65a","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-ba7dafb78c0a6d6889a3495611e1fd7f","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":42}
+{"request_id":"rcc-2035adbafd36e796e2b859e1b338717f","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-44ae4bbb4b008a5de03e1e9edd3e5e04","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-783d87626ead521aa2b7961d4d20d589","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-c6fea981fca43350ad0350415dc2b77e","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":5}
+{"request_id":"rcc-64d73ea575a08eaa1fe32f8f29575f62","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":16}
+{"request_id":"rcc-1be59e84010cfed3a29352bcb19df70b","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":13}
+{"request_id":"rcc-41fab866e43d99fe4c53b9f81d9642aa","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-89026add23b1096dbdc23f15154a0198","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":41}
+{"request_id":"rcc-2242b7d49229fa9417c6a67beed0d8ca","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-21c8ca44a84ff7f46cfd65c32ffccbfd","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-7d220e324881453c55e62b459e67fed1","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-567f4e95dd0d9d4c6561eae09abd7bd6","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":53}
+{"request_id":"rcc-50f560e6689044c0b27a2970f8875803","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":9}
+{"request_id":"rcc-2e79172932ddf6dc105bd40291fd640c","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":20}
+{"request_id":"rcc-23054cb326d6c953e1a75aa4ce5570b2","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":19}
+{"request_id":"rcc-525940a7ae3dfaeb9a2c282949ed3d4c","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":46}
+{"request_id":"rcc-e964634a1fd51ae14132a56bd9f259ca","method":"POST","path":"/api/v1/release-orders/:id/approve","status":200,"duration_ms":14}
+{"request_id":"rcc-3e36f98b1021a7f6f93c5b6d673f82a8","method":"POST","path":"/api/v1/release-orders","status":422,"duration_ms":11}
+{"request_id":"rcc-e0c3846a4a8683d289edf6b3ab5bfd1d","method":"POST","path":"/api/v1/release-orders/:id/submit","status":422,"duration_ms":35}
+{"request_id":"rcc-89580331f6c5e6c0677ce2e85c8be493","method":"POST","path":"/api/v1/release-orders/:id/execute","status":409,"duration_ms":34}
+{"request_id":"rcc-1d99a982f74f294970e7dd4a7fdad4d5","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":3}
+{"request_id":"rcc-fd1b69a8086f3ad8e67907631e0f7551","method":"GET","path":"/api/v1/release-orders/:id/details","status":200,"duration_ms":4}
+{"request_id":"rcc-920678b1036448b70e62c3d1246e2595","method":"POST","path":"/api/v1/tables/:table_name/query","status":200,"duration_ms":11}
+{"request_id":"rcc-1c8abb6e138ca440fb5e556fb2bcf19d","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":19}
+{"request_id":"rcc-d7bfc6a06a69bb6b15a58a0ddcd3f041","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":20}
+{"request_id":"rcc-c3b3b41b5f3620bc64abba6849d28670","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":43}
+{"request_id":"rcc-703684af598b92516fdae95d713b0aaf","method":"POST","path":"/api/v1/release-orders/:id/approve","status":200,"duration_ms":15}
+{"request_id":"rcc-0f6919d5c9a159cc68b367095b6eba6d","method":"POST","path":"/api/v1/release-orders","status":422,"duration_ms":11}
+{"request_id":"rcc-22163004a516f6685ba2c36478b2d6e4","method":"POST","path":"/api/v1/release-orders/:id/submit","status":422,"duration_ms":34}
+{"request_id":"rcc-071a5cd16597ad2bb96bb027ceee1b11","method":"POST","path":"/api/v1/release-orders/:id/execute","status":409,"duration_ms":45}
+{"request_id":"rcc-cfe2c9d7f3b07360a4739f4c98e9fa7c","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":3}
+{"request_id":"rcc-42c3da4f1ed5d43179a797b56e7c94ec","method":"GET","path":"/api/v1/release-orders/:id/details","status":200,"duration_ms":3}
+{"request_id":"rcc-1545a3300ab97ebf13bf6b1bf2baed0c","method":"POST","path":"/api/v1/tables/:table_name/query","status":200,"duration_ms":11}
+{"request_id":"rcc-dd04602fd1172a050bbd476eb9856f9c","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":20}
+{"request_id":"rcc-2883064e1c3bdd5426e7d4606aae6b64","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":19}
+{"request_id":"rcc-9e42d2b53f5c1e26c4bfe61dbacfe062","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":46}
+{"request_id":"rcc-cd8eafe487e0d7c69a12ecd1c1eaadb6","method":"POST","path":"/api/v1/release-orders/:id/approve","status":200,"duration_ms":14}
+{"request_id":"rcc-f8b11994caf47bfbb6df2248d8d7e102","method":"POST","path":"/api/v1/release-orders","status":422,"duration_ms":12}
+{"request_id":"rcc-9acc1d1ee9c103b56d9b6c554a768817","method":"POST","path":"/api/v1/release-orders/:id/submit","status":422,"duration_ms":36}
+{"request_id":"rcc-af787d1f80fba2b92ee94653cff67823","method":"POST","path":"/api/v1/release-orders/:id/execute","status":409,"duration_ms":34}
+{"request_id":"rcc-db8c650d7117a9e3b5525202e683a661","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":3}
+{"request_id":"rcc-67e1640ffbc982919a69d131ba1c0e48","method":"GET","path":"/api/v1/release-orders/:id/details","status":200,"duration_ms":4}
+{"request_id":"rcc-439cab3b57099f2068b57b14b59af402","method":"POST","path":"/api/v1/tables/:table_name/query","status":200,"duration_ms":11}
+{"request_id":"rcc-b1fae6d7372350a5f623752b39526ca9","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":21}
+{"request_id":"rcc-87afecf7dde7e483801201d6a47aa4e8","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":45}
+{"request_id":"rcc-2a8ad70f991d2b5a237a129957d4da93","method":"POST","path":"/api/v1/release-orders/:id/approve","status":200,"duration_ms":13}
+{"request_id":"rcc-473a7f1f0044a514206df3dd756d5079","method":"POST","path":"/api/v1/release-orders/:id/execute","status":200,"duration_ms":66}
+2026/09/11 07:29:51 🐳 Stopping container: 6dbb041e7b40
+2026/09/11 07:29:52 ✅ Container stopped: 6dbb041e7b40
+2026/09/11 07:29:52 🐳 Terminating container: 6dbb041e7b40
+2026/09/11 07:29:52 🚫 Container terminated: 6dbb041e7b40
+--- PASS: TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory (9.86s)
+=== RUN   TestAccountControlTablesCannotBeDiscoveredOrManaged
+2026/09/11 07:29:52 🐳 Creating container for image mysql:8.4
+2026/09/11 07:29:52 ✅ Container created: 376cc2553993
+2026/09/11 07:29:52 🐳 Starting container: 376cc2553993
+2026/09/11 07:29:52 ✅ Container started: 376cc2553993
+2026/09/11 07:29:52 ⏳ Waiting for container id 376cc2553993 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:29:58 🔔 Container is ready: 376cc2553993
+{"request_id":"rcc-f9cb1c5935d7bfe17e1a942fd89e2c98","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-2db06bdc4ba7fe1b6d811a98e68a7f93","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-88a427a1c48ed62add4c3a4d203e9ea3","method":"GET","path":"/api/v1/database-tables","status":200,"duration_ms":4}
+{"request_id":"rcc-08bfe9452f671c3323ecab35e004876d","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":2}
+{"request_id":"rcc-661c00d9d6fc286a4b8a83ee87c0c52e","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-7fffdd12eb55f39449a74351a641651a","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-4f76ebb883a307b6cdebfecbfe5614aa","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":1}
+{"request_id":"rcc-eab4fa8e1e0582e97d7ce6dd53bbf0ae","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":1}
+{"request_id":"rcc-5ca8dd7eb31cf0bfdd2a0d7778df6bc4","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-45d149cc3f4bacb6ace476d28e33d1f8","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-5cd85988e17e2ea632d59a33e96aa8ef","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-753fd30b7e949460907f8d8ca83a3c77","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":4}
+{"request_id":"rcc-3b0065b2b512ce40b90a2a4e5ccaa203","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-42c93dd1397b03eb708e042bb8f635e2","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":3}
+{"request_id":"rcc-e9bbb5b4a552066c43ba899d9fd94eb0","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-b925479d863d2562322d0cb95b700e6b","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-06541a3dc8903e2031b327121e41d4d1","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-7cd23cdefb6af53e02328af8221c249a","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-1f508516a2166c46afb8c79d0119921a","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-3086ccb30c3d564828c3c17e1b6b1ac0","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-fe1ed1ff75f2eba97aeadebe781f822f","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-3df476fe41fe3a314f36f2cadfa4a8ad","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-3164c9f7e750e8eb581a9ccc004875d9","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-10dea1efad01913615fa676caa9f767e","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":3}
+{"request_id":"rcc-96395393cea2cc882345ccc3d35e62e0","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-c95af9c98cdf1566d535d86b26adde48","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-7e5c7c7ba0b296531f335933b58e1155","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-91c6cb43a6176cdea8e3b4ea0c3145eb","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-b963dddd274927aab8d61ede718b2e9e","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-29190e2b43e99949fbe5016fa95c7ae9","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-24466798020092f03ac01fe070aef271","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-1525509b9b9a20a41f678279f742ebcc","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-5ca11f8a6a2400687cb12748a690dcbc","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-cc853ebc7795b7a91208e30f6ae9e2cf","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":3}
+{"request_id":"rcc-f27ad8a061aa29760c967fee16747a62","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-df26da08de93db6da545693c78f7c63b","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-3af17630dad51509af980a03b75e6d31","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-ee5682c48f3a29f4eb8d029947760d75","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-5f173c160a25e2fb042b75004950b5c7","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-b0fdd865a39df4d01e1d9c12c9326871","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":1}
+{"request_id":"rcc-cfb32f34d705928ddf9db3023bd8040b","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-458aab538190012ca8ad3a122f51c106","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-11ab52560da962e34d69793bad6ebde2","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-49235ff0d2f94b373d3cf9272cddef1b","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":2}
+{"request_id":"rcc-ddc10609af7f818a2258bb2e7c9eab23","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-6b8158a338c5fe983c39bb4ef1dacff0","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-95e609959b1c154b1a66aabbbd4b13e0","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-00821d7fe2f069a16f7c4c90d255d7a6","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-4b672bb6c08eb16d621170c6463faf7a","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-22b6a97897746ae90276b613cfe80459","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-a9f2f1d015980714651fade2ff92d5b2","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-2c92b50eeed1edad4665f47b9b7962e5","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-c93752d1a9dde77d9614043a7f4ef890","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-66a84c0397dc5fb1a629b358e1a91963","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":2}
+{"request_id":"rcc-476d9d8fad80069df9940e0b5fb22cc5","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":1}
+{"request_id":"rcc-c603a975044bda18643c979a1f815b54","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-f163682c7e9fabed0cf41cf79b9dff0d","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-0b87469fc3dc4a8d21a6c24b1af7ad4d","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-f4d2045d86b22713adb4766004441a82","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-dc6326b060705b5f558d842cba86d3bc","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-1ef347847120bb22190d5567922d1e8d","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-71f7cbce74d4af5b9c9faeb92fa17887","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-f7598d49f197ca400c7a8d3937c4dac0","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-7a9dd61de00c46f2faf0b10ce7a18402","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":3}
+{"request_id":"rcc-dbf5c00e3cd67e335acf253f29c60b50","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":1}
+{"request_id":"rcc-a043ff144a668739f22dcf554ac81ed8","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":1}
+{"request_id":"rcc-1d63183771770f913900ec2dc670acbd","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":1}
+{"request_id":"rcc-e41426a28e20b9da9c7a7b03ac2ee904","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":1}
+{"request_id":"rcc-0ddd8af471153bb3b0a7dd2847565c4e","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-cf9a0db1792f62ac1249f912b4aea16b","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-05ad0a5ae24ecda29be13b0308a53659","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-997763e7dc2cbaaab7d85961995b3463","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-eda802d15b80df9d169bad06c7a18985","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-19b211f2510982ec92e8af9446a6af57","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":3}
+{"request_id":"rcc-1e776d9344411e03057577b7049cffab","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-9a902d4f3da27a32ac155ef00a36e8cf","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-f37f33d26aac1b996972302cf6678329","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-d2b6019b3f53a7066bff47a7385ad799","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-7ecbc17c4c5e31236670f4dc686bd639","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":1}
+{"request_id":"rcc-8205bb86cee92166e4c9b3a60efcdd70","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-8c2db3af20855af9b23be40fb17ae460","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-99b198821f7b34ec8389b26a6e1af7b1","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-8a3b7f67fb8df33b1dab286f304d2999","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":4}
+{"request_id":"rcc-d1e057b7ec5a0f85c6b2dc4b82f0c908","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":2}
+{"request_id":"rcc-039883934bb7ef2ba89c41a8f2999fff","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-de6f683aead1f229048369d0f5712129","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-e987e8eaf78c16721e2cd56c121cb224","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":1}
+{"request_id":"rcc-08e6ee4a53a4e9470d9551b8a3a47c69","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-1b2b6259b44cd6075cde97ee4d301be4","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-0c1187f9ae6fcb09c2c16fdd227e1b23","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-c0b64ca01cce0d33da946905874ac25a","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-13207c8ab301d40b498b0e7a8bf29f37","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":4}
+{"request_id":"rcc-f1cd4aa48d294c8dd6b57ff4168f4536","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-85927e4e1f26b39b7e733c09965cddd2","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":2}
+{"request_id":"rcc-41b393aa83a93523ae3df00a578e6a1b","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":1}
+{"request_id":"rcc-de124b720732abbe53e195c1ab89db8a","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":1}
+{"request_id":"rcc-37187e97b21f7b72b41cde6702c28b0d","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-6dbbe3ad358d58ceac42b61672eb2a8a","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-e8b7571e6c6c7ee9ec56ec4886fb910d","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-bfcb501c20a6d69178d34bf6129cac64","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-261578740f67ff24376ff7c322053148","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-a902fc969e50954f96e2814a9f887d0f","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-40b1619b9998ff8d4f32213431d821c6","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-9122bcf78adeb0b4b1e83741573dd6b0","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":3}
+{"request_id":"rcc-4a7ea9923f322bc375c55d80ae63c051","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-98b847907230fdd22da16ad5bc5d457b","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-4ac33943d9e9fcac4096471cb10169f2","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":1}
+{"request_id":"rcc-3162b683bb9cdd1ac35cdc7ded98b82a","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-8e3c44dd75a1157d6827a1242670b956","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-c7a64657efec0d48ac21071d5b4c1186","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":1}
+{"request_id":"rcc-5d08f05b5d6fe44c2fe05aeda22b52c6","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-a4d370b11ce1a7dc40a58228d9efac4e","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-db8620db9c62eb118dbf981247bcb630","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-4f5f6ae22a1b27a8dcdfa080cdb9ee3d","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":2}
+{"request_id":"rcc-be0bb862f9eee04466689da57e1ab968","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":1}
+{"request_id":"rcc-38fb5be33153bcdffe224a192f92490f","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":1}
+{"request_id":"rcc-8968c3482188242431c9516dd1ba41bb","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-fb7bb1ab06dd7346ab3de00c57b83a5a","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-6994bf5010bae11067a14779ebb2e18f","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-2b8c33b017c1d70ff5ccf85a9b3b55dc","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-eb4462da3858443ccc10c38bb55132cd","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-5266e0f43df8235bcf935c587e79949f","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-5a4fab745e18d64aec967b1c42545c09","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-38dd29d1f5265bd5aefb4227af398215","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":2}
+{"request_id":"rcc-46843526b3f2ef25a7090fabfa3b648b","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":1}
+{"request_id":"rcc-85b73b37cf48b5038743a118a7e6eb30","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-a74cd536688f2633f48a726cc8cd3d1b","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-387fb071d8aa391d0ca8126d85b3f913","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-b99448290686b569a58bc2875f37d729","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-8a051e9f865f7095795edef766b2d712","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-ee8fd3e26b3bd5d4942ea7f01f1544f4","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":4}
+{"request_id":"rcc-ec53d46d5f8eb85294ec66fb92f3348a","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-99e359f6488276a611934660901714c5","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-bf505c2f865534b993be5c584fa5cfa5","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":3}
+{"request_id":"rcc-9e76771caac98d41dba027500f96408c","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-2b9c61b53b1c899042338a14db4c4a49","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-07781e7ecb8d092a82708c3754d917ce","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-6e626afc79ef417588b4c04fe739e5aa","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-0a4798605b9f06bf998e3d310e6db835","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-685e1566206cc3267d7744633f7c2e1c","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":1}
+{"request_id":"rcc-eec81ba47b16f43d1569dbbce2acc3a0","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-d608825158e914a33c478e055fa7c341","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-529fc3e51a74ed79840e88e582a889a2","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-dc0eefe4127e5fe3cddc4b8ed1a3bdf5","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":2}
+{"request_id":"rcc-60e3452bdc8166a7219dbc66bb7fa559","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-ef4bcb772d920c3048f729ee73a902f6","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-1b1680e34c3098fa0cf34209adc3c258","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-a57da761eeed6f9e017f5533031e8867","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-11d316b87c1250df1e5f5d523d7c8970","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-c82b729ba51eec2fdb6d1586b544e256","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-92ff41d14439c6408386bcf6ea2af903","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-35a73d77c898c4e132b78603066697c3","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-f893221f64a07cdf5123f9fe386832e9","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-421da1e4096af52d7431201eb799bb38","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":2}
+{"request_id":"rcc-8325964d6ddf2299b80294484da7465e","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-fe53738a66ed9ef813c87643ed55741d","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":1}
+{"request_id":"rcc-04e8fcdbd00972c59527c0052919326e","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-97cd9ff21f395bd0c99330050393ac5a","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-b55759c6ac3039b303160f08602f8e28","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-b46184cfe73d525afd0eddd92e768c6f","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-37ff08c55f76c2087063349d6e795c75","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-c7bb8d0e1e5c19d80fe9961fc6f2a372","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-05a66101b2ef48cc27380c64a198c95e","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-242f49b2c0d88e0a52d4221e7084498a","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":3}
+{"request_id":"rcc-996d31ef03f8d1ea1bfc901c99dd00d4","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-58c6744057359b013e87633095f5fa0c","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-63927b9e8c1bf5b55b680036ca9cbeda","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-52676097e6f33b1e3cc8cef1386b7e8b","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-32795080e612538ab7d0e55c3f07e272","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-624dbfe6e7972feb398ed09e51c36b74","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-97fa42659ee59fc22d547b2886cf67bd","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-a53726950d77e90af307591640fa419b","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-c8f5c4cdcd58f93dafb42ec290ba1bbc","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-4612fe4a0c5a109729b434a84d5e1241","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":3}
+{"request_id":"rcc-e04761d8c2bb89350cb2b16d75011b6e","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-79a34654860b6cfab3cb815e7d53a421","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-2c2f8ef60eb17e2f16800137df8acce4","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-03ab974281f8e17a329c12e0d264f593","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-ae0541e978527f939d6f46895f9e0337","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-ab2e11b8ee4fb1c6dc79192bc36e451d","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-c7ca226deda298b26e18899f64fb14a7","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-0b3b366af497449f534cf1dc601f6f5f","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-f90184bb6e7816ff6bfec66c7ac66183","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-3a04a03314b2328999b885d239080e47","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":2}
+{"request_id":"rcc-da33ef96c46233f675e10c25bf6b3c93","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-74d93625506618d321907226796b56b0","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-d87e77b3bf13fd72e2665abd002e9f22","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-2e13ff6a9b4bcc105c6ad9abf9ff5952","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-a23f19fab0fb1b6dbcac14e95f99947f","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-21acbfac2f8f06967cab56b1e2e6fe15","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-cc59cff48221b1d16d3b70f3393b5c45","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":4}
+{"request_id":"rcc-c912aeac9991d0ed39facb19900329fb","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-98036dcd4597b5320234f0ec220d445e","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-65cfc76bf38c12e939251baa396a71e8","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":2}
+{"request_id":"rcc-f3cb43faa314ab5cbf2f212aa6c1463c","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-f8cc4e173cf20fca6335c798dd92d195","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-e4b465fb1591855b0194f36d26f655a5","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-44f1e573797b01a6058927f9eeffba46","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-9debe86ee9f79aaff8ba517ccba2189a","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-fc3aadc5da15fc986f520527ba0892fa","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":1}
+{"request_id":"rcc-b7c6543c7d2c4ccf82cd4a0a79061851","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-6bb586a334823f4414ab6d6691ec2794","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-561aa7e6166699b22f2e8a603b4616c6","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-6a55dcd4e30f8b2805598ef4b040bedc","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":2}
+{"request_id":"rcc-f8afad033242aefe73b0256fd05d8f43","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-626585da30de626df96cb548f38c1d92","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":1}
+{"request_id":"rcc-3e44a92f71a0b7a8ceb6f78a21787de2","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":1}
+{"request_id":"rcc-65e42ed5f9005da53bf62b9494238a73","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-dfdc556b59ac60fbe26bb67257d14a05","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":1}
+{"request_id":"rcc-c0112b2e657f6841f363f529c3b28851","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-9c8817a60a6c7005b97f20cea93a86bc","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-00ca3c11942c57435fa7b536cee92d5e","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-ba768dbe8d526da24219605916348324","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-46140fff20c8ebb6c3442eb7761bc284","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":3}
+{"request_id":"rcc-24a4cf0921f31fc988db335580329b66","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-c339d95b2fed6e9568abc0b373ab0035","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-f23785bf20412b70320b4a38b8015ba4","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-f03738f60f30800588bf71e347e425ac","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-7a7f9840f9550387dbeb359646943367","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-a6be3e9c4e7c601671f1150924317beb","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-0dfa40c5b614efdecbc5747f55246f10","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-537beb05b896c17484c23ac9c1b8db19","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-63c58cd46660bcbcd3bfcc96d687864d","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+{"request_id":"rcc-c414f5d4115870a380e097e1f1a1e9ab","method":"GET","path":"/api/v1/auth/session","status":200,"duration_ms":0}
+2026/09/11 07:30:00 🐳 Stopping container: 376cc2553993
+2026/09/11 07:30:01 ✅ Container stopped: 376cc2553993
+2026/09/11 07:30:01 🐳 Terminating container: 376cc2553993
+2026/09/11 07:30:01 🚫 Container terminated: 376cc2553993
+--- PASS: TestAccountControlTablesCannotBeDiscoveredOrManaged (8.96s)
+=== RUN   TestDatabaseTableListDiscoversOnlyOrdinaryBaseTables
+2026/09/11 07:30:01 🐳 Creating container for image mysql:8.4
+2026/09/11 07:30:01 ✅ Container created: c8c762b3d849
+2026/09/11 07:30:01 🐳 Starting container: c8c762b3d849
+2026/09/11 07:30:01 ✅ Container started: c8c762b3d849
+2026/09/11 07:30:01 ⏳ Waiting for container id c8c762b3d849 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:30:07 🔔 Container is ready: c8c762b3d849
+{"request_id":"rcc-b4dc530b2de15de2d9acf5ff516a3a7d","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":8}
+{"request_id":"rcc-a5a1f14ecb25c84324e0d64904a19e1c","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":45}
+{"request_id":"rcc-13a8fae3dc63b1dd21503cc54a570367","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-886bf30a4107d24bf887d68e13ab4e14","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":50}
+{"request_id":"rcc-9630d0266f0b39856477b2dd3c08469e","method":"GET","path":"/api/v1/database-tables","status":200,"duration_ms":4}
+2026/09/11 07:30:08 🐳 Stopping container: c8c762b3d849
+2026/09/11 07:30:10 ✅ Container stopped: c8c762b3d849
+2026/09/11 07:30:10 🐳 Terminating container: c8c762b3d849
+2026/09/11 07:30:10 🚫 Container terminated: c8c762b3d849
+--- PASS: TestDatabaseTableListDiscoversOnlyOrdinaryBaseTables (8.96s)
+=== RUN   TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable
+2026/09/11 07:30:10 🐳 Creating container for image mysql:8.4
+2026/09/11 07:30:10 ✅ Container created: 957d079b3ca0
+2026/09/11 07:30:10 🐳 Starting container: 957d079b3ca0
+2026/09/11 07:30:10 ✅ Container started: 957d079b3ca0
+2026/09/11 07:30:10 ⏳ Waiting for container id 957d079b3ca0 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:30:16 🔔 Container is ready: 957d079b3ca0
+{"request_id":"rcc-18022d10758a9c11e6caa7e59ef99e50","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-1313f4236313b45039ef24b4bcff2386","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-5aae64a4578f6bd20752193a6c34ce7d","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-62b0881920f7e0e21a089425ffdb9058","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":52}
+{"request_id":"rcc-b8e1c5488233a0b5d03c29a0d8f03b7c","method":"GET","path":"/api/v1/database-tables","status":200,"duration_ms":3}
+{"request_id":"rcc-32e5c53b56560f6e112c9147d7e32764","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-15d4add561e83a9820836c5a0bca9077","method":"GET","path":"/api/v1/query-policies/:code","status":200,"duration_ms":1}
+{"request_id":"rcc-85b7615490698cd692c6205099e42fe8","method":"GET","path":"/api/v1/mutation-policies/:code","status":200,"duration_ms":1}
+{"request_id":"rcc-10ecdd08b2a1809ee05e22262de8640e","method":"POST","path":"/api/v1/tables/:table_name/query","status":200,"duration_ms":11}
+{"request_id":"rcc-6c400430f2369e4aacb5ea9849ad66ad","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":22}
+{"request_id":"rcc-83f995283f57e5f1b691cee88d6735a4","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":46}
+{"request_id":"rcc-2ab606726bfaf0f57b1ee2e5d1417b00","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":4}
+{"request_id":"rcc-78c708bc2343010b71732a0617aad78a","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":45}
+{"request_id":"rcc-e15e2fd7f9f18132d5b47556bf64f17c","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":9}
+{"request_id":"rcc-c1cc56b21bc91cc930ced29df187b273","method":"POST","path":"/api/v1/release-orders/:id/approve","status":200,"duration_ms":12}
+{"request_id":"rcc-5fbc7330e21a1c071232af4f0c38d6ea","method":"POST","path":"/api/v1/release-orders/:id/execute","status":200,"duration_ms":70}
+{"request_id":"rcc-c9b6a3602f4814d6f9d890abd05687d3","method":"POST","path":"/api/v1/release-orders/:id/complete","status":200,"duration_ms":17}
+{"request_id":"rcc-e4e4806771ffb0d358a57e28d302fb42","method":"POST","path":"/api/v1/tables/:table_name/query","status":200,"duration_ms":10}
+{"request_id":"rcc-3bb7ea688047d7797bf23e7c8f3c9064","method":"POST","path":"/api/v1/tables/:table_name/query","status":200,"duration_ms":13}
+{"request_id":"rcc-176bdca8d831a9f6d4b567696ccdedfb","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":26}
+{"request_id":"rcc-63f17575794263a6137d1e6ded17f5a8","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":49}
+{"request_id":"rcc-ce878f73f954e9da4b309dbbf579bfd4","method":"POST","path":"/api/v1/release-orders/:id/approve","status":200,"duration_ms":14}
+{"request_id":"rcc-2131e8aa846c11c9bd58970d8353aa7b","method":"POST","path":"/api/v1/release-orders/:id/execute","status":200,"duration_ms":73}
+{"request_id":"rcc-3340d922b6f3e67c98bb89a570236fbe","method":"POST","path":"/api/v1/release-orders/:id/complete","status":200,"duration_ms":18}
+{"request_id":"rcc-482c8b6c5acc356cda2cc21212e6bcad","method":"POST","path":"/api/v1/tables/:table_name/query","status":200,"duration_ms":11}
+{"request_id":"rcc-b629fcecfa0edd6fc54aff5b48643f85","method":"POST","path":"/api/v1/tables/:table_name/query","status":200,"duration_ms":14}
+{"request_id":"rcc-fef8f7c4eb3855a2f04cf9065ae6df62","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":28}
+{"request_id":"rcc-1c37aee1440937e3e19d73081b73414d","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":51}
+{"request_id":"rcc-89a52fdfe551cc7adc8cd33b2e997778","method":"POST","path":"/api/v1/release-orders/:id/approve","status":200,"duration_ms":13}
+{"request_id":"rcc-68a3c52721b645f03844c3186f985b7a","method":"POST","path":"/api/v1/release-orders/:id/execute","status":200,"duration_ms":74}
+{"request_id":"rcc-fcc9d3f9e1a1640c9f406cf88c25d0d6","method":"POST","path":"/api/v1/release-orders/:id/complete","status":200,"duration_ms":18}
+{"request_id":"rcc-c0076280f7d66daab4b693eddfad97f3","method":"POST","path":"/api/v1/tables/:table_name/query","status":200,"duration_ms":7}
+2026/09/11 07:30:18 🐳 Stopping container: 957d079b3ca0
+2026/09/11 07:30:19 ✅ Container stopped: 957d079b3ca0
+2026/09/11 07:30:19 🐳 Terminating container: 957d079b3ca0
+2026/09/11 07:30:19 🚫 Container terminated: 957d079b3ca0
+--- PASS: TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable (8.94s)
+=== RUN   TestLocalManagedTableFixtureRejectsLifecycleConflictsWithoutReactivation
+2026/09/11 07:30:19 🐳 Creating container for image mysql:8.4
+2026/09/11 07:30:19 ✅ Container created: b8bbe2b8a201
+2026/09/11 07:30:19 🐳 Starting container: b8bbe2b8a201
+2026/09/11 07:30:19 ✅ Container started: b8bbe2b8a201
+2026/09/11 07:30:19 ⏳ Waiting for container id b8bbe2b8a201 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:30:25 🔔 Container is ready: b8bbe2b8a201
+2026/09/11 07:30:26 🐳 Stopping container: b8bbe2b8a201
+2026/09/11 07:30:28 ✅ Container stopped: b8bbe2b8a201
+2026/09/11 07:30:28 🐳 Terminating container: b8bbe2b8a201
+2026/09/11 07:30:28 🚫 Container terminated: b8bbe2b8a201
+--- PASS: TestLocalManagedTableFixtureRejectsLifecycleConflictsWithoutReactivation (8.92s)
+=== RUN   TestLocalManagedTableFixtureRejectsIncompatibleExistingTableWithoutAssignment
+2026/09/11 07:30:28 🐳 Creating container for image mysql:8.4
+2026/09/11 07:30:28 ✅ Container created: cf199fbd0bdd
+2026/09/11 07:30:28 🐳 Starting container: cf199fbd0bdd
+2026/09/11 07:30:28 ✅ Container started: cf199fbd0bdd
+2026/09/11 07:30:28 ⏳ Waiting for container id cf199fbd0bdd image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:30:34 🔔 Container is ready: cf199fbd0bdd
+2026/09/11 07:30:35 🐳 Stopping container: cf199fbd0bdd
+2026/09/11 07:30:37 ✅ Container stopped: cf199fbd0bdd
+2026/09/11 07:30:37 🐳 Terminating container: cf199fbd0bdd
+2026/09/11 07:30:37 🚫 Container terminated: cf199fbd0bdd
+--- PASS: TestLocalManagedTableFixtureRejectsIncompatibleExistingTableWithoutAssignment (8.99s)
+=== RUN   TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement
+2026/09/11 07:30:37 🐳 Creating container for image mysql:8.4
+2026/09/11 07:30:37 ✅ Container created: b3727df0421f
+2026/09/11 07:30:37 🐳 Starting container: b3727df0421f
+2026/09/11 07:30:37 ✅ Container started: b3727df0421f
+2026/09/11 07:30:37 ⏳ Waiting for container id b3727df0421f image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:30:43 🔔 Container is ready: b3727df0421f
+{"request_id":"rcc-ab28234852caa48684d98caaa805dff9","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-3f07858703681ea871c813bff8e4e3fb","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-5eb9cf553b6d77cdaf0370f92d988cf4","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-ff794f031bde0bdd870b3b2ab52796bb","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":56}
+{"request_id":"rcc-88d841cddbe4310d1ddfd4b2ae25a0bc","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":15}
+{"request_id":"rcc-afe0e80ffe4d3ead87f8ee9dcf6798f0","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-2217cdcba4969d8d717085d271505149","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":14}
+{"request_id":"rcc-4187f34ea5bd67225a570da506bb86bb","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-d8b768aaa686de7b11bae7b7b3128fc1","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":45}
+{"request_id":"rcc-cffbfdb495f4ec507a293ad97933598a","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":11}
+{"request_id":"rcc-78e839217b2a18313fa9b8b13200e1a1","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":22}
+{"request_id":"rcc-12e9be0de205556b78de6e796f2b8141","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":46}
+{"request_id":"rcc-0893ec00e647726d3965060e294219a7","method":"POST","path":"/api/v1/release-orders/:id/approve","status":200,"duration_ms":12}
+{"request_id":"rcc-57b44bb7e121816bb74bb85218af51d4","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-95e387eedc6ca319dea024b850f42747","method":"PUT","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":17}
+{"request_id":"rcc-7b384ac922e4829f4cd603b8deac05ce","method":"POST","path":"/api/v1/release-orders/:id/execute","status":409,"duration_ms":34}
+{"request_id":"rcc-ce82aa67ab6dfacb08253360b4dd67f6","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":11}
+2026/09/11 07:30:45 🐳 Stopping container: b3727df0421f
+2026/09/11 07:30:46 ✅ Container stopped: b3727df0421f
+2026/09/11 07:30:46 🐳 Terminating container: b3727df0421f
+2026/09/11 07:30:46 🚫 Container terminated: b3727df0421f
+--- PASS: TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement (9.14s)
+=== RUN   TestQueryPolicyHTTPLifecyclePersistsAndFailsClosed
+2026/09/11 07:30:46 🐳 Creating container for image mysql:8.4
+2026/09/11 07:30:46 ✅ Container created: 708954e33d41
+2026/09/11 07:30:46 🐳 Starting container: 708954e33d41
+2026/09/11 07:30:46 ✅ Container started: 708954e33d41
+2026/09/11 07:30:46 ⏳ Waiting for container id 708954e33d41 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:30:52 🔔 Container is ready: 708954e33d41
+{"request_id":"rcc-30b3f8cbb2fa83e36d7f48baf4ab1527","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-6a3083ab84657547dc5d6f38683e996e","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":45}
+{"request_id":"rcc-2195338a7cc0ec6d093c38ddca2a9179","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-a8b65093034164ad1f08819cae3a1392","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":52}
+{"request_id":"rcc-ff0eaf5991a3376afc09c407066b6c95","method":"GET","path":"/api/v1/query-policy-types","status":200,"duration_ms":0}
+{"request_id":"rcc-7565c159fe9a7e7c9ce09dcc5658e5f7","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-13578be63a91169846e9aa6516650fb1","method":"POST","path":"/api/v1/query-policies","status":409,"duration_ms":3}
+{"request_id":"rcc-0fc244a0c59f8762a56ce5f47f046bb4","method":"POST","path":"/api/v1/query-policies/:code/activate","status":422,"duration_ms":1}
+{"request_id":"rcc-3d3e1d8719660bf4302f817bb6da7328","method":"POST","path":"/api/v1/query-policies","status":422,"duration_ms":0}
+{"request_id":"rcc-ee0442ddbd47d3e80a659ed28a5f871a","method":"GET","path":"/api/v1/query-policies/:code","status":404,"duration_ms":1}
+{"request_id":"rcc-ae8c2a446660914ced5d5e23c39e01cb","method":"POST","path":"/api/v1/query-policies","status":422,"duration_ms":0}
+{"request_id":"rcc-bbb2c6075c87badc97a89e4c39cfd5f5","method":"GET","path":"/api/v1/query-policies/:code","status":404,"duration_ms":1}
+{"request_id":"rcc-78d2eb43404f011fe119e985bf864d7f","method":"POST","path":"/api/v1/query-policies","status":422,"duration_ms":0}
+{"request_id":"rcc-e8f9c8b3e7fc09eaa32a1c73dcce3b34","method":"GET","path":"/api/v1/query-policies/:code","status":404,"duration_ms":1}
+{"request_id":"rcc-27bbc50557efb5d2d9e8f072d3bfb1a5","method":"POST","path":"/api/v1/query-policies","status":422,"duration_ms":0}
+{"request_id":"rcc-0485a24b2336ad8eba30f960f73e7ae1","method":"GET","path":"/api/v1/query-policies/:code","status":404,"duration_ms":1}
+{"request_id":"rcc-af39b558426c355dc3598e11ee1b5517","method":"POST","path":"/api/v1/query-policies","status":422,"duration_ms":0}
+{"request_id":"rcc-304da262d2153787a4cf97c4f4ed5f30","method":"GET","path":"/api/v1/query-policies/:code","status":404,"duration_ms":1}
+{"request_id":"rcc-9f23d3c70f98bec1f4ebb6306e840654","method":"PUT","path":"/api/v1/query-policies/:code","status":200,"duration_ms":4}
+{"request_id":"rcc-c6670884d1df68174af33b49a5e99703","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-ac9cd443da6ed5912db226fb9e4b0e6b","method":"PUT","path":"/api/v1/query-policies/:code","status":409,"duration_ms":3}
+{"request_id":"rcc-7caf7c83575df6211662a16aca8eb2b5","method":"PATCH","path":"/api/v1/query-policies/:code/metadata","status":200,"duration_ms":4}
+{"request_id":"rcc-c8b95ce9f7148108941aec0f5f2d6f41","method":"POST","path":"/api/v1/query-policies/:code/deprecate","status":200,"duration_ms":4}
+{"request_id":"rcc-7a7f7aa53511740a2eb36029cf54cc00","method":"POST","path":"/api/v1/query-policies/:code/activate","status":409,"duration_ms":1}
+{"request_id":"rcc-e398963d1340f63eedf18e1832e5f6d4","method":"DELETE","path":"/api/v1/query-policies/:code","status":409,"duration_ms":1}
+{"request_id":"rcc-72212854985ef5c6e89979585fe7d92f","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-c0b5fb829c78acba3cababd85d7c8570","method":"DELETE","path":"/api/v1/query-policies/:code","status":204,"duration_ms":5}
+{"request_id":"rcc-a47ae6b90ad01a0c235e5838602f37e1","method":"GET","path":"/api/v1/query-policies/:code","status":404,"duration_ms":1}
+{"request_id":"rcc-0d6122646a14169709f0e5a809e49f9f","method":"POST","path":"/api/v1/query-policies","status":400,"duration_ms":0}
+{"request_id":"rcc-9911e5ae68b7eafe5ac972089652f18a","method":"POST","path":"/api/v1/query-policies","status":400,"duration_ms":0}
+{"request_id":"rcc-c625feec9d41a12c19b7532ef10f5a6a","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-e6d507a1322b6c0e201b606cb5b567a5","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-ec939d1ca75dcf62736058df50a9cd15","method":"GET","path":"/api/v1/query-policies","status":200,"duration_ms":1}
+2026/09/11 07:30:53 🐳 Stopping container: 708954e33d41
+2026/09/11 07:30:55 ✅ Container stopped: 708954e33d41
+2026/09/11 07:30:55 🐳 Terminating container: 708954e33d41
+2026/09/11 07:30:55 🚫 Container terminated: 708954e33d41
+--- PASS: TestQueryPolicyHTTPLifecyclePersistsAndFailsClosed (9.12s)
+=== RUN   TestTablePolicyCodeAssignmentsValidateActiveDefinitionsAndReplaceAtomically
+2026/09/11 07:30:55 🐳 Creating container for image mysql:8.4
+2026/09/11 07:30:55 ✅ Container created: 2a19a49baa3d
+2026/09/11 07:30:55 🐳 Starting container: 2a19a49baa3d
+2026/09/11 07:30:55 ✅ Container started: 2a19a49baa3d
+2026/09/11 07:30:55 ⏳ Waiting for container id 2a19a49baa3d image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:31:01 🔔 Container is ready: 2a19a49baa3d
+{"request_id":"rcc-3c33061f48d3ae2213d344df45d9d9a2","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-42220bf3b06a760cd0d5e060adb31209","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":46}
+{"request_id":"rcc-cdd54e43efdcd7b2191b892f85b6fbea","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":4}
+{"request_id":"rcc-e3474c3a70ca4e43023774ff67decd9d","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":52}
+{"request_id":"rcc-7d18bcb5db3f2a471bb90f61a78d0d87","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-ef35890acb1224d9226e9560085b74b4","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":5}
+{"request_id":"rcc-0d4d344c7af3b91640152d1a4a4cf864","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":2}
+{"request_id":"rcc-c126e5644f5102d4cce3f14ff8359c7b","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":5}
+{"request_id":"rcc-7218c00bf009390f1e9831484d6ead7a","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":17}
+{"request_id":"rcc-f051b8ee2448dab8e39d3eb247fe4c74","method":"POST","path":"/api/v1/table-policies","status":400,"duration_ms":0}
+{"request_id":"rcc-346442faf15bc3df579a086407769ae5","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-ad9b0a5136022772aea1b4c52de8931a","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":14}
+{"request_id":"rcc-c6f3296aed3f3155ecc908141df551e1","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":2}
+{"request_id":"rcc-9469bc8891bf9ad4e9ec9e95e94e8b38","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":5}
+{"request_id":"rcc-3016d8f64412eb4d53297412f92a7f2a","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":2}
+{"request_id":"rcc-1bec8e99d7f9779f5e3356ced312cf74","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":7}
+{"request_id":"rcc-04589b98aa30e9cb6eed45ca121c519e","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-322e8e4f75c25c5a87035ab669089359","method":"PUT","path":"/api/v1/table-policies/:table_name","status":422,"duration_ms":7}
+{"request_id":"rcc-5f43bc1d071d55eac3910934b9372f96","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-b46139e2bb66e58e9714c94d9f28679a","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-0c6c5ba14251ba01345089f2938a12e9","method":"PUT","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":17}
+{"request_id":"rcc-04139b3d5021a410821130a5707c3e8c","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-f0230ebbbb7dbc6b28992fbb8000f9bf","method":"POST","path":"/api/v1/query-policies/:code/deprecate","status":200,"duration_ms":5}
+{"request_id":"rcc-9d7edb576eb3fc6f45d8636bc3384acb","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-993249671feb1a01c0c0faf0502acc59","method":"POST","path":"/api/v1/table-policies","status":422,"duration_ms":6}
+{"request_id":"rcc-156632ccdb5d1a34e45aa2e755f69fc4","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":2}
+{"request_id":"rcc-100ef27f0847f72bd925288c0215d0ac","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-a70716335765c9f37011b278d4fba8c3","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-957fd813f150cad7f811c631a1fbddf3","method":"PUT","path":"/api/v1/table-policies/:table_name","status":422,"duration_ms":7}
+2026/09/11 07:31:03 🐳 Stopping container: 2a19a49baa3d
+2026/09/11 07:31:04 ✅ Container stopped: 2a19a49baa3d
+2026/09/11 07:31:04 🐳 Terminating container: 2a19a49baa3d
+2026/09/11 07:31:04 🚫 Container terminated: 2a19a49baa3d
+--- PASS: TestTablePolicyCodeAssignmentsValidateActiveDefinitionsAndReplaceAtomically (8.85s)
+=== RUN   TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed
+2026/09/11 07:31:04 🐳 Creating container for image mysql:8.4
+2026/09/11 07:31:04 ✅ Container created: 1e3ff9224d8a
+2026/09/11 07:31:04 🐳 Starting container: 1e3ff9224d8a
+2026/09/11 07:31:04 ✅ Container started: 1e3ff9224d8a
+2026/09/11 07:31:04 ⏳ Waiting for container id 1e3ff9224d8a image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:31:10 🔔 Container is ready: 1e3ff9224d8a
+{"request_id":"rcc-682188b19d45e7bd9068e8d81f947a99","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-e34fecd75e082ee58a8f39a2dfe9d29c","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-1563f24c7082dd3b13876da88c703ed9","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-1b469e61e61e647cf4e0048bf59f7d65","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":51}
+{"request_id":"rcc-f9a4b7d30ddaf1547bbdc71bee551f81","method":"GET","path":"/api/v1/mutation-policy-types","status":200,"duration_ms":1}
+{"request_id":"rcc-f9fac1c8e735823ae7313bb24c4aa3e8","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-1a95a3c9fc35d737ab449ce0c8204682","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":422,"duration_ms":1}
+{"request_id":"rcc-5d756b09bf3a74f951cb1c89cb9165ea","method":"POST","path":"/api/v1/mutation-policies","status":409,"duration_ms":2}
+{"request_id":"rcc-ce72be966f8f08a157999f40936db0ea","method":"POST","path":"/api/v1/mutation-policies","status":422,"duration_ms":0}
+{"request_id":"rcc-6f989c96e474e0ceac10355fbe37d103","method":"GET","path":"/api/v1/mutation-policies/:code","status":404,"duration_ms":1}
+{"request_id":"rcc-2cc2ce87d9b2933e0161d8db38fb9902","method":"POST","path":"/api/v1/mutation-policies","status":422,"duration_ms":0}
+{"request_id":"rcc-4c996129bc1ebb58f41426b3866ae2e2","method":"GET","path":"/api/v1/mutation-policies/:code","status":404,"duration_ms":1}
+{"request_id":"rcc-182bdd5a8556f0ed17b46351693b4df1","method":"POST","path":"/api/v1/mutation-policies","status":422,"duration_ms":1}
+{"request_id":"rcc-dc79c04b184e3fddb145c300cc17fb0d","method":"GET","path":"/api/v1/mutation-policies/:code","status":404,"duration_ms":2}
+{"request_id":"rcc-b3bb68c13c1e6981cddf74c8c86cb7e3","method":"POST","path":"/api/v1/mutation-policies","status":422,"duration_ms":0}
+{"request_id":"rcc-1fe7de79504a969a56f10cacfd1a6aa3","method":"GET","path":"/api/v1/mutation-policies/:code","status":404,"duration_ms":1}
+{"request_id":"rcc-eed24d8e04c42136b745884702870725","method":"PUT","path":"/api/v1/mutation-policies/:code","status":200,"duration_ms":5}
+{"request_id":"rcc-5ac69a52cbec58449c72d2ae45ee70d0","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-a04717c65384a3fd5120722aecf9d04a","method":"PUT","path":"/api/v1/mutation-policies/:code","status":409,"duration_ms":3}
+{"request_id":"rcc-787426b1958ed34dd1efb7dba86f6bbc","method":"PATCH","path":"/api/v1/mutation-policies/:code/metadata","status":200,"duration_ms":4}
+{"request_id":"rcc-ce80c637500b15fa085632f129b470cf","method":"GET","path":"/api/v1/mutation-policies/:code","status":200,"duration_ms":1}
+{"request_id":"rcc-8181f6f545ba41555a9eb8cb72bb293b","method":"POST","path":"/api/v1/mutation-policies/:code/deprecate","status":200,"duration_ms":4}
+{"request_id":"rcc-3a5cb6688e6a7c5da044d61f9fe9ba83","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":409,"duration_ms":1}
+{"request_id":"rcc-822b460a65140ef94060d17c81c71fc2","method":"DELETE","path":"/api/v1/mutation-policies/:code","status":409,"duration_ms":1}
+{"request_id":"rcc-dc3925b14d1c74a2d85bc0f6512fea3a","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-abda2fb2f680f141176cb03f8f8055d1","method":"DELETE","path":"/api/v1/mutation-policies/:code","status":204,"duration_ms":3}
+{"request_id":"rcc-21b86fa1f8913674f9afa963b670d11b","method":"GET","path":"/api/v1/mutation-policies/:code","status":404,"duration_ms":1}
+{"request_id":"rcc-16bf47804c6ddd2edc2b659be8f32985","method":"POST","path":"/api/v1/mutation-policies","status":400,"duration_ms":1}
+{"request_id":"rcc-308196f9773fade0055eb8a912bdac15","method":"POST","path":"/api/v1/mutation-policies","status":400,"duration_ms":0}
+{"request_id":"rcc-9c7ec49af0a2ad1b37048ddced4002ca","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-8de5698ee1b94b6cd5e3d239f243ceb8","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+2026/09/11 07:31:11 🐳 Stopping container: 1e3ff9224d8a
+2026/09/11 07:31:13 ✅ Container stopped: 1e3ff9224d8a
+2026/09/11 07:31:13 🐳 Terminating container: 1e3ff9224d8a
+2026/09/11 07:31:13 🚫 Container terminated: 1e3ff9224d8a
+--- PASS: TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed (8.92s)
+=== RUN   TestTablePolicyCreationPersistsDisabledCodeReferencesForHTTPInspection
+2026/09/11 07:31:13 🐳 Creating container for image mysql:8.4
+2026/09/11 07:31:13 ✅ Container created: 2d7e912fd89d
+2026/09/11 07:31:13 🐳 Starting container: 2d7e912fd89d
+2026/09/11 07:31:13 ✅ Container started: 2d7e912fd89d
+2026/09/11 07:31:13 ⏳ Waiting for container id 2d7e912fd89d image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:31:20 🔔 Container is ready: 2d7e912fd89d
+{"request_id":"rcc-f5cc5b64cd565c10347085f26cfd381e","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":10}
+{"request_id":"rcc-80c52a4e2b2f5528e2763e284a48ba0a","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":54}
+{"request_id":"rcc-a7512684c9a154e3ec91b409a795ec04","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-5870a05955d419ab1586eaa677f9e498","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":53}
+{"request_id":"rcc-9ef270b1dd529dabd3101f99c8897306","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-f0c12adcddb151c4169b03497229b30a","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":6}
+{"request_id":"rcc-898d79d8c8ef12ab8ef8e534fabcb946","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-f5cbf31ed646a6d1cb13196a862c1ef3","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-e2e75f95a83969055ecb7c41f3338a49","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":15}
+{"request_id":"rcc-e67e8becbaec1dedccefc1f30c095eaa","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-88bc134127eaeb52f18a47f1f73eb1bb","method":"GET","path":"/api/v1/table-policies","status":200,"duration_ms":1}
+2026/09/11 07:31:21 🐳 Stopping container: 2d7e912fd89d
+2026/09/11 07:31:22 ✅ Container stopped: 2d7e912fd89d
+2026/09/11 07:31:22 🐳 Terminating container: 2d7e912fd89d
+2026/09/11 07:31:22 🚫 Container terminated: 2d7e912fd89d
+--- PASS: TestTablePolicyCreationPersistsDisabledCodeReferencesForHTTPInspection (9.67s)
+=== RUN   TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence
+2026/09/11 07:31:22 🐳 Creating container for image mysql:8.4
+2026/09/11 07:31:22 ✅ Container created: f1412fabb06a
+2026/09/11 07:31:23 🐳 Starting container: f1412fabb06a
+2026/09/11 07:31:23 ✅ Container started: f1412fabb06a
+2026/09/11 07:31:23 ⏳ Waiting for container id f1412fabb06a image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:31:29 🔔 Container is ready: f1412fabb06a
+{"request_id":"rcc-4507589f0a86768de9d48e9d60d9da2c","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-aba595e5f73e6b605a146bb4249ed1d2","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-5e998a9fea2339b41a395ee639834c53","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-48783de8c1c49ebf4df03283aee7d1b0","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":55}
+{"request_id":"rcc-5b2aa9b0b34c23c2c0abb41e86f7ec0f","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-4d8f2241ae5b87c8d84b60fd3797c5ef","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":5}
+{"request_id":"rcc-d11fa72e7ae457e772b86c32cef583b2","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-d8f95912940c6f1ac9f51108b643ecbd","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":6}
+=== RUN   TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/missing
+{"request_id":"rcc-b69c7bc3a964fb2df6b55fb75e9c77a9","method":"POST","path":"/api/v1/table-policies","status":404,"duration_ms":4}
+{"request_id":"rcc-313ce4629009a91a3a57cbd3b9e9d184","method":"GET","path":"/api/v1/table-policies/:table_name","status":404,"duration_ms":1}
+=== RUN   TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/view
+{"request_id":"rcc-4a9b9f8862ecc57ac062c38ffcddc0ca","method":"POST","path":"/api/v1/table-policies","status":404,"duration_ms":4}
+{"request_id":"rcc-ea50abd37f9bfa178a2130e31afd131d","method":"GET","path":"/api/v1/table-policies/:table_name","status":404,"duration_ms":2}
+=== RUN   TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/protected
+{"request_id":"rcc-00c9ff189460ce79b08353bb419a1849","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-588ee0429d7f409b435dba656d934e31","method":"GET","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+=== RUN   TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/incompatible
+{"request_id":"rcc-ddbf2d68e133aa9f964c9cb721ed5d4f","method":"POST","path":"/api/v1/table-policies","status":422,"duration_ms":5}
+{"request_id":"rcc-5a61395563f5ddef9245efd2d52e702e","method":"GET","path":"/api/v1/table-policies/:table_name","status":404,"duration_ms":1}
+=== RUN   TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/unknown_query_definition
+{"request_id":"rcc-4264f117cfd2c72e5f40ef5c89d8d350","method":"POST","path":"/api/v1/table-policies","status":422,"duration_ms":5}
+{"request_id":"rcc-4261b4410af5b94834a536b35ccf2f71","method":"GET","path":"/api/v1/table-policies/:table_name","status":404,"duration_ms":1}
+=== RUN   TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/unknown_mutation_definition
+{"request_id":"rcc-af68d6c8fa2f7f066fa4b910f34e7ae2","method":"POST","path":"/api/v1/table-policies","status":422,"duration_ms":6}
+{"request_id":"rcc-8329f5520133cf204a70a0bda6084c66","method":"GET","path":"/api/v1/table-policies/:table_name","status":404,"duration_ms":1}
+=== RUN   TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/legacy_JSON_field
+{"request_id":"rcc-955b68122f69bc863a622d44cf86996d","method":"POST","path":"/api/v1/table-policies","status":400,"duration_ms":1}
+{"request_id":"rcc-2c6c639aeedc473dd585fe346b5ca43f","method":"GET","path":"/api/v1/table-policies/:table_name","status":404,"duration_ms":3}
+{"request_id":"rcc-32f9196a29c21ca22b743acddf76acd0","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":23}
+{"request_id":"rcc-e603b55ef108ecbc610793047682b2ae","method":"POST","path":"/api/v1/table-policies","status":409,"duration_ms":14}
+2026/09/11 07:31:30 🐳 Stopping container: f1412fabb06a
+2026/09/11 07:31:31 ✅ Container stopped: f1412fabb06a
+2026/09/11 07:31:31 🐳 Terminating container: f1412fabb06a
+2026/09/11 07:31:31 🚫 Container terminated: f1412fabb06a
+--- PASS: TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence (8.85s)
+    --- PASS: TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/missing (0.01s)
+    --- PASS: TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/view (0.01s)
+    --- PASS: TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/protected (0.00s)
+    --- PASS: TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/incompatible (0.01s)
+    --- PASS: TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/unknown_query_definition (0.01s)
+    --- PASS: TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/unknown_mutation_definition (0.01s)
+    --- PASS: TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/legacy_JSON_field (0.01s)
+=== RUN   TestDraftConcurrencyKeyProtectsValuesAndDefinition
+2026/09/11 07:31:31 🐳 Creating container for image mysql:8.4
+2026/09/11 07:31:31 ✅ Container created: 09206ecb9b3a
+2026/09/11 07:31:31 🐳 Starting container: 09206ecb9b3a
+2026/09/11 07:31:31 ✅ Container started: 09206ecb9b3a
+2026/09/11 07:31:31 ⏳ Waiting for container id 09206ecb9b3a image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:31:38 🔔 Container is ready: 09206ecb9b3a
+{"request_id":"rcc-515cfdd13f56ea4669e058f26dcadd1f","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-2ee627b3a3f42ee62d04a05503bb8ce8","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-dd3515bc3e5c370f381defc1e41017f3","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-7a654db7c04b32a094c8749ab1cfcf32","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":53}
+{"request_id":"rcc-ee28b551a09d1d8ad7d4ef047661808e","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":2}
+{"request_id":"rcc-c6443947c1f404d9d9aaee189f17bf57","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-65da51f25f8dc339c1e05d5e7d968726","method":"PUT","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":18}
+{"request_id":"rcc-e96ac09d5335e40fc25b84a3e4c85b30","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":30}
+{"request_id":"rcc-fa96e45c623a4a70b3a2e6b9a004d9b9","method":"POST","path":"/api/v1/release-orders","status":409,"duration_ms":24}
+{"request_id":"rcc-49ffd73a1d95ea8442152b7f386351eb","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-3b286b3a9ec7fcaa3b578e46b80a207c","method":"PUT","path":"/api/v1/table-policies/:table_name","status":409,"duration_ms":10}
+{"request_id":"rcc-3623ecf86c38ce5e93b6fbb677d33586","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-7459bd2b12f10b9d9244081b1dd37081","method":"PUT","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":16}
+2026/09/11 07:31:39 🐳 Stopping container: 09206ecb9b3a
+2026/09/11 07:31:40 ✅ Container stopped: 09206ecb9b3a
+2026/09/11 07:31:40 🐳 Terminating container: 09206ecb9b3a
+2026/09/11 07:31:40 🚫 Container terminated: 09206ecb9b3a
+--- PASS: TestDraftConcurrencyKeyProtectsValuesAndDefinition (8.84s)
+=== RUN   TestReleaseHistorySurvivesExecutableRestartAndExternalChanges
+2026/09/11 07:31:40 🐳 Creating container for image mysql:8.4
+2026/09/11 07:31:40 ✅ Container created: b7b39c6460bb
+2026/09/11 07:31:40 🐳 Starting container: b7b39c6460bb
+2026/09/11 07:31:40 ✅ Container started: b7b39c6460bb
+2026/09/11 07:31:40 ⏳ Waiting for container id b7b39c6460bb image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:31:47 🔔 Container is ready: b7b39c6460bb
+2026/09/11 07:31:53 🐳 Stopping container: b7b39c6460bb
+2026/09/11 07:31:55 ✅ Container stopped: b7b39c6460bb
+2026/09/11 07:31:55 🐳 Terminating container: b7b39c6460bb
+2026/09/11 07:31:55 🚫 Container terminated: b7b39c6460bb
+--- PASS: TestReleaseHistorySurvivesExecutableRestartAndExternalChanges (14.88s)
+=== RUN   TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions
+2026/09/11 07:31:55 🐳 Creating container for image mysql:8.4
+2026/09/11 07:31:55 ✅ Container created: 40b86651aa3c
+2026/09/11 07:31:55 🐳 Starting container: 40b86651aa3c
+2026/09/11 07:31:55 ✅ Container started: 40b86651aa3c
+2026/09/11 07:31:55 ⏳ Waiting for container id 40b86651aa3c image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:32:01 🔔 Container is ready: 40b86651aa3c
+{"request_id":"rcc-5fe3576bd0a7e03431d7541a50ec29cc","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-e50e530aa8dd972845fad06f25039e8a","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":47}
+{"request_id":"rcc-40ac6d3c4c07bba1773761f47b85e9b4","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-14e3be5dff7da14ede5851e0c690cd9c","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-96fcc26689ad6095e8d94316020c6042","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-8976357e24f4d34eecfd9f14e582b310","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":57}
+{"request_id":"rcc-490aae97bca9d8b052537f8558f8b45e","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":8}
+{"request_id":"rcc-28d57e75e847b1b0b3b9a7b32e0f6cff","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":23}
+{"request_id":"rcc-8a88d6ba41837c1c83edbf775d86aefe","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":51}
+{"request_id":"rcc-3f795768525dee62a4dfeb4b2f6e6419","method":"POST","path":"/api/v1/release-orders/:id/approve","status":200,"duration_ms":11}
+{"request_id":"rcc-7b6499c7c6781f9ee3a8f9c8af2247bd","method":"POST","path":"/api/v1/release-orders/:id/execute","status":200,"duration_ms":71}
+{"request_id":"rcc-6cc4c0c5616700ccdce16eb33210b04f","method":"POST","path":"/api/v1/release-orders/:id/quick-rollback/preview","status":200,"duration_ms":49}
+{"request_id":"rcc-acb57b2a18bc1dbdf95d7012f900607a","method":"POST","path":"/api/v1/release-orders/:id/quick-rollback/preview","status":409,"duration_ms":27}
+{"request_id":"rcc-5a67c0800761b9b724529aa818f5e172","method":"POST","path":"/api/v1/release-orders/:id/quick-rollback","status":409,"duration_ms":38}
+{"request_id":"rcc-0381b8a84aa5d56171597c8bebe55693","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":3}
+{"request_id":"rcc-73f70f7c9cd96cab6e9b50b7ccd9b824","method":"GET","path":"/api/v1/release-orders/:id/details","status":200,"duration_ms":5}
+{"request_id":"rcc-05285232cd82a3d4c185ff474833ac4d","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-f0906744cad2086eb51ed42149f2df6b","method":"PUT","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":17}
+{"request_id":"rcc-25daa02e7d0040b167da5a71423fd9b9","method":"POST","path":"/api/v1/release-orders/:id/quick-rollback/preview","status":409,"duration_ms":28}
+{"request_id":"rcc-a55f53a5b3a862d1ee6a9998de0b548a","method":"POST","path":"/api/v1/release-orders/:id/quick-rollback","status":409,"duration_ms":42}
+{"request_id":"rcc-8f435f9f1833f6dbc240e934b5eec250","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":4}
+{"request_id":"rcc-952192e4926b5f6d6eb964c67d27322e","method":"GET","path":"/api/v1/release-orders/:id/details","status":200,"duration_ms":4}
+{"request_id":"rcc-60187cae416766f6df51d4589fd7e9a9","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-8b1a1ae40b1cc5703f44ddbe5b9dfff0","method":"PUT","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":26}
+{"request_id":"rcc-1d25df896394205c05102a267d9b9b63","method":"PATCH","path":"/api/v1/mutation-policies/:code/metadata","status":200,"duration_ms":5}
+{"request_id":"rcc-6cd7409fb174bdfe2010b38a334d0c08","method":"POST","path":"/api/v1/release-orders/:id/quick-rollback/preview","status":200,"duration_ms":48}
+{"request_id":"rcc-3aef938b10c7308f9e9fe28e10f1e8d1","method":"POST","path":"/api/v1/release-orders/:id/quick-rollback/preview","status":409,"duration_ms":49}
+{"request_id":"rcc-e9e4ac002ef7bf7b035399b3443524b0","method":"POST","path":"/api/v1/release-orders/:id/quick-rollback","status":409,"duration_ms":62}
+{"request_id":"rcc-a3e3eff79df0d7efb4888af618dfb0a0","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":3}
+{"request_id":"rcc-ed3062c10f29fa2654707f5c31b0f0db","method":"GET","path":"/api/v1/release-orders/:id/details","status":200,"duration_ms":4}
+{"request_id":"rcc-02319166cfd4d88f4b54bfa1ab73648c","method":"POST","path":"/api/v1/tables/:table_name/query","status":200,"duration_ms":12}
+2026/09/11 07:32:03 🐳 Stopping container: 40b86651aa3c
+2026/09/11 07:32:05 ✅ Container stopped: 40b86651aa3c
+2026/09/11 07:32:05 🐳 Terminating container: 40b86651aa3c
+2026/09/11 07:32:05 🚫 Container terminated: 40b86651aa3c
+--- PASS: TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions (9.89s)
+=== RUN   TestReleaseTemplateHTTPMaintainsMultipleTypesWithIdempotencyAndVersions
+2026/09/11 07:32:05 🐳 Creating container for image mysql:8.4
+2026/09/11 07:32:05 ✅ Container created: 754565144a65
+2026/09/11 07:32:05 🐳 Starting container: 754565144a65
+2026/09/11 07:32:05 ✅ Container started: 754565144a65
+2026/09/11 07:32:05 ⏳ Waiting for container id 754565144a65 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:32:11 🔔 Container is ready: 754565144a65
+{"request_id":"rcc-98f39a029c62db4afedffbe57591b71d","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":9}
+{"request_id":"rcc-343e552d9817462eed611d6aab2a9a6c","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":42}
+{"request_id":"rcc-d50df49272c430317d485bcb5ecc4e40","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-ef05e9544ac2882be3c27c91e619e648","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":54}
+{"request_id":"rcc-f7f139ff7c477e886a85479e53183cc2","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":7}
+{"request_id":"rcc-8d6789849f232ad771afaaa7efc12f3e","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":3}
+{"request_id":"rcc-4fe8bb32b041dbd50856a7532a665b89","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":6}
+{"request_id":"rcc-d6c25663d776c7f7756f1f0242e42b0c","method":"POST","path":"/api/v1/release-templates","status":409,"duration_ms":2}
+{"request_id":"rcc-086e9827d375160445552d4617c81423","method":"GET","path":"/api/v1/release-templates","status":200,"duration_ms":1}
+{"request_id":"rcc-d14e8c4d770ea0fefbd98ebf95a81547","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":7}
+{"request_id":"rcc-6bd98a81bf318ed09850d4d519ef6b38","method":"PUT","path":"/api/v1/release-templates/:code","status":409,"duration_ms":4}
+{"request_id":"rcc-a7aca147007b44945d1d26cd3dc04329","method":"POST","path":"/api/v1/release-templates/:code/disable","status":200,"duration_ms":6}
+2026/09/11 07:32:12 🐳 Stopping container: 754565144a65
+2026/09/11 07:32:14 ✅ Container stopped: 754565144a65
+2026/09/11 07:32:14 🐳 Terminating container: 754565144a65
+2026/09/11 07:32:14 🚫 Container terminated: 754565144a65
+--- PASS: TestReleaseTemplateHTTPMaintainsMultipleTypesWithIdempotencyAndVersions (8.84s)
+=== RUN   TestReleaseTemplateHTTPProtectsEmergencyAndRejectsInvalidNodes
+2026/09/11 07:32:14 🐳 Creating container for image mysql:8.4
+2026/09/11 07:32:14 ✅ Container created: 88a087dd37dc
+2026/09/11 07:32:14 🐳 Starting container: 88a087dd37dc
+2026/09/11 07:32:14 ✅ Container started: 88a087dd37dc
+2026/09/11 07:32:14 ⏳ Waiting for container id 88a087dd37dc image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:32:20 🔔 Container is ready: 88a087dd37dc
+{"request_id":"rcc-12a2cdcfbb4fa1096f4e3ad704a2c5f0","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-1f318545b5af73e74c95727af5667c63","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":52}
+{"request_id":"rcc-94010bfdc9b462313fa1e7ee8dba4a51","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-874b0c3e3701870c9938b69b367cc92e","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":59}
+{"request_id":"rcc-a5e31d3dbfcbafec8c6b1967f693ee1b","method":"POST","path":"/api/v1/release-templates","status":422,"duration_ms":1}
+{"request_id":"rcc-08e35770caa3a0fd7676a2d6f9a055eb","method":"POST","path":"/api/v1/release-templates/:code/disable","status":409,"duration_ms":3}
+{"request_id":"rcc-e9094c041ae7a210baaf7cd57b9b6b75","method":"DELETE","path":"/api/v1/release-templates/:code","status":409,"duration_ms":4}
+{"request_id":"rcc-02975e6a3872c26c3635ce81b8201341","method":"PUT","path":"/api/v1/release-templates/:code","status":422,"duration_ms":0}
+{"request_id":"rcc-ae999d1e459a202da54418c0a50877c8","method":"PUT","path":"/api/v1/release-templates/:code","status":422,"duration_ms":3}
+{"request_id":"rcc-32850f8ac735b7ab2935ea585dd592c3","method":"PUT","path":"/api/v1/release-templates/:code","status":422,"duration_ms":0}
+{"request_id":"rcc-8424100a9c1fed4294162560b1c2e738","method":"GET","path":"/api/v1/release-templates/:code","status":200,"duration_ms":1}
+2026/09/11 07:32:22 🐳 Stopping container: 88a087dd37dc
+2026/09/11 07:32:24 ✅ Container stopped: 88a087dd37dc
+2026/09/11 07:32:24 🐳 Terminating container: 88a087dd37dc
+2026/09/11 07:32:24 🚫 Container terminated: 88a087dd37dc
+--- PASS: TestReleaseTemplateHTTPProtectsEmergencyAndRejectsInvalidNodes (10.07s)
+=== RUN   TestReleaseTemplateHTTPRejectsNonAdministratorManagement
+2026/09/11 07:32:24 🐳 Creating container for image mysql:8.4
+2026/09/11 07:32:24 ✅ Container created: 102ed8daa3b5
+2026/09/11 07:32:24 🐳 Starting container: 102ed8daa3b5
+2026/09/11 07:32:24 ✅ Container started: 102ed8daa3b5
+2026/09/11 07:32:24 ⏳ Waiting for container id 102ed8daa3b5 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:32:30 🔔 Container is ready: 102ed8daa3b5
+{"request_id":"rcc-a771bab79720504b02d1983f3531c20e","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-b3c8fac38bddf74905647bfccfb2337a","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-c0a518ee9894d57b9bd47477b3575a13","method":"GET","path":"/api/v1/release-templates","status":403,"duration_ms":1}
+2026/09/11 07:32:31 🐳 Stopping container: 102ed8daa3b5
+2026/09/11 07:32:33 ✅ Container stopped: 102ed8daa3b5
+2026/09/11 07:32:33 🐳 Terminating container: 102ed8daa3b5
+2026/09/11 07:32:33 🚫 Container terminated: 102ed8daa3b5
+--- PASS: TestReleaseTemplateHTTPRejectsNonAdministratorManagement (8.84s)
+=== RUN   TestReleaseTemplateHTTPReplaysCommittedReplacementAfterLaterChanges
+2026/09/11 07:32:33 🐳 Creating container for image mysql:8.4
+2026/09/11 07:32:33 ✅ Container created: 666a7b9406a8
+2026/09/11 07:32:33 🐳 Starting container: 666a7b9406a8
+2026/09/11 07:32:33 ✅ Container started: 666a7b9406a8
+2026/09/11 07:32:33 ⏳ Waiting for container id 666a7b9406a8 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:32:40 🔔 Container is ready: 666a7b9406a8
+{"request_id":"rcc-8c268aa4344ec940f212e82d5de971c5","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":8}
+{"request_id":"rcc-f9355726f9f96235341e57b811412ad5","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":46}
+{"request_id":"rcc-0103411da372ab405c5d681a4d47761b","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-b3795d213ea8993500019a0527bd137d","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":52}
+{"request_id":"rcc-6ac1ed1ce5e7edcabd416a314cbc4ee8","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":6}
+{"request_id":"rcc-3466070f27203f75210421bcab67670f","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":7}
+{"request_id":"rcc-147dd6c08f77e089962a551c05704608","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":2}
+{"request_id":"rcc-265fe0492531ae5ba9d68c28a74cd0e1","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":8}
+{"request_id":"rcc-76b353275cd74f6a4a033a83fc4d23ca","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":3}
+{"request_id":"rcc-bbbf54983928b5aac1d082a226efc854","method":"GET","path":"/api/v1/release-templates/:code","status":200,"duration_ms":1}
+{"request_id":"rcc-18394082b22f09b2339dc7d8257b2a4d","method":"PUT","path":"/api/v1/release-templates/:code","status":409,"duration_ms":2}
+{"request_id":"rcc-c68905d11a2a0336f8fb911180782f48","method":"DELETE","path":"/api/v1/release-templates/:code","status":204,"duration_ms":6}
+{"request_id":"rcc-289a51bb7fe2e7dac248b0b4ef2cacf5","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":2}
+{"request_id":"rcc-9038c66725a77b2f00d0bb5eac179413","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":6}
+{"request_id":"rcc-cd7d7a85985d995a6b513351af2a1e9b","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":2}
+{"request_id":"rcc-779ead6a702908351df6064a3a3c9c48","method":"GET","path":"/api/v1/release-templates/:code","status":200,"duration_ms":1}
+2026/09/11 07:32:41 🐳 Stopping container: 666a7b9406a8
+2026/09/11 07:32:42 ✅ Container stopped: 666a7b9406a8
+2026/09/11 07:32:42 🐳 Terminating container: 666a7b9406a8
+2026/09/11 07:32:42 🚫 Container terminated: 666a7b9406a8
+--- PASS: TestReleaseTemplateHTTPReplaysCommittedReplacementAfterLaterChanges (9.83s)
+=== RUN   TestReleaseTemplateHTTPReplaysEnableAndDisableWithoutChangingLaterState
+2026/09/11 07:32:43 🐳 Creating container for image mysql:8.4
+2026/09/11 07:32:43 ✅ Container created: 00848a7d5fbb
+2026/09/11 07:32:43 🐳 Starting container: 00848a7d5fbb
+2026/09/11 07:32:43 ✅ Container started: 00848a7d5fbb
+2026/09/11 07:32:43 ⏳ Waiting for container id 00848a7d5fbb image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:32:50 🔔 Container is ready: 00848a7d5fbb
+{"request_id":"rcc-2e73d8764d98f414400117c8ed9bf197","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-01704589cbf4f3da9feb1741c1d71cb9","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-f1229b727d92a3ae8a706421366e81af","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-46a930dfa532c58b3d14705e033a04ac","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":53}
+{"request_id":"rcc-79b06a2de5f6a3284b54271fc7b351e0","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":6}
+{"request_id":"rcc-e7613f4c67ff94ee0e738d3744104eb3","method":"POST","path":"/api/v1/release-templates/:code/disable","status":200,"duration_ms":6}
+{"request_id":"rcc-1351da33f43b29bd7964c24758e6e87a","method":"POST","path":"/api/v1/release-templates/:code/disable","status":200,"duration_ms":3}
+{"request_id":"rcc-cd565eb3511365c49b15b2b82430ec7f","method":"POST","path":"/api/v1/release-templates/:code/enable","status":200,"duration_ms":6}
+{"request_id":"rcc-4457448d08905e7556edd7154ec8ad9c","method":"POST","path":"/api/v1/release-templates/:code/disable","status":200,"duration_ms":2}
+{"request_id":"rcc-e2d92a3cab38d4d8a19375f78d2bd0c2","method":"POST","path":"/api/v1/release-templates/:code/disable","status":409,"duration_ms":2}
+{"request_id":"rcc-2ebde197c84a575a7248cd28bfb9094c","method":"POST","path":"/api/v1/release-templates/:code/enable","status":200,"duration_ms":2}
+{"request_id":"rcc-7f6fd2e4ac209bb45afe1c8f6ce0abc6","method":"POST","path":"/api/v1/release-templates/:code/enable","status":409,"duration_ms":2}
+{"request_id":"rcc-f0c7e764dc68738e57c62c1b791706bd","method":"GET","path":"/api/v1/release-templates/:code","status":200,"duration_ms":1}
+{"request_id":"rcc-088246a979c3b3e5ee27dbf11ac74a30","method":"DELETE","path":"/api/v1/release-templates/:code","status":204,"duration_ms":5}
+{"request_id":"rcc-69061a0bee8412b822f41c7b2bf815ec","method":"POST","path":"/api/v1/release-templates/:code/disable","status":200,"duration_ms":2}
+{"request_id":"rcc-2005eee74d74573be0b849b3faafda89","method":"POST","path":"/api/v1/release-templates/:code/enable","status":200,"duration_ms":2}
+{"request_id":"rcc-fe5ab910007871e085c98d3223166cd3","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":5}
+{"request_id":"rcc-119fcffdad94a8ce54737c63e2fbd0f2","method":"POST","path":"/api/v1/release-templates/:code/disable","status":200,"duration_ms":3}
+{"request_id":"rcc-2721df859d3172d7f3023d1b906ef769","method":"POST","path":"/api/v1/release-templates/:code/enable","status":200,"duration_ms":2}
+{"request_id":"rcc-777fa0f2c2d0037f52f5d06bb906d83b","method":"GET","path":"/api/v1/release-templates/:code","status":200,"duration_ms":1}
+2026/09/11 07:32:51 🐳 Stopping container: 00848a7d5fbb
+2026/09/11 07:32:52 ✅ Container stopped: 00848a7d5fbb
+2026/09/11 07:32:52 🐳 Terminating container: 00848a7d5fbb
+2026/09/11 07:32:52 🚫 Container terminated: 00848a7d5fbb
+--- PASS: TestReleaseTemplateHTTPReplaysEnableAndDisableWithoutChangingLaterState (9.61s)
+=== RUN   TestReleaseTemplateHTTPReplaysDeletionWithoutDeletingRecreatedTemplate
+2026/09/11 07:32:52 🐳 Creating container for image mysql:8.4
+2026/09/11 07:32:52 ✅ Container created: ade840fe2ab6
+2026/09/11 07:32:52 🐳 Starting container: ade840fe2ab6
+2026/09/11 07:32:52 ✅ Container started: ade840fe2ab6
+2026/09/11 07:32:52 ⏳ Waiting for container id ade840fe2ab6 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:32:58 🔔 Container is ready: ade840fe2ab6
+{"request_id":"rcc-8a585553df499e13cc2294808ed0e168","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-34f42ed3a849913b91b432b84468c65c","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-318d48d374ee6c9837412a9b195804dc","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-60a320e5ae2d1cbb92af0f0f531dd1ca","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":51}
+{"request_id":"rcc-838726062cdaeb27984f1a1634d603cc","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":6}
+{"request_id":"rcc-164ca139a55c879b6d35d63c3c962919","method":"DELETE","path":"/api/v1/release-templates/:code","status":204,"duration_ms":6}
+{"request_id":"rcc-158ccb4e860d57633fffc88f4440e5ca","method":"DELETE","path":"/api/v1/release-templates/:code","status":204,"duration_ms":3}
+{"request_id":"rcc-469dce8941d5a240cc26d6881b751423","method":"GET","path":"/api/v1/release-templates/:code","status":404,"duration_ms":1}
+{"request_id":"rcc-849c6ca442657f0171529f0b63238f0d","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":6}
+{"request_id":"rcc-ae919f83caa4ce5df01c11c72b5d562a","method":"DELETE","path":"/api/v1/release-templates/:code","status":409,"duration_ms":2}
+{"request_id":"rcc-99f4bb0c4ad6e77c6e55e2be72aaeed2","method":"DELETE","path":"/api/v1/release-templates/:code","status":204,"duration_ms":3}
+{"request_id":"rcc-58da70a1c9cb6fe65ea7a4da30bb30ce","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":2}
+{"request_id":"rcc-3569f9954c8ccb8d7a5ede65dbfbbe89","method":"GET","path":"/api/v1/release-templates/:code","status":200,"duration_ms":1}
+2026/09/11 07:32:59 🐳 Stopping container: ade840fe2ab6
+2026/09/11 07:33:01 ✅ Container stopped: ade840fe2ab6
+2026/09/11 07:33:01 🐳 Terminating container: ade840fe2ab6
+2026/09/11 07:33:01 🚫 Container terminated: ade840fe2ab6
+--- PASS: TestReleaseTemplateHTTPReplaysDeletionWithoutDeletingRecreatedTemplate (8.84s)
+=== RUN   TestReleaseTemplateHTTPStandardDeletionKeepsReadOnlyReadiness
+2026/09/11 07:33:01 🐳 Creating container for image mysql:8.4
+2026/09/11 07:33:01 ✅ Container created: 29c248827065
+2026/09/11 07:33:01 🐳 Starting container: 29c248827065
+2026/09/11 07:33:01 ✅ Container started: 29c248827065
+2026/09/11 07:33:01 ⏳ Waiting for container id 29c248827065 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:33:07 🔔 Container is ready: 29c248827065
+{"request_id":"rcc-a2322de3b0ca09f9f05d406746290176","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-b405ffb14b05a388cce4fb690cdace89","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-0508ae89e3b347fd7d0bdce545b4d66d","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":4}
+{"request_id":"rcc-e55debdf0f04ebb656b6aa573431abe0","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":52}
+{"request_id":"rcc-d039f7d0d00363ffb023f2a7fa4fa894","method":"DELETE","path":"/api/v1/release-templates/:code","status":204,"duration_ms":8}
+{"request_id":"rcc-a2a46aafdf25e2dc9ef11d48f4af6074","method":"GET","path":"/api/v1/release-templates/:code","status":404,"duration_ms":1}
+2026/09/11 07:33:09 🐳 Stopping container: 29c248827065
+2026/09/11 07:33:10 ✅ Container stopped: 29c248827065
+2026/09/11 07:33:10 🐳 Terminating container: 29c248827065
+2026/09/11 07:33:10 🚫 Container terminated: 29c248827065
+--- PASS: TestReleaseTemplateHTTPStandardDeletionKeepsReadOnlyReadiness (8.83s)
+=== RUN   TestReleaseTemplateHTTPChecksCurrentAuthorizationBeforeReplayingAllWrites
+2026/09/11 07:33:10 🐳 Creating container for image mysql:8.4
+2026/09/11 07:33:10 ✅ Container created: 2bb87af871d4
+2026/09/11 07:33:10 🐳 Starting container: 2bb87af871d4
+2026/09/11 07:33:10 ✅ Container started: 2bb87af871d4
+2026/09/11 07:33:10 ⏳ Waiting for container id 2bb87af871d4 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:33:16 🔔 Container is ready: 2bb87af871d4
+{"request_id":"rcc-9ad3dbb3ce840926843a038b601367e7","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-d0a0511bc210aa4657a030ae2e6155d8","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":46}
+{"request_id":"rcc-835602bacfa8a53c539442d6c5345d03","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-c9b50322aafb6797bdbbcc05e2d8a746","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":52}
+{"request_id":"rcc-ac4b062c1cf097ba598456daee51f73d","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-d29a4dabf1b11a7aed2cb2c6ebe97432","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-f6c5e36a6ab6093eecb303e92f5f1ab0","method":"POST","path":"/api/v1/release-templates","status":403,"duration_ms":1}
+{"request_id":"rcc-4ecc54152ee5e6aee7c5721084a52619","method":"PUT","path":"/api/v1/release-templates/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-da5cab06cfffbc8cd3537368263d7557","method":"POST","path":"/api/v1/release-templates/:code/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-c834d43b4c31ab550b95b53aef4c03d7","method":"POST","path":"/api/v1/release-templates/:code/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-2fbaa4a96a8a78fc24a8bca2e88227f4","method":"DELETE","path":"/api/v1/release-templates/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-c79940909c49e611230ea1ec717038de","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":9}
+{"request_id":"rcc-dbb1af79d659dcaf595c5df81aeb55c4","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":6}
+{"request_id":"rcc-f8f69e42e4f0f2a831f3a9cb714ea055","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":6}
+{"request_id":"rcc-32180f92c13b721316db5a8a3f27730d","method":"POST","path":"/api/v1/release-templates/:code/disable","status":200,"duration_ms":7}
+{"request_id":"rcc-142cba03b508e703fa655e2a48772070","method":"POST","path":"/api/v1/release-templates/:code/enable","status":200,"duration_ms":7}
+{"request_id":"rcc-75e04f896833803d8f3197770074902f","method":"DELETE","path":"/api/v1/release-templates/:code","status":204,"duration_ms":7}
+{"request_id":"rcc-7c3014e5e7d8e86c85472707127b54eb","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":10}
+{"request_id":"rcc-4f24c75e9b985a720575011b15016ba0","method":"POST","path":"/api/v1/release-templates","status":403,"duration_ms":0}
+{"request_id":"rcc-fb42b5d628c5ea223b849e7956535839","method":"PUT","path":"/api/v1/release-templates/:code","status":403,"duration_ms":0}
+{"request_id":"rcc-44f1abf94210a049d2bdff3488f3e0e5","method":"POST","path":"/api/v1/release-templates/:code/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-352d732cd0226812f0e3c36f485b6038","method":"POST","path":"/api/v1/release-templates/:code/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-f50a8fbcbefb062fe2b98265d022e800","method":"DELETE","path":"/api/v1/release-templates/:code","status":403,"duration_ms":1}
+2026/09/11 07:33:17 🐳 Stopping container: 2bb87af871d4
+2026/09/11 07:33:19 ✅ Container stopped: 2bb87af871d4
+2026/09/11 07:33:19 🐳 Terminating container: 2bb87af871d4
+2026/09/11 07:33:19 🚫 Container terminated: 2bb87af871d4
+--- PASS: TestReleaseTemplateHTTPChecksCurrentAuthorizationBeforeReplayingAllWrites (8.80s)
+=== RUN   TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite
+2026/09/11 07:33:19 🐳 Creating container for image mysql:8.4
+2026/09/11 07:33:19 ✅ Container created: a0d416323671
+2026/09/11 07:33:19 🐳 Starting container: a0d416323671
+2026/09/11 07:33:19 ✅ Container started: a0d416323671
+2026/09/11 07:33:19 ⏳ Waiting for container id a0d416323671 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:33:26 🔔 Container is ready: a0d416323671
+=== RUN   TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite/create
+{"request_id":"rcc-a893dcedfeca814cd820839d445041a7","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-7f335aa30403efe6a4c42ea63cb5acce","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-e161f33eb3f8daf1beee37f5a2cf614a","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-b51e345c10342baba5ed93eebf7b69d8","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":53}
+{"request_id":"rcc-07af6478b9b9af4f032154e65433d60e","method":"GET","path":"/api/v1/release-templates","status":200,"duration_ms":1}
+{"request_id":"rcc-cda3164781768a9a1f6e7e948829a8a4","method":"POST","path":"/api/v1/release-templates","status":503,"duration_ms":7}
+{"request_id":"rcc-b31cc15d05330278ca59d6fb7d93446a","method":"GET","path":"/api/v1/release-templates","status":200,"duration_ms":1}
+{"request_id":"rcc-7c02b53812d0ea8879dbecbd13471d51","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":7}
+{"request_id":"rcc-5f5f02272c3da8327d641ede8ab56952","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":3}
+=== RUN   TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite/replace
+{"request_id":"rcc-f6b21f63a204bd8a6f46fbfc6065e002","method":"GET","path":"/api/v1/release-templates","status":200,"duration_ms":1}
+{"request_id":"rcc-3fc082ae1e06ab1809a5f4044f75b440","method":"PUT","path":"/api/v1/release-templates/:code","status":503,"duration_ms":7}
+{"request_id":"rcc-1e1240203e59ff136299d38045dc87b7","method":"GET","path":"/api/v1/release-templates","status":200,"duration_ms":1}
+{"request_id":"rcc-7ac494d09bf03d0f870d757c3b95a82e","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":7}
+{"request_id":"rcc-a5839aa869e46ef4f45680ee49d55681","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":3}
+=== RUN   TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite/disable
+{"request_id":"rcc-0aeae6f434607f8b00b1f56c53b61eef","method":"GET","path":"/api/v1/release-templates","status":200,"duration_ms":1}
+{"request_id":"rcc-781c87a8608f7ae64bd8986664ec3a49","method":"POST","path":"/api/v1/release-templates/:code/disable","status":503,"duration_ms":6}
+{"request_id":"rcc-4ef5d5f9a3aeb6589648dbdbf240b829","method":"GET","path":"/api/v1/release-templates","status":200,"duration_ms":1}
+{"request_id":"rcc-448e936efd09d0bb95de77e7c6a41d79","method":"POST","path":"/api/v1/release-templates/:code/disable","status":200,"duration_ms":7}
+{"request_id":"rcc-f9b75d1250875df3b3d4609d312c945a","method":"POST","path":"/api/v1/release-templates/:code/disable","status":200,"duration_ms":2}
+=== RUN   TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite/enable
+{"request_id":"rcc-d289963f74293eb732c7ac11d957721a","method":"GET","path":"/api/v1/release-templates","status":200,"duration_ms":1}
+{"request_id":"rcc-4b117dc2ca2c8a0b8c7b4968febee417","method":"POST","path":"/api/v1/release-templates/:code/enable","status":503,"duration_ms":7}
+{"request_id":"rcc-ff165d9594a98043e33840e38ae10a82","method":"GET","path":"/api/v1/release-templates","status":200,"duration_ms":1}
+{"request_id":"rcc-c3c8fce15767d3404458be195b0ba381","method":"POST","path":"/api/v1/release-templates/:code/enable","status":200,"duration_ms":7}
+{"request_id":"rcc-f372b60a6e70aa95c151025f478a15ec","method":"POST","path":"/api/v1/release-templates/:code/enable","status":200,"duration_ms":2}
+=== RUN   TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite/delete
+{"request_id":"rcc-e65f9318562498e30ab01647760fe609","method":"GET","path":"/api/v1/release-templates","status":200,"duration_ms":1}
+{"request_id":"rcc-6cc93141e150b31dedea8c63dee3b789","method":"DELETE","path":"/api/v1/release-templates/:code","status":503,"duration_ms":6}
+{"request_id":"rcc-65a98f0ca47adfc8bafaf02605545081","method":"GET","path":"/api/v1/release-templates","status":200,"duration_ms":1}
+{"request_id":"rcc-1bf49624ca54188278c4b256e1c5c851","method":"DELETE","path":"/api/v1/release-templates/:code","status":204,"duration_ms":6}
+{"request_id":"rcc-e4347acbbb20daa171b134919c69fecc","method":"DELETE","path":"/api/v1/release-templates/:code","status":204,"duration_ms":2}
+2026/09/11 07:33:27 🐳 Stopping container: a0d416323671
+2026/09/11 07:33:28 ✅ Container stopped: a0d416323671
+2026/09/11 07:33:28 🐳 Terminating container: a0d416323671
+2026/09/11 07:33:28 🚫 Container terminated: a0d416323671
+--- PASS: TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite (9.66s)
+    --- PASS: TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite/create (0.15s)
+    --- PASS: TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite/replace (0.03s)
+    --- PASS: TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite/disable (0.02s)
+    --- PASS: TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite/enable (0.03s)
+    --- PASS: TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite/delete (0.02s)
+=== RUN   TestReleaseTemplateHTTPConcurrentRequestsRetainOneResultAndRejectStaleAdministrator
+2026/09/11 07:33:28 🐳 Creating container for image mysql:8.4
+2026/09/11 07:33:28 ✅ Container created: 8287fd9ca248
+2026/09/11 07:33:28 🐳 Starting container: 8287fd9ca248
+2026/09/11 07:33:28 ✅ Container started: 8287fd9ca248
+2026/09/11 07:33:28 ⏳ Waiting for container id 8287fd9ca248 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:33:35 🔔 Container is ready: 8287fd9ca248
+{"request_id":"rcc-be4b24c30c19eed266a5af0dafcfe832","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-4ab74441dc155a264bfcbbbe63957794","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":42}
+{"request_id":"rcc-ad1cec7067f1d6f4f8b24f316b67fdcb","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-1f055b7a2f72ed1d1a99878d53b2288c","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":52}
+{"request_id":"rcc-f398fc35d27c2747a517370bbe2d4311","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-d323bc37b5ff4cfae19e74582f4143d5","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-62a6bea6a849b7f09240b6dc0be02a32","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":9}
+{"request_id":"rcc-b3b0294900131cc8df6c44bdb893dcb8","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":8}
+{"request_id":"rcc-50b907c5cf01ee5e0e2574c8723754c2","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":9}
+{"request_id":"rcc-67224eed201f9da982cdb0df4bae5cbf","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":8}
+{"request_id":"rcc-7bb0a7807bbbe1391f79e8a832388b0d","method":"PUT","path":"/api/v1/release-templates/:code","status":409,"duration_ms":9}
+{"request_id":"rcc-6fc51c55d4aca37b6058ddcd9067f3b7","method":"GET","path":"/api/v1/release-templates/:code","status":200,"duration_ms":1}
+{"request_id":"rcc-4d4a65fa8fb1bb0a6cbb6710dd804104","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":7}
+{"request_id":"rcc-fc9a1f32a5c1525c32fa6194b8c803fe","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":8}
+{"request_id":"rcc-6112b98cacc020a478890970c89489ef","method":"POST","path":"/api/v1/release-templates/:code/disable","status":200,"duration_ms":11}
+{"request_id":"rcc-b30946293621374f7b0415f59a27d407","method":"POST","path":"/api/v1/release-templates/:code/disable","status":200,"duration_ms":13}
+{"request_id":"rcc-8e15cd2795482642549332731b034df7","method":"POST","path":"/api/v1/release-templates/:code/enable","status":200,"duration_ms":7}
+{"request_id":"rcc-6c3befb36ecc4e20eb091b33482a2176","method":"POST","path":"/api/v1/release-templates/:code/enable","status":200,"duration_ms":9}
+{"request_id":"rcc-df1664445f256b3a5f1d85d4efe9e6d8","method":"DELETE","path":"/api/v1/release-templates/:code","status":204,"duration_ms":9}
+{"request_id":"rcc-55a6d10cbc3b22e13d9c56f075ca9289","method":"DELETE","path":"/api/v1/release-templates/:code","status":204,"duration_ms":11}
+{"request_id":"rcc-51c0cffde83b3f19c8f6b73c9515b731","method":"GET","path":"/api/v1/release-templates/:code","status":404,"duration_ms":1}
+2026/09/11 07:33:36 🐳 Stopping container: 8287fd9ca248
+2026/09/11 07:33:37 ✅ Container stopped: 8287fd9ca248
+2026/09/11 07:33:37 🐳 Terminating container: 8287fd9ca248
+2026/09/11 07:33:37 🚫 Container terminated: 8287fd9ca248
+--- PASS: TestReleaseTemplateHTTPConcurrentRequestsRetainOneResultAndRejectStaleAdministrator (8.97s)
+=== RUN   TestReleaseTemplateHTTPRequiresRequestIdentityAndRejectsChangedTargets
+2026/09/11 07:33:37 🐳 Creating container for image mysql:8.4
+2026/09/11 07:33:37 ✅ Container created: 5ed9988b7edf
+2026/09/11 07:33:37 🐳 Starting container: 5ed9988b7edf
+2026/09/11 07:33:37 ✅ Container started: 5ed9988b7edf
+2026/09/11 07:33:37 ⏳ Waiting for container id 5ed9988b7edf image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:33:44 🔔 Container is ready: 5ed9988b7edf
+{"request_id":"rcc-c8f74f506e580bc7650b93541fe86a83","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-68fa09534df6e630546cb9cc0108f945","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":45}
+{"request_id":"rcc-2c019dc51aedb3c17ad0d103ecd1a7ee","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-53f7bc099d37b57a27eade808cd1e367","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":52}
+{"request_id":"rcc-1c7485d6570b61ff1a6be4652cfe3ed7","method":"GET","path":"/api/v1/release-templates","status":200,"duration_ms":1}
+{"request_id":"rcc-7bb0ec411940121ae8aafb1e3e0af473","method":"POST","path":"/api/v1/release-templates","status":422,"duration_ms":0}
+{"request_id":"rcc-22e13feef89a16ed54ee916092513ead","method":"POST","path":"/api/v1/release-templates","status":422,"duration_ms":0}
+{"request_id":"rcc-df4d67689f01b459e5011fb82d25240c","method":"POST","path":"/api/v1/release-templates","status":422,"duration_ms":0}
+{"request_id":"rcc-b6917a1b26fc1b304f3bc65dc87f5077","method":"PUT","path":"/api/v1/release-templates/:code","status":422,"duration_ms":0}
+{"request_id":"rcc-6a9cb9849752286aea414f8a786272d5","method":"PUT","path":"/api/v1/release-templates/:code","status":422,"duration_ms":0}
+{"request_id":"rcc-93aad31ab119b60a6076ac601728b28b","method":"PUT","path":"/api/v1/release-templates/:code","status":422,"duration_ms":0}
+{"request_id":"rcc-52b666ebfe77dbc5b084b6e75b3ecd53","method":"POST","path":"/api/v1/release-templates/:code/enable","status":422,"duration_ms":0}
+{"request_id":"rcc-a502063014b9f2791af7d6d9cd95803b","method":"POST","path":"/api/v1/release-templates/:code/enable","status":422,"duration_ms":0}
+{"request_id":"rcc-e2dae3c4edec907539452e996866eeda","method":"POST","path":"/api/v1/release-templates/:code/enable","status":422,"duration_ms":0}
+{"request_id":"rcc-a33a2566eb111a735f24961c87011eb6","method":"POST","path":"/api/v1/release-templates/:code/disable","status":422,"duration_ms":0}
+{"request_id":"rcc-6d09e37a9bd79ca838bfa9ac1d6ce144","method":"POST","path":"/api/v1/release-templates/:code/disable","status":422,"duration_ms":0}
+{"request_id":"rcc-45adf783f0d9c0a0490e7935111519d2","method":"POST","path":"/api/v1/release-templates/:code/disable","status":422,"duration_ms":0}
+{"request_id":"rcc-53a00699f045a1ccefcfec21f62c77ce","method":"DELETE","path":"/api/v1/release-templates/:code","status":422,"duration_ms":0}
+{"request_id":"rcc-cb30df27193b0b8965dae0d226817fa7","method":"DELETE","path":"/api/v1/release-templates/:code","status":422,"duration_ms":0}
+{"request_id":"rcc-3d830c93cd9461e2f2f2e536e40cecdc","method":"DELETE","path":"/api/v1/release-templates/:code","status":422,"duration_ms":0}
+{"request_id":"rcc-297ae2c8482ca46066d21b53936e114b","method":"GET","path":"/api/v1/release-templates","status":200,"duration_ms":1}
+{"request_id":"rcc-8909e2239873c5ec9b5db81ca1e27f92","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":7}
+{"request_id":"rcc-2183bc31b96ed46f401b0421a930b9c5","method":"POST","path":"/api/v1/release-templates","status":409,"duration_ms":2}
+{"request_id":"rcc-7f5204c2205a0b9cf5a003cee58938bd","method":"POST","path":"/api/v1/release-templates","status":409,"duration_ms":3}
+{"request_id":"rcc-bf22d05311fec0da659f7e267ee79b42","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":7}
+{"request_id":"rcc-1ab0efd8332293ff5e1856283859e35f","method":"PUT","path":"/api/v1/release-templates/:code","status":409,"duration_ms":3}
+{"request_id":"rcc-8f9499bb307f07283af7f20c213afa27","method":"POST","path":"/api/v1/release-templates/:code/disable","status":200,"duration_ms":6}
+{"request_id":"rcc-7d9ba082b71ee82dc4b43422f9641205","method":"POST","path":"/api/v1/release-templates/:code/disable","status":409,"duration_ms":2}
+{"request_id":"rcc-567743a02071581b4f4b293bf4ef7373","method":"POST","path":"/api/v1/release-templates/:code/enable","status":200,"duration_ms":7}
+{"request_id":"rcc-e8db39bce9dd4d955a6697016564cf40","method":"POST","path":"/api/v1/release-templates/:code/enable","status":409,"duration_ms":2}
+{"request_id":"rcc-85a3aa9f60fe8d90f3bc8cbdd08b0fa9","method":"DELETE","path":"/api/v1/release-templates/:code","status":204,"duration_ms":5}
+{"request_id":"rcc-7ba50d6f1c67824a32d83587263123bb","method":"DELETE","path":"/api/v1/release-templates/:code","status":409,"duration_ms":2}
+2026/09/11 07:33:45 🐳 Stopping container: 5ed9988b7edf
+2026/09/11 07:33:46 ✅ Container stopped: 5ed9988b7edf
+2026/09/11 07:33:46 🐳 Terminating container: 5ed9988b7edf
+2026/09/11 07:33:46 🚫 Container terminated: 5ed9988b7edf
+--- PASS: TestReleaseTemplateHTTPRequiresRequestIdentityAndRejectsChangedTargets (8.89s)
+=== RUN   TestReleaseTemplateHTTPControlTableRejectsGenericManagement
+2026/09/11 07:33:46 🐳 Creating container for image mysql:8.4
+2026/09/11 07:33:46 ✅ Container created: b40ed184b0d4
+2026/09/11 07:33:46 🐳 Starting container: b40ed184b0d4
+2026/09/11 07:33:46 ✅ Container started: b40ed184b0d4
+2026/09/11 07:33:46 ⏳ Waiting for container id b40ed184b0d4 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:33:53 🔔 Container is ready: b40ed184b0d4
+{"request_id":"rcc-4111c5fdefe0784184df97827bb469a2","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-97d677f53085cff6b44613f05f3ed2de","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":45}
+{"request_id":"rcc-27dca7820c60aeec91e18edd45f0e596","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-dec897c864587d3d1da9f98f281e0cbe","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":50}
+{"request_id":"rcc-5f3997e2227446f0b0f5ca9b103214de","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":3}
+{"request_id":"rcc-72da95429579b42fb542064d549072f0","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-d46eaa7854fee02e13b239264cc147dd","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-2b950e2c9b5101a72c49aee1466d6794","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-5a513cfdb6c77a1689e494aa28c5e031","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":3}
+2026/09/11 07:33:54 🐳 Stopping container: b40ed184b0d4
+2026/09/11 07:33:55 ✅ Container stopped: b40ed184b0d4
+2026/09/11 07:33:55 🐳 Terminating container: b40ed184b0d4
+2026/09/11 07:33:55 🚫 Container terminated: b40ed184b0d4
+--- PASS: TestReleaseTemplateHTTPControlTableRejectsGenericManagement (9.06s)
+=== RUN   TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable
+2026/09/11 07:33:55 🐳 Creating container for image mysql:8.4
+2026/09/11 07:33:55 ✅ Container created: b3928006979d
+2026/09/11 07:33:55 🐳 Starting container: b3928006979d
+2026/09/11 07:33:55 ✅ Container started: b3928006979d
+2026/09/11 07:33:55 ⏳ Waiting for container id b3928006979d image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:34:02 🔔 Container is ready: b3928006979d
+{"request_id":"rcc-5619b8168dfbe3fc1a3bbb81dd6f7afa","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-a34d9956e90b0e4332aa3ccac5061272","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-a04e2a931043897e4a0a93a3da9b0143","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-22842ad4c0b4e130f4c69f3409a2c1cc","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":50}
+{"request_id":"rcc-6219d05dd29db3344010cff4a32518f3","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-08d88d5e732b97d7f9d0d1b203065268","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-61e350d095f69f28764d9e025f3988e3","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-f5f672ac7577e550f6f1066b831503cd","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-6f11712df60b731eb6a42d623e0edd71","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":15}
+{"request_id":"rcc-cd712708754b2400dbe7ebe4ed8f3f56","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":14}
+{"request_id":"rcc-d0431c7e099b730a97208e742ab1f8c9","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":6}
+{"request_id":"rcc-0b68131abd330d92959a136c2d234661","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":6}
+{"request_id":"rcc-0f6d6bfa440826a5bd4c6294c320048a","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-4f3471b8ae9d804afaf350c249aa1d24","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":8}
+{"request_id":"rcc-0bf62b2a831a22ae5628c30dc93ccd5f","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":8}
+{"request_id":"rcc-cb148089e137037c4e402d026fc41227","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-59b8e825caba98b0b50effd6d69da743","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-3bc86115bb5cb55e09d351fb04d934c9","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":8}
+{"request_id":"rcc-0437ee4dde16b17e4b2e69ff425ecf8b","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":11}
+{"request_id":"rcc-fda3f926e4dc0e9f4d734dfb63085187","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-925b4ec7a775222a5340e30e21cc2959","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":422,"duration_ms":5}
+{"request_id":"rcc-21c6988d32181a63bed1365a0ca1ef1c","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":409,"duration_ms":0}
+{"request_id":"rcc-1e1e4c71d2750967f5731f2bb3ae6117","method":"DELETE","path":"unmatched","status":400,"duration_ms":0}
+{"request_id":"rcc-66cd873abaf3f0a3bd820e33aa08b01f","method":"POST","path":"unmatched","status":400,"duration_ms":0}
+{"request_id":"rcc-6661ecae9438d63399f5eaaef7fe7142","method":"DELETE","path":"/api/v1/release-templates/:code","status":409,"duration_ms":4}
+{"request_id":"rcc-6d4c2eee2b9ac66069284cf3be9fb50a","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":8}
+{"request_id":"rcc-a80d5690ad5b3ef74890893128ae700e","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":14}
+{"request_id":"rcc-24285950177f67694cf8f33f2d4f5a50","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":200,"duration_ms":8}
+{"request_id":"rcc-f32285dff54bc54c90270aa046106f10","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+2026/09/11 07:34:03 🐳 Stopping container: b3928006979d
+2026/09/11 07:34:05 ✅ Container stopped: b3928006979d
+2026/09/11 07:34:05 🐳 Terminating container: b3928006979d
+2026/09/11 07:34:05 🚫 Container terminated: b3928006979d
+--- PASS: TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable (9.63s)
+=== RUN   TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay
+2026/09/11 07:34:05 🐳 Creating container for image mysql:8.4
+2026/09/11 07:34:05 ✅ Container created: 3566d8e8e2d3
+2026/09/11 07:34:05 🐳 Starting container: 3566d8e8e2d3
+2026/09/11 07:34:05 ✅ Container started: 3566d8e8e2d3
+2026/09/11 07:34:05 ⏳ Waiting for container id 3566d8e8e2d3 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:34:11 🔔 Container is ready: 3566d8e8e2d3
+{"request_id":"rcc-79679483aa06380a9fddd78159dc01a3","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-ac0a61283c06a076ee94668d30003d53","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-7626800700edfdc420bb68e69c803770","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-401b66c60940457f8b8fcec61f2c7766","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":56}
+{"request_id":"rcc-afdb47642d14d74c428e54b8ca310c3c","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-862ba70f5d2ca6d01ab3ec89bcd230df","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":6}
+{"request_id":"rcc-e1aa131b8597b60ac84bc61cd22a3ea4","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-5897158843c85c27a0c6111c56927e2b","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":7}
+{"request_id":"rcc-dc58cbd6125038a828d31ed311388381","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":17}
+{"request_id":"rcc-e51a51d2b94984807869978a0c4fe171","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":7}
+{"request_id":"rcc-96b66f8f309ba00ef046a89e147e854a","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":7}
+{"request_id":"rcc-22a9e41ad018a62533b5b671a4718a23","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-a3a1644ffd1052c8465e8587cdcbdf77","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-72b7b2a7f45c4fe718ab1d6505eda49a","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":10}
+{"request_id":"rcc-c59cf85d95e245e2602917a203581d85","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":11}
+{"request_id":"rcc-04e71969d16970bb8065e9f61a64e995","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":409,"duration_ms":13}
+{"request_id":"rcc-2a45a9df75d15087307828c4753592b0","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":3}
+{"request_id":"rcc-5dac0bff58e2f7dae4e115a533d4d19f","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":409,"duration_ms":3}
+{"request_id":"rcc-73d8f1c47f5a35bed4a3f234fff9a1e5","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":9}
+{"request_id":"rcc-5998e17c268b604a50d98f9574cfe485","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":4}
+{"request_id":"rcc-af4428253b63665561af8774ce356241","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+2026/09/11 07:34:13 🐳 Stopping container: 3566d8e8e2d3
+2026/09/11 07:34:14 ✅ Container stopped: 3566d8e8e2d3
+2026/09/11 07:34:14 🐳 Terminating container: 3566d8e8e2d3
+2026/09/11 07:34:14 🚫 Container terminated: 3566d8e8e2d3
+--- PASS: TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay (9.03s)
+=== RUN   TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure
+2026/09/11 07:34:14 🐳 Creating container for image mysql:8.4
+2026/09/11 07:34:14 ✅ Container created: c232014c31c9
+2026/09/11 07:34:14 🐳 Starting container: c232014c31c9
+2026/09/11 07:34:14 ✅ Container started: c232014c31c9
+2026/09/11 07:34:14 ⏳ Waiting for container id c232014c31c9 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:34:20 🔔 Container is ready: c232014c31c9
+{"request_id":"rcc-64788404b601ecebe9d037d304eb7f55","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-223552b1ef11364d6b31684056356d47","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-dece9a6eccfda02eedcceefec34370a4","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-9e974eef5e402e96a95b2ee4ee2316df","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":53}
+{"request_id":"rcc-f8a4c86df389e587178b175ffa1af5e7","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-3bc08492670cfa78a0579d2f7a42fde5","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-1bdce3b1ed400002462adaa332224b5f","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-87d0516c9ae707d2f45a42ca9ce9cf10","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-47a57e397f13f9c25d33e30082d65b93","method":"POST","path":"/api/v1/table-policies","status":503,"duration_ms":13}
+{"request_id":"rcc-411fae5b49b260af20bb1eea9864f6ba","method":"GET","path":"/api/v1/table-policies/:table_name","status":404,"duration_ms":1}
+{"request_id":"rcc-2ffe6196e6b6342fdca4b4443d19c7be","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":15}
+{"request_id":"rcc-059b7f2610d169d36f8f013f7ac1e89b","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":503,"duration_ms":14}
+{"request_id":"rcc-1c59b42bc711b5e62ef5bf1e2e53f7c2","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-5705fe86ae1411336c5a30fd18dd1bc8","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-08c4159966e0f1678c50ab85f2ac7832","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":14}
+{"request_id":"rcc-c095c5896b50da4e9ffe32e3fe6c1a00","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-d71e4b5ea85c3482e194dc16057a10a0","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-f930a8ee4452977ad6d43a44763be739","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-42e09775d6322a9d3b81d1fda8705f31","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":503,"duration_ms":7}
+{"request_id":"rcc-687860082dd1a2235d09483f1a63f22c","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-450dc17f77030fe15f3c02f47876b80d","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-71cc929c67a5a9aab3ff4ede7c25a7c5","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-067fdfb356db539cc7976a75fc798d07","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-317569fab816698d492931dd56a9adcd","method":"PUT","path":"/api/v1/table-policies/:table_name","status":503,"duration_ms":16}
+{"request_id":"rcc-ca232ba07d808c2c6f5da0c484535bdb","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-32c9f3538b60d153c11cceb50489d133","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-26a2a4583011d655ee1a948fd8101d1b","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-64961916e41bc53bf05106b92670b06c","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-9f75ae1ba00a29eac85a037baf1775ca","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":503,"duration_ms":8}
+{"request_id":"rcc-e4628efedbcefada99fa84bdc1b0f071","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-1692181cfce7777ac6b83142cfd3bd50","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-03bdc91d01efad0ae6dc39f8aa25b5c0","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":200,"duration_ms":8}
+{"request_id":"rcc-788fcd22be1528e0b59613dcdac81d84","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":3}
+{"request_id":"rcc-0fd93115f34ffe22be6aee4376002f24","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-e953a7a9a5d762a95ad10318598af447","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":2}
+{"request_id":"rcc-abd69d8ef195d6be55b32732bae46596","method":"POST","path":"/api/v1/table-policies","status":409,"duration_ms":2}
+2026/09/11 07:34:21 🐳 Stopping container: c232014c31c9
+2026/09/11 07:34:23 ✅ Container stopped: c232014c31c9
+2026/09/11 07:34:23 🐳 Terminating container: c232014c31c9
+2026/09/11 07:34:23 🚫 Container terminated: c232014c31c9
+--- PASS: TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure (9.02s)
+=== RUN   TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin
+2026/09/11 07:34:23 🐳 Creating container for image mysql:8.4
+2026/09/11 07:34:23 ✅ Container created: dec2e452d8ce
+2026/09/11 07:34:23 🐳 Starting container: dec2e452d8ce
+2026/09/11 07:34:23 ✅ Container started: dec2e452d8ce
+2026/09/11 07:34:23 ⏳ Waiting for container id dec2e452d8ce image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:34:29 🔔 Container is ready: dec2e452d8ce
+{"request_id":"rcc-52a2b279c87a44339e2d20188966f943","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":8}
+{"request_id":"rcc-0d91857c740ccb23772495eb25142d81","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":42}
+{"request_id":"rcc-e36e95a187460b20659cbaeb963fe1ad","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-a29886949b0d86bdb19b9b8971d2d034","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":54}
+{"request_id":"rcc-c5744e329fcee8076709b513c67a0f9d","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":404,"duration_ms":2}
+{"request_id":"rcc-88226eb0610ebd75cde3ba4104ca5c57","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-36632a78fa52716015f0feead14a57ff","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":42}
+{"request_id":"rcc-75d18ceed5b8ce91adb1ef3f039f089a","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":403,"duration_ms":1}
+{"request_id":"rcc-aa202ea6891dcc0c811d7ac4e1c8dbcc","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":404,"duration_ms":3}
+2026/09/11 07:34:30 🐳 Stopping container: dec2e452d8ce
+2026/09/11 07:34:32 ✅ Container stopped: dec2e452d8ce
+2026/09/11 07:34:32 🐳 Terminating container: dec2e452d8ce
+2026/09/11 07:34:32 🚫 Container terminated: dec2e452d8ce
+--- PASS: TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin (9.00s)
+=== RUN   TestTableReleaseTemplateHTTPCurrentAuthorizationAndRequiredRequestIdentity
+2026/09/11 07:34:32 🐳 Creating container for image mysql:8.4
+2026/09/11 07:34:32 ✅ Container created: db96a7aa3918
+2026/09/11 07:34:32 🐳 Starting container: db96a7aa3918
+2026/09/11 07:34:32 ✅ Container started: db96a7aa3918
+2026/09/11 07:34:32 ⏳ Waiting for container id db96a7aa3918 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:34:39 🔔 Container is ready: db96a7aa3918
+{"request_id":"rcc-df2f2b5882f92cb6a28a7b1bb847ce03","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-42b2d54710d6e78704e80f912ae1e6b6","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-6e34da13fb101c2f8f4dffea115d0db3","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-f56abed38281b2a3901f7bcf475a4df4","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":56}
+{"request_id":"rcc-292abe85aec4e33d21b9abebe37f7ecd","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":5}
+{"request_id":"rcc-b282991afa85c3d1257df6790dea320f","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":6}
+{"request_id":"rcc-5ec41427582462e3dbe41b74f0e3551f","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-70546c403f4270c9c4ea0aefad751e77","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":5}
+{"request_id":"rcc-c7cc73b3a85e287066710c0725693926","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":8}
+{"request_id":"rcc-8f20dc6ae7a2097a984571d945177d59","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":194}
+{"request_id":"rcc-6f613dfbf1c6d140153bbf8bddacd70f","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":1}
+{"request_id":"rcc-c0ba50d251b3253d8bda687e23b27ce8","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":1}
+{"request_id":"rcc-264238e124d7b075c3fed5af651bca34","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":1}
+{"request_id":"rcc-57d7f2c4aa045a284a37d46439fae905","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-094c63751595709c5ee18ccf9970ebec","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":403,"duration_ms":0}
+{"request_id":"rcc-58f072a5c07508ef93ba36f0ee50832e","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":14}
+{"request_id":"rcc-bd69b838a6dc486797ad7ecadf49e180","method":"POST","path":"/api/v1/table-policies","status":422,"duration_ms":1}
+{"request_id":"rcc-3552316a285186b5e68fb827a2d880c7","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":50}
+{"request_id":"rcc-9f79029a5b43d8ceb4651f45bd0fb98e","method":"PUT","path":"/api/v1/table-policies/:table_name","status":422,"duration_ms":1}
+{"request_id":"rcc-202d14aa524dcb08d026f9963099c675","method":"PUT","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":17}
+{"request_id":"rcc-cb6032c9b4fa5aa3d5360eef40a7e0db","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":422,"duration_ms":0}
+{"request_id":"rcc-ea3176ff050ba0be45ec53f674f49e02","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":13}
+{"request_id":"rcc-e7ef8dfbe2c327ab6b8e596975f617eb","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":422,"duration_ms":1}
+{"request_id":"rcc-548fd9bc194aed3ce9bea096e0d310ad","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":200,"duration_ms":7}
+{"request_id":"rcc-9a5cff295f77d17491a4597962bc8bdd","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":422,"duration_ms":1}
+{"request_id":"rcc-6b24317b10686e713b23ac40581f24cb","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":9}
+{"request_id":"rcc-89edb53f396d68cf6bda31dc03f9c54c","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-5d0c5eaed7acaa576244a3a22d7e65f1","method":"PUT","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":2}
+{"request_id":"rcc-9a843fba15e4d26c64b918d19c49ee18","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":3}
+{"request_id":"rcc-c555710d86e968f1ee3c9d506bfab800","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":200,"duration_ms":2}
+{"request_id":"rcc-5c159e9cdf7c65303339518f7eac21ad","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":2}
+{"request_id":"rcc-606004f91a43bc2da73f50960bd54eb7","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":11}
+{"request_id":"rcc-f8764ca32be38982aaba6006f1e150c3","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-9c7e45f81b00486952e003aac63f245d","method":"PUT","path":"/api/v1/table-policies/:table_name","status":403,"duration_ms":0}
+{"request_id":"rcc-b9d21b5e417134eeaedcf32541b29fa5","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":403,"duration_ms":0}
+{"request_id":"rcc-c62efe4a8efdea5f0693b3cc5a475015","method":"POST","path":"/api/v1/table-policies/:table_name/disable","status":403,"duration_ms":0}
+{"request_id":"rcc-659c132510d89e046f7091860271662c","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":403,"duration_ms":0}
+{"request_id":"rcc-784e3c5ade27249b20bf9d9193edf8c3","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":0}
+{"request_id":"rcc-3eeebe2f24b73a59a4e978efc6e24e69","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":403,"duration_ms":1}
+{"request_id":"rcc-790a8e010b7737e018221b5acd1d2e61","method":"POST","path":"/api/v1/table-policies","status":403,"duration_ms":1}
+{"request_id":"rcc-e0f48cbe2277f92bffd7ea8a8cc92f15","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":403,"duration_ms":0}
+2026/09/11 07:34:40 🐳 Stopping container: db96a7aa3918
+2026/09/11 07:34:41 ✅ Container stopped: db96a7aa3918
+2026/09/11 07:34:41 🐳 Terminating container: db96a7aa3918
+2026/09/11 07:34:41 🚫 Container terminated: db96a7aa3918
+--- PASS: TestTableReleaseTemplateHTTPCurrentAuthorizationAndRequiredRequestIdentity (9.52s)
+=== RUN   TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency
+2026/09/11 07:34:41 🐳 Creating container for image mysql:8.4
+2026/09/11 07:34:41 ✅ Container created: 720ff41999d3
+2026/09/11 07:34:41 🐳 Starting container: 720ff41999d3
+2026/09/11 07:34:42 ✅ Container started: 720ff41999d3
+2026/09/11 07:34:42 ⏳ Waiting for container id 720ff41999d3 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:34:48 🔔 Container is ready: 720ff41999d3
+{"request_id":"rcc-3478f2be478309da9aa7e00d216eab71","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-71983acac43c43a207105ef280901fe3","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-57d5231aaa3c2c9807c552e410e34a31","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-29e1a28ac4ed505bbdc8ff84e45f04be","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":52}
+{"request_id":"rcc-afb22304a73b85271446dc0f5d830849","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-19b59b124c71f56ca66a940a8e705f86","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-fdf67aeee1c45cec84ad510f13826759","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-cc51ade8a006247b1a47cd9d79d2c3c2","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":5}
+{"request_id":"rcc-527da14613343254f758c2951292c439","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":16}
+{"request_id":"rcc-391c105ee85b759488f88d2bbbbfd4d4","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":18}
+{"request_id":"rcc-1451541a78c6b642a4e2cf6cef9bc2bb","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-afced8274ac66cdb30eb067d5823f63a","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":14}
+{"request_id":"rcc-cc3baefd8db4e793c16ae33e3183a2fa","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":409,"duration_ms":15}
+{"request_id":"rcc-138c31f26fe0536df909a403b249ba54","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-0674a2ec54445baf88b370c9b48d175b","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+2026/09/11 07:34:49 🐳 Stopping container: 720ff41999d3
+2026/09/11 07:34:50 ✅ Container stopped: 720ff41999d3
+2026/09/11 07:34:50 🐳 Terminating container: 720ff41999d3
+2026/09/11 07:34:50 🚫 Container terminated: 720ff41999d3
+--- PASS: TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency (8.86s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	346.831s
+FAIL

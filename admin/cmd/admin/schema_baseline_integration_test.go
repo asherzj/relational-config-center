@@ -26,6 +26,14 @@ import (
 const historicalTestSchemaVersion int64 = 5
 const historicalTestMigrationCount int64 = 5
 
+// Compare every pre-template column while later migrations add their own tables
+// and the table-policy control version. Historical business bytes stay exact.
+func preTemplateDataSnapshot(t *testing.T, db *sql.DB) string {
+	t.Helper()
+	return baselineDataSnapshot(t, db, "rcc_release_templates", "rcc_table_release_templates", "rcc_table_policies") +
+		baselineRows(t, db, `SELECT id,table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier,created_at,updated_at,concurrency_key FROM rcc_table_policies ORDER BY id`)
+}
+
 // MySQL image init scripts use the client's default charset. Apply historical
 // 014 through an explicit UTF-8 connection so its Chinese comments stay exact.
 func startHistoricalBaselineMySQL(t *testing.T, scripts ...string) (context.Context, *mysqldriver.Config) {
@@ -106,12 +114,13 @@ func TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory(t *testing.T
 		t.Fatalf("baseline executed a later migration: %d %v", templateTables, err)
 	}
 	requireSchemaMigrationState(t, binary, driver, "pending", "status")
+	beforeUpgrade := preTemplateDataSnapshot(t, db)
 	requireSchemaMigrationState(t, binary, driver, "current", "up")
-	if got := baselineDataSnapshot(t, db, "rcc_release_templates"); got != dataBefore {
+	if got := preTemplateDataSnapshot(t, db); got != beforeUpgrade {
 		t.Fatal("explicit upgrade changed historical control or business data")
 	}
-	if err := db.QueryRow(`SELECT GROUP_CONCAT(version_id ORDER BY id) FROM rcc_goose_db_version`).Scan(&versions); err != nil || versions != "0,1,2,3,4,5,8" {
-		t.Fatalf("explicit upgrade must append candidate migration 8 once: %s %v", versions, err)
+	if err := db.QueryRow(`SELECT GROUP_CONCAT(version_id ORDER BY id) FROM rcc_goose_db_version`).Scan(&versions); err != nil || versions != "0,1,2,3,4,5,8,9" {
+		t.Fatalf("explicit upgrade must append candidate migrations 8 and 9 once: %s %v", versions, err)
 	}
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {

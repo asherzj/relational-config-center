@@ -1,3 +1,4 @@
+import { TableReleaseTemplatesDrawer } from "./TableReleaseTemplatesDrawer";
 import { useAccountRole } from "../accounts/roles";
 import { Input } from "../../components/shadcn/input";
 import { Label } from "../../components/shadcn/label";
@@ -64,13 +65,13 @@ export function TablePoliciesPage() {
               <TableCell className="rule-identity"><code>{policy.tableName}</code></TableCell><TableCell className="rule-pair"><div><small>查询</small><code>{policy.queryPolicyCode}</code></div><div><small>变更</small><code>{policy.mutationPolicyCode}</code></div></TableCell>
               <TableCell><Badge variant="outline" className={`status-badge ${policy.enabled ? "status-active" : "status-draft"}`}>{policy.enabled ? "已启用" : "未启用"}</Badge></TableCell>
               <TableCell className="timestamp">{formatTimestamp(policy.modifiedAt)}<small>{policy.modifier}</small></TableCell>
-              <TableCell><div className="row-actions"><Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}`)}>查看</Button>{canManage && <Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}?mode=fields`)}>字段配置</Button>}</div></TableCell>
+              <TableCell><div className="row-actions"><Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}`)}>查看</Button>{canManage && <><Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}?mode=fields`)}>字段配置</Button><Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}?mode=templates`)}>发布流程</Button></>}</div></TableCell>
             </TableRow>)}
           </TableBody></Table></div>
         )}
         <footer className="catalog-footer"><span>共 {policies.data?.length ?? 0} 个表规则</span><span>显示 {filteredPolicies.length} 个</span><Button className="catalog-refresh" variant="ghost" icon={<RefreshCw size={15} />} onClick={() => { void policies.refetch(); void discovery.refetch(); }}>刷新</Button></footer>
       </section>
-      {tableName && searchParams.get("mode") === "fields" ? <FieldPolicyDrawer key={tableName} tableName={tableName} /> : <TablePolicyDrawer tableName={tableName} />}
+      {tableName && searchParams.get("mode") === "templates" ? <TableReleaseTemplatesDrawer key={tableName} tableName={tableName}/> : tableName && searchParams.get("mode") === "fields" ? <FieldPolicyDrawer key={tableName} tableName={tableName} /> : <TablePolicyDrawer tableName={tableName} />}
     </main>
   );
 }

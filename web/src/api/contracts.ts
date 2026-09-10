@@ -106,6 +106,7 @@ export const databaseTableListDtoSchema = z.object({
 });
 
 export const tablePolicyDtoSchema = z.object({
+  version: z.string().regex(/^[1-9][0-9]*$/),
   concurrency_key: z.array(z.string()).optional().default([]),
   table_name: z.string(),
   query_policy_code: z.string(),

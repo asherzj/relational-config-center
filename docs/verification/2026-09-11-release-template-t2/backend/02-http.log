@@ -1,0 +1,115 @@
+=== RUN   TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable
+2026/09/11 07:02:03 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 37c69e9420106b8a026410b4bc1f58ea43c2baa529333f62d977b0b4158df671
+  Test ProcessID: 55357c76-3e07-44ed-b5e9-eaac80caceb3
+2026/09/11 07:02:03 🐳 Creating container for image mysql:8.4
+2026/09/11 07:02:03 ✅ Container created: 07a484004517
+2026/09/11 07:02:03 🐳 Starting container: 07a484004517
+2026/09/11 07:02:03 ✅ Container started: 07a484004517
+2026/09/11 07:02:03 ⏳ Waiting for container id 07a484004517 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:02:16 🔔 Container is ready: 07a484004517
+{"request_id":"rcc-0647a2aba994ae4fa9243bf45acc0805","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":45}
+{"request_id":"rcc-c70419c43c97d54103134cdd3720d335","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":117}
+{"request_id":"rcc-af26b01473aec4e423fab35da96dae6b","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":41}
+{"request_id":"rcc-d534e4d667283fdf9cfcecb85fe2c7c7","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":220}
+{"request_id":"rcc-e8407543dd3379a073c8f359d9ab4ae7","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":28}
+{"request_id":"rcc-bf2ee45497e463eb534828c2b1c04ce6","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":25}
+{"request_id":"rcc-050857024a663c707ab9f1bd04a11514","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":83}
+{"request_id":"rcc-b2267c518a8eb8438e741da29eb2e90d","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":48}
+{"request_id":"rcc-c0b1f0abdbed41e85daf6050e7afa4d3","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":79}
+{"request_id":"rcc-23153861a6b209eb482ca39dba21e300","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":54}
+{"request_id":"rcc-238a49dfc69e90110d24ba8ebb812ee3","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":47}
+{"request_id":"rcc-ba46dbaa203eacf9b6959196cecd37ba","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":30}
+{"request_id":"rcc-5d324e312dc01c10929a5d6258ef0378","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":12}
+    table_release_template_integration_test.go:56: created table lacks emergency: []map[string]interface {}{map[string]interface {}{"created_at":"0001-01-01T00:00:00Z", "creator":"", "enabled":false, "modifier":"", "table_name":"policy_alpha", "template_code":"default_emergency_v1", "template_enabled":true, "template_name":"默认应急发布", "type":"", "updated_at":"0001-01-01T00:00:00Z", "version":"0"}}
+2026/09/11 07:02:21 🐳 Stopping container: 07a484004517
+2026/09/11 07:02:23 ✅ Container stopped: 07a484004517
+2026/09/11 07:02:23 🐳 Terminating container: 07a484004517
+2026/09/11 07:02:23 🚫 Container terminated: 07a484004517
+--- FAIL: TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable (20.34s)
+=== RUN   TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay
+2026/09/11 07:02:23 🐳 Creating container for image mysql:8.4
+2026/09/11 07:02:23 ✅ Container created: 855d721a899c
+2026/09/11 07:02:23 🐳 Starting container: 855d721a899c
+2026/09/11 07:02:23 ✅ Container started: 855d721a899c
+2026/09/11 07:02:23 ⏳ Waiting for container id 855d721a899c image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:02:35 🔔 Container is ready: 855d721a899c
+{"request_id":"rcc-accea1e8806432a20cea7928ccfeb115","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":8}
+{"request_id":"rcc-a8aecfb261acb7cd7f75780d044318e2","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":51}
+{"request_id":"rcc-709ae051c5d8ebabefbd320247910086","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-0c4ef687d5fb6952312f0a27b95945c2","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":62}
+{"request_id":"rcc-0810c560d6e5fd65e277c33f92f24adc","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":5}
+{"request_id":"rcc-e09600127e6726e5c769aa30635c66aa","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":6}
+{"request_id":"rcc-b14558ecfe6d26cc8464395904e60e46","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-00f369e6d5bb298d17393b4da2a57e12","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":6}
+{"request_id":"rcc-6fc74cd6a6c1f567e6d7f8b2d4ffef0d","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":22}
+{"request_id":"rcc-3c9d1bf1512c259f443f9ffb31815e5e","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":7}
+{"request_id":"rcc-861cfac53849e5c6d8cd042c00eb97df","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":15}
+{"request_id":"rcc-fabb4e029a6d793006a2a3c6732c9f57","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":503,"duration_ms":13}
+    table_release_template_integration_test.go:145: expected HTTP 409, got 503: {"error":{"code":"release_template_unavailable","message":"release template catalog is unavailable","request_id":"rcc-fabb4e029a6d793006a2a3c6732c9f57"}}
+2026/09/11 07:02:36 🐳 Stopping container: 855d721a899c
+{"request_id":"rcc-63fd644c3eb82c85094a1552bebb5054","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":503,"duration_ms":20}
+2026/09/11 07:02:37 ✅ Container stopped: 855d721a899c
+2026/09/11 07:02:37 🐳 Terminating container: 855d721a899c
+2026/09/11 07:02:37 🚫 Container terminated: 855d721a899c
+--- FAIL: TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay (14.64s)
+=== RUN   TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure
+2026/09/11 07:02:37 🐳 Creating container for image mysql:8.4
+2026/09/11 07:02:38 ✅ Container created: 04a9a6e08e22
+2026/09/11 07:02:38 🐳 Starting container: 04a9a6e08e22
+2026/09/11 07:02:38 ✅ Container started: 04a9a6e08e22
+2026/09/11 07:02:38 ⏳ Waiting for container id 04a9a6e08e22 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:02:45 🔔 Container is ready: 04a9a6e08e22
+{"request_id":"rcc-2484fddaf787a5718a0a2a62d3177785","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-17f049f8df1c45a24f672a6c2f32ecf2","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-644c2eb73f835be9fcd4a57fcb72fb62","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-ac7eaefbd5128c352fdba7aabd4a996d","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":53}
+{"request_id":"rcc-6a70d14225d296904df2b5c1014530dc","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-a09c5940307c72cd74bcf59d4c476b4e","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-b865fd0b595b1b99a3db5d77ace61baf","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-718ac7da9d8eeacb8026e7480135c92d","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-0741b87ab3b75ce62924bfdba5c14cb2","method":"POST","path":"/api/v1/table-policies","status":503,"duration_ms":13}
+{"request_id":"rcc-4085825eac841aa80b8672774058aec5","method":"GET","path":"/api/v1/table-policies/:table_name","status":404,"duration_ms":1}
+{"request_id":"rcc-1818cde294d6f5fd2ba5f1ef316f0022","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":15}
+{"request_id":"rcc-ad4a63ebad820da212f0f653bdcce059","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":503,"duration_ms":15}
+{"request_id":"rcc-a8f8fed63b931df46948eda118c26eee","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-47ce7e7433f71000f55aff0bb0ef115b","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-233cdb49c3c917682a3d54a63bc10389","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":15}
+{"request_id":"rcc-f3a0cfc076ac64a984566ccd9a90c17d","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+    table_release_template_integration_test.go:218: enabled table missing emergency: []map[string]interface {}{map[string]interface {}{"created_at":"0001-01-01T00:00:00Z", "creator":"", "enabled":false, "modifier":"", "table_name":"policy_alpha", "template_code":"default_emergency_v1", "template_enabled":true, "template_name":"默认应急发布", "type":"", "updated_at":"0001-01-01T00:00:00Z", "version":"0"}}
+2026/09/11 07:02:46 🐳 Stopping container: 04a9a6e08e22
+2026/09/11 07:02:47 ✅ Container stopped: 04a9a6e08e22
+2026/09/11 07:02:47 🐳 Terminating container: 04a9a6e08e22
+2026/09/11 07:02:47 🚫 Container terminated: 04a9a6e08e22
+--- FAIL: TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure (9.91s)
+=== RUN   TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin
+2026/09/11 07:02:47 🐳 Creating container for image mysql:8.4
+2026/09/11 07:02:47 ✅ Container created: 85227af7da22
+2026/09/11 07:02:47 🐳 Starting container: 85227af7da22
+2026/09/11 07:02:47 ✅ Container started: 85227af7da22
+2026/09/11 07:02:47 ⏳ Waiting for container id 85227af7da22 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:02:54 🔔 Container is ready: 85227af7da22
+{"request_id":"rcc-af7ea284c49140922f8ca6998b5c148f","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-37f57afc4b5bf3755ac306b07e4dd690","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":45}
+{"request_id":"rcc-751a1dc09ee72a37b108ee3bda8f9c5e","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-ad4fc3938542849386d8144070153be7","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":54}
+{"request_id":"rcc-bff82d38acbb8a71c31aa0623981cff6","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":404,"duration_ms":2}
+{"request_id":"rcc-656aa86855ab8325890c3d3010bb5f11","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-141b7f7be229f407ab84eae5d4820dcc","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":42}
+{"request_id":"rcc-ded4faf07779f05019f1fca3250a11c7","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":403,"duration_ms":1}
+{"request_id":"rcc-4a7cb61685937cf421b882720064a299","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":404,"duration_ms":4}
+2026/09/11 07:02:55 🐳 Stopping container: 85227af7da22
+2026/09/11 07:02:56 ✅ Container stopped: 85227af7da22
+2026/09/11 07:02:56 🐳 Terminating container: 85227af7da22
+2026/09/11 07:02:56 🚫 Container terminated: 85227af7da22
+--- PASS: TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin (8.82s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	54.900s
+FAIL

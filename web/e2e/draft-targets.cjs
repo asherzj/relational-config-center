@@ -22,7 +22,7 @@ const base=process.env.RCC_WEB_URL,table='draft_browser_items'+suffix,longField=
   await api(admin,'POST','/api/v1/mutation-policies',{code:mutation,name:'草稿管控验收',description:'',type_code:'single_table_mutation',allow_add:true,allow_modify:true,allow_delete:true,create_time_field:'stamp'},201);
   await api(admin,'POST',`/api/v1/mutation-policies/${mutation}/activate`,{});
   await api(admin,'POST','/api/v1/table-policies',{table_name:table,query_policy_code:'notification_page_query_v1',mutation_policy_code:mutation},201);
-  await api(admin,'POST',`/api/v1/table-policies/${table}/enable`,{});
+  await api(admin,'POST',`/api/v1/table-policies/${table}/enable`,{expected_version:'1'});
   const settings=await admin.newPage();settings.setDefaultTimeout(12000);settings.on("dialog",dialog=>dialog.accept());settings.on('pageerror',error=>errors.push(error.message));
   await settings.goto(`${base}/platform/table-policies/${table}?mode=replace`);
   let fieldReads=0;await settings.route('**/concurrency-key-fields?*',async route=>{if(++fieldReads===1)await route.abort();else await route.continue()});
@@ -65,7 +65,7 @@ const base=process.env.RCC_WEB_URL,table='draft_browser_items'+suffix,longField=
   await settings.goto(`${base}/configuration/release-orders/${id}`);await button(settings,'取消草稿').click();await settings.getByLabel('取消原因',{exact:true}).fill('管理员清理遗留草稿');await button(settings,'确认取消草稿').click();await settings.getByText(`${table} · 已取消`,{exact:true}).waitFor();await shot(settings,'draft-admin-cancel.png');
   const cancelled=await api(admin,'GET',`/api/v1/release-orders/${id}`);assert.equal(cancelled.applicant_id,person.accountID);assert.equal(cancelled.state,'CANCELLED');
   await api(admin,'POST',`/api/v1/release-orders/${blocker.id}/cancel`,{expected_version:blocker.version,reason:'end blocker fixture'});
-  const policy=await api(admin,'GET',`/api/v1/table-policies/${table}`);await api(admin,'PUT',`/api/v1/table-policies/${table}`,{table_name:table,query_policy_code:policy.query_policy_code,mutation_policy_code:policy.mutation_policy_code,concurrency_key:[]});
+  const policy=await api(admin,'GET',`/api/v1/table-policies/${table}`);await api(admin,'PUT',`/api/v1/table-policies/${table}`,{table_name:table,query_policy_code:policy.query_policy_code,mutation_policy_code:policy.mutation_policy_code,concurrency_key:[],expected_version:policy.version});
   check('未结束明细阻止配置变更；管理员取消他人的遗留草稿后释放引用');
   assert.deepEqual(errors,[]);console.log(JSON.stringify({checks}));
  }finally{await browser.close()}

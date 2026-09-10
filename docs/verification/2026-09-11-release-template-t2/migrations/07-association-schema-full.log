@@ -1,0 +1,70 @@
+=== RUN   TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections
+2026/09/11 07:10:05 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 16482f456fcde83d9fd2e8322f311551e84b422d99fb430d3dacd006c9069c0a
+  Test ProcessID: 8ec662ba-6920-4ed0-852b-83e0a299ae33
+2026/09/11 07:10:05 🐳 Creating container for image mysql:8.4
+2026/09/11 07:10:05 ✅ Container created: 2586e58fbf3b
+2026/09/11 07:10:05 🐳 Starting container: 2586e58fbf3b
+2026/09/11 07:10:05 ✅ Container started: 2586e58fbf3b
+2026/09/11 07:10:05 ⏳ Waiting for container id 2586e58fbf3b image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:10:13 🔔 Container is ready: 2586e58fbf3b
+2026/09/11 07:10:16 🐳 Stopping container: 2586e58fbf3b
+2026/09/11 07:10:17 ✅ Container stopped: 2586e58fbf3b
+2026/09/11 07:10:17 🐳 Terminating container: 2586e58fbf3b
+2026/09/11 07:10:17 🚫 Container terminated: 2586e58fbf3b
+--- PASS: TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections (13.87s)
+=== RUN   TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly
+2026/09/11 07:10:17 🐳 Creating container for image mysql:8.4
+2026/09/11 07:10:17 ✅ Container created: e6b612d35a3e
+2026/09/11 07:10:17 🐳 Starting container: e6b612d35a3e
+2026/09/11 07:10:17 ✅ Container started: e6b612d35a3e
+2026/09/11 07:10:17 ⏳ Waiting for container id e6b612d35a3e image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:10:24 🔔 Container is ready: e6b612d35a3e
+=== RUN   TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_role
+=== RUN   TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_node_type
+=== RUN   TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/duplicate_node_code
+2026/09/11 07:10:30 🐳 Stopping container: e6b612d35a3e
+2026/09/11 07:10:32 ✅ Container stopped: e6b612d35a3e
+2026/09/11 07:10:32 🐳 Terminating container: e6b612d35a3e
+2026/09/11 07:10:32 🚫 Container terminated: e6b612d35a3e
+--- PASS: TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly (14.71s)
+    --- PASS: TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_role (0.09s)
+    --- PASS: TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_node_type (0.08s)
+    --- PASS: TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/duplicate_node_code (0.07s)
+=== RUN   TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults
+2026/09/11 07:10:33 🐳 Creating container for image mysql:8.4
+2026/09/11 07:10:33 ✅ Container created: f36cbebecc1a
+2026/09/11 07:10:33 🐳 Starting container: f36cbebecc1a
+2026/09/11 07:10:33 ✅ Container started: f36cbebecc1a
+2026/09/11 07:10:33 ⏳ Waiting for container id f36cbebecc1a image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:10:40 🔔 Container is ready: f36cbebecc1a
+=== RUN   TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults/disabled
+=== RUN   TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults/deleted
+2026/09/11 07:10:43 🐳 Stopping container: f36cbebecc1a
+2026/09/11 07:10:44 ✅ Container stopped: f36cbebecc1a
+2026/09/11 07:10:44 🐳 Terminating container: f36cbebecc1a
+2026/09/11 07:10:44 🚫 Container terminated: f36cbebecc1a
+--- PASS: TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults (12.25s)
+    --- PASS: TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults/disabled (2.22s)
+    --- PASS: TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults/deleted (1.08s)
+=== RUN   TestTableReleaseSchemaRecoveryKeepsExistingSelections
+2026/09/11 07:10:46 🐳 Creating container for image mysql:8.4
+2026/09/11 07:10:46 ✅ Container created: 6d0c85a063ef
+2026/09/11 07:10:46 🐳 Starting container: 6d0c85a063ef
+2026/09/11 07:10:46 ✅ Container started: 6d0c85a063ef
+2026/09/11 07:10:46 ⏳ Waiting for container id 6d0c85a063ef image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:10:52 🔔 Container is ready: 6d0c85a063ef
+2026/09/11 07:10:54 🐳 Stopping container: 6d0c85a063ef
+2026/09/11 07:10:55 ✅ Container stopped: 6d0c85a063ef
+2026/09/11 07:10:55 🐳 Terminating container: 6d0c85a063ef
+2026/09/11 07:10:55 🚫 Container terminated: 6d0c85a063ef
+--- PASS: TestTableReleaseSchemaRecoveryKeepsExistingSelections (11.31s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	52.919s

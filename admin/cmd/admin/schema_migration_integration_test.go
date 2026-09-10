@@ -20,7 +20,7 @@ import (
 	mysqldriver "github.com/go-sql-driver/mysql"
 )
 
-const currentTestSchemaVersion int64 = 8
+const currentTestSchemaVersion int64 = 9
 
 // A second isolated release uses the unchanged public command and adds an
 // embedded migration. No production test hook or arbitrary-SQL CLI is needed.

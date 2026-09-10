@@ -1,0 +1,261 @@
+[
+  {
+    "command": "git diff --check BASE -- explicit source paths",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "admin/cmd/admin/table_release_schema_integration_test.go"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "admin/cmd/admin/table_release_template_browser_integration_test.go"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "admin/cmd/admin/table_release_template_integration_test.go"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "admin/internal/application/table_policy_requests.go"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "admin/internal/application/table_release_template.go"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "admin/internal/domain/table_release_template.go"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "admin/internal/infrastructure/mysql/management_requests.go"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "admin/internal/infrastructure/mysql/migrations/00009_schema.json"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "admin/internal/infrastructure/mysql/migrations/00009_table_release_templates.sql"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "admin/internal/infrastructure/mysql/table_policy_requests.go"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "admin/internal/infrastructure/mysql/table_release_templates.go"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "admin/internal/interfaces/http/table_release_templates.go"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "docs/admin-table-release-templates.md"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "web/e2e/table-release-templates.cjs"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "web/src/api/table-release-templates.ts"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "web/src/features/table-policies/TableReleaseTemplatesDrawer.test.tsx"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "web/src/features/table-policies/TableReleaseTemplatesDrawer.tsx"
+    ],
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/draft-targets.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/release-batches.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/release-multitable.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/table-release-templates.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/write-recovery.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": "git diff --cached --check -- 58 explicit source paths",
+    "exit": 0,
+    "output": ""
+  }
+]
