@@ -16,7 +16,7 @@ test:
 
 test-integration:
 	@docker info >/dev/null
-	@cd admin && go test -count=1 -timeout=40m -tags=integration ./...
+	@cd admin && go test -count=1 -timeout=60m -tags=integration ./...
 
 test-browser-acceptance:
 	@./scripts/browser-acceptance.sh

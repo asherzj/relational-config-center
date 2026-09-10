@@ -130,7 +130,18 @@ function fixtureSQL() {
       else {
         const nullToggle = checkbox(`${name} 使用 NULL`);
         if (await nullToggle.count() && await nullToggle.isChecked()) await nullToggle.uncheck();
-        await input(name).fill(value);
+        const control = input(name);
+        if (/[\r\n]/.test(value) && await control.evaluate(node => node.tagName === 'INPUT')) {
+          // Unconfigured fields now start as text controls. Paste exercises the
+          // real multiline handoff; fill() would let the browser flatten LF.
+          await control.fill('');
+          await control.focus();
+          await control.evaluate((node, text) => {
+            const clipboardData = new DataTransfer();
+            clipboardData.setData('text/plain', text);
+            node.dispatchEvent(new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true }));
+          }, value);
+        } else await control.fill(value);
       }
     }
   }
@@ -633,8 +644,13 @@ function fixtureSQL() {
       return { id, publisherID: publisherIdentity.accountID, stamps, after };
     });
     for (const field of ['stored_value', 'virtual_value']) await run(`${field} remains rejected as a real generated column`, async () => {
-      await managed('stage4_generated'); await button('新增记录').click(); const values = { base_value: '9', [field]: '123' }; await edit(values);
-      const response = await execute('stage4_generated', 'ADD', values, undefined, 422);
+      await managed('stage4_generated'); await button('新增记录').click();
+      assert.equal(await checkbox(`包含 ${field}`).count(), 0, 'generated columns must be excluded from the ADD editor');
+      assert.equal(await input(field).count(), 0, 'generated columns must not offer an ADD input');
+      const response = await api(context, 'POST', '/api/v1/release-orders', {
+        title: 'Reject generated column input', table_name: 'stage4_generated',
+        items: [{ operation: 'ADD', content: { base_value: '9', [field]: '123' } }],
+      }, 422);
       assert.equal(response.response.error.code, 'invalid_mutation_content'); assert.equal(sql('SELECT COUNT(*) FROM stage4_generated;'), '0');
       return { metadata: sql("SELECT CONCAT_WS('|',COLUMN_NAME,EXTRA,GENERATION_EXPRESSION) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='stage4_generated';") };
     });

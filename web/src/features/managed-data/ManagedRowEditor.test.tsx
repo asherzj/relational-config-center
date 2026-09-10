@@ -1,9 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 import { TestRouter } from "../../test/TestRouter";
 import { LeaveProtectionProvider } from "../../components/ui/LeaveProtection";
 import { ManagedRowEditor } from "./ManagedRowEditor";
+
+beforeEach(() => { HTMLElement.prototype.scrollIntoView = vi.fn(); });
 
 it("preserves multiline string and JSON when reopening and editing a row", async () => {
   const user = userEvent.setup();
@@ -111,7 +113,9 @@ it("AC-009/010 keeps omitted, explicit NULL and empty distinct; rejects required
   await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
   expect(onReview).not.toHaveBeenCalled();
   expect(screen.getByRole("textbox", { name: "required 值" })).toHaveAttribute("aria-invalid", "true");
+  expect(screen.getByRole("textbox", { name: "required 值" })).toHaveFocus();
   await user.type(screen.getByRole("textbox", { name: "required 值" }), "0");
+  expect(screen.getByRole("textbox", { name: "required 值" })).toHaveFocus();
   await user.selectOptions(screen.getByRole("combobox", { name: "flag 值" }), "0");
   await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
   expect(onReview).toHaveBeenLastCalledWith({ required: "0", nullable: null, empty: "", flag: "0" });

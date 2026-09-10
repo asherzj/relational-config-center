@@ -5,7 +5,7 @@ import { FieldValueInput } from "./FieldValueInput";
 import { Checkbox } from "../../components/shadcn/checkbox";
 import { Badge } from "../../components/shadcn/badge";
 import { Label } from "../../components/shadcn/label";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { useDraftProtection } from "../../components/ui/LeaveProtection";
 import { Drawer } from "../../components/ui/Drawer";
@@ -46,6 +46,17 @@ export function ManagedRowEditor({ open, error, tableName, operation, columns, o
     && (operation === "MODIFY" || fieldRule(column.name)?.effective.editable_on_add !== false));
   const writableColumns = visibleColumns.filter(column => operation === "ADD" || fieldRule(column.name)?.effective.editable_on_modify !== false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const fieldsRef = useRef<HTMLDivElement>(null);
+  const focusValidationError = useRef(false);
+  useLayoutEffect(() => {
+    if (!focusValidationError.current) return;
+    focusValidationError.current = false;
+    const field = Array.from(fieldsRef.current?.querySelectorAll("fieldset") ?? []).find(node => node.querySelector('[role="alert"]'));
+    const control = field?.querySelector<HTMLElement>('input[aria-invalid="true"]:not(:disabled), textarea[aria-invalid="true"]:not(:disabled), select[aria-invalid="true"]:not(:disabled)')
+      ?? field?.querySelector<HTMLElement>('input:not(:disabled), select:not(:disabled), textarea:not(:disabled), button:not(:disabled)');
+    control?.focus();
+    control?.scrollIntoView({ block: "nearest" });
+  }, [errors]);
   const [baseline] = useState(() => initialFields(visibleColumns, operation, original, openingPolicies));
   const [fields, setFields] = useState<Record<string, FieldDraft>>(baseline);
   // Include the controls as well as values: omitted, NULL and empty are distinct,
@@ -76,6 +87,7 @@ export function ManagedRowEditor({ open, error, tableName, operation, columns, o
           if (!message && typeof value === "string" && policy?.ui_type === "number") message = numberConstraintError(value, policy.ui_options);
           return message ? [[column.name, message]] : [];
         }));
+        focusValidationError.current = true;
         setErrors(next);
         if (Object.keys(next).length === 0) onReview(content);
       }}>查看 Change Set</Button></>}
@@ -87,7 +99,7 @@ export function ManagedRowEditor({ open, error, tableName, operation, columns, o
         : "每个字段分别选择是否包含在请求中；NULL 与空字符串具有不同语义。"}</p>
       {operation === "ADD" && <p className="form-note">id 由数据库自增生成时，请保持不包含；非自增主键需要填写 id。</p>}
       {recheckError !== undefined && recheckError !== null && <ErrorState error={recheckError} onRetry={onRetryRecheck} />}
-      <div className="mutation-content-fields">
+      <div ref={fieldsRef} className="mutation-content-fields">
         {visibleColumns.map((column) => {
           const rule = fieldRule(column.name);
           const policy = rule?.effective;
@@ -101,10 +113,10 @@ export function ManagedRowEditor({ open, error, tableName, operation, columns, o
               {policy?.description && <p className="form-note col-span-full">{policy.description}</p>}
               {rule?.warning && <p role="status" className="form-note col-span-full">{rule.warning}；已回退文本录入。</p>}
               {readonly && <p className="form-note col-span-full">仅查看原值</p>}
-              {operation === "ADD" && <Label className="include-field"><Checkbox aria-label={`包含 ${column.name}`} checked={draft.included} onCheckedChange={(checked) => update(column.name, { included: checked === true })} />包含在请求中</Label>}
+              {operation === "ADD" && <Label className="include-field"><Checkbox aria-label={`包含 ${column.name}`} aria-describedby={errorId} checked={draft.included} onCheckedChange={(checked) => update(column.name, { included: checked === true })} />包含在请求中</Label>}
               <div className="field"><span>值</span><FieldValueInput column={column} policy={policy} label={`${column.name} 值`} disabled={readonly || !included || draft.isNull} required={policy?.is_required} errorId={errorId} value={draft.value} onChange={value => update(column.name, { value })} />{errorId && <p id={errorId} role="alert" className="text-destructive">{errors[column.name]}</p>}</div>
               {column.nullable && <Label className="include-field mutation-null-toggle" data-disabled={!included || readonly} data-checked={draft.isNull}>
-                <Checkbox aria-label={`${column.name} 使用 NULL`} disabled={!included || readonly} checked={draft.isNull} onCheckedChange={(checked) => update(column.name, { isNull: checked === true })} />
+                <Checkbox aria-label={`${column.name} 使用 NULL`} aria-describedby={errorId} disabled={!included || readonly} checked={draft.isNull} onCheckedChange={(checked) => update(column.name, { isNull: checked === true })} />
                 {draft.isNull ? "已设为 NULL" : "设为 NULL"}
               </Label>}
             </fieldset>
