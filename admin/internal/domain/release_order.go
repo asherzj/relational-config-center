@@ -73,6 +73,7 @@ type ReleaseFilter struct {
 	TableName, ApplicantID, State, ID, After string
 	Limit                                    int
 	SubmittedOnly                            bool
+	UnreadOnly                               bool
 	ReviewedBy                               string
 }
 
@@ -142,6 +143,7 @@ func NewReleaseMutationSemantics(policy MutationPolicy) ReleaseMutationSemantics
 // ReleaseOrderSummary carries bounded catalog information; complete intent and
 // verified publication history are available through the order detail.
 type ReleaseOrderSummary struct {
+	Notification    ApprovalNotification   `json:"notification"`
 	Approvals       []ReleaseTableApproval `json:"approvals"`
 	ApprovalContext ReleaseApprovalContext `json:"approval_context"`
 	TableNames      []string               `json:"table_names"`

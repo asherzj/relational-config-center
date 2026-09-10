@@ -1,0 +1,64 @@
+=== RUN   TestMultitableReprepareTransfersChangedTargetsAtomically
+2026/09/11 07:16:03 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 8704b6aeab1efdd74bb3ba0c8084f24ccefa70fd0fe9fabd02402a4fcb1cf0a3
+  Test ProcessID: a098e192-5fe4-470c-9821-8aa3ce39e92e
+2026/09/11 07:16:03 🐳 Creating container for image mysql:8.4
+2026/09/11 07:16:03 ✅ Container created: 584458212e04
+2026/09/11 07:16:03 🐳 Starting container: 584458212e04
+2026/09/11 07:16:03 ✅ Container started: 584458212e04
+2026/09/11 07:16:03 ⏳ Waiting for container id 584458212e04 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:16:10 🔔 Container is ready: 584458212e04
+{"request_id":"rcc-509cdadaa50c7609f5c786185067df80","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-d204de5a00ff654d206e4d156338622a","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":47}
+{"request_id":"rcc-2161702c6da74173b433d66a6dd4607e","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-8bde0f0fd8786343a590878f13603dfa","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":54}
+{"request_id":"rcc-b5c91976220e845dd40b6f1dec430fa5","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":2}
+{"request_id":"rcc-275b278bfabacbf68d750ef17d313ce4","method":"PUT","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":14}
+{"request_id":"rcc-1b78b29beca3d8eb5d34a85a678b0c89","method":"GET","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":1}
+{"request_id":"rcc-11a1923dbb86d264f1a8d0783b025dc0","method":"PUT","path":"/api/v1/table-policies/:table_name","status":200,"duration_ms":13}
+{"request_id":"rcc-fe14efa011e8ecffe9b3b279b288c3c2","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-d6d7921ea932eb07ec7d0e7554cdf2cb","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":46}
+{"request_id":"rcc-3668263426ad466c483fe9a0454e964c","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-0048a5dd94eb4d963e077a0685e88ce8","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":46}
+{"request_id":"rcc-5d88eb415f436f2df93edfecc54a32f0","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":10}
+{"request_id":"rcc-bcd1616ec4ff17d76f8d8050fc98ee3f","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":14}
+{"request_id":"rcc-a2e87496f4abcd25491480428940bb47","method":"GET","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":3}
+{"request_id":"rcc-9bd2a093d46d8af5225f94293e76db67","method":"PUT","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":14}
+{"request_id":"rcc-fc76095956822ef43340f0c5b41e09ef","method":"GET","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":2}
+{"request_id":"rcc-7dbae3eeb02ddf8309fbfb9c0072d6e7","method":"PUT","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":16}
+{"request_id":"rcc-5de9b72bec380659245b88712187c839","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":68}
+{"request_id":"rcc-6811a7e05b17573a3f47baf5e04c2b85","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":127}
+{"request_id":"rcc-b25c53898124e2390e5a4ffe6df368f9","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":6}
+{"request_id":"rcc-bb879fbe1b6837795f0555b41265b7b8","method":"POST","path":"/api/v1/release-orders/:id/approve","status":200,"duration_ms":29}
+{"request_id":"rcc-c2e4cdbeab76e3b0adbaaee0ba2f5b5c","method":"POST","path":"/api/v1/release-orders/preview","status":200,"duration_ms":30}
+{"request_id":"rcc-8b1bd217042766f8c3cb18bfc0ec4fa8","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":9}
+{"request_id":"rcc-0a021ecea320307249eeb883f7b6338a","method":"GET","path":"/api/v1/release-orders/:id/details","status":200,"duration_ms":5}
+{"request_id":"rcc-05a843ed70eb6210e431c0d183885679","method":"POST","path":"/api/v1/release-orders/:id/reprepare","status":503,"duration_ms":65}
+{"request_id":"rcc-7ee44af546ab4cbe423563cafc9792aa","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":7}
+{"request_id":"rcc-8d93671706b7ade234adee6bb5fde15a","method":"GET","path":"/api/v1/release-orders/:id/details","status":200,"duration_ms":4}
+    release_copy_reprepare_multitable_integration_test.go:278: contender connection 13 waits for authorization lock held by open reprepare connection 9
+{"request_id":"rcc-87cae969c7843dcca18fe685fc119699","method":"POST","path":"/api/v1/release-orders/:id/reprepare","status":201,"duration_ms":109}
+{"request_id":"rcc-c38da99f143e41ce77f7c7981bbec741","method":"POST","path":"/api/v1/release-orders","status":409,"duration_ms":81}
+{"request_id":"rcc-6c49823c3d427d49fcab6b1f2c746aa9","method":"POST","path":"/api/v1/release-orders/:id/reprepare","status":201,"duration_ms":19}
+{"request_id":"rcc-0e58f9d9a1a149da63c73cdb5b8658ea","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":9}
+{"request_id":"rcc-ffb4f133adaeae2ddfc115201bc2eb53","method":"GET","path":"/api/v1/release-orders/:id/details","status":200,"duration_ms":5}
+{"request_id":"rcc-1b1f65490b87bdcd06fea2f559e172a8","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":126}
+{"request_id":"rcc-440985d163f347f483ea3e18370fe84c","method":"POST","path":"/api/v1/release-orders/:id/approve","status":403,"duration_ms":6}
+{"request_id":"rcc-1dd4bb9dd27b8aa2a60a814f72762127","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":6}
+{"request_id":"rcc-20a35f8bc48bc0fea433073781f2dc7f","method":"POST","path":"/api/v1/release-orders/:id/approve","status":200,"duration_ms":33}
+{"request_id":"rcc-84707f210b2f46cd02de679573d43f79","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":37}
+{"request_id":"rcc-65aee54aec02feeeaa4b187b7d7ea700","method":"POST","path":"/api/v1/release-orders","status":409,"duration_ms":29}
+2026/09/11 07:16:12 🐳 Stopping container: 584458212e04
+2026/09/11 07:16:14 ✅ Container stopped: 584458212e04
+2026/09/11 07:16:14 🐳 Terminating container: 584458212e04
+2026/09/11 07:16:14 🚫 Container terminated: 584458212e04
+--- PASS: TestMultitableReprepareTransfersChangedTargetsAtomically (10.67s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	11.781s

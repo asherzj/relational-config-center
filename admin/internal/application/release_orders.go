@@ -74,6 +74,7 @@ type DraftInput struct {
 type ReleaseOrderSession interface {
 	releaseApprovalReader
 	ReferenceReleaseApprovalRoles(context.Context, string, []domain.ReleaseTableApproval) error
+	RecordApprovalNotifications(context.Context, domain.ReleaseOrder, string, []string) error
 	CurrentReleaseAccount(context.Context, string) (domain.ApprovalAccount, error)
 	AppendReleaseFailure(context.Context, string, domain.ReleaseEvent) error
 	AppendRollbackReason(context.Context, string, domain.ReleaseEvent) error
@@ -95,7 +96,8 @@ type ReleaseOrderSession interface {
 }
 
 type ReleaseOrderStore interface {
-	releaseApprovalReader
+	ReadApprovalNotificationCounts(context.Context, string) (domain.ApprovalNotificationCounts, error)
+	AcknowledgeApprovalNotification(context.Context, string, string, string) (domain.ApprovalNotification, error)
 	ReadReleaseOrderList(context.Context, func(ReleaseOrderListReader) error) error
 	ExecuteReleaseOrder(context.Context, func(ReleaseOrderSession) error) error
 	ExecutePublication(context.Context, func(PublicationSession) error) error
@@ -179,20 +181,28 @@ func releaseDigest(input any) []byte {
 }
 
 func (r *ReleaseOrders) Get(ctx context.Context, id string) (domain.ReleaseHeader, error) {
-	if _, err := requireRole(ctx, RoleViewer); err != nil {
-		return domain.ReleaseHeader{}, err
-	}
-	header, err := r.store.ReadReleaseHeader(ctx, id)
+	actor, err := requireRole(ctx, RoleViewer)
+	var header domain.ReleaseHeader
 	if err != nil {
 		return header, err
 	}
-	order := header.Workflow()
-	if err = r.reviewApprovals(ctx, &order); err != nil {
-		return header, err
-	}
-	header.Approvals = order.Approvals
-	header.ApprovalContext = order.ApprovalContext
-	return header, nil
+	err = r.store.ReadReleaseOrderList(ctx, func(reader ReleaseOrderListReader) error {
+		var err error
+		header, err = reader.ReadReleaseHeader(ctx, id)
+		if err != nil {
+			return err
+		}
+		order := header.Workflow()
+		environment, err := reader.ReadApprovalEnvironment(ctx, order)
+		if err != nil {
+			return err
+		}
+		header.Approvals = environment.Approvals
+		header.ApprovalContext, _ = approvalContext(environment, order, actor)
+		header.Notification, err = reader.ReadApprovalNotification(ctx, actor, id)
+		return err
+	})
+	return header, err
 }
 
 func (r *ReleaseOrders) DetailPage(ctx context.Context, id, version string, offset, limit int) (domain.ReleaseDetailPage, error) {
@@ -788,31 +798,52 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 		if err = s.SaveReleaseOrder(ctx, order, false); err != nil {
 			return err
 		}
+		if action == "submit" || action == "approve" || action == "reject" || (action == "cancel" && len(order.Approvals) > 0) {
+			recipients := []string{}
+			if action != "submit" {
+				recipients = append(recipients, order.ApplicantID)
+			}
+			if err = s.RecordApprovalNotifications(ctx, order, actor, recipients); err != nil {
+				return err
+			}
+		}
 		result = order
 		return s.CompleteReleaseRequest(ctx, actor, operation, key, result)
 	})
 	return result, r.describeTargetConflict(ctx, err)
 }
 func (r *ReleaseOrders) List(ctx context.Context, filter ReleaseFilter) ([]domain.ReleaseOrderSummary, error) {
-	if _, err := requireRole(ctx, RoleViewer); err != nil {
-		return nil, err
-	}
-	if err := validateReleaseFilter(filter); err != nil {
-		return nil, err
-	}
-	orders, err := r.store.ListReleaseOrders(ctx, filter)
+	actor, err := requireRole(ctx, RoleViewer)
 	if err != nil {
 		return nil, err
 	}
-	for i := range orders {
-		order := ReleaseOrder{ID: orders[i].ID, Version: orders[i].Version, State: orders[i].State, ApplicantID: orders[i].ApplicantID, TableNames: orders[i].TableNames, Approvals: orders[i].Approvals}
-		if err := r.reviewApprovals(ctx, &order); err != nil {
-			return nil, err
-		}
-		orders[i].Approvals = order.Approvals
-		orders[i].ApprovalContext = order.ApprovalContext
+	if err = validateReleaseFilter(filter); err != nil {
+		return nil, err
 	}
-	return orders, nil
+	var orders []domain.ReleaseOrderSummary
+	err = r.store.ReadReleaseOrderList(ctx, func(reader ReleaseOrderListReader) error {
+		var err error
+		orders, err = reader.ListReleaseOrders(ctx, filter)
+		if err != nil {
+			return err
+		}
+		for i := range orders {
+			summary := &orders[i]
+			order := ReleaseOrder{ID: summary.ID, Version: summary.Version, State: summary.State, ApplicantID: summary.ApplicantID, TableNames: summary.TableNames, Approvals: summary.Approvals}
+			environment, err := reader.ReadApprovalEnvironment(ctx, order)
+			if err != nil {
+				return err
+			}
+			summary.Approvals = environment.Approvals
+			summary.ApprovalContext, _ = approvalContext(environment, order, actor)
+			summary.Notification, err = reader.ReadApprovalNotification(ctx, actor, order.ID)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	return orders, err
 }
 
 // Preview only reads a fresh record baseline for explicit client review. It is

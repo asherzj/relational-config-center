@@ -1,3 +1,5 @@
+import {ReleaseNotificationRead} from "../notifications/ReleaseNotificationRead";
+import {useWorkspaceReady} from "../accounts/ProtectedWorkspace";
 import {useReleaseJournal} from "./useReleaseJournal";
 import {ApiError,shouldRetryQuery} from "../../api/client";
 import {presentError} from "../../api/error-messages";
@@ -53,13 +55,14 @@ function ReleaseList(){
  </>}</>;
 }
 export function ReleaseDetail({id,listPath="/configuration/release-orders",listLabel="发布单"}:{id:string;listPath?:string;listLabel?:string}){
+ const ready=useWorkspaceReady();
  const {showToast}=useToast();
  const [copyError,setCopyError]=useState(false);
  const {requests,accountID}=useReleaseJournal();
  const requestPending=requests.some(item=>releaseRequestSending(accountID,item.key)&&releaseRequestOrder(item)===id);
  const retained=(action:string)=>requests.some(item=>item.scope===`${action}:${id}`);
- const query=useQuery({queryKey:["release-order",id],queryFn:()=>releaseOrders.get(id),retry:shouldRetryQuery});
- const people=useQuery({queryKey:["release-order-people",id],queryFn:()=>releaseOrders.people(id),enabled:query.isSuccess,retry:shouldRetryQuery});
+ const query=useQuery({queryKey:["release-order",id],queryFn:()=>releaseOrders.get(id),enabled:ready,retry:shouldRetryQuery});
+ const people=useQuery({queryKey:["release-order-people",id],queryFn:()=>releaseOrders.people(id),enabled:ready&&query.isSuccess,retry:shouldRetryQuery});
  const [action,setAction]=useState<ReleaseStateAction>();
  const [copy,setCopy]=useState(false);
  const [quickRollback,setQuickRollback]=useState(false);
@@ -79,6 +82,7 @@ export function ReleaseDetail({id,listPath="/configuration/release-orders",listL
  const approver=[...order.history].reverse().find(event=>event.action==="APPROVE");
  return <CurrentFieldDisplayProvider tableNames={releaseTables(order)}><div className="release-detail min-w-0">{navigation}
  {query.isError&&<ErrorState error={query.error} onRetry={()=>void query.refetch()}/>}
+ <ReleaseNotificationRead key={`${order.id}:${order.notification.sequence}`} order={order} canAcknowledge={query.isFetchedAfterMount&&query.isSuccess&&!query.isFetching} onRefresh={()=>void query.refetch()}/>
  <ReleaseProgress order={order} people={names}/>
  <div className="release-detail-overview">
   <section className="release-panel min-w-0" aria-label="基本信息"><h2 className="text-xl font-semibold break-all">{order.title}</h2><p className="mt-2 mb-6 text-muted-foreground break-all">{releaseTables(order).join("、")||"暂无明细表"} · {releaseStateLabels[order.state]}</p>

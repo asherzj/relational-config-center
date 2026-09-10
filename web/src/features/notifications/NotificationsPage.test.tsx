@@ -64,6 +64,7 @@ it("从后续页进入详情，加载与失败期间均能返回原视图和筛�
 });
 
 const summary = {
+  notification: { sequence: "0", unread: false, pending: false },
   id: "a".repeat(32), title: "运营与财务共同核对的多表申请", table_names: ["items", "prices"],
   applicant_id: "applicant-permanent-id", state: "PENDING_APPROVAL", version: "2",
   created_at: "2026-09-11T01:00:00Z", updated_at: "2026-09-11T02:00:00Z", item_count: 2,

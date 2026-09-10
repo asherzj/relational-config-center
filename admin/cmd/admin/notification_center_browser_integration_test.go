@@ -13,6 +13,12 @@ import (
 )
 
 func TestNotificationCenterBrowserSystemPath(t *testing.T) {
+	runNotificationBrowserSystemPath(t, "notification-center.cjs")
+}
+func TestApprovalNotificationsBrowserSystemPath(t *testing.T) {
+	runNotificationBrowserSystemPath(t, "approval-notifications.cjs")
+}
+func runNotificationBrowserSystemPath(t *testing.T, script string) {
 	_, driver := startCurrentIntegrationMySQL(t, localManagedTableFixture, "testdata/016-multitable-browser.sql")
 	maintenance := filepath.Join(t.TempDir(), "account-maintain")
 	build := exec.Command("go", "build", "-o", maintenance, "../account-maintain")
@@ -62,7 +68,7 @@ func TestNotificationCenterBrowserSystemPath(t *testing.T) {
 	if !ready {
 		t.Fatalf("same-origin Vite proxy unavailable: %s", output.String())
 	}
-	browser := exec.Command("node", filepath.Join(web, "e2e/notification-center.cjs"))
+	browser := exec.Command("node", filepath.Join(web, "e2e", script))
 	browser.Dir = web
 	browser.Env = append(fixtureEnvironment, "RCC_WEB_URL="+origin)
 	result, err := browser.CombinedOutput()

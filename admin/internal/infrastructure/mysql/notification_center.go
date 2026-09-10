@@ -33,3 +33,10 @@ func (r *releaseOrderListReader) ListReleaseOrders(ctx context.Context, filter d
 func (r *releaseOrderListReader) ReadApprovalEnvironment(ctx context.Context, order domain.ReleaseOrder) (domain.ReleaseApprovalEnvironment, error) {
 	return readApprovalEnvironment(ctx, r.database, order)
 }
+
+func (r *releaseOrderListReader) ReadReleaseHeader(ctx context.Context, id string) (domain.ReleaseHeader, error) {
+	return readReleaseHeader(ctx, r.database, id)
+}
+func (r *releaseOrderListReader) ReadApprovalNotification(ctx context.Context, actor, id string) (domain.ApprovalNotification, error) {
+	return readApprovalNotification(ctx, r.database, actor, id)
+}

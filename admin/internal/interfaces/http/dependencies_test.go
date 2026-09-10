@@ -114,3 +114,32 @@ func TestDomainDoesNotContainORMMappings(t *testing.T) {
 		}
 	}
 }
+
+func TestReleaseNotificationReadsCannotAcquireWriteCapabilities(t *testing.T) {
+	file, err := parser.ParseFile(token.NewFileSet(), "../../application/notification_center.go", nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	ast.Inspect(file, func(node ast.Node) bool {
+		spec, ok := node.(*ast.TypeSpec)
+		if !ok || spec.Name.Name != "ReleaseOrderListReader" {
+			return true
+		}
+		found = true
+		for _, field := range spec.Type.(*ast.InterfaceType).Methods.List {
+			if embedded, ok := field.Type.(*ast.Ident); ok && !strings.HasSuffix(embedded.Name, "Reader") {
+				t.Errorf("notification read embeds mutable capability %s", embedded.Name)
+			}
+			for _, name := range field.Names {
+				if !strings.HasPrefix(name.Name, "Read") && !strings.HasPrefix(name.Name, "List") {
+					t.Errorf("notification read exposes write %s", name.Name)
+				}
+			}
+		}
+		return false
+	})
+	if !found {
+		t.Fatal("notification read contract missing")
+	}
+}

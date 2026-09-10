@@ -1,0 +1,69 @@
+=== RUN   TestApprovalNotificationsSchemaUpgradeReadinessAndProtection
+2026/09/11 06:58:04 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: cdf4849214125f03ddce9e1f48569fa3f01dfdba486a25631e2f7c8e1b3ac2c1
+  Test ProcessID: 6d6933f0-8daf-4279-8b91-50476f30f6f4
+2026/09/11 06:58:04 🐳 Creating container for image mysql:8.4
+2026/09/11 06:58:04 ✅ Container created: e42e559e1380
+2026/09/11 06:58:04 🐳 Starting container: e42e559e1380
+2026/09/11 06:58:04 ✅ Container started: e42e559e1380
+2026/09/11 06:58:04 ⏳ Waiting for container id e42e559e1380 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 06:58:10 🔔 Container is ready: e42e559e1380
+    approval_notifications_schema_integration_test.go:33: migration [status]: want recovery_required, got {"state":"pending","current":7,"required":8,"pending":[8],"attempt_id":7,"attempt_version":7,"attempt_digest":"43b6e6328ffd5422c49f8c2a89bee9388d605f61b61818db58c0fd316c771025","attempt_operation":"up"}
+         (<nil>)
+2026/09/11 06:58:14 🐳 Stopping container: e42e559e1380
+2026/09/11 06:58:15 ✅ Container stopped: e42e559e1380
+2026/09/11 06:58:15 🐳 Terminating container: e42e559e1380
+2026/09/11 06:58:15 🚫 Container terminated: e42e559e1380
+--- FAIL: TestApprovalNotificationsSchemaUpgradeReadinessAndProtection (13.19s)
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema
+2026/09/11 06:58:15 🐳 Creating container for image mysql:8.4
+2026/09/11 06:58:15 ✅ Container created: 94a1eb4be53f
+2026/09/11 06:58:15 🐳 Starting container: 94a1eb4be53f
+2026/09/11 06:58:16 ✅ Container started: 94a1eb4be53f
+2026/09/11 06:58:16 ⏳ Waiting for container id 94a1eb4be53f image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 06:58:22 🔔 Container is ready: 94a1eb4be53f
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/no_target
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/production
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/writers_not_stopped
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/wrong_address
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/wrong_database
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/wrong_instance
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/missing_table
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/nontransactional_table
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/unexpected_column
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/side_effect_trigger
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/hidden_inbound_foreign_key
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/hidden_inbound_notification_foreign_key
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/changed_notification_cascade
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/notification_delete_trigger
+=== RUN   TestReleaseResetRefusesUnverifiedTargetsAndSchema/no_metadata_privilege
+2026/09/11 06:58:24 🐳 Stopping container: 94a1eb4be53f
+2026/09/11 06:58:25 ✅ Container stopped: 94a1eb4be53f
+2026/09/11 06:58:25 🐳 Terminating container: 94a1eb4be53f
+2026/09/11 06:58:25 🚫 Container terminated: 94a1eb4be53f
+--- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema (9.68s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/no_target (0.57s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/production (0.02s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/writers_not_stopped (0.02s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/wrong_address (0.02s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/wrong_database (0.02s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/wrong_instance (0.02s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/missing_table (0.05s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/nontransactional_table (0.05s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/unexpected_column (0.04s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/side_effect_trigger (0.07s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/hidden_inbound_foreign_key (0.08s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/hidden_inbound_notification_foreign_key (0.05s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/changed_notification_cascade (0.06s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/notification_delete_trigger (0.04s)
+    --- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema/no_metadata_privilege (0.04s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	23.696s
+FAIL

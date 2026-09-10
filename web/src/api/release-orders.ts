@@ -1,3 +1,4 @@
+import {approvalNotificationSchema} from "./approval-notifications";
 import {z} from "zod";
 import {approvalRoleIdentitySchema} from "./table-approval";
 import {ApiError,request} from "./client";
@@ -26,10 +27,10 @@ const approvalSourceSchema=z.object({source:z.enum(["ROLE","ADMIN"]),roles:z.arr
 const tableApprovalSchema=z.object({table_name:z.string(),roles:z.array(approvalRoleIdentitySchema),state:z.enum(["PENDING","APPROVED","REJECTED"]),decision:approvalSourceSchema.extend({actor_id:z.string(),at:z.string(),reason:z.string()}).optional()});
 const approvalContextSchema=z.object({revision:z.string(),tables:z.array(z.object({table_name:z.string(),mode:z.enum(["ROLE","ADMIN","UNAVAILABLE","COMPLETED"]),reason:z.string(),can_approve:z.boolean()})),approvable_tables:z.array(z.string())});
 export type ApprovalContext=z.infer<typeof approvalContextSchema>;
-export const releaseSummarySchema=z.object({id:z.string(),title:z.string(),table_names:z.array(z.string()),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","APPROVED","SUCCEEDED","COMPLETED","REJECTED","CANCELLED","ROLLED_BACK"]),version,created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),approvals:z.array(tableApprovalSchema),approval_context:approvalContextSchema,item_count:z.number().int().min(0).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
+export const releaseSummarySchema=z.object({notification:approvalNotificationSchema,id:z.string(),title:z.string(),table_names:z.array(z.string()),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","APPROVED","SUCCEEDED","COMPLETED","REJECTED","CANCELLED","ROLLED_BACK"]),version,created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),approvals:z.array(tableApprovalSchema),approval_context:approvalContextSchema,item_count:z.number().int().min(0).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
 export const releaseHeaderSchema=releaseSummarySchema.extend({copied_from_id:z.string().optional(),frozen_digest:z.string().optional(),executions:z.array(executionSchema),history:z.array(z.object({action:z.string(),actor_id:z.string(),at:z.string(),version,reason:z.string(),related_order_id:z.string().optional(),execution_id:z.string().optional(),table_names:z.array(z.string()).optional(),approval_sources:z.array(approvalSourceSchema.extend({table_name:z.string()})).optional()}))});
 export const releaseItemSchema=draftItemSchema.extend({detail_id:z.string(),id:z.string().nullable(),expected_record_version:z.string(),before:content.nullable(),fields:z.array(releaseFieldSchema),publication:publicationCommandSchema.optional(),rollback:publicationCommandSchema.optional()});
-export const releaseOrderSchema=releaseHeaderSchema.extend({items:z.array(releaseItemSchema)});
+export const releaseOrderSchema=releaseHeaderSchema.omit({notification:true}).extend({items:z.array(releaseItemSchema)});
 export type ReleaseHeader=z.infer<typeof releaseHeaderSchema>;
 export type ReleaseOrder=z.infer<typeof releaseOrderSchema>;
 export const releaseDetailPageSchema=z.object({order_id:z.string(),version,item_count:z.number().int().min(0).max(1000),offset:z.number().int().nonnegative(),next_offset:z.number().int().nonnegative().nullable(),items:z.array(releaseItemSchema).max(100)});
@@ -143,7 +144,7 @@ export async function loadReleaseForEdit(header:ReleaseHeader):Promise<ReleaseOr
 export function releaseTables(order:{table_names:string[]}) { return order.table_names; }
 export function releaseDetailTables(order:Pick<ReleaseOrder,"items">) { return order.items.map(item=>item.table_name); }
 
-export function canReviewRelease(order:ReleaseHeader,action:"approve"|"reject") {
+export function canReviewRelease(order:Pick<ReleaseHeader,"allowed_actions"|"approval_context">,action:"approve"|"reject") {
  const context=order.approval_context;
  return order.allowed_actions.includes(action)&&Boolean(context.revision)&&context.approvable_tables.length>0&&context.approvable_tables.every(table=>context.tables.some(entry=>entry.table_name===table&&entry.can_approve));
 }

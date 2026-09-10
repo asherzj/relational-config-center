@@ -32,6 +32,11 @@ func TestReleaseResetPreservesRecordsAndContinuesPublication(t *testing.T) {
 	}
 	_ = approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"label":"never applied"},"expected_record_version":"41","id":"kept","operation":"MODIFY","table_name":"mutation_supplied_id_items"}],"title":"pending cleanup"}`, "reset-approved")
 	before := resetCounts(t, driver)
+	preservedApprovals := map[string]string{}
+	for _, table := range []string{"rcc_accounts", "rcc_account_role_history", "rcc_approval_roles", "rcc_approval_role_members", "rcc_approval_role_references", "rcc_table_approval_assignments"} {
+		preservedApprovals[table] = baselineRows(t, db, "SELECT * FROM "+table+" ORDER BY 1,2")
+	}
+	assertApprovalCounts(t, app, integrationAdminSession(t, app), 2, 0)
 	for table, count := range before {
 		if count == 0 {
 			t.Fatalf("missing fixture for %s", table)
@@ -62,6 +67,12 @@ func TestReleaseResetPreservesRecordsAndContinuesPublication(t *testing.T) {
 			t.Fatalf("retained history: %s %d", table, count)
 		}
 	}
+	assertApprovalCounts(t, app, integrationAdminSession(t, app), 0, 0)
+	for table, before := range preservedApprovals {
+		if after := baselineRows(t, db, "SELECT * FROM "+table+" ORDER BY 1,2"); after != before {
+			t.Fatalf("release reset changed retained account/approval facts in %s", table)
+		}
+	}
 	row, version := recordVersionRow(t, app, "mutation_supplied_id_items", "kept")
 	if *row["label"] != "published value" || version != "41" {
 		t.Fatal("reset changed business value/version", row, version)
@@ -87,7 +98,7 @@ func TestReleaseResetPreservesRecordsAndContinuesPublication(t *testing.T) {
 	t.Logf("AC-021 before=%v after=%v; business value kept; generation=40; actual publication record 41→42, table 1→2, cursor 1→2; repeat succeeded", before, report.After)
 }
 
-var resetTables = []string{"rcc_release_orders", "rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_release_details", "rcc_release_executions", "rcc_publication_commands", "rcc_refresh_notifications"}
+var resetTables = []string{"rcc_approval_notifications", "rcc_release_orders", "rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_release_details", "rcc_release_executions", "rcc_publication_commands", "rcc_refresh_notifications"}
 
 func resetCounts(t *testing.T, driver *mysqldriver.Config) map[string]uint64 {
 	t.Helper()
@@ -166,15 +177,22 @@ func TestReleaseResetRefusesUnverifiedTargetsAndSchema(t *testing.T) {
 		{"unexpected column", "ALTER TABLE rcc_release_orders ADD unexpected INT", "ALTER TABLE rcc_release_orders DROP COLUMN unexpected"},
 		{"side effect trigger", "CREATE TRIGGER reset_side_effect AFTER DELETE ON rcc_release_orders FOR EACH ROW DELETE FROM rcc_record_versions", "DROP TRIGGER reset_side_effect"},
 		{"hidden inbound foreign key", "CREATE TABLE reset_hidden.child(id INT PRIMARY KEY,order_id VARBINARY(32),FOREIGN KEY(order_id) REFERENCES rcc_test.rcc_release_orders(id) ON DELETE CASCADE) ENGINE=InnoDB", "DROP TABLE reset_hidden.child"},
+		{"hidden inbound notification foreign key", "CREATE TABLE reset_hidden.notice_child(account_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin,order_id VARCHAR(32) CHARACTER SET ascii COLLATE ascii_bin,FOREIGN KEY(account_id,order_id) REFERENCES rcc_test.rcc_approval_notifications(account_id,order_id) ON DELETE CASCADE) ENGINE=InnoDB", "DROP TABLE reset_hidden.notice_child"},
+		{"changed notification cascade", "ALTER TABLE rcc_approval_notifications DROP FOREIGN KEY fk_approval_notification_account; ALTER TABLE rcc_approval_notifications ADD CONSTRAINT fk_approval_notification_account FOREIGN KEY(account_id) REFERENCES rcc_accounts(id) ON DELETE CASCADE", "ALTER TABLE rcc_approval_notifications DROP FOREIGN KEY fk_approval_notification_account; ALTER TABLE rcc_approval_notifications ADD CONSTRAINT fk_approval_notification_account FOREIGN KEY(account_id) REFERENCES rcc_accounts(id)"},
+		{"notification delete trigger", "CREATE TRIGGER reset_notification_effect AFTER DELETE ON rcc_approval_notifications FOR EACH ROW DELETE FROM rcc_record_versions", "DROP TRIGGER reset_notification_effect"},
 		{"no metadata privilege", "REVOKE PROCESS ON *.* FROM 'rcc_admin'@'%'", "GRANT PROCESS ON *.* TO 'rcc_admin'@'%'"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			if test.name == "hidden inbound foreign key" {
 				deliveryExec(t, owner, "CREATE DATABASE reset_hidden")
 			}
-			deliveryExec(t, owner, test.change)
+			for _, statement := range strings.Split(test.change, ";") {
+				deliveryExec(t, owner, statement)
+			}
 			output, err := resetCommand(binary, driver, valid...).CombinedOutput()
-			deliveryExec(t, owner, test.restore)
+			for _, statement := range strings.Split(test.restore, ";") {
+				deliveryExec(t, owner, statement)
+			}
 			if err == nil {
 				t.Fatalf("unsafe schema accepted: %s", output)
 			}
@@ -190,7 +208,7 @@ func TestReleaseResetRefusesUnverifiedTargetsAndSchema(t *testing.T) {
 
 func TestReleaseResetInterruptedTransactionRollsBackAndRetries(t *testing.T) {
 	// Offline maintenance remains available before Goose adoption and without
-	// unrelated field-policy/Goose tables. Upgrade only its eight owned tables.
+	// unrelated field-policy/Goose tables. Upgrade only its owned release tables from the shipped SQL sources.
 	ctx, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql")
 	maintenance := *driver
 	maintenance.MultiStatements = true
@@ -203,6 +221,11 @@ func TestReleaseResetInterruptedTransactionRollsBackAndRetries(t *testing.T) {
 		}
 		deliveryExec(t, db, string(source))
 	}
+	notificationSQL, err := os.ReadFile("../../internal/infrastructure/mysql/migrations/00008_approval_notifications.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	deliveryExec(t, db, string(notificationSQL))
 	var unrelated int
 	if err := db.QueryRow(`SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('rcc_goose_db_version','rcc_schema_migration_attempts','rcc_table_field_policies')`).Scan(&unrelated); err != nil || unrelated != 0 {
 		t.Fatalf("offline fixture silently became adopted/current: %d %v", unrelated, err)
@@ -282,13 +305,15 @@ func TestReleaseResetInterruptedTransactionRollsBackAndRetries(t *testing.T) {
 			t.Fatalf("retry left %s=%d", table, n)
 		}
 	}
-	t.Log("AC-021: signal interrupted final DELETE after transaction-local child deletes; no partial changes visible; rollback preserved all eight counts; same target retry cleared all eight")
+	t.Log("AC-021: signal interrupted final DELETE after transaction-local child deletes; no partial changes visible; rollback preserved all nine counts; same target retry cleared all nine")
 }
 
 func seedReleaseResetHistory(t *testing.T, driver *mysqldriver.Config) {
 	t.Helper()
 	db := deliveryDB(t, driver)
 	for _, statement := range []string{
+		`INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,created_at) VALUES('actor','reset.actor','reset.actor@example.test','Reset fixture','opaque-password-hash','2026-01-01')`,
+		`INSERT INTO rcc_approval_notifications(account_id,order_id,sequence,result_sequence) VALUES('actor','old',1,1)`,
 		`INSERT INTO rcc_release_orders(id,applicant_id,state,version,document) VALUES('old','actor','APPROVED',3,JSON_OBJECT())`,
 		`INSERT INTO rcc_release_requests VALUES('actor','create','historic',UNHEX(REPEAT('00',32)),JSON_OBJECT('id','old','state','DRAFT'))`,
 		`INSERT INTO rcc_release_requests VALUES('actor','execute:old','unfinished',UNHEX(REPEAT('00',32)),NULL)`,

@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-96-approval-notifications/web
+
+
+ Test Files  2 passed (2)
+      Tests  17 passed (17)
+   Start at  06:55:09
+   Duration  3.53s (transform 585ms, setup 568ms, import 823ms, tests 1.68s, environment 1.34s)
+

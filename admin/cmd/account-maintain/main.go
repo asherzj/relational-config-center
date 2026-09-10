@@ -114,7 +114,7 @@ func reportError(output io.Writer, err error) int {
 	case errors.Is(err, application.ErrAuthTimeout):
 		fmt.Fprintln(output, "database operation timed out: verify outcome before retrying")
 	default:
-		fmt.Fprintln(output, "account storage unavailable: verify database permissions and local-account control schema (migration 007); verify outcome before retrying")
+		fmt.Fprintln(output, "account storage unavailable: verify database permissions and required account and approval control schema; run schema-migrate status; verify outcome before retrying")
 	}
 	return 1
 }

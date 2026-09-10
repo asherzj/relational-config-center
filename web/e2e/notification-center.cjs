@@ -64,9 +64,10 @@ const button = (page, name) => page.getByRole('button', { name, exact: true });
     await reviewer.page.getByRole('region', { name: '待我审批发布单', exact: true }).waitFor();
     assert.equal(await reviewer.page.getByRole('navigation', { name: '审批视图' }).getByRole('link', { name: '待我审批', exact: true }).getAttribute('aria-current'), 'page');
     assert.equal(await reviewer.page.locator('tbody tr').count(), 20);
-    assert.equal(await reviewer.page.getByText(/未读/).count(), 0);
+    await reviewer.page.getByRole('link', { name: '个人未读 22', exact: true }).waitFor();
+    assert.equal(await reviewer.page.getByLabel('个人待审批数', { exact: true }).innerText(), '待审批 22');
     await noOverflow(reviewer.page, 'desktop-geometry'); await shot(reviewer.page, 'center-desktop.png');
-    check('正式导航默认待我审批；多角色、多表一单一行，首屏20项且不展示伪造未读');
+    check('正式导航默认待我审批；多角色、多表一单一行，首屏20项并展示真实22项未读和待审批');
 
     await reviewer.page.getByLabel('表名', { exact: true }).fill(tables[0]);
     await reviewer.page.getByLabel('状态', { exact: true }).selectOption('PENDING_APPROVAL');
@@ -86,10 +87,11 @@ const button = (page, name) => page.getByRole('button', { name, exact: true });
     await reviewer.page.getByLabel('审批意见', { exact: true }).fill('从通知中心核对两张表');
     await button(reviewer.page, '确认批准').click();
     await reviewer.page.getByRole('heading', { name: '已通过 2 / 2 表', exact: true }).waitFor();
+    await reviewer.page.getByRole('dialog', { name: '批准发布单', exact: true }).waitFor({ state: 'detached' });
     await reviewer.page.getByRole('link', { name: '返回通知中心列表', exact: true }).click();
     assert.equal(reviewer.page.url(), originalURL);
-    await reviewer.page.getByRole('link', { name: `查看详情：${orders[20].title}`, exact: true }).waitFor({ state: 'detached' });
     await reviewer.page.getByRole('link', { name: `查看详情：${orders[21].title}`, exact: true }).waitFor();
+    await reviewer.page.getByRole('link', { name: `查看详情：${orders[20].title}`, exact: true }).waitFor({ state: 'detached' });
     assert.equal(await reviewer.page.locator('tbody tr').count(), 1);
     check('第二页键盘进入正式详情并真实批准两表，返回保留视图/筛选/游标且已处理单退出待办');
 
@@ -128,6 +130,8 @@ const button = (page, name) => page.getByRole('button', { name, exact: true });
     await reviewer.page.getByRole('region', { name: '全部审批发布单', exact: true }).waitFor();
     check('390px长标题/多表无页面溢出，固定详情入口与列表返回可键盘操作');
 
+    await button(reviewer.page, '刷新列表').waitFor();
+    await reviewer.page.getByRole('row').filter({ hasText: orders[0].title }).getByText('未读', { exact: true }).waitFor({ state: 'detached' });
     const before = await reviewer.page.locator('tbody').innerText();
     const route = '**/api/v1/release-orders?*';
     await reviewer.page.route(route, handler => handler.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: { code: 'release_unavailable', message: 'injected read failure', request_id: 'center-browser-read-failure' } }) }));

@@ -1,0 +1,33 @@
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-96-approval-notifications/web
+
+ ❯ src/features/notifications/ApprovalNotifications.test.tsx (8 tests | 1 failed | 7 skipped) 233ms
+   × 详情在后台标签加载完成时不标记已读，返回前台实际展示后才确认 232ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/notifications/ApprovalNotifications.test.tsx > 详情在后台标签加载完成时不标记已读，返回前台实际展示后才确认
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/features/notifications/ApprovalNotifications.test.tsx:216:28
+    214|   await screen.findByRole("heading", { name: header.title });
+    215|   await act(async () => Promise.resolve());
+    216|   expect(acknowledgements).toBe(0);
+       |                            ^
+    217|   visibility.mockReturnValue("visible");
+    218|   fireEvent(document, new Event("visibilitychange"));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 skipped (8)
+   Start at  06:56:04
+   Duration  2.19s (transform 609ms, setup 281ms, import 967ms, tests 233ms, environment 598ms)
+

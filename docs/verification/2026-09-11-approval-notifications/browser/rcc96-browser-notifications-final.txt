@@ -1,0 +1,31 @@
+=== RUN   TestApprovalNotificationsBrowserSystemPath
+2026/09/11 07:07:34 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 6de6d2e907a112ea11b6d4d987a0112277059a318ee867334da2b6f6e5f53d14
+  Test ProcessID: 1f3bfc91-b733-4bee-8a82-62d1f5ad8d2f
+2026/09/11 07:07:34 🐳 Creating container for image mysql:8.4
+2026/09/11 07:07:34 ✅ Container created: 935af4bf223d
+2026/09/11 07:07:34 🐳 Starting container: 935af4bf223d
+2026/09/11 07:07:35 ✅ Container started: 935af4bf223d
+2026/09/11 07:07:35 ⏳ Waiting for container id 935af4bf223d image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:07:41 🔔 Container is ready: 935af4bf223d
+    notification_center_browser_integration_test.go:78: notification center browser: PASS 同账号多角色聚合一条未读；申请人自身动作及无关查看者没有提醒
+        PASS 键盘打开真实详情，已读失败可继续查看并显式重试；读后待审批仍为一
+        PASS 申请人收到部分审批进展；并发全量批准保留新未读，确认序号只来自已展示详情
+        PASS 未读筛选和返回位置保留；计数接口失败显示最后已知数据并可恢复
+        PASS 失去一个角色仍保留可审表，全部失去移除待办与纯待办未读，恢复资格补充新提醒
+        PASS 390px 页面无横向溢出、未读入口可达；真实会话失效并同账号恢复列表
+        PASS 另一标签真实登录不同账号，旧账号延迟计数响应不能覆盖新账号
+2026/09/11 07:07:54 🐳 Stopping container: 935af4bf223d
+2026/09/11 07:07:55 ✅ Container stopped: 935af4bf223d
+2026/09/11 07:07:55 🐳 Terminating container: 935af4bf223d
+2026/09/11 07:07:55 🚫 Container terminated: 935af4bf223d
+--- PASS: TestApprovalNotificationsBrowserSystemPath (21.04s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	22.336s

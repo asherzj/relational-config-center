@@ -10,6 +10,8 @@ import (
 // This interface deliberately exposes no business or notification writes.
 type ReleaseOrderListReader interface {
 	releaseApprovalReader
+	ReadReleaseHeader(context.Context, string) (domain.ReleaseHeader, error)
+	ReadApprovalNotification(context.Context, string, string) (domain.ApprovalNotification, error)
 	ListReleaseOrders(context.Context, domain.ReleaseFilter) ([]domain.ReleaseOrderSummary, error)
 }
 
@@ -70,6 +72,13 @@ func (r *ReleaseOrders) NotificationOrders(ctx context.Context, view string, fil
 				environment, err := reader.ReadApprovalEnvironment(ctx, order)
 				if err != nil {
 					return err
+				}
+				summary.Notification, err = reader.ReadApprovalNotification(ctx, actor, summary.ID)
+				if err != nil {
+					return err
+				}
+				if filter.UnreadOnly && !summary.Notification.Unread {
+					continue
 				}
 				summary.Approvals = environment.Approvals
 				summary.ApprovalContext, _ = approvalContext(environment, order, actor)

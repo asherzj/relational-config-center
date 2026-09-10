@@ -1,0 +1,8 @@
+
+> @relational-config-center/web@0.0.0 typecheck /private/tmp/rcc-issue-96-approval-notifications/web
+> tsc --noEmit
+
+src/features/notifications/ApprovalNotifications.test.tsx(143,32): error TS7006: Parameter 'input' implicitly has an 'any' type.
+src/features/notifications/ApprovalNotifications.test.tsx(182,33): error TS7006: Parameter 'input' implicitly has an 'any' type.
+src/features/notifications/ApprovalNotifications.test.tsx(182,40): error TS7006: Parameter 'init' implicitly has an 'any' type.
+ ELIFECYCLE  Command failed with exit code 1.

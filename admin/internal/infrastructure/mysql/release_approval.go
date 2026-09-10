@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"context"
-	"database/sql"
 	"slices"
 
 	"github.com/asherzj/relational-config-center/admin/internal/application"
@@ -56,15 +55,6 @@ func readApprovalEnvironment(ctx context.Context, tx *gorm.DB, order domain.Rele
 		return result, application.ErrReleaseUnavailable
 	}
 	return result, nil
-}
-func (a *Adapter) ReadApprovalEnvironment(ctx context.Context, order domain.ReleaseOrder) (domain.ReleaseApprovalEnvironment, error) {
-	var result domain.ReleaseApprovalEnvironment
-	err := a.gorm.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		var err error
-		result, err = readApprovalEnvironment(ctx, tx, order)
-		return err
-	}, &sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true})
-	return result, err
 }
 func (s *releaseOrderSession) ReadApprovalEnvironment(ctx context.Context, order domain.ReleaseOrder) (domain.ReleaseApprovalEnvironment, error) {
 	if err := s.available(); err != nil {

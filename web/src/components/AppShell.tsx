@@ -1,6 +1,7 @@
 import { useAccountRole, roleLabels } from "../features/accounts/roles";
 import { useWorkspaceIdentity } from "../features/accounts/ProtectedWorkspace";
 import { ArrowLeftRight, Bell, ChevronRight, Database, FileSearch, Layers3, Menu, ShieldCheck, Table2, X } from "lucide-react";
+import { PersonalNotifications } from "../features/notifications/PersonalNotifications";
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Button } from "./ui/Button";
@@ -54,6 +55,7 @@ export function AppShell() {
             <NavLink to="/platform/account-roles" onClick={() => setMobileNavOpen(false)}><ShieldCheck size={18} />账号角色</NavLink>
           </section>}
         </nav>
+        <PersonalNotifications onNavigate={() => setMobileNavOpen(false)} />
         <div className="sidebar-account">
           <Separator />
           <DropdownMenu>

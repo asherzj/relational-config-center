@@ -11,7 +11,7 @@ import (
 // #92 AC-022: the published role schema upgrades through the real command.
 // An interrupted DDL keeps existing facts and requires explicit recovery.
 func TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts(t *testing.T) {
-	previous, current := buildSchemaMigrationReleaseAt(t, 6), buildSchemaMigrationCommand(t)
+	previous, current := buildSchemaMigrationReleaseAt(t, 6), buildSchemaMigrationReleaseAt(t, 7)
 	ctx, driver := startIntegrationMySQL(t)
 	requireSchemaMigrationState(t, previous, driver, "current", "up")
 	owner := *driver
@@ -31,7 +31,7 @@ func TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts(t *testi
 	}
 	newTables := []string{"rcc_table_approval_assignments", "rcc_table_approval_requests"}
 	existingData := func() string {
-		snapshot := baselineDataSnapshot(t, db)
+		snapshot := strings.Replace(baselineDataSnapshot(t, db), "rcc_approval_notifications:\n", "", 1)
 		for _, table := range newTables {
 			// Only empty additive tables are excluded; seeded rows still fail this comparison.
 			snapshot = strings.Replace(snapshot, table+":\n", "", 1)
@@ -94,6 +94,8 @@ func TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts(t *testi
 	requireSchemaMigrationState(t, current, &fresh, "current", "up")
 	assertBaselinePhysicalSchemaEqual(t, db, deliveryDB(t, &fresh))
 
+	// The table approval migration remains pinned to 7; current processes require later increments.
+	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), driver, "current", "up")
 	process := accountProcessCommand(t, binary, driver)
 	process.ready(t)
 	for _, table := range newTables {

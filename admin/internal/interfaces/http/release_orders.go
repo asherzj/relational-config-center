@@ -10,6 +10,27 @@ import (
 )
 
 func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseOrders) {
+	router.POST("/api/v1/release-orders/:id/notification-read", func(c *gin.Context) {
+		var input struct {
+			Sequence string `json:"sequence"`
+		}
+		if err := decodeRequest(c, &input); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		result, err := orders.AcknowledgeNotification(c.Request.Context(), c.Param("id"), input.Sequence)
+		if writeReleaseError(c, err) {
+			return
+		}
+		c.JSON(200, result)
+	})
+	router.GET("/api/v1/approval-notifications", func(c *gin.Context) {
+		counts, err := orders.NotificationCounts(c.Request.Context())
+		if writeReleaseError(c, err) {
+			return
+		}
+		c.JSON(200, counts)
+	})
 	router.POST("/api/v1/release-orders/:id/reprepare", func(c *gin.Context) {
 		var input application.CopyReleaseInput
 		if err := decodeRequest(c, &input); err != nil {
@@ -56,7 +77,11 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 				return
 			}
 		}
-		filter := application.ReleaseFilter{TableName: c.Query("table_name"), ApplicantID: c.Query("applicant_id"), State: c.Query("state"), ID: c.Query("id"), After: c.Query("after"), Limit: limit}
+		if raw, ok := c.GetQuery("unread"); ok && (raw != "true" && raw != "false" || !c.Request.URL.Query().Has("view")) {
+			writeReleaseError(c, application.ErrReleaseInvalid)
+			return
+		}
+		filter := application.ReleaseFilter{UnreadOnly: c.Query("unread") == "true", TableName: c.Query("table_name"), ApplicantID: c.Query("applicant_id"), State: c.Query("state"), ID: c.Query("id"), After: c.Query("after"), Limit: limit}
 		var list []application.ReleaseOrderSummary
 		var err error
 		next := ""
