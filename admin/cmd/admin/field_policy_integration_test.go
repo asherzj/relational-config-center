@@ -14,7 +14,7 @@ import (
 
 // AC-001 observes the management HTTP contract with real MySQL persistence.
 func TestFieldPolicyAC001RoundTrip(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/002-discovery-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/002-discovery-fixture.sql")
 	path := "/api/v1/table-field-policies/managed_alpha"
 	first := policyIntegrationRequest(t, app, http.MethodGet, path, "")
 	if first.Code != 200 {
@@ -54,7 +54,7 @@ func TestFieldPolicyAC001RoundTrip(t *testing.T) {
 
 // AC-002: rejected complete replacements cannot overwrite any stored field.
 func TestFieldPolicyAC002InvalidConfigurationIsAtomic(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/002-discovery-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/002-discovery-fixture.sql")
 	path := "/api/v1/table-field-policies/managed_alpha"
 	valid := `{"policies":[{"field_name":"value","display_name":"原名称","display_order":0,"is_visible":true,"is_queryable":true,"query_operators":["exact"],"ui_type":"text","ui_options":{"options":[]},"editable_on_add":true,"editable_on_modify":true,"is_required":false,"enabled":true}]}`
 	saved := policyIntegrationRequest(t, app, "PUT", path, valid)
@@ -92,7 +92,7 @@ func TestFieldPolicyAC002InvalidConfigurationIsAtomic(t *testing.T) {
 
 // AC-020 uses the same isolated database before/after the additive upgrade.
 func TestFieldPolicyAC020MigrationPreservesExistingData(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", localManagedTableFixture)
+	ctx, driver := startCurrentIntegrationMySQL(t, localManagedTableFixture)
 	db := deliveryDB(t, driver)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
@@ -143,7 +143,7 @@ func TestFieldPolicyAC020MigrationPreservesExistingData(t *testing.T) {
 }
 
 func TestFieldPolicyReadDistinguishesDisabledSchemaDriftAndFailure(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", localManagedTableFixture)
+	ctx, driver := startCurrentIntegrationMySQL(t, localManagedTableFixture)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -225,7 +225,7 @@ func TestFieldPolicyReadDistinguishesDisabledSchemaDriftAndFailure(t *testing.T)
 }
 
 func TestFieldPolicyDefaultsNumericOptionsAndAudit(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", localManagedTableFixture)
+	ctx, driver := startCurrentIntegrationMySQL(t, localManagedTableFixture)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -327,7 +327,7 @@ func TestFieldPolicyDefaultsNumericOptionsAndAudit(t *testing.T) {
 }
 
 func TestFieldPolicyDatabaseFailureRollsBackWholeReplacement(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/002-discovery-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/002-discovery-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -354,7 +354,7 @@ func TestFieldPolicyDatabaseFailureRollsBackWholeReplacement(t *testing.T) {
 
 // AC-009/018: interaction flags and static options never become execution authority.
 func TestFieldPolicyAC009AC018KeepDatabaseDefaultsAndExecutionBoundary(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	body := `{"policies":[{"field_name":"defaulted_value","display_name":"Web不可编辑","display_order":0,"is_visible":false,"is_queryable":false,"query_operators":[],"ui_type":"select","ui_options":{"options":[{"label":"建议值","value":"suggested"}]},"editable_on_add":false,"editable_on_modify":false,"is_required":true,"enabled":true}]}`
 	saved := policyIntegrationRequest(t, app, "PUT", "/api/v1/table-field-policies/mutation_add_items", body)

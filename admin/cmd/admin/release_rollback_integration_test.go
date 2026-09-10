@@ -160,7 +160,7 @@ func TestReleaseRollbackUnwindsUniqueValueDependencies(t *testing.T) {
 // AC-041: the public authenticated workflow reverses every actual mixed result,
 // keeps original history, and returns the original execute result on old-key retry.
 func TestReleaseRollbackMixedPublication(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	db := deliveryDB(t, driver)
 	if _, err := db.Exec(`INSERT INTO mutation_add_items(id,code,label,metadata) VALUES(10,'modify','old','null'),(20,'delete','saved','{"x":1}')`); err != nil {
 		t.Fatal(err)
@@ -226,7 +226,7 @@ func TestReleaseRollbackMixedPublication(t *testing.T) {
 // AC-042/043: a supported target-row trigger must not turn a nominal reverse
 // UPDATE into a falsely successful restoration. Every transaction effect rolls back.
 func TestReleaseRollbackRejectsChangedRestoreValue(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	root := *driver
 	root.User = "root"
 	db := deliveryDB(t, &root)
@@ -275,7 +275,7 @@ func TestReleaseRollbackRejectsChangedRestoreValue(t *testing.T) {
 // AC-044: original-row serialization converges independent requests and old-key
 // retries, while cancellation/rejection releases the same association atomically.
 func TestReleaseRollbackConcurrencyAndReapplication(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	original := rollbackOrderResponse(t, publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"code":"concurrent","label":"saved"}}`), 200)
 	path := "/api/v1/release-orders/" + original.ID
@@ -591,7 +591,7 @@ func TestReleaseRollbackRejectsNewUniqueConstraintAtomically(t *testing.T) {
 }
 
 func TestReleaseRollbackUsesCurrentIndependentRoles(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	original := rollbackOrderResponse(t, publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"code":"role-test","label":"published"}}`), 200)
 	path := "/api/v1/release-orders/" + original.ID

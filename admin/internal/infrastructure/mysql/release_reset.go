@@ -51,7 +51,17 @@ func (a *Adapter) ResetReleaseHistory(ctx context.Context, database, serverUUID 
 		if report.Database != database || report.ServerUUID != serverUUID {
 			return ErrReleaseResetTarget
 		}
+		versions, err := controlSchemaVersions()
+		if err != nil {
+			return ErrReleaseResetSchema
+		}
+		manifest, err := controlSchemaManifest(versions[len(versions)-1])
+		if err != nil {
+			return ErrReleaseResetSchema
+		}
 		// Keep metadata locks until commit so schema checks remain valid for deletes.
+		// Reuse the release definition only for tables this operation touches. This
+		// maintenance command does not require Goose adoption or HTTP readiness.
 		for _, table := range append(append([]string{}, releaseResetTables...), "rcc_record_versions", "rcc_table_publications") {
 			rows, err := tx.Raw("SELECT * FROM `" + table + "` LIMIT 0").Rows()
 			if err != nil {
@@ -60,21 +70,16 @@ func (a *Adapter) ResetReleaseHistory(ctx context.Context, database, serverUUID 
 			if err = rows.Close(); err != nil {
 				return err
 			}
-		}
-		bound := *a
-		bound.gorm = tx
-		if err := bound.releaseSchemaReady(ctx); err != nil {
-			return ErrReleaseResetSchema
-		}
-		if err := bound.recordVersionSchemaReady(ctx); err != nil {
-			return ErrReleaseResetSchema
+			var name, actual string
+			if err := tx.Raw("SHOW CREATE TABLE `"+table+"`").Row().Scan(&name, &actual); err != nil || comparableControlDefinition(actual) != comparableControlDefinition(manifest[table]) {
+				return ErrReleaseResetSchema
+			}
 		}
 		for _, table := range releaseResetTables {
 			if err := releaseResetSideEffects(tx, table); err != nil {
 				return err
 			}
 		}
-		var err error
 		report.Before, err = releaseResetCounts(tx)
 		if err != nil {
 			return err

@@ -21,10 +21,7 @@ import (
 )
 
 func TestQueryPolicyQuotesManagedTableNameAsIdentifier(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/005-query-policy-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/005-query-policy-fixture.sql")
 	tableName := "query policy items"
 	queryCode, mutationCode := createPolicyDefinitions(t, app, "quoted_table", queryPolicyFixture{}, mutationPolicyFixture{}, 1)
 	if err := app.mysql.Create(t.Context(), domain.TablePolicy{TableName: tableName, QueryPolicyCode: queryCode, MutationPolicyCode: mutationCode}, "integration-test"); err != nil {
@@ -39,10 +36,7 @@ func TestQueryPolicyQuotesManagedTableNameAsIdentifier(t *testing.T) {
 }
 
 func TestQueryPolicyContainsTreatsWildcardsAndEscapeCharacterLiterally(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/005-query-policy-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/005-query-policy-fixture.sql")
 	enableQueryPolicy(t, app, "query_policy_items", queryPolicyFixture{})
 
 	response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_policy_items/query", `{
@@ -55,10 +49,7 @@ func TestQueryPolicyContainsTreatsWildcardsAndEscapeCharacterLiterally(t *testin
 }
 
 func TestQueryPolicyAppliesOpenAndClosedRanges(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/005-query-policy-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/005-query-policy-fixture.sql")
 	enableQueryPolicy(t, app, "query_policy_items", queryPolicyFixture{})
 
 	tests := []struct {
@@ -93,10 +84,7 @@ func TestQueryPolicyAppliesOpenAndClosedRanges(t *testing.T) {
 }
 
 func TestQueryPolicyAppliesMembershipNullAndEmptyStringSemantics(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/005-query-policy-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/005-query-policy-fixture.sql")
 	enableQueryPolicy(t, app, "query_policy_items", queryPolicyFixture{})
 
 	tests := []struct {
@@ -132,10 +120,7 @@ func TestQueryPolicyAppliesMembershipNullAndEmptyStringSemantics(t *testing.T) {
 }
 
 func TestQueryPolicyEnforcesLimitsAndRequestSortWithoutCorrection(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/005-query-policy-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/005-query-policy-fixture.sql")
 	enableQueryPolicy(t, app, "query_policy_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "DESC"})
 
 	condition := `{"field":"score","operator":"closed_range","from":"10"}`
@@ -175,10 +160,7 @@ func TestQueryPolicyEnforcesLimitsAndRequestSortWithoutCorrection(t *testing.T) 
 }
 
 func TestQueryPolicyReturnsEverySupportedLiveTypeAsLosslessJSONString(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/005-query-policy-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/005-query-policy-fixture.sql")
 	enableQueryPolicy(t, app, "query_type_values", queryPolicyFixture{})
 
 	response := policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_type_values/query", `{"page_size":1}`)
@@ -243,10 +225,7 @@ func TestQueryPolicyReturnsEverySupportedLiveTypeAsLosslessJSONString(t *testing
 }
 
 func TestQueryPolicyParsesConditionValuesByLiveType(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/005-query-policy-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/005-query-policy-fixture.sql")
 	enableQueryPolicy(t, app, "query_type_values", queryPolicyFixture{})
 
 	valid := []struct {
@@ -313,10 +292,7 @@ func TestQueryPolicyParsesConditionValuesByLiveType(t *testing.T) {
 }
 
 func TestQueryPolicyRejectsEveryUnsupportedFullRowType(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/005-query-policy-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/005-query-policy-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -356,10 +332,7 @@ func TestQueryPolicyRejectsEveryUnsupportedFullRowType(t *testing.T) {
 }
 
 func TestQueryPolicyMapsDatabaseTimeoutToSafeGatewayTimeout(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/005-query-policy-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/005-query-policy-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -406,10 +379,7 @@ func repeated(value string, count int) []string {
 }
 
 func TestEnabledTablePolicyQueriesExactRowsWithPolicyDefaults(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/004-query-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/004-query-fixture.sql")
 
 	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "DESC", DefaultPageSize: 2, MaxPageSize: 5})
 
@@ -447,10 +417,7 @@ func TestEnabledTablePolicyQueriesExactRowsWithPolicyDefaults(t *testing.T) {
 }
 
 func TestPolicyReplacementAndDisableAffectTheNextQuery(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/004-query-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/004-query-fixture.sql")
 
 	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "DESC", DefaultPageSize: 1, MaxPageSize: 5})
 	assertFirstQueryID(t, policyIntegrationRequest(t, app, http.MethodPost, "/api/v1/tables/query_items/query", `{}`), "4")
@@ -467,10 +434,7 @@ func TestPolicyReplacementAndDisableAffectTheNextQuery(t *testing.T) {
 }
 
 func TestExactQueryUsesANDValidatedSortAndPreservesAnEmptyRequestedPage(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/004-query-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/004-query-fixture.sql")
 	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{})
 
 	andQuery := `{"conditions":[{"field":"category","operator":"exact","value":"alpha"},{"field":"label","operator":"exact","value":"third"}],"order":{"field":"id","direction":"ASC"},"page_number":1,"page_size":10}`
@@ -544,10 +508,7 @@ func TestExactQueryUsesANDValidatedSortAndPreservesAnEmptyRequestedPage(t *testi
 }
 
 func TestQueryFailsClosedWhenLiveSchemaBecomesInvalid(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/004-query-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/004-query-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -570,10 +531,7 @@ func TestQueryFailsClosedWhenLiveSchemaBecomesInvalid(t *testing.T) {
 }
 
 func TestQueryFailsClosedWhenPolicyCatalogIsUnavailable(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/004-query-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/004-query-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -594,10 +552,7 @@ func TestQueryFailsClosedWhenPolicyCatalogIsUnavailable(t *testing.T) {
 }
 
 func TestAssignedDeprecatedPolicyDefinitionsRemainQueryable(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/004-query-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/004-query-fixture.sql")
 	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "ASC", DefaultPageSize: 1, MaxPageSize: 5})
 	assignment, err := app.mysql.Get(t.Context(), "query_items")
 	if err != nil {
@@ -683,10 +638,7 @@ func TestQueryPolicySnapshotCorruptionFailsClosed(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ctx, driverConfig := startIntegrationMySQL(t,
-				"../../../deploy/mysql/init/001-schema.sql",
-				"testdata/004-query-fixture.sql",
-			)
+			ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/004-query-fixture.sql")
 			app, err := newApplication(ctx, integrationConfig(driverConfig))
 			if err != nil {
 				t.Fatalf("start Admin: %v", err)
@@ -715,10 +667,7 @@ func TestQueryPolicySnapshotCorruptionFailsClosed(t *testing.T) {
 }
 
 func TestInFlightQueryKeepsOnePolicySnapshotWhileReplacementAffectsNextRequest(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/004-query-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/004-query-fixture.sql")
 	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{DefaultOrderField: "id", DefaultOrderDirection: "DESC", DefaultPageSize: 1, MaxPageSize: 5})
 
 	tableRead := make(chan struct{})
@@ -744,10 +693,7 @@ func TestInFlightQueryKeepsOnePolicySnapshotWhileReplacementAffectsNextRequest(t
 }
 
 func TestExternalDDLRaceFailsSafelyWithoutStorageDetails(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/004-query-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/004-query-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -874,10 +820,7 @@ func waitForSnapshotBarrier(t *testing.T, barrier <-chan struct{}, description s
 var _ application.QuerySnapshotExecutor = (*querySnapshotBarrier)(nil)
 
 func TestQuerySnapshotSessionCannotBeReusedAfterTransaction(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/004-query-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/004-query-fixture.sql")
 	enableQueryPolicy(t, app, "query_items", queryPolicyFixture{})
 	var captured application.QuerySnapshotSession
 	_, err := app.mysql.ExecuteQuerySnapshot(t.Context(), func(session application.QuerySnapshotSession) (domain.QueryResult, error) {

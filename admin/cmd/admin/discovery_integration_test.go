@@ -21,14 +21,12 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	tcmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 
+	mysqladapter "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql"
 	"github.com/asherzj/relational-config-center/admin/internal/platform/config"
 )
 
 func TestDatabaseTableListDiscoversOnlyOrdinaryBaseTables(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/002-discovery-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/002-discovery-fixture.sql")
 
 	recorder := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/database-tables", "")
 
@@ -76,10 +74,7 @@ func TestDatabaseTableListDiscoversOnlyOrdinaryBaseTables(t *testing.T) {
 }
 
 func TestDatabaseTableDetailReturnsLiveMetadataAndStableNotFoundError(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/002-discovery-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/002-discovery-fixture.sql")
 
 	recorder := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/database-tables/managed_alpha", "")
 
@@ -111,7 +106,7 @@ func TestDatabaseTableDetailReturnsLiveMetadataAndStableNotFoundError(t *testing
 }
 
 func TestHealthDistinguishesRunningProcessFromRequiredInfrastructure(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
+	app := startIntegrationApplication(t)
 
 	assertHealth(t, app, "/health/live", http.StatusOK, `{"status":"live"}`)
 	assertHealth(t, app, "/health/ready", http.StatusOK, `{"status":"ready"}`)
@@ -124,20 +119,22 @@ func TestHealthDistinguishesRunningProcessFromRequiredInfrastructure(t *testing.
 }
 
 func TestStartupRequiresTheProtectedPolicyCatalog(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t)
+	db := deliveryDB(t, driverConfig)
+	deliveryExec(t, db, `DROP TABLE rcc_table_policies`)
 
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err == nil {
 		_ = app.Close()
 		t.Fatal("expected startup to fail when the Policy Catalog is absent")
 	}
-	if !strings.Contains(err.Error(), "Policy Catalog unavailable") {
-		t.Fatalf("expected Policy Catalog startup error, got %v", err)
+	if !strings.Contains(err.Error(), "schema_not_ready") || !strings.Contains(err.Error(), "schema-migrate") {
+		t.Fatalf("expected migration guidance for the missing Policy Catalog, got %v", err)
 	}
 }
 
 func TestAdminProcessServesUnauthenticatedLiveness(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driverConfig := startCurrentIntegrationMySQL(t)
 
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -205,13 +202,47 @@ func assertHealth(t *testing.T, app *adminApplication, path string, status int, 
 
 func startIntegrationApplication(t *testing.T, scripts ...string) *adminApplication {
 	t.Helper()
-	ctx, driverConfig := startIntegrationMySQL(t, scripts...)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, scripts...)
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
 	}
 	t.Cleanup(func() { _ = app.Close() })
 	return app
+}
+
+// All current application fixtures initialize through the embedded Goose source.
+func startCurrentIntegrationMySQL(t *testing.T, scripts ...string) (context.Context, *mysqldriver.Config) {
+	t.Helper()
+	ctx, driver := startIntegrationMySQL(t)
+	initializeCurrentIntegrationSchema(t, ctx, driver, scripts...)
+	return ctx, driver
+}
+
+func initializeCurrentIntegrationSchema(t *testing.T, ctx context.Context, driver *mysqldriver.Config, scripts ...string) {
+	t.Helper()
+	maintenance, err := mysqladapter.OpenMaintenance(ctx, integrationConfig(driver).MySQL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = maintenance.MigrateControlSchema(ctx, mysqladapter.SchemaMigrationOptions{LockTimeout: 5 * time.Second})
+	closeErr := maintenance.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if closeErr != nil {
+		t.Fatal(closeErr)
+	}
+	fixtureSettings := *driver
+	fixtureSettings.MultiStatements = true
+	fixtures := deliveryDB(t, &fixtureSettings)
+	for _, path := range scripts {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		deliveryExec(t, fixtures, string(data))
+	}
 }
 
 func startIntegrationMySQL(t *testing.T, scripts ...string) (context.Context, *mysqldriver.Config) {

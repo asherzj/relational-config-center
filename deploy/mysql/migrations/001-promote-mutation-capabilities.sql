@@ -1,6 +1,7 @@
 -- Apply once to an existing first-iteration Policy Catalog created before
 -- allow_add, allow_modify, and allow_delete became Table Policy columns.
--- Fresh deployments already receive these columns from mysql/init/001-schema.sql.
+-- Current fresh deployments use schema-migrate up with capabilities stored in
+-- Mutation Policies; they do not replay this intermediate Table Policy shape.
 
 ALTER TABLE `rcc_table_policies`
   ADD COLUMN `allow_add` tinyint(1) NOT NULL DEFAULT 0 AFTER `mutation_policy_config`,

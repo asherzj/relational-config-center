@@ -16,10 +16,7 @@ import (
 const localManagedTableFixture = "../../../deploy/mysql/local-fixture/002-notification-templates.sql"
 
 func TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		localManagedTableFixture,
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, localManagedTableFixture)
 	applyLocalManagedTableFixture(t, driverConfig)
 
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
@@ -108,10 +105,7 @@ func TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable(t *testing.T) 
 }
 
 func TestLocalManagedTableFixtureRejectsLifecycleConflictsWithoutReactivation(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		localManagedTableFixture,
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, localManagedTableFixture)
 	database, err := sql.Open("mysql", driverConfig.FormatDSN())
 	if err != nil {
 		t.Fatalf("open fixture verification database: %v", err)
@@ -134,10 +128,7 @@ func TestLocalManagedTableFixtureRejectsLifecycleConflictsWithoutReactivation(t 
 }
 
 func TestLocalManagedTableFixtureRejectsIncompatibleExistingTableWithoutAssignment(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/009-incompatible-local-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/009-incompatible-local-fixture.sql")
 	if err := executeLocalManagedTableFixture(driverConfig); err == nil {
 		t.Fatal("expected incompatible existing notification_templates schema to reject fixture application")
 	}

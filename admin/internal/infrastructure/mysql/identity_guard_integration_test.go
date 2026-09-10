@@ -409,7 +409,7 @@ func identityGuardDatabase(t *testing.T) (context.Context, *Adapter, *sql.DB, *d
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	t.Cleanup(cancel)
-	container, err := tcmysql.Run(ctx, "mysql:8.4", tcmysql.WithDatabase("identity_guard"), tcmysql.WithUsername("root"), tcmysql.WithPassword("isolated-identity-fixture"), tcmysql.WithScripts("../../../../deploy/mysql/init/001-schema.sql"))
+	container, err := tcmysql.Run(ctx, "mysql:8.4", tcmysql.WithDatabase("identity_guard"), tcmysql.WithUsername("root"), tcmysql.WithPassword("isolated-identity-fixture"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -424,6 +424,12 @@ func identityGuardDatabase(t *testing.T) (context.Context, *Adapter, *sql.DB, *d
 	}
 	settings.ClientFoundRows = true
 	adapter := identityGuardAdapter(t, settings)
+	if _, err := adapter.MigrateControlSchema(ctx, SchemaMigrationOptions{LockTimeout: 5 * time.Second}); err != nil {
+		t.Fatal(err)
+	}
+	if err := adapter.Ready(ctx); err != nil {
+		t.Fatal(err)
+	}
 	admin, err := sql.Open("mysql", settings.FormatDSN())
 	if err != nil {
 		t.Fatal(err)

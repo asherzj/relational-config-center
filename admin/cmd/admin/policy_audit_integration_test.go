@@ -13,7 +13,7 @@ import (
 var policyAuditTables = []string{"rcc_query_policies", "rcc_mutation_policies", "rcc_table_policies"}
 
 func TestPolicyAuditMigrationPreservesDataAndIsRestartable(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	db := deliveryDB(t, driver)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
@@ -45,7 +45,7 @@ func TestPolicyAuditMigrationPreservesDataAndIsRestartable(t *testing.T) {
 					deliveryExec(t, db, "ALTER TABLE "+table+" RENAME COLUMN updated_at TO gmt_modified")
 				}
 			}
-			if err := app.mysql.Ready(ctx); err == nil || !strings.Contains(err.Error(), "013") {
+			if err := app.mysql.Ready(ctx); err == nil || !strings.Contains(err.Error(), "schema_not_ready") {
 				t.Fatalf("readiness must reject old audit columns with migration guidance: %v", err)
 			}
 			for run := 0; run < 2; run++ {
@@ -76,7 +76,7 @@ func TestPolicyAuditMigrationPreservesDataAndIsRestartable(t *testing.T) {
 }
 
 func TestPolicyAuditMigrationRejectsAmbiguousOrMissingColumnsBeforeDDL(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	db := deliveryDB(t, driver)
 	for _, table := range policyAuditTables {
 		deliveryExec(t, db, "ALTER TABLE "+table+" RENAME COLUMN created_at TO gmt_created, RENAME COLUMN updated_at TO gmt_modified")

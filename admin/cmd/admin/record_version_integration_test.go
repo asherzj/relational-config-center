@@ -37,7 +37,7 @@ func recordVersionRow(t *testing.T, app *adminApplication, table, id string) (ma
 }
 
 func TestRecordVersionLegacyBaseline(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true, AllowDelete: true})
 	row, version := recordVersionRow(t, app, "mutation_delete_parents", "01")
 	if version != "0" || *row["code"] != "delete-rollback" {
@@ -49,7 +49,7 @@ func TestRecordVersionLegacyBaseline(t *testing.T) {
 }
 
 func TestRecordVersionCompareAndSwap(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true, AllowDelete: true})
 	missing := publicationFixtureRequest(t, app, "MODIFY", "mutation_delete_parents", "1", `{"content":{"code":"missing"}}`)
 	assertIntegrationErrorCode(t, missing, http.StatusUnprocessableEntity, "record_version_required")
@@ -74,7 +74,7 @@ func TestRecordVersionCompareAndSwap(t *testing.T) {
 }
 
 func TestRecordVersionAddDeleteRecreateAndRollback(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	add := func() {
 		t.Helper()
@@ -107,7 +107,7 @@ func TestRecordVersionAddDeleteRecreateAndRollback(t *testing.T) {
 }
 
 func TestRecordVersionMySQLPrimaryKeyEquivalence(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/010-record-identity-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/010-record-identity-fixture.sql")
 	for _, test := range []struct{ table, first, equivalent, recreated string }{
 		{"record_identity_ci", "Résumé", "resume", "RESUME"},
 		{"record_identity_pad", "Code ", "code", "CÓDE"},
@@ -154,7 +154,7 @@ func TestRecordVersionMySQLPrimaryKeyEquivalence(t *testing.T) {
 }
 
 func TestRecordVersionRealConcurrentWriters(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -281,7 +281,7 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 }
 
 func TestRecordVersionSchemaReadinessAndRestartableMigration(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -319,7 +319,7 @@ func TestRecordVersionSchemaReadinessAndRestartableMigration(t *testing.T) {
 }
 
 func TestRecordVersionLosslessMaintenanceFloor(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -354,7 +354,7 @@ func TestRecordVersionLosslessMaintenanceFloor(t *testing.T) {
 }
 
 func TestRecordVersionSnapshotAndIndependentResources(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -453,7 +453,7 @@ func TestRecordVersionSnapshotAndIndependentResources(t *testing.T) {
 }
 
 func TestRecordVersionRejectsNonTransactionalBusinessWrite(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	db := deliveryDB(t, driver)
 	if _, err := db.Exec(`CREATE TABLE nontransactional_items(id INT PRIMARY KEY,label VARCHAR(64)) ENGINE=MyISAM`); err != nil {
 		t.Fatal(err)
@@ -478,7 +478,7 @@ func TestRecordVersionRejectsNonTransactionalBusinessWrite(t *testing.T) {
 }
 
 func TestRecordVersionControlStorageFailureRollsBackBusinessWrites(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)

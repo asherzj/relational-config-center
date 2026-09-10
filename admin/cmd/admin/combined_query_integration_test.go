@@ -10,7 +10,7 @@ import (
 )
 
 func TestCombinedQueryAC016RealFieldsCapacityAndAtomicConfiguration(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	db := deliveryDB(t, driver)
 	columns := []string{"id bigint unsigned NOT NULL PRIMARY KEY"}
 	for i := 1; i <= 256; i++ {

@@ -1,18 +1,27 @@
 FROM golang:1.27-alpine AS build
-
 WORKDIR /src/admin
 COPY admin/go.mod admin/go.sum ./
 RUN go mod download
 COPY admin/ ./
 RUN CGO_ENABLED=0 go build -trimpath -o /out/admin ./cmd/admin \
-    && CGO_ENABLED=0 go build -trimpath -o /out/account-maintain ./cmd/account-maintain
+    && CGO_ENABLED=0 go build -trimpath -o /out/account-maintain ./cmd/account-maintain \
+    && CGO_ENABLED=0 go build -trimpath -o /out/policy-migrate ./cmd/policy-migrate \
+    && CGO_ENABLED=0 go build -trimpath -o /out/schema-migrate ./cmd/schema-migrate
 
-FROM alpine:3.23
+FROM alpine:3.23 AS runtime
 RUN apk add --no-cache ca-certificates \
     && addgroup -S admin \
     && adduser -S -G admin admin
+USER admin
+
+FROM runtime AS migration
+COPY --from=build /out/schema-migrate /usr/local/bin/schema-migrate
+ENTRYPOINT ["/usr/local/bin/schema-migrate"]
+CMD ["up"]
+
+FROM runtime AS admin
 COPY --from=build /out/admin /usr/local/bin/admin
 COPY --from=build /out/account-maintain /usr/local/bin/account-maintain
-USER admin
+COPY --from=build /out/policy-migrate /usr/local/bin/policy-migrate
 EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/admin"]

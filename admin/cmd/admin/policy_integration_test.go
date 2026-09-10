@@ -211,7 +211,7 @@ func TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite(t *testing.T
 		t.Fatalf("unexpected final Table Policy shape: %s", finalColumns)
 	}
 
-	freshCtx, freshDriverConfig := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	freshCtx, freshDriverConfig := startCurrentIntegrationMySQL(t)
 	freshDatabase, err := sql.Open("mysql", freshDriverConfig.FormatDSN())
 	if err != nil {
 		t.Fatalf("open fresh final Catalog: %v", err)
@@ -276,7 +276,7 @@ func policyCatalogSchemaSignature(t *testing.T, ctx context.Context, database *s
 }
 
 func TestQueryPolicyHTTPLifecyclePersistsAndFailsClosed(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
+	app := startIntegrationApplication(t)
 
 	types := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/query-policy-types", "")
 	if types.Code != http.StatusOK || !strings.Contains(types.Body.String(), `"code":"page_query"`) {
@@ -368,10 +368,7 @@ func TestQueryPolicyHTTPLifecyclePersistsAndFailsClosed(t *testing.T) {
 }
 
 func TestTablePolicyCodeAssignmentsValidateActiveDefinitionsAndReplaceAtomically(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/003-policy-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/003-policy-fixture.sql")
 
 	createAndActivateQueryDefinition(t, app, "assignable_page_query_v1", "id")
 	createAndActivateMutationDefinition(t, app, "assignable_mutation_v1", nil)
@@ -519,7 +516,7 @@ func createAndActivateMutationDefinition(t *testing.T, app *adminApplication, co
 func stringPointer(value string) *string { return &value }
 
 func TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
+	app := startIntegrationApplication(t)
 
 	types := policyIntegrationRequest(t, app, http.MethodGet, "/api/v1/mutation-policy-types", "")
 	if types.Code != http.StatusOK || !strings.Contains(types.Body.String(), `"code":"single_table_mutation"`) ||
@@ -608,10 +605,7 @@ func mutationPolicyPayload(code, typeCode string, allowAdd, allowModify, allowDe
 }
 
 func TestTablePolicyCreationPersistsDisabledCodeReferencesForHTTPInspection(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/003-policy-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/003-policy-fixture.sql")
 	createAndActivateQueryDefinition(t, app, "inspect_page_query_v1", "id")
 	createAndActivateMutationDefinition(t, app, "inspect_mutation_v1", nil)
 
@@ -652,10 +646,7 @@ func TestTablePolicyCreationPersistsDisabledCodeReferencesForHTTPInspection(t *t
 }
 
 func TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/003-policy-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/003-policy-fixture.sql")
 	createAndActivateQueryDefinition(t, app, "failure_page_query_v1", "id")
 	createAndActivateMutationDefinition(t, app, "failure_mutation_v1", nil)
 	valid := func(tableName string) string {

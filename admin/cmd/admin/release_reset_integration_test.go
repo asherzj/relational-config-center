@@ -17,7 +17,7 @@ import (
 
 // AC-021 uses a new disposable MySQL and the shipped maintenance process.
 func TestReleaseResetPreservesRecordsAndContinuesPublication(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	db := deliveryDB(t, driver)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
@@ -123,7 +123,7 @@ func resetCommand(binary string, driver *mysqldriver.Config, args ...string) *ex
 }
 
 func TestReleaseResetRefusesUnverifiedTargetsAndSchema(t *testing.T) {
-	_, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	_, driver := startCurrentIntegrationMySQL(t)
 	db := deliveryDB(t, driver)
 	seedReleaseResetHistory(t, driver)
 	before := resetCounts(t, driver)
@@ -189,7 +189,9 @@ func TestReleaseResetRefusesUnverifiedTargetsAndSchema(t *testing.T) {
 }
 
 func TestReleaseResetInterruptedTransactionRollsBackAndRetries(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	// Offline maintenance remains available before Goose adoption and without
+	// the unrelated field-policy table; only its own seven tables are required.
+	ctx, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql")
 	db := deliveryDB(t, driver)
 	seedReleaseResetHistory(t, driver)
 	before := resetCounts(t, driver)

@@ -43,7 +43,7 @@ func approvePublication(t *testing.T, app *adminApplication, reviewer *httptest.
 
 // AC-026/027: actual publication captures the database defaults and generated row.
 func TestReleasePublicationAddsFinalRow(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	reviewer := registerAccount(t, app, "publication.reviewer", "publication.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER","PUBLISHER"]`, "1", "publication-roles")
@@ -101,7 +101,7 @@ func TestReleasePublicationAddsFinalRow(t *testing.T) {
 
 // AC-035: even a hidden cross-schema cascade must be rejected before DML.
 func TestPublicationRejectsUntrackedCascade(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	ownerDriver := *driver
 	ownerDriver.User = "root"
 	owner := deliveryDB(t, &ownerDriver)
@@ -132,7 +132,7 @@ func TestPublicationRejectsUntrackedCascade(t *testing.T) {
 }
 
 func TestPublicationSupportsTargetRowTrigger(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	ownerDriver := *driver
 	ownerDriver.User = "root"
 	owner := deliveryDB(t, &ownerDriver)
@@ -180,7 +180,7 @@ func TestPublicationSupportsTargetRowTrigger(t *testing.T) {
 // AC-030: each control-data failure rolls back the complete publication. The
 // injected failures are real MySQL trigger errors at the persistence boundary.
 func TestPublicationAtomicPersistenceFailures(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	ownerDriver := *driver
 	ownerDriver.User = "root"
 	owner := deliveryDB(t, &ownerDriver)
@@ -232,7 +232,7 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 }
 
 func TestOldRecordWriteRoutesAreRemoved(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	for _, request := range []struct{ method, path, body string }{{"POST", "/api/v1/tables/mutation_add_items/rows", `{"content":{"code":"bypass","label":"bypass"}}`}, {"PATCH", "/api/v1/tables/mutation_add_items/rows/1", `{"expected_version":"0","content":{"label":"bypass"}}`}, {"DELETE", "/api/v1/tables/mutation_add_items/rows/1", `{"expected_version":"0"}`}} {
 		response := releaseRequest(t, app, request.method, request.path, request.body, "old-route")
@@ -241,7 +241,7 @@ func TestOldRecordWriteRoutesAreRemoved(t *testing.T) {
 }
 
 func TestPublicationIdentityCanonicalAndDelete(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	ownerDriver := *driver
 	ownerDriver.User = "root"
 	db := deliveryDB(t, &ownerDriver)
@@ -284,7 +284,7 @@ func TestPublicationIdentityCanonicalAndDelete(t *testing.T) {
 }
 
 func TestPublicationRejectsImplicitWritesAndAuditSpoofing(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	ownerDriver := *driver
 	ownerDriver.User = "root"
 	db := deliveryDB(t, &ownerDriver)
@@ -327,7 +327,7 @@ func TestPublicationRejectsImplicitWritesAndAuditSpoofing(t *testing.T) {
 }
 
 func TestPublicationPublisherHistoryAndApprovalSurvivesRevocation(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	creator, stamp := "creator", "occurred_at"
 	enableMutationPolicy(t, app, "mutation_auto_fill_items", mutationPolicyFixture{AllowAdd: true, CreateOperatorField: &creator, CreateTimeField: &stamp})
 	reviewer := registerAccount(t, app, "history.reviewer", "history.reviewer@example.com", "correct horse battery staple")
@@ -371,7 +371,7 @@ func TestPublicationPublisherHistoryAndApprovalSurvivesRevocation(t *testing.T) 
 }
 
 func TestPublicationFrozenChangesAndDescriptions(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	db := deliveryDB(t, driver)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
@@ -436,7 +436,7 @@ func TestPublicationFrozenChangesAndDescriptions(t *testing.T) {
 }
 
 func TestPublicationActionCompetitionAndTableOrder(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	reviewer := publicationFixtureReviewer(t, app)
 	session := integrationAdminSession(t, app)
@@ -500,7 +500,7 @@ func TestPublicationActionCompetitionAndTableOrder(t *testing.T) {
 }
 
 func TestPublicationSessionLocksHiddenForeignKeyDDL(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	rootDriver := *driver
 	rootDriver.User = "root"
 	owner := deliveryDB(t, &rootDriver)
@@ -554,7 +554,7 @@ func TestPublicationSessionLocksHiddenForeignKeyDDL(t *testing.T) {
 }
 
 func TestPublicationRejectsUnknownNonAutoIncrementIdentity(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	db := deliveryDB(t, driver)
 	deliveryExec(t, db, `CREATE TABLE default_identity(id int NOT NULL DEFAULT 1 PRIMARY KEY,label varchar(30) NOT NULL) ENGINE=InnoDB`)
 	deliveryExec(t, db, `INSERT INTO default_identity VALUES(0,'unrelated')`)
@@ -577,7 +577,7 @@ func TestPublicationRejectsUnknownNonAutoIncrementIdentity(t *testing.T) {
 }
 
 func TestPublicationStoredRowsAreVerifiedBeforeReadOrReplay(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)

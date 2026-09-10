@@ -1,9 +1,17 @@
 # Policy Catalog migrations
 
+These scripts retain their historical upgrade responsibilities. After reaching
+the current structure, including 013, an existing database can be explicitly
+adopted with `schema-migrate baseline`; the command verifies the complete control
+schema before registering versions and never replays these scripts. See the
+[Goose maintenance runbook](../../../docs/schema-migrations.md). Goose `up`
+refuses unadopted control tables. Compose runs Goose before its independent development fixture and Admin.
+Admin startup/readiness require a current, confirmed, structurally complete release.
+
 The reusable Policy model uses an expand-contract rollout. Apply migrations
 001 through 005 in order, then 013 before running the current contraction
 command below. A fresh installation uses the already-final
-`mysql/init/001-schema.sql` and does not replay these legacy migrations.
+`schema-migrate up` and does not replay these legacy migrations.
 
 ## Table Policy Code expansion
 
@@ -69,7 +77,7 @@ Policy Codes, `enabled`, `creator`, `modifier`, `created_at`, and
 After completing the existing Policy Catalog migration, apply
 [`007-local-accounts.sql`](./007-local-accounts.sql) once with database maintenance
 permissions. Fresh installations already include the same tables in
-`init/001-schema.sql`; do not replay 007 there. These are explicit InnoDB tables,
+`schema-migrate up`; do not replay 007 there. These are explicit InnoDB tables,
 not GORM AutoMigrate output. Never expose any `rcc_` table through generic policies.
 
 Business requests now require local-account sessions and TMP-01 is removed by #37.
@@ -124,18 +132,21 @@ T5 同时修正 FLOAT 主键的有损短文本权重与 FLOAT/DOUBLE 的正负�
 
 1. 备份数据库，停止旧 Admin 和其他 Policy 写入者。
 2. 对已完成 012 的数据库执行 `013-policy-audit-timestamps.sql`。
-3. 部署新版 Admin/Web，确认就绪检查及三类 Policy 的查询、创建和修改均正常。
+3. 确认所有适用历史控制步骤（包括 014）和当前 `policy-migrate` 收缩均已完成，按[接管手册](../../../docs/schema-migrations.md#校验并接管现有库)显式运行 `schema-migrate baseline`，再以 `schema-migrate status` 确认 `state=current`、没有未确认操作。
+4. 部署新版 Admin/Web，确认就绪检查及三类 Policy 的查询、创建和修改均正常。
 
 迁移只重命名列，保留现有时间值、数据类型、默认值和自动更新时间行为；不会修改业务表，
-也不会改写 Mutation Policy 中配置的审计目标字段。新安装使用 `init/001-schema.sql` 即可。
+也不会改写 Mutation Policy 中配置的审计目标字段。新安装使用 `schema-migrate up` 即可。
 迁移可重跑，支持表间中断和单个时间列已经改名的状态；若旧名和新名同时存在或同时缺失，
 会在任何表发生变更前拒绝执行，并指出异常表。修正异常后可重跑。
-旧版 Admin 不能使用迁移后的列名；需要回退时，应先停写并反向重命名三张表的两列，再整体回退 Admin/Web。
+旧版 Admin 不能使用迁移后的列名。登记 Goose 后禁止在账本之外反向改名或跳版本；需恢复旧部署时，使用一致的已验证备份及匹配二进制，保持停写窗口。Goose 只支持经验证的向前修复。
 
 `rcc_table_field_policies` 同样采用 `created_at` / `updated_at`，由014创建；013本身不创建该表。
 
 ## 表字段规则（014）
 
-已完成013的数据库在停写维护窗口执行 `014-table-field-policies.sql`，再部署对应Admin/Web。该迁移与新库001采用同一字段规则结构，可重跑且保留已有规则。它只新增控制表，不删除或改写旧发布单、幂等结果、版本、占用、通知或业务行。Ready要求列、类型、可空性、InnoDB和表/字段唯一键完整；已有同名不兼容表不会被CREATE IF NOT EXISTS修正，应停写核对结构，不能删表来通过就绪检查。
+通过 mysql 客户端执行包含中文列注释的历史脚本时，必须使用 `--default-character-set=utf8mb4`；不能让客户端把 UTF-8 文件按其他字符集导入。
+
+014 仅供尚未接管且已完成 013 的历史数据库：停写时执行适用步骤及 `014-table-field-policies.sql`，再按[接管手册](../../../docs/schema-migrations.md)显式 `baseline`，确认 current 后部署 Admin/Web。新库和已使用 Goose 的库运行 `schema-migrate up`，由 00003 创建同一字段策略结构。两条路径均保留已有规则、发布单、幂等结果、版本、占用、通知和业务行。Admin 只读完整验证字段表的列、默认值、索引、CHECK、引擎以及版本状态；同名不兼容表不会被 IF NOT EXISTS 修正，应在维护窗口核对，不能删表绕过校验。
 
 交互控件默认text，无auto；JSON NULL语义、原子保存及实时读取见[字段规则契约](../../../docs/admin-field-policies.md)。旧发布单清理属于独立且需明确指定隔离环境的维护工作，绝非014升级前提。

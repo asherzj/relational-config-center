@@ -59,6 +59,6 @@ Schema或配置读取失败返回503 `field_policy_unavailable`；请求上下�
 
 ## 升级
 
-新库使用 `deploy/mysql/init/001-schema.sql`。已完成013的存量库在停写维护窗口执行 `deploy/mysql/migrations/014-table-field-policies.sql`，再一起部署Admin/Web；Ready检查列、类型、NULL能力、InnoDB及完整表/字段唯一键，缺失时提示014。014可以重跑，只新增控制表，不重写业务行、发布单、请求幂等结果、占用、版本或通知。
+新库及已有 Goose 库使用 `schema-migrate up`，由追加的 00003 建立字段策略表。尚未接管且已完成 013 的库，在停写维护窗口执行历史 `014-table-field-policies.sql` 并完成其他适用步骤，再按[接管手册](schema-migrations.md)显式 `baseline`；状态为 current 后再部署 Admin/Web。Admin 只读检查包括字段策略表在内的完整结构、版本和尝试状态，异常给出 `schema_not_ready` 及维护指引。00003 与历史 014 结构等价，仅新增控制表，不清理业务行、字段配置、发布单、请求幂等结果、占用、版本或通知。
 
 字段交互管理、记录录入与组合查询已接入；历史实时显示由后续工单接入。本次没有双写、Feature Flag、显示快照或占位接口。

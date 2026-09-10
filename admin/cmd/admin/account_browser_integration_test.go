@@ -17,7 +17,7 @@ import (
 // This intentionally separate system target requires installed Web dependencies
 // and Chromium. It fails (never skips) if that browser environment is unavailable.
 func TestAccountBrowserSystemPath(t *testing.T) {
-	_, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", localManagedTableFixture, "../../../docs/verification/fixtures/stage1_acceptance.sql", "testdata/014-batch-browser.sql")
+	_, driver := startCurrentIntegrationMySQL(t, localManagedTableFixture, "../../../docs/verification/fixtures/stage1_acceptance.sql", "testdata/014-batch-browser.sql")
 	db := deliveryDB(t, driver)
 	maintenance := filepath.Join(t.TempDir(), "account-maintain")
 	build := exec.Command("go", "build", "-o", maintenance, "../account-maintain")

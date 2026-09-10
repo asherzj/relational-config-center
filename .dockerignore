@@ -4,3 +4,4 @@ bin
 web/node_modules
 **/*_test.go
 admin/integration
+admin/cmd/admin/testdata

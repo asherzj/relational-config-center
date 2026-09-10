@@ -19,7 +19,7 @@ import (
 )
 
 func TestLocalAccountRegistrationCreatesCurrentIdentity(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
+	app := startIntegrationApplication(t)
 	prepared := accountRequest(app, "GET", "/api/v1/auth/csrf", "", nil, "")
 	if prepared.Code != 200 {
 		t.Fatalf("prepare: %d %s", prepared.Code, prepared.Body.String())
@@ -280,7 +280,7 @@ func TestLocalAccountPasswordChangeRevokesAllSessions(t *testing.T) {
 }
 
 func TestLocalAccountLoginAfterLogout(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
+	app := startIntegrationApplication(t)
 	registration := registerAccount(t, app, "Login.User", "login@example.com", " correct horse battery staple ")
 	var identity struct {
 		CSRF string `json:"csrf_token"`
@@ -304,7 +304,7 @@ func TestLocalAccountLoginAfterLogout(t *testing.T) {
 }
 
 func TestLocalAccountRegistrationRateLimit(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
+	app := startIntegrationApplication(t)
 	cookies, csrf := prepareAccount(t, app)
 	for i := 0; i < 10; i++ {
 		result := accountRequest(app, "POST", "/api/v1/auth/register", `{"username":"bad","email":"invalid","password":"too-short"}`, cookies, csrf)
@@ -378,7 +378,7 @@ func TestLocalAccountNormalizedUniquenessAndAtomicRegistration(t *testing.T) {
 
 func accountFixture(t *testing.T, now func() time.Time) (*adminApplication, *sql.DB) {
 	t.Helper()
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplicationWithClock(ctx, integrationConfig(driver), now)
 	if err != nil {
 		t.Fatal(err)
@@ -703,7 +703,7 @@ func TestLocalAccountStoredSecretsAndAbsoluteExpiry(t *testing.T) {
 
 func TestLocalAccountHTTPSCookiesAndPreauthExpiry(t *testing.T) {
 	now := time.Date(2026, 9, 7, 0, 0, 0, 123456789, time.UTC)
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	settings := integrationConfig(driver)
 	settings.AccountPublicOrigin = "https://config.example.test"
 	settings.AccountInsecureHTTP = false
@@ -737,7 +737,7 @@ func TestLocalAccountHTTPSCookiesAndPreauthExpiry(t *testing.T) {
 }
 
 func TestLocalAccountDatabaseLockTimeoutIs504(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	settings := integrationConfig(driver)
 	settings.MySQL.ReadTimeout = time.Second
 	app, err := newApplication(ctx, settings)
