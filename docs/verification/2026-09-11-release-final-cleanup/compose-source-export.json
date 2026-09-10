@@ -1,0 +1,12 @@
+{
+  "source": "/private/tmp/rcc-issue-88-final-release-cleanup",
+  "export": "/Users/asher/.codex/visualizations/2026/09/09/01a0850d-11fa-7f83-b97d-d58527309794/rcc-88-compose-9df93a5bb851",
+  "source_manifest": "source-candidate11.json",
+  "source_manifest_sha256": "7634288ed8875e6bb7ca3b625df1b500094e05c3179c8c9c4b28df9bb0dc3e9a",
+  "files": 727,
+  "hash_mismatches": [],
+  "reason": "Colima shares the home directory; /private/tmp bind mount did not expose the local fixture.",
+  "cleaned": true,
+  "final_files_verified": 727,
+  "cleaned_at": "2026-09-10T17:14:29.662189+00:00"
+}

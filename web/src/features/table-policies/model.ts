@@ -13,6 +13,7 @@ export type DatabaseTable = {
 };
 
 export type TablePolicy = {
+  concurrencyKey?: string[];
   tableName: string;
   queryPolicyCode: string;
   mutationPolicyCode: string;
@@ -23,7 +24,7 @@ export type TablePolicy = {
   modifiedAt: string;
 };
 
-export type TablePolicyAssignment = Pick<TablePolicy, "tableName" | "queryPolicyCode" | "mutationPolicyCode">;
+export type TablePolicyAssignment = Pick<TablePolicy, "tableName" | "queryPolicyCode" | "mutationPolicyCode" | "concurrencyKey">;
 
 export const incompatibilityReasonLabels: Record<IncompatibilityReason, string> = {
   missing_primary_key: "缺少主键",

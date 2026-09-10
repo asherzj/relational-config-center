@@ -1,0 +1,509 @@
+{
+  "project": "rcc-goose-724f817f6d1c",
+  "cases": [
+    {
+      "case": "fresh_volume",
+      "result": "PASS",
+      "services": {
+        "admin": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 3557682,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:09.616416649Z",
+          "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "mysql": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 3556656,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:12:59.173694504Z",
+          "FinishedAt": "0001-01-01T00:00:00Z",
+          "Health": {
+            "Status": "healthy",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-11T01:13:01.333654094+08:00",
+                "End": "2026-09-11T01:13:01.385157071+08:00",
+                "ExitCode": 1,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\n"
+              },
+              {
+                "Start": "2026-09-11T01:13:03.386676532+08:00",
+                "End": "2026-09-11T01:13:03.444740145+08:00",
+                "ExitCode": 1,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\n"
+              },
+              {
+                "Start": "2026-09-11T01:13:05.44557336+08:00",
+                "End": "2026-09-11T01:13:05.527956504+08:00",
+                "ExitCode": 1,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\n"
+              },
+              {
+                "Start": "2026-09-11T01:13:07.323527199+08:00",
+                "End": "2026-09-11T01:13:07.381360935+08:00",
+                "ExitCode": 0,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+              },
+              {
+                "Start": "2026-09-11T01:13:09.384723647+08:00",
+                "End": "2026-09-11T01:13:09.419465709+08:00",
+                "ExitCode": 0,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+              }
+            ]
+          }
+        },
+        "mysql-local-fixture": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:08.994032582Z",
+          "FinishedAt": "2026-09-10T17:13:09.122433706Z"
+        },
+        "schema-migrate": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:07.806514465Z",
+          "FinishedAt": "2026-09-10T17:13:08.476707622Z"
+        }
+      }
+    },
+    {
+      "case": "adopted_volume_repeat",
+      "result": "PASS",
+      "services": {
+        "admin": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 3558398,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:16.04032419Z",
+          "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "mysql": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 3557982,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:12.363426692Z",
+          "FinishedAt": "0001-01-01T00:00:00Z",
+          "Health": {
+            "Status": "healthy",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-11T01:13:14.468853674+08:00",
+                "End": "2026-09-11T01:13:14.524936565+08:00",
+                "ExitCode": 0,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+              }
+            ]
+          }
+        },
+        "mysql-local-fixture": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:15.457196939Z",
+          "FinishedAt": "2026-09-10T17:13:15.552896223Z"
+        },
+        "schema-migrate": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:15.030564815Z",
+          "FinishedAt": "2026-09-10T17:13:15.179269549Z"
+        }
+      }
+    },
+    {
+      "case": "unmanaged_volume_blocks",
+      "result": "PASS",
+      "services": {
+        "admin": {
+          "Status": "created",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "0001-01-01T00:00:00Z",
+          "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "mysql": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 3558646,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:17.886183131Z",
+          "FinishedAt": "0001-01-01T00:00:00Z",
+          "Health": {
+            "Status": "healthy",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-11T01:13:19.99583024+08:00",
+                "End": "2026-09-11T01:13:20.029234001+08:00",
+                "ExitCode": 1,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\n"
+              },
+              {
+                "Start": "2026-09-11T01:13:22.03013887+08:00",
+                "End": "2026-09-11T01:13:22.067462561+08:00",
+                "ExitCode": 1,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\n"
+              },
+              {
+                "Start": "2026-09-11T01:13:24.070990394+08:00",
+                "End": "2026-09-11T01:13:24.10056399+08:00",
+                "ExitCode": 1,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\n"
+              },
+              {
+                "Start": "2026-09-11T01:13:25.93431098+08:00",
+                "End": "2026-09-11T01:13:25.966253235+08:00",
+                "ExitCode": 0,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+              },
+              {
+                "Start": "2026-09-11T01:13:27.968923609+08:00",
+                "End": "2026-09-11T01:13:28.015951138+08:00",
+                "ExitCode": 0,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+              }
+            ]
+          }
+        },
+        "mysql-local-fixture": {
+          "Status": "created",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "0001-01-01T00:00:00Z",
+          "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "schema-migrate": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 1,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:28.125199763Z",
+          "FinishedAt": "2026-09-10T17:13:28.201156317Z"
+        }
+      }
+    },
+    {
+      "case": "explicit_adoption_restores_deployment",
+      "result": "PASS",
+      "services": {
+        "admin": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 3559740,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:31.832661781Z",
+          "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "mysql": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 3558646,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:17.886183131Z",
+          "FinishedAt": "0001-01-01T00:00:00Z",
+          "Health": {
+            "Status": "healthy",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-11T01:13:24.070990394+08:00",
+                "End": "2026-09-11T01:13:24.10056399+08:00",
+                "ExitCode": 1,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\n"
+              },
+              {
+                "Start": "2026-09-11T01:13:25.93431098+08:00",
+                "End": "2026-09-11T01:13:25.966253235+08:00",
+                "ExitCode": 0,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+              },
+              {
+                "Start": "2026-09-11T01:13:27.968923609+08:00",
+                "End": "2026-09-11T01:13:28.015951138+08:00",
+                "ExitCode": 0,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+              },
+              {
+                "Start": "2026-09-11T01:13:30.016336908+08:00",
+                "End": "2026-09-11T01:13:30.055508818+08:00",
+                "ExitCode": 0,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+              },
+              {
+                "Start": "2026-09-11T01:13:32.057162246+08:00",
+                "End": "2026-09-11T01:13:32.09645234+08:00",
+                "ExitCode": 0,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+              }
+            ]
+          }
+        },
+        "mysql-local-fixture": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:31.198528652Z",
+          "FinishedAt": "2026-09-10T17:13:31.328467331Z"
+        },
+        "schema-migrate": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:30.575962283Z",
+          "FinishedAt": "2026-09-10T17:13:30.716430055Z"
+        }
+      }
+    },
+    {
+      "case": "unconfirmed_volume_blocks",
+      "result": "PASS",
+      "services": {
+        "admin": {
+          "Status": "created",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "0001-01-01T00:00:00Z",
+          "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "mysql": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 3560024,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:33.713131533Z",
+          "FinishedAt": "0001-01-01T00:00:00Z",
+          "Health": {
+            "Status": "healthy",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-11T01:13:35.631597223+08:00",
+                "End": "2026-09-11T01:13:35.68923682+08:00",
+                "ExitCode": 0,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+              }
+            ]
+          }
+        },
+        "mysql-local-fixture": {
+          "Status": "created",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "0001-01-01T00:00:00Z",
+          "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "schema-migrate": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 1,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:36.16748495Z",
+          "FinishedAt": "2026-09-10T17:13:36.244326352Z"
+        }
+      }
+    },
+    {
+      "case": "explicit_recovery_restores_deployment",
+      "result": "PASS",
+      "services": {
+        "admin": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 3560680,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:39.761595288Z",
+          "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "mysql": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 3560024,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:33.713131533Z",
+          "FinishedAt": "0001-01-01T00:00:00Z",
+          "Health": {
+            "Status": "healthy",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-11T01:13:35.631597223+08:00",
+                "End": "2026-09-11T01:13:35.68923682+08:00",
+                "ExitCode": 0,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+              },
+              {
+                "Start": "2026-09-11T01:13:37.689798028+08:00",
+                "End": "2026-09-11T01:13:37.738524902+08:00",
+                "ExitCode": 0,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+              },
+              {
+                "Start": "2026-09-11T01:13:39.738908728+08:00",
+                "End": "2026-09-11T01:13:39.781169206+08:00",
+                "ExitCode": 0,
+                "Output": "mysqladmin: [Warning] Using a password on the command line interface can be insecure.\nmysqld is alive\n"
+              }
+            ]
+          }
+        },
+        "mysql-local-fixture": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:39.155291406Z",
+          "FinishedAt": "2026-09-10T17:13:39.251728965Z"
+        },
+        "schema-migrate": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-09-10T17:13:38.548152106Z",
+          "FinishedAt": "2026-09-10T17:13:38.698932935Z"
+        }
+      }
+    }
+  ]
+}

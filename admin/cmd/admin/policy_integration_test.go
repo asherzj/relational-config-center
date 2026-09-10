@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -199,6 +200,22 @@ func TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite(t *testing.T
 		t.Fatalf("contract validated legacy Catalog: %v", err)
 	}
 
+	// The additive T2 migration is idempotent and preserves the catalog data.
+	reservationMigration, err := os.ReadFile("../../../deploy/mysql/migrations/016-draft-target-reservations.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, statement := range strings.Split(string(reservationMigration), ";") {
+		if strings.TrimSpace(statement) != "" {
+			deliveryExec(t, database, statement)
+		}
+	}
+	for _, statement := range strings.Split(string(reservationMigration), ";") {
+		if strings.TrimSpace(statement) != "" {
+			deliveryExec(t, database, statement)
+		}
+	}
+
 	var finalColumns string
 	if err := database.QueryRowContext(ctx, `
 		SELECT GROUP_CONCAT(column_name ORDER BY ordinal_position SEPARATOR ',')
@@ -207,18 +224,23 @@ func TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite(t *testing.T
 	`).Scan(&finalColumns); err != nil {
 		t.Fatalf("inspect final Table Policy columns: %v", err)
 	}
-	if finalColumns != "id,table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier,created_at,updated_at" {
+	if finalColumns != "id,table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier,created_at,updated_at,concurrency_key" {
 		t.Fatalf("unexpected final Table Policy shape: %s", finalColumns)
 	}
 
-	freshCtx, freshDriverConfig := startCurrentIntegrationMySQL(t)
-	freshDatabase, err := sql.Open("mysql", freshDriverConfig.FormatDSN())
-	if err != nil {
-		t.Fatalf("open fresh final Catalog: %v", err)
-	}
-	t.Cleanup(func() { _ = freshDatabase.Close() })
+	// Independent schemas in one disposable server preserve the full upgrade/
+	// fresh-install comparison without doubling the test container footprint.
+	rootDriver := *driverConfig
+	rootDriver.User = "root"
+	rootDriver.MultiStatements = true
+	owner := deliveryDB(t, &rootDriver)
+	deliveryExec(t, owner, "CREATE DATABASE fresh_catalog CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
+	rootDriver.DBName = "fresh_catalog"
+	freshDatabase := deliveryDB(t, &rootDriver)
+	initializeCurrentIntegrationSchema(t, ctx, &rootDriver)
+
 	upgradedSignature := policyCatalogSchemaSignature(t, ctx, database)
-	freshSignature := policyCatalogSchemaSignature(t, freshCtx, freshDatabase)
+	freshSignature := policyCatalogSchemaSignature(t, ctx, freshDatabase)
 	if upgradedSignature != freshSignature {
 		t.Fatalf("fresh and upgraded Policy Catalog schemas differ\nupgraded:\n%s\nfresh:\n%s", upgradedSignature, freshSignature)
 	}

@@ -1,8 +1,8 @@
 package application
 
 import (
+	"bytes"
 	"context"
-	"encoding/hex"
 	"errors"
 	"time"
 
@@ -20,18 +20,23 @@ var (
 type PublicationSession interface {
 	ReleaseOrderSession
 	LockPublicationTable(context.Context, string) error
-	LockUnchangedPublication(context.Context, domain.ReleaseOrder, domain.TableSchema) error
-	CommitPublication(context.Context, PublicationPlan) (domain.PublicationResult, error)
+	LockUnchangedPublication(context.Context, domain.ReleaseOrder, map[string]PublicationTable) error
+	CommitPublication(context.Context, PublicationPlan) (domain.PublicationCommit, error)
 }
+type PublicationTable struct {
+	Schema       domain.TableSchema
+	SchemaDigest string
+	Execution    domain.TableExecutionSchema
+	Policy       domain.MutationPolicy
+}
+
 type PublicationPlan struct {
-	OrderID, PublisherID, SchemaDigest string
-	// TargetOrderID is the still-owning original for an atomic quick restoration.
-	TargetOrderID string
-	At            time.Time
-	Schema        domain.TableSchema
-	Execution     domain.TableExecutionSchema
-	Policy        domain.MutationPolicy
-	Items         []PublicationItem
+	OrderID, PublisherID string
+	ExecutionKind        string
+	TargetOrderID        string
+	At                   time.Time
+	Tables               map[string]PublicationTable
+	Items                []PublicationItem
 }
 type PublicationItem struct {
 	Intent domain.ReleaseItem
@@ -48,88 +53,42 @@ func (r *ReleaseOrders) Execute(ctx context.Context, id string, input SubmitRele
 	execute := func(ctx context.Context, change func(ReleaseOrderSession) error) error {
 		return r.store.ExecutePublication(ctx, func(s PublicationSession) error { publication = s; return change(s) })
 	}
-	return r.changeOrderUsing(ctx, id, input.ExpectedVersion, "execute", key, input, execute, func(s ReleaseOrderSession, order *ReleaseOrder) error {
-		schema, err := s.LockAndReadTableExecutionSchema(ctx, order.TableName)
+	result, err := r.changeOrderUsing(ctx, id, input.ExpectedVersion, "execute", key, input, execute, func(s ReleaseOrderSession, order *ReleaseOrder) error {
+		tables, err := r.resolveReleaseTables(ctx, publication, order.Items, true)
 		if err != nil {
 			return err
 		}
-		if err = publication.LockPublicationTable(ctx, schema.TableName); err != nil {
+		if err := verifyFrozenTables(*order, tables); err != nil {
 			return err
-		}
-		snapshot, err := r.snapshots.resolve(ctx, s, order.TableName, mutationPolicySnapshot)
-		if err != nil {
-			return err
-		}
-		p := snapshot.mutationPolicy
-		current := domain.ReleaseExecutionSnapshot{Schema: schema, Mutation: domain.NewReleaseMutationSemantics(p)}
-		if order.Frozen == nil || hex.EncodeToString(releaseDigest(current)) != hex.EncodeToString(releaseDigest(order.Frozen)) {
-			return ErrReleaseFrozenChanged
-		}
-		digest := hex.EncodeToString(releaseDigest(struct {
-			Title     string
-			Items     []ReleaseItem
-			Execution *domain.ReleaseExecutionSnapshot
-		}{order.Title, order.Items, order.Frozen}))
-		if digest != order.FrozenDigest {
-			return ErrReleaseFrozenChanged
 		}
 		prepared, err := r.prepareOrder(ctx, s, *order)
 		if err != nil {
 			return err
 		}
-		if hex.EncodeToString(releaseDigest(prepared)) != hex.EncodeToString(releaseDigest(order.Items)) {
-			return ErrRecordVersionConflict
+		for index, item := range prepared {
+			if !bytes.Equal(releaseDigest(item), releaseDigest(order.Items[index])) {
+				return &ReleaseItemError{Index: index, Cause: ErrRecordVersionConflict}
+			}
 		}
 		now, err := s.DatabaseTime(ctx)
 		if err != nil {
 			return err
 		}
-		plan := PublicationPlan{OrderID: order.ID, PublisherID: actor, At: now, Schema: snapshot.schema, SchemaDigest: hex.EncodeToString(releaseDigest(schema)), Execution: schema, Policy: p}
-		idColumn, _ := snapshot.schema.Column("id")
-		for _, item := range order.Items {
-			entry := PublicationItem{Intent: item}
-			if item.ID != nil {
-				entry.ID, err = domain.ParseColumnValue(idColumn, *item.ID)
-				if err != nil {
-					return ErrInvalidMutation
-				}
-			}
-			content, err := publicationContent(snapshot.schema, p, item, actor, now)
-			if err != nil {
-				return err
-			}
-			entry.Values, err = releaseMutationValues(snapshot.schema, content, item.Operation == "ADD", order.RollbackOfID != "")
-			if err != nil {
-				return err
-			}
-			plan.Items = append(plan.Items, entry)
+		plan, err := buildPublicationPlan(*order, "PUBLICATION", order.Items, tables, actor, now)
+		if err != nil {
+			return err
 		}
 		result, err := publication.CommitPublication(ctx, plan)
 		if err != nil {
 			return err
 		}
-		if order.RollbackOfID != "" {
-			original, err := s.GetReleaseOrder(ctx, order.RollbackOfID)
-			if err != nil {
-				return err
-			}
-			if err := verifyRollbackResult(original, result, snapshot.schema, p); err != nil {
-				return err
-			}
+		if err := order.ApplyExecution(result); err != nil {
+			return ErrReleaseUnavailable
 		}
-		order.Publication = &result
 		order.State = "SUCCEEDED"
-		if order.RollbackOfID != "" {
-			order.State = "COMPLETED"
-		}
-		if err := r.finishRollback(ctx, s, *order, true); err != nil {
-			return err
-		}
-		if order.RollbackOfID != "" {
-			return s.ReleaseTargets(ctx, order.ID)
-		}
 		return nil
 	})
+	return result, r.recordExecutionFailure(ctx, releaseExecutionAttempt{OrderID: id, ActorID: actor, Operation: "execute", Key: key, ExpectedVersion: input.ExpectedVersion, Input: input}, err)
 }
 func publicationContent(schema domain.TableSchema, p domain.MutationPolicy, item ReleaseItem, actor string, now time.Time) (domain.MutationContent, error) {
 	content := domain.MutationContent{}
@@ -161,4 +120,36 @@ func publicationContent(schema domain.TableSchema, p domain.MutationPolicy, item
 		}
 	}
 	return content, nil
+}
+
+func buildPublicationPlan(order ReleaseOrder, kind string, items []ReleaseItem, tables map[string]PublicationTable, actor string, now time.Time) (PublicationPlan, error) {
+	plan := PublicationPlan{OrderID: order.ID, PublisherID: actor, ExecutionKind: kind, At: now, Tables: tables}
+	if kind == "ROLLBACK" {
+		plan.TargetOrderID = order.ID
+	}
+	for index, item := range items {
+		table, found := tables[item.TableName]
+		if !found {
+			return PublicationPlan{}, &ReleaseItemError{Index: index, Cause: ErrReleaseUnavailable}
+		}
+		entry := PublicationItem{Intent: item}
+		var err error
+		if item.ID != nil {
+			column, _ := table.Schema.Column("id")
+			entry.ID, err = domain.ParseColumnValue(column, *item.ID)
+			if err != nil {
+				return PublicationPlan{}, &ReleaseItemError{Index: index, Cause: ErrInvalidMutation}
+			}
+		}
+		content, err := publicationContent(table.Schema, table.Policy, item, actor, now)
+		if err != nil {
+			return PublicationPlan{}, &ReleaseItemError{Index: index, Cause: err}
+		}
+		entry.Values, err = releaseMutationValues(table.Schema, content, item.Operation == "ADD", kind == "ROLLBACK")
+		if err != nil {
+			return PublicationPlan{}, &ReleaseItemError{Index: index, Cause: err}
+		}
+		plan.Items = append(plan.Items, entry)
+	}
+	return plan, nil
 }

@@ -1,3 +1,4 @@
+const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 // Current field display rules over immutable release request/publication history.
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
@@ -8,7 +9,7 @@ const { browserOptions, selectedBrowser, registerFixtureAccount, authenticatedRe
 
 const base = process.env.RCC_WEB_URL;
 const output = process.env.RCC_E2E_OUTPUT;
-const table = 'stage1_acceptance_items';
+const table = 'field_display_browser_items';
 
 (async () => {
   const browser = await selectedBrowser(playwright).launch(browserOptions());
@@ -63,15 +64,14 @@ const table = 'stage1_acceptance_items';
 
     const draft = await api(applicant, 'POST', '/api/v1/release-orders', {
       title: '字段实时展示验收',
-      table_name: table,
-      items: [{ operation: 'MODIFY', id: '5', expected_record_version: queried.record_versions[0], content: { name: newValue } }],
+      items:[{table_name:table,operation: 'MODIFY', id: '5', expected_record_version: queried.record_versions[0], content: { name: newValue } }],
     }, 201);
     const pending = await api(applicant, 'POST', `/api/v1/release-orders/${draft.id}/submit`, { expected_version: draft.version });
     const approved = await api(reviewer, 'POST', `/api/v1/release-orders/${draft.id}/approve`, { expected_version: pending.version, reason: '独立核对字段显示与真实值' });
     const published = await api(applicant, 'POST', `/api/v1/release-orders/${draft.id}/execute`, { expected_version: approved.version });
     assert.equal(published.state, 'SUCCEEDED');
-    const persistedBefore = JSON.stringify(published.publication.commands[0].before);
-    const persistedFinal = JSON.stringify(published.publication.commands[0].final);
+    const persistedBefore = JSON.stringify(executionCommands(published)[0].before);
+    const persistedFinal = JSON.stringify(executionCommands(published)[0].final);
 
     await page.goto(`${base}/configuration/release-orders/${draft.id}`);
     await page.getByText(`${table} · 已发布待完结`, { exact: true }).waitFor();
@@ -89,9 +89,9 @@ const table = 'stage1_acceptance_items';
     await result.getByText('目标名称', { exact: true }).waitFor();
     await result.getByLabel(`真实值：${oldValue}`, { exact: true }).waitFor();
     await result.getByLabel(`真实值：${newValue}`, { exact: true }).waitFor();
-    const afterPolicyChange = await api(applicant, 'GET', `/api/v1/release-orders/${draft.id}`);
-    assert.equal(JSON.stringify(afterPolicyChange.publication.commands[0].before), persistedBefore);
-    assert.equal(JSON.stringify(afterPolicyChange.publication.commands[0].final), persistedFinal);
+    const afterPolicyChange = await readAllReleaseDetailPages(applicant,base,await api(applicant,'GET',`/api/v1/release-orders/${draft.id}`));
+    assert.equal(JSON.stringify(executionCommands(afterPolicyChange)[0].before), persistedBefore);
+    assert.equal(JSON.stringify(executionCommands(afterPolicyChange)[0].final), persistedFinal);
     check('reopening history reads new names and option labels without changing persisted before/final');
 
     await page.getByRole('button', { name: '申请差异', exact: true }).click();

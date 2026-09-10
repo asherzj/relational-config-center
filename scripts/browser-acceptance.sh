@@ -31,7 +31,7 @@ for command in docker node pnpm go curl od tr grep sort cmp; do
 done
 
 case ${RCC_E2E_SUITE:-all} in
-  all|unsaved-changes|rule-clarity|write-recovery|operation-coverage|complex-fields|browser-accessibility|release-workflow|field-interactions) ;;
+  all|unsaved-changes|rule-clarity|write-recovery|operation-coverage|complex-fields|browser-accessibility|release-workflow|draft-targets|release-multitable|rollback-reason|field-interactions) ;;
   *) printf 'unknown browser suite: %s\n' "$RCC_E2E_SUITE" >&2; exit 2 ;;
 esac
 
@@ -254,7 +254,7 @@ run_logged 300 "$artifact_root/dependencies-install.log" \
   pnpm --dir "$repo_root/web" install --frozen-lockfile
 browser_engines=${RCC_E2E_ENGINES:-${RCC_E2E_ENGINE:-chromium}}
 browser_engine_list=()
-if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == browser-accessibility || ${RCC_E2E_SUITE:-all} == release-workflow || ${RCC_E2E_SUITE:-all} == field-interactions ]]; then
+if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == browser-accessibility || ${RCC_E2E_SUITE:-all} == release-workflow || ${RCC_E2E_SUITE:-all} == field-interactions || ${RCC_E2E_SUITE:-all} == draft-targets || ${RCC_E2E_SUITE:-all} == release-multitable || ${RCC_E2E_SUITE:-all} == rollback-reason ]]; then
   engine_ifs=$IFS
   IFS=,
   read -r -a browser_engine_list <<< "$browser_engines"
@@ -263,7 +263,7 @@ if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == browser-accessibi
     case $browser_engine in chromium|firefox|webkit) ;; *) printf 'unknown browser engine: %s\n' "$browser_engine" >&2; exit 2 ;; esac
   done
 fi
-if [[ ${RCC_E2E_SUITE:-all} == browser-accessibility || ${RCC_E2E_SUITE:-all} == release-workflow || ${RCC_E2E_SUITE:-all} == field-interactions ]]; then
+if [[ ${RCC_E2E_SUITE:-all} == browser-accessibility || ${RCC_E2E_SUITE:-all} == release-workflow || ${RCC_E2E_SUITE:-all} == field-interactions || ${RCC_E2E_SUITE:-all} == draft-targets || ${RCC_E2E_SUITE:-all} == release-multitable || ${RCC_E2E_SUITE:-all} == rollback-reason ]]; then
   playwright_install_targets=("${browser_engine_list[@]}")
 else
   playwright_install_targets=(chromium)
@@ -339,7 +339,10 @@ load_sql "$repo_root/deploy/mysql/local-fixture/002-notification-templates.sql"
 load_sql "$repo_root/docs/verification/fixtures/stage1_acceptance.sql"
 load_sql "$repo_root/web/e2e/fixtures/stage1-policies.sql"
 load_sql "$repo_root/admin/cmd/admin/testdata/014-batch-browser.sql"
+load_sql "$repo_root/admin/cmd/admin/testdata/015-draft-targets-browser.sql"
+load_sql "$repo_root/admin/cmd/admin/testdata/016-multitable-browser.sql"
 load_sql "$repo_root/web/e2e/fixtures/release-rollbacks.sql"
+load_sql "$repo_root/web/e2e/fixtures/field-display.sql"
 
 printf 'Granting the disposable Admin account publication metadata access...\n'
 run_timeout 30 docker exec --interactive "$mysql_container" sh -c \
@@ -381,7 +384,7 @@ run_logged 300 "$artifact_root/account-maintain-build.log" \
 ADMIN_HTTP_ADDR="127.0.0.1:$admin_port" \
 ADMIN_PUBLIC_ORIGIN="$web_url" \
 ADMIN_ALLOW_LOCAL_HTTP=true \
-ADMIN_REGISTER_LIMIT=100 \
+ADMIN_REGISTER_LIMIT=200 \
 MYSQL_HOST=127.0.0.1 \
 MYSQL_PORT="$mysql_port" \
 MYSQL_DATABASE=rcc \
@@ -483,7 +486,22 @@ for browser_engine in "${browser_engine_list[@]}"; do
 done
 fi
 
+for browser_engine in "${browser_engine_list[@]}"; do
+ if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == release-workflow || ${RCC_E2E_SUITE:-all} == draft-targets ]]; then
+  run_browser_suite "draft targets ($browser_engine)" "$repo_root/web/e2e/draft-targets.cjs" "$artifact_root/release-workflow/targets-$browser_engine" 420 "$browser_engine"
+ fi
+ if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == release-workflow || ${RCC_E2E_SUITE:-all} == release-multitable ]]; then
+  run_browser_suite "multi-table original order ($browser_engine)" "$repo_root/web/e2e/release-multitable.cjs" "$artifact_root/release-workflow/multitable-$browser_engine" 600 "$browser_engine"
+ fi
+ if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == release-workflow || ${RCC_E2E_SUITE:-all} == rollback-reason ]]; then
+  run_browser_suite "rollback reason history ($browser_engine)" "$repo_root/web/e2e/release-rollback-reason.cjs" "$artifact_root/release-workflow/rollback-reason-$browser_engine" 240 "$browser_engine"
+ fi
+ done
+
 if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == field-interactions ]]; then
+for field_script in field-policies field-inputs combined-query field-recovery field-display; do
+ run_browser_suite "$field_script" "$repo_root/web/e2e/$field_script.cjs" "$artifact_root/field-interactions/$field_script" 420 chromium
+ done
 for browser_engine in "${browser_engine_list[@]}"; do
   run_browser_suite "field interactions ($browser_engine)" "$repo_root/web/e2e/field-interactions.cjs" "$artifact_root/field-interactions/$browser_engine" 420 "$browser_engine"
 done

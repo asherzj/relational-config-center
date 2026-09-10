@@ -62,9 +62,9 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 	assertReadiness(200)
 	for _, fault := range []struct{ name, apply, restore string }{
 		{"unmanaged", `RENAME TABLE rcc_goose_db_version TO held_versions, rcc_schema_migration_attempts TO held_attempts`, `RENAME TABLE held_versions TO rcc_goose_db_version, held_attempts TO rcc_schema_migration_attempts`},
-		{"ahead", `UPDATE rcc_goose_db_version SET version_id=99 WHERE version_id=3`, `UPDATE rcc_goose_db_version SET version_id=3 WHERE version_id=99`},
+		{"ahead", `UPDATE rcc_goose_db_version SET version_id=99 WHERE version_id=5`, `UPDATE rcc_goose_db_version SET version_id=5 WHERE version_id=99`},
 		{"unknown", `UPDATE rcc_goose_db_version SET version_id=77 WHERE version_id=1`, `UPDATE rcc_goose_db_version SET version_id=1 WHERE version_id=77`},
-		{"release_digest", `UPDATE rcc_schema_migration_attempts SET release_digest=REPEAT('0',64) WHERE target_version=3`, ""},
+		{"release_digest", `UPDATE rcc_schema_migration_attempts SET release_digest=REPEAT('0',64) WHERE target_version=5`, ""},
 		{"missing_column", `ALTER TABLE rcc_query_policies RENAME COLUMN description TO missing_description`, `ALTER TABLE rcc_query_policies RENAME COLUMN missing_description TO description`},
 		{"wrong_default", `ALTER TABLE rcc_accounts ALTER COLUMN enabled SET DEFAULT 0`, `ALTER TABLE rcc_accounts ALTER COLUMN enabled SET DEFAULT 1`},
 		{"missing_index", `ALTER TABLE rcc_query_policies DROP INDEX idx_query_policy_status_type`, `ALTER TABLE rcc_query_policies ADD KEY idx_query_policy_status_type(status,type_code)`},
@@ -84,7 +84,7 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 		t.Run(fault.name, func(t *testing.T) {
 			var digest string
 			if fault.name == "release_digest" {
-				if err := db.QueryRow(`SELECT release_digest FROM rcc_schema_migration_attempts WHERE target_version=3`).Scan(&digest); err != nil {
+				if err := db.QueryRow(`SELECT release_digest FROM rcc_schema_migration_attempts WHERE target_version=5`).Scan(&digest); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -102,12 +102,12 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 			if fault.restore != "" {
 				deliveryExec(t, db, fault.restore)
 			} else {
-				deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET release_digest=? WHERE target_version=3`, digest)
+				deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET release_digest=? WHERE target_version=5`, digest)
 			}
 			assertReadiness(200)
 		})
 	}
-	deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET state='RUNNING',finished_at=NULL WHERE target_version=3`)
+	deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET state='RUNNING',finished_at=NULL WHERE target_version=5`)
 	assertReadiness(503)
 	requireSchemaStartupRejected(t, accountProcessCommand(t, binary, &reader))
 	if output, err := schemaMigrationCommand(migration, driver, "up").CombinedOutput(); err == nil {
@@ -141,7 +141,15 @@ func TestSchemaReadinessRejectsKnownOldRelease(t *testing.T) {
 
 	// Restore the known old test state while this process is still running.
 	db := deliveryDB(t, driver)
-	deliveryExec(t, db, `DROP TABLE rcc_table_field_policies`)
+	deliveryExec(t, db, `DROP TABLE rcc_table_field_policies,rcc_release_details,rcc_release_executions,rcc_release_table_references`)
+	deliveryExec(t, db, `ALTER TABLE rcc_table_policies DROP COLUMN concurrency_key`)
+	deliveryExec(t, db, "DROP TABLE rcc_publication_commands")
+	deliveryExec(t, db, "CREATE TABLE `rcc_publication_commands` (\n  `table_name` varbinary(256) NOT NULL,\n  `sequence` bigint unsigned NOT NULL,\n  `order_id` varbinary(32) NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`table_name`,`sequence`),\n  KEY `publication_order` (`order_id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci")
+	deliveryExec(t, db, "DROP TABLE rcc_refresh_notifications")
+	deliveryExec(t, db, "CREATE TABLE `rcc_refresh_notifications` (\n  `order_id` varbinary(32) NOT NULL,\n  `table_name` varbinary(256) NOT NULL,\n  `table_version` bigint unsigned NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`order_id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci")
+	deliveryExec(t, db, "DROP TABLE rcc_release_orders")
+	deliveryExec(t, db, "CREATE TABLE `rcc_release_orders` (\n  `id` varbinary(32) NOT NULL,\n  `table_name` varbinary(256) NOT NULL,\n  `applicant_id` varbinary(36) NOT NULL,\n  `state` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `version` bigint unsigned NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`id`),\n  KEY `release_table` (`table_name`,`id`),\n  KEY `release_applicant` (`applicant_id`,`id`),\n  KEY `release_state` (`state`,`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci")
+
 	for _, table := range []string{"rcc_query_policies", "rcc_mutation_policies", "rcc_table_policies"} {
 		deliveryExec(t, db, "ALTER TABLE "+table+" RENAME COLUMN created_at TO gmt_created, RENAME COLUMN updated_at TO gmt_modified")
 	}

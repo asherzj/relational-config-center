@@ -58,7 +58,7 @@ func publicationDeadline(timeout time.Duration) gin.HandlerFunc {
 
 func limitRequestBody() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		if !isAPIRequest(context.Request.URL.Path) {
+		if !isAPIRequest(context.Request.URL.Path) || releaseDetailRequest(context) {
 			context.Next()
 			return
 		}
@@ -71,6 +71,23 @@ func limitRequestBody() gin.HandlerFunc {
 			context.Request.Body = stdhttp.MaxBytesReader(context.Writer, context.Request.Body, maximumBodySize)
 		}
 		context.Next()
+	}
+}
+
+// Only registered routes that accept release details have count-based capacity.
+// Unknown paths, workflow actions and every unrelated endpoint retain 1 MiB.
+func releaseDetailRequest(c *gin.Context) bool {
+	if c.Request.Method == stdhttp.MethodPut {
+		return c.FullPath() == "/api/v1/release-orders/:id"
+	}
+	if c.Request.Method != stdhttp.MethodPost {
+		return false
+	}
+	switch c.FullPath() {
+	case "/api/v1/release-orders", "/api/v1/release-orders/preview", "/api/v1/release-orders/:id/copy", "/api/v1/release-orders/:id/reprepare":
+		return true
+	default:
+		return false
 	}
 }
 
@@ -182,7 +199,10 @@ func sessionAuthentication(options RouterOptions) gin.HandlerFunc {
 		required := application.RoleViewer
 		if change && c.FullPath() != "/api/v1/tables/:table_name/query" {
 			required = application.RoleAdmin
-			if c.FullPath() == "/api/v1/release-orders/:id/rollback" || c.FullPath() == "/api/v1/release-orders/:id/copy" || c.FullPath() == "/api/v1/release-orders/:id/reprepare" || c.FullPath() == "/api/v1/release-orders/:id/submit" || c.FullPath() == "/api/v1/release-orders/preview" || c.FullPath() == "/api/v1/release-orders" || c.FullPath() == "/api/v1/release-orders/:id" || c.FullPath() == "/api/v1/release-orders/:id/cancel" {
+			if c.FullPath() == "/api/v1/release-orders/:id/rollback-reason" {
+				required = application.RoleViewer
+			}
+			if c.FullPath() == "/api/v1/release-orders/:id/copy" || c.FullPath() == "/api/v1/release-orders/:id/reprepare" || c.FullPath() == "/api/v1/release-orders/:id/submit" || c.FullPath() == "/api/v1/release-orders/preview" || c.FullPath() == "/api/v1/release-orders" || c.FullPath() == "/api/v1/release-orders/:id" || c.FullPath() == "/api/v1/release-orders/:id/cancel" {
 				required = application.RoleEditor
 			}
 			if c.FullPath() == "/api/v1/release-orders/:id/execute" || c.FullPath() == "/api/v1/release-orders/:id/complete" || c.FullPath() == "/api/v1/release-orders/:id/quick-rollback/preview" || c.FullPath() == "/api/v1/release-orders/:id/quick-rollback" {

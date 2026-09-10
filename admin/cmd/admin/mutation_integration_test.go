@@ -140,7 +140,7 @@ func TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement(t *testing
 	app := startIntegrationApplication(t, "testdata/008-mutation-policy-snapshot-fixture.sql")
 	assignRelationalMutationPolicy(t, app, "snapshot_allowed_mutation_v1", true, false, false, true)
 	reviewer := publicationFixtureReviewer(t, app)
-	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_snapshot_items","items":[{"operation":"ADD","content":{"code":"in-flight","label":"old-snapshot"}}]}`, "policy-approved")
+	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"in-flight","label":"old-snapshot"},"operation":"ADD","table_name":"mutation_snapshot_items"}],"title":"集成测试发布单"}`, "policy-approved")
 	replaceRelationalMutationPolicy(t, app, "snapshot_denied_mutation_v2", false, false, false, false)
 	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "policy-execute")
 	assertIntegrationErrorCode(t, response, 409, "release_frozen_changed")
@@ -954,11 +954,11 @@ func assertMutationAffected(t *testing.T, response *httptest.ResponseRecorder) {
 func publishedFixtureCommand(t *testing.T, response *httptest.ResponseRecorder) domain.PublicationCommand {
 	t.Helper()
 	var order domain.ReleaseOrder
-	if response.Code != 200 || json.Unmarshal(response.Body.Bytes(), &order) != nil || order.State != "SUCCEEDED" || order.Publication == nil || len(order.Publication.Commands) != 1 {
+	if response.Code != 200 || json.Unmarshal(response.Body.Bytes(), &order) != nil || order.State != "SUCCEEDED" || len(order.Executions) < 1 || len(executionCommands(order, "PUBLICATION")) != 1 {
 		t.Fatalf("expected one committed publication: %d %s", response.Code, response.Body)
 	}
-	command := order.Publication.Commands[0]
-	if command.Final.Deleted != (command.Operation == "DELETE") || command.Final.Verify(command.Final.SchemaDigest) != nil || order.Publication.Notification.Status != "NOT_CONNECTED" {
+	command := executionCommands(order, "PUBLICATION")[0]
+	if command.Final.Deleted != (command.Operation == "DELETE") || command.Final.Verify(command.Final.SchemaDigest) != nil || order.Executions[0].Notifications[order.Items[0].TableName].Status != "NOT_CONNECTED" {
 		t.Fatal("invalid committed command")
 	}
 	return command

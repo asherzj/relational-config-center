@@ -17,7 +17,7 @@ import (
 // This intentionally separate system target requires installed Web dependencies
 // and Chromium. It fails (never skips) if that browser environment is unavailable.
 func TestAccountBrowserSystemPath(t *testing.T) {
-	_, driver := startCurrentIntegrationMySQL(t, localManagedTableFixture, "../../../docs/verification/fixtures/stage1_acceptance.sql", "testdata/014-batch-browser.sql")
+	_, driver := startCurrentIntegrationMySQL(t, localManagedTableFixture, "../../../docs/verification/fixtures/stage1_acceptance.sql", "testdata/014-batch-browser.sql", "testdata/015-draft-targets-browser.sql", "testdata/016-multitable-browser.sql")
 	db := deliveryDB(t, driver)
 	maintenance := filepath.Join(t.TempDir(), "account-maintain")
 	build := exec.Command("go", "build", "-o", maintenance, "../account-maintain")
@@ -35,7 +35,7 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 	_, port, _ := net.SplitHostPort(address)
 	origin := "http://" + address
 	// The combined browser scripts register more than ten independent actors.
-	admin := accountProcessCommand(t, buildIntegrationAdmin(t), driver, "ADMIN_PUBLIC_ORIGIN="+origin, "ADMIN_REGISTER_LIMIT=20")
+	admin := accountProcessCommand(t, buildIntegrationAdmin(t), driver, "ADMIN_PUBLIC_ORIGIN="+origin, "ADMIN_REGISTER_LIMIT=200")
 	admin.ready(t)
 	web, err := filepath.Abs("../../../web")
 	if err != nil {
@@ -94,17 +94,19 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 		t.Fatal("real database Operator/content did not match browser account")
 	}
 	prepareManagementBrowserPolicies(t, admin, maintenance, fixtureEnvironment)
-	// The shared rollback fixture references the mutation policy created above.
-	rollbackFixture, err := os.ReadFile(filepath.Join(web, "e2e/fixtures/release-rollbacks.sql"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, statement := range strings.Split(string(rollbackFixture), ";") {
-		if strings.TrimSpace(statement) != "" {
-			deliveryExec(t, db, statement)
+	// These history fixtures reference the mutation policy created above.
+	for _, fixture := range []string{"release-rollbacks.sql", "field-display.sql"} {
+		contents, err := os.ReadFile(filepath.Join(web, "e2e/fixtures", fixture))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, statement := range strings.Split(string(contents), ";") {
+			if strings.TrimSpace(statement) != "" {
+				deliveryExec(t, db, statement)
+			}
 		}
 	}
-	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs", "release-drafts.cjs", "release-approvals.cjs", "release-batches.cjs", "release-rollbacks.cjs", "field-policies.cjs", "field-inputs.cjs", "combined-query.cjs", "field-recovery.cjs", "field-display.cjs"} {
+	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs", "release-drafts.cjs", "release-approvals.cjs", "release-batches.cjs", "release-rollbacks.cjs", "draft-targets.cjs", "release-multitable.cjs", "release-rollback-reason.cjs", "field-policies.cjs", "field-inputs.cjs", "combined-query.cjs", "field-recovery.cjs", "field-display.cjs"} {
 		t.Run(script, func(t *testing.T) {
 			command := exec.Command("node", filepath.Join(web, "e2e", script))
 			command.Dir = web

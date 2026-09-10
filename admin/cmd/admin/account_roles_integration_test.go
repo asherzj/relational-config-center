@@ -236,7 +236,7 @@ func TestCurrentSessionUsesRolePermissionMatrix(t *testing.T) {
 		t.Fatalf("control discovery: %d %s", discovered.Code, discovered.Body)
 	}
 	for _, path := range []string{"/api/v1/tables/rcc_account_role_history/query", "/api/v1/release-orders"} {
-		response := releaseActorRequest(t, f.app, admin, "POST", path, `{"title":"集成测试发布单","table_name":"rcc_account_role_history","items":[{"operation":"ADD","content":{}}]}`, "matrix-protected-release")
+		response := releaseActorRequest(t, f.app, admin, "POST", path, `{"items":[{"content":{},"operation":"ADD","table_name":"rcc_account_role_history"}],"title":"集成测试发布单"}`, "matrix-protected-release")
 		if response.Code < 400 || response.Code >= 500 {
 			t.Fatalf("control access: %d %s", response.Code, response.Body)
 		}

@@ -146,6 +146,7 @@ it("cancels pending dirty navigation on expiry and restores the guarded draft af
  await user.type(screen.getByLabelText("密码"),"correct horse battery staple");
  await user.click(screen.getByRole("button",{name:"登录"}));
  await waitFor(()=>expect(screen.queryByRole("heading",{name:"登录本地账号"})).not.toBeInTheDocument());
+ await waitFor(()=>expect(screen.getByLabelText("显示名称")).toBeVisible());
  expect(screen.getByLabelText("显示名称")).toHaveValue("会话中断编辑意图");
  expect(detailReads).toBeGreaterThanOrEqual(2);
  expect(writes).toBe(0);

@@ -168,13 +168,13 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 		if json.Unmarshal(loser.Body.Bytes(), &failure) != nil {
 			t.Fatal(loser.Body)
 		}
-		// Another submitted order can reserve the target before the winner
+		// Another saved draft can reserve the target before the winner
 		// commits. After commit, the same fixed baseline is stale (or deleted).
 		valid := loser.Code == 409 && (failure.Error.Code == "release_target_conflict" || failure.Error.Code == "record_version_conflict") || command.Operation == "DELETE" && loser.Code == 404 && failure.Error.Code == "mutation_row_not_found"
 		if !valid {
 			t.Fatalf("competing publication: %d %s", loser.Code, loser.Body)
 		}
-		rows, err := db.Query("SELECT document FROM rcc_release_orders WHERE table_name=? AND state<>'COMPLETED'", table)
+		rows, err := db.Query("SELECT o.document FROM rcc_release_orders o WHERE o.state<>'COMPLETED' AND EXISTS (SELECT 1 FROM rcc_release_details d WHERE d.order_id=o.id AND d.table_name=?)", table)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -186,8 +186,13 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 			if err := rows.Scan(&document); err != nil || json.Unmarshal(document, &draft) != nil {
 				t.Fatalf("read losing draft: %v", err)
 			}
+			// Workflow/frozen metadata stays in the header; application details
+			// now come from the public detail contract, not an embedded array.
+			frozen := draft.FrozenTables
+			draft = rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", "/api/v1/release-orders/"+draft.ID, "", ""), 200)
+			draft.FrozenTables = frozen
 			losers++
-			if len(draft.Items) != 1 || draft.Items[0].ExpectedRecordVersion != baseline || draft.Publication != nil {
+			if len(draft.Items) != 1 || draft.Items[0].ExpectedRecordVersion != baseline || len(draft.Executions) >= 1 {
 				t.Fatalf("loser changed its baseline or published: %+v", draft)
 			}
 			switch draft.State {
@@ -199,7 +204,7 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 			case "CANCELLED":
 				// The real fixture verifies APPROVED v3 after an execute failure,
 				// then explicitly cancels it. Preserve that distinct history.
-				if failure.Error.Code == "release_target_conflict" || draft.Version != "4" || draft.Frozen == nil || len(draft.History) != 4 {
+				if failure.Error.Code == "release_target_conflict" || draft.Version != "4" || draft.FrozenTables == nil || len(draft.History) != 4 {
 					t.Fatalf("invalid execute-failure cleanup: %+v", draft)
 				}
 				for i, action := range []string{"CREATE", "SUBMIT", "APPROVE", "CANCEL"} {
@@ -215,17 +220,17 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 			t.Fatal(err)
 		}
 		rows.Close()
-		if losers > 1 || failure.Error.Code == "release_target_conflict" && len(drafts) != 1 {
-			t.Fatalf("target refusal must retain exactly its unsubmitted draft: %d", len(drafts))
+		if losers > 1 || failure.Error.Code == "release_target_conflict" && losers != 0 {
+			t.Fatalf("save-time target refusal must leave no losing order: %d", len(drafts))
 		}
 		for _, draft := range drafts {
 			cancelled := releaseRequest(t, app, "POST", "/api/v1/release-orders/"+draft.ID+"/cancel", `{"expected_version":"1","reason":"concurrent loser cleanup"}`, "race-cleanup-"+draft.ID)
 			var result domain.ReleaseOrder
-			if cancelled.Code != 200 || json.Unmarshal(cancelled.Body.Bytes(), &result) != nil || result.State != "CANCELLED" || result.Version != "2" || result.Publication != nil {
+			if cancelled.Code != 200 || json.Unmarshal(cancelled.Body.Bytes(), &result) != nil || result.State != "CANCELLED" || result.Version != "2" || len(result.Executions) >= 1 {
 				t.Fatalf("loser cleanup: %d %s", cancelled.Code, cancelled.Body)
 			}
 		}
-		for _, query := range []string{"SELECT COUNT(*) FROM rcc_publication_commands WHERE table_name=?", "SELECT COUNT(*) FROM rcc_refresh_notifications WHERE table_name=?", "SELECT COUNT(*) FROM rcc_release_orders WHERE table_name=? AND state='COMPLETED'", "SELECT table_version FROM rcc_table_publications WHERE table_name=?", "SELECT command_cursor FROM rcc_table_publications WHERE table_name=?", "SELECT lock_version FROM rcc_record_versions WHERE table_name=? AND LENGTH(record_key)=32"} {
+		for _, query := range []string{"SELECT COUNT(*) FROM rcc_publication_commands WHERE table_name=?", "SELECT COUNT(*) FROM rcc_refresh_notifications WHERE table_name=?", "SELECT COUNT(*) FROM rcc_release_orders o WHERE o.state='COMPLETED' AND EXISTS (SELECT 1 FROM rcc_release_details d WHERE d.order_id=o.id AND d.table_name=?)", "SELECT table_version FROM rcc_table_publications WHERE table_name=?", "SELECT command_cursor FROM rcc_table_publications WHERE table_name=?", "SELECT lock_version FROM rcc_record_versions WHERE table_name=? AND LENGTH(record_key)=32"} {
 			var n int
 			if err := db.QueryRow(query, table).Scan(&n); err != nil || n != committed {
 				t.Fatalf("race must commit once, got %d %v: %s", n, err, query)
@@ -400,10 +405,10 @@ func TestRecordVersionSnapshotAndIndependentResources(t *testing.T) {
 	// Actual publication locks progress per table. Two different records of
 	// that table serialize, while another table can finish independently.
 	reviewer := publicationFixtureReviewer(t, app)
-	firstPath := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"1","expected_record_version":"2","content":{"label":"held"}}]}`, "resource-first")
-	secondPath := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"2","expected_record_version":"1","content":{"label":"ordered"}}]}`, "resource-second")
+	firstPath := approvePublication(t, app, reviewer, `{"items":[{"content":{"label":"held"},"expected_record_version":"2","id":"1","operation":"MODIFY","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "resource-first")
+	secondPath := approvePublication(t, app, reviewer, `{"items":[{"content":{"label":"ordered"},"expected_record_version":"1","id":"2","operation":"MODIFY","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "resource-second")
 	enableMutationPolicy(t, app, "mutation_supplied_id_items", mutationPolicyFixture{AllowAdd: true})
-	otherPath := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_supplied_id_items","items":[{"operation":"ADD","content":{"id":"other","label":"independent"}}]}`, "resource-other")
+	otherPath := approvePublication(t, app, reviewer, `{"items":[{"content":{"id":"other","label":"independent"},"operation":"ADD","table_name":"mutation_supplied_id_items"}],"title":"集成测试发布单"}`, "resource-other")
 	holder, err := owner.BeginTx(ctx, nil)
 	if err != nil {
 		t.Fatal(err)

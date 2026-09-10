@@ -57,7 +57,7 @@ describe("Managed Data mutation workflow", () => {
     act(() => hook.result.current.send({ type: "review-content", content: { name: "created" } }));
     expect(hook.result.current.view.changeSet?.operation).toBe("ADD");
 
-    expect(hook.result.current.view.draftInput).toEqual({table_name:"managed_items",items:[{operation:"ADD",content:{name:"created"}}]});
+    expect(hook.result.current.view.draftInput).toEqual({items:[{table_name:"managed_items",operation:"ADD",content:{name:"created"}}]});
     expect(fetchMock.mock.calls.some(([url])=>String(url).includes("/tables/"))).toBe(false);
   });
 });

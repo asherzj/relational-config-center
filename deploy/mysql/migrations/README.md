@@ -1,7 +1,7 @@
 # Policy Catalog migrations
 
 These scripts retain their historical upgrade responsibilities. After reaching
-the current structure, including 013, an existing database can be explicitly
+the current structure, including applicable historical steps through 017, an existing database can be explicitly
 adopted with `schema-migrate baseline`; the command verifies the complete control
 schema before registering versions and never replays these scripts. See the
 [Goose maintenance runbook](../../../docs/schema-migrations.md). Goose `up`
@@ -70,7 +70,7 @@ command keeps `created_at` / `updated_at` throughout.
 
 The final `rcc_table_policies` columns are exactly `id`, `table_name`, both
 Policy Codes, `enabled`, `creator`, `modifier`, `created_at`, and
-`updated_at`. No foreign keys or optimistic-lock columns are added.
+`updated_at` at this historical stage; 016 adds `concurrency_key`. No foreign keys or optimistic-lock columns are added.
 
 ## Local Account control tables
 
@@ -107,20 +107,20 @@ See [role bootstrap, recovery and HTTP contracts](../../../docs/admin-account-ro
 ## 发布草稿与在途目标（010 / 011）
 
 完成 009 后顺序执行 `010-release-drafts.sql` 和 `011-release-targets.sql`。
-010 持久保存草稿/历史及按账号、动作、请求标识的成功结果；011 建立提交时取得的已知记录唯一目标。
+010 持久保存草稿/历史及按账号、动作、请求标识的成功结果；011 建立记录唯一目标，016 起提前到保存草稿取得。
 两者均可重跑，不能清空旧请求、历史或占用来恢复服务。Ready 检查控制结构和 InnoDB，
-完整前不恢复业务服务；新安装的 001 已包含相同定义。
+完整前不恢复业务服务；新安装使用嵌入 Goose 迁移。
 
 提交审批还要求可证明的目标表/Schema TRIGGER 元数据权限，否则明确拒绝冻结。
 没有占用过期清理任务。T5 已删除旧记录直写路由，继续应用下面的 012 后使用正式执行入口。详见 [审批、冻结与恢复契约](../../../docs/admin-release-approvals.md)。
 
 ## 原子发布结果（012）
 
-停写维护窗口内，在 011 后执行 `012-publication.sql`。该幂等迁移仅建立 `rcc_table_publications`、`rcc_publication_commands`、`rcc_refresh_notifications`，不改变业务表；新安装 001 包含完全相同定义。Ready 要求精确列/主键与 InnoDB，不允许清空记录或重置游标。
+停写维护窗口内，在 011 后执行 `012-publication.sql`。该幂等迁移仅建立 `rcc_table_publications`、`rcc_publication_commands`、`rcc_refresh_notifications`，不改变业务表；新安装使用嵌入 Goose 迁移。Ready 要求精确列/主键与 InnoDB，不允许清空记录或重置游标。
 
 部署维护账号需按实际 Admin 登录身份显式授予 `GRANT PROCESS ON *.* TO '<admin-user>'@'<host>'`；目标表的 TRIGGER 元数据授权仍必须可证明。PROCESS 用于读取隐藏跨 schema 外键的完整 InnoDB 字典，无法读取时发布在业务写入前明确拒绝。该全局授权不在迁移中自动执行，不能仅靠目标 schema 的 SELECT 推断没有外部级联。详见[能力边界与持久结果](../../../docs/design-notes/publication-contract.md)。
 
-成功只表示数据库提交，通知状态 NOT_CONNECTED；不运行投递器。全部 Admin/Web 应一同切换，旧 rows 客户端会明确拒绝，不提供兼容开关。同表 1～1,000 项混合发布与反向发布共用这些控制结构，无额外临时兼容表；完整维护窗口和恢复步骤见[发布单升级指南](../../../docs/admin-release-upgrade.md)。
+成功只表示数据库提交，通知状态 NOT_CONNECTED；不运行投递器。全部 Admin/Web 应一同切换，旧 rows 客户端会明确拒绝，不提供兼容开关。同源多表合计 1～1,000 项发布与原单回滚共用这些控制结构，无额外临时兼容表；完整维护窗口和恢复步骤见[发布单升级指南](../../../docs/admin-release-upgrade.md)。
 
 
 T5 同时修正 FLOAT 主键的有损短文本权重与 FLOAT/DOUBLE 的正负零等价。应用新二进制前，须取消受影响表的旧在途单并停写，按 [记录版本维护门禁](../../../docs/admin-record-versions.md#t5-浮点身份修订的升级门禁) 为全部 FLOAT/DOUBLE 主键表推进维护基线、保留旧 key。012 不自动完成这项维护，也不能据其可重跑而跳过代际切换。
@@ -132,7 +132,7 @@ T5 同时修正 FLOAT 主键的有损短文本权重与 FLOAT/DOUBLE 的正负�
 
 1. 备份数据库，停止旧 Admin 和其他 Policy 写入者。
 2. 对已完成 012 的数据库执行 `013-policy-audit-timestamps.sql`。
-3. 确认所有适用历史控制步骤（包括 014）和当前 `policy-migrate` 收缩均已完成，按[接管手册](../../../docs/schema-migrations.md#校验并接管现有库)显式运行 `schema-migrate baseline`，再以 `schema-migrate status` 确认 `state=current`、没有未确认操作。
+3. 确认所有适用历史控制步骤（包括 014～017）和当前 `policy-migrate` 收缩均已完成，按[接管手册](../../../docs/schema-migrations.md#校验并接管现有库)显式运行 `schema-migrate baseline`，再以 `schema-migrate status` 确认 `state=current`、没有未确认操作。
 4. 部署新版 Admin/Web，确认就绪检查及三类 Policy 的查询、创建和修改均正常。
 
 迁移只重命名列，保留现有时间值、数据类型、默认值和自动更新时间行为；不会修改业务表，
@@ -147,6 +147,30 @@ T5 同时修正 FLOAT 主键的有损短文本权重与 FLOAT/DOUBLE 的正负�
 
 通过 mysql 客户端执行包含中文列注释的历史脚本时，必须使用 `--default-character-set=utf8mb4`；不能让客户端把 UTF-8 文件按其他字符集导入。
 
-014 仅供尚未接管且已完成 013 的历史数据库：停写时执行适用步骤及 `014-table-field-policies.sql`，再按[接管手册](../../../docs/schema-migrations.md)显式 `baseline`，确认 current 后部署 Admin/Web。新库和已使用 Goose 的库运行 `schema-migrate up`，由 00003 创建同一字段策略结构。两条路径均保留已有规则、发布单、幂等结果、版本、占用、通知和业务行。Admin 只读完整验证字段表的列、默认值、索引、CHECK、引擎以及版本状态；同名不兼容表不会被 IF NOT EXISTS 修正，应在维护窗口核对，不能删表绕过校验。
+014 仅供尚未接管且已完成 013 的历史数据库：停写时执行适用步骤及 `014-table-field-policies.sql`，并完成 015～017，再按[接管手册](../../../docs/schema-migrations.md)显式 `baseline`，确认 current 后部署 Admin/Web。新库和已使用 Goose 的库运行 `schema-migrate up`，由 00003 创建同一字段策略结构。两条路径均保留已有规则、发布单、幂等结果、版本、占用、通知和业务行。Admin 只读完整验证字段表的列、默认值、索引、CHECK、引擎以及版本状态；同名不兼容表不会被 IF NOT EXISTS 修正，应在维护窗口核对，不能删表绕过校验。
 
 交互控件默认text，无auto；JSON NULL语义、原子保存及实时读取见[字段规则契约](../../../docs/admin-field-policies.md)。旧发布单清理属于独立且需明确指定隔离环境的维护工作，绝非014升级前提。
+
+## 原单成功执行（015）
+
+完成 014 后，在停写维护窗口应用
+[`015-original-order-executions.sql`](./015-original-order-executions.sql)。它建立
+`rcc_release_details` 和 `rcc_release_executions`，为 Command 与通知增加
+`execution_id`，将通知主键改为 `(execution_id, table_name)`。原单发布及回滚
+分别保存一次成功执行；申请、发布实际结果和回滚实际结果按项独立保存于明细。
+
+迁移可重跑，不删除业务数据、控制历史、旧请求或通知，不提供旧发布单 JSON
+转换或新旧双写。旧 Command 和通知仅补 `legacy:<order_id>` 技术身份，保留
+原内容和状态；同表多条旧通知仍独立，重跑不覆盖已存在的执行身份。
+已有旧发布单数据时，保持停写并确认留存及环境切换方案。新安装使用嵌入 Goose `up`。启动就绪检查要求完整新结构，详情拒绝旧整单格式。
+详见[升级与原单操作指南](../../../docs/admin-release-upgrade.md)。
+
+## 草稿目标与并发管控键（016）
+
+完成 015 后，在停写窗口执行 [`016-draft-target-reservations.sql`](./016-draft-target-reservations.sql)。它为 Table Policy 增加非空 JSON 字段 `concurrency_key`（默认 `[]`），建立 `rcc_release_table_references(table_name, order_id)`，保护没有具体主键的未结束明细。目标仍使用 `rcc_release_targets`，主键身份算法不变，附加键使用独立编码命名空间。
+
+迁移可重跑，保留业务数据、规则、历史、原请求和已有目标；不会回填、转换或删除旧发布单数据。新旧 Admin/Web 不能并行运行。已有旧发布单时继续保持停写并明确环境切换与留存方案；不借新引用表为空来接受旧单。Ready 必须看见新字段及完整 InnoDB 引用表结构，新安装 Goose 当前结构与完成 017 后的结构一致。
+
+## 删除主单默认表（017）
+
+完成 016 后执行 [`017-release-main-order.sql`](./017-release-main-order.sql)，在一个原子 ALTER 中删除 `release_table` 索引和 `table_name` 列。每项申请始终明确自身表；业务 JSON 不转换或清理。完成当前全部结构后才显式 baseline。已接管库使用 Goose 00004/00005，不重放此历史链。

@@ -1,0 +1,130 @@
+[
+  {
+    "log": "admin-unit2.jsonl",
+    "command": [
+      "go",
+      "-C",
+      "admin",
+      "test",
+      "-p",
+      "1",
+      "-count=1",
+      "-json",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "4f59d1112d201e9f732ae9a7d0dbd18e845c1d3b98b0de8990b4ad4478c7c7e5"
+  },
+  {
+    "log": "admin-build2.log",
+    "command": [
+      "go",
+      "-C",
+      "admin",
+      "build",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "log": "make-build2.log",
+    "command": [
+      "make",
+      "build"
+    ],
+    "exit": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "log": "web-test-dev2.log",
+    "command": [
+      "pnpm",
+      "--dir",
+      "web",
+      "test:dev"
+    ],
+    "exit": 0,
+    "sha256": "77295339f8ef19d32f38e0e405171050a34bba15748793e643c4398b72137805"
+  },
+  {
+    "log": "web-typecheck2.log",
+    "command": [
+      "pnpm",
+      "--dir",
+      "web",
+      "typecheck"
+    ],
+    "exit": 0,
+    "sha256": "3b940ccb3a62cfdf539f8114ccd09c103f33beb857c5ab0819ff68653e009672"
+  },
+  {
+    "log": "web-build2.log",
+    "command": [
+      "pnpm",
+      "--dir",
+      "web",
+      "build"
+    ],
+    "exit": 0,
+    "sha256": "bce8f780c52a2e83820424649d3cb4a2659b7dca9b482f1e4867c3299b9636ed"
+  },
+  {
+    "log": "integration-manifest2.log",
+    "command": [
+      "go",
+      "-C",
+      "admin",
+      "test",
+      "-p",
+      "1",
+      "-tags=integration",
+      "-list",
+      "^Test",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "569e90399e4fff6012a0fb4a65e31a60a976301c1c48aebd0cdb0b81fb5598d3"
+  },
+  {
+    "log": "integration-affected2.jsonl",
+    "command": [
+      "go",
+      "-C",
+      "admin",
+      "test",
+      "-p",
+      "1",
+      "-count=1",
+      "-timeout=45m",
+      "-json",
+      "-tags=integration",
+      "./cmd/admin",
+      "-run",
+      "^(TestConcurrentAccountsOwnTheirBusinessChanges|TestCurrentGooseInstallationMatchesFrozenAdoptionStructure|TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder|TestPublicationActionCompetitionAndTableOrder|TestPublicationAtomicPersistenceFailures|TestPublicationCommitUnknownSurvivesExecutableRestart|TestPublicationFloatIdentityMaintenanceKeepsOldVersions|TestPublicationFloatValuesAndIdentityRoundTrip|TestPublicationFrozenChangesAndDescriptions|TestPublicationIdentityCanonicalAndDelete|TestPublicationPublisherHistoryAndApprovalSurvivesRevocation|TestPublicationRejectsImplicitWritesAndAuditSpoofing|TestPublicationRejectsUnknownNonAutoIncrementIdentity|TestPublicationRejectsUntrackedCascade|TestPublicationSessionCannotBeReusedAfterTransaction|TestPublicationSessionLocksHiddenForeignKeyDDL|TestPublicationStoredRowsAreVerifiedBeforeReadOrReplay|TestPublicationSupportsTargetRowTrigger|TestQuickRollbackCanTerminateAtAcceptedPublicationCapacity|TestQuickRollbackCompetesWithCompletionAndOtherRollbacks|TestQuickRollbackConstraintFailureRollsBackEarlierItems|TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets|TestQuickRollbackPreviewShowsWholeRestorationWithoutWriting|TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions|TestQuickRollbackRejectsDatabaseEffectsThatCannotRestoreOriginalValues|TestQuickRollbackRejectsUnversionedExternalChangesBeforePreviewAndExecution|TestQuickRollbackRequiresItsOriginalRetainedTargets|TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult|TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole|TestRecordVersionAddDeleteRecreateAndRollback|TestRecordVersionCompareAndSwap|TestRecordVersionControlStorageFailureRollsBackBusinessWrites|TestRecordVersionLegacyBaseline|TestRecordVersionLosslessMaintenanceFloor|TestRecordVersionMySQLPrimaryKeyEquivalence|TestRecordVersionRealConcurrentWriters|TestRecordVersionRejectsNonTransactionalBusinessWrite|TestRecordVersionSchemaReadinessAndRestartableMigration|TestRecordVersionSnapshotAndIndependentResources|TestReleaseApprovalCurrentRolesAndHistory|TestReleaseAutoIncrementZeroIdentity|TestReleaseBatchCopyInvalidItemIsLocated|TestReleaseBatchDuplicateIdentityDoesNotReplaceDraft|TestReleaseBatchEdgeAutoIncrementAndIndependentRequests|TestReleaseBatchEdgeDraftValidation|TestReleaseBatchEdgeIndependentUniqueConflict|TestReleaseBatchEdgeMidwayConstraintRollback|TestReleaseBatchEdgeOverlappingSubmissions|TestReleaseBatchEdgeRequestLimitsPreserveDraft|TestReleaseBatchEdgeStaleMemberRollsBack|TestReleaseBatchExistingEnumPrimaryKeys|TestReleaseBatchExpandedResultsExceedFormerBudget|TestReleaseBatchLargeFieldDraftPreservesInput|TestReleaseBatchLargeHistoryCanApproveAndCancel|TestReleaseCompletionAtPublicationCapacityClosesRollbackWindow|TestReleaseCompletionPermanentlyClosesRollbackWindow|TestReleaseCompletionPersistenceFailureIsAtomic|TestReleaseCompletionProtectsActualAndDeletedIDs|TestReleaseCompletionReleasesWithoutRepublishing|TestReleaseCompletionRequiresTrustedPublicationOnReadAndReplay|TestReleaseCompletionRetainsKnownTargets|TestReleaseCompletionRolesConcurrencyAndReplay|TestReleaseDraftCASCancelAndIdempotency|TestReleaseDraftConcurrentAndAtomicStorage|TestReleaseDraftCurrentAuthorizationAndListing|TestReleaseDraftDiffAndServerBaseline|TestReleaseDraftKnownAddUpdateRequiresOriginalBaseline|TestReleaseDraftMissingIdentityAndTombstone|TestReleaseDraftPreviewRebuildsMissingAddBaseline|TestReleaseDraftRejectsLossySnapshotAndRetainsSavedSchema|TestReleaseDraftReplayUsesCurrentActionsAndRejectsChangedDigest|TestReleaseDraftSaveAndReload|TestReleaseDraftSchemaReadiness|TestReleaseDraftTitleEditCASAndFreeze|TestReleaseDraftTitlePersistsAndReloads|TestReleaseDraftTitleUnicodeValidation|TestReleaseExecutionSchemaHoldsMetadataLock|TestReleaseFailureAuditPreservesConcurrentCancellation|TestReleaseFailureHistoryUnavailableDoesNotLeaveBusinessWrites|TestReleaseFreezeMetadataCaseInsensitiveNames|TestReleaseFreezeMetadataGrantNameIdentity|TestReleaseFreezeMetadataVisibility|TestReleaseFreezeTracksExecutionSemantics|TestReleaseHeaderAndDetailPagesRequireOneWholeOrderVersion|TestReleaseHistorySurvivesExecutableRestartAndExternalChanges|TestReleaseMixedBatchPublication|TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin|TestReleasePublicationAddsFinalRow|TestReleaseRejectedCopyRechecksBaseline|TestReleaseReprepareFailureKeepsApprovedOrderAndTarget|TestReleaseReprepareReplacesApprovedOrderWithEditableDraft|TestReleaseReprepareRequiresCurrentApplicantEditorOrAdmin|TestReleaseResetInterruptedTransactionRollsBackAndRetries|TestReleaseResetPreservesRecordsAndContinuesPublication|TestReleaseResetRefusesUnverifiedTargetsAndSchema|TestReleaseRollbackRestoresBusinessFieldsWithNewAudit|TestReleaseRollbackRestoresDeletedEnumIdentity|TestReleaseRollbackRestoresStoredTimeDuration|TestReleaseRollbackUnwindsUniqueValueDependencies|TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts|TestReleaseSubmitFreezesIntent|TestReleaseSubmitRevalidatesBaselineAndRules|TestReleaseTargetsCompeteAndCancelReleases|TestReleaseThousandItemsThroughExecutable|TestReleaseWorkflowAtomicityAndCompetition|TestReleaseWritesRequireExplicitTableOnEveryDetail|TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory|TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix|TestSchemaBaselineProcessInterruptionRetainsUnconfirmedState|TestSchemaBaselineRecoversBeforeAttemptWasRecorded|TestSchemaBaselineRecoversUnconfirmedRegistration|TestSchemaBaselineRefusesToRecreateLostConfirmedHistory|TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites|TestSchemaBaselineReleaseUpgradesT1AndRecoversPartialAuditRename|TestSchemaBaselineUsesTransactionalVersionLedger|TestSchemaMigrationAddsFieldPoliciesWithoutChangingPublishedState|TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery|TestSchemaMigrationConcurrentInitialization|TestSchemaMigrationConnectionDeadlineAndSafeDiagnostics|TestSchemaMigrationInitializesEmptyDatabase|TestSchemaMigrationLeavesUnmanagedDatabaseUntouched|TestSchemaMigrationPartialDDLRequiresExplicitRecovery|TestSchemaMigrationProcessInterruptionRequiresSameReleaseRecovery|TestSchemaMigrationRecoversInterruptedBootstrap|TestSchemaMigrationRecoversMissingZeroVersion|TestSchemaMigrationRejectsIncompleteVersionHistory|TestSchemaMigrationUpgradesToNextRelease|TestSchemaMigrationWaitsForMaintenanceLockWithDeadline|TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly|TestSchemaReadinessRejectsKnownOldRelease|TestSchemaReadinessRejectsUnmanagedStartup)$"
+    ],
+    "exit": 0,
+    "sha256": "1f1f3aa66aef74102822508bd69a13db24b5d98c2a98f8d7487aba5e2da57d4c"
+  },
+  {
+    "log": "integration-packages2.jsonl",
+    "command": [
+      "go",
+      "-C",
+      "admin",
+      "test",
+      "-p",
+      "1",
+      "-count=1",
+      "-timeout=30m",
+      "-json",
+      "-tags=integration",
+      "./internal/infrastructure/mysql",
+      "./internal/interfaces/http",
+      "./internal/application",
+      "./internal/domain"
+    ],
+    "exit": 0,
+    "sha256": "388ae36593aa175a0e64d8920baf1e821e745e3b4b5b6bb28750d6730c0ee8ff"
+  }
+]

@@ -29,7 +29,7 @@ func TestReleaseMixedBatchPublication(t *testing.T) {
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	reviewer := publicationFixtureReviewer(t, app)
-	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"new","label":"added"}},{"operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"modified"}},{"operation":"DELETE","id":"20","expected_record_version":"0","content":{}}]}`, "mixed")
+	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"new","label":"added"},"operation":"ADD","table_name":"mutation_add_items"},{"content":{"label":"modified"},"expected_record_version":"0","id":"10","operation":"MODIFY","table_name":"mutation_add_items"},{"content":{},"expected_record_version":"0","id":"20","operation":"DELETE","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "mixed")
 	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "mixed-execute")
 	if response.Code != 200 {
 		t.Fatalf("execute: %d %s", response.Code, response.Body)
@@ -38,10 +38,10 @@ func TestReleaseMixedBatchPublication(t *testing.T) {
 	if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
 		t.Fatal(err)
 	}
-	if result.State != "SUCCEEDED" || result.Publication == nil || len(result.Publication.Commands) != 3 || result.Publication.TableVersion != "1" {
+	if result.State != "SUCCEEDED" || len(result.Executions) < 1 || len(executionCommands(result, "PUBLICATION")) != 3 || singleExecutionTableVersion(result.Executions[0]) != "1" {
 		t.Fatal(response.Body)
 	}
-	commands := result.Publication.Commands
+	commands := executionCommands(result, "PUBLICATION")
 	if commands[0].ID != "21" || commands[1].ID != "10" || commands[2].ID != "20" || !commands[2].Final.Deleted {
 		t.Fatal(response.Body)
 	}
@@ -67,7 +67,7 @@ func TestReleaseMixedBatchPublication(t *testing.T) {
 	if count != 2 || targets != 3 || notifications != 1 {
 		t.Fatalf("rows %d targets %d notifications %d", count, targets, notifications)
 	}
-	list := releaseRequest(t, app, "GET", "/api/v1/release-orders?limit=100", "", "")
+	list := releaseReadAllDetails(t, app, "GET", "/api/v1/release-orders?limit=100", "", "")
 	if list.Code != 200 || strings.Contains(list.Body.String(), `"items"`) || strings.Contains(list.Body.String(), `"publication"`) || !strings.Contains(list.Body.String(), `"item_count":3`) {
 		t.Fatalf("list must provide bounded summaries: %d, bytes %d", list.Code, list.Body.Len())
 	}
@@ -78,14 +78,14 @@ func TestReleaseMixedBatchPublication(t *testing.T) {
 func TestReleaseBatchDuplicateIdentityDoesNotReplaceDraft(t *testing.T) {
 	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true, AllowDelete: true})
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"kept"}}]}`, "duplicate-base")
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"kept"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"集成测试发布单"}`, "duplicate-base")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}
 	var original domain.ReleaseOrder
 	json.Unmarshal(created.Body.Bytes(), &original)
 	path := "/api/v1/release-orders/" + original.ID
-	update := releaseRequest(t, app, "PUT", path, `{"title":"集成测试发布单","table_name":"mutation_delete_parents","expected_version":"1","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"discarded"}},{"operation":"DELETE","id":"01","expected_record_version":"0","content":{}}]}`, "duplicate-edit")
+	update := releaseRequest(t, app, "PUT", path, `{"expected_version":"1","items":[{"content":{"code":"discarded"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"},{"content":{},"expected_record_version":"0","id":"01","operation":"DELETE","table_name":"mutation_delete_parents"}],"title":"集成测试发布单"}`, "duplicate-edit")
 	assertIntegrationErrorCode(t, update, 422, "release_duplicate_target")
 	var issue struct {
 		Error struct {
@@ -96,7 +96,7 @@ func TestReleaseBatchDuplicateIdentityDoesNotReplaceDraft(t *testing.T) {
 	if issue.Error.ItemIndex == nil || *issue.Error.ItemIndex != 1 {
 		t.Fatalf("missing item position: %s", update.Body)
 	}
-	current := releaseRequest(t, app, "GET", path, "", "")
+	current := releaseReadAllDetails(t, app, "GET", path, "", "")
 	if current.Body.String() != created.Body.String() {
 		t.Fatalf("partial replacement: %s", current.Body)
 	}
@@ -128,7 +128,7 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 	reviewCookies, reviewCSRF, _ := processCredentials(t, process, "/api/v1/auth/login", `{"username":"batch.reviewer","password":"correct horse battery staple"}`)
 	items := []any{}
 	for i := 0; i < 1000; i++ {
-		item := map[string]any{"operation": "ADD", "content": map[string]string{"code": fmt.Sprintf("added-%d", i), "label": "new"}}
+		item := map[string]any{"table_name": "mutation_add_items", "operation": "ADD", "content": map[string]string{"code": fmt.Sprintf("added-%d", i), "label": "new"}}
 		if i < 666 {
 			item["id"] = strconv.Itoa(i + 1)
 			item["expected_record_version"] = "0"
@@ -142,7 +142,7 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 		}
 		items = append(items, item)
 	}
-	input, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": "mutation_add_items", "items": items})
+	input, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "items": items})
 	request := func(path, body, key string, actorCookies []*http.Cookie, actorCSRF string) []byte {
 		t.Helper()
 		req, err := http.NewRequest("POST", process.origin+path, strings.NewReader(body))
@@ -181,7 +181,7 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 	request(path+"/submit", `{"expected_version":"1"}`, "thousand-submit", cookies, csrf)
 	request(path+"/approve", `{"expected_version":"2","reason":"reviewed all 1000 items"}`, "thousand-approve", reviewCookies, reviewCSRF)
 	result := request(path+"/execute", `{"expected_version":"3"}`, "thousand-execute", cookies, csrf)
-	if json.Unmarshal(result, &order) != nil || order.State != "SUCCEEDED" || order.Publication == nil || len(order.Publication.Commands) != 1000 {
+	if json.Unmarshal(result, &order) != nil || order.State != "SUCCEEDED" || len(order.Executions) < 1 || len(executionCommands(order, "PUBLICATION")) != 1000 {
 		t.Fatal("incomplete result")
 	}
 	replay := request(path+"/execute", `{"expected_version":"3"}`, "thousand-execute", cookies, csrf)
@@ -189,7 +189,7 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 		t.Fatal("original-key result changed")
 	}
 	seen := map[string]bool{}
-	for i, command := range order.Publication.Commands {
+	for i, command := range executionCommands(order, "PUBLICATION") {
 		if seen[command.ID] || command.RecordVersion != "1" || command.Sequence != strconv.Itoa(i+1) {
 			t.Fatalf("invalid item %d %+v", i, command)
 		}
@@ -212,46 +212,51 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 	}
 	// AC-041: exercise the complete reverse under the same executable's default
 	// four-second transaction budget, without repeating the forward fixture.
-	request(path+"/complete", `{"expected_version":"4"}`, "thousand-complete", cookies, csrf)
-	reverseBytes := request(path+"/rollback", `{"expected_version":"5","reason":"restore all 1000 actual results"}`, "thousand-rollback", cookies, csrf)
+	previewBytes := request(path+"/quick-rollback/preview", `{"expected_version":"4"}`, "thousand-preview", cookies, csrf)
+	var preview quickPreviewResponse
+	if json.Unmarshal(previewBytes, &preview) != nil || len(preview.Items) != 1000 {
+		t.Fatal("incomplete restoration preview")
+	}
+	body := quickRollbackBody("4", preview.Digest, "")
+	restored := request(path+"/quick-rollback", body, "thousand-restore", cookies, csrf)
 	var reverse domain.ReleaseOrder
-	if json.Unmarshal(reverseBytes, &reverse) != nil || reverse.RollbackOfID != order.ID || len(reverse.Items) != 1000 {
-		t.Fatal("incomplete reverse draft")
+	if json.Unmarshal(restored, &reverse) != nil || reverse.State != "ROLLED_BACK" || reverse.ID != order.ID || singleExecutionTableVersion(reverse.Executions[1]) != "2" || len(executionCommands(reverse, "ROLLBACK")) != 1000 {
+		t.Fatal("incomplete original rollback")
 	}
-	reversePath := "/api/v1/release-orders/" + reverse.ID
-	request(reversePath+"/submit", `{"expected_version":"1"}`, "thousand-reverse-submit", cookies, csrf)
-	request(reversePath+"/approve", `{"expected_version":"2","reason":"reviewed all reverse items"}`, "thousand-reverse-approve", reviewCookies, reviewCSRF)
-	restored := request(reversePath+"/execute", `{"expected_version":"3"}`, "thousand-reverse-execute", cookies, csrf)
-	if json.Unmarshal(restored, &reverse) != nil || reverse.State != "COMPLETED" || reverse.Publication.TableVersion != "2" || len(reverse.Publication.Commands) != 1000 {
-		t.Fatal("incomplete reverse publication")
+	if string(request(path+"/quick-rollback", body, "thousand-restore", cookies, csrf)) != string(restored) {
+		t.Fatal("rollback original-key result changed")
 	}
-	if string(request(reversePath+"/execute", `{"expected_version":"3"}`, "thousand-reverse-execute", cookies, csrf)) != string(restored) {
-		t.Fatal("reverse original-key result changed")
-	}
-	for index, command := range reverse.Publication.Commands {
-		sourceIndex := len(order.Publication.Commands) - 1 - index
-		if command.ID != order.Publication.Commands[sourceIndex].ID || command.RecordVersion != "2" || command.Final.Deleted != (sourceIndex >= 666) {
+
+	for index, command := range executionCommands(reverse, "ROLLBACK") {
+		sourceIndex := len(executionCommands(order, "PUBLICATION")) - 1 - index
+		if command.ID != executionCommands(order, "PUBLICATION")[sourceIndex].ID || command.RecordVersion != "2" || command.Final.Deleted != (sourceIndex >= 666) {
 			t.Fatalf("incorrect inverse %d", index)
 		}
 	}
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM mutation_add_items`: 666, `SELECT COUNT(*) FROM mutation_add_items WHERE id<=666 AND label='old'`: 666, `SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=2`: 1000, `SELECT COUNT(*) FROM rcc_publication_commands`: 2000, `SELECT COUNT(*) FROM rcc_refresh_notifications`: 2, `SELECT COUNT(*) FROM rcc_release_targets`: 0})
-	current := rollbackOrderResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
-	if current.State != "ROLLED_BACK" || current.RollbackOrderID != reverse.ID {
+	current := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
+	if current.State != "ROLLED_BACK" || current.ID != reverse.ID {
 		t.Fatal("thousand inverse missing original association")
 	}
 }
 
-func TestReleaseBatchFieldBudget(t *testing.T) {
+func TestReleaseBatchLargeFieldDraftPreservesInput(t *testing.T) {
 	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
-	input, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": "mutation_add_items", "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"code": "oversize", "label": strings.Repeat("x", 65537)}}}})
+	input, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "items": []any{map[string]any{"table_name": "mutation_add_items", "operation": "ADD", "content": map[string]string{"code": "oversize", "label": strings.Repeat("x", 65537)}}}})
 	response := releaseRequest(t, app, "POST", "/api/v1/release-orders", string(input), "field-budget")
-	assertIntegrationErrorCode(t, response, 422, "release_field_limit")
+	if response.Code != 201 {
+		t.Fatalf("large field draft: %d %.500s", response.Code, response.Body.String())
+	}
+	var order domain.ReleaseOrder
+	if json.Unmarshal(response.Body.Bytes(), &order) != nil || len(*order.Items[0].Content["label"]) != 65537 {
+		t.Fatal("large draft field truncated")
+	}
 }
 
-// A small request can expand through database defaults. Its full persisted
-// result is bounded before commit, including the exact idempotency result.
-func TestReleaseBatchExpandedResultBudgetRollsBack(t *testing.T) {
+// Database defaults may expand a small request past former JSON budgets.
+// Every actual value and exact replay remains intact in the same transaction.
+func TestReleaseBatchExpandedResultsExceedFormerBudget(t *testing.T) {
 	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	rootDriver := *driver
 	rootDriver.User = "root"
@@ -267,33 +272,43 @@ func TestReleaseBatchExpandedResultBudgetRollsBack(t *testing.T) {
 	enableMutationPolicy(t, app, "batch_large_result", mutationPolicyFixture{AllowAdd: true})
 	items := []any{}
 	for i := 0; i < 130; i++ {
-		items = append(items, map[string]any{"operation": "ADD", "content": map[string]string{"code": fmt.Sprint(i)}})
+		items = append(items, map[string]any{"table_name": "batch_large_result", "operation": "ADD", "content": map[string]string{"code": fmt.Sprint(i)}})
 	}
-	input, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": "batch_large_result", "items": items})
+	input, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "items": items})
 	path := approvePublication(t, app, publicationFixtureReviewer(t, app), string(input), "expanded")
 	result := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "expanded-execute")
-	if result.Code != 422 {
-		t.Fatalf("expanded result status %d, response bytes %d", result.Code, result.Body.Len())
+	if result.Code != 200 || result.Body.Len() <= 8<<20 {
+		t.Fatalf("expanded result status %d, response bytes %d, %.500s", result.Code, result.Body.Len(), result.Body.String())
 	}
-	assertIntegrationErrorCode(t, result, 422, "release_result_limit")
+	var order domain.ReleaseOrder
+	if json.Unmarshal(result.Body.Bytes(), &order) != nil || len(executionCommands(order, "PUBLICATION")) != 130 {
+		t.Fatal("missing expanded results")
+	}
+	for _, command := range executionCommands(order, "PUBLICATION") {
+		for _, field := range command.Final.Fields {
+			if field.Name == "payload" && (field.Value == nil || *field.Value != strings.Repeat("x", 65536)) {
+				t.Fatal("expanded payload truncated")
+			}
+		}
+	}
 	var rows, commands, versions, requests int
 	for query, dest := range map[string]*int{`SELECT COUNT(*) FROM batch_large_result`: &rows, `SELECT COUNT(*) FROM rcc_publication_commands`: &commands, `SELECT COUNT(*) FROM rcc_record_versions`: &versions, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%'`: &requests} {
 		if err := db.QueryRow(query).Scan(dest); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if rows != 0 || commands != 0 || versions != 0 || requests != 0 {
+	if rows != 130 || commands != 130 || versions != 130 || requests != 1 {
 		t.Fatalf("partial budget effects %d %d %d %d", rows, commands, versions, requests)
 	}
-	current := releaseRequest(t, app, "GET", path, "", "")
-	if !strings.Contains(current.Body.String(), `"state":"APPROVED"`) {
+	current := releaseReadAllDetails(t, app, "GET", path, "", "")
+	if !strings.Contains(current.Body.String(), `"state":"SUCCEEDED"`) {
 		t.Fatal("approval lost")
 	}
 }
 
 // Long-lived history is a persistence fixture; approval and cancellation still
-// use the public API. A capacity rejection must never strand active targets.
-func TestReleaseBatchBudgetRetainsCancellationHeadroom(t *testing.T) {
+// use the public API. Large workflow history must not strand active targets.
+func TestReleaseBatchLargeHistoryCanApproveAndCancel(t *testing.T) {
 	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
@@ -302,7 +317,7 @@ func TestReleaseBatchBudgetRetainsCancellationHeadroom(t *testing.T) {
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	reviewer := publicationFixtureReviewer(t, app)
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"headroom"}}]}`, "headroom-create")
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"headroom"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"集成测试发布单"}`, "headroom-create")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}
@@ -346,16 +361,14 @@ func TestReleaseBatchBudgetRetainsCancellationHeadroom(t *testing.T) {
 	if len(encoded) > 8<<20-64<<10 || len(encoded) < 8<<20-64<<10-1000 {
 		t.Fatalf("fixture bytes %d", len(encoded))
 	}
-	if _, err := db.Exec(`UPDATE rcc_release_orders SET document=?,version=? WHERE id=?`, encoded, order.Version, order.ID); err != nil {
-		t.Fatal(err)
-	}
+	seedReleaseWorkflowHistory(t, db, order)
 	approval := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"`+order.Version+`","reason":"`+strings.Repeat("<", 2000)+`"}`, "headroom-approve")
-	if approval.Code != 422 {
-		t.Fatalf("approval must reserve termination capacity: status %d bytes %d", approval.Code, approval.Body.Len())
+	if approval.Code != 200 {
+		t.Fatalf("large-history approval: status %d bytes %d", approval.Code, approval.Body.Len())
 	}
-	assertIntegrationErrorCode(t, approval, 422, "release_result_limit")
-	cancelled := releaseRequest(t, app, "POST", path+"/cancel", `{"expected_version":"`+order.Version+`","reason":"`+strings.Repeat("<", 2000)+`"}`, "headroom-cancel")
-	if cancelled.Code != 200 || cancelled.Body.Len() > 8<<20 {
+	approvedVersion := strconv.Itoa(next + 1)
+	cancelled := releaseRequest(t, app, "POST", path+"/cancel", `{"expected_version":"`+approvedVersion+`","reason":"`+strings.Repeat("<", 2000)+`"}`, "headroom-cancel")
+	if cancelled.Code != 200 {
 		t.Fatalf("cancellation: %d bytes %d", cancelled.Code, cancelled.Body.Len())
 	}
 	var targets int

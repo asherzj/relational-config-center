@@ -10,7 +10,7 @@ import (
 // The released Goose v2 and main's field-policy feature meet at migration 00003.
 // Exercise the real command at both failure boundaries, preserving published data.
 func TestSchemaMigrationAddsFieldPoliciesWithoutChangingPublishedState(t *testing.T) {
-	previous, current := buildSchemaMigrationReleaseAt(t, 2), buildSchemaMigrationCommand(t)
+	previous, current := buildSchemaMigrationReleaseAt(t, 2), buildSchemaMigrationReleaseAt(t, 3)
 	_, driver := startIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	requireSchemaMigrationState(t, previous, driver, "current", "up")
 	owner := *driver
@@ -55,6 +55,10 @@ func TestSchemaMigrationAddsFieldPoliciesWithoutChangingPublishedState(t *testin
 	if got := strings.Replace(baselineDataSnapshot(t, db), "rcc_table_field_policies:\n", "", 1); got != before {
 		t.Fatal("field-table upgrade/recovery changed accounts, sessions, policies, release history, versions or business rows")
 	}
+	// The isolated v2→v3 proof above stays pinned to the published field release.
+	// Current Admin also needs the subsequent main-order schema stages.
+	deliveryExec(t, db, `GRANT ALL PRIVILEGES ON rcc_test.* TO 'rcc_admin'@'%'`)
+	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), driver, "current", "up")
 	p := accountProcessCommand(t, buildIntegrationAdmin(t), driver)
 	p.ready(t)
 	p.stop(t)

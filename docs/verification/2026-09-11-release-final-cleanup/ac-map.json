@@ -1,0 +1,17 @@
+{
+ "AC-001": ["TestMultitablePublicationPreservesGlobalOrderAndOriginalResults", "TestOriginalOrderRollbackPreservesApplicationAndBothExecutions", "TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder"],
+ "AC-002": ["TestDraftConcurrencyKeyProtectsValuesAndDefinition", "TestDraftKeyEligibilityDefaultsAndAutoIDReferences", "TestDraftSaveAndKeyDefinitionRaceCannotBypassReferences"],
+ "AC-003": ["TestDraftReservationsBeginOnSaveAndEndOnCancel", "TestDraftSharedKeyReferencesReleaseOnlyAfterLastDetail"],
+ "AC-004": ["TestDraftConcurrencyKeyDatabaseEquality"],
+ "AC-005": ["TestDraftIncrementalEditsReplaceTargetsAtomically", "TestDraftTargetReplacementRollsBackOnPersistenceFailure", "TestReleaseHeaderAndDetailPagesRequireOneWholeOrderVersion"],
+ "AC-006": ["TestMultitableThousandPagedDetailsExecuteAsOneOrder", "TestMultitableLargeValuesThroughHTTPLifecycle"],
+ "AC-007": ["TestDraftAllTargetTypesReleaseOnEveryTerminalAction", "TestDraftSubmitRejectsChangedTargetIdentity", "TestReleaseCompletionPermanentlyClosesRollbackWindow"],
+ "AC-008": ["TestMultitableCopyCompetesForEveryTargetAndLinksBothOrders", "TestMultitableReprepareTransfersChangedTargetsAtomically", "TestMultitableDerivedDraftRequiresExactDetailIdentity"],
+ "AC-009": ["TestMultitablePublicationPreservesGlobalOrderAndOriginalResults", "TestMultitableDraftWaitsForAllGuardsBeforeAnySnapshot"],
+ "AC-010": ["TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult", "TestQuickRollbackRequiresItsOriginalRetainedTargets", "TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole"],
+ "AC-011": ["TestConfirmedReleaseFailureHistoryPreservesOriginalRetry", "TestReleaseFailureHistoryUnavailableDoesNotLeaveBusinessWrites", "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets"],
+ "AC-012": ["TestQuickRollbackCompetesWithCompletionAndOtherRollbacks", "TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder"],
+ "AC-013": ["TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator"],
+ "AC-014": ["TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole", "TestReleaseHeaderAndDetailPagesRequireOneWholeOrderVersion"],
+ "AC-015": ["TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts", "TestReleaseWritesRequireExplicitTableOnEveryDetail", "TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder"]
+}

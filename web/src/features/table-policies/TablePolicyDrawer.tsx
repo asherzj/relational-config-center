@@ -3,8 +3,8 @@ import { Input } from "../../components/shadcn/input";
 import { NativeSelect } from "../../components/shadcn/native-select";
 import { Label } from "../../components/shadcn/label";
 import { Badge } from "../../components/shadcn/badge";
-import { useQueryClient } from "@tanstack/react-query";
-import { getTablePolicy } from "../../api/table-policies";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { concurrencyKeyFields, getTablePolicy } from "../../api/table-policies";
 import { useWriteRecovery, WriteRecovery } from "../../components/ui/WriteRecovery";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type MutableRefObject, type ReactNode } from "react";
@@ -25,7 +25,7 @@ import type { TablePolicyAssignment } from "./model";
 import { tablePolicyKeys, useCreateTablePolicy, useDatabaseTables, useDisableTablePolicy, useEnableTablePolicy, useReplaceTablePolicy, useTablePolicy } from "./queries";
 
 type Props = { tableName?: string };
-const emptyAssignment: TablePolicyAssignment = { tableName: "", queryPolicyCode: "", mutationPolicyCode: "" };
+const emptyAssignment: TablePolicyAssignment = { concurrencyKey: [], tableName: "", queryPolicyCode: "", mutationPolicyCode: "" };
 
 export function TablePolicyDrawer({ tableName }: Props) {
   const [searchParams] = useSearchParams();
@@ -64,6 +64,8 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
   const detail = useTablePolicy(creating ? undefined : tableName);
   const [assignment, setAssignment] = useState<TablePolicyAssignment>(emptyAssignment);
   const [baseline, setBaseline] = useState<TablePolicyAssignment | null>(creating ? emptyAssignment : null);
+  const [showKeyFields,setShowKeyFields]=useState(false);
+  const keyFields=useQuery({queryKey:["concurrency-key-fields",assignment.tableName,assignment.mutationPolicyCode],queryFn:()=>concurrencyKeyFields(assignment.tableName,assignment.mutationPolicyCode),enabled:showKeyFields&&selectingAssignment&&Boolean(assignment.tableName&&assignment.mutationPolicyCode),retry:false});
   const inFlight = useRef(false);
   const recovery = useWriteRecovery();
   const pending = create.isPending || replace.isPending || enable.isPending || disable.isPending;
@@ -94,7 +96,7 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
 
   useEffect(() => {
     if (!baseline && detail.data) {
-      const initial = { tableName: detail.data.tableName, queryPolicyCode: detail.data.queryPolicyCode, mutationPolicyCode: detail.data.mutationPolicyCode };
+      const initial = { tableName: detail.data.tableName, queryPolicyCode: detail.data.queryPolicyCode, mutationPolicyCode: detail.data.mutationPolicyCode, concurrencyKey: detail.data.concurrencyKey ?? [] };
       setAssignment(initial);
       setBaseline(initial);
     }
@@ -215,6 +217,7 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
       <Label className="field"><span>真实数据库表</span><Input value={detail.data.tableName} disabled readOnly /></Label>
       <Label className="field"><span>查询规则编码</span><Input value={detail.data.queryPolicyCode} disabled readOnly /></Label>
       <Label className="field"><span>变更规则编码</span><Input value={detail.data.mutationPolicyCode} disabled readOnly /></Label>
+      <p>并发管控键：{detail.data.concurrencyKey?.join(" + ")||"未设置（仍保护主键）"}</p>
       {effects({ tableName: detail.data.tableName, queryPolicyCode: detail.data.queryPolicyCode, mutationPolicyCode: detail.data.mutationPolicyCode }, false, detail.data.enabled)}
       <dl className="audit-grid"><div><dt>创建人</dt><dd>{detail.data.creator}</dd></div><div><dt>修改人</dt><dd>{detail.data.modifier}</dd></div><div><dt>创建时间</dt><dd>{detail.data.createdAt}</dd></div><div><dt>修改时间</dt><dd>{detail.data.modifiedAt}</dd></div></dl>
       {writeError}
@@ -239,6 +242,11 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
         {assignment.mutationPolicyCode && !activeMutationPolicies.some((policy) => policy.code === assignment.mutationPolicyCode) && <option value={assignment.mutationPolicyCode} disabled>{assignment.mutationPolicyCode} · 当前引用或选择</option>}
         {activeMutationPolicies.map((policy) => <option key={policy.code} value={policy.code}>{policy.code} · {policy.name}</option>)}
       </NativeSelect></Label>
+      <section className="grid gap-3" aria-label="并发管控键设置"><h3 className="font-medium">并发管控键</h3><p>可选一组真实字段，多个字段组成组合键。保存草稿即占用；未结束发布单引用此表时不能改动定义。</p>
+       {(assignment.concurrencyKey??[]).map((name,index)=><div key={name} className="flex items-center justify-between gap-3"><span className="min-w-0 flex-1 font-mono break-all">{index+1}. {name}</span><Button aria-label={`移除字段 ${name}`} type="button" onClick={()=>setAssignment(current=>({...current,concurrencyKey:current.concurrencyKey?.filter(field=>field!==name)}))}>移除</Button></div>)}
+       {!showKeyFields?<Button type="button" disabled={!assignment.tableName||!assignment.mutationPolicyCode} onClick={()=>setShowKeyFields(true)}>选择管控字段</Button>:<Label>添加管控字段<NativeSelect aria-label="添加管控字段" value="" disabled={!keyFields.data} onChange={event=>{const name=event.target.value;if(name)setAssignment(current=>({...current,concurrencyKey:[...(current.concurrencyKey??[]),name]}))}}><option value="">请选择真实字段</option>{keyFields.data?.fields.filter(field=>!(assignment.concurrencyKey??[]).includes(field.name)).map(field=><option key={field.name} value={field.name} disabled={!field.eligible}>{field.name} · {field.type}{field.eligible?"":" · 无法用于管控键"}</option>)}</NativeSelect></Label>}
+       <p className="text-muted-foreground">自增、生成、发布自动填写字段及无法确定等价语义的类型不能选择。新增明细需明确填写全部键字段；NULL 与空字符串分别占用。</p>{showKeyFields&&keyFields.isPending&&<LoadingState label="正在读取管控字段…"/>}{keyFields.isError&&<ErrorState error={keyFields.error} onRetry={()=>void keyFields.refetch()}/>}
+      </section>
       {(assignment.queryPolicyCode || assignment.mutationPolicyCode) && effects(assignment, true)}
       {creating && !candidates.length && <div className="inline-alert"><AlertCircle size={17} /><span>没有兼容且未分配的真实数据库表。</span></div>}
       {writeError}

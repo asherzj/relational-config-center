@@ -257,15 +257,16 @@ func liveColumnType(dataType, columnType string) domain.ColumnType {
 }
 
 type policyRecord struct {
-	ID                 uint64    `gorm:"column:id;primaryKey"`
-	Table              string    `gorm:"column:table_name"`
-	QueryPolicyCode    string    `gorm:"column:query_policy_code"`
-	MutationPolicyCode string    `gorm:"column:mutation_policy_code"`
-	Enabled            bool      `gorm:"column:enabled"`
-	Creator            string    `gorm:"column:creator"`
-	Modifier           string    `gorm:"column:modifier"`
-	CreatedAt          time.Time `gorm:"column:created_at"`
-	UpdatedAt          time.Time `gorm:"column:updated_at"`
+	ConcurrencyKey     concurrencyColumns `gorm:"column:concurrency_key"`
+	ID                 uint64             `gorm:"column:id;primaryKey"`
+	Table              string             `gorm:"column:table_name"`
+	QueryPolicyCode    string             `gorm:"column:query_policy_code"`
+	MutationPolicyCode string             `gorm:"column:mutation_policy_code"`
+	Enabled            bool               `gorm:"column:enabled"`
+	Creator            string             `gorm:"column:creator"`
+	Modifier           string             `gorm:"column:modifier"`
+	CreatedAt          time.Time          `gorm:"column:created_at"`
+	UpdatedAt          time.Time          `gorm:"column:updated_at"`
 }
 
 func (policyRecord) TableName() string {
@@ -273,9 +274,14 @@ func (policyRecord) TableName() string {
 }
 
 func (adapter *Adapter) Create(ctx context.Context, policy domain.TablePolicy, operator string) error {
+	name, err := canonicalTableName(ctx, adapter.gorm, policy.TableName)
+	if err != nil {
+		return fmt.Errorf("resolve Table Policy name: %w", err)
+	}
+	policy.TableName = name
 	record := policyRecord{
 		Table: policy.TableName, QueryPolicyCode: policy.QueryPolicyCode,
-		MutationPolicyCode: policy.MutationPolicyCode, Enabled: false,
+		MutationPolicyCode: policy.MutationPolicyCode, ConcurrencyKey: policy.ConcurrencyKey, Enabled: false,
 		Creator: operator, Modifier: operator,
 	}
 	if err := adapter.gorm.WithContext(ctx).Create(&record).Error; err != nil {
@@ -292,13 +298,18 @@ func (adapter *Adapter) Create(ctx context.Context, policy domain.TablePolicy, o
 // lifecycle state in the same transaction as the assignment write. This closes
 // the race between application validation and concurrent deprecation.
 func (adapter *Adapter) CreateWithActivePolicyCodes(ctx context.Context, policy domain.TablePolicy, operator string) error {
+	name, err := canonicalTableName(ctx, adapter.gorm, policy.TableName)
+	if err != nil {
+		return fmt.Errorf("resolve Table Policy name: %w", err)
+	}
+	policy.TableName = name
 	return adapter.gorm.WithContext(ctx).Transaction(func(transaction *gorm.DB) error {
 		if err := activeAssignmentDefinitions(transaction, policy.QueryPolicyCode, policy.MutationPolicyCode); err != nil {
 			return err
 		}
 		record := policyRecord{
 			Table: policy.TableName, QueryPolicyCode: policy.QueryPolicyCode,
-			MutationPolicyCode: policy.MutationPolicyCode, Enabled: false,
+			MutationPolicyCode: policy.MutationPolicyCode, ConcurrencyKey: policy.ConcurrencyKey, Enabled: false,
 			Creator: operator, Modifier: operator,
 		}
 		if err := transaction.Create(&record).Error; err != nil {
@@ -341,43 +352,11 @@ func (adapter *Adapter) getTablePolicy(ctx context.Context, database *gorm.DB, t
 }
 
 func (adapter *Adapter) Replace(ctx context.Context, policy domain.TablePolicy, operator string) (domain.TablePolicy, error) {
-	result := adapter.gorm.WithContext(ctx).Model(&policyRecord{}).
-		Where("table_name = ?", policy.TableName).
-		Updates(map[string]any{
-			"query_policy_code":    policy.QueryPolicyCode,
-			"mutation_policy_code": policy.MutationPolicyCode,
-			"modifier":             operator,
-		})
-	if result.Error != nil {
-		return domain.TablePolicy{}, fmt.Errorf("replace Table Policy: %w", result.Error)
-	}
-	if result.RowsAffected == 0 {
-		return domain.TablePolicy{}, domain.ErrTablePolicyNotFound
-	}
-	return adapter.Get(ctx, policy.TableName)
+	return adapter.replaceTablePolicy(ctx, policy, operator, false)
 }
 
 func (adapter *Adapter) ReplaceWithActivePolicyCodes(ctx context.Context, policy domain.TablePolicy, operator string) (domain.TablePolicy, error) {
-	err := adapter.gorm.WithContext(ctx).Transaction(func(transaction *gorm.DB) error {
-		if err := activeAssignmentDefinitions(transaction, policy.QueryPolicyCode, policy.MutationPolicyCode); err != nil {
-			return err
-		}
-		result := transaction.Model(&policyRecord{}).Where("table_name = ?", policy.TableName).Updates(map[string]any{
-			"query_policy_code": policy.QueryPolicyCode, "mutation_policy_code": policy.MutationPolicyCode,
-			"modifier": operator,
-		})
-		if result.Error != nil {
-			return fmt.Errorf("replace Table Policy: %w", result.Error)
-		}
-		if result.RowsAffected == 0 {
-			return domain.ErrTablePolicyNotFound
-		}
-		return nil
-	})
-	if err != nil {
-		return domain.TablePolicy{}, err
-	}
-	return adapter.Get(ctx, policy.TableName)
+	return adapter.replaceTablePolicy(ctx, policy, operator, true)
 }
 
 func activeAssignmentDefinitions(transaction *gorm.DB, queryCode, mutationCode string) error {
@@ -417,7 +396,7 @@ func (adapter *Adapter) SetEnabled(ctx context.Context, tableName string, enable
 
 func (record policyRecord) policy() domain.TablePolicy {
 	return domain.TablePolicy{
-		QueryPolicyCode: record.QueryPolicyCode, MutationPolicyCode: record.MutationPolicyCode,
+		QueryPolicyCode: record.QueryPolicyCode, MutationPolicyCode: record.MutationPolicyCode, ConcurrencyKey: []string(record.ConcurrencyKey),
 		TableName: record.Table, Enabled: record.Enabled, Creator: record.Creator,
 		Modifier: record.Modifier, CreatedAt: record.CreatedAt, UpdatedAt: record.UpdatedAt,
 	}

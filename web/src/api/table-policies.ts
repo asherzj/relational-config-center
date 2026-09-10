@@ -1,3 +1,4 @@
+import {z} from "zod";
 import {
   databaseTableListDtoSchema,
   tablePolicyDtoSchema,
@@ -26,6 +27,7 @@ function tablePolicyFromDto(dto: TablePolicyDto): TablePolicy {
     tableName: dto.table_name,
     queryPolicyCode: dto.query_policy_code,
     mutationPolicyCode: dto.mutation_policy_code,
+    concurrencyKey: dto.concurrency_key,
     enabled: dto.enabled,
     creator: dto.creator,
     modifier: dto.modifier,
@@ -39,6 +41,7 @@ function assignmentToDto(assignment: TablePolicyAssignment) {
     table_name: assignment.tableName,
     query_policy_code: assignment.queryPolicyCode,
     mutation_policy_code: assignment.mutationPolicyCode,
+    concurrency_key: assignment.concurrencyKey ?? [],
   };
 }
 
@@ -71,3 +74,5 @@ export async function enableTablePolicy(tableName: string): Promise<TablePolicy>
 export async function disableTablePolicy(tableName: string): Promise<TablePolicy> {
   return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}/disable`, { method: "POST", schema: tablePolicyDtoSchema }));
 }
+
+export const concurrencyKeyFields=(table:string,mutation:string)=>request(`${root}/${encodeURIComponent(table)}/concurrency-key-fields?${new URLSearchParams({mutation_policy_code:mutation})}`,{schema:z.object({fields:z.array(z.object({name:z.string(),type:z.string(),eligible:z.boolean()}))})});

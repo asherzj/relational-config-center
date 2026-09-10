@@ -85,6 +85,13 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 		context.JSON(stdhttp.StatusOK, tableResponse(table))
 	})
 
+	router.GET("/api/v1/table-policies/:table_name/concurrency-key-fields", func(c *gin.Context) {
+		fields, err := policies.ConcurrencyKeyFields(c.Request.Context(), c.Param("table_name"), c.Query("mutation_policy_code"))
+		if writePolicyError(c, err) {
+			return
+		}
+		c.JSON(200, gin.H{"fields": fields})
+	})
 	registerQueryPolicyRoutes(router, queryPolicies)
 	registerMutationPolicyRoutes(router, mutationPolicies)
 
@@ -353,9 +360,10 @@ func registerMutationPolicyRoutes(router *gin.Engine, policies *application.Muta
 }
 
 type assignTablePolicyRequest struct {
-	TableName          string `json:"table_name"`
-	QueryPolicyCode    string `json:"query_policy_code"`
-	MutationPolicyCode string `json:"mutation_policy_code"`
+	ConcurrencyKey     []string `json:"concurrency_key"`
+	TableName          string   `json:"table_name"`
+	QueryPolicyCode    string   `json:"query_policy_code"`
+	MutationPolicyCode string   `json:"mutation_policy_code"`
 }
 
 func decodeTablePolicyCandidate(context *gin.Context) (application.CreateTablePolicy, error) {
@@ -363,7 +371,7 @@ func decodeTablePolicyCandidate(context *gin.Context) (application.CreateTablePo
 	if err := decodeRequest(context, &request); err != nil {
 		return application.CreateTablePolicy{}, err
 	}
-	return application.CreateTablePolicy{TableName: request.TableName, QueryPolicyCode: request.QueryPolicyCode, MutationPolicyCode: request.MutationPolicyCode}, nil
+	return application.CreateTablePolicy{ConcurrencyKey: request.ConcurrencyKey, TableName: request.TableName, QueryPolicyCode: request.QueryPolicyCode, MutationPolicyCode: request.MutationPolicyCode}, nil
 }
 
 type putQueryPolicyRequest struct {
@@ -484,14 +492,15 @@ func queryPolicyResponseFor(policy application.QueryPolicy) queryPolicyResponse 
 }
 
 type tablePolicyAssignmentResponse struct {
-	TableName          string `json:"table_name"`
-	QueryPolicyCode    string `json:"query_policy_code"`
-	MutationPolicyCode string `json:"mutation_policy_code"`
-	Enabled            bool   `json:"enabled"`
-	Creator            string `json:"creator"`
-	Modifier           string `json:"modifier"`
-	CreatedAt          string `json:"created_at"`
-	UpdatedAt          string `json:"updated_at"`
+	ConcurrencyKey     []string `json:"concurrency_key"`
+	TableName          string   `json:"table_name"`
+	QueryPolicyCode    string   `json:"query_policy_code"`
+	MutationPolicyCode string   `json:"mutation_policy_code"`
+	Enabled            bool     `json:"enabled"`
+	Creator            string   `json:"creator"`
+	Modifier           string   `json:"modifier"`
+	CreatedAt          string   `json:"created_at"`
+	UpdatedAt          string   `json:"updated_at"`
 }
 
 type tableQueryRequest struct {
@@ -657,7 +666,7 @@ func queryResponse(result application.QueryResult) tableQueryResponse {
 
 func assignmentPolicyResponse(policy application.TablePolicy) tablePolicyAssignmentResponse {
 	return tablePolicyAssignmentResponse{
-		TableName: policy.TableName, QueryPolicyCode: policy.QueryPolicyCode, MutationPolicyCode: policy.MutationPolicyCode,
+		ConcurrencyKey: append([]string{}, policy.ConcurrencyKey...), TableName: policy.TableName, QueryPolicyCode: policy.QueryPolicyCode, MutationPolicyCode: policy.MutationPolicyCode,
 		Enabled: policy.Enabled, Creator: policy.Creator, Modifier: policy.Modifier,
 		CreatedAt: policy.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: policy.UpdatedAt.UTC().Format(time.RFC3339),
 	}
@@ -690,6 +699,12 @@ func writePolicyError(context *gin.Context, err error) bool {
 		return false
 	}
 	switch {
+	case errors.Is(err, application.ErrPermissionDenied):
+		writeError(context, 403, "permission_denied", "the current account cannot manage table policies")
+	case errors.Is(err, application.ErrConcurrencyKeyInUse):
+		writeError(context, 409, "concurrency_key_in_use", "an unfinished release order references this table")
+	case errors.Is(err, application.ErrConcurrencyKeyInvalid):
+		writeError(context, 422, "concurrency_key_invalid", "concurrency key must use distinct, determinable ordinary fields")
 	case errors.Is(err, application.ErrInvalidPolicyDefinition):
 		writeError(context, stdhttp.StatusBadRequest, "invalid_policy_definition", "Table Policy definition is incomplete")
 	case errors.Is(err, application.ErrProtectedTable):
@@ -874,8 +889,19 @@ func tableResponse(table application.DatabaseTable) databaseTableResponse {
 
 func writeError(context *gin.Context, status int, code, message string) {
 	detail := gin.H{"code": code, "message": message, "request_id": requestID(context)}
+	if saved, exists := context.Get("release_execution_failure"); exists {
+		detail["execution_outcome"] = "not_committed"
+		detail["failure_history"] = "unavailable"
+		if saved == true {
+			detail["failure_history"] = "saved"
+		}
+	}
 	if index, exists := context.Get("release_item_index"); exists {
 		detail["item_index"] = index
+	}
+	if value, exists := context.Get("release_target_conflict"); exists {
+		conflict := value.(*application.ReleaseTargetConflict)
+		detail["table_name"], detail["order_id"], detail["applicant_id"] = conflict.TableName, conflict.OrderID, conflict.ApplicantID
 	}
 	context.JSON(status, gin.H{"error": detail})
 }

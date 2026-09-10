@@ -70,8 +70,9 @@ const engine = process.env.RCC_E2E_ENGINE || 'chromium';
     for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
       const label = `${viewport.width}x${viewport.height}`;
       await page.setViewportSize(viewport);
-      // Restore only our field configuration between journeys; each begins at the real administrator UI.
-      await api('PUT', policyPath, { policies: originalPolicies });
+      // Each journey configures new rules in the real administrator UI. Restore
+      // the incoming fixture configuration in finally, including prior scripts' rules.
+      await api('PUT', policyPath, { policies: [] });
       await page.goto(`${base}/platform/table-policies`);
       const row = page.getByRole('row').filter({ has: page.getByText(table, { exact: true }) });
       const entry = row.getByRole('button', { name: '字段配置', exact: true });

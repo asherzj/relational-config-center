@@ -60,7 +60,7 @@ func publicationFixtureRequest(t *testing.T, app *adminApplication, operation, t
 	} else {
 		title, _ = json.Marshal(table + " fixture change")
 	}
-	item := map[string]any{"operation": operation, "content": json.RawMessage(`{}`)}
+	item := map[string]any{"table_name": table, "operation": operation, "content": json.RawMessage(`{}`)}
 	for name, value := range payload {
 		if name == "expected_version" {
 			item["expected_record_version"] = value
@@ -71,7 +71,7 @@ func publicationFixtureRequest(t *testing.T, app *adminApplication, operation, t
 	if operation != "ADD" {
 		item["id"] = id
 	}
-	input, _ := json.Marshal(map[string]any{"title": title, "table_name": table, "items": []any{item}})
+	input, _ := json.Marshal(map[string]any{"title": title, "items": []any{item}})
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", string(input), key+"-create")
 	if created.Code != 201 {
 		return created
@@ -91,7 +91,7 @@ func publicationFixtureRequest(t *testing.T, app *adminApplication, operation, t
 	}
 	result := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, key+"-execute")
 	if result.Code != 200 {
-		current := releaseRequest(t, app, "GET", path, "", "")
+		current := releaseReadAllDetails(t, app, "GET", path, "", "")
 		var stored domain.ReleaseOrder
 		if current.Code != 200 || json.Unmarshal(current.Body.Bytes(), &stored) != nil || stored.State != "APPROVED" || stored.Version != "3" {
 			t.Fatalf("failed publication did not retain approval: %d %s", current.Code, current.Body)

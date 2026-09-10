@@ -1,7 +1,7 @@
 import {useEffect,useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {ApiError,shouldRetryQuery} from "../../api/client";
-import {defaultReleaseTitle,draftFromOrder,releaseOrders,releaseRequests,releaseTitleError,type DraftContentInput} from "../../api/release-orders";
+import {decodeReleaseRequest,draftItemSchema,defaultReleaseTitle,releaseOrders,releaseRequests,releaseTitleError,type ReleaseRequestEnvelope,type DraftContentInput} from "../../api/release-orders";
 import {useWorkspaceIdentity} from "../accounts/ProtectedWorkspace";
 import {Button} from "../../components/ui/Button";
 import {NativeSelect} from "../../components/shadcn/native-select";
@@ -16,7 +16,7 @@ export function useDraftDestination(table:string,initialID=""){
  const titleError=releaseTitleError(title);
  const [error,setError]=useState<unknown>();
  useEffect(()=>setTitle(defaultReleaseTitle(table)),[table]);
- const list=useQuery({queryKey:["release-orders","draft-destination",table,accountID,after],queryFn:()=>releaseOrders.list({table_name:table,applicant_id:accountID,state:"DRAFT",after}),enabled:open&&Boolean(table),retry:shouldRetryQuery});
+ const list=useQuery({queryKey:["release-orders","draft-destination",table,accountID,after],queryFn:()=>releaseOrders.list({applicant_id:accountID,state:"DRAFT",after}),enabled:open&&Boolean(table),retry:shouldRetryQuery});
  const prepare=async(input:DraftContentInput)=>{
   setError(undefined);
   try{
@@ -25,10 +25,9 @@ export function useDraftDestination(table:string,initialID=""){
     return releaseRequests.create({...input,title});
    }
    const order=await releaseOrders.get(selected);
-   if(order.table_name!==table||order.applicant_id!==accountID||!order.allowed_actions.includes("edit")||order.state!=="DRAFT")throw new ApiError("release_destination_invalid","所选草稿已不可编辑，或不属于本人当前表。请重新选择。",422);
-   const body=draftFromOrder(order);body.items.push(...input.items);
-   if(body.items.length>1000)throw new ApiError("release_item_limit","合并后的草稿不能超过 1,000 项，请调整明细。",422);
-   return releaseRequests.edit(order.id,body);
+   if(order.applicant_id!==accountID||!order.allowed_actions.includes("edit")||order.state!=="DRAFT")throw new ApiError("release_destination_invalid","所选草稿已不可编辑，或不属于本人。请重新选择。",422);
+   if(order.item_count+input.items.length>1000)throw new ApiError("release_item_limit","合并后的草稿不能超过 1,000 项，请调整明细。",422);
+   return releaseRequests.edit(order.id,{title:order.title,expected_version:order.version,changes:{upserts:input.items}});
   }catch(cause){setError(cause);return undefined}
  };
  const picker=(disabled:boolean)=><section className="draft-destination" aria-label="草稿去向">
@@ -49,9 +48,9 @@ export function useDraftDestination(table:string,initialID=""){
     <NativeSelect id="release-draft-destination" aria-label="保存到草稿" disabled={disabled} value={selected} onChange={event=>setSelected(event.target.value)}>
      <option value="">新建草稿</option>
      {selected&&!list.data?.orders.some(order=>order.id===selected)&&<option value={selected}>{selected}</option>}
-     {list.data?.orders.filter(order=>!order.rollback_of_id&&order.allowed_actions.includes("edit")).map(order=><option key={order.id} value={order.id}>{order.title} · {order.id} · 版本 {order.version}</option>)}
+     {list.data?.orders.filter(order=>order.allowed_actions.includes("edit")).map(order=><option key={order.id} value={order.id}>{order.title} · {order.id} · 版本 {order.version}</option>)}
     </NativeSelect>
-    {list.isPending&&<p className="draft-destination-hint">正在读取本人同表草稿…</p>}
+    {list.isPending&&<p className="draft-destination-hint">正在读取本人草稿…</p>}
     {list.isError&&<ErrorState error={list.error}/>}
     <div className="draft-destination-pagination">
      <Button variant="ghost" disabled={disabled||!after} onClick={()=>setAfter("")}>草稿首页</Button>
@@ -59,8 +58,21 @@ export function useDraftDestination(table:string,initialID=""){
     </div>
    </div>}
   </div>
-  <p className="draft-destination-hint">一单同表，最多 1,000 项。整单提交审批与发布。</p>
+  <p className="draft-destination-hint">同一数据源内多表合计最多 1,000 项。整单按明细顺序审批与发布。</p>
   {Boolean(error)&&<ErrorState error={error}/>}
  </section>;
- return {prepare,picker,valid:Boolean(selected)||!titleError};
+ // Replaying a request from another window must not acknowledge this
+ // window's different unsaved fields, title, destination or selected rows.
+ const matchesInput=(request:ReleaseRequestEnvelope,input:DraftContentInput)=>{
+  try{
+   const intent=decodeReleaseRequest(request);
+   if(!selected&&intent.action==="create")return intent.input.title===title&&JSON.stringify(intent.input.items)===JSON.stringify(input.items.map(item=>draftItemSchema.parse(item)));
+   if(selected&&intent.action==="edit-details"&&intent.id===selected){
+    const changes=intent.input.changes;
+    return !changes.delete_detail_ids&&!changes.detail_order&&JSON.stringify(changes.upserts)===JSON.stringify(input.items.map(item=>draftItemSchema.parse(item)));
+   }
+  }catch{/* An unreadable retained request cannot acknowledge current input. */}
+  return false;
+ };
+ return {prepare,picker,matchesInput,valid:Boolean(selected)||!titleError};
 }

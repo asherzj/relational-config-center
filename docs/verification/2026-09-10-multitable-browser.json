@@ -1,0 +1,83 @@
+{
+  "browser": "Chrome 152, real Vite same-origin Admin/MySQL",
+  "database_concurrency": 1,
+  "account_system_path": "browser-final.jsonl (TestAccountBrowserSystemPath PASS)",
+  "scripts": [
+    {
+      "script": "unsaved-changes.cjs",
+      "pass_source": "browser-full.jsonl"
+    },
+    {
+      "script": "rule-clarity.cjs",
+      "pass_source": "browser-full.jsonl"
+    },
+    {
+      "script": "release-drafts.cjs",
+      "pass_source": "browser-reviewed.jsonl"
+    },
+    {
+      "script": "release-approvals.cjs",
+      "pass_source": "browser-reviewed.jsonl"
+    },
+    {
+      "script": "release-batches.cjs",
+      "pass_source": "browser-final.jsonl"
+    },
+    {
+      "script": "release-rollbacks.cjs",
+      "pass_source": "browser-reviewed.jsonl"
+    },
+    {
+      "script": "draft-targets.cjs",
+      "pass_source": "browser-full.jsonl"
+    },
+    {
+      "script": "release-multitable.cjs",
+      "pass_source": "browser-final.jsonl"
+    }
+  ],
+  "sources": [
+    {
+      "path": "/private/tmp/rcc-84-evidence/browser-full.jsonl",
+      "sha256": "ef76e560aec97724e6afc692f946c8d71aa9e81644578e9e75a6e309eefddf98"
+    },
+    {
+      "path": "/private/tmp/rcc-84-evidence/browser-reviewed.jsonl",
+      "sha256": "7f242bd1fa8a23cb984adacd31c4e179b666bc14280f05a91fe6a1f24cdfdf73"
+    },
+    {
+      "path": "/private/tmp/rcc-84-evidence/browser-final.jsonl",
+      "sha256": "f262d0b26be1f3498959286de43833381e245c597f3ab7e763e05030dc155ad4"
+    }
+  ],
+  "multitable": {
+    "checks": [
+      "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+      "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+      "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+      "真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿",
+      "持久化失败前零业务发送且保留输入，日志读取失败不阻断账号或无关只读页面"
+    ],
+    "large_request": {
+      "bytes": 9437321,
+      "sha256": "f1147ba0f23b0c613cb22c6685206f16361df063fd8ae36a080565ed5b612567",
+      "same_key": true,
+      "same_order": true,
+      "account_isolation": true
+    }
+  },
+  "screenshots": [
+    {
+      "path": "docs/verification/2026-09-10-multitable/multitable-editor-mobile.png",
+      "sha256": "4af5ae45692677eb8a69f1265402e06c52e4ddfcd83cfb079a0094b2a4994680"
+    },
+    {
+      "path": "docs/verification/2026-09-10-multitable/multitable-publication-desktop.png",
+      "sha256": "8ed80750cd24470e9601145fd12ef7f69e0b1ce667e5837ef2d8fa600c1aeab2"
+    },
+    {
+      "path": "docs/verification/2026-09-10-multitable/multitable-restoration-mobile-final.png",
+      "sha256": "13576c5f494ba13cc217838b9bd55be9c5d065631a16961c09c0b4685a546202"
+    }
+  ]
+}

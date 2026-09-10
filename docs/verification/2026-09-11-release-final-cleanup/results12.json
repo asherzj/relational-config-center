@@ -1,0 +1,16 @@
+[
+  {
+    "command": [
+      "python3",
+      "/Users/asher/.codex/visualizations/2026/09/09/01a0850d-11fa-7f83-b97d-d58527309794/rcc-88-compose-9df93a5bb851/scripts/compose-migration-acceptance.py",
+      "--artifacts",
+      "/private/tmp/rcc-88-final-verification/compose12"
+    ],
+    "working_directory": "/Users/asher/.codex/visualizations/2026/09/09/01a0850d-11fa-7f83-b97d-d58527309794/rcc-88-compose-9df93a5bb851",
+    "log": "compose12-runner.log",
+    "started": "2026-09-10T17:12:56.132354+00:00",
+    "finished": "2026-09-10T17:13:41.916784+00:00",
+    "exit": 0,
+    "sha256": "5ece802ce81ca193032c48850297c8cafb4908b1881ac870e58498321a1b69b8"
+  }
+]

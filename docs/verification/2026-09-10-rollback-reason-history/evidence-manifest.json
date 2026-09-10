@@ -1,0 +1,78 @@
+{
+  "fixed_base": "7daa8b50f002d98ca6b8d41228a9cae2bcfd2f1b",
+  "scope": "GitHub issue #87 / parent #81 AC-013",
+  "product_source_manifest": {
+    "algorithm": "SHA-256 of the ordered shasum -a 256 output for these files",
+    "sha256": "0f71102dc3c1d223d112e176b782a9c004ecdca6d4dd178ec125ad4814a72e45",
+    "files": [
+      "admin/internal/application/quick_rollback.go",
+      "admin/internal/application/release_orders.go",
+      "admin/internal/application/rollback_reason.go",
+      "admin/internal/domain/release_order.go",
+      "admin/internal/infrastructure/mysql/release_orders.go",
+      "admin/internal/interfaces/http/release_orders.go",
+      "admin/internal/interfaces/http/security.go",
+      "docs/admin-release-rollbacks.md",
+      "web/DESIGN.md",
+      "web/src/api/release-orders.ts",
+      "web/src/features/release-orders/ReleaseHistory.tsx",
+      "web/src/features/release-orders/ReleaseOrdersPage.tsx",
+      "web/src/features/release-orders/ReleaseRequestReview.tsx",
+      "web/src/features/release-orders/release-journal.ts",
+      "web/src/features/release-orders/RollbackReason.tsx"
+    ]
+  },
+  "evidence": [
+    {
+      "path": "/private/tmp/rcc-issue-87-evidence/red-green.md",
+      "sha256": "bcdb5148514f1eeb0e2e0816ff8dd6d6639c5670e019629143faafe0f09e00b4",
+      "result": "behavior HTTP RED, first backend GREEN, first Web GREEN"
+    },
+    {
+      "path": "/private/tmp/rcc-issue-87-evidence/mysql-integration-green.log",
+      "sha256": "9179ec632eaa97b2cc7da7fec359eade8139b6942d193a2152c2ccc3c3340ff7",
+      "command": "go test -v -tags=integration ./cmd/admin -run ^TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator$ -count=1 -p 1",
+      "result": "1 top-level plus 3 denied-role subtests passed; 9.81s"
+    },
+    {
+      "path": "/private/tmp/rcc-issue-87-evidence/affected-rollback-integration.log",
+      "sha256": "4e3af72865225a70a0341e576491f809baf531967376572be9f74b34fe54ebf5",
+      "command": "go test -v -tags=integration ./cmd/admin -run ^(TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult|TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole|TestOriginalOrderRollbackPreservesApplicationAndBothExecutions)$ -count=1 -p 1",
+      "result": "3 affected top-level integration tests passed"
+    },
+    {
+      "path": "/private/tmp/rcc-issue-87-evidence/admin-unit.log",
+      "sha256": "24d1b9b5fdbf6e8e626ac3da8e2c3c45d09e13380d4fb7821cc711a084d05e04",
+      "command": "go test ./... -count=1 -p 1",
+      "result": "6 tested packages passed; 4 packages had no test files"
+    },
+    {
+      "path": "/private/tmp/rcc-issue-87-evidence/web-tests.log",
+      "sha256": "19aa7cdfb8384cb03a66fe057dfe7c5a9db7733ef3daa3cb98612ecc6991e120",
+      "command": "pnpm exec vitest run src/features/release-orders/ReleaseOrdersPage.test.tsx src/features/release-orders/release-journal.test.ts",
+      "result": "2 files, 69/69 tests passed"
+    },
+    {
+      "path": "/private/tmp/rcc-issue-87-evidence/web-build.log",
+      "sha256": "e2db8e8db80505f9a294ada510587d3ef2cca87ce1df856f92ff689275ea1039",
+      "command": "pnpm build",
+      "result": "TypeScript check and Vite production build passed"
+    },
+    {
+      "path": "/private/tmp/rcc-issue-87-evidence/browser-runner.log",
+      "sha256": "30bde60165d5d621fcc3e375aedd26734db039c97f37398c194aaee311dd54e1",
+      "result": "initial script timing failure after reading corrected content"
+    },
+    {
+      "path": "/private/tmp/rcc-issue-87-evidence/browser-green-runner.log",
+      "sha256": "201eea00022024511f0237d2897116ed9c5d6faf6672862cb1d6453cd86307bd",
+      "result": "3 focused browser checks passed after waiting for replay response"
+    },
+    {
+      "path": "/private/tmp/rcc-issue-87-evidence/browser-final-runner.log",
+      "sha256": "649d2c2600ae4e6aca47ace6a63763f578e0829e2f3550b4830c524954b596de",
+      "command": "RCC_E2E_SUITE=rollback-reason ./scripts/browser-acceptance.sh",
+      "result": "3 focused Chromium/MySQL checks passed with desktop and 390px evidence; cleanup verified"
+    }
+  ]
+}

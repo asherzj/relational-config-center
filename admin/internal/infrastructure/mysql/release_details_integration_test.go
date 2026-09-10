@@ -1,0 +1,83 @@
+//go:build integration
+
+package mysql
+
+import (
+	"context"
+	"crypto/sha256"
+	"fmt"
+	"testing"
+	"time"
+
+	"github.com/asherzj/relational-config-center/admin/internal/application"
+	"github.com/asherzj/relational-config-center/admin/internal/domain"
+)
+
+// The adapter owns the lock protocol. Independent order owners must be able to
+// read and grow their details, targets and table references together, including
+// the empty storage state. No empty index-range lock may serialize their inserts.
+func TestIndependentReleaseDetailGrowthDoesNotLockIndexGaps(t *testing.T) {
+	ctx, adapter, _, _ := identityGuardDatabase(t)
+	for _, initial := range []int{0, 1} {
+		t.Run(fmt.Sprint(initial), func(t *testing.T) {
+			ids := []string{fmt.Sprintf("detail-%d-a", initial), fmt.Sprintf("detail-%d-b", initial)}
+			for _, id := range ids {
+				order := domain.ReleaseOrder{ID: id, Title: "storage concurrency", ApplicantID: "fixture", State: "DRAFT", Version: "1", Items: []domain.ReleaseItem{}}
+				for range initial {
+					order.Items = append(order.Items, domain.ReleaseItem{TableName: "fixture", Operation: "ADD"})
+				}
+				if err := adapter.ExecuteReleaseOrder(ctx, func(s application.ReleaseOrderSession) error { return s.SaveReleaseOrder(ctx, order, true) }); err != nil {
+					t.Fatal(err)
+				}
+			}
+			operation, cancel := context.WithTimeout(ctx, 5*time.Second)
+			defer cancel()
+			ready := make(chan struct{}, len(ids))
+			continueWrites := make(chan struct{})
+			results := make(chan error, len(ids))
+			for _, id := range ids {
+				go func(id string) {
+					results <- adapter.ExecuteReleaseOrder(operation, func(s application.ReleaseOrderSession) error {
+						order, err := s.GetReleaseOrder(operation, id)
+						ready <- struct{}{}
+						if err != nil {
+							return err
+						}
+						select {
+						case <-continueWrites:
+						case <-operation.Done():
+							return operation.Err()
+						}
+						order.Items = append(order.Items, domain.ReleaseItem{TableName: "fixture", Operation: "ADD"})
+						if err := s.SaveReleaseOrder(operation, order, false); err != nil {
+							return err
+						}
+						key := sha256.Sum256([]byte(id))
+						if err := s.ReplaceReleaseTargets(operation, id, []domain.ActiveTarget{{TableName: "fixture", RecordKey: key[:]}}); err != nil {
+							return err
+						}
+						return s.ReplaceReleaseTableReferences(operation, id, []string{"fixture"})
+					})
+				}(id)
+			}
+			for range ids {
+				select {
+				case <-ready:
+				case <-operation.Done():
+				}
+			}
+			close(continueWrites)
+			for range ids {
+				if err := <-results; err != nil {
+					t.Error("independent detail growth failed", err)
+				}
+			}
+			for _, id := range ids {
+				order, err := adapter.ReadReleaseHeader(ctx, id)
+				if err != nil || order.ItemCount != initial+1 {
+					t.Errorf("saved detail count: %d, error: %v", order.ItemCount, err)
+				}
+			}
+		})
+	}
+}

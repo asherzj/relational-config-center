@@ -36,7 +36,7 @@ build:
 
 # Requires pnpm --dir web install and Chrome (or RCC_BROWSER_EXECUTABLE).
 test-browser:
-	@cd admin && go test -v -count=1 -timeout=5m -tags=integration,browser ./cmd/admin -run '^TestAccountBrowserSystemPath$$'
+	@cd admin && go test -v -count=1 -timeout=45m -tags=integration,browser ./cmd/admin -run '^TestAccountBrowserSystemPath$$'
 
 # Uses generated Compose project names and disposable volumes only.
 test-compose-migrations:

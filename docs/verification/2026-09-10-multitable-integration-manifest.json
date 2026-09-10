@@ -1,0 +1,1465 @@
+{
+  "fixed_base": "192861fe845929721a7bfe5fc89114b8c7e791ba",
+  "total": 284,
+  "passed": 284,
+  "missing": [],
+  "original_failed_cases": [
+    {
+      "source": "integration-full.jsonl",
+      "action": "fail",
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationAddFailsClosedWhenPolicyCatalogIsUnavailable"
+    },
+    {
+      "source": "integration-full.jsonl",
+      "action": "fail",
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryFailsClosedWhenPolicyCatalogIsUnavailable"
+    }
+  ],
+  "packages_without_tests": [
+    "github.com/asherzj/relational-config-center/admin/cmd/account-maintain",
+    "github.com/asherzj/relational-config-center/admin/cmd/policy-migrate",
+    "github.com/asherzj/relational-config-center/admin/internal/infrastructure/password"
+  ],
+  "logs": [
+    {
+      "path": "/private/tmp/rcc-84-evidence/integration-full.jsonl",
+      "sha256": "0c1bc6a43af3593fdbb5592a7575b2b756cfb172733f2e2d728d7ecdad11a0ce"
+    },
+    {
+      "path": "/private/tmp/rcc-84-evidence/integration-adapter-final.jsonl",
+      "sha256": "f76a4b63db8a352b5387c80ad4dee5d60e3e301de6e8e7a8978cf568459b53a2"
+    },
+    {
+      "path": "/private/tmp/rcc-84-evidence/integration-cmd-reviewed.jsonl",
+      "sha256": "27f88e875699c78b780ab81d8d5447d1562a71a422f1df56f741358213e5fa37"
+    },
+    {
+      "path": "/private/tmp/rcc-84-evidence/integration-http-capacity.jsonl",
+      "sha256": "1b04ac78c60847db85f898e4bcbf4147cdcb38f3c8440531663869be40144548"
+    }
+  ],
+  "cases": [
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountProcessRequiresCompleteAuthenticationSchema",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountProcessRestartPreservesSessionsAndRateWindows",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountProcessDatabaseFailuresRemain503And504",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountUpgradeFromLegacyMatchesFreshSchema",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountProcessHTTPSCookiesAndSensitiveMaterials",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountProcessCapacityNeverEvictsValidState",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountRegistrationCreatesCurrentIdentity",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountConcurrentSessionsActivityAndExpiry",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountProfileChangesAffectOnlyCurrentAccount",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountMaintenanceAuthorizesBeforeInputs",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountCurrentAndAllSessionRevocation",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountPasswordChangeRevokesAllSessions",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountLoginAfterLogout",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountRegistrationRateLimit",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountNormalizedUniquenessAndAtomicRegistration",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountFailuresAndCredentialBoundaries",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountRateLimitsAcrossIPsAndWindows",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountSuccessClearsFailureCountAndIPLimit",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountCSRFAndServiceFailure",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountHTTPFieldContract",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountStoredSecretsAndAbsoluteExpiry",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountHTTPSCookiesAndPreauthExpiry",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountDatabaseLockTimeoutIs504",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountSuccessfulLoginPreservesOutstandingReservations",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountLoginSettlementFailurePreservesPreviousSession",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountCancelledLoginReleasesReservation",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountMaintenanceResetPasswordRevokesEverySession",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountMaintenanceDisableAndEnableDoNotReviveSessions",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountMaintenanceResetDisabledAccountPreservesDraftDestruction",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountMaintenanceCorrectEmailPreservesOwnershipAndSessions",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountMaintenanceIndependentConnectionAndAtomicFailures",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountProcessStopAllowsPendingRequestHeader",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRegisteredAccountIsViewer",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMaintainerBootstrapsAdministratorAndAssignsRoles",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRoleChangeIsAuditedAndIdempotent",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLastEnabledAdministratorCannotBeRemovedOrDisabled",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountRoleUpgradePreservesAccountsAndGrants",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestCurrentSessionUsesRolePermissionMatrix",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRoleChangesAndAccountMaintenanceAreConcurrentSafe",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRoleChangeRaceAndAuditFailureDoNotLeavePartialGrants",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountSecurityChangesWinAgainstVerifiedLogin",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalAccountPersistedSessionDeadlines",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestBusinessAPIsRequireSessionAndCSRF",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestConcurrentAccountsOwnTheirBusinessChanges",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountControlTablesCannotBeDiscoveredOrManaged",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDatabaseTableListDiscoversOnlyOrdinaryBaseTables",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDatabaseTableDetailReturnsLiveMetadataAndStableNotFoundError",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestHealthDistinguishesRunningProcessFromRequiredInfrastructure",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestStartupRequiresTheProtectedPolicyCatalog",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAdminProcessServesUnauthenticatedLiveness",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalManagedTableFixtureRejectsLifecycleConflictsWithoutReactivation",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLocalManagedTableFixtureRejectsIncompatibleExistingTableWithoutAssignment",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPolicyMigrationRunsWithoutAccountSchemaOrHTTPConfiguration",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOneSnapshot",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRelationalMutationPolicyIsSoleAuthorizationSourceAndDeprecatedExecutes",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationSessionCannotBeReusedAfterTransaction",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyAddsRowAndReturnsJSONStringID",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyReturnsExplicitAutoIncrementID",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyReturnsARequiredNonAutoIncrementID",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyAutoFillUsesAccountOperatorAndDatabaseTimeAndRejectsManagedInput",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyRejectsMissingRequiredFieldsAndRollsBackDatabaseFailures",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyMapsMySQLUniqueKeyViolationsToConflict",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchesOnlySubmittedFieldsWithJSONStringSemantics",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchRejectsInvalidAndNonWritableFields",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchUsesLatestPolicyAndLiveSchema",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchAutoFillUsesModifySlotsAndRejectsManagedInput",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchRollsBackDatabaseFailures",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchMapsUniqueKeyConflictsAndRollsBack",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchFailsClosedForCurrentPolicyAndSchema",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteDefaultsToDeniedThenUsesTheCurrentReplacement",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteFailsClosedBeforeExecution",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteMapsMissingRowsToNotFound",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteRollsBackDatabaseFailures",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteFailsClosedForUnsupportedLiveColumns",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteFailsClosedForStaleAutoFillSchemaRules",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteFailsClosedForInvalidCurrentPolicyAndLiveTable",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationAddFailsClosedAndUsesTheLatestPolicySnapshot",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationAddFailsClosedForInvalidLivePolicyAndSchema",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationAddFailsClosedWhenPolicyCatalogIsUnavailable",
+      "pass_source": "integration-cmd-reviewed.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPolicyAuditMigrationPreservesDataAndIsRestartable",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPolicyAuditMigrationRejectsAmbiguousOrMissingColumnsBeforeDDL",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryPolicyHTTPLifecyclePersistsAndFailsClosed",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTablePolicyCodeAssignmentsValidateActiveDefinitionsAndReplaceAtomically",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestLegacyPolicyPreflightRejectsUnsupportedAutoFillWithoutPartialRewrite",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTablePolicyCreationPersistsDisabledCodeReferencesForHTTPInspection",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAdminProcessHelper",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAdminExternalProcessServesHealthAndEnforcesAuthDefault",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAdminExternalProcessForcesShutdownAtConfiguredBoundAndStillClosesApplication",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAdminExternalProcessWaitsForIncompleteRequestHeadersOnShutdown",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationFloatValuesAndIdentityRoundTrip",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationFloatIdentityMaintenanceKeepsOldVersions",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationCommitUnknownSurvivesExecutableRestart",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryPolicyQuotesManagedTableNameAsIdentifier",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryPolicyContainsTreatsWildcardsAndEscapeCharacterLiterally",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryPolicyAppliesOpenAndClosedRanges",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryPolicyAppliesMembershipNullAndEmptyStringSemantics",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryPolicyEnforcesLimitsAndRequestSortWithoutCorrection",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryPolicyReturnsEverySupportedLiveTypeAsLosslessJSONString",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryPolicyParsesConditionValuesByLiveType",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryPolicyRejectsEveryUnsupportedFullRowType",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryPolicyMapsDatabaseTimeoutToSafeGatewayTimeout",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestEnabledTablePolicyQueriesExactRowsWithPolicyDefaults",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPolicyReplacementAndDisableAffectTheNextQuery",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestExactQueryUsesANDValidatedSortAndPreservesAnEmptyRequestedPage",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryFailsClosedWhenLiveSchemaBecomesInvalid",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryFailsClosedWhenPolicyCatalogIsUnavailable",
+      "pass_source": "integration-cmd-reviewed.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAssignedDeprecatedPolicyDefinitionsRemainQueryable",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryPolicySnapshotCorruptionFailsClosed",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestInFlightQueryKeepsOnePolicySnapshotWhileReplacementAffectsNextRequest",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestExternalDDLRaceFailsSafelyWithoutStorageDetails",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuerySnapshotSessionCannotBeReusedAfterTransaction",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionLegacyBaseline",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionCompareAndSwap",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionAddDeleteRecreateAndRollback",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionMySQLPrimaryKeyEquivalence",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionRealConcurrentWriters",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionSchemaReadinessAndRestartableMigration",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionLosslessMaintenanceFloor",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionSnapshotAndIndependentResources",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionRejectsNonTransactionalBusinessWrite",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionControlStorageFailureRollsBackBusinessWrites",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseSubmitFreezesIntent",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseTargetsCompeteAndCancelReleases",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseApprovalCurrentRolesAndHistory",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseRejectedCopyRechecksBaseline",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseWorkflowAtomicityAndCompetition",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseFreezeTracksExecutionSemantics",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseFreezeMetadataVisibility",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseSubmitRevalidatesBaselineAndRules",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseExecutionSchemaHoldsMetadataLock",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseAutoIncrementZeroIdentity",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseFreezeMetadataGrantNameIdentity",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseFreezeMetadataCaseInsensitiveNames",
+      "pass_source": "integration-cmd-reviewed.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchEdgeDraftValidation",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchEdgeRequestLimitsPreserveDraft",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchEdgeOverlappingSubmissions",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchEdgeStaleMemberRollsBack",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchEdgeMidwayConstraintRollback",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchEdgeAutoIncrementAndIndependentRequests",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchEdgeIndependentUniqueConflict",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchExistingEnumPrimaryKeys",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchCopyInvalidItemIsLocated",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseMixedBatchPublication",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchDuplicateIdentityDoesNotReplaceDraft",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseThousandItemsThroughExecutable",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchLargeFieldDraftPreservesInput",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchExpandedResultsExceedFormerBudget",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchLargeHistoryCanApproveAndCancel",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionRetainsKnownTargets",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionPermanentlyClosesRollbackWindow",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionReleasesWithoutRepublishing",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionProtectsActualAndDeletedIDs",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionRolesConcurrencyAndReplay",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionPersistenceFailureIsAtomic",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionRequiresTrustedPublicationOnReadAndReplay",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionAtPublicationCapacityClosesRollbackWindow",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftTitlePersistsAndReloads",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftTitleUnicodeValidation",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftTitleEditCASAndFreeze",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftSaveAndReload",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftCASCancelAndIdempotency",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftDiffAndServerBaseline",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftMissingIdentityAndTombstone",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftCurrentAuthorizationAndListing",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftSchemaReadiness",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftKnownAddUpdateRequiresOriginalBaseline",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftPreviewRebuildsMissingAddBaseline",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftConcurrentAndAtomicStorage",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftRejectsLossySnapshotAndRetainsSavedSchema",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftReplayUsesCurrentActionsAndRejectsChangedDigest",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftReservationsBeginOnSaveAndEndOnCancel",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftConcurrencyKeyProtectsValuesAndDefinition",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftIncrementalEditsReplaceTargetsAtomically",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftKeyEligibilityDefaultsAndAutoIDReferences",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftConcurrencyKeyDatabaseEquality",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftSharedKeyReferencesReleaseOnlyAfterLastDetail",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftSaveAndKeyDefinitionRaceCannotBypassReferences",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftTargetReplacementRollsBackOnPersistenceFailure",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftAllTargetTypesReleaseOnEveryTerminalAction",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftSubmitRejectsChangedTargetIdentity",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults",
+      "pass_source": "integration-cmd-reviewed.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMultitableThousandPagedDetailsExecuteAsOneOrder",
+      "pass_source": "integration-cmd-reviewed.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMultitableDraftWaitsForAllGuardsBeforeAnySnapshot",
+      "pass_source": "integration-cmd-reviewed.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMultitableLargeValuesThroughHTTPLifecycle",
+      "pass_source": "integration-cmd-reviewed.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestOriginalOrderRollbackPreservesApplicationAndBothExecutions",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleasePublicationAddsFinalRow",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationRejectsUntrackedCascade",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationSupportsTargetRowTrigger",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationAtomicPersistenceFailures",
+      "pass_source": "integration-cmd-reviewed.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestOldRecordWriteRoutesAreRemoved",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationIdentityCanonicalAndDelete",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationRejectsImplicitWritesAndAuditSpoofing",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationPublisherHistoryAndApprovalSurvivesRevocation",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationFrozenChangesAndDescriptions",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationActionCompetitionAndTableOrder",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationSessionLocksHiddenForeignKeyDDL",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationRejectsUnknownNonAutoIncrementIdentity",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationStoredRowsAreVerifiedBeforeReadOrReplay",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackPreviewShowsWholeRestorationWithoutWriting",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackRejectsUnversionedExternalChangesBeforePreviewAndExecution",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackRequiresItsOriginalRetainedTargets",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackConstraintFailureRollsBackEarlierItems",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackCanTerminateAtAcceptedPublicationCapacity",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackRejectsDatabaseEffectsThatCannotRestoreOriginalValues",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseReprepareReplacesApprovedOrderWithEditableDraft",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseReprepareRequiresCurrentApplicantEditorOrAdmin",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseReprepareFailureKeepsApprovedOrderAndTarget",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseRollbackUnwindsUniqueValueDependencies",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseRollbackRestoresDeletedEnumIdentity",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseRollbackRestoresBusinessFieldsWithNewAudit",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseRollbackRestoresStoredTimeDuration",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAdminProcessRejectsInvalidConfiguration",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAdminProcessRejectsUnavailableRequiredDatabase",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAdminProcessRejectsRemovedAuthenticationConfiguration",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestMutationPolicyLifecycleAndAssignmentRules",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestMutationPolicyActivationValidatesTypeAutoFillAndAuthorization",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestMutationPolicyDraftWithUnknownTypeCanBeCompletedBeforeActivation",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestMutationPolicyDraftRejectsValuesBlockedByCatalogConstraints",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestMutationPolicyTableValidationRejectsMissingGeneratedAndTypeIncompatibleTargets",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestPolicySnapshotResolverAllowsAssignedDeprecatedDefinitions",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestPolicySnapshotResolverFailsClosedBeforeExecution",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestQueryPolicyLifecycleAndAssignmentRules",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestQueryPolicyActivationValidatesRegisteredTypeAndSafetyLimits",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestQueryPolicyDraftRejectsValuesBlockedByCatalogScalarConstraints",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestQueryPolicyCodeIsVersionedLowerCaseAndTechnologyNeutral",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestTransactionalManagedTableQueryLoadsAndExecutesCompleteRelationalSnapshotPerRequest",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/domain",
+      "test": "TestRegistrationFieldBoundaries",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/domain",
+      "test": "TestCanonicalRowFixedLosslessValues",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/domain",
+      "test": "TestCanonicalRowDeletionAndInvalidRepresentations",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestDraftBaselineAndPublicationSerializeBeforeSnapshot",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestPublicationJSONIdentityDoesNotUseURLPathSegments",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityRejectsNontransactionalTableBeforeWriting",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityReturnedAutoIDMustRemainSchemaAddressable",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityKeepsEngineStableUntilInsertTransactionEnds",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityReadPermissionFailureAfterInsertRollsBack",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityNeverReturnsExistingRowAfterTriggerChangesKey",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestPublicationRejectsIdentityCreatedAfterApproval",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityAutoResultBelongsToThisInsert",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestLegacyBackfillNormalizesDefaultsAndProducesStableTechnologyNeutralCodes",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestLegacyBackfillMapsOnlyStandardAuditAutoFill",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestLegacyBackfillReportsLiteralArbitraryAndNonMirroredRules",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestValidContractionPolicyCodeRejectsTechnologyPrefixes",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestMutationStorageValueErrorsAreEditableButOtherDatabaseFailuresRemainUnavailable",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestIndependentReleaseDetailGrowthDoesNotLockIndexGaps",
+      "pass_source": "integration-adapter-final.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestHTTPDependsOnApplicationRatherThanDomainOrInfrastructure",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestSharedBusinessServicesDoNotStoreRequestIdentity",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestReleaseDraftSessionCannotWriteBusinessRows",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestMutationPolicyResponseUsesTypedRelationalFieldsAndCatalogAuditNames",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestQueryPolicyResponseUsesCatalogAuditFieldNames",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestReleaseDetailCapacityRouteContract",
+      "pass_source": "integration-http-capacity.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestReleaseWorkflowPublicRoutes",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestRecoveryRedactsPanics",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestRemovedMutationRoutesCannotBeRevivedByEncodedIdentity",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestRawPathMutationRoutingPreservesAPIGuards",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIRejectsOldBearerCredentialsWhileHealthRemainsPublic",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIAccessLogIsStructuredAndRedactsRequestDetails",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIAccessLogUsesRouteTemplatesWithoutDynamicTableOrRowValues",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIRequestIDAcceptsOnlyTightlyValidatedValues",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIBodyLimitRejectsOversizedJSONWithStableError",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIDoesNotOfferCrossOriginCredentialAccess",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIUnknownRoutesUseTheSafeErrorEnvelope",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/platform/config",
+      "test": "TestLoadRequiresNoDeploymentIdentity",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/platform/config",
+      "test": "TestMaintenanceConfigNeedsOnlyMySQL",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/platform/config",
+      "test": "TestLoadRejectsInvalidHTTPBindAddresses",
+      "pass_source": "integration-full.jsonl"
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/platform/config",
+      "test": "TestLocalAccountOriginAndLimitsConfiguration",
+      "pass_source": "integration-full.jsonl"
+    }
+  ]
+}

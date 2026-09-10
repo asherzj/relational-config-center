@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
 	"regexp"
 	"sort"
 	"strings"
@@ -29,21 +28,39 @@ func startHistoricalBaselineMySQL(t *testing.T, scripts ...string) (context.Cont
 	ctx, driver := startIntegrationMySQL(t, append([]string{"testdata/pre-goose-8b5cd859.sql"}, scripts...)...)
 	fixture := *driver
 	fixture.Params = map[string]string{"charset": "utf8mb4"}
+	fixture.MultiStatements = true
 	db := deliveryDB(t, &fixture)
-	fieldPolicy, err := os.ReadFile("../../../deploy/mysql/migrations/014-table-field-policies.sql")
-	if err != nil {
-		t.Fatal(err)
-	}
-	deliveryExec(t, db, string(fieldPolicy))
+	applyUnmanagedCurrentMigrations(t, db)
 	return ctx, driver
+}
+
+// Replay the documented, unpublished manual stages only for unmanaged installs.
+// Published 001–014 and the frozen historical input remain immutable.
+func applyUnmanagedCurrentMigrations(t *testing.T, db *sql.DB) {
+	t.Helper()
+	for _, name := range []string{"014-table-field-policies.sql", "015-original-order-executions.sql", "016-draft-target-reservations.sql", "017-release-main-order.sql"} {
+		source, err := os.ReadFile("../../../deploy/mysql/migrations/" + name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		deliveryExec(t, db, string(source))
+	}
 }
 
 func TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory(t *testing.T) {
 	binary := buildSchemaMigrationCommand(t)
-	ctx, driver := startHistoricalBaselineMySQL(t, "testdata/006-mutation-fixture.sql")
-	db := deliveryDB(t, driver)
+	ctx, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql", "testdata/006-mutation-fixture.sql")
+	fixture := *driver
+	fixture.MultiStatements = true
+	fixture.Params = map[string]string{"charset": "utf8mb4"}
+	db := deliveryDB(t, &fixture)
 	deliveryExec(t, db, `CREATE TABLE business_marker(id int PRIMARY KEY,note text)`)
 	cookies, published := loadHistoricalBaselineData(t, db)
+	legacyDocuments := baselineRows(t, db, `SELECT id,document FROM rcc_release_orders ORDER BY id`)
+	applyUnmanagedCurrentMigrations(t, db)
+	if baselineRows(t, db, `SELECT id,document FROM rcc_release_orders ORDER BY id`) != legacyDocuments {
+		t.Fatal("manual structural upgrade rewrote old business release documents")
+	}
 	deliveryExec(t, db, `INSERT INTO rcc_table_field_policies(table_name,field_name,display_name,creator,modifier) VALUES('mutation_add_items','label','保留字段名称','historical-owner','historical-owner')`)
 	var publication struct {
 		ID string `json:"id"`
@@ -84,17 +101,14 @@ func TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory(t *testing.T
 	if session := accountRequest(app, "GET", "/api/v1/auth/session", "", cookies, ""); session.Code != 200 {
 		t.Fatalf("existing session unavailable: %d %s", session.Code, session.Body)
 	}
+	// Old release business documents remain untouched and unsupported by the
+	// new main-order interface; account/session adoption is independently valid.
 	read := accountRequest(app, "GET", path, "", cookies, "")
-	var expected, actual any
-	if err := json.Unmarshal(published, &expected); err != nil {
-		t.Fatal(err)
+	assertIntegrationErrorCode(t, read, 503, "release_unavailable")
+	if baselineRows(t, db, `SELECT id,document FROM rcc_release_orders ORDER BY id`) != legacyDocuments {
+		t.Fatal("read or baseline changed old release business data")
 	}
-	if err := json.Unmarshal(read.Body.Bytes(), &actual); err != nil {
-		t.Fatal(err)
-	}
-	if read.Code != 200 || !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("publication changed after adoption: %d %s", read.Code, read.Body)
-	}
+
 }
 
 // Frozen output of the pre-Goose T2 public account/approval/publication workflow.
@@ -215,7 +229,7 @@ func TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites(t *testi
 	db := deliveryDB(t, driver)
 	deliveryExec(t, db, `INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,roles,role_version,session_version,created_at) VALUES('reject-account','rejected.account','rejected@example.test','Retained','opaque-hash',31,4,7,'2025-01-02')`)
 	deliveryExec(t, db, `INSERT INTO rcc_query_policies(code,name,type_code,default_order_field,default_order_direction,default_page_size,max_page_size,creator,modifier,created_at,updated_at) VALUES('retained_v1','Retained','page_query','id','ASC',20,100,'owner','editor','2025-01-02','2025-03-04')`)
-	deliveryExec(t, db, `INSERT INTO rcc_release_orders VALUES('retained-order','business_marker','reject-account','SUCCEEDED',7,'{"retained":true}')`)
+	deliveryExec(t, db, `INSERT INTO rcc_release_orders VALUES('retained-order','reject-account','SUCCEEDED',7,'{"retained":true}')`)
 	deliveryExec(t, db, `CREATE TABLE business_marker(id int PRIMARY KEY,note text)`)
 	deliveryExec(t, db, `INSERT INTO business_marker VALUES(17,'preserved')`)
 	for _, test := range []struct{ name, setup, restore string }{
@@ -262,7 +276,7 @@ func TestSchemaBaselineRecoversUnconfirmedRegistration(t *testing.T) {
 	root.User = "root"
 	db := deliveryDB(t, &root)
 	deliveryExec(t, db, `INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,roles,role_version,session_version,created_at) VALUES('recover-account','recover','recover@example.test','Retained','opaque-hash',31,4,7,'2025-01-02')`)
-	deliveryExec(t, db, `INSERT INTO rcc_release_orders VALUES('retained-order','business_marker','recover-account','SUCCEEDED',7,'{"retained":true}')`)
+	deliveryExec(t, db, `INSERT INTO rcc_release_orders(id,applicant_id,state,version,document) VALUES('retained-order','recover-account','SUCCEEDED',7,'{"retained":true}')`)
 	deliveryExec(t, db, `INSERT INTO rcc_record_versions VALUES('business_marker','',73)`)
 	before := baselineDataSnapshot(t, db)
 	deliveryExec(t, db, `REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'rcc_admin'@'%'`)
@@ -284,7 +298,7 @@ func TestSchemaBaselineRecoversUnconfirmedRegistration(t *testing.T) {
 	}
 	requireSchemaMigrationState(t, binary, driver, "recovery_required", "status")
 	var count int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version`).Scan(&count); err != nil || count != 4 {
+	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version`).Scan(&count); err != nil || int64(count) != currentTestSchemaVersion+1 {
 		t.Fatalf("adopted version prefix: %d %v", count, err)
 	}
 	deliveryExec(t, db, `DROP TRIGGER block_baseline_confirmation`)
@@ -442,7 +456,7 @@ func TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix(t *testing.T) {
 		}
 	}
 	var versions, attempts int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version`).Scan(&versions); err != nil || versions != 4 {
+	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version`).Scan(&versions); err != nil || int64(versions) != currentTestSchemaVersion+1 {
 		t.Fatalf("concurrent adoption duplicated prefix: %d %v", versions, err)
 	}
 	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_schema_migration_attempts`).Scan(&attempts); err != nil || attempts != 1 {
@@ -569,14 +583,10 @@ func TestCurrentGooseInstallationMatchesFrozenAdoptionStructure(t *testing.T) {
 		t.Fatal(err)
 	}
 	deliveryExec(t, historical, string(snapshot))
-	fieldPolicy, err := os.ReadFile("../../../deploy/mysql/migrations/014-table-field-policies.sql")
-	if err != nil {
-		t.Fatal(err)
-	}
-	deliveryExec(t, historical, string(fieldPolicy))
+	applyUnmanagedCurrentMigrations(t, historical)
 	assertBaselinePhysicalSchemaEqual(t, installed, historical)
 	tables := `SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() AND LEFT(table_name,4)='rcc_' AND table_name NOT IN ('rcc_schema_migration_attempts','rcc_goose_db_version') ORDER BY table_name`
 	if baselineRows(t, installed, tables) != baselineRows(t, historical, tables) {
-		t.Fatal("current initialization differs from the frozen baseline plus historical 014")
+		t.Fatal("current initialization differs from the frozen baseline plus historical 014 through 017")
 	}
 }

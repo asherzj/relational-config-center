@@ -1,5 +1,7 @@
 # 规格：发布单详情交互与发布后快速回滚
 
+本文保留 #59 的历史验收事实。涉及独立回滚单、整单结果读取的旧行为已由 [ADR-0025](../../adr/0025-multitable-drafts-reserve-targets-and-record-executions.md) 及当前[发布草稿](../../admin-release-drafts.md)、[原单回滚](../../admin-release-rollbacks.md)契约取代。
+
 状态：D-001～D-017、16 条验收要求及非目标已确认，规格发布为 [GitHub #59](https://github.com/asherzj/relational-config-center/issues/59)。#60～#64 均已独立验证、评审、提交、推送，完成 Notion 项目记录更新并关闭；全部验收证据见[验收索引](../../verification/2026-09-09-release-detail-acceptance-index.md)。实现已整合到 codex/new-feature-20260908，父规格保持打开。
 
 ## 问题陈述
