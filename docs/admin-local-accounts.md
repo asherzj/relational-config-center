@@ -24,7 +24,7 @@ Fresh MySQL installations use `schema-migrate up`. An existing
 final Policy Catalog without account tables uses `deploy/mysql/migrations/007-local-accounts.sql` once.
 The account table can be empty. Do not replay this migration on a fresh schema.
 Before starting the current release, finish all applicable historical control
-upgrades, Policy contraction and 013; explicitly run `schema-migrate baseline`
+upgrades, Policy contraction, 013 and 014; explicitly run `schema-migrate baseline`
 and confirm `schema-migrate status` reports `current`. Follow the
 [complete adoption sequence](schema-migrations.md#校验并接管现有库).
 
@@ -436,7 +436,7 @@ the original command. The three policy-page suites exercise these paths.
    proxy peers. In a container network use that proxy's exact address/CIDR and
    firewall direct Admin access. The example overwrites forwarded client IP so
    caller-supplied chains cannot defeat limits; never trust arbitrary networks.
-5. Complete the applicable 008–012 control upgrades, 013 and current Policy
+5. Complete the applicable 008–012 control upgrades, 013, 014 and current Policy
    contraction according to the [historical upgrade guide](admin-release-upgrade.md).
    Explicitly run `schema-migrate baseline`, then verify `schema-migrate status`
    reports `current` with no unconfirmed operation. An already-adopted deployment

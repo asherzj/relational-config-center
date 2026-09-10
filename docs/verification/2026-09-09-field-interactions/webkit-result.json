@@ -1,0 +1,61 @@
+{
+  "engine": "webkit",
+  "browser": "26.5",
+  "checks": [
+    {
+      "viewport": "1440x1000",
+      "name": "administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration"
+    },
+    {
+      "viewport": "1440x1000",
+      "name": "keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally"
+    },
+    {
+      "viewport": "1440x1000",
+      "name": "required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions",
+      "changeMetrics": {
+        "client": 980,
+        "total": 980,
+        "outlineWidth": "2px",
+        "outlineStyle": "solid",
+        "keyboardScrollLeft": 0
+      },
+      "reviewMetrics": {
+        "client": 1068,
+        "total": 1068,
+        "outlineWidth": "3px",
+        "outlineStyle": "solid",
+        "keyboardScrollLeft": 0
+      }
+    },
+    {
+      "viewport": "390x844",
+      "name": "administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration"
+    },
+    {
+      "viewport": "390x844",
+      "name": "keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally"
+    },
+    {
+      "viewport": "390x844",
+      "name": "required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions",
+      "changeMetrics": {
+        "client": 358,
+        "total": 600,
+        "outlineWidth": "2px",
+        "outlineStyle": "solid",
+        "keyboardScrollLeft": 48
+      },
+      "reviewMetrics": {
+        "client": 290,
+        "total": 560,
+        "outlineWidth": "3px",
+        "outlineStyle": "solid",
+        "keyboardScrollLeft": 48
+      }
+    }
+  ],
+  "errors": [],
+  "policiesRestored": true,
+  "ok": true
+}

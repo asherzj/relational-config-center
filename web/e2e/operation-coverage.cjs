@@ -282,7 +282,7 @@ function fixtureSQL() {
     assert.ok(responseFor('POST', '/api/v1/tables/stage3_active_items/query').status === 200);
     await button('新增记录').click();
     await checkbox('包含 name').check();
-    await input('name 值').fill('DeprecatedStillRuns');
+    await page.getByRole('dialog').getByLabel('name 值',{exact:true}).fill('DeprecatedStillRuns');
     await button('查看 Change Set').click();
     const draftResponse = page.waitForResponse((response) => response.request().method() === 'POST' && new URL(response.url()).pathname === '/api/v1/release-orders');
     await button('确认并保存草稿').click();
@@ -333,28 +333,21 @@ function fixtureSQL() {
 
     await managed('stage3_active_items');
     http.length = 0;
-    for (let index = 1; index <= 20; index += 1) await button('添加条件').click();
-    assert.equal(await page.getByRole('group', { name: /^条件 \d+$/ }).count(), 20);
-    assert.equal(await button('添加条件').isDisabled(), true);
-    for (let index = 1; index <= 20; index += 1) {
-      await page.getByRole('combobox', { name: `条件 ${index} 字段` }).selectOption('name');
-      await input(`条件 ${index} 值`).fill('Stage3Alpha');
-    }
+    await input('筛选 name 值').fill('Stage3Alpha');
+    assert.equal(await button('添加条件').count(),0);
     const queryPath = '/api/v1/tables/stage3_active_items/query';
     const queryResponse = page.waitForResponse((response) => response.request().method() === 'POST' && new URL(response.url()).pathname === queryPath);
+    await button('收起筛选').click();
     await button('查询').click();
-    assert.equal((await queryResponse).status(), 200);
-    const submitted = responseFor('POST', queryPath);
-    assert.equal(submitted.body.conditions.length, 20);
-    assert.equal(sql(`SELECT COUNT(*) FROM stage3_active_items WHERE ${Array(20).fill("name='Stage3Alpha'").join(' AND ')};`), '1');
-    assert.equal(await page.getByRole('cell', { name: 'Stage3Alpha', exact: true }).count(), 1);
-    await page.screenshot({ path: `${output}/twenty-and-conditions.png`, fullPage: true });
-    await page.getByRole('button', { name: '删除条件 20', exact: true }).click();
-    assert.equal(await button('添加条件').isEnabled(), true);
-    await button('添加条件').click();
-    assert.equal(await page.getByRole('group', { name: /^条件 \d+$/ }).count(), 20);
-    assert.equal(http.filter((entry) => entry.path === queryPath && entry.body?.conditions?.length > 20).length, 0);
-    check('browser submits exactly 20 AND conditions and never emits a 21-condition query', { http: submitted, sqlCount: 1, addDisabledAt20: true, removeThenAdd: true });
+    assert.equal((await queryResponse).status(),200);
+    const submitted = responseFor('POST',queryPath);
+    assert.deepEqual(submitted.body.conditions,[{field:'name',operator:'exact',value:'Stage3Alpha'}]);
+    assert.equal(sql("SELECT COUNT(*) FROM stage3_active_items WHERE name='Stage3Alpha';"),'1');
+    assert.equal(await page.getByRole('cell',{name:'Stage3Alpha',exact:true}).count(),1);
+    await button('展开筛选').click();
+    assert.equal(await input('筛选 name 值').inputValue(),'Stage3Alpha');
+    await page.screenshot({path:`${output}/combined-field-query.png`,fullPage:true});
+    check('direct field filter submits only entered AND conditions and preserves input after collapse/query',{http:submitted,sqlCount:1});
 
     await managed('stage3_denied_items');
     const addButton = button('新增记录');
@@ -383,7 +376,7 @@ function fixtureSQL() {
     assert.equal(await page.getByRole('button', { name: /^删除记录 / }).first().isEnabled(), true);
     await button('新增记录').click();
     await checkbox('包含 name').check();
-    await input('name 值').fill('CapabilitySwitchApplied');
+    await page.getByRole('dialog').getByLabel('name 值',{exact:true}).fill('CapabilitySwitchApplied');
     await button('查看 Change Set').click();
     const switchedDraftResponse = page.waitForResponse((response) => response.request().method() === 'POST' && new URL(response.url()).pathname === '/api/v1/release-orders');
     await button('确认并保存草稿').click();

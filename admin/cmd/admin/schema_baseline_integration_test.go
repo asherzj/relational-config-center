@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
@@ -17,14 +18,33 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	mysqldriver "github.com/go-sql-driver/mysql"
 )
+
+// MySQL image init scripts use the client's default charset. Apply historical
+// 014 through an explicit UTF-8 connection so its Chinese comments stay exact.
+func startHistoricalBaselineMySQL(t *testing.T, scripts ...string) (context.Context, *mysqldriver.Config) {
+	t.Helper()
+	ctx, driver := startIntegrationMySQL(t, append([]string{"testdata/pre-goose-8b5cd859.sql"}, scripts...)...)
+	fixture := *driver
+	fixture.Params = map[string]string{"charset": "utf8mb4"}
+	db := deliveryDB(t, &fixture)
+	fieldPolicy, err := os.ReadFile("../../../deploy/mysql/migrations/014-table-field-policies.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	deliveryExec(t, db, string(fieldPolicy))
+	return ctx, driver
+}
 
 func TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory(t *testing.T) {
 	binary := buildSchemaMigrationCommand(t)
-	ctx, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startHistoricalBaselineMySQL(t, "testdata/006-mutation-fixture.sql")
 	db := deliveryDB(t, driver)
 	deliveryExec(t, db, `CREATE TABLE business_marker(id int PRIMARY KEY,note text)`)
 	cookies, published := loadHistoricalBaselineData(t, db)
+	deliveryExec(t, db, `INSERT INTO rcc_table_field_policies(table_name,field_name,display_name,creator,modifier) VALUES('mutation_add_items','label','保留字段名称','historical-owner','historical-owner')`)
 	var publication struct {
 		ID string `json:"id"`
 	}
@@ -191,7 +211,7 @@ func baselineDataSnapshot(t *testing.T, db *sql.DB) string {
 
 func TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites(t *testing.T) {
 	binary := buildSchemaMigrationCommand(t)
-	_, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql")
+	_, driver := startHistoricalBaselineMySQL(t)
 	db := deliveryDB(t, driver)
 	deliveryExec(t, db, `INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,roles,role_version,session_version,created_at) VALUES('reject-account','rejected.account','rejected@example.test','Retained','opaque-hash',31,4,7,'2025-01-02')`)
 	deliveryExec(t, db, `INSERT INTO rcc_query_policies(code,name,type_code,default_order_field,default_order_direction,default_page_size,max_page_size,creator,modifier,created_at,updated_at) VALUES('retained_v1','Retained','page_query','id','ASC',20,100,'owner','editor','2025-01-02','2025-03-04')`)
@@ -237,7 +257,7 @@ func TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites(t *testi
 
 func TestSchemaBaselineRecoversUnconfirmedRegistration(t *testing.T) {
 	binary := buildSchemaMigrationCommand(t)
-	_, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql")
+	_, driver := startHistoricalBaselineMySQL(t)
 	root := *driver
 	root.User = "root"
 	db := deliveryDB(t, &root)
@@ -264,7 +284,7 @@ func TestSchemaBaselineRecoversUnconfirmedRegistration(t *testing.T) {
 	}
 	requireSchemaMigrationState(t, binary, driver, "recovery_required", "status")
 	var count int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version`).Scan(&count); err != nil || count != 3 {
+	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version`).Scan(&count); err != nil || count != 4 {
 		t.Fatalf("adopted version prefix: %d %v", count, err)
 	}
 	deliveryExec(t, db, `DROP TRIGGER block_baseline_confirmation`)
@@ -325,19 +345,20 @@ func TestSchemaBaselineReleaseUpgradesT1AndRecoversPartialAuditRename(t *testing
 	}
 	requireSchemaMigrationState(t, current, driver, "recovery_required", "status")
 	deliveryExec(t, db, `GRANT ALL PRIVILEGES ON rcc_test.* TO 'rcc_admin'@'%'`)
-	requireSchemaMigrationState(t, current, driver, "current", "recover")
+	requireSchemaMigrationState(t, current, driver, "pending", "recover")
+	requireSchemaMigrationState(t, current, driver, "current", "up")
 	var retained int
 	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_query_policies WHERE code='retained_v1' AND creator='owner' AND modifier='editor' AND created_at='2025-01-02' AND updated_at='2025-03-04'`).Scan(&retained); err != nil || retained != 1 {
 		t.Fatalf("rename changed audit data: %d %v", retained, err)
 	}
-	_, freshDriver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql")
+	_, freshDriver := startHistoricalBaselineMySQL(t)
 	fresh := deliveryDB(t, freshDriver)
 	assertBaselinePhysicalSchemaEqual(t, db, fresh)
 }
 
 func TestSchemaBaselineRecoversBeforeAttemptWasRecorded(t *testing.T) {
 	binary := buildSchemaMigrationCommand(t)
-	_, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql")
+	_, driver := startHistoricalBaselineMySQL(t)
 	root := *driver
 	root.User = "root"
 	db := deliveryDB(t, &root)
@@ -383,7 +404,7 @@ func assertBaselinePhysicalSchemaEqual(t *testing.T, left, right *sql.DB) {
 
 func TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix(t *testing.T) {
 	binary := buildSchemaMigrationCommand(t)
-	ctx, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql")
+	ctx, driver := startHistoricalBaselineMySQL(t)
 	db := deliveryDB(t, driver)
 	conn, err := db.Conn(ctx)
 	if err != nil {
@@ -421,7 +442,7 @@ func TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix(t *testing.T) {
 		}
 	}
 	var versions, attempts int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version`).Scan(&versions); err != nil || versions != 3 {
+	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version`).Scan(&versions); err != nil || versions != 4 {
 		t.Fatalf("concurrent adoption duplicated prefix: %d %v", versions, err)
 	}
 	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_schema_migration_attempts`).Scan(&attempts); err != nil || attempts != 1 {
@@ -431,7 +452,7 @@ func TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix(t *testing.T) {
 
 func TestSchemaBaselineProcessInterruptionRetainsUnconfirmedState(t *testing.T) {
 	binary := buildSchemaMigrationCommand(t)
-	_, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql")
+	_, driver := startHistoricalBaselineMySQL(t)
 	root := *driver
 	root.User = "root"
 	db := deliveryDB(t, &root)
@@ -492,7 +513,7 @@ func TestSchemaBaselineProcessInterruptionRetainsUnconfirmedState(t *testing.T) 
 
 func TestSchemaBaselineUsesTransactionalVersionLedger(t *testing.T) {
 	binary := buildSchemaMigrationCommand(t)
-	_, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql")
+	_, driver := startHistoricalBaselineMySQL(t)
 	root := *driver
 	root.User = "root"
 	db := deliveryDB(t, &root)
@@ -513,7 +534,7 @@ func TestSchemaBaselineUsesTransactionalVersionLedger(t *testing.T) {
 
 func TestSchemaBaselineRefusesToRecreateLostConfirmedHistory(t *testing.T) {
 	binary := buildSchemaMigrationCommand(t)
-	_, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql")
+	_, driver := startHistoricalBaselineMySQL(t)
 	db := deliveryDB(t, driver)
 	requireSchemaMigrationState(t, binary, driver, "current", "baseline")
 	before := baselineRows(t, db, `SELECT * FROM rcc_schema_migration_attempts ORDER BY id`)
@@ -548,9 +569,14 @@ func TestCurrentGooseInstallationMatchesFrozenAdoptionStructure(t *testing.T) {
 		t.Fatal(err)
 	}
 	deliveryExec(t, historical, string(snapshot))
+	fieldPolicy, err := os.ReadFile("../../../deploy/mysql/migrations/014-table-field-policies.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	deliveryExec(t, historical, string(fieldPolicy))
 	assertBaselinePhysicalSchemaEqual(t, installed, historical)
 	tables := `SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() AND LEFT(table_name,4)='rcc_' AND table_name NOT IN ('rcc_schema_migration_attempts','rcc_goose_db_version') ORDER BY table_name`
 	if baselineRows(t, installed, tables) != baselineRows(t, historical, tables) {
-		t.Fatal("current initialization changed the frozen adoption table set")
+		t.Fatal("current initialization differs from the frozen baseline plus historical 014")
 	}
 }

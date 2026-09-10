@@ -121,6 +121,7 @@ def main():
         run(['down', '--volumes'], timeout=90)
         mysql_ready()
         sql((root / 'admin/cmd/admin/testdata/pre-goose-8b5cd859.sql').read_text())
+        sql((root / 'deploy/mysql/migrations/014-table-field-policies.sql').read_text())
         sql("CREATE TABLE business_marker(id int PRIMARY KEY,note text); INSERT INTO business_marker VALUES(17,'unmanaged retained');")
         verify_blocked('unmanaged_volume_blocks', 'baseline_required')
         assert sql("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN ('notification_templates','rcc_goose_db_version','rcc_schema_migration_attempts');") == '0'

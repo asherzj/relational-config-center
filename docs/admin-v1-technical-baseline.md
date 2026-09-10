@@ -111,7 +111,7 @@ CREATE TABLE `rcc_table_policies` (
 
 完整定义见[嵌入 Goose 迁移](../admin/internal/infrastructure/mysql/migrations/)及其目标结构清单。`rcc_query_policies` 关系化保存 `page_query` 的默认排序和分页标量；`rcc_mutation_policies` 关系化保存操作授权及四个可空审计目标槽。三个表都使用 `created_at` / `updated_at`，具有唯一、查询索引和标量 CHECK，不使用外键或乐观锁。
 
-Policy API 同样返回 `created_at` / `updated_at`。旧库按 [013 升级说明](../deploy/mysql/migrations/README.md#policy-审计时间统一013) 重命名原 `gmt_created` / `gmt_modified` 列，保留时间值，并同步升级 Admin/Web。拟新增的 `rcc_table_field_policies` 也遵循此命名。
+Policy API 同样返回 `created_at` / `updated_at`。旧库按 [013 升级说明](../deploy/mysql/migrations/README.md#policy-审计时间统一013) 重命名原 `gmt_created` / `gmt_modified` 列，保留时间值，并同步升级 Admin/Web。`rcc_table_field_policies` 采用相同审计命名，由 Goose 00003 增加；未接管旧库使用[历史 014](../deploy/mysql/migrations/014-table-field-policies.sql) 后显式接管；管理员字段交互配置、实时读取与回退契约见[字段规则管理](admin-field-policies.md)。该表独立于Query/Mutation执行授权，不新增显示配置快照。
 
 该关系化取舍由 [ADR-0016](./adr/0016-separate-policy-definitions-from-table-assignments.md) 冻结，并取代 ADR-0010 的内联 JSON 模型。Policy Code 是不可修改、版本化、技术无关的业务标识；定义遵循 `DRAFT -> ACTIVE -> DEPRECATED`，新绑定只能选择 Active，现有 Deprecated 绑定仍可执行。
 
@@ -191,7 +191,7 @@ Query Spec：
 - 空字符串不能被忽略；NULL 只能使用 NULL 操作符。
 - Range 至少包含一个边界；IN/NOT IN 必须是非空字符串数组。
 - 单字段排序，方向仅允许 ASC/DESC；请求可覆盖默认排序。
-- 最多 20 个条件、集合最多 100 个值、Page Size 最大 200、Offset 最大 10,000。
+- 最多 256 个 AND 条件（范围计一条）、集合最多 100 个值、Page Size 最大 200、Offset 最大 10,000。
 - Count 与 Scan 在同一个只读一致性事务中执行，各受 3 秒超时限制。
 
 响应：

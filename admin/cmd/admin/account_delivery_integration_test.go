@@ -426,6 +426,12 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	deliveryExec(t, owner, "RENAME TABLE rcc_refresh_notifications TO interrupted_notifications")
 	rejectIncomplete("schema_not_ready")
 	deliveryExec(t, owner, "RENAME TABLE interrupted_notifications TO rcc_refresh_notifications")
+	rejectIncomplete("schema_not_ready")
+	fieldPolicyMigration, err := os.ReadFile("../../../deploy/mysql/migrations/014-table-field-policies.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	deliveryExec(t, owner, string(fieldPolicyMigration))
 	deliveryExec(t, owner, "CREATE DATABASE fresh_accounts CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
 	freshDriver := ownerDriver
 	freshDriver.DBName = "fresh_accounts"

@@ -6,17 +6,21 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 
 	mysqldriver "github.com/go-sql-driver/mysql"
 )
+
+const currentTestSchemaVersion int64 = 3
 
 // A second isolated release uses the unchanged public command and adds an
 // embedded migration. No production test hook or arbitrary-SQL CLI is needed.
@@ -79,11 +83,11 @@ func buildNextSchemaMigrationRelease(t *testing.T, slow ...bool) string {
 		if len(slow) > 0 && slow[0] {
 			fixture = strings.Replace(fixture, "\nINSERT", "\nSELECT SLEEP(3);\nINSERT", 1)
 		}
-		if err := os.WriteFile(filepath.Join(directory, "00003_fixture.sql"), []byte(fixture), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(directory, fmt.Sprintf("%05d_fixture.sql", currentTestSchemaVersion+1)), []byte(fixture), 0644); err != nil {
 			t.Fatal(err)
 		}
 		var manifest map[string]string
-		data, err := os.ReadFile(filepath.Join(directory, "00002_schema.json"))
+		data, err := os.ReadFile(filepath.Join(directory, fmt.Sprintf("%05d_schema.json", currentTestSchemaVersion)))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -95,16 +99,33 @@ func buildNextSchemaMigrationRelease(t *testing.T, slow ...bool) string {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(directory, "00003_schema.json"), data, 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(directory, fmt.Sprintf("%05d_schema.json", currentTestSchemaVersion+1)), data, 0644); err != nil {
 			t.Fatal(err)
 		}
 	})
 }
 func buildPreviousSchemaMigrationRelease(t *testing.T) string {
 	t.Helper()
+	return buildSchemaMigrationReleaseAt(t, 1)
+}
+
+func buildSchemaMigrationReleaseAt(t *testing.T, version int64) string {
+	t.Helper()
 	return buildSchemaMigrationVariant(t, func(directory string) {
-		for _, name := range []string{"00002_policy_audit_timestamps.sql", "00002_schema.json"} {
-			if err := os.Remove(filepath.Join(directory, name)); err != nil {
+		entries, err := os.ReadDir(directory)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, entry := range entries {
+			number, _, _ := strings.Cut(entry.Name(), "_")
+			candidate, err := strconv.ParseInt(number, 10, 64)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if candidate <= version {
+				continue
+			}
+			if err := os.Remove(filepath.Join(directory, entry.Name())); err != nil {
 				t.Fatal(err)
 			}
 		}
@@ -367,7 +388,7 @@ func TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	// Fail at the persistence boundary after Goose has committed version 3.
+	// Fail at the persistence boundary after Goose has committed the next version.
 	for _, statement := range []string{
 		`INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,created_at) VALUES('fixture-account','fixture','fixture@example.test','Retained account','opaque-password-hash','2026-01-01')`,
 		`INSERT INTO rcc_query_policies(code,name,type_code,default_order_field,default_order_direction,default_page_size,max_page_size,creator,modifier,created_at,updated_at) VALUES('retained_v1','Retained policy','business_marker','id','ASC',20,100,'fixture-account','fixture-account','2026-01-01','2026-01-02')`,
@@ -387,7 +408,7 @@ func TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery(t *testing.T) {
 		t.Fatalf("confirmation failure must be safe: %v %s", err, output)
 	}
 	var versions int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=3 AND is_applied=1`).Scan(&versions); err != nil || versions != 1 {
+	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=? AND is_applied=1`, currentTestSchemaVersion+1).Scan(&versions); err != nil || versions != 1 {
 		t.Fatalf("version was not committed: %d %v", versions, err)
 	}
 	requireSchemaMigrationState(t, next, driver, "recovery_required", "status")
@@ -412,7 +433,7 @@ func TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery(t *testing.T) {
 		t.Fatal(err)
 	}
 	requireSchemaMigrationState(t, next, driver, "current", "recover")
-	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=3`).Scan(&versions); err != nil || versions != 1 {
+	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=?`, currentTestSchemaVersion+1).Scan(&versions); err != nil || versions != 1 {
 		t.Fatalf("committed version duplicated: %d %v", versions, err)
 	}
 	for _, query := range []string{

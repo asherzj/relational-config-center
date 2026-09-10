@@ -21,7 +21,7 @@ EDITOR、APPROVER、PUBLISHER 不互相隐含，可以组合分配。规则目�
 ## 初始化与恢复
 
 1. 存量部署按[发布单升级指南](admin-release-upgrade.md)先备份并处理旧 FLOAT 身份在途单，再停止全部旧 Admin 及其他写入者，按[迁移说明](../deploy/mysql/migrations/README.md)确认既有迁移状态。已有 007 本地账号结构的部署继续应用 008～012；不要重跑 007 的一次性 DDL。008 初始化角色，009～012 建立记录版本和完整发布控制结构。新安装直接使用 `schema-migrate up`。角色初始化不能代替后续迁移或[发布所需数据库权限](design-notes/publication-contract.md#写入能力边界)。
-2. 完成适用的 013 及当前 Policy 收缩，按[接管手册](schema-migrations.md#校验并接管现有库)显式执行 `schema-migrate baseline`，确认 `schema-migrate status` 为 `current` 且无未确认操作后再启动新版 Admin。Schema 就绪但没有 ADMIN 时，注册、登录和只读功能仍可用。
+2. 完成适用的 013、014 及当前 Policy 收缩，按[接管手册](schema-migrations.md#校验并接管现有库)显式执行 `schema-migrate baseline`，确认 `schema-migrate status` 为 `current` 且无未确认操作后再启动新版 Admin。Schema 就绪但没有 ADMIN 时，注册、登录和只读功能仍可用。
 3. 在管理台注册明确指定的账号，然后由有数据库维护权限的人运行：
 
 ```bash

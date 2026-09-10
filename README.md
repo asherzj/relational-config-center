@@ -95,7 +95,7 @@ GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送�
 
 工作流当前只在推送到 `main` 和目标为 `main` 的 Pull Request 上运行这四个检查；推送到其他分支不会自动触发这套 CI。是否配置 branch protection、rulesets 或 required checks 由仓库设置决定，不能从本地文档推断为合并保证。
 
-浏览器检查也可以在本地按套件或引擎运行。`all` 包含 `unsaved-changes`、`rule-clarity`、`write-recovery`、`operation-coverage`、`complex-fields`、`browser-accessibility` 和 `release-workflow`。正式发布套件实际执行草稿、独立审批、混合批量，以及按 `RCC_E2E_ENGINES` 逐引擎运行的正向/反向发布和会话、冲突、未知结果恢复；无障碍套件也逐引擎运行。每次运行都应使用独立的空 artifact 目录：
+浏览器检查也可以在本地按套件或引擎运行。`all` 包含 `unsaved-changes`、`rule-clarity`、`write-recovery`、`operation-coverage`、`complex-fields`、`browser-accessibility`、`release-workflow` 和 `field-interactions`。正式发布套件实际执行草稿、独立审批、混合批量，以及按 `RCC_E2E_ENGINES` 逐引擎运行的正向/反向发布和会话、冲突、未知结果恢复；无障碍套件与完整字段流程套件也逐引擎运行，后者分别在桌面和390px验证管理员字段配置、组合查询、自定义值草稿和发布审阅。每次运行都应使用独立的空 artifact 目录：
 
 ```bash
 RCC_E2E_ARTIFACTS=/tmp/rcc-browser-acceptance-$(date +%s) \

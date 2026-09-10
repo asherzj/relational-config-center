@@ -10,7 +10,7 @@
 2. 用部署维护连接依次执行 008、009、010、011、012。这些迁移只扩展控制结构，不重写业务表、账号身份、登录会话或规则语义，不把旧配置伪造为发布历史。尚无显式记录版本的存量行从 `0` 开始；已有记录版本、占用、请求结果及发布历史全部保留。
 3. 按部署实际 MySQL 登录身份配置目标表/Schema 的显式 TRIGGER 元数据权限及全局 PROCESS 权限。PROCESS 用于识别跨 Schema 的隐式级联，详见[发布能力边界](design-notes/publication-contract.md)。权限不足不能作为“没有触发器或级联”的证明。
 4. 如果本次切换涉及旧 FLOAT 主键身份，确认第 1 步已取消受影响的旧在途单且全部写入者已停止，再按浮点身份维护门禁提高整表维护基线。保留旧 key 和历史；012 的重跑不会自动完成身份代际切换。
-5. 完成所有适用的历史步骤：三类 Policy 审计列须完成 013，旧 Table Policy 须通过当前 `policy-migrate` 的 preflight/backfill/contract。按[完整接管手册](schema-migrations.md#校验并接管现有库)运行 `schema-migrate baseline`，再用 `schema-migrate status` 确认 `state=current` 且没有未确认操作；失败时保持维护窗口，不直接启动。接管不替代第 3～4 步权限及身份维护。
+5. 完成所有适用的历史步骤：三类 Policy 审计列须完成 013、字段策略表须完成 014，旧 Table Policy 须通过当前 `policy-migrate` 的 preflight/backfill/contract。按[完整接管手册](schema-migrations.md#校验并接管现有库)运行 `schema-migrate baseline`，再用 `schema-migrate status` 确认 `state=current` 且没有未确认操作；失败时保持维护窗口，不直接启动。接管不替代第 3～4 步权限及身份维护。
 6. 启动新 Admin，检查 `/health/ready`。缺失或不兼容的账号、角色、记录版本及发布控制结构会阻止启动，并给出对应迁移指引。就绪不要求已有 ADMIN：首次通过 008 引入角色时，原先没有角色的存量账号初始化为 VIEWER；新注册账号默认 VIEWER。已有角色的升级和迁移重跑保留原授予。尚无 ADMIN 时使用维护命令明确选择首位管理员，再在管理台分配 EDITOR、APPROVER、PUBLISHER；具体命令见[角色初始化](admin-account-roles.md)。重复授予既有管理员不会重复推进角色版本或记录授予事件。
 7. 切换 Web 和脚本，以独立账号验证查询、草稿、提交、审批、发布及回滚。确认旧 `POST /api/v1/tables/:table_name/rows` 以及 `PATCH`、`DELETE /api/v1/tables/:table_name/rows/:id` 均返回 `404 route_not_found`，再恢复入口。不要把旧请求静默转换成已发布或为其开放兼容开关。
 
@@ -28,7 +28,7 @@
 
 请求结果未知时保留原账号、原 `Idempotency-Key`、完整请求体及预期版本。刷新或重新登录后用原请求恢复；重新准备也不能重新读取后换正文或换键猜测结果。一次 404、401/403 或当前值查询不能证明原写入未提交。已保存的成功请求返回当时结果，当前单据可能后来已回滚，需另读当前详情。账号切换不重放另一账号的请求，当前角色仍约束重放权限。
 
-DRAFT、PENDING_APPROVAL、APPROVED、SUCCEEDED、COMPLETED、REJECTED、CANCELLED、ROLLED_BACK 均作为持久历史保留。完整申请差异、意见、永久 Account ID、最终 Command 及正反向关联不依赖当前业务表或账号显示资料；重启、账号改名/邮箱修正/停用以及后续规则或表结构变化不会重写归属。系统没有物理删除发布历史或自动清理发布/幂等记录的接口。
+DRAFT、PENDING_APPROVAL、APPROVED、SUCCEEDED、COMPLETED、REJECTED、CANCELLED、ROLLED_BACK 均作为持久历史保留。完整申请差异、意见、永久 Account ID、最终 Command 及正反向关联不依赖当前业务表或账号显示资料；重启、账号改名/邮箱修正/停用以及后续规则或表结构变化不会重写归属。正式 HTTP 不提供物理删除发布历史或自动清理发布/幂等记录的接口。隔离开发／测试库可在停写并明确核对目标后执行[独立旧发布单重置](admin-release-reset.md)，不属于升级流程。
 
 详细契约：[草稿](admin-release-drafts.md)、[审批](admin-release-approvals.md)、[混合批量](admin-release-drafts.md)、[回滚](admin-release-rollbacks.md)、[记录版本](admin-record-versions.md)。Environment、跨表发布、模板编辑器、灰度、Worker、运行时投递及版本大盘仍属后续范围。
 
@@ -39,3 +39,7 @@ DRAFT、PENDING_APPROVAL、APPROVED、SUCCEEDED、COMPLETED、REJECTED、CANCELL
 完结后的普通回滚仍需独立审批；反向成功自身直接 COMPLETED，原单 ROLLED_BACK，禁止连续反向操作。并发动作由单据版本收敛，相同成功请求键返回原业务结果，当前权限仍须有效。COMPLETED 与其他已发布状态一样要求可信完整的 Publication；缺失或损坏不能经详情、列表或原键重放绕过校验。决策见 [ADR-0023](adr/0023-keep-published-orders-open-for-quick-rollback.md)。
 
 待完结期间，当前 PUBLISHER/ADMIN 也可先审阅整单恢复预览，再填写原因并执行免审批快速回滚，不限定原发布人。预览与执行核对当前业务值、记录版本和 Schema/规则语义；成功后原单 ROLLED_BACK、反向结果直接 COMPLETED，原占用同事务释放。未知结果保留原预览摘要、原因和请求键，按原正文恢复；不会自动替换预览或重复执行。接口与恢复步骤见[快速回滚指南](admin-release-rollbacks.md#免审批快速回滚t4--63)。
+
+## 字段交互管理升级
+
+未接管库完成 013 后在停写窗口执行 014，再显式运行 `schema-migrate baseline` 并确认 current，才部署配套 Admin/Web。已有 Goose 库使用 `schema-migrate up` 应用 00003。该迁移只新增表字段规则，不清理旧发布单、业务行或版本；Admin 使用只读完整结构及版本检查。详见[字段规则契约与升级说明](admin-field-policies.md)。
