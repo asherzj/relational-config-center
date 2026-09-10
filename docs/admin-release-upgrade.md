@@ -27,7 +27,7 @@
 
 请求结果未知时保留原账号、原 `Idempotency-Key`、完整请求体及预期版本。刷新或重新登录后用原请求恢复；重新准备也不能重新读取后换正文或换键猜测结果。一次 404、401/403 或当前值查询不能证明原写入未提交。已保存的成功请求返回当时结果，当前单据可能后来已回滚，需另读当前详情。账号切换不重放另一账号的请求，当前角色仍约束重放权限。
 
-DRAFT、PENDING_APPROVAL、APPROVED、SUCCEEDED、COMPLETED、REJECTED、CANCELLED、ROLLED_BACK 均作为持久历史保留。完整申请差异、意见、永久 Account ID、最终 Command 及正反向关联不依赖当前业务表或账号显示资料；重启、账号改名/邮箱修正/停用以及后续规则或表结构变化不会重写归属。系统没有物理删除发布历史或自动清理发布/幂等记录的接口。
+DRAFT、PENDING_APPROVAL、APPROVED、SUCCEEDED、COMPLETED、REJECTED、CANCELLED、ROLLED_BACK 均作为持久历史保留。完整申请差异、意见、永久 Account ID、最终 Command 及正反向关联不依赖当前业务表或账号显示资料；重启、账号改名/邮箱修正/停用以及后续规则或表结构变化不会重写归属。正式 HTTP 不提供物理删除发布历史或自动清理发布/幂等记录的接口。隔离开发／测试库可在停写并明确核对目标后执行[独立旧发布单重置](admin-release-reset.md)，不属于升级流程。
 
 详细契约：[草稿](admin-release-drafts.md)、[审批](admin-release-approvals.md)、[混合批量](admin-release-drafts.md)、[回滚](admin-release-rollbacks.md)、[记录版本](admin-record-versions.md)。Environment、跨表发布、模板编辑器、灰度、Worker、运行时投递及版本大盘仍属后续范围。
 
@@ -38,3 +38,7 @@ DRAFT、PENDING_APPROVAL、APPROVED、SUCCEEDED、COMPLETED、REJECTED、CANCELL
 完结后的普通回滚仍需独立审批；反向成功自身直接 COMPLETED，原单 ROLLED_BACK，禁止连续反向操作。并发动作由单据版本收敛，相同成功请求键返回原业务结果，当前权限仍须有效。COMPLETED 与其他已发布状态一样要求可信完整的 Publication；缺失或损坏不能经详情、列表或原键重放绕过校验。决策见 [ADR-0023](adr/0023-keep-published-orders-open-for-quick-rollback.md)。
 
 待完结期间，当前 PUBLISHER/ADMIN 也可先审阅整单恢复预览，再填写原因并执行免审批快速回滚，不限定原发布人。预览与执行核对当前业务值、记录版本和 Schema/规则语义；成功后原单 ROLLED_BACK、反向结果直接 COMPLETED，原占用同事务释放。未知结果保留原预览摘要、原因和请求键，按原正文恢复；不会自动替换预览或重复执行。接口与恢复步骤见[快速回滚指南](admin-release-rollbacks.md#免审批快速回滚t4--63)。
+
+## 字段交互管理升级
+
+完成013后在停写窗口执行014，部署配套Admin/Web。此迁移仅新增表字段规则，不清理任何旧发布单、业务行或版本；Ready会明确提示缺失结构。详见[字段规则契约与升级说明](admin-field-policies.md)。

@@ -132,5 +132,10 @@ T5 同时修正 FLOAT 主键的有损短文本权重与 FLOAT/DOUBLE 的正负�
 会在任何表发生变更前拒绝执行，并指出异常表。修正异常后可重跑。
 旧版 Admin 不能使用迁移后的列名；需要回退时，应先停写并反向重命名三张表的两列，再整体回退 Admin/Web。
 
-拟新增的 `rcc_table_field_policies` 设计同样采用 `created_at` / `updated_at`。
-013 不创建字段规则表；该表仍属于待实现的字段规则功能。
+`rcc_table_field_policies` 同样采用 `created_at` / `updated_at`，由014创建；013本身不创建该表。
+
+## 表字段规则（014）
+
+已完成013的数据库在停写维护窗口执行 `014-table-field-policies.sql`，再部署对应Admin/Web。该迁移与新库001采用同一字段规则结构，可重跑且保留已有规则。它只新增控制表，不删除或改写旧发布单、幂等结果、版本、占用、通知或业务行。Ready要求列、类型、可空性、InnoDB和表/字段唯一键完整；已有同名不兼容表不会被CREATE IF NOT EXISTS修正，应停写核对结构，不能删表来通过就绪检查。
+
+交互控件默认text，无auto；JSON NULL语义、原子保存及实时读取见[字段规则契约](../../../docs/admin-field-policies.md)。旧发布单清理属于独立且需明确指定隔离环境的维护工作，绝非014升级前提。

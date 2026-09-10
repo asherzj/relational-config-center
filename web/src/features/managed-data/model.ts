@@ -18,6 +18,11 @@ export type ManagedDataColumn = {
   generated?: boolean;
 };
 
+export type ManagedRowSnapshot = {
+  columns: readonly ManagedDataColumn[];
+  original?: Record<string, string | null>;
+};
+
 export type QueryOperator =
   | "exact"
   | "contains"
@@ -130,14 +135,14 @@ export function buildChangeSet(
 }
 
 export const queryOperatorLabels: Record<QueryOperator, string> = {
-  exact: "exact",
-  contains: "contains",
-  open_range: "open_range",
-  closed_range: "closed_range",
-  in: "in",
-  not_in: "not_in",
-  is_null: "is_null",
-  is_not_null: "is_not_null",
+  exact: "等于",
+  contains: "包含文本",
+  open_range: "开区间",
+  closed_range: "闭区间",
+  in: "属于集合",
+  not_in: "不属于集合",
+  is_null: "为 NULL",
+  is_not_null: "不为 NULL",
 };
 
 const commonOperators: QueryOperator[] = ["exact", "in", "not_in", "is_null", "is_not_null"];
@@ -269,8 +274,8 @@ function validValue(column: ManagedDataColumn, value: string): boolean {
   }
 }
 
-export function validateQueryDraft(columns: ManagedDataColumn[], drafts: QueryConditionDraft[], pageSize: string): string | null {
-  if (drafts.length > 20) return "AND 条件不能超过 20 个。";
+export function validateQueryDraft(columns: ManagedDataColumn[], drafts: QueryConditionDraft[], pageSize: string, capacity: { max_conditions: number; max_values_per_condition: number }): string | null {
+  if (drafts.length > capacity.max_conditions) return `AND 条件不能超过 ${capacity.max_conditions} 个。`;
   if (pageSize !== "" && (!/^[0-9]+$/.test(pageSize) || Number(pageSize) < 1 || Number(pageSize) > 200)) {
     return "每页数量必须是 1 到 200 的整数。";
   }
@@ -286,8 +291,8 @@ export function validateQueryDraft(columns: ManagedDataColumn[], drafts: QueryCo
       : draft.operator === "open_range" || draft.operator === "closed_range"
         ? [...(draft.fromEnabled ? [draft.from] : []), ...(draft.toEnabled ? [draft.to] : [])]
         : draft.operator === "in" || draft.operator === "not_in" ? draft.values : [];
-    if ((draft.operator === "in" || draft.operator === "not_in") && (values.length === 0 || values.length > 100)) {
-      return `条件 ${index + 1}：集合值数量必须是 1 到 100。`;
+    if ((draft.operator === "in" || draft.operator === "not_in") && (values.length === 0 || values.length > capacity.max_values_per_condition)) {
+      return `条件 ${index + 1}：集合值数量必须是 1 到 ${capacity.max_values_per_condition}。`;
     }
     if (values.some((value) => !validValue(column, value))) return `条件 ${index + 1} 的值不符合 ${column.name} 的 ${column.type} 格式。`;
   }

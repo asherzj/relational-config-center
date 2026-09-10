@@ -130,7 +130,18 @@ function fixtureSQL() {
       else {
         const nullToggle = checkbox(`${name} 使用 NULL`);
         if (await nullToggle.count() && await nullToggle.isChecked()) await nullToggle.uncheck();
-        await input(name).fill(value);
+        const control = input(name);
+        if (/[\r\n]/.test(value) && await control.evaluate(node => node.tagName === 'INPUT')) {
+          // Unconfigured fields now start as text controls. Paste exercises the
+          // real multiline handoff; fill() would let the browser flatten LF.
+          await control.fill('');
+          await control.focus();
+          await control.evaluate((node, text) => {
+            const clipboardData = new DataTransfer();
+            clipboardData.setData('text/plain', text);
+            node.dispatchEvent(new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true }));
+          }, value);
+        } else await control.fill(value);
       }
     }
   }
@@ -304,9 +315,8 @@ function fixtureSQL() {
     await run('multiline TEXT query uses the exact browser input without removing LF', async () => {
       const note = '  查询🙂\n下一行\t末尾  ';
       sql(`INSERT INTO stage4_complex(note) VALUES (${literal(note)});`);
-      await managed('stage4_complex'); await button('添加条件').click();
-      await page.getByRole('combobox', { name: '条件 1 字段' }).selectOption('note');
-      await page.getByRole('textbox', { name: '条件 1 值', exact: true }).fill(note);
+      await managed('stage4_complex');
+      await page.getByRole('textbox', { name: '筛选 note 值', exact: true }).evaluate((node, value) => {const clipboardData=new DataTransfer();clipboardData.setData('text/plain',value);node.dispatchEvent(new ClipboardEvent('paste',{clipboardData,bubbles:true,cancelable:true}));},note);
       const pending = page.waitForResponse((r) => new URL(r.url()).pathname === '/api/v1/tables/stage4_complex/query');
       await button('查询').click(); const response = await record(await pending);
       assert.equal(response.status, 200); assert.equal(response.body.conditions[0].value, note);
@@ -557,7 +567,7 @@ function fixtureSQL() {
       await execute('stage4_complex', 'MODIFY', { note }, id);
       assert.equal(sql(`SELECT HEX(note) FROM stage4_complex WHERE id=${id};`), hex(note).toUpperCase());
       await closeSuccess('MODIFY'); await managed('stage4_complex'); await button(`修改记录 ${id}`).click();
-      await button('note 值：转换为 LF 再编辑').click();
+      await page.getByRole('dialog').getByRole('button',{name:'note 值：转换为 LF 再编辑',exact:true}).click();
       assert.equal(await input('note').getAttribute('readonly'), null);
       const normalized = note.replace(/\r\n?/g, '\n') + '\nexplicit edit';
       await input('note').fill(normalized); await execute('stage4_complex', 'MODIFY', { note: normalized }, id);
@@ -581,13 +591,12 @@ function fixtureSQL() {
       await managed('stage4_complex'); await button('新增记录').click(); await checkbox('包含 note').check(); await paste(input('note'));
       const added = await execute('stage4_complex', 'ADD', { note: combined }); const id = added.response.id;
       assert.equal(sql(`SELECT HEX(note) FROM stage4_complex WHERE id=${id};`), hex(combined).toUpperCase());
-      await closeSuccess('ADD'); await managed('stage4_complex'); await button('添加条件').click();
-      await page.getByRole('combobox', { name: '条件 1 字段' }).selectOption('note');
-      const queryInput = page.getByRole('textbox', { name: '条件 1 值', exact: true }); await paste(queryInput);
+      await closeSuccess('ADD'); await managed('stage4_complex');
+      const queryInput = page.getByRole('textbox', { name: '筛选 note 值', exact: true }); await paste(queryInput);
       let pending = page.waitForResponse((r) => new URL(r.url()).pathname === '/api/v1/tables/stage4_complex/query');
       await button('查询').click(); const exact = await record(await pending);
       assert.equal(exact.body.conditions[0].value, combined); assert.equal(exact.response.rows.length, 1); assert.equal(exact.response.rows[0].id, id);
-      await button('条件 1 值：转换为 LF 再编辑').click();
+      await button('筛选 note 值：转换为 LF 再编辑').click();
       const normalized = combined.replace(/\r\n?/g, '\n'); assert.equal(await queryInput.inputValue(), normalized);
       pending = page.waitForResponse((r) => new URL(r.url()).pathname === '/api/v1/tables/stage4_complex/query');
       await button('查询').click(); const converted = await record(await pending);
@@ -635,8 +644,13 @@ function fixtureSQL() {
       return { id, publisherID: publisherIdentity.accountID, stamps, after };
     });
     for (const field of ['stored_value', 'virtual_value']) await run(`${field} remains rejected as a real generated column`, async () => {
-      await managed('stage4_generated'); await button('新增记录').click(); const values = { base_value: '9', [field]: '123' }; await edit(values);
-      const response = await execute('stage4_generated', 'ADD', values, undefined, 422);
+      await managed('stage4_generated'); await button('新增记录').click();
+      assert.equal(await checkbox(`包含 ${field}`).count(), 0, 'generated columns must be excluded from the ADD editor');
+      assert.equal(await input(field).count(), 0, 'generated columns must not offer an ADD input');
+      const response = await api(context, 'POST', '/api/v1/release-orders', {
+        title: 'Reject generated column input', table_name: 'stage4_generated',
+        items: [{ operation: 'ADD', content: { base_value: '9', [field]: '123' } }],
+      }, 422);
       assert.equal(response.response.error.code, 'invalid_mutation_content'); assert.equal(sql('SELECT COUNT(*) FROM stage4_generated;'), '0');
       return { metadata: sql("SELECT CONCAT_WS('|',COLUMN_NAME,EXTRA,GENERATION_EXPRESSION) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='stage4_generated';") };
     });

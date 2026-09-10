@@ -16,7 +16,7 @@ test:
 
 test-integration:
 	@docker info >/dev/null
-	@cd admin && go test -count=1 -timeout=40m -tags=integration ./...
+	@cd admin && go test -count=1 -timeout=60m -tags=integration ./...
 
 test-browser-acceptance:
 	@./scripts/browser-acceptance.sh
@@ -30,6 +30,7 @@ build:
 		(cd $$module && go build -o ../bin/$$module/$$module ./cmd/$$module) || exit $$?; \
 	done
 	@cd admin && go build -o ../bin/admin/account-maintain ./cmd/account-maintain
+	@cd admin && go build -o ../bin/admin/release-reset ./cmd/release-reset
 
 # Requires pnpm --dir web install and Chrome (or RCC_BROWSER_EXECUTABLE).
 test-browser:

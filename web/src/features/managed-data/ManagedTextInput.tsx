@@ -8,18 +8,24 @@ type Props = {
   onChange: (value: string) => void;
   disabled?: boolean;
   rows?: number;
+  autoFocus?: boolean;
+  required?: boolean;
+  errorId?: string;
 };
 
 // A textarea normalizes CRLF and CR in its DOM value. Keep the raw draft
 // unchanged until the operator explicitly chooses LF normalization.
-export function ManagedTextInput({ label, value, onChange, disabled, rows = 3 }: Props) {
+export function ManagedTextInput({ label, value, onChange, disabled, rows = 3, required, errorId, autoFocus }: Props) {
   const explanationId = useId();
   const protectedCR = value.includes("\r");
   return (
     <div className="managed-text-input">
       <Textarea
         aria-label={label}
-        aria-describedby={protectedCR ? explanationId : undefined}
+        autoFocus={autoFocus}
+        aria-describedby={[protectedCR ? explanationId : "", errorId].filter(Boolean).join(" ") || undefined}
+        aria-required={required}
+        aria-invalid={Boolean(errorId)}
         rows={rows}
         disabled={disabled}
         readOnly={protectedCR}

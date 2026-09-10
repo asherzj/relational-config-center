@@ -35,7 +35,7 @@ func (strategy *pageQueryStrategy) execute(ctx context.Context, schema domain.Ta
 	if pageIndex > 10000/pageSize {
 		return domain.QueryResult{}, ErrInvalidPagination
 	}
-	if len(spec.Conditions) > 20 {
+	if len(spec.Conditions) > MaximumQueryConditions {
 		return domain.QueryResult{}, ErrInvalidQueryCondition
 	}
 
@@ -72,7 +72,7 @@ func (strategy *pageQueryStrategy) execute(ctx context.Context, schema domain.Ta
 				}
 			}
 		case domain.QueryOperatorIn, domain.QueryOperatorNotIn:
-			if condition.ValuePresent || condition.FromPresent || condition.ToPresent || !condition.ValuesPresent || len(condition.Values) == 0 || len(condition.Values) > 100 {
+			if condition.ValuePresent || condition.FromPresent || condition.ToPresent || !condition.ValuesPresent || len(condition.Values) == 0 || len(condition.Values) > MaximumQueryValues {
 				return domain.QueryResult{}, ErrInvalidQueryCondition
 			}
 			for _, item := range condition.Values {

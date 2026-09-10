@@ -1,0 +1,3047 @@
+{
+  "ok": true,
+  "command": "go -C admin test -json -count=1 -timeout=60m -tags=integration ./...",
+  "code_commit": "511b085",
+  "code_note": "Includes every final Go change in #74–#79; #80 only changes Web, browser scripts, documentation and overall test timeout. The target main remains 8b5cd8592f0fbf02dcd27bb72a8a306fa371993d.",
+  "environment": {
+    "go": "1.27.0",
+    "platform": "darwin/arm64",
+    "database": "isolated MySQL 8.4 Testcontainers",
+    "docker": "Colima local socket; loopback proxy bypass"
+  },
+  "started_at": "2026-09-09T20:07:57.511683+08:00",
+  "finished_at": "2026-09-09T23:47:40.784137+08:00",
+  "wall_seconds": 13183.272,
+  "raw_log": "/private/tmp/rcc-field-final-mysql.jsonl",
+  "raw_log_sha256": "dd03eeb69543083277508b6e9aef3c07f51b957fa2fe88c96cdcad23eeb8d299",
+  "top_level_tests": {
+    "pass": 286,
+    "fail": 0,
+    "skip": 0
+  },
+  "subtests": {
+    "pass": 279,
+    "fail": 0,
+    "skip": 0
+  },
+  "failures": [],
+  "packages": [
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/account-maintain",
+      "outcome": "skip",
+      "elapsed_seconds": 0.001,
+      "started_at": "2026-09-09T20:07:57.511683+08:00",
+      "finished_at": "2026-09-09T20:07:57.512448+08:00",
+      "top_level_tests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "subtests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "tests": [],
+      "note": "Package has no test files; no individual test skipped."
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/policy-migrate",
+      "outcome": "skip",
+      "elapsed_seconds": 0,
+      "started_at": "2026-09-09T20:07:59.180561+08:00",
+      "finished_at": "2026-09-09T20:07:59.180678+08:00",
+      "top_level_tests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "subtests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "tests": [],
+      "note": "Package has no test files; no individual test skipped."
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/release-reset",
+      "outcome": "skip",
+      "elapsed_seconds": 0,
+      "started_at": "2026-09-09T20:07:59.180703+08:00",
+      "finished_at": "2026-09-09T20:07:59.180716+08:00",
+      "top_level_tests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "subtests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "tests": [],
+      "note": "Package has no test files; no individual test skipped."
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/password",
+      "outcome": "skip",
+      "elapsed_seconds": 0,
+      "started_at": "2026-09-09T20:07:59.181075+08:00",
+      "finished_at": "2026-09-09T20:07:59.181443+08:00",
+      "top_level_tests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "subtests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "tests": [],
+      "note": "Package has no test files; no individual test skipped."
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "outcome": "pass",
+      "elapsed_seconds": 0.506,
+      "started_at": "2026-09-09T20:07:59.180741+08:00",
+      "finished_at": "2026-09-09T20:07:59.686822+08:00",
+      "top_level_tests": {
+        "pass": 12,
+        "fail": 0,
+        "skip": 0
+      },
+      "subtests": {
+        "pass": 35,
+        "fail": 0,
+        "skip": 0
+      },
+      "tests": [
+        {
+          "name": "TestMutationPolicyLifecycleAndAssignmentRules",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyActivationValidatesTypeAutoFillAndAuthorization/unknown_Type",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyActivationValidatesTypeAutoFillAndAuthorization/unsafe_target",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyActivationValidatesTypeAutoFillAndAuthorization/duplicated_target",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyActivationValidatesTypeAutoFillAndAuthorization/primary-key_target",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyActivationValidatesTypeAutoFillAndAuthorization/Create_target_without_ADD",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyActivationValidatesTypeAutoFillAndAuthorization/Modify_target_without_ADD_or_MODIFY",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyActivationValidatesTypeAutoFillAndAuthorization",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyDraftWithUnknownTypeCanBeCompletedBeforeActivation",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyDraftRejectsValuesBlockedByCatalogConstraints/unsafe_target",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyDraftRejectsValuesBlockedByCatalogConstraints/case-insensitive_primary-key_target",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyDraftRejectsValuesBlockedByCatalogConstraints/duplicated_target",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyDraftRejectsValuesBlockedByCatalogConstraints/case-insensitive_duplicated_target",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyDraftRejectsValuesBlockedByCatalogConstraints/Create_target_without_ADD",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyDraftRejectsValuesBlockedByCatalogConstraints/Modify_target_without_ADD_or_MODIFY",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyDraftRejectsValuesBlockedByCatalogConstraints",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyTableValidationRejectsMissingGeneratedAndTypeIncompatibleTargets/missing",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyTableValidationRejectsMissingGeneratedAndTypeIncompatibleTargets/generated",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyTableValidationRejectsMissingGeneratedAndTypeIncompatibleTargets/operator_requires_text",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyTableValidationRejectsMissingGeneratedAndTypeIncompatibleTargets/time_requires_temporal",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyTableValidationRejectsMissingGeneratedAndTypeIncompatibleTargets",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestPolicySnapshotResolverAllowsAssignedDeprecatedDefinitions",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestPolicySnapshotResolverFailsClosedBeforeExecution/disabled_assignment_still_reads_complete_definitions",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestPolicySnapshotResolverFailsClosedBeforeExecution/Draft_Query_Policy",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestPolicySnapshotResolverFailsClosedBeforeExecution/Draft_Mutation_Policy",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestPolicySnapshotResolverFailsClosedBeforeExecution/unknown_Query_Type",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestPolicySnapshotResolverFailsClosedBeforeExecution/unknown_Mutation_Type",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestPolicySnapshotResolverFailsClosedBeforeExecution/Policy_cannot_relax_code-owned_page_maximum",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestPolicySnapshotResolverFailsClosedBeforeExecution/incompatible_live_default_order",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestPolicySnapshotResolverFailsClosedBeforeExecution",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyLifecycleAndAssignmentRules",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyActivationValidatesRegisteredTypeAndSafetyLimits/unknown_Type",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyActivationValidatesRegisteredTypeAndSafetyLimits/unsafe_field",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyActivationValidatesRegisteredTypeAndSafetyLimits/invalid_direction",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyActivationValidatesRegisteredTypeAndSafetyLimits/zero_page_size",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyActivationValidatesRegisteredTypeAndSafetyLimits/inverted_sizes",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyActivationValidatesRegisteredTypeAndSafetyLimits/platform_limit",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyActivationValidatesRegisteredTypeAndSafetyLimits",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyDraftRejectsValuesBlockedByCatalogScalarConstraints/unsafe_order_field",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyDraftRejectsValuesBlockedByCatalogScalarConstraints/invalid_direction",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyDraftRejectsValuesBlockedByCatalogScalarConstraints/zero_default_size",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyDraftRejectsValuesBlockedByCatalogScalarConstraints/zero_max_size",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyDraftRejectsValuesBlockedByCatalogScalarConstraints/inverted_sizes",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyDraftRejectsValuesBlockedByCatalogScalarConstraints/maximum_above_limit",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyDraftRejectsValuesBlockedByCatalogScalarConstraints",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyCodeIsVersionedLowerCaseAndTechnologyNeutral",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestTransactionalManagedTableQueryLoadsAndExecutesCompleteRelationalSnapshotPerRequest",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        }
+      ]
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/platform/config",
+      "outcome": "pass",
+      "elapsed_seconds": 3.431,
+      "started_at": "2026-09-09T20:07:59.18131+08:00",
+      "finished_at": "2026-09-09T20:08:02.612378+08:00",
+      "top_level_tests": {
+        "pass": 4,
+        "fail": 0,
+        "skip": 0
+      },
+      "subtests": {
+        "pass": 14,
+        "fail": 0,
+        "skip": 0
+      },
+      "tests": [
+        {
+          "name": "TestLoadRequiresNoDeploymentIdentity",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMaintenanceConfigNeedsOnlyMySQL",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLoadRejectsInvalidHTTPBindAddresses/127.0.0.1",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLoadRejectsInvalidHTTPBindAddresses/:8080",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLoadRejectsInvalidHTTPBindAddresses/127.0.0.1:not-a-port",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLoadRejectsInvalidHTTPBindAddresses/127.0.0.1:70000",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLoadRejectsInvalidHTTPBindAddresses",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountOriginAndLimitsConfiguration/explicit_HTTPS",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountOriginAndLimitsConfiguration/explicit_local_HTTP",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountOriginAndLimitsConfiguration/IPv6_local_HTTP",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountOriginAndLimitsConfiguration/missing_origin",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountOriginAndLimitsConfiguration/HTTP_without_exception",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountOriginAndLimitsConfiguration/remote_HTTP",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountOriginAndLimitsConfiguration/origin_with_path",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountOriginAndLimitsConfiguration/credentials_in_origin",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountOriginAndLimitsConfiguration/proxy_CIDR",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountOriginAndLimitsConfiguration/invalid_proxy",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountOriginAndLimitsConfiguration",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        }
+      ]
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/domain",
+      "outcome": "pass",
+      "elapsed_seconds": 3.963,
+      "started_at": "2026-09-09T20:07:59.18087+08:00",
+      "finished_at": "2026-09-09T20:08:03.14354+08:00",
+      "top_level_tests": {
+        "pass": 3,
+        "fail": 0,
+        "skip": 0
+      },
+      "subtests": {
+        "pass": 13,
+        "fail": 0,
+        "skip": 0
+      },
+      "tests": [
+        {
+          "name": "TestRegistrationFieldBoundaries/ASCII_username_only",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRegistrationFieldBoundaries/ASCII_email_only",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRegistrationFieldBoundaries/username_short",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRegistrationFieldBoundaries/username_long",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRegistrationFieldBoundaries/username_first_letter",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRegistrationFieldBoundaries/email_display_address",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRegistrationFieldBoundaries/empty_email",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRegistrationFieldBoundaries/email_invalid",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRegistrationFieldBoundaries/short_password",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRegistrationFieldBoundaries/long_password",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRegistrationFieldBoundaries/empty_display_name",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRegistrationFieldBoundaries/display_name_control",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRegistrationFieldBoundaries/display_name_long",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRegistrationFieldBoundaries",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestCanonicalRowFixedLosslessValues",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestCanonicalRowDeletionAndInvalidRepresentations",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        }
+      ]
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "outcome": "pass",
+      "elapsed_seconds": 83.067,
+      "started_at": "2026-09-09T20:07:59.18099+08:00",
+      "finished_at": "2026-09-09T20:09:22.249203+08:00",
+      "top_level_tests": {
+        "pass": 13,
+        "fail": 0,
+        "skip": 0
+      },
+      "subtests": {
+        "pass": 17,
+        "fail": 0,
+        "skip": 0
+      },
+      "tests": [
+        {
+          "name": "TestPublicationJSONIdentityDoesNotUseURLPathSegments/.",
+          "outcome": "pass",
+          "elapsed_seconds": 0.2
+        },
+        {
+          "name": "TestPublicationJSONIdentityDoesNotUseURLPathSegments/..",
+          "outcome": "pass",
+          "elapsed_seconds": 0.2
+        },
+        {
+          "name": "TestPublicationJSONIdentityDoesNotUseURLPathSegments/键/值_?#%",
+          "outcome": "pass",
+          "elapsed_seconds": 0.26
+        },
+        {
+          "name": "TestPublicationJSONIdentityDoesNotUseURLPathSegments/%2F",
+          "outcome": "pass",
+          "elapsed_seconds": 0.2
+        },
+        {
+          "name": "TestPublicationJSONIdentityDoesNotUseURLPathSegments",
+          "outcome": "pass",
+          "elapsed_seconds": 11.67
+        },
+        {
+          "name": "TestExplicitIdentityRejectsNontransactionalTableBeforeWriting/generated_identity_also_requires_rollback_support",
+          "outcome": "pass",
+          "elapsed_seconds": 0.02
+        },
+        {
+          "name": "TestExplicitIdentityRejectsNontransactionalTableBeforeWriting",
+          "outcome": "pass",
+          "elapsed_seconds": 9.11
+        },
+        {
+          "name": "TestExplicitIdentityReturnedAutoIDMustRemainSchemaAddressable",
+          "outcome": "pass",
+          "elapsed_seconds": 10.76
+        },
+        {
+          "name": "TestExplicitIdentityKeepsEngineStableUntilInsertTransactionEnds",
+          "outcome": "pass",
+          "elapsed_seconds": 9.78
+        },
+        {
+          "name": "TestExplicitIdentityReadPermissionFailureAfterInsertRollsBack",
+          "outcome": "pass",
+          "elapsed_seconds": 9.28
+        },
+        {
+          "name": "TestExplicitIdentityNeverReturnsExistingRowAfterTriggerChangesKey",
+          "outcome": "pass",
+          "elapsed_seconds": 8.91
+        },
+        {
+          "name": "TestPublicationRejectsIdentityCreatedAfterApproval",
+          "outcome": "pass",
+          "elapsed_seconds": 8.9
+        },
+        {
+          "name": "TestExplicitIdentityAutoResultBelongsToThisInsert/omitted_false",
+          "outcome": "pass",
+          "elapsed_seconds": 0.32
+        },
+        {
+          "name": "TestExplicitIdentityAutoResultBelongsToThisInsert/zero_false",
+          "outcome": "pass",
+          "elapsed_seconds": 0.03
+        },
+        {
+          "name": "TestExplicitIdentityAutoResultBelongsToThisInsert/explicit77_false",
+          "outcome": "pass",
+          "elapsed_seconds": 0.25
+        },
+        {
+          "name": "TestExplicitIdentityAutoResultBelongsToThisInsert/omitted_true",
+          "outcome": "pass",
+          "elapsed_seconds": 0.19
+        },
+        {
+          "name": "TestExplicitIdentityAutoResultBelongsToThisInsert/zero_true",
+          "outcome": "pass",
+          "elapsed_seconds": 0.03
+        },
+        {
+          "name": "TestExplicitIdentityAutoResultBelongsToThisInsert/explicit77_true",
+          "outcome": "pass",
+          "elapsed_seconds": 0.03
+        },
+        {
+          "name": "TestExplicitIdentityAutoResultBelongsToThisInsert/unsigned_generated",
+          "outcome": "pass",
+          "elapsed_seconds": 0.24
+        },
+        {
+          "name": "TestExplicitIdentityAutoResultBelongsToThisInsert/unsigned_trigger",
+          "outcome": "pass",
+          "elapsed_seconds": 0.19
+        },
+        {
+          "name": "TestExplicitIdentityAutoResultBelongsToThisInsert/no_auto_zero",
+          "outcome": "pass",
+          "elapsed_seconds": 0.45
+        },
+        {
+          "name": "TestExplicitIdentityAutoResultBelongsToThisInsert",
+          "outcome": "pass",
+          "elapsed_seconds": 11.74
+        },
+        {
+          "name": "TestLegacyBackfillNormalizesDefaultsAndProducesStableTechnologyNeutralCodes",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLegacyBackfillMapsOnlyStandardAuditAutoFill",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLegacyBackfillReportsLiteralArbitraryAndNonMirroredRules/literal",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLegacyBackfillReportsLiteralArbitraryAndNonMirroredRules/multiple_operator_targets",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLegacyBackfillReportsLiteralArbitraryAndNonMirroredRules/modify_not_mirrored",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLegacyBackfillReportsLiteralArbitraryAndNonMirroredRules",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestValidContractionPolicyCodeRejectsTechnologyPrefixes",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationStorageValueErrorsAreEditableButOtherDatabaseFailuresRemainUnavailable",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        }
+      ]
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "outcome": "pass",
+      "elapsed_seconds": 120.968,
+      "started_at": "2026-09-09T20:07:59.181209+08:00",
+      "finished_at": "2026-09-09T20:10:00.15117+08:00",
+      "top_level_tests": {
+        "pass": 18,
+        "fail": 0,
+        "skip": 0
+      },
+      "subtests": {
+        "pass": 5,
+        "fail": 0,
+        "skip": 0
+      },
+      "tests": [
+        {
+          "name": "TestHTTPDependsOnApplicationRatherThanDomainOrInfrastructure",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestSharedBusinessServicesDoNotStoreRequestIdentity",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestReleaseDraftSessionCannotWriteBusinessRows",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestFieldPolicyErrorPreservesTimeoutContract/deadline",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestFieldPolicyErrorPreservesTimeoutContract/dependency",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestFieldPolicyErrorPreservesTimeoutContract",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyResponseUsesTypedRelationalFieldsAndCatalogAuditNames",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestQueryPolicyResponseUsesCatalogAuditFieldNames",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestReleaseWorkflowPublicRoutes",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRecoveryRedactsPanics",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestRemovedMutationRoutesCannotBeRevivedByEncodedIdentity",
+          "outcome": "pass",
+          "elapsed_seconds": 11.27
+        },
+        {
+          "name": "TestRawPathMutationRoutingPreservesAPIGuards",
+          "outcome": "pass",
+          "elapsed_seconds": 10.29
+        },
+        {
+          "name": "TestAPIRejectsOldBearerCredentialsWhileHealthRemainsPublic",
+          "outcome": "pass",
+          "elapsed_seconds": 9.66
+        },
+        {
+          "name": "TestAPIAccessLogIsStructuredAndRedactsRequestDetails",
+          "outcome": "pass",
+          "elapsed_seconds": 8.99
+        },
+        {
+          "name": "TestAPIAccessLogUsesRouteTemplatesWithoutDynamicTableOrRowValues",
+          "outcome": "pass",
+          "elapsed_seconds": 9.44
+        },
+        {
+          "name": "TestAPIRequestIDAcceptsOnlyTightlyValidatedValues",
+          "outcome": "pass",
+          "elapsed_seconds": 9.58
+        },
+        {
+          "name": "TestAPIBodyLimitRejectsOversizedJSONWithStableError",
+          "outcome": "pass",
+          "elapsed_seconds": 9.71
+        },
+        {
+          "name": "TestAPIDoesNotOfferCrossOriginCredentialAccess",
+          "outcome": "pass",
+          "elapsed_seconds": 9.22
+        },
+        {
+          "name": "TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely/deadline",
+          "outcome": "pass",
+          "elapsed_seconds": 10.44
+        },
+        {
+          "name": "TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely/known_unavailable",
+          "outcome": "pass",
+          "elapsed_seconds": 10.31
+        },
+        {
+          "name": "TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely/unclassified_internal",
+          "outcome": "pass",
+          "elapsed_seconds": 10.11
+        },
+        {
+          "name": "TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely",
+          "outcome": "pass",
+          "elapsed_seconds": 30.87
+        },
+        {
+          "name": "TestAPIUnknownRoutesUseTheSafeErrorEnvelope",
+          "outcome": "pass",
+          "elapsed_seconds": 10.67
+        }
+      ]
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "outcome": "pass",
+      "elapsed_seconds": 2664.964,
+      "started_at": "2026-09-09T20:07:59.180482+08:00",
+      "finished_at": "2026-09-09T23:47:40.784137+08:00",
+      "top_level_tests": {
+        "pass": 236,
+        "fail": 0,
+        "skip": 0
+      },
+      "subtests": {
+        "pass": 195,
+        "fail": 0,
+        "skip": 0
+      },
+      "tests": [
+        {
+          "name": "TestAccountProcessRequiresCompleteAuthenticationSchema/missing_table",
+          "outcome": "pass",
+          "elapsed_seconds": 0.05
+        },
+        {
+          "name": "TestAccountProcessRequiresCompleteAuthenticationSchema/missing_column",
+          "outcome": "pass",
+          "elapsed_seconds": 0.05
+        },
+        {
+          "name": "TestAccountProcessRequiresCompleteAuthenticationSchema/missing_uniqueness",
+          "outcome": "pass",
+          "elapsed_seconds": 0.05
+        },
+        {
+          "name": "TestAccountProcessRequiresCompleteAuthenticationSchema/wrong_collation",
+          "outcome": "pass",
+          "elapsed_seconds": 0.08
+        },
+        {
+          "name": "TestAccountProcessRequiresCompleteAuthenticationSchema/missing_expiry_index",
+          "outcome": "pass",
+          "elapsed_seconds": 0.05
+        },
+        {
+          "name": "TestAccountProcessRequiresCompleteAuthenticationSchema/unexpected_invisible_uniqueness",
+          "outcome": "pass",
+          "elapsed_seconds": 0.06
+        },
+        {
+          "name": "TestAccountProcessRequiresCompleteAuthenticationSchema/unexpected_expiry_uniqueness",
+          "outcome": "pass",
+          "elapsed_seconds": 0.05
+        },
+        {
+          "name": "TestAccountProcessRequiresCompleteAuthenticationSchema/unexpected_session_uniqueness",
+          "outcome": "pass",
+          "elapsed_seconds": 0.04
+        },
+        {
+          "name": "TestAccountProcessRequiresCompleteAuthenticationSchema/missing_foreign_key",
+          "outcome": "pass",
+          "elapsed_seconds": 0.11
+        },
+        {
+          "name": "TestAccountProcessRequiresCompleteAuthenticationSchema/missing_lock_row",
+          "outcome": "pass",
+          "elapsed_seconds": 0.04
+        },
+        {
+          "name": "TestAccountProcessRequiresCompleteAuthenticationSchema",
+          "outcome": "pass",
+          "elapsed_seconds": 13.14
+        },
+        {
+          "name": "TestAccountProcessRestartPreservesSessionsAndRateWindows",
+          "outcome": "pass",
+          "elapsed_seconds": 13.32
+        },
+        {
+          "name": "TestAccountProcessDatabaseFailuresRemain503And504",
+          "outcome": "pass",
+          "elapsed_seconds": 13.4
+        },
+        {
+          "name": "TestAccountUpgradeFromLegacyMatchesFreshSchema",
+          "outcome": "pass",
+          "elapsed_seconds": 14.18
+        },
+        {
+          "name": "TestAccountProcessHTTPSCookiesAndSensitiveMaterials",
+          "outcome": "pass",
+          "elapsed_seconds": 12.98
+        },
+        {
+          "name": "TestAccountProcessCapacityNeverEvictsValidState",
+          "outcome": "pass",
+          "elapsed_seconds": 11.01
+        },
+        {
+          "name": "TestLocalAccountRegistrationCreatesCurrentIdentity",
+          "outcome": "pass",
+          "elapsed_seconds": 10.28
+        },
+        {
+          "name": "TestLocalAccountConcurrentSessionsActivityAndExpiry",
+          "outcome": "pass",
+          "elapsed_seconds": 11.03
+        },
+        {
+          "name": "TestLocalAccountProfileChangesAffectOnlyCurrentAccount",
+          "outcome": "pass",
+          "elapsed_seconds": 10.09
+        },
+        {
+          "name": "TestLocalAccountMaintenanceAuthorizesBeforeInputs/profile_requires_session_before_malformed_json",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountMaintenanceAuthorizesBeforeInputs/profile_requires_csrf_before_malformed_json",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountMaintenanceAuthorizesBeforeInputs/profile_requires_session_before_invalid_fields",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountMaintenanceAuthorizesBeforeInputs/profile_requires_csrf_before_invalid_fields",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountMaintenanceAuthorizesBeforeInputs/email_requires_session_before_invalid_fields",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountMaintenanceAuthorizesBeforeInputs/email_requires_csrf_before_invalid_fields",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountMaintenanceAuthorizesBeforeInputs/email_requires_session_before_malformed_json",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountMaintenanceAuthorizesBeforeInputs/email_requires_csrf_before_malformed_json",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountMaintenanceAuthorizesBeforeInputs/password_requires_session_before_malformed_json",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountMaintenanceAuthorizesBeforeInputs/password_requires_csrf_before_malformed_json",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountMaintenanceAuthorizesBeforeInputs/password_requires_session_before_invalid_fields",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountMaintenanceAuthorizesBeforeInputs/password_requires_csrf_before_invalid_fields",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestLocalAccountMaintenanceAuthorizesBeforeInputs",
+          "outcome": "pass",
+          "elapsed_seconds": 11.1
+        },
+        {
+          "name": "TestLocalAccountCurrentAndAllSessionRevocation",
+          "outcome": "pass",
+          "elapsed_seconds": 9.45
+        },
+        {
+          "name": "TestLocalAccountPasswordChangeRevokesAllSessions",
+          "outcome": "pass",
+          "elapsed_seconds": 8.21
+        },
+        {
+          "name": "TestLocalAccountLoginAfterLogout",
+          "outcome": "pass",
+          "elapsed_seconds": 8.53
+        },
+        {
+          "name": "TestLocalAccountRegistrationRateLimit",
+          "outcome": "pass",
+          "elapsed_seconds": 8.59
+        },
+        {
+          "name": "TestLocalAccountNormalizedUniquenessAndAtomicRegistration",
+          "outcome": "pass",
+          "elapsed_seconds": 10.16
+        },
+        {
+          "name": "TestLocalAccountFailuresAndCredentialBoundaries",
+          "outcome": "pass",
+          "elapsed_seconds": 32.76
+        },
+        {
+          "name": "TestLocalAccountRateLimitsAcrossIPsAndWindows",
+          "outcome": "pass",
+          "elapsed_seconds": 11.59
+        },
+        {
+          "name": "TestLocalAccountSuccessClearsFailureCountAndIPLimit",
+          "outcome": "pass",
+          "elapsed_seconds": 15.95
+        },
+        {
+          "name": "TestLocalAccountCSRFAndServiceFailure",
+          "outcome": "pass",
+          "elapsed_seconds": 12.09
+        },
+        {
+          "name": "TestLocalAccountHTTPFieldContract",
+          "outcome": "pass",
+          "elapsed_seconds": 12.1
+        },
+        {
+          "name": "TestLocalAccountStoredSecretsAndAbsoluteExpiry",
+          "outcome": "pass",
+          "elapsed_seconds": 9.08
+        },
+        {
+          "name": "TestLocalAccountHTTPSCookiesAndPreauthExpiry",
+          "outcome": "pass",
+          "elapsed_seconds": 10.08
+        },
+        {
+          "name": "TestLocalAccountDatabaseLockTimeoutIs504",
+          "outcome": "pass",
+          "elapsed_seconds": 11.06
+        },
+        {
+          "name": "TestLocalAccountSuccessfulLoginPreservesOutstandingReservations",
+          "outcome": "pass",
+          "elapsed_seconds": 14.22
+        },
+        {
+          "name": "TestLocalAccountLoginSettlementFailurePreservesPreviousSession",
+          "outcome": "pass",
+          "elapsed_seconds": 12.1
+        },
+        {
+          "name": "TestLocalAccountCancelledLoginReleasesReservation",
+          "outcome": "pass",
+          "elapsed_seconds": 10.06
+        },
+        {
+          "name": "TestAccountMaintenanceResetPasswordRevokesEverySession",
+          "outcome": "pass",
+          "elapsed_seconds": 10.23
+        },
+        {
+          "name": "TestAccountMaintenanceDisableAndEnableDoNotReviveSessions",
+          "outcome": "pass",
+          "elapsed_seconds": 9.29
+        },
+        {
+          "name": "TestAccountMaintenanceResetDisabledAccountPreservesDraftDestruction",
+          "outcome": "pass",
+          "elapsed_seconds": 9.43
+        },
+        {
+          "name": "TestAccountMaintenanceCorrectEmailPreservesOwnershipAndSessions",
+          "outcome": "pass",
+          "elapsed_seconds": 9.15
+        },
+        {
+          "name": "TestAccountMaintenanceIndependentConnectionAndAtomicFailures",
+          "outcome": "pass",
+          "elapsed_seconds": 10.18
+        },
+        {
+          "name": "TestAccountProcessStopAllowsPendingRequestHeader/idle",
+          "outcome": "pass",
+          "elapsed_seconds": 0.05
+        },
+        {
+          "name": "TestAccountProcessStopAllowsPendingRequestHeader/pending_header",
+          "outcome": "pass",
+          "elapsed_seconds": 5.36
+        },
+        {
+          "name": "TestAccountProcessStopAllowsPendingRequestHeader",
+          "outcome": "pass",
+          "elapsed_seconds": 5.41
+        },
+        {
+          "name": "TestRegisteredAccountIsViewer",
+          "outcome": "pass",
+          "elapsed_seconds": 8.32
+        },
+        {
+          "name": "TestMaintainerBootstrapsAdministratorAndAssignsRoles",
+          "outcome": "pass",
+          "elapsed_seconds": 10.31
+        },
+        {
+          "name": "TestRoleChangeIsAuditedAndIdempotent",
+          "outcome": "pass",
+          "elapsed_seconds": 10.25
+        },
+        {
+          "name": "TestLastEnabledAdministratorCannotBeRemovedOrDisabled",
+          "outcome": "pass",
+          "elapsed_seconds": 9.44
+        },
+        {
+          "name": "TestAccountRoleUpgradePreservesAccountsAndGrants",
+          "outcome": "pass",
+          "elapsed_seconds": 9.31
+        },
+        {
+          "name": "TestCurrentSessionUsesRolePermissionMatrix",
+          "outcome": "pass",
+          "elapsed_seconds": 10.6
+        },
+        {
+          "name": "TestRoleChangesAndAccountMaintenanceAreConcurrentSafe",
+          "outcome": "pass",
+          "elapsed_seconds": 10.04
+        },
+        {
+          "name": "TestRoleChangeRaceAndAuditFailureDoNotLeavePartialGrants",
+          "outcome": "pass",
+          "elapsed_seconds": 10.1
+        },
+        {
+          "name": "TestLocalAccountSecurityChangesWinAgainstVerifiedLogin/no-security-change",
+          "outcome": "pass",
+          "elapsed_seconds": 0.7
+        },
+        {
+          "name": "TestLocalAccountSecurityChangesWinAgainstVerifiedLogin/logout-all",
+          "outcome": "pass",
+          "elapsed_seconds": 0.69
+        },
+        {
+          "name": "TestLocalAccountSecurityChangesWinAgainstVerifiedLogin/password-change",
+          "outcome": "pass",
+          "elapsed_seconds": 0.77
+        },
+        {
+          "name": "TestLocalAccountSecurityChangesWinAgainstVerifiedLogin/same-password-change",
+          "outcome": "pass",
+          "elapsed_seconds": 0.78
+        },
+        {
+          "name": "TestLocalAccountSecurityChangesWinAgainstVerifiedLogin/reset-password",
+          "outcome": "pass",
+          "elapsed_seconds": 1.64
+        },
+        {
+          "name": "TestLocalAccountSecurityChangesWinAgainstVerifiedLogin/disable",
+          "outcome": "pass",
+          "elapsed_seconds": 0.95
+        },
+        {
+          "name": "TestLocalAccountSecurityChangesWinAgainstVerifiedLogin/disable-enable",
+          "outcome": "pass",
+          "elapsed_seconds": 0.82
+        },
+        {
+          "name": "TestLocalAccountSecurityChangesWinAgainstVerifiedLogin",
+          "outcome": "pass",
+          "elapsed_seconds": 15.1
+        },
+        {
+          "name": "TestLocalAccountPersistedSessionDeadlines/nanoseconds_123456789",
+          "outcome": "pass",
+          "elapsed_seconds": 0.4
+        },
+        {
+          "name": "TestLocalAccountPersistedSessionDeadlines/nanoseconds_999999999",
+          "outcome": "pass",
+          "elapsed_seconds": 0.77
+        },
+        {
+          "name": "TestLocalAccountPersistedSessionDeadlines",
+          "outcome": "pass",
+          "elapsed_seconds": 10.33
+        },
+        {
+          "name": "TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost",
+          "outcome": "pass",
+          "elapsed_seconds": 10.37
+        },
+        {
+          "name": "TestBusinessAPIsRequireSessionAndCSRF",
+          "outcome": "pass",
+          "elapsed_seconds": 12.6
+        },
+        {
+          "name": "TestConcurrentAccountsOwnTheirBusinessChanges/actor_alpha",
+          "outcome": "pass",
+          "elapsed_seconds": 0.8
+        },
+        {
+          "name": "TestConcurrentAccountsOwnTheirBusinessChanges/actor_beta",
+          "outcome": "pass",
+          "elapsed_seconds": 0.8
+        },
+        {
+          "name": "TestConcurrentAccountsOwnTheirBusinessChanges",
+          "outcome": "pass",
+          "elapsed_seconds": 10.95
+        },
+        {
+          "name": "TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory",
+          "outcome": "pass",
+          "elapsed_seconds": 11.59
+        },
+        {
+          "name": "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish",
+          "outcome": "pass",
+          "elapsed_seconds": 11.2
+        },
+        {
+          "name": "TestAccountControlTablesCannotBeDiscoveredOrManaged",
+          "outcome": "pass",
+          "elapsed_seconds": 9.27
+        },
+        {
+          "name": "TestCombinedQueryAC016RealFieldsCapacityAndAtomicConfiguration",
+          "outcome": "pass",
+          "elapsed_seconds": 8.11
+        },
+        {
+          "name": "TestDatabaseTableListDiscoversOnlyOrdinaryBaseTables",
+          "outcome": "pass",
+          "elapsed_seconds": 8.19
+        },
+        {
+          "name": "TestDatabaseTableDetailReturnsLiveMetadataAndStableNotFoundError",
+          "outcome": "pass",
+          "elapsed_seconds": 8.23
+        },
+        {
+          "name": "TestHealthDistinguishesRunningProcessFromRequiredInfrastructure",
+          "outcome": "pass",
+          "elapsed_seconds": 8.08
+        },
+        {
+          "name": "TestStartupRequiresTheProtectedPolicyCatalog",
+          "outcome": "pass",
+          "elapsed_seconds": 7.93
+        },
+        {
+          "name": "TestAdminProcessServesUnauthenticatedLiveness",
+          "outcome": "pass",
+          "elapsed_seconds": 10.25
+        },
+        {
+          "name": "TestFieldPolicyAC001RoundTrip",
+          "outcome": "pass",
+          "elapsed_seconds": 8.37
+        },
+        {
+          "name": "TestFieldPolicyAC002InvalidConfigurationIsAtomic",
+          "outcome": "pass",
+          "elapsed_seconds": 8.52
+        },
+        {
+          "name": "TestFieldPolicyAC020MigrationPreservesExistingData",
+          "outcome": "pass",
+          "elapsed_seconds": 9.2
+        },
+        {
+          "name": "TestFieldPolicyReadDistinguishesDisabledSchemaDriftAndFailure",
+          "outcome": "pass",
+          "elapsed_seconds": 8.97
+        },
+        {
+          "name": "TestFieldPolicyDefaultsNumericOptionsAndAudit",
+          "outcome": "pass",
+          "elapsed_seconds": 8.91
+        },
+        {
+          "name": "TestFieldPolicyDatabaseFailureRollsBackWholeReplacement",
+          "outcome": "pass",
+          "elapsed_seconds": 7.49
+        },
+        {
+          "name": "TestFieldPolicyAC009AC018KeepDatabaseDefaultsAndExecutionBoundary",
+          "outcome": "pass",
+          "elapsed_seconds": 9.22
+        },
+        {
+          "name": "TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable",
+          "outcome": "pass",
+          "elapsed_seconds": 9.29
+        },
+        {
+          "name": "TestLocalManagedTableFixtureRejectsLifecycleConflictsWithoutReactivation",
+          "outcome": "pass",
+          "elapsed_seconds": 9.02
+        },
+        {
+          "name": "TestLocalManagedTableFixtureRejectsIncompatibleExistingTableWithoutAssignment",
+          "outcome": "pass",
+          "elapsed_seconds": 8.89
+        },
+        {
+          "name": "TestPolicyMigrationRunsWithoutAccountSchemaOrHTTPConfiguration",
+          "outcome": "pass",
+          "elapsed_seconds": 9.31
+        },
+        {
+          "name": "TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOneSnapshot",
+          "outcome": "pass",
+          "elapsed_seconds": 9.32
+        },
+        {
+          "name": "TestRelationalMutationPolicyIsSoleAuthorizationSourceAndDeprecatedExecutes",
+          "outcome": "pass",
+          "elapsed_seconds": 8.12
+        },
+        {
+          "name": "TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically/Draft_reference",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically/unknown_Type",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically/missing_definition",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically",
+          "outcome": "pass",
+          "elapsed_seconds": 8.37
+        },
+        {
+          "name": "TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement",
+          "outcome": "pass",
+          "elapsed_seconds": 8.17
+        },
+        {
+          "name": "TestPublicationSessionCannotBeReusedAfterTransaction",
+          "outcome": "pass",
+          "elapsed_seconds": 7.46
+        },
+        {
+          "name": "TestMutationPolicyAddsRowAndReturnsJSONStringID",
+          "outcome": "pass",
+          "elapsed_seconds": 7.63
+        },
+        {
+          "name": "TestMutationPolicyReturnsExplicitAutoIncrementID",
+          "outcome": "pass",
+          "elapsed_seconds": 8.59
+        },
+        {
+          "name": "TestMutationPolicyReturnsARequiredNonAutoIncrementID",
+          "outcome": "pass",
+          "elapsed_seconds": 8.37
+        },
+        {
+          "name": "TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields/unknown_field",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields/generated_field",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields/invalid_integer",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields/invalid_enum_member",
+          "outcome": "pass",
+          "elapsed_seconds": 0.14
+        },
+        {
+          "name": "TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields/invalid_JSON",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields/null_in_non-null_column",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields/non-string_dynamic_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields",
+          "outcome": "pass",
+          "elapsed_seconds": 8.52
+        },
+        {
+          "name": "TestMutationPolicyAutoFillUsesAccountOperatorAndDatabaseTimeAndRejectsManagedInput",
+          "outcome": "pass",
+          "elapsed_seconds": 8.17
+        },
+        {
+          "name": "TestMutationPolicyRejectsMissingRequiredFieldsAndRollsBackDatabaseFailures",
+          "outcome": "pass",
+          "elapsed_seconds": 8.41
+        },
+        {
+          "name": "TestMutationPolicyMapsMySQLUniqueKeyViolationsToConflict",
+          "outcome": "pass",
+          "elapsed_seconds": 8.97
+        },
+        {
+          "name": "TestMutationPolicyPatchesOnlySubmittedFieldsWithJSONStringSemantics",
+          "outcome": "pass",
+          "elapsed_seconds": 9.28
+        },
+        {
+          "name": "TestMutationPolicyPatchRejectsInvalidAndNonWritableFields/invalid_integer",
+          "outcome": "pass",
+          "elapsed_seconds": 0.04
+        },
+        {
+          "name": "TestMutationPolicyPatchRejectsInvalidAndNonWritableFields/primary_key",
+          "outcome": "pass",
+          "elapsed_seconds": 0.05
+        },
+        {
+          "name": "TestMutationPolicyPatchRejectsInvalidAndNonWritableFields/generated_field",
+          "outcome": "pass",
+          "elapsed_seconds": 0.05
+        },
+        {
+          "name": "TestMutationPolicyPatchRejectsInvalidAndNonWritableFields/unknown_field",
+          "outcome": "pass",
+          "elapsed_seconds": 0.05
+        },
+        {
+          "name": "TestMutationPolicyPatchRejectsInvalidAndNonWritableFields/null_in_non-null_column",
+          "outcome": "pass",
+          "elapsed_seconds": 0.05
+        },
+        {
+          "name": "TestMutationPolicyPatchRejectsInvalidAndNonWritableFields/empty_patch",
+          "outcome": "pass",
+          "elapsed_seconds": 0.05
+        },
+        {
+          "name": "TestMutationPolicyPatchRejectsInvalidAndNonWritableFields/non-string_dynamic_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.03
+        },
+        {
+          "name": "TestMutationPolicyPatchRejectsInvalidAndNonWritableFields",
+          "outcome": "pass",
+          "elapsed_seconds": 9.91
+        },
+        {
+          "name": "TestMutationPolicyPatchUsesLatestPolicyAndLiveSchema",
+          "outcome": "pass",
+          "elapsed_seconds": 9.97
+        },
+        {
+          "name": "TestMutationPolicyPatchAutoFillUsesModifySlotsAndRejectsManagedInput",
+          "outcome": "pass",
+          "elapsed_seconds": 7.41
+        },
+        {
+          "name": "TestMutationPolicyPatchRollsBackDatabaseFailures",
+          "outcome": "pass",
+          "elapsed_seconds": 8.4
+        },
+        {
+          "name": "TestMutationPolicyPatchMapsUniqueKeyConflictsAndRollsBack",
+          "outcome": "pass",
+          "elapsed_seconds": 9.04
+        },
+        {
+          "name": "TestMutationPolicyPatchFailsClosedForCurrentPolicyAndSchema",
+          "outcome": "pass",
+          "elapsed_seconds": 7.62
+        },
+        {
+          "name": "TestMutationPolicyDeleteDefaultsToDeniedThenUsesTheCurrentReplacement",
+          "outcome": "pass",
+          "elapsed_seconds": 9.26
+        },
+        {
+          "name": "TestMutationPolicyDeleteFailsClosedBeforeExecution",
+          "outcome": "pass",
+          "elapsed_seconds": 9.33
+        },
+        {
+          "name": "TestMutationPolicyDeleteMapsMissingRowsToNotFound",
+          "outcome": "pass",
+          "elapsed_seconds": 9.32
+        },
+        {
+          "name": "TestMutationPolicyDeleteRollsBackDatabaseFailures",
+          "outcome": "pass",
+          "elapsed_seconds": 8.86
+        },
+        {
+          "name": "TestMutationPolicyDeleteFailsClosedForUnsupportedLiveColumns",
+          "outcome": "pass",
+          "elapsed_seconds": 10.4
+        },
+        {
+          "name": "TestMutationPolicyDeleteFailsClosedForStaleAutoFillSchemaRules",
+          "outcome": "pass",
+          "elapsed_seconds": 9.17
+        },
+        {
+          "name": "TestMutationPolicyDeleteFailsClosedForInvalidCurrentPolicyAndLiveTable",
+          "outcome": "pass",
+          "elapsed_seconds": 14.19
+        },
+        {
+          "name": "TestMutationAddFailsClosedAndUsesTheLatestPolicySnapshot",
+          "outcome": "pass",
+          "elapsed_seconds": 12.64
+        },
+        {
+          "name": "TestMutationAddFailsClosedForInvalidLivePolicyAndSchema",
+          "outcome": "pass",
+          "elapsed_seconds": 9.85
+        },
+        {
+          "name": "TestMutationAddFailsClosedWhenPolicyCatalogIsUnavailable",
+          "outcome": "pass",
+          "elapsed_seconds": 9.68
+        },
+        {
+          "name": "TestPolicyAuditMigrationPreservesDataAndIsRestartable/legacy",
+          "outcome": "pass",
+          "elapsed_seconds": 0.13
+        },
+        {
+          "name": "TestPolicyAuditMigrationPreservesDataAndIsRestartable/partial",
+          "outcome": "pass",
+          "elapsed_seconds": 0.14
+        },
+        {
+          "name": "TestPolicyAuditMigrationPreservesDataAndIsRestartable",
+          "outcome": "pass",
+          "elapsed_seconds": 8.91
+        },
+        {
+          "name": "TestPolicyAuditMigrationRejectsAmbiguousOrMissingColumnsBeforeDDL/duplicate",
+          "outcome": "pass",
+          "elapsed_seconds": 0.05
+        },
+        {
+          "name": "TestPolicyAuditMigrationRejectsAmbiguousOrMissingColumnsBeforeDDL/missing",
+          "outcome": "pass",
+          "elapsed_seconds": 0.03
+        },
+        {
+          "name": "TestPolicyAuditMigrationRejectsAmbiguousOrMissingColumnsBeforeDDL",
+          "outcome": "pass",
+          "elapsed_seconds": 9.18
+        },
+        {
+          "name": "TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite",
+          "outcome": "pass",
+          "elapsed_seconds": 17.65
+        },
+        {
+          "name": "TestQueryPolicyHTTPLifecyclePersistsAndFailsClosed",
+          "outcome": "pass",
+          "elapsed_seconds": 9.65
+        },
+        {
+          "name": "TestTablePolicyCodeAssignmentsValidateActiveDefinitionsAndReplaceAtomically",
+          "outcome": "pass",
+          "elapsed_seconds": 8.93
+        },
+        {
+          "name": "TestLegacyPolicyPreflightRejectsUnsupportedAutoFillWithoutPartialRewrite",
+          "outcome": "pass",
+          "elapsed_seconds": 8.74
+        },
+        {
+          "name": "TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed",
+          "outcome": "pass",
+          "elapsed_seconds": 8.97
+        },
+        {
+          "name": "TestTablePolicyCreationPersistsDisabledCodeReferencesForHTTPInspection",
+          "outcome": "pass",
+          "elapsed_seconds": 9.06
+        },
+        {
+          "name": "TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/missing",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/view",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/protected",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/incompatible",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/unknown_query_definition",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/unknown_mutation_definition",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence/legacy_JSON_field",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence",
+          "outcome": "pass",
+          "elapsed_seconds": 8.22
+        },
+        {
+          "name": "TestAdminProcessHelper",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestAdminExternalProcessServesHealthAndEnforcesAuthDefault",
+          "outcome": "pass",
+          "elapsed_seconds": 0.07
+        },
+        {
+          "name": "TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully/interrupt",
+          "outcome": "pass",
+          "elapsed_seconds": 5.37
+        },
+        {
+          "name": "TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully/terminated",
+          "outcome": "pass",
+          "elapsed_seconds": 5.31
+        },
+        {
+          "name": "TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully",
+          "outcome": "pass",
+          "elapsed_seconds": 10.68
+        },
+        {
+          "name": "TestAdminExternalProcessForcesShutdownAtConfiguredBoundAndStillClosesApplication",
+          "outcome": "pass",
+          "elapsed_seconds": 0.1
+        },
+        {
+          "name": "TestAdminExternalProcessWaitsForIncompleteRequestHeadersOnShutdown",
+          "outcome": "pass",
+          "elapsed_seconds": 5.37
+        },
+        {
+          "name": "TestPublicationFloatValuesAndIdentityRoundTrip/ordinary_FLOAT_final_value_is_lossless",
+          "outcome": "pass",
+          "elapsed_seconds": 0.42
+        },
+        {
+          "name": "TestPublicationFloatValuesAndIdentityRoundTrip/adjacent_FLOAT_ids_remain_distinct_and_returned_id_is_reusable",
+          "outcome": "pass",
+          "elapsed_seconds": 0.85
+        },
+        {
+          "name": "TestPublicationFloatValuesAndIdentityRoundTrip/float_publication_ids_signed_zero_shares_the_tombstone",
+          "outcome": "pass",
+          "elapsed_seconds": 0.69
+        },
+        {
+          "name": "TestPublicationFloatValuesAndIdentityRoundTrip/double_publication_ids_signed_zero_shares_the_tombstone",
+          "outcome": "pass",
+          "elapsed_seconds": 0.73
+        },
+        {
+          "name": "TestPublicationFloatValuesAndIdentityRoundTrip/decimal_input_is_converted_to_stored_FLOAT_before_lookup",
+          "outcome": "pass",
+          "elapsed_seconds": 0.26
+        },
+        {
+          "name": "TestPublicationFloatValuesAndIdentityRoundTrip",
+          "outcome": "pass",
+          "elapsed_seconds": 12.05
+        },
+        {
+          "name": "TestPublicationFloatIdentityMaintenanceKeepsOldVersions",
+          "outcome": "pass",
+          "elapsed_seconds": 9.36
+        },
+        {
+          "name": "TestPublicationCommitUnknownSurvivesExecutableRestart",
+          "outcome": "pass",
+          "elapsed_seconds": 18.18
+        },
+        {
+          "name": "TestQueryPolicyQuotesManagedTableNameAsIdentifier",
+          "outcome": "pass",
+          "elapsed_seconds": 8.24
+        },
+        {
+          "name": "TestQueryPolicyContainsTreatsWildcardsAndEscapeCharacterLiterally",
+          "outcome": "pass",
+          "elapsed_seconds": 8.77
+        },
+        {
+          "name": "TestQueryPolicyAppliesOpenAndClosedRanges/open_range_excludes_both_boundaries",
+          "outcome": "pass",
+          "elapsed_seconds": 0.19
+        },
+        {
+          "name": "TestQueryPolicyAppliesOpenAndClosedRanges/closed_range_includes_both_boundaries",
+          "outcome": "pass",
+          "elapsed_seconds": 0.03
+        },
+        {
+          "name": "TestQueryPolicyAppliesOpenAndClosedRanges/one_open_boundary_is_enough",
+          "outcome": "pass",
+          "elapsed_seconds": 0.02
+        },
+        {
+          "name": "TestQueryPolicyAppliesOpenAndClosedRanges",
+          "outcome": "pass",
+          "elapsed_seconds": 9.45
+        },
+        {
+          "name": "TestQueryPolicyAppliesMembershipNullAndEmptyStringSemantics/in",
+          "outcome": "pass",
+          "elapsed_seconds": 0.19
+        },
+        {
+          "name": "TestQueryPolicyAppliesMembershipNullAndEmptyStringSemantics/not_in",
+          "outcome": "pass",
+          "elapsed_seconds": 0.03
+        },
+        {
+          "name": "TestQueryPolicyAppliesMembershipNullAndEmptyStringSemantics/is_null",
+          "outcome": "pass",
+          "elapsed_seconds": 0.02
+        },
+        {
+          "name": "TestQueryPolicyAppliesMembershipNullAndEmptyStringSemantics/is_not_null",
+          "outcome": "pass",
+          "elapsed_seconds": 0.04
+        },
+        {
+          "name": "TestQueryPolicyAppliesMembershipNullAndEmptyStringSemantics/empty_string_is_data",
+          "outcome": "pass",
+          "elapsed_seconds": 0.03
+        },
+        {
+          "name": "TestQueryPolicyAppliesMembershipNullAndEmptyStringSemantics",
+          "outcome": "pass",
+          "elapsed_seconds": 10.31
+        },
+        {
+          "name": "TestQueryPolicyEnforcesLimitsAndRequestSortWithoutCorrection",
+          "outcome": "pass",
+          "elapsed_seconds": 9.82
+        },
+        {
+          "name": "TestQueryPolicyReturnsEverySupportedLiveTypeAsLosslessJSONString",
+          "outcome": "pass",
+          "elapsed_seconds": 8.54
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/signed_big",
+          "outcome": "pass",
+          "elapsed_seconds": 0.14
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/unsigned_big",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/decimal_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/float_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/varchar_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.02
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/enum_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/boolean_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.02
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/date_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/time_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/datetime_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/timestamp_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.02
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/json_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.02
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/invalid_signed_big_exact",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/invalid_unsigned_big_exact",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/invalid_decimal_value_exact",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/invalid_float_value_exact",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/invalid_boolean_value_exact",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/invalid_date_value_exact",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/invalid_time_value_exact",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/invalid_datetime_value_exact",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/invalid_timestamp_value_exact",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/invalid_json_value_exact",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/invalid_signed_big_contains",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType/invalid_json_value_open_range",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestQueryPolicyParsesConditionValuesByLiveType",
+          "outcome": "pass",
+          "elapsed_seconds": 8.97
+        },
+        {
+          "name": "TestQueryPolicyRejectsEveryUnsupportedFullRowType/binary_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.17
+        },
+        {
+          "name": "TestQueryPolicyRejectsEveryUnsupportedFullRowType/varbinary_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.02
+        },
+        {
+          "name": "TestQueryPolicyRejectsEveryUnsupportedFullRowType/blob_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.02
+        },
+        {
+          "name": "TestQueryPolicyRejectsEveryUnsupportedFullRowType/bit_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.02
+        },
+        {
+          "name": "TestQueryPolicyRejectsEveryUnsupportedFullRowType/set_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.02
+        },
+        {
+          "name": "TestQueryPolicyRejectsEveryUnsupportedFullRowType/spatial_value",
+          "outcome": "pass",
+          "elapsed_seconds": 0.02
+        },
+        {
+          "name": "TestQueryPolicyRejectsEveryUnsupportedFullRowType",
+          "outcome": "pass",
+          "elapsed_seconds": 9.17
+        },
+        {
+          "name": "TestQueryPolicyMapsDatabaseTimeoutToSafeGatewayTimeout",
+          "outcome": "pass",
+          "elapsed_seconds": 11.44
+        },
+        {
+          "name": "TestEnabledTablePolicyQueriesExactRowsWithPolicyDefaults",
+          "outcome": "pass",
+          "elapsed_seconds": 9.15
+        },
+        {
+          "name": "TestPolicyReplacementAndDisableAffectTheNextQuery",
+          "outcome": "pass",
+          "elapsed_seconds": 9.3
+        },
+        {
+          "name": "TestExactQueryUsesANDValidatedSortAndPreservesAnEmptyRequestedPage",
+          "outcome": "pass",
+          "elapsed_seconds": 9.15
+        },
+        {
+          "name": "TestQueryFailsClosedWhenLiveSchemaBecomesInvalid",
+          "outcome": "pass",
+          "elapsed_seconds": 8.26
+        },
+        {
+          "name": "TestQueryFailsClosedWhenPolicyCatalogIsUnavailable",
+          "outcome": "pass",
+          "elapsed_seconds": 9.37
+        },
+        {
+          "name": "TestAssignedDeprecatedPolicyDefinitionsRemainQueryable",
+          "outcome": "pass",
+          "elapsed_seconds": 8.48
+        },
+        {
+          "name": "TestQueryPolicySnapshotCorruptionFailsClosed/missing_Query_Policy",
+          "outcome": "pass",
+          "elapsed_seconds": 8.98
+        },
+        {
+          "name": "TestQueryPolicySnapshotCorruptionFailsClosed/missing_Mutation_Policy",
+          "outcome": "pass",
+          "elapsed_seconds": 8.19
+        },
+        {
+          "name": "TestQueryPolicySnapshotCorruptionFailsClosed/Draft_Query_Policy",
+          "outcome": "pass",
+          "elapsed_seconds": 8.58
+        },
+        {
+          "name": "TestQueryPolicySnapshotCorruptionFailsClosed/Draft_Mutation_Policy",
+          "outcome": "pass",
+          "elapsed_seconds": 8.4
+        },
+        {
+          "name": "TestQueryPolicySnapshotCorruptionFailsClosed/unknown_Query_Type",
+          "outcome": "pass",
+          "elapsed_seconds": 8.34
+        },
+        {
+          "name": "TestQueryPolicySnapshotCorruptionFailsClosed/unknown_Mutation_Type",
+          "outcome": "pass",
+          "elapsed_seconds": 8.4
+        },
+        {
+          "name": "TestQueryPolicySnapshotCorruptionFailsClosed/missing_default_order_column",
+          "outcome": "pass",
+          "elapsed_seconds": 8.44
+        },
+        {
+          "name": "TestQueryPolicySnapshotCorruptionFailsClosed/Policy_cannot_relax_platform_page_limit",
+          "outcome": "pass",
+          "elapsed_seconds": 9.83
+        },
+        {
+          "name": "TestQueryPolicySnapshotCorruptionFailsClosed",
+          "outcome": "pass",
+          "elapsed_seconds": 69.14
+        },
+        {
+          "name": "TestInFlightQueryKeepsOnePolicySnapshotWhileReplacementAffectsNextRequest",
+          "outcome": "pass",
+          "elapsed_seconds": 9.43
+        },
+        {
+          "name": "TestExternalDDLRaceFailsSafelyWithoutStorageDetails",
+          "outcome": "pass",
+          "elapsed_seconds": 14.29
+        },
+        {
+          "name": "TestQuerySnapshotSessionCannotBeReusedAfterTransaction",
+          "outcome": "pass",
+          "elapsed_seconds": 13.32
+        },
+        {
+          "name": "TestRecordVersionLegacyBaseline",
+          "outcome": "pass",
+          "elapsed_seconds": 14.42
+        },
+        {
+          "name": "TestRecordVersionCompareAndSwap",
+          "outcome": "pass",
+          "elapsed_seconds": 13.46
+        },
+        {
+          "name": "TestRecordVersionAddDeleteRecreateAndRollback",
+          "outcome": "pass",
+          "elapsed_seconds": 9.88
+        },
+        {
+          "name": "TestRecordVersionMySQLPrimaryKeyEquivalence/record_identity_ci",
+          "outcome": "pass",
+          "elapsed_seconds": 0.83
+        },
+        {
+          "name": "TestRecordVersionMySQLPrimaryKeyEquivalence/record_identity_pad",
+          "outcome": "pass",
+          "elapsed_seconds": 0.81
+        },
+        {
+          "name": "TestRecordVersionMySQLPrimaryKeyEquivalence/record_identity_decimal",
+          "outcome": "pass",
+          "elapsed_seconds": 0.78
+        },
+        {
+          "name": "TestRecordVersionMySQLPrimaryKeyEquivalence/record_identity_timestamp",
+          "outcome": "pass",
+          "elapsed_seconds": 0.66
+        },
+        {
+          "name": "TestRecordVersionMySQLPrimaryKeyEquivalence",
+          "outcome": "pass",
+          "elapsed_seconds": 12.43
+        },
+        {
+          "name": "TestRecordVersionRealConcurrentWriters",
+          "outcome": "pass",
+          "elapsed_seconds": 10.93
+        },
+        {
+          "name": "TestRecordVersionSchemaReadinessAndRestartableMigration",
+          "outcome": "pass",
+          "elapsed_seconds": 19.28
+        },
+        {
+          "name": "TestRecordVersionLosslessMaintenanceFloor",
+          "outcome": "pass",
+          "elapsed_seconds": 9.79
+        },
+        {
+          "name": "TestRecordVersionSnapshotAndIndependentResources",
+          "outcome": "pass",
+          "elapsed_seconds": 9.4
+        },
+        {
+          "name": "TestRecordVersionRejectsNonTransactionalBusinessWrite",
+          "outcome": "pass",
+          "elapsed_seconds": 9.03
+        },
+        {
+          "name": "TestRecordVersionControlStorageFailureRollsBackBusinessWrites",
+          "outcome": "pass",
+          "elapsed_seconds": 7.7
+        },
+        {
+          "name": "TestReleaseSubmitFreezesIntent",
+          "outcome": "pass",
+          "elapsed_seconds": 8.74
+        },
+        {
+          "name": "TestReleaseTargetsCompeteAndCancelReleases",
+          "outcome": "pass",
+          "elapsed_seconds": 8.48
+        },
+        {
+          "name": "TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin",
+          "outcome": "pass",
+          "elapsed_seconds": 8.32
+        },
+        {
+          "name": "TestReleaseApprovalCurrentRolesAndHistory",
+          "outcome": "pass",
+          "elapsed_seconds": 7.89
+        },
+        {
+          "name": "TestReleaseRejectedCopyRechecksBaseline",
+          "outcome": "pass",
+          "elapsed_seconds": 8.56
+        },
+        {
+          "name": "TestReleaseWorkflowAtomicityAndCompetition",
+          "outcome": "pass",
+          "elapsed_seconds": 9.47
+        },
+        {
+          "name": "TestReleaseFreezeTracksExecutionSemantics",
+          "outcome": "pass",
+          "elapsed_seconds": 10.2
+        },
+        {
+          "name": "TestReleaseFreezeMetadataVisibility",
+          "outcome": "pass",
+          "elapsed_seconds": 8.43
+        },
+        {
+          "name": "TestReleaseSubmitRevalidatesBaselineAndRules",
+          "outcome": "pass",
+          "elapsed_seconds": 9.16
+        },
+        {
+          "name": "TestReleaseExecutionSchemaHoldsMetadataLock",
+          "outcome": "pass",
+          "elapsed_seconds": 9.39
+        },
+        {
+          "name": "TestReleaseAutoIncrementZeroIdentity",
+          "outcome": "pass",
+          "elapsed_seconds": 8.26
+        },
+        {
+          "name": "TestReleaseFreezeMetadataGrantNameIdentity/schema",
+          "outcome": "pass",
+          "elapsed_seconds": 0.39
+        },
+        {
+          "name": "TestReleaseFreezeMetadataGrantNameIdentity/schema-pattern",
+          "outcome": "pass",
+          "elapsed_seconds": 0.09
+        },
+        {
+          "name": "TestReleaseFreezeMetadataGrantNameIdentity/table",
+          "outcome": "pass",
+          "elapsed_seconds": 0.09
+        },
+        {
+          "name": "TestReleaseFreezeMetadataGrantNameIdentity/account",
+          "outcome": "pass",
+          "elapsed_seconds": 0.08
+        },
+        {
+          "name": "TestReleaseFreezeMetadataGrantNameIdentity/quoted-username-containing-at",
+          "outcome": "pass",
+          "elapsed_seconds": 0.24
+        },
+        {
+          "name": "TestReleaseFreezeMetadataGrantNameIdentity",
+          "outcome": "pass",
+          "elapsed_seconds": 9.37
+        },
+        {
+          "name": "TestReleaseFreezeMetadataCaseInsensitiveNames",
+          "outcome": "pass",
+          "elapsed_seconds": 10.48
+        },
+        {
+          "name": "TestReleaseBatchEdgeDraftValidation/invalid-later-field",
+          "outcome": "pass",
+          "elapsed_seconds": 0.17
+        },
+        {
+          "name": "TestReleaseBatchEdgeDraftValidation/numeric-existing",
+          "outcome": "pass",
+          "elapsed_seconds": 0.04
+        },
+        {
+          "name": "TestReleaseBatchEdgeDraftValidation/numeric-missing-add",
+          "outcome": "pass",
+          "elapsed_seconds": 0.04
+        },
+        {
+          "name": "TestReleaseBatchEdgeDraftValidation/collation-existing",
+          "outcome": "pass",
+          "elapsed_seconds": 0.04
+        },
+        {
+          "name": "TestReleaseBatchEdgeDraftValidation/collation-missing-add",
+          "outcome": "pass",
+          "elapsed_seconds": 0.04
+        },
+        {
+          "name": "TestReleaseBatchEdgeDraftValidation/pad-space-existing",
+          "outcome": "pass",
+          "elapsed_seconds": 0.04
+        },
+        {
+          "name": "TestReleaseBatchEdgeDraftValidation/pad-space-missing-add",
+          "outcome": "pass",
+          "elapsed_seconds": 0.04
+        },
+        {
+          "name": "TestReleaseBatchEdgeDraftValidation/cross-table",
+          "outcome": "pass",
+          "elapsed_seconds": 0.03
+        },
+        {
+          "name": "TestReleaseBatchEdgeDraftValidation",
+          "outcome": "pass",
+          "elapsed_seconds": 8.37
+        },
+        {
+          "name": "TestReleaseBatchEdgeRequestLimitsPreserveDraft/empty",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestReleaseBatchEdgeRequestLimitsPreserveDraft/1001",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestReleaseBatchEdgeRequestLimitsPreserveDraft/body",
+          "outcome": "pass",
+          "elapsed_seconds": 0
+        },
+        {
+          "name": "TestReleaseBatchEdgeRequestLimitsPreserveDraft",
+          "outcome": "pass",
+          "elapsed_seconds": 8.57
+        },
+        {
+          "name": "TestReleaseBatchEdgeOverlappingSubmissions",
+          "outcome": "pass",
+          "elapsed_seconds": 8.26
+        },
+        {
+          "name": "TestReleaseBatchEdgeStaleMemberRollsBack",
+          "outcome": "pass",
+          "elapsed_seconds": 8.39
+        },
+        {
+          "name": "TestReleaseBatchEdgeMidwayConstraintRollback/check",
+          "outcome": "pass",
+          "elapsed_seconds": 0.19
+        },
+        {
+          "name": "TestReleaseBatchEdgeMidwayConstraintRollback/unique",
+          "outcome": "pass",
+          "elapsed_seconds": 0.17
+        },
+        {
+          "name": "TestReleaseBatchEdgeMidwayConstraintRollback",
+          "outcome": "pass",
+          "elapsed_seconds": 8.4
+        },
+        {
+          "name": "TestReleaseBatchEdgeAutoIncrementAndIndependentRequests",
+          "outcome": "pass",
+          "elapsed_seconds": 8.6
+        },
+        {
+          "name": "TestReleaseBatchEdgeIndependentUniqueConflict",
+          "outcome": "pass",
+          "elapsed_seconds": 8.55
+        },
+        {
+          "name": "TestReleaseBatchExistingEnumPrimaryKeys",
+          "outcome": "pass",
+          "elapsed_seconds": 8.65
+        },
+        {
+          "name": "TestReleaseBatchCopyInvalidItemIsLocated",
+          "outcome": "pass",
+          "elapsed_seconds": 8.88
+        },
+        {
+          "name": "TestReleaseMixedBatchPublication",
+          "outcome": "pass",
+          "elapsed_seconds": 9.06
+        },
+        {
+          "name": "TestReleaseBatchDuplicateIdentityDoesNotReplaceDraft",
+          "outcome": "pass",
+          "elapsed_seconds": 9.16
+        },
+        {
+          "name": "TestReleaseThousandItemsThroughExecutable",
+          "outcome": "pass",
+          "elapsed_seconds": 21.09
+        },
+        {
+          "name": "TestReleaseBatchFieldBudget",
+          "outcome": "pass",
+          "elapsed_seconds": 9.57
+        },
+        {
+          "name": "TestReleaseBatchExpandedResultBudgetRollsBack",
+          "outcome": "pass",
+          "elapsed_seconds": 11.09
+        },
+        {
+          "name": "TestReleaseBatchBudgetRetainsCancellationHeadroom",
+          "outcome": "pass",
+          "elapsed_seconds": 10.8
+        },
+        {
+          "name": "TestReleaseCompletionRetainsKnownTargets",
+          "outcome": "pass",
+          "elapsed_seconds": 9.75
+        },
+        {
+          "name": "TestReleaseCompletionOrdinaryRollbackClosesBothOrders",
+          "outcome": "pass",
+          "elapsed_seconds": 10.55
+        },
+        {
+          "name": "TestReleaseCompletionReleasesWithoutRepublishing",
+          "outcome": "pass",
+          "elapsed_seconds": 8.88
+        },
+        {
+          "name": "TestReleaseCompletionProtectsActualAndDeletedIDs",
+          "outcome": "pass",
+          "elapsed_seconds": 10.05
+        },
+        {
+          "name": "TestReleaseCompletionRolesConcurrencyAndReplay",
+          "outcome": "pass",
+          "elapsed_seconds": 9.17
+        },
+        {
+          "name": "TestReleaseCompletionPersistenceFailureIsAtomic/rcc_release_targets",
+          "outcome": "pass",
+          "elapsed_seconds": 0.08
+        },
+        {
+          "name": "TestReleaseCompletionPersistenceFailureIsAtomic/rcc_release_orders",
+          "outcome": "pass",
+          "elapsed_seconds": 0.08
+        },
+        {
+          "name": "TestReleaseCompletionPersistenceFailureIsAtomic/rcc_release_requests",
+          "outcome": "pass",
+          "elapsed_seconds": 0.08
+        },
+        {
+          "name": "TestReleaseCompletionPersistenceFailureIsAtomic",
+          "outcome": "pass",
+          "elapsed_seconds": 11.41
+        },
+        {
+          "name": "TestReleaseCompletionRequiresTrustedPublicationOnReadAndReplay",
+          "outcome": "pass",
+          "elapsed_seconds": 9.39
+        },
+        {
+          "name": "TestReleaseCompletionAtPublicationCapacityPreservesRollback",
+          "outcome": "pass",
+          "elapsed_seconds": 23.85
+        },
+        {
+          "name": "TestReleaseDraftTitlePersistsAndReloads",
+          "outcome": "pass",
+          "elapsed_seconds": 9.15
+        },
+        {
+          "name": "TestReleaseDraftTitleUnicodeValidation",
+          "outcome": "pass",
+          "elapsed_seconds": 10.63
+        },
+        {
+          "name": "TestReleaseDraftTitleEditCASAndFreeze",
+          "outcome": "pass",
+          "elapsed_seconds": 9.42
+        },
+        {
+          "name": "TestReleaseDraftSaveAndReload",
+          "outcome": "pass",
+          "elapsed_seconds": 9.17
+        },
+        {
+          "name": "TestReleaseDraftCASCancelAndIdempotency",
+          "outcome": "pass",
+          "elapsed_seconds": 9.59
+        },
+        {
+          "name": "TestReleaseDraftDiffAndServerBaseline",
+          "outcome": "pass",
+          "elapsed_seconds": 11
+        },
+        {
+          "name": "TestReleaseDraftMissingIdentityAndTombstone/record_identity_ci",
+          "outcome": "pass",
+          "elapsed_seconds": 0.87
+        },
+        {
+          "name": "TestReleaseDraftMissingIdentityAndTombstone/record_identity_pad",
+          "outcome": "pass",
+          "elapsed_seconds": 1.15
+        },
+        {
+          "name": "TestReleaseDraftMissingIdentityAndTombstone/record_identity_decimal",
+          "outcome": "pass",
+          "elapsed_seconds": 1.53
+        },
+        {
+          "name": "TestReleaseDraftMissingIdentityAndTombstone/record_identity_timestamp",
+          "outcome": "pass",
+          "elapsed_seconds": 1.15
+        },
+        {
+          "name": "TestReleaseDraftMissingIdentityAndTombstone",
+          "outcome": "pass",
+          "elapsed_seconds": 15.5
+        },
+        {
+          "name": "TestReleaseDraftCurrentAuthorizationAndListing",
+          "outcome": "pass",
+          "elapsed_seconds": 12.85
+        },
+        {
+          "name": "TestReleaseDraftSchemaReadiness",
+          "outcome": "pass",
+          "elapsed_seconds": 9.08
+        },
+        {
+          "name": "TestReleaseDraftKnownAddUpdateRequiresOriginalBaseline",
+          "outcome": "pass",
+          "elapsed_seconds": 11.34
+        },
+        {
+          "name": "TestReleaseDraftPreviewRebuildsMissingAddBaseline",
+          "outcome": "pass",
+          "elapsed_seconds": 10.28
+        },
+        {
+          "name": "TestReleaseDraftConcurrentAndAtomicStorage",
+          "outcome": "pass",
+          "elapsed_seconds": 10.89
+        },
+        {
+          "name": "TestReleaseDraftRejectsLossySnapshotAndRetainsSavedSchema",
+          "outcome": "pass",
+          "elapsed_seconds": 9.64
+        },
+        {
+          "name": "TestReleaseDraftReplayUsesCurrentActionsAndRejectsChangedDigest",
+          "outcome": "pass",
+          "elapsed_seconds": 11.7
+        },
+        {
+          "name": "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges",
+          "outcome": "pass",
+          "elapsed_seconds": 14.08
+        },
+        {
+          "name": "TestReleasePublicationAddsFinalRow",
+          "outcome": "pass",
+          "elapsed_seconds": 11.31
+        },
+        {
+          "name": "TestPublicationRejectsUntrackedCascade",
+          "outcome": "pass",
+          "elapsed_seconds": 12.76
+        },
+        {
+          "name": "TestPublicationSupportsTargetRowTrigger",
+          "outcome": "pass",
+          "elapsed_seconds": 9.72
+        },
+        {
+          "name": "TestPublicationAtomicPersistenceFailures/rcc_record_versions",
+          "outcome": "pass",
+          "elapsed_seconds": 0.15
+        },
+        {
+          "name": "TestPublicationAtomicPersistenceFailures/rcc_publication_commands",
+          "outcome": "pass",
+          "elapsed_seconds": 0.11
+        },
+        {
+          "name": "TestPublicationAtomicPersistenceFailures/rcc_table_publications",
+          "outcome": "pass",
+          "elapsed_seconds": 0.11
+        },
+        {
+          "name": "TestPublicationAtomicPersistenceFailures/rcc_refresh_notifications",
+          "outcome": "pass",
+          "elapsed_seconds": 0.12
+        },
+        {
+          "name": "TestPublicationAtomicPersistenceFailures/rcc_release_targets",
+          "outcome": "pass",
+          "elapsed_seconds": 0.09
+        },
+        {
+          "name": "TestPublicationAtomicPersistenceFailures/rcc_release_orders",
+          "outcome": "pass",
+          "elapsed_seconds": 0.12
+        },
+        {
+          "name": "TestPublicationAtomicPersistenceFailures/rcc_release_requests",
+          "outcome": "pass",
+          "elapsed_seconds": 0.13
+        },
+        {
+          "name": "TestPublicationAtomicPersistenceFailures",
+          "outcome": "pass",
+          "elapsed_seconds": 12.25
+        },
+        {
+          "name": "TestOldRecordWriteRoutesAreRemoved",
+          "outcome": "pass",
+          "elapsed_seconds": 10.53
+        },
+        {
+          "name": "TestPublicationIdentityCanonicalAndDelete",
+          "outcome": "pass",
+          "elapsed_seconds": 9.92
+        },
+        {
+          "name": "TestPublicationRejectsImplicitWritesAndAuditSpoofing/0",
+          "outcome": "pass",
+          "elapsed_seconds": 0.24
+        },
+        {
+          "name": "TestPublicationRejectsImplicitWritesAndAuditSpoofing/1",
+          "outcome": "pass",
+          "elapsed_seconds": 0.23
+        },
+        {
+          "name": "TestPublicationRejectsImplicitWritesAndAuditSpoofing/2",
+          "outcome": "pass",
+          "elapsed_seconds": 0.26
+        },
+        {
+          "name": "TestPublicationRejectsImplicitWritesAndAuditSpoofing/3",
+          "outcome": "pass",
+          "elapsed_seconds": 0.27
+        },
+        {
+          "name": "TestPublicationRejectsImplicitWritesAndAuditSpoofing/4",
+          "outcome": "pass",
+          "elapsed_seconds": 0.23
+        },
+        {
+          "name": "TestPublicationRejectsImplicitWritesAndAuditSpoofing/5",
+          "outcome": "pass",
+          "elapsed_seconds": 0.21
+        },
+        {
+          "name": "TestPublicationRejectsImplicitWritesAndAuditSpoofing",
+          "outcome": "pass",
+          "elapsed_seconds": 12.62
+        },
+        {
+          "name": "TestPublicationPublisherHistoryAndApprovalSurvivesRevocation",
+          "outcome": "pass",
+          "elapsed_seconds": 9.73
+        },
+        {
+          "name": "TestPublicationFrozenChangesAndDescriptions",
+          "outcome": "pass",
+          "elapsed_seconds": 9.85
+        },
+        {
+          "name": "TestPublicationActionCompetitionAndTableOrder",
+          "outcome": "pass",
+          "elapsed_seconds": 10.66
+        },
+        {
+          "name": "TestPublicationSessionLocksHiddenForeignKeyDDL",
+          "outcome": "pass",
+          "elapsed_seconds": 10.93
+        },
+        {
+          "name": "TestPublicationRejectsUnknownNonAutoIncrementIdentity",
+          "outcome": "pass",
+          "elapsed_seconds": 8.95
+        },
+        {
+          "name": "TestPublicationStoredRowsAreVerifiedBeforeReadOrReplay",
+          "outcome": "pass",
+          "elapsed_seconds": 10.26
+        },
+        {
+          "name": "TestQuickRollbackPreviewShowsWholeRestorationWithoutWriting",
+          "outcome": "pass",
+          "elapsed_seconds": 9.92
+        },
+        {
+          "name": "TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult",
+          "outcome": "pass",
+          "elapsed_seconds": 11.57
+        },
+        {
+          "name": "TestQuickRollbackRejectsUnversionedExternalChangesBeforePreviewAndExecution",
+          "outcome": "pass",
+          "elapsed_seconds": 10.04
+        },
+        {
+          "name": "TestQuickRollbackRequiresItsOriginalRetainedTargets",
+          "outcome": "pass",
+          "elapsed_seconds": 9.76
+        },
+        {
+          "name": "TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndReason",
+          "outcome": "pass",
+          "elapsed_seconds": 9.92
+        },
+        {
+          "name": "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks/complete",
+          "outcome": "pass",
+          "elapsed_seconds": 0.35
+        },
+        {
+          "name": "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks/quick-distinct-key",
+          "outcome": "pass",
+          "elapsed_seconds": 0.45
+        },
+        {
+          "name": "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks/quick-same-key",
+          "outcome": "pass",
+          "elapsed_seconds": 0.41
+        },
+        {
+          "name": "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks",
+          "outcome": "pass",
+          "elapsed_seconds": 9.25
+        },
+        {
+          "name": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets/rcc_record_versions_UPDATE",
+          "outcome": "pass",
+          "elapsed_seconds": 0.2
+        },
+        {
+          "name": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets/rcc_publication_commands_INSERT",
+          "outcome": "pass",
+          "elapsed_seconds": 0.28
+        },
+        {
+          "name": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets/rcc_table_publications_UPDATE",
+          "outcome": "pass",
+          "elapsed_seconds": 0.21
+        },
+        {
+          "name": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets/rcc_refresh_notifications_INSERT",
+          "outcome": "pass",
+          "elapsed_seconds": 0.17
+        },
+        {
+          "name": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets/rcc_release_orders_INSERT",
+          "outcome": "pass",
+          "elapsed_seconds": 0.26
+        },
+        {
+          "name": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets/rcc_release_orders_UPDATE",
+          "outcome": "pass",
+          "elapsed_seconds": 0.19
+        },
+        {
+          "name": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets/rcc_release_targets_DELETE",
+          "outcome": "pass",
+          "elapsed_seconds": 0.18
+        },
+        {
+          "name": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets/rcc_release_requests_UPDATE",
+          "outcome": "pass",
+          "elapsed_seconds": 0.2
+        },
+        {
+          "name": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets",
+          "outcome": "pass",
+          "elapsed_seconds": 9.85
+        },
+        {
+          "name": "TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions",
+          "outcome": "pass",
+          "elapsed_seconds": 10.18
+        },
+        {
+          "name": "TestQuickRollbackConstraintFailureRollsBackEarlierItems",
+          "outcome": "pass",
+          "elapsed_seconds": 10.13
+        },
+        {
+          "name": "TestQuickRollbackCanTerminateAtAcceptedPublicationCapacity",
+          "outcome": "pass",
+          "elapsed_seconds": 10.43
+        },
+        {
+          "name": "TestQuickRollbackRejectsDatabaseEffectsThatCannotRestoreOriginalValues",
+          "outcome": "pass",
+          "elapsed_seconds": 9.77
+        },
+        {
+          "name": "TestReleaseReprepareReplacesApprovedOrderWithEditableDraft",
+          "outcome": "pass",
+          "elapsed_seconds": 9.28
+        },
+        {
+          "name": "TestReleaseReprepareRequiresCurrentApplicantEditorOrAdmin",
+          "outcome": "pass",
+          "elapsed_seconds": 9.18
+        },
+        {
+          "name": "TestReleaseReprepareFailureKeepsApprovedOrderAndTarget",
+          "outcome": "pass",
+          "elapsed_seconds": 11.59
+        },
+        {
+          "name": "TestReleaseResetPreservesRecordsAndContinuesPublication",
+          "outcome": "pass",
+          "elapsed_seconds": 26.71
+        },
+        {
+          "name": "TestReleaseResetRefusesUnverifiedTargetsAndSchema/no_target",
+          "outcome": "pass",
+          "elapsed_seconds": 0.64
+        },
+        {
+          "name": "TestReleaseResetRefusesUnverifiedTargetsAndSchema/production",
+          "outcome": "pass",
+          "elapsed_seconds": 0.03
+        },
+        {
+          "name": "TestReleaseResetRefusesUnverifiedTargetsAndSchema/writers_not_stopped",
+          "outcome": "pass",
+          "elapsed_seconds": 0.03
+        },
+        {
+          "name": "TestReleaseResetRefusesUnverifiedTargetsAndSchema/wrong_address",
+          "outcome": "pass",
+          "elapsed_seconds": 0.03
+        },
+        {
+          "name": "TestReleaseResetRefusesUnverifiedTargetsAndSchema/wrong_database",
+          "outcome": "pass",
+          "elapsed_seconds": 0.02
+        },
+        {
+          "name": "TestReleaseResetRefusesUnverifiedTargetsAndSchema/wrong_instance",
+          "outcome": "pass",
+          "elapsed_seconds": 0.03
+        },
+        {
+          "name": "TestReleaseResetRefusesUnverifiedTargetsAndSchema/missing_table",
+          "outcome": "pass",
+          "elapsed_seconds": 0.07
+        },
+        {
+          "name": "TestReleaseResetRefusesUnverifiedTargetsAndSchema/nontransactional_table",
+          "outcome": "pass",
+          "elapsed_seconds": 0.1
+        },
+        {
+          "name": "TestReleaseResetRefusesUnverifiedTargetsAndSchema/unexpected_column",
+          "outcome": "pass",
+          "elapsed_seconds": 0.08
+        },
+        {
+          "name": "TestReleaseResetRefusesUnverifiedTargetsAndSchema/side_effect_trigger",
+          "outcome": "pass",
+          "elapsed_seconds": 0.13
+        },
+        {
+          "name": "TestReleaseResetRefusesUnverifiedTargetsAndSchema/hidden_inbound_foreign_key",
+          "outcome": "pass",
+          "elapsed_seconds": 0.16
+        },
+        {
+          "name": "TestReleaseResetRefusesUnverifiedTargetsAndSchema/no_metadata_privilege",
+          "outcome": "pass",
+          "elapsed_seconds": 0.09
+        },
+        {
+          "name": "TestReleaseResetRefusesUnverifiedTargetsAndSchema",
+          "outcome": "pass",
+          "elapsed_seconds": 21.17
+        },
+        {
+          "name": "TestReleaseResetInterruptedTransactionRollsBackAndRetries",
+          "outcome": "pass",
+          "elapsed_seconds": 19.08
+        },
+        {
+          "name": "TestReleaseRollbackUnwindsUniqueValueDependencies/DELETE",
+          "outcome": "pass",
+          "elapsed_seconds": 26.26
+        },
+        {
+          "name": "TestReleaseRollbackUnwindsUniqueValueDependencies/MODIFY",
+          "outcome": "pass",
+          "elapsed_seconds": 20.92
+        },
+        {
+          "name": "TestReleaseRollbackUnwindsUniqueValueDependencies",
+          "outcome": "pass",
+          "elapsed_seconds": 47.18
+        },
+        {
+          "name": "TestReleaseRollbackMixedPublication",
+          "outcome": "pass",
+          "elapsed_seconds": 27.83
+        },
+        {
+          "name": "TestReleaseRollbackRejectsChangedRestoreValue",
+          "outcome": "pass",
+          "elapsed_seconds": 27.62
+        },
+        {
+          "name": "TestReleaseRollbackConcurrencyAndReapplication",
+          "outcome": "pass",
+          "elapsed_seconds": 20.47
+        },
+        {
+          "name": "TestReleaseRollbackRestoresDeletedEnumIdentity",
+          "outcome": "pass",
+          "elapsed_seconds": 10.74
+        },
+        {
+          "name": "TestReleaseRollbackRestoresBusinessFieldsWithNewAudit",
+          "outcome": "pass",
+          "elapsed_seconds": 27.4
+        },
+        {
+          "name": "TestReleaseRollbackPendingHistoryCanTerminate/cancel",
+          "outcome": "pass",
+          "elapsed_seconds": 33.46
+        },
+        {
+          "name": "TestReleaseRollbackPendingHistoryCanTerminate/reject",
+          "outcome": "pass",
+          "elapsed_seconds": 15.2
+        },
+        {
+          "name": "TestReleaseRollbackPendingHistoryCanTerminate",
+          "outcome": "pass",
+          "elapsed_seconds": 63.82
+        },
+        {
+          "name": "TestReleaseRollbackRejectsLaterChanges/create",
+          "outcome": "pass",
+          "elapsed_seconds": 1.5
+        },
+        {
+          "name": "TestReleaseRollbackRejectsLaterChanges/submit",
+          "outcome": "pass",
+          "elapsed_seconds": 1.46
+        },
+        {
+          "name": "TestReleaseRollbackRejectsLaterChanges/execute",
+          "outcome": "pass",
+          "elapsed_seconds": 0.93
+        },
+        {
+          "name": "TestReleaseRollbackRejectsLaterChanges/delete-recreate",
+          "outcome": "pass",
+          "elapsed_seconds": 1.29
+        },
+        {
+          "name": "TestReleaseRollbackRejectsLaterChanges/maintenance",
+          "outcome": "pass",
+          "elapsed_seconds": 0.67
+        },
+        {
+          "name": "TestReleaseRollbackRejectsLaterChanges",
+          "outcome": "pass",
+          "elapsed_seconds": 24.79
+        },
+        {
+          "name": "TestReleaseRollbackRejectsNewUniqueConstraintAtomically",
+          "outcome": "pass",
+          "elapsed_seconds": 19.78
+        },
+        {
+          "name": "TestReleaseRollbackUsesCurrentIndependentRoles",
+          "outcome": "pass",
+          "elapsed_seconds": 24.82
+        },
+        {
+          "name": "TestReleaseRollbackAssociationFailuresAreAtomic",
+          "outcome": "pass",
+          "elapsed_seconds": 18.82
+        },
+        {
+          "name": "TestReleaseRollbackRestoresStoredTimeDuration",
+          "outcome": "pass",
+          "elapsed_seconds": 10.32
+        },
+        {
+          "name": "TestAdminProcessRejectsRemovedAuthenticationConfiguration/ADMIN_API_TOKENADMIN_API_TOKEN=secret",
+          "outcome": "pass",
+          "elapsed_seconds": 1.03
+        },
+        {
+          "name": "TestAdminProcessRejectsRemovedAuthenticationConfiguration/ADMIN_AUTH_DISABLEDADMIN_AUTH_DISABLED=true",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestAdminProcessRejectsRemovedAuthenticationConfiguration/ADMIN_AUTH_DISABLEDADMIN_AUTH_DISABLED=false",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestAdminProcessRejectsRemovedAuthenticationConfiguration/ADMIN_OPERATORADMIN_OPERATOR=old-operator",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestAdminProcessRejectsRemovedAuthenticationConfiguration/ADMIN_CORS_ORIGINSADMIN_CORS_ORIGINS=https://old.example",
+          "outcome": "pass",
+          "elapsed_seconds": 0.01
+        },
+        {
+          "name": "TestAdminProcessRejectsRemovedAuthenticationConfiguration",
+          "outcome": "pass",
+          "elapsed_seconds": 5.94
+        },
+        {
+          "name": "TestAdminProcessRejectsInvalidConfiguration",
+          "outcome": "pass",
+          "elapsed_seconds": 4.39
+        },
+        {
+          "name": "TestAdminProcessRejectsUnavailableRequiredDatabase",
+          "outcome": "pass",
+          "elapsed_seconds": 4.88
+        }
+      ]
+    }
+  ],
+  "exit_status": 0,
+  "timing_note": "Package Elapsed values are reported by go test. wall_seconds is derived from log timestamps and includes observed gaps; it is not the package runtime."
+}

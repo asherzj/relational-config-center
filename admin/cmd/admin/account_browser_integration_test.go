@@ -104,7 +104,7 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 			deliveryExec(t, db, statement)
 		}
 	}
-	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs", "release-drafts.cjs", "release-approvals.cjs", "release-batches.cjs", "release-rollbacks.cjs"} {
+	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs", "release-drafts.cjs", "release-approvals.cjs", "release-batches.cjs", "release-rollbacks.cjs", "field-policies.cjs", "field-inputs.cjs", "combined-query.cjs", "field-recovery.cjs", "field-display.cjs"} {
 		t.Run(script, func(t *testing.T) {
 			command := exec.Command("node", filepath.Join(web, "e2e", script))
 			command.Dir = web

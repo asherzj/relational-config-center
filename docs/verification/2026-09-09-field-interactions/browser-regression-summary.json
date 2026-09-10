@@ -1,0 +1,630 @@
+{
+  "spec": 71,
+  "issue": 80,
+  "environment": {
+    "platform": "macOS arm64",
+    "node": "24.19.0",
+    "pnpm": "10.28.2",
+    "go": "1.27.0",
+    "docker_client": "29.7.2",
+    "docker_server": "29.5.2",
+    "database": "new isolated MySQL per runner invocation"
+  },
+  "evidence_policy": "Successful unaffected suites are reused; original failed executions remain failed. Only compact assertions and outcomes are copied; no browser profiles, Cookies, credentials or request bodies. Raw paths refer to the local verification machine.",
+  "runs": [
+    {
+      "suite": "all",
+      "command": "RCC_E2E_SUITE=all RCC_E2E_ENGINES=chromium,firefox,webkit make test-browser-acceptance",
+      "started_at": "2026-09-09T11:55:07Z",
+      "finished_at": "2026-09-09T12:00:39Z",
+      "exit_status": 1,
+      "cleanup_verified": true,
+      "raw_artifacts": "/private/tmp/rcc-field-pre-final-browser",
+      "results": [
+        {
+          "source": "/private/tmp/rcc-field-pre-final-browser/complex-fields/result.json",
+          "source_sha256": "d24c7b36e3c4d9bc14b31c92ad710784bb326fafdbb930fc614eacebf0236738",
+          "ok": false,
+          "check_count": 39,
+          "checks": [
+            "multiline TEXT query uses the exact browser input without removing LF",
+            "SQL NULL, JSON null literal and string, empty and omitted values stay distinct",
+            "uint64 auto ID 9007199254740993 survives browser create, query, release MODIFY and reopen",
+            "uint64 auto ID 9223372036854775808 survives browser create, query, release MODIFY and reopen",
+            "uint64 auto ID 18446744073709551614 survives browser create, query, release MODIFY and reopen",
+            "ambiguous auto ID zero is rejected while omitted ID publishes the actual generated identity",
+            "non-auto default ID stage4_default_id_constant requires explicit identity before publication",
+            "non-auto default ID stage4_default_id_expression requires explicit identity before publication",
+            "identity review: explicit numeric ID returns the stored canonical identity",
+            "signed integer",
+            "decimal equal value",
+            "decimal rounding",
+            "CHAR trailing spaces",
+            "VARCHAR trailing spaces",
+            "VARCHAR Unicode and URI delimiters",
+            "ENUM case normalization",
+            "TIME equal value",
+            "TIME rounding",
+            "DATETIME equal value",
+            "DATETIME rounding",
+            "TIMESTAMP equal value",
+            "TIMESTAMP rounding",
+            "FLOAT exact",
+            "FLOAT precision boundary",
+            "DOUBLE",
+            "DATE",
+            "identity preflight read denial prevents INSERT and preserves the draft",
+            "publication capability gate rejects a nontransactional table before business DML",
+            "JSON identity \"\" publishes without path reinterpretation",
+            "JSON identity \".\" publishes without path reinterpretation",
+            "JSON identity \"..\" publishes without path reinterpretation",
+            "JSON identity \"键/值 %2F?#\" publishes without path reinterpretation",
+            "CRLF and standalone CR stay protected through unrelated writes and explicit normalization",
+            "raw CR clipboard selection is preserved in record and query inputs before conversion",
+            "ordinary expression defaults allow explicit values and omission defaults",
+            "Auto Fill records the publisher identity and one UTC database time",
+            "generated fields calculate on omitted ADD and stay unwritable on release MODIFY",
+            "VARCHAR length is editable rejection with rollback and corrected browser retry",
+            "TINYINT range is editable rejection with rollback and corrected browser retry"
+          ],
+          "browser": "151.0.7922.34",
+          "failures": [
+            {
+              "case": "TEXT and JSON browser ADD, MODIFY, SQL byte comparison, readback and reopened editor",
+              "message": "release draft content must preserve edited and unchanged original values"
+            },
+            {
+              "case": "stored_value remains rejected as a real generated column",
+              "message": "locator.check: Timeout 12000ms exceeded."
+            },
+            {
+              "case": "virtual_value remains rejected as a real generated column",
+              "message": "locator.check: Timeout 12000ms exceeded."
+            }
+          ],
+          "pageErrors": [],
+          "cleanup": {
+            "fixtureRowsEqual": true,
+            "remainingTables": "0",
+            "remainingTablePolicies": "0",
+            "remainingPolicies": "0"
+          }
+        },
+        {
+          "source": "/private/tmp/rcc-field-pre-final-browser/operation-coverage/result.json",
+          "source_sha256": "d13293f0148916822be91fbcb348fc4e1075e0c850d0960df00a2557d0bdbd76",
+          "ok": true,
+          "check_count": 20,
+          "checks": [
+            "browser creates a complete Mutation Draft through Admin",
+            "permission conflict is retained and blocks the HTTP write",
+            "unsafe Auto Fill column is retained and blocks the HTTP write",
+            "case-insensitive id Auto Fill target is retained and blocks the HTTP write",
+            "exact duplicate Auto Fill columns block the HTTP write",
+            "case-insensitive duplicate Auto Fill columns block the HTTP write",
+            "Mutation Draft PUT survives close and reopen with all execution fields",
+            "Mutation Draft is deleted by the visible UI command",
+            "query Active metadata saves without changing execution fields",
+            "mutation Active metadata saves without changing execution fields",
+            "query is deprecated through the real lifecycle UI",
+            "mutation is deprecated through the real lifecycle UI",
+            "query Deprecated metadata saves without changing execution fields",
+            "mutation Deprecated metadata saves without changing execution fields",
+            "existing assignment keeps querying and publishes through a release order with Deprecated definitions",
+            "new assignment choices include only Active definitions",
+            "Table Policy Catalog filters full loaded data without writes",
+            "direct field filter submits only entered AND conditions and preserves input after collapse/query",
+            "all three unauthorized operation controls stay visible, disabled, and explained",
+            "real Table Policy replacement governs the next UI capability and release publication"
+          ],
+          "browser": "151.0.7922.34",
+          "failure": null,
+          "pageErrors": [],
+          "cleanup": {
+            "fixtureRowsEqual": true,
+            "tablePolicies": 0,
+            "queryPolicies": 0,
+            "mutationPolicies": 0,
+            "physicalTables": 0
+          }
+        },
+        {
+          "source": "/private/tmp/rcc-field-pre-final-browser/rule-clarity/result.json",
+          "source_sha256": "ac3093c3ba810ba8fe79527bdbb675035df748926466d032c1d48c85b731fc36",
+          "ok": true,
+          "check_count": 6,
+          "checks": [
+            "query detail explains default order and pagination",
+            "metadata editing is separate from execution rules",
+            "deprecated mutation remains effective for its existing assignment",
+            "table detail and replacement preview show selected effects",
+            "managed data explains live schema and current capabilities",
+            "390px layout has no page overflow and remains readable"
+          ],
+          "failure": null,
+          "pageErrors": []
+        },
+        {
+          "source": "/private/tmp/rcc-field-pre-final-browser/unsaved-changes/result.json",
+          "source_sha256": "d96bb91ffb96451ac241a6d3de3d71daae3fd4f4d20f503a1dfc7caa67b4867e",
+          "ok": true,
+          "check_count": 14,
+          "checks": [
+            "untouched Query create closes without a warning",
+            "actual browser POP back cancel retains input and route",
+            "actual browser POP back confirm and forward restore the intended route",
+            "native beforeunload reload cancellation preserves input",
+            "native tab-close cancellation preserves the editing document",
+            "discard confirmation owns keyboard focus and fits a 390px viewport",
+            "restored original Query values clear protection",
+            "actual browser forward navigation is canceled or confirmed at its original target",
+            "real duplicate Policy Code rejection preserves Query form input",
+            "real completed write with delayed response blocks POP, then shows success once",
+            "disposable Query draft cleaned up through the Admin API",
+            "Change Set cancel and return retain values, NULL and omitted fields",
+            "real Admin/MySQL validation rejection retains the row draft and request error",
+            "confirmed discard closes the editor with no browser storage draft"
+          ],
+          "browser": "151.0.7922.34",
+          "failure": null,
+          "errors": []
+        },
+        {
+          "source": "/private/tmp/rcc-field-pre-final-browser/write-recovery/result.json",
+          "source_sha256": "36b81290ff06386b63fa652c4657be288fa6f4673cc4658f9fc9f53853daa8d8",
+          "ok": true,
+          "check_count": 28,
+          "checks": [
+            "ADD abort: one publication, immutable intent, original-key recovery",
+            "ADD json: one publication, immutable intent, original-key recovery",
+            "ADD contract: one publication, immutable intent, original-key recovery",
+            "ADD 503: one publication, immutable intent, original-key recovery",
+            "MODIFY lost response: exact identity and original-key replay",
+            "DELETE lost response: exact identity and original-key replay",
+            "separate unknown publications retain separate original request keys",
+            "known publication followed by detail read failure recovers with GET only",
+            "double-click, Enter and pending back/close execute once",
+            "real ENUM failure preserves frozen intent; copied correction needs new approval and publishes once",
+            "real database stop/start retains endpoint and original request, publishes once after recovery",
+            "query create: saved state retained after response failure",
+            "query replace: saved state retained after response failure",
+            "query metadata: saved state retained after response failure",
+            "query activate: lifecycle response loss is recoverable by reads",
+            "query deprecate: lifecycle response loss is recoverable by reads",
+            "query delete: lost response, missing-resource check never repeats deletion",
+            "mutation create: saved state retained after response failure",
+            "mutation replace: saved state retained after response failure",
+            "mutation metadata: saved state retained after response failure",
+            "mutation activate: lifecycle response loss is recoverable by reads",
+            "mutation deprecate: lifecycle response loss is recoverable by reads",
+            "mutation delete: lost response, missing-resource check never repeats deletion",
+            "rapid lifecycle confirmation and pending back navigation update once",
+            "table assignment create: persisted change and read-only recovery",
+            "table assignment replace: persisted change and read-only recovery",
+            "table assignment enable: persisted change and read-only recovery",
+            "table assignment disable: persisted change and read-only recovery"
+          ],
+          "pageErrors": []
+        }
+      ],
+      "version": "15ef269 plus final timeout and accessibility script corrections",
+      "note": "This all run failed at complex-fields. Only the four successful preceding suites are reused. Complex-fields failures are retained here and superseded by the successful dedicated rerun."
+    },
+    {
+      "suite": "complex-fields",
+      "command": "RCC_E2E_SUITE=complex-fields RCC_E2E_ENGINES=chromium,firefox,webkit make test-browser-acceptance",
+      "started_at": "2026-09-09T12:01:38Z",
+      "finished_at": "2026-09-09T12:05:04Z",
+      "exit_status": 0,
+      "cleanup_verified": true,
+      "raw_artifacts": "/private/tmp/rcc-field-complex-rerun",
+      "results": [
+        {
+          "source": "/private/tmp/rcc-field-complex-rerun/complex-fields/result.json",
+          "source_sha256": "8b0e20fab5c29a2a56feeeadb72f9f6399126e09f0d024871665ca23709078f1",
+          "ok": true,
+          "check_count": 42,
+          "checks": [
+            "TEXT and JSON browser ADD, MODIFY, SQL byte comparison, readback and reopened editor",
+            "multiline TEXT query uses the exact browser input without removing LF",
+            "SQL NULL, JSON null literal and string, empty and omitted values stay distinct",
+            "uint64 auto ID 9007199254740993 survives browser create, query, release MODIFY and reopen",
+            "uint64 auto ID 9223372036854775808 survives browser create, query, release MODIFY and reopen",
+            "uint64 auto ID 18446744073709551614 survives browser create, query, release MODIFY and reopen",
+            "ambiguous auto ID zero is rejected while omitted ID publishes the actual generated identity",
+            "non-auto default ID stage4_default_id_constant requires explicit identity before publication",
+            "non-auto default ID stage4_default_id_expression requires explicit identity before publication",
+            "identity review: explicit numeric ID returns the stored canonical identity",
+            "signed integer",
+            "decimal equal value",
+            "decimal rounding",
+            "CHAR trailing spaces",
+            "VARCHAR trailing spaces",
+            "VARCHAR Unicode and URI delimiters",
+            "ENUM case normalization",
+            "TIME equal value",
+            "TIME rounding",
+            "DATETIME equal value",
+            "DATETIME rounding",
+            "TIMESTAMP equal value",
+            "TIMESTAMP rounding",
+            "FLOAT exact",
+            "FLOAT precision boundary",
+            "DOUBLE",
+            "DATE",
+            "identity preflight read denial prevents INSERT and preserves the draft",
+            "publication capability gate rejects a nontransactional table before business DML",
+            "JSON identity \"\" publishes without path reinterpretation",
+            "JSON identity \".\" publishes without path reinterpretation",
+            "JSON identity \"..\" publishes without path reinterpretation",
+            "JSON identity \"键/值 %2F?#\" publishes without path reinterpretation",
+            "CRLF and standalone CR stay protected through unrelated writes and explicit normalization",
+            "raw CR clipboard selection is preserved in record and query inputs before conversion",
+            "ordinary expression defaults allow explicit values and omission defaults",
+            "Auto Fill records the publisher identity and one UTC database time",
+            "stored_value remains rejected as a real generated column",
+            "virtual_value remains rejected as a real generated column",
+            "generated fields calculate on omitted ADD and stay unwritable on release MODIFY",
+            "VARCHAR length is editable rejection with rollback and corrected browser retry",
+            "TINYINT range is editable rejection with rollback and corrected browser retry"
+          ],
+          "browser": "151.0.7922.34",
+          "failures": [],
+          "pageErrors": [],
+          "cleanup": {
+            "fixtureRowsEqual": true,
+            "remainingTables": "0",
+            "remainingTablePolicies": "0",
+            "remainingPolicies": "0"
+          }
+        }
+      ],
+      "version": "Aggregate #74–#78 Web behavior plus final accessibility/complex-fields script corrections; #79 does not change browser interactions. Later #80 focus/keyboard changes verified by the final field-interactions run and all 375 Web tests.",
+      "database_postcheck": "5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED"
+    },
+    {
+      "suite": "browser-accessibility",
+      "command": "RCC_E2E_SUITE=browser-accessibility RCC_E2E_ENGINES=chromium,firefox,webkit make test-browser-acceptance",
+      "started_at": "2026-09-09T12:05:31Z",
+      "finished_at": "2026-09-09T12:06:37Z",
+      "exit_status": 0,
+      "cleanup_verified": true,
+      "raw_artifacts": "/private/tmp/rcc-field-accessibility-current",
+      "results": [
+        {
+          "source": "/private/tmp/rcc-field-accessibility-current/browser-accessibility/chromium/result.json",
+          "source_sha256": "b4e087a7cd1e129df5e7c1145734940668d20fbab9ba5e50a15f241aefb54a2b",
+          "ok": true,
+          "check_count": 7,
+          "checks": [
+            "drawer background is inert and actual Shift+Tab/Tab loops inside the drawer",
+            "native back cancel/confirm and forward preserve the intended history entry",
+            "320px long drawer scroll keeps the action footer reachable",
+            "320px Change Set owns horizontal/vertical overflow and keeps actions reachable",
+            "only the top nested leave dialog handles Tab/Escape and focus returns to Change Set",
+            "real MySQL rejection freezes raw CR; a copied draft requires explicit LF conversion before editing",
+            "390px unknown release-draft recovery replays one intent and then publishes it"
+          ],
+          "browserVersion": "151.0.7922.34",
+          "engine": "chromium",
+          "failure": null,
+          "pageErrors": [],
+          "cleanup": {
+            "remainingRows": 0
+          }
+        },
+        {
+          "source": "/private/tmp/rcc-field-accessibility-current/browser-accessibility/firefox/result.json",
+          "source_sha256": "b813cf4062fdb3b79e36494b6f0edac1c286156eead6b5f0a892f0f47f1ae0dc",
+          "ok": true,
+          "check_count": 7,
+          "checks": [
+            "drawer background is inert and actual Shift+Tab/Tab loops inside the drawer",
+            "native back cancel/confirm and forward preserve the intended history entry",
+            "320px long drawer scroll keeps the action footer reachable",
+            "320px Change Set owns horizontal/vertical overflow and keeps actions reachable",
+            "only the top nested leave dialog handles Tab/Escape and focus returns to Change Set",
+            "real MySQL rejection freezes raw CR; a copied draft requires explicit LF conversion before editing",
+            "390px unknown release-draft recovery replays one intent and then publishes it"
+          ],
+          "browserVersion": "153.0",
+          "engine": "firefox",
+          "failure": null,
+          "pageErrors": [],
+          "cleanup": {
+            "remainingRows": 0
+          }
+        },
+        {
+          "source": "/private/tmp/rcc-field-accessibility-current/browser-accessibility/webkit/result.json",
+          "source_sha256": "6cab421972356181ef6752b351d5379be85148b7f387c6acd598bbf05c84373e",
+          "ok": true,
+          "check_count": 7,
+          "checks": [
+            "drawer background is inert and actual Shift+Tab/Tab loops inside the drawer",
+            "native back cancel/confirm and forward preserve the intended history entry",
+            "320px long drawer scroll keeps the action footer reachable",
+            "320px Change Set owns horizontal/vertical overflow and keeps actions reachable",
+            "only the top nested leave dialog handles Tab/Escape and focus returns to Change Set",
+            "real MySQL rejection freezes raw CR; a copied draft requires explicit LF conversion before editing",
+            "390px unknown release-draft recovery replays one intent and then publishes it"
+          ],
+          "browserVersion": "26.5",
+          "engine": "webkit",
+          "failure": null,
+          "pageErrors": [],
+          "cleanup": {
+            "remainingRows": 0
+          }
+        }
+      ],
+      "version": "Aggregate #74–#78 Web behavior plus final accessibility/complex-fields script corrections; #79 does not change browser interactions. Later #80 focus/keyboard changes verified by the final field-interactions run and all 375 Web tests.",
+      "database_postcheck": "5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED"
+    },
+    {
+      "suite": "release-workflow",
+      "command": "RCC_E2E_SUITE=release-workflow RCC_E2E_ENGINES=chromium,firefox,webkit make test-browser-acceptance",
+      "started_at": "2026-09-09T12:09:28Z",
+      "finished_at": "2026-09-09T12:13:12Z",
+      "exit_status": 0,
+      "cleanup_verified": true,
+      "raw_artifacts": "/private/tmp/rcc-field-release-current",
+      "results": [
+        {
+          "source": "/private/tmp/rcc-field-release-current/release-workflow/approvals/runner.log",
+          "source_sha256": "ce7d60e3a1d08f5d7af1c451410598c2c864994e532708b4f4df54b9353ab840",
+          "ok": true,
+          "check_count": 9,
+          "checks": [
+            "people lookup failure falls back to permanent IDs with diagnostics and an independent retry",
+            "EDITOR submits and sees frozen read-only differences with no self-approval action",
+            "APPROVER rejects with a required reason; applicant explicitly reads and confirms a new draft without inherited approval",
+            "APPROVER-only account recovers a committed lost approval response after refresh using original key and state version",
+            "partial MODIFY hides omitted fields by default, restores their distinct state in full view and retains requested changes and generated fields",
+            "detail presents four actual stages, long title/value/IDs, copy feedback and keyboard folding on desktop and 390px",
+            "pre-dispatch unknown reprepare keeps APPROVED and excludes cancel/execute across close, reload and current-role changes",
+            "applicant reviews current configuration and recovers one atomic replacement across pre-dispatch and post-commit loss with the same body and key",
+            "applicant cancels an approved order; history survives refresh and actual business data remains unchanged on narrow viewport"
+          ]
+        },
+        {
+          "source": "/private/tmp/rcc-field-release-current/release-workflow/batches/runner.log",
+          "source_sha256": "af7cc5ebcfb338af2c4a257aa15972f214517688ebf093fd181a46c12efda1a8",
+          "ok": true,
+          "check_count": 5,
+          "checks": [
+            "data-page MODIFY creates a draft; detail link preselects its table and destination; two explicit row selections append DELETEs without touching data",
+            "detail editor removes a selected later item and edits a retained item; a new ADD appends to the same mixed draft",
+            "independent APPROVER approves all mixed items; EDITOR/PUBLISHER recovers a genuinely committed lost execute response after refresh with the original key and no duplicate rows/history",
+            "1000-item detail shows the complete count and paging reaches the actual final item on desktop and 390px mobile",
+            "UI submission, independent approval and execution publish all 1000 items; all actual IDs match real queried rows and result paging reaches item 1000 on desktop/mobile"
+          ]
+        },
+        {
+          "source": "/private/tmp/rcc-field-release-current/release-workflow/drafts/runner.log",
+          "source_sha256": "3dcc0576c2d78406666530283990851c2793f2d6aca87d005d99c9be33d0f319",
+          "ok": true,
+          "check_count": 6,
+          "checks": [
+            "EDITOR saves from data page; lost response survives refresh and original-key retry",
+            "durable detail reload retains server diff; business row and version remain unchanged",
+            "two real windows retain input on CAS conflict and require explicit reconstruction",
+            "unknown edit rejected after concurrent change survives two refreshes and explicitly rebuilds original intent",
+            "cancelled drafts remain searchable with permanent applicant and history on narrow screens",
+            "current VIEWER can read release history without edit/cancel actions"
+          ]
+        },
+        {
+          "source": "/private/tmp/rcc-field-release-current/release-workflow/recovery-chromium/runner.log",
+          "source_sha256": "1273f4c7136865387dc1f7fc3a547ffe66e7f11e6b77c49f5ec8aa207991754a",
+          "ok": true,
+          "check_count": 21,
+          "checks": [
+            "record version conflict preserves input",
+            "explicit latest read and baseline rebuild",
+            "registration defaults VIEWER",
+            "maintenance ADMIN bootstrap",
+            "UI combination grant",
+            "390px role catalog and drawer",
+            "role history with permanent actor",
+            "original member session refresh",
+            "refresh",
+            "reopen",
+            "dirty navigation protection",
+            "same-account Change Set recovery after session loss",
+            "hidden drawer keyboard isolation",
+            "draft submit independent approval and publisher execution",
+            "unknown execute result reload and original-key recovery",
+            "final row defaults and permanent actor fields",
+            "refresh notification remains NOT_CONNECTED",
+            "no direct record write request",
+            "HTTP Cookie",
+            "storage/URL secrecy",
+            "logout rejection"
+          ]
+        },
+        {
+          "source": "/private/tmp/rcc-field-release-current/release-workflow/recovery-firefox/runner.log",
+          "source_sha256": "76e915d6b266121b496de32ccbb79283c60708de84584fdaa7cc0f7f9229d768",
+          "ok": true,
+          "check_count": 21,
+          "checks": [
+            "record version conflict preserves input",
+            "explicit latest read and baseline rebuild",
+            "registration defaults VIEWER",
+            "maintenance ADMIN bootstrap",
+            "UI combination grant",
+            "390px role catalog and drawer",
+            "role history with permanent actor",
+            "original member session refresh",
+            "refresh",
+            "reopen",
+            "dirty navigation protection",
+            "same-account Change Set recovery after session loss",
+            "hidden drawer keyboard isolation",
+            "draft submit independent approval and publisher execution",
+            "unknown execute result reload and original-key recovery",
+            "final row defaults and permanent actor fields",
+            "refresh notification remains NOT_CONNECTED",
+            "no direct record write request",
+            "HTTP Cookie",
+            "storage/URL secrecy",
+            "logout rejection"
+          ]
+        },
+        {
+          "source": "/private/tmp/rcc-field-release-current/release-workflow/recovery-webkit/runner.log",
+          "source_sha256": "44ba9d296a62b18c0114ee6b14e7d6abcbfc2d2fc1d1f683a6461bddfa7d7d9e",
+          "ok": true,
+          "check_count": 21,
+          "checks": [
+            "record version conflict preserves input",
+            "explicit latest read and baseline rebuild",
+            "registration defaults VIEWER",
+            "maintenance ADMIN bootstrap",
+            "UI combination grant",
+            "390px role catalog and drawer",
+            "role history with permanent actor",
+            "original member session refresh",
+            "refresh",
+            "reopen",
+            "dirty navigation protection",
+            "same-account Change Set recovery after session loss",
+            "hidden drawer keyboard isolation",
+            "draft submit independent approval and publisher execution",
+            "unknown execute result reload and original-key recovery",
+            "final row defaults and permanent actor fields",
+            "refresh notification remains NOT_CONNECTED",
+            "no direct record write request",
+            "HTTP Cookie",
+            "storage/URL secrecy",
+            "logout rejection"
+          ]
+        },
+        {
+          "source": "/private/tmp/rcc-field-release-current/release-workflow/rollback-chromium/runner.log",
+          "source_sha256": "3d516d691748e11eb31ebc043e8baf659f223539fb09827bf26dead027a41817",
+          "ok": true,
+          "check_count": 10,
+          "checks": [
+            "separate EDITOR, APPROVER and PUBLISHER accounts complete the forward publication",
+            "completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration",
+            "a lost rollback response recovers the same linked read-only draft with the original request key and reason",
+            "the reverse order needs a fresh independent approval and publication before restoring the actual row and both links",
+            "rolled-back detail switches actual original/restoration results and requested differences, with recent-five history and full expansion",
+            "390px keyboard Tab reaches the actual diff scroll container and ArrowRight reveals the complete proposed-value column",
+            "original and reverse detail links remain visible at 390px without horizontal overflow",
+            "quick rollback is publisher-only, reviews actual current and restoration values, requires a reason and cancels without writes on desktop and 390px",
+            "quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish both orders",
+            "a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends"
+          ]
+        },
+        {
+          "source": "/private/tmp/rcc-field-release-current/release-workflow/rollback-firefox/runner.log",
+          "source_sha256": "3d516d691748e11eb31ebc043e8baf659f223539fb09827bf26dead027a41817",
+          "ok": true,
+          "check_count": 10,
+          "checks": [
+            "separate EDITOR, APPROVER and PUBLISHER accounts complete the forward publication",
+            "completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration",
+            "a lost rollback response recovers the same linked read-only draft with the original request key and reason",
+            "the reverse order needs a fresh independent approval and publication before restoring the actual row and both links",
+            "rolled-back detail switches actual original/restoration results and requested differences, with recent-five history and full expansion",
+            "390px keyboard Tab reaches the actual diff scroll container and ArrowRight reveals the complete proposed-value column",
+            "original and reverse detail links remain visible at 390px without horizontal overflow",
+            "quick rollback is publisher-only, reviews actual current and restoration values, requires a reason and cancels without writes on desktop and 390px",
+            "quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish both orders",
+            "a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends"
+          ]
+        },
+        {
+          "source": "/private/tmp/rcc-field-release-current/release-workflow/rollback-webkit/runner.log",
+          "source_sha256": "3d516d691748e11eb31ebc043e8baf659f223539fb09827bf26dead027a41817",
+          "ok": true,
+          "check_count": 10,
+          "checks": [
+            "separate EDITOR, APPROVER and PUBLISHER accounts complete the forward publication",
+            "completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration",
+            "a lost rollback response recovers the same linked read-only draft with the original request key and reason",
+            "the reverse order needs a fresh independent approval and publication before restoring the actual row and both links",
+            "rolled-back detail switches actual original/restoration results and requested differences, with recent-five history and full expansion",
+            "390px keyboard Tab reaches the actual diff scroll container and ArrowRight reveals the complete proposed-value column",
+            "original and reverse detail links remain visible at 390px without horizontal overflow",
+            "quick rollback is publisher-only, reviews actual current and restoration values, requires a reason and cancels without writes on desktop and 390px",
+            "quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish both orders",
+            "a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends"
+          ]
+        }
+      ],
+      "version": "Aggregate #74–#78 Web behavior plus final accessibility/complex-fields script corrections; #79 does not change browser interactions. Later #80 focus/keyboard changes verified by the final field-interactions run and all 375 Web tests.",
+      "database_postcheck": "5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED"
+    },
+    {
+      "suite": "field-interactions",
+      "command": "RCC_E2E_SUITE=field-interactions RCC_E2E_ENGINES=chromium,firefox,webkit make test-browser-acceptance",
+      "started_at": "2026-09-09T12:29:46Z",
+      "finished_at": "2026-09-09T12:30:40Z",
+      "exit_status": 0,
+      "cleanup_verified": true,
+      "raw_artifacts": "/private/tmp/rcc80-keyboard-final-browser",
+      "results": [
+        {
+          "source": "/private/tmp/rcc80-keyboard-final-browser/field-interactions/chromium/result.json",
+          "source_sha256": "a91f42418d10c00f0e58a471d5afd4c2b8234cde141b6b8a803a9f0561cb99d3",
+          "ok": true,
+          "check_count": 6,
+          "checks": [
+            "administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration",
+            "keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally",
+            "required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions",
+            "administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration",
+            "keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally",
+            "required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions"
+          ],
+          "browser": "151.0.7922.34",
+          "engine": "chromium",
+          "errors": [],
+          "policiesRestored": true
+        },
+        {
+          "source": "/private/tmp/rcc80-keyboard-final-browser/field-interactions/firefox/result.json",
+          "source_sha256": "eed0a8f9cffbf14f9591f8deb8860de58c7009ce72311e4d1cf7f5ab085dc2b1",
+          "ok": true,
+          "check_count": 6,
+          "checks": [
+            "administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration",
+            "keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally",
+            "required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions",
+            "administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration",
+            "keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally",
+            "required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions"
+          ],
+          "browser": "153.0",
+          "engine": "firefox",
+          "errors": [],
+          "policiesRestored": true
+        },
+        {
+          "source": "/private/tmp/rcc80-keyboard-final-browser/field-interactions/webkit/result.json",
+          "source_sha256": "15d34e0512ab048ae07fcfe66402accad1af9bbd2240278ba06351ee62d299eb",
+          "ok": true,
+          "check_count": 6,
+          "checks": [
+            "administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration",
+            "keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally",
+            "required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions",
+            "administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration",
+            "keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally",
+            "required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions"
+          ],
+          "browser": "26.5",
+          "engine": "webkit",
+          "errors": [],
+          "policiesRestored": true
+        }
+      ],
+      "version": "511b085 plus final #80 implementation including Table keyboard behavior and first-error focus; exact files committed with this evidence",
+      "database_postcheck": "5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED"
+    }
+  ]
+}
