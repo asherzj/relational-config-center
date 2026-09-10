@@ -1,0 +1,19 @@
+{
+  "feature_parent": "e626885c0b63d283ed795c780232cbef52bb8594",
+  "incoming_main": "9aa4bdd38ec9122b06a8899bdfd2f165cbcc7b5f",
+  "initial_auto_merge": "b2ef8c67b6534f5531d16647f9e7ed1390456973",
+  "initial_conflicts": [
+    "admin/cmd/admin/account_browser_integration_test.go",
+    "admin/cmd/admin/account_delivery_integration_test.go",
+    "admin/cmd/admin/business_auth_integration_test.go",
+    "admin/cmd/admin/main.go",
+    "admin/cmd/admin/policy_integration_test.go",
+    "admin/cmd/admin/release_approval_integration_test.go",
+    "admin/cmd/admin/release_batch_integration_test.go",
+    "admin/cmd/admin/release_draft_integration_test.go",
+    "admin/cmd/admin/release_rollback_integration_test.go",
+    "admin/internal/infrastructure/mysql/release_schema.go",
+    "docs/admin-release-approvals.md",
+    "docs/admin-release-upgrade.md"
+  ]
+}

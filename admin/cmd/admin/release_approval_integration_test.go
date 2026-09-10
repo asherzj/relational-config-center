@@ -22,9 +22,9 @@ import (
 
 // AC-018: submitting freezes the verified intent, without writing configuration.
 func TestReleaseSubmitFreezesIntent(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true, AllowDelete: true})
-	body := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposed"}}]}`
+	body := `{"items":[{"content":{"code":"proposed"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"集成测试发布单"}`
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "approval-create-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
@@ -44,7 +44,7 @@ func TestReleaseSubmitFreezesIntent(t *testing.T) {
 	if order.State != "PENDING_APPROVAL" || order.Version != "2" || len(order.FrozenDigest) != 64 {
 		t.Fatalf("not frozen: %s", submitted.Body)
 	}
-	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", path, `{"title":"集成测试发布单","table_name":"mutation_delete_parents","expected_version":"2","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"changed"}}]}`, "approval-edit-01"), 422, "release_state_invalid")
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", path, `{"expected_version":"2","items":[{"content":{"code":"changed"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"集成测试发布单"}`, "approval-edit-01"), 422, "release_state_invalid")
 	row, version := recordVersionRow(t, app, "mutation_delete_parents", "1")
 	if *row["code"] != "delete-rollback" || version != "0" {
 		t.Fatalf("submit wrote business row: %v %s", row, version)
@@ -53,11 +53,11 @@ func TestReleaseSubmitFreezesIntent(t *testing.T) {
 
 // AC-019/022: independent drafts compete for one actual record identity.
 func TestReleaseTargetsCompeteAndCancelReleases(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/010-record-identity-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/010-record-identity-fixture.sql")
 	enableMutationPolicy(t, app, "record_identity_ci", mutationPolicyFixture{AllowAdd: true})
 	bodies := make([]string, 2)
 	for i, id := range []string{"Résumé", "RESUME"} {
-		raw, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": "record_identity_ci", "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"id": id, "label": "draft"}}}})
+		raw, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "items": []any{map[string]any{"table_name": "record_identity_ci", "operation": "ADD", "content": map[string]string{"id": id, "label": "draft"}}}})
 		bodies[i] = string(raw)
 	}
 	type outcome struct {
@@ -110,7 +110,7 @@ func grantReleaseRole(t *testing.T, app *adminApplication, actor *httptest.Respo
 // AC-011: any viewer can resolve only the permanent account IDs already exposed
 // by one order, and profile changes affect the current display without rewriting history.
 func TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	editor := registerAccount(t, app, "people.editor", "people.editor@example.com", "correct horse battery staple")
 	reviewer := registerAccount(t, app, "people.reviewer", "people.reviewer@example.com", "correct horse battery staple")
@@ -119,7 +119,7 @@ func TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin(t *testing.T) {
 	grantReleaseRole(t, app, editor, `["EDITOR"]`, "1", "people-editor-role")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "people-reviewer-role")
 	grantReleaseRole(t, app, publisher, `["PUBLISHER"]`, "1", "people-publisher-role")
-	created := releaseActorRequest(t, app, editor, "POST", "/api/v1/release-orders", `{"title":"验证人员归属","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"people","label":"intent"}}]}`, "people-create")
+	created := releaseActorRequest(t, app, editor, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"people","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"验证人员归属"}`, "people-create")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}
@@ -146,7 +146,7 @@ func TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin(t *testing.T) {
 			t.Fatalf("rename %s: %d %s", change.name, response.Code, response.Body)
 		}
 	}
-	people := releaseActorRequest(t, app, viewer, "GET", path+"/people", "", "")
+	people := releaseActorReadAllDetails(t, app, viewer, "GET", path+"/people", "", "")
 	if people.Code != 200 {
 		t.Fatalf("viewer reads related people: %d %s", people.Code, people.Body)
 	}
@@ -160,17 +160,17 @@ func TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin(t *testing.T) {
 	if !reflect.DeepEqual(result.People, want) {
 		t.Fatalf("related people: %#v, want %#v", result.People, want)
 	}
-	assertIntegrationErrorCode(t, releaseActorRequest(t, app, viewer, "GET", "/api/v1/account-roles?limit=20", "", ""), 403, "permission_denied")
+	assertIntegrationErrorCode(t, releaseActorReadAllDetails(t, app, viewer, "GET", "/api/v1/account-roles?limit=20", "", ""), 403, "permission_denied")
 }
 
 // AC-020/024/025: a current, independent approver decides once; a historical
 // approval survives revocation while new requests still require current grants.
 func TestReleaseApprovalCurrentRolesAndHistory(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	admin := integrationAdminSession(t, app)
 	reviewer := registerAccount(t, app, "release.reviewer", "release.reviewer@example.com", "correct horse battery staple")
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"approved","label":"new"}}]}`, "review-create-01")
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"approved","label":"new"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "review-create-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}
@@ -199,7 +199,7 @@ func TestReleaseApprovalCurrentRolesAndHistory(t *testing.T) {
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"2","reason":"different"}`, "review-approve-01"), 409, "idempotency_conflict")
 	grantReleaseRole(t, app, reviewer, `["VIEWER"]`, "2", "review-revoke-01")
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", body, "review-approve-01"), 403, "permission_denied")
-	read := releaseActorRequest(t, app, reviewer, "GET", path, "", "")
+	read := releaseActorReadAllDetails(t, app, reviewer, "GET", path, "", "")
 	if read.Body.String() != approved.Body.String() {
 		t.Fatalf("revocation changed historical approval: %s", read.Body)
 	}
@@ -212,7 +212,7 @@ func TestReleaseApprovalCurrentRolesAndHistory(t *testing.T) {
 	if replay.Code != 200 || !strings.Contains(replay.Body.String(), `"state":"APPROVED"`) {
 		t.Fatalf("old successful result lost after cancellation: %s", replay.Body)
 	}
-	current := releaseActorRequest(t, app, reviewer, "GET", path, "", "")
+	current := releaseActorReadAllDetails(t, app, reviewer, "GET", path, "", "")
 	if !strings.Contains(current.Body.String(), `"state":"CANCELLED"`) {
 		t.Fatal(current.Body)
 	}
@@ -221,11 +221,11 @@ func TestReleaseApprovalCurrentRolesAndHistory(t *testing.T) {
 // AC-021: copying a rejected order requires an explicitly reviewed current
 // baseline and retains the source decision without inheriting its approval.
 func TestReleaseRejectedCopyRechecksBaseline(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	reviewer := registerAccount(t, app, "copy.reviewer", "copy.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "copy-reviewer-01")
-	original := `{"title":"调整删除保护配置","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposal"}}]}`
+	original := `{"items":[{"content":{"code":"proposal"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"调整删除保护配置"}`
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", original, "copy-original-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
@@ -243,7 +243,7 @@ func TestReleaseRejectedCopyRechecksBaseline(t *testing.T) {
 	}
 	updated := publicationFixtureRequest(t, app, "MODIFY", "mutation_delete_parents", "1", `{"title":"刷新复制基线","expected_version":"0","content":{"code":"new baseline"}}`)
 	assertMutationAffected(t, updated)
-	body := `{"expected_version":"3","confirmed":true,"items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposal"}}]}`
+	body := `{"expected_version":"3","confirmed":true,"items":[{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposal"}}]}`
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/copy", body, "copy-request-01"), 409, "record_version_conflict")
 	fresh := releaseRequest(t, app, "POST", "/api/v1/release-orders/preview", original, "")
 	if fresh.Code != 200 || !strings.Contains(fresh.Body.String(), "new baseline") {
@@ -269,7 +269,7 @@ func TestReleaseRejectedCopyRechecksBaseline(t *testing.T) {
 	if replay.Body.String() != copied.Body.String() {
 		t.Fatal(replay.Body)
 	}
-	current := releaseActorRequest(t, app, reviewer, "GET", path, "", "")
+	current := releaseActorReadAllDetails(t, app, reviewer, "GET", path, "", "")
 	var linked domain.ReleaseOrder
 	if current.Code != 200 || json.Unmarshal(current.Body.Bytes(), &linked) != nil || linked.State != "REJECTED" || len(linked.History) != 4 || linked.History[3].Action != "COPY" || linked.History[3].RelatedOrderID != result.ID {
 		t.Fatalf("copy did not preserve and link source rejection: %s", current.Body)
@@ -279,7 +279,7 @@ func TestReleaseRejectedCopyRechecksBaseline(t *testing.T) {
 // AC-019/023: a storage failure rolls back state, request, history and targets;
 // competing decisions then produce exactly one new workflow event.
 func TestReleaseWorkflowAtomicityAndCompetition(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -291,7 +291,7 @@ func TestReleaseWorkflowAtomicityAndCompetition(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	reviewer := registerAccount(t, app, "race.reviewer", "race.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "race-grant-01")
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposal"}}]}`, "atomic-create-01")
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"proposal"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"集成测试发布单"}`, "atomic-create-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}
@@ -309,7 +309,7 @@ func TestReleaseWorkflowAtomicityAndCompetition(t *testing.T) {
 	if err := owner.QueryRow("SELECT COUNT(*) FROM rcc_release_requests WHERE operation=?", "submit:"+order.ID).Scan(&requests); err != nil || requests != 0 {
 		t.Fatalf("partial request: %d %v", requests, err)
 	}
-	read := releaseRequest(t, app, "GET", path, "", "")
+	read := releaseReadAllDetails(t, app, "GET", path, "", "")
 	if read.Body.String() != created.Body.String() {
 		t.Fatal(read.Body)
 	}
@@ -344,7 +344,7 @@ func TestReleaseWorkflowAtomicityAndCompetition(t *testing.T) {
 	if successes != 1 {
 		t.Fatalf("successful decisions: %d", successes)
 	}
-	current := releaseRequest(t, app, "GET", path, "", "")
+	current := releaseReadAllDetails(t, app, "GET", path, "", "")
 	var result struct {
 		State, Version string
 		History        []struct{ Action string }
@@ -372,7 +372,7 @@ func TestReleaseWorkflowAtomicityAndCompetition(t *testing.T) {
 // AC-018: freezing records execution definitions, not changing table statistics
 // or display descriptions. Every observed digest comes from the public submit.
 func TestReleaseFreezeTracksExecutionSemantics(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -386,7 +386,7 @@ func TestReleaseFreezeTracksExecutionSemantics(t *testing.T) {
 	freeze := func() string {
 		t.Helper()
 		sequence++
-		created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"detail_id":"0123456789abcdef0123456789abcdef","operation":"ADD","content":{"code":"proposal","label":"intent"}}]}`, fmt.Sprintf("schema-create-%02d", sequence))
+		created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"proposal","label":"intent"},"detail_id":"0123456789abcdef0123456789abcdef","operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, fmt.Sprintf("schema-create-%02d", sequence))
 		if created.Code != 201 {
 			t.Fatal(created.Body)
 		}
@@ -400,11 +400,11 @@ func TestReleaseFreezeTracksExecutionSemantics(t *testing.T) {
 			FrozenDigest string `json:"frozen_digest"`
 		}
 		json.Unmarshal(r.Body.Bytes(), &result)
-		if strings.Contains(r.Body.String(), `"frozen":`) || strings.Contains(r.Body.String(), `"record_table"`) || strings.Contains(r.Body.String(), `"record_key"`) {
+		if strings.Contains(r.Body.String(), `"frozen":`) || strings.Contains(r.Body.String(), `"frozen_tables":`) || strings.Contains(r.Body.String(), `"record_table"`) || strings.Contains(r.Body.String(), `"record_key"`) {
 			t.Fatalf("internal metadata leaked: %s", r.Body)
 		}
 		var frozen string
-		if err := owner.QueryRow("SELECT JSON_EXTRACT(document,'$.frozen') FROM rcc_release_orders WHERE id=?", draft.ID).Scan(&frozen); err != nil {
+		if err := owner.QueryRow("SELECT JSON_EXTRACT(document,'$.frozen_tables.mutation_add_items') FROM rcc_release_orders WHERE id=?", draft.ID).Scan(&frozen); err != nil {
 			t.Fatal(err)
 		}
 
@@ -450,7 +450,7 @@ func TestReleaseFreezeTracksExecutionSemantics(t *testing.T) {
 	if got := freeze(); got != plain {
 		t.Fatal("description-only table comment changed execution semantics")
 	}
-	preview := releaseRequest(t, app, "POST", "/api/v1/release-orders/preview", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"detail_id":"0123456789abcdef0123456789abcdef","operation":"ADD","content":{"id":"201","code":"known","label":"known"}}]}`, "")
+	preview := releaseRequest(t, app, "POST", "/api/v1/release-orders/preview", `{"items":[{"content":{"code":"known","id":"201","label":"known"},"detail_id":"0123456789abcdef0123456789abcdef","operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "")
 	if preview.Code != 200 || strings.Contains(preview.Body.String(), `"record_table"`) || strings.Contains(preview.Body.String(), `"record_key"`) {
 		t.Fatalf("preview leaked internal identity: %s", preview.Body)
 	}
@@ -460,14 +460,14 @@ func TestReleaseFreezeTracksExecutionSemantics(t *testing.T) {
 // restriction must not make hidden triggers look absent, and schema pattern
 // matching must remain correct under NO_BACKSLASH_ESCAPES.
 func TestReleaseFreezeMetadataVisibility(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"permission","label":"intent"}}]}`, "metadata-create-01")
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"permission","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "metadata-create-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}
@@ -495,7 +495,7 @@ func TestReleaseFreezeMetadataVisibility(t *testing.T) {
 	if cancelled.Code != 200 {
 		t.Fatal(cancelled.Body)
 	}
-	created = releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"restricted","label":"intent"}}]}`, "metadata-create-02")
+	created = releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"restricted","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "metadata-create-02")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}
@@ -535,7 +535,7 @@ func TestReleaseFreezeMetadataVisibility(t *testing.T) {
 func TestReleaseSubmitRevalidatesBaselineAndRules(t *testing.T) {
 	app, db := batchEdgeApplication(t)
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
-	body := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposal"}}]}`
+	body := `{"items":[{"content":{"code":"proposal"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"集成测试发布单"}`
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "revalidate-create-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
@@ -557,7 +557,7 @@ func TestReleaseSubmitRevalidatesBaselineAndRules(t *testing.T) {
 	// still compare the real old row before freezing.
 	deliveryExec(t, db, `UPDATE mutation_delete_parents SET code='later' WHERE id=1`)
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"1"}`, "revalidate-submit-01"), 409, "record_version_conflict")
-	read := releaseRequest(t, app, "GET", path, "", "")
+	read := releaseReadAllDetails(t, app, "GET", path, "", "")
 	if read.Body.String() != created.Body.String() {
 		t.Fatal(read.Body)
 	}
@@ -566,7 +566,7 @@ func TestReleaseSubmitRevalidatesBaselineAndRules(t *testing.T) {
 // The execution metadata read holds the actual table definition until the
 // owning transaction completes, even for an ADD with no known record identity.
 func TestReleaseExecutionSchemaHoldsMetadataLock(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -614,7 +614,7 @@ func TestReleaseExecutionSchemaHoldsMetadataLock(t *testing.T) {
 // A zero AUTO_INCREMENT input is not necessarily an actual identity: MySQL's
 // session mode decides whether it generates an id or inserts the literal zero.
 func TestReleaseAutoIncrementZeroIdentity(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -633,7 +633,7 @@ func TestReleaseAutoIncrementZeroIdentity(t *testing.T) {
 		t.Fatalf("fixture did not generate identity: %d %v", generated, err)
 	}
 	for i, code := range []string{"first zero proposal", "second zero proposal"} {
-		body, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "table_name": "mutation_add_items", "items": []any{map[string]any{"operation": "ADD", "content": map[string]string{"id": "0", "code": code, "label": "intent"}}}})
+		body, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "items": []any{map[string]any{"table_name": "mutation_add_items", "operation": "ADD", "content": map[string]string{"id": "0", "code": code, "label": "intent"}}}})
 		assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", string(body), fmt.Sprintf("zero-create-%d", i)), 422, "release_auto_id_ambiguous")
 	}
 	var targets int
@@ -648,7 +648,7 @@ func TestReleaseAutoIncrementZeroIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer exact.Close()
-	body := `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"0","code":"literal-zero-0","label":"intent"}}]}`
+	body := `{"items":[{"content":{"code":"literal-zero-0","id":"0","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`
 	first := rollbackOrderResponse(t, releaseRequest(t, exact, "POST", "/api/v1/release-orders", body, "literal-zero-create-0"), 201)
 	paths := []string{"/api/v1/release-orders/" + first.ID}
 	assertIntegrationErrorCode(t, releaseRequest(t, exact, "POST", "/api/v1/release-orders", strings.Replace(body, "literal-zero-0", "literal-zero-1", 1), "literal-zero-create-1"), 409, "release_target_conflict")
@@ -677,7 +677,7 @@ func TestReleaseAutoIncrementZeroIdentity(t *testing.T) {
 
 // A grant on a different case-sensitive object cannot prove trigger visibility.
 func TestReleaseFreezeMetadataGrantNameIdentity(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -734,7 +734,7 @@ func TestReleaseFreezeMetadataGrantNameIdentity(t *testing.T) {
 			if err := limited.QueryRow("SELECT COUNT(*) FROM information_schema.TRIGGERS WHERE EVENT_OBJECT_SCHEMA=DATABASE() AND EVENT_OBJECT_TABLE='mutation_add_items'").Scan(&hidden); err != nil || hidden != 0 {
 				t.Fatalf("target trigger must actually be hidden: %d %v", hidden, err)
 			}
-			created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"case-`+tc.name+`","label":"intent"}}]}`, "case-create-"+tc.name)
+			created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","items":[{"table_name":"mutation_add_items","operation":"ADD","content":{"code":"case-`+tc.name+`","label":"intent"}}]}`, "case-create-"+tc.name)
 			if created.Code != 201 {
 				t.Fatal(created.Body)
 			}
@@ -770,7 +770,7 @@ func TestReleaseFreezeMetadataGrantNameIdentity(t *testing.T) {
 			t.Fatal(err)
 		}
 		defer atApp.Close()
-		created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"account-at","label":"intent"}}]}`, "at-account-create")
+		created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"account-at","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "at-account-create")
 		if created.Code != 201 {
 			t.Fatal(created.Body)
 		}
@@ -788,7 +788,6 @@ func TestReleaseFreezeMetadataCaseInsensitiveNames(t *testing.T) {
 	defer cancel()
 	container, err := tcmysql.Run(ctx, "mysql:8.4",
 		tcmysql.WithDatabase("rcc_test"), tcmysql.WithUsername("rcc_admin"), tcmysql.WithPassword("rcc_password"),
-		tcmysql.WithScripts("../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql"),
 		testcontainers.WithCmd("--lower-case-table-names=1"))
 	if err != nil {
 		t.Fatal(err)
@@ -802,6 +801,7 @@ func TestReleaseFreezeMetadataCaseInsensitiveNames(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	initializeCurrentIntegrationSchema(t, ctx, driver, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -858,7 +858,7 @@ func TestReleaseFreezeMetadataCaseInsensitiveNames(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer restricted.Close()
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"same-case","label":"intent"}}]}`, "same-case-create")
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"same-case","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "same-case-create")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
 	}

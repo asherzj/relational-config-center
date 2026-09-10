@@ -13,7 +13,6 @@ import (
 type QuickRollbackPreview struct {
 	OrderID         string        `json:"order_id"`
 	ExpectedVersion string        `json:"expected_version"`
-	TableName       string        `json:"table_name"`
 	PreviewDigest   string        `json:"preview_digest"`
 	Items           []ReleaseItem `json:"items"`
 }
@@ -44,10 +43,10 @@ func (r *ReleaseOrders) prepareQuickRollback(ctx context.Context, s PublicationS
 	if original.Version != version {
 		return fail(ErrReleaseVersionConflict)
 	}
-	if original.State != "SUCCEEDED" || original.RollbackOfID != "" || original.RollbackPending {
+	if original.State != "SUCCEEDED" {
 		return fail(ErrReleaseState)
 	}
-	if original.Publication == nil || original.VerifyPublication() != nil {
+	if original.VerifyPublication() != nil {
 		return fail(ErrReleaseUnavailable)
 	}
 	tables, err := r.resolveReleaseTables(ctx, s, original.Items, true)
@@ -64,7 +63,7 @@ func (r *ReleaseOrders) prepareQuickRollback(ctx context.Context, s PublicationS
 	if err != nil {
 		return fail(err)
 	}
-	result := QuickRollbackPreview{OrderID: original.ID, ExpectedVersion: version, TableName: original.TableName, Items: items}
+	result := QuickRollbackPreview{OrderID: original.ID, ExpectedVersion: version, Items: items}
 	result.PreviewDigest = hex.EncodeToString(releaseDigest(struct {
 		Preview   QuickRollbackPreview
 		Execution map[string]domain.ReleaseExecutionSnapshot
@@ -130,8 +129,9 @@ func (r *ReleaseOrders) QuickRollback(ctx context.Context, id string, input Quic
 		if err = verifyRollbackResult(original, publication, tables); err != nil {
 			return err
 		}
-		original.Rollback = &publication
-		original.Executions = append(original.Executions, domain.SummarizeExecution(publication))
+		if err := original.ApplyExecution(publication); err != nil {
+			return ErrReleaseUnavailable
+		}
 		original.State = "ROLLED_BACK"
 		if err = appendRelatedReleaseEvent(&original, actor, stamp, "QUICK_ROLLBACK", input.Reason, ""); err != nil {
 			return err

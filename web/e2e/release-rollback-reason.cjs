@@ -1,3 +1,4 @@
+const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 // Real Chromium → same-origin Admin → isolated MySQL acceptance for #87.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
@@ -63,8 +64,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     assert.equal(baseline.rows.length, 1);
 
     const draft = await api(applicant.context, 'POST', '/api/v1/release-orders', {
-      title: '浏览器回滚原因留痕', table_name: table,
-      items: [{ operation: 'MODIFY', id: '1', expected_record_version: baseline.record_versions[0], content: { name: 'Published before reason correction' } }],
+      title: '浏览器回滚原因留痕', items:[{table_name:table,operation: 'MODIFY', id: '1', expected_record_version: baseline.record_versions[0], content: { name: 'Published before reason correction' } }],
     }, 201);
     const submitted = await api(applicant.context, 'POST', `/api/v1/release-orders/${draft.id}/submit`, { expected_version: draft.version });
     const approved = await api(reviewer.context, 'POST', `/api/v1/release-orders/${draft.id}/approve`, { expected_version: submitted.version, reason: 'Independent review' });
@@ -72,8 +72,8 @@ const output = process.env.RCC_E2E_OUTPUT;
     const preview = await api(executor.context, 'POST', `/api/v1/release-orders/${draft.id}/quick-rollback/preview`, { expected_version: published.version });
     const rolled = await api(executor.context, 'POST', `/api/v1/release-orders/${draft.id}/quick-rollback`, { expected_version: published.version, preview_digest: preview.preview_digest, reason: '' });
     assert.equal(rolled.state, 'ROLLED_BACK');
-    assert.notEqual(rolled.applicant_id, rolled.publication.publisher_id);
-    assert.notEqual(rolled.publication.publisher_id, rolled.rollback.publisher_id);
+    assert.notEqual(rolled.applicant_id, rolled.executions[0].actor_id);
+    assert.notEqual(rolled.executions[0].actor_id, rolled.executions[1].actor_id);
     await setFixtureRoles(administrator.context, base, executor.fixture.accountID, ['VIEWER']);
 
     for (const denied of [applicant.context, forwardPublisher.context, unrelated.context]) {
@@ -166,8 +166,8 @@ const output = process.env.RCC_E2E_OUTPUT;
     assert.equal(revisions.length, 2);
     assert.equal(revisions[0].actor_id, executor.fixture.accountID);
     assert.equal(revisions[1].actor_id, administrator.fixture.accountID);
-    assert.equal(revisions[0].execution_id, rolled.rollback.execution_id);
-    assert.equal(revisions[1].execution_id, rolled.rollback.execution_id);
+    assert.equal(revisions[0].execution_id, rolled.executions[1].id);
+    assert.equal(revisions[1].execution_id, rolled.executions[1].id);
     assert.equal(finalOrder.version, rolled.version);
     assert.equal(finalOrder.updated_at, rolled.updated_at);
     const history = adminPage.getByRole('region', { name: '操作历史', exact: true });
@@ -181,7 +181,7 @@ const output = process.env.RCC_E2E_OUTPUT;
       ok: true,
       checks,
       order_id: draft.id,
-      rollback_execution_id: rolled.rollback.execution_id,
+      rollback_execution_id: rolled.executions[1].id,
       executor_account_id: executor.fixture.accountID,
       administrator_account_id: administrator.fixture.accountID,
       executor_request_count: reasonWrites.length,

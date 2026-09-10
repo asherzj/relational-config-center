@@ -9,7 +9,7 @@ Relational Configuration Center 是一个面向实体、字段和关系建模的
 
 ## 当前状态
 
-项目已完成 Admin 第一迭代后端基线和正式 Web 管理台。Admin 通过运行时 Table Policy 治理一个部署配置的 MySQL 数据源中的既有表，Web 提供规则目录、表规则分配、受控的单表查询与变更操作。Server 与 Client 仍是后续迭代；`web/prototype/` 只作视觉参考，正式入口是 Vite/React 应用。
+项目已完成 Admin 第一迭代后端基线和正式 Web 管理台。Admin 通过运行时 Table Policy 治理一个部署配置的 MySQL 数据源中的既有表，Web 提供规则目录、表规则分配、受控的单表查询、同一数据源多表草稿与整单审批发布/回滚。Server 与 Client 仍是后续迭代；`web/prototype/` 只作视觉参考，正式入口是 Vite/React 应用。
 
 - [Admin V1 技术基线](./docs/admin-v1-technical-baseline.md)
 - [Web 管理台运行与验收](./web/README.md)
@@ -34,7 +34,7 @@ test -e deploy/.env || cp deploy/.env.example deploy/.env
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml up --build
 ```
 
-请在启动前修改 `deploy/.env` 中的数据库密码。该文件不应提交到仓库；不要把上面的复制命令当作覆盖已有 `.env` 的更新方式。Compose 会在全新 MySQL 数据卷中自动执行 `deploy/mysql/init/001-schema.sql` 初始化 Policy Catalog，并在每次启动时幂等应用仅供本地开发使用的 `deploy/mysql/local-fixture/002-notification-templates.sql`。fresh volume，以及尚未包含同名资源或已包含完全相同 fixture 的已有 volume，会获得：
+请在启动前修改 `deploy/.env` 中的数据库密码。该文件不应提交到仓库；不要把上面的复制命令当作覆盖已有 `.env` 的更新方式。Compose 先运行独立 `schema-migrate` 任务，通过 Goose 初始化或向前升级 RCC 控制表；成功后才幂等应用仅供本地开发使用的 `deploy/mysql/local-fixture/002-notification-templates.sql`，fixture 成功后才启动 Admin。fresh volume，以及尚未包含同名资源或已包含完全相同 fixture 的已有 volume，会获得：
 
 - 带 3 条可辨识样例数据的 `notification_templates`；
 - Active 的 `notification_page_query_v1` Query Policy；
@@ -42,6 +42,16 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yml up --build
 - enabled `notification_templates` Table Policy。
 
 fixture 位于独立的 `mysql/local-fixture` 路径，只由本地 Compose 的一次性 `mysql-local-fixture` 服务加载，不属于生产初始化脚本，也不会改变 Admin 只治理既有业务表的生产职责。缺失资源会被补齐，完全相同的资源会原样保留，重复启动不会重复插入样例行或 Policy；若已有 `notification_templates` Schema 不兼容，或同 Code Policy、同表分配与 fixture 的生命周期、执行规则或引用冲突，一次性服务会失败并保留既有资源，不会通过 SQL 接管表、覆盖或复活 Policy、重新启用分配。需要并行启动隔离环境时，可通过 `MYSQL_PUBLISHED_PORT` 和 `ADMIN_PUBLISHED_PORT` 覆盖默认的 3306 和 8080。
+
+已有未接管的数据卷不会自动登记版本，迁移失败或存在未确认操作也会阻止 fixture 和 Admin。先按[迁移手册](docs/schema-migrations.md)核查并备份，在维护窗口显式接管完整旧库：
+
+```bash
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml run --rm schema-migrate status
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml run --rm schema-migrate baseline
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml up
+```
+
+未知或失败结果必须先核查后运行 `schema-migrate recover`。更旧结构先走[历史升级流程](deploy/mysql/migrations/README.md)。生产不加载开发 fixture；维护连接显式执行 `bin/admin/schema-migrate up` 后，Admin 使用正常业务权限连接同一库，只读核查版本、状态与完整控制结构。
 
 直接运行 Admin 时至少需要配置以下变量：
 

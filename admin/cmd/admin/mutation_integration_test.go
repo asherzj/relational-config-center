@@ -17,10 +17,7 @@ import (
 )
 
 func TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOneSnapshot(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/008-mutation-policy-snapshot-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/008-mutation-policy-snapshot-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -76,10 +73,7 @@ func TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOne
 }
 
 func TestRelationalMutationPolicyIsSoleAuthorizationSourceAndDeprecatedExecutes(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/008-mutation-policy-snapshot-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/008-mutation-policy-snapshot-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -101,10 +95,7 @@ func TestRelationalMutationPolicyIsSoleAuthorizationSourceAndDeprecatedExecutes(
 }
 
 func TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/008-mutation-policy-snapshot-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/008-mutation-policy-snapshot-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -146,10 +137,10 @@ func TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically(t *testing.T)
 }
 
 func TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/008-mutation-policy-snapshot-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/008-mutation-policy-snapshot-fixture.sql")
 	assignRelationalMutationPolicy(t, app, "snapshot_allowed_mutation_v1", true, false, false, true)
 	reviewer := publicationFixtureReviewer(t, app)
-	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_snapshot_items","items":[{"operation":"ADD","content":{"code":"in-flight","label":"old-snapshot"}}]}`, "policy-approved")
+	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"in-flight","label":"old-snapshot"},"operation":"ADD","table_name":"mutation_snapshot_items"}],"title":"集成测试发布单"}`, "policy-approved")
 	replaceRelationalMutationPolicy(t, app, "snapshot_denied_mutation_v2", false, false, false, false)
 	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "policy-execute")
 	assertIntegrationErrorCode(t, response, 409, "release_frozen_changed")
@@ -158,10 +149,7 @@ func TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement(t *testing
 }
 
 func TestPublicationSessionCannotBeReusedAfterTransaction(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/008-mutation-policy-snapshot-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/008-mutation-policy-snapshot-fixture.sql")
 	var captured application.PublicationSession
 	err := app.mysql.ExecutePublication(t.Context(), func(session application.PublicationSession) error {
 		captured = session
@@ -238,10 +226,7 @@ func assertDirectMutationCodeCount(t *testing.T, ctx context.Context, database *
 }
 
 func TestMutationPolicyAddsRowAndReturnsJSONStringID(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 
 	added := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{
@@ -273,10 +258,7 @@ func TestMutationPolicyAddsRowAndReturnsJSONStringID(t *testing.T) {
 }
 
 func TestMutationPolicyReturnsExplicitAutoIncrementID(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 
 	const explicitID = "9007199254740993"
@@ -296,10 +278,7 @@ func TestMutationPolicyReturnsExplicitAutoIncrementID(t *testing.T) {
 }
 
 func TestMutationPolicyReturnsARequiredNonAutoIncrementID(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_supplied_id_items", mutationPolicyFixture{AllowAdd: true})
 
 	added := publicationFixtureRequest(t, app, "ADD", "mutation_supplied_id_items", "", `{
@@ -315,10 +294,7 @@ func TestMutationPolicyReturnsARequiredNonAutoIncrementID(t *testing.T) {
 }
 
 func TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 
 	added := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{
@@ -365,15 +341,26 @@ func TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields(t 
 }
 
 func TestMutationPolicyAutoFillUsesAccountOperatorAndDatabaseTimeAndRejectsManagedInput(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
+	app, err := newApplication(ctx, integrationConfig(driverConfig))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = app.Close() })
+	database, err := sql.Open("mysql", driverConfig.FormatDSN())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = database.Close() })
 	enableMutationPolicy(t, app, "mutation_auto_fill_items", mutationPolicyFixture{
 		AllowAdd: true, CreateOperatorField: stringPointer("creator"), CreateTimeField: stringPointer("occurred_at"),
 	})
 
-	before := time.Now().UTC().Add(-time.Second)
+	// Auto Fill uses the database clock; the Docker VM and host can differ.
+	var before, after time.Time
+	if err := database.QueryRowContext(ctx, "SELECT UTC_TIMESTAMP(6)").Scan(&before); err != nil {
+		t.Fatal(err)
+	}
 	added := publicationFixtureRequest(t, app, "ADD", "mutation_auto_fill_items", "", `{
 		"content":{
 			"code":"auto-fill",
@@ -384,7 +371,9 @@ func TestMutationPolicyAutoFillUsesAccountOperatorAndDatabaseTimeAndRejectsManag
 	if added.Code != http.StatusOK {
 		t.Fatalf("add row with Auto Fill: HTTP %d %s", added.Code, added.Body.String())
 	}
-	after := time.Now().UTC().Add(time.Second)
+	if err := database.QueryRowContext(ctx, "SELECT UTC_TIMESTAMP(6)").Scan(&after); err != nil {
+		t.Fatal(err)
+	}
 
 	row := queryMutationTableRow(t, app, "mutation_auto_fill_items", "auto-fill")
 	assertMutationString(t, row, "creator", integrationAccountID(t, app))
@@ -404,10 +393,7 @@ func TestMutationPolicyAutoFillUsesAccountOperatorAndDatabaseTimeAndRejectsManag
 }
 
 func TestMutationPolicyRejectsMissingRequiredFieldsAndRollsBackDatabaseFailures(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 
 	missing := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{
@@ -424,10 +410,7 @@ func TestMutationPolicyRejectsMissingRequiredFieldsAndRollsBackDatabaseFailures(
 }
 
 func TestMutationPolicyMapsMySQLUniqueKeyViolationsToConflict(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 
 	first := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{
@@ -445,10 +428,7 @@ func TestMutationPolicyMapsMySQLUniqueKeyViolationsToConflict(t *testing.T) {
 }
 
 func TestMutationPolicyPatchesOnlySubmittedFieldsWithJSONStringSemantics(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true})
 	id := addMutationPatchFixtureRow(t, app, "patch-semantics", "original")
 
@@ -484,10 +464,7 @@ func TestMutationPolicyPatchesOnlySubmittedFieldsWithJSONStringSemantics(t *test
 }
 
 func TestMutationPolicyPatchRejectsInvalidAndNonWritableFields(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -536,10 +513,7 @@ func TestMutationPolicyPatchRejectsInvalidAndNonWritableFields(t *testing.T) {
 }
 
 func TestMutationPolicyPatchUsesLatestPolicyAndLiveSchema(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -579,10 +553,17 @@ func TestMutationPolicyPatchUsesLatestPolicyAndLiveSchema(t *testing.T) {
 }
 
 func TestMutationPolicyPatchAutoFillUsesModifySlotsAndRejectsManagedInput(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
+	app, err := newApplication(ctx, integrationConfig(driverConfig))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = app.Close() })
+	database, err := sql.Open("mysql", driverConfig.FormatDSN())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = database.Close() })
 	enableMutationPolicy(t, app, "mutation_auto_fill_items", mutationPolicyFixture{
 		AllowAdd: true, AllowModify: true,
 		ModifyOperatorField: stringPointer("creator"), ModifyTimeField: stringPointer("occurred_at"),
@@ -597,12 +578,18 @@ func TestMutationPolicyPatchAutoFillUsesModifySlotsAndRejectsManagedInput(t *tes
 		t.Fatalf("ADD did not apply configured Modify Auto Fill slots: %#v", created)
 	}
 
-	before := time.Now().UTC().Add(-time.Second)
+	// Auto Fill uses the database clock; the Docker VM and host can differ.
+	var before, after time.Time
+	if err := database.QueryRowContext(ctx, "SELECT UTC_TIMESTAMP(6)").Scan(&before); err != nil {
+		t.Fatal(err)
+	}
 	modified := versionedPublicationFixture(t, app, "MODIFY", "mutation_auto_fill_items", id, `{
 		"content":{"status":"client","quantity":"2"}
 	}`)
 	assertMutationAffected(t, modified)
-	after := time.Now().UTC().Add(time.Second)
+	if err := database.QueryRowContext(ctx, "SELECT UTC_TIMESTAMP(6)").Scan(&after); err != nil {
+		t.Fatal(err)
+	}
 
 	row := queryMutationTableRow(t, app, "mutation_auto_fill_items", "patch-auto-fill")
 	assertMutationString(t, row, "creator", integrationAccountID(t, app))
@@ -620,10 +607,7 @@ func TestMutationPolicyPatchAutoFillUsesModifySlotsAndRejectsManagedInput(t *tes
 }
 
 func TestMutationPolicyPatchRollsBackDatabaseFailures(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true})
 	id := addMutationPatchFixtureRow(t, app, "patch-rollback", "original")
 
@@ -635,10 +619,7 @@ func TestMutationPolicyPatchRollsBackDatabaseFailures(t *testing.T) {
 }
 
 func TestMutationPolicyPatchMapsUniqueKeyConflictsAndRollsBack(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true})
 	addMutationPatchFixtureRow(t, app, "patch-unique-first", "first")
 	secondID := addMutationPatchFixtureRow(t, app, "patch-unique-second", "second")
@@ -650,10 +631,7 @@ func TestMutationPolicyPatchMapsUniqueKeyConflictsAndRollsBack(t *testing.T) {
 }
 
 func TestMutationPolicyPatchFailsClosedForCurrentPolicyAndSchema(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -697,10 +675,7 @@ func TestMutationPolicyPatchFailsClosedForCurrentPolicyAndSchema(t *testing.T) {
 }
 
 func TestMutationPolicyDeleteDefaultsToDeniedThenUsesTheCurrentReplacement(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	id := addMutationPatchFixtureRow(t, app, "delete-current", "preserved until permitted")
 
@@ -716,10 +691,7 @@ func TestMutationPolicyDeleteDefaultsToDeniedThenUsesTheCurrentReplacement(t *te
 }
 
 func TestMutationPolicyDeleteFailsClosedBeforeExecution(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 
 	missingPolicy := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", "1", "")
 	assertIntegrationErrorCode(t, missingPolicy, http.StatusNotFound, "table_policy_not_found")
@@ -739,10 +711,7 @@ func TestMutationPolicyDeleteFailsClosedBeforeExecution(t *testing.T) {
 }
 
 func TestMutationPolicyDeleteMapsMissingRowsToNotFound(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowDelete: true})
 
 	missing := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", "999999", "")
@@ -750,10 +719,7 @@ func TestMutationPolicyDeleteMapsMissingRowsToNotFound(t *testing.T) {
 }
 
 func TestMutationPolicyDeleteRollsBackDatabaseFailures(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowDelete: true})
 
 	failed := versionedPublicationFixture(t, app, "DELETE", "mutation_delete_parents", "1", "")
@@ -763,10 +729,7 @@ func TestMutationPolicyDeleteRollsBackDatabaseFailures(t *testing.T) {
 }
 
 func TestMutationPolicyDeleteFailsClosedForUnsupportedLiveColumns(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -799,10 +762,7 @@ func TestMutationPolicyDeleteFailsClosedForUnsupportedLiveColumns(t *testing.T) 
 }
 
 func TestMutationPolicyDeleteFailsClosedForStaleAutoFillSchemaRules(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -832,10 +792,7 @@ VALUES (1, 'delete-stale-autofill', 'initial', '2026-01-01 00:00:00', 'initial',
 }
 
 func TestMutationPolicyDeleteFailsClosedForInvalidCurrentPolicyAndLiveTable(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -888,10 +845,7 @@ func TestMutationPolicyDeleteFailsClosedForInvalidCurrentPolicyAndLiveTable(t *t
 }
 
 func TestMutationAddFailsClosedAndUsesTheLatestPolicySnapshot(t *testing.T) {
-	app := startIntegrationApplication(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 
 	missing := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"code":"missing","label":"x"}}`)
 	assertIntegrationErrorCode(t, missing, http.StatusNotFound, "table_policy_not_found")
@@ -914,10 +868,7 @@ func TestMutationAddFailsClosedAndUsesTheLatestPolicySnapshot(t *testing.T) {
 }
 
 func TestMutationAddFailsClosedForInvalidLivePolicyAndSchema(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -951,10 +902,7 @@ func TestMutationAddFailsClosedForInvalidLivePolicyAndSchema(t *testing.T) {
 }
 
 func TestMutationAddFailsClosedWhenPolicyCatalogIsUnavailable(t *testing.T) {
-	ctx, driverConfig := startIntegrationMySQL(t,
-		"../../../deploy/mysql/init/001-schema.sql",
-		"testdata/006-mutation-fixture.sql",
-	)
+	ctx, driverConfig := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err != nil {
 		t.Fatalf("start Admin: %v", err)
@@ -1006,11 +954,11 @@ func assertMutationAffected(t *testing.T, response *httptest.ResponseRecorder) {
 func publishedFixtureCommand(t *testing.T, response *httptest.ResponseRecorder) domain.PublicationCommand {
 	t.Helper()
 	var order domain.ReleaseOrder
-	if response.Code != 200 || json.Unmarshal(response.Body.Bytes(), &order) != nil || order.State != "SUCCEEDED" || order.Publication == nil || len(order.Publication.Commands) != 1 {
+	if response.Code != 200 || json.Unmarshal(response.Body.Bytes(), &order) != nil || order.State != "SUCCEEDED" || len(order.Executions) < 1 || len(executionCommands(order, "PUBLICATION")) != 1 {
 		t.Fatalf("expected one committed publication: %d %s", response.Code, response.Body)
 	}
-	command := order.Publication.Commands[0]
-	if command.Final.Deleted != (command.Operation == "DELETE") || command.Final.Verify(command.Final.SchemaDigest) != nil || order.Publication.Notification.Status != "NOT_CONNECTED" {
+	command := executionCommands(order, "PUBLICATION")[0]
+	if command.Final.Deleted != (command.Operation == "DELETE") || command.Final.Verify(command.Final.SchemaDigest) != nil || order.Executions[0].Notifications[order.Items[0].TableName].Status != "NOT_CONNECTED" {
 		t.Fatal("invalid committed command")
 	}
 	return command

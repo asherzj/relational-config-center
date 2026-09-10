@@ -88,6 +88,7 @@ const output = process.env.RCC_E2E_OUTPUT || '/tmp/rcc-field-policies-browser';
   await page.unroute('**/api/v1/table-field-policies/notification_templates');
   await save();
   await page.getByRole('button',{name:'关闭',exact:true}).last().click();
+  await page.getByRole('dialog',{name:'字段配置',exact:true}).waitFor({state:'hidden'});
   assert.equal(await row.getByRole('button',{name:'字段配置',exact:true}).evaluate(el=>el===document.activeElement),true,'drawer close did not restore focus');
   checks.push('keyboard Tab reaches option values and closing restores the entry focus');
   assert.deepEqual(errors,[]);

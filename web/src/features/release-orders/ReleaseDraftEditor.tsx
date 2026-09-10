@@ -1,11 +1,12 @@
 import {useState} from "react";
+import {useQuery} from "@tanstack/react-query";
 import {ApiError} from "../../api/client";
-import {draftFromOrder,releaseDetailTables,incrementalDraft,rebaseDraftInput,releaseOrders,releaseRequests,releaseTitleError,type ReleaseOrder} from "../../api/release-orders";
+import {loadReleaseForEdit,type ReleaseHeader,draftFromOrder,releaseDetailTables,incrementalDraft,rebaseDraftInput,releaseOrders,releaseRequests,releaseTitleError,type ReleaseOrder} from "../../api/release-orders";
 import {Drawer} from "../../components/ui/Drawer";
 import {Button} from "../../components/ui/Button";
 import {Input} from "../../components/shadcn/input";
 import {NativeSelect} from "../../components/shadcn/native-select";
-import {ErrorState} from "../../components/ui/Feedback";
+import {ErrorState,LoadingState} from "../../components/ui/Feedback";
 import {useDraftProtection} from "../../components/ui/LeaveProtection";
 import {useAccountRole} from "../accounts/roles";
 import {useReleaseWrite} from "./useReleaseWrite";
@@ -16,7 +17,13 @@ import {ReleaseItemPager,releasePageSize} from "./ReleaseItemPager";
 import {ManagedTextInput} from "../managed-data/ManagedTextInput";
 
 type FieldInput={state:"omitted"|"value"|"sql_null";value:string};
-export function ReleaseDraftEditor({order,onClose}:{order:ReleaseOrder;onClose:()=>void}){
+export function ReleaseDraftEditor({order,onClose}:{order:ReleaseHeader;onClose:()=>void}){
+ const [source,setSource]=useState(order);
+ const input=useQuery({queryKey:["release-edit-input",source.id,source.version],queryFn:()=>loadReleaseForEdit(source),retry:false,refetchOnWindowFocus:false});
+ if(!input.data)return <Drawer open eyebrow="发布草稿" title="编辑多表草稿" onClose={onClose}>{input.isPending?<LoadingState/>:<ErrorState error={input.error} onRetry={()=>{if(order.version!==source.version)setSource(order);else void input.refetch()}}/>}</Drawer>;
+ return <LoadedReleaseDraftEditor order={input.data} current={order} onClose={onClose}/>;
+}
+function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;current:ReleaseHeader;onClose:()=>void}){
  const [baseline,setBaseline]=useState(order);
  const [title,setTitle]=useState(order.title);
  const [items,setItems]=useState(order.items);
@@ -26,7 +33,7 @@ export function ReleaseDraftEditor({order,onClose}:{order:ReleaseOrder;onClose:(
  const write=useReleaseWrite(`edit:${order.id}`);
  const [originalKey]=useState(write.storedRequest?.key);
  const hasRole=useAccountRole("EDITOR");
- const allowed=hasRole&&baseline.allowed_actions.includes("edit")&&baseline.state==="DRAFT";
+ const allowed=hasRole&&current.allowed_actions.includes("edit")&&current.state==="DRAFT";
  const canRepeat=hasRole&&Boolean(write.storedRequest);
  const conflict=write.error instanceof ApiError&&["release_version_conflict","release_state_invalid","release_target_conflict"].includes(write.error.code);
  const recordConflict=write.error instanceof ApiError&&write.error.code==="record_version_conflict";
@@ -52,7 +59,7 @@ export function ReleaseDraftEditor({order,onClose}:{order:ReleaseOrder;onClose:(
  };
  const inspect=async()=>{
   if(reading)return;setReading(true);setReadError(undefined);
-  try{setLatest(await releaseOrders.get(order.id))}catch(cause){setReadError(cause)}finally{setReading(false)}
+  try{setLatest(await loadReleaseForEdit(await releaseOrders.get(order.id)))}catch(cause){setReadError(cause)}finally{setReading(false)}
  };
  const inspectRecord=async()=>{
   if(reading)return;setReading(true);setReadError(undefined);

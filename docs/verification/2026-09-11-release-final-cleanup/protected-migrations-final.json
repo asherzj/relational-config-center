@@ -1,0 +1,29 @@
+{
+  "main": "9aa4bdd38ec9122b06a8899bdfd2f165cbcc7b5f",
+  "count": 22,
+  "failures": [],
+  "sha256": {
+    "admin/internal/infrastructure/mysql/migrations/00001_control_baseline.sql": "df9794a5f3836aab8452d090e8b88c69be619154bc20aca10e55d2f9252a8730",
+    "admin/internal/infrastructure/mysql/migrations/00001_schema.json": "5c36a92035b9382ec3e43de18090f2008e5256c7e238b7a88f976bf23bd85cb4",
+    "admin/internal/infrastructure/mysql/migrations/00002_policy_audit_timestamps.sql": "3a5516b279c2ffbd795998d5641f74e6f07c7810bf4a6b615c0e7ba3490d2476",
+    "admin/internal/infrastructure/mysql/migrations/00002_schema.json": "5472c8a95d62e301b5639b00442d96628194e6103b14b8b687fb55c3c0f53ae8",
+    "admin/internal/infrastructure/mysql/migrations/00003_schema.json": "f0382433976866f5a842703835635da87f42a0b8bde3d31caf0cad07085cc082",
+    "admin/internal/infrastructure/mysql/migrations/00003_table_field_policies.sql": "a9a5c7808ac262ab170a506d88ae5ecb05e7278ddd009cff687005ed770645c2",
+    "admin/cmd/admin/testdata/pre-goose-8b5cd859.sql": "50bb494cf9c155efb5bdd8a71067cfde14585e240539aab43b816118854f6d80",
+    "admin/cmd/admin/testdata/pre-goose-8b5cd859-data.json": "31149103ccb14539e4fb9c00885db0ab3f87aefc1579f9cc5ef59302635a8c29",
+    "deploy/mysql/migrations/001-promote-mutation-capabilities.sql": "af83f0a37ddf0176238ccfcc158eb322a60d4746c59ab521eaed32f653d78831",
+    "deploy/mysql/migrations/002-rename-audit-timestamps.sql": "c7469bb7e63018276cb7ca700de5e73586ea1bc29e099cc9f451aa38b0abfdd7",
+    "deploy/mysql/migrations/003-create-query-policies.sql": "5899bccc1a9fdd5bb13a605090f4232470884491ed0d1acc5c4515775108959a",
+    "deploy/mysql/migrations/004-create-mutation-policies.sql": "65060b29f356221f0ddc08f5da5349f4a7e2df486d196e64c88bcf5d9a5ed201",
+    "deploy/mysql/migrations/005-expand-table-policy-code-references.sql": "c7af788d1d58a40a95d78975f3114cc6def6c4a52cd7b5f20d21d6dbfb1850bc",
+    "deploy/mysql/migrations/006-contract-legacy-table-policy-columns.sql": "39f4e338dea0e1f9e3c8baa51922cc6f0634193e5d0f6e3c40726ec1ac4c8e96",
+    "deploy/mysql/migrations/007-local-accounts.sql": "b68a8313cccdc39d3b41cb197781b10f6fdf6ee605508d526d1b1dcb57c3aa1b",
+    "deploy/mysql/migrations/008-account-roles.sql": "f0cb42518fc432f67dde952d00723e3380db66d4ad4f01a51224222eab97a820",
+    "deploy/mysql/migrations/009-record-versions.sql": "d1c57ada76e189e3fd3ad7a15f4303304ed7603b7afbcc6a1d4e6d3c00494235",
+    "deploy/mysql/migrations/010-release-drafts.sql": "0f13e9eccbbec52eae109bc44f99e2f7aab796f744dadab113d808f7fe8dec97",
+    "deploy/mysql/migrations/011-release-targets.sql": "8432143bb9e1af1b7163a44cef66eeeaf91c771ddf4ea4b9dff1bed45456747f",
+    "deploy/mysql/migrations/012-publication.sql": "9571b57c0f52f482e087fd12c1e663c1f550b2bbf9bcb09b9067110ed052d013",
+    "deploy/mysql/migrations/013-policy-audit-timestamps.sql": "6e79e3b459a12555999be73ce79bd3bfa043a3fd2abf004f80026dca294f31f0",
+    "deploy/mysql/migrations/014-table-field-policies.sql": "9397dfedafb4d1254b11a7d4aa3c9c2f656aa5997335839b0dd2b3ecdd9a7d86"
+  }
+}

@@ -134,14 +134,14 @@ func publicationProcessRequest(t *testing.T, p *accountProcess, path, key string
 // transaction whose ACK is lost. A genuinely new executable recovers the same
 // key, cookies and original expected version from persistent storage.
 func TestPublicationCommitUnknownSurvivesExecutableRestart(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
-	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"commit-loss","label":"committed once"}}]}`, "wire-publication")
+	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"code":"commit-loss","label":"committed once"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "wire-publication")
 	proxy := newPublicationWireProxy(t, driver.Addr)
 	through := *driver
 	through.Addr = proxy.listener.Addr().String()
@@ -171,7 +171,7 @@ func TestPublicationCommitUnknownSurvivesExecutableRestart(t *testing.T) {
 		if json.Unmarshal(body, &receipt) != nil {
 			t.Fatal("invalid error receipt")
 		}
-		current := batchEdgeOrder(t, releaseRequest(t, app, "GET", path, "", ""), 200)
+		current := batchEdgeOrder(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
 		failed := 0
 		for _, event := range current.History {
 			if event.Action == "EXECUTE_FAILED" {
@@ -195,7 +195,7 @@ func TestPublicationCommitUnknownSurvivesExecutableRestart(t *testing.T) {
 	process.ready(t)
 	status, body := publicationProcessRequest(t, process, path+"/execute", "original-execute", cookies, csrf)
 	var order domain.ReleaseOrder
-	if status != 200 || json.Unmarshal(body, &order) != nil || order.State != "SUCCEEDED" || order.Publication == nil || len(order.Publication.Commands) != 1 {
+	if status != 200 || json.Unmarshal(body, &order) != nil || order.State != "SUCCEEDED" || len(order.Executions) < 1 || len(executionCommands(order, "PUBLICATION")) != 1 {
 		t.Fatalf("restart recovery: %d %s", status, body)
 	}
 	again, replay := publicationProcessRequest(t, process, path+"/execute", "original-execute", cookies, csrf)
@@ -215,7 +215,7 @@ func TestPublicationCommitUnknownSurvivesExecutableRestart(t *testing.T) {
 			events++
 		}
 	}
-	if events != 1 || order.Publication.Notification.Status != "NOT_CONNECTED" {
+	if events != 1 || order.Executions[0].Notifications[order.Items[0].TableName].Status != "NOT_CONNECTED" {
 		t.Fatal("false delivery or duplicate execution")
 	}
 	process.stop(t)

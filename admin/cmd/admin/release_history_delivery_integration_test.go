@@ -67,6 +67,29 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 		}
 		return order
 	}
+	readOrderDetails := func(a actor, id string) domain.ReleaseOrder {
+		path := "/api/v1/release-orders/" + id
+		data := request(a, "GET", path, "", "", 200)
+		var header domain.ReleaseHeader
+		if err := json.Unmarshal(data, &header); err != nil {
+			t.Fatal(err)
+		}
+		order := header.Workflow()
+		order.Items = []domain.ReleaseItem{}
+		for offset := 0; offset < header.ItemCount; {
+			data = request(a, "GET", fmt.Sprintf("%s/details?expected_version=%s&offset=%d&limit=100", path, header.Version, offset), "", "", 200)
+			var page domain.ReleaseDetailPage
+			if err := json.Unmarshal(data, &page); err != nil {
+				t.Fatal(err)
+			}
+			if page.OrderID != id || page.Version != header.Version || page.Offset != offset || len(page.Items) == 0 {
+				t.Fatal("mixed history detail pages", string(data))
+			}
+			order.Items = append(order.Items, page.Items...)
+			offset += len(page.Items)
+		}
+		return order
+	}
 	action := func(a actor, order domain.ReleaseOrder, name, reason string) domain.ReleaseOrder {
 		body, _ := json.Marshal(map[string]string{"expected_version": order.Version, "reason": reason})
 		// Submit and execute accept the expected version without an opinion.
@@ -77,7 +100,7 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	}
 	orders := map[string]domain.ReleaseOrder{}
 	for _, state := range []string{"DRAFT", "PENDING_APPROVAL", "APPROVED", "REJECTED", "CANCELLED"} {
-		payload := fmt.Sprintf(`{"title":"集成测试发布单","table_name":"history_items","items":[{"operation":"ADD","content":{"id":%q,"value":"","metadata":"null"}}]}`, strings.ToLower(state))
+		payload := fmt.Sprintf(`{"title":"集成测试发布单","items":[{"table_name":"history_items","operation":"ADD","content":{"id":%q,"value":"","metadata":"null"}}]}`, strings.ToLower(state))
 		order := decode(request(editor, "POST", "/api/v1/release-orders", payload, "history-create-"+state, 201))
 		switch state {
 		case "PENDING_APPROVAL":
@@ -93,7 +116,7 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 		}
 		orders[order.ID] = order
 	}
-	forward := decode(request(editor, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"history_items","items":[{"operation":"MODIFY","id":"forward","expected_record_version":"0","content":{"value":"发布后新值","metadata":"null"}}]}`, "history-create-forward", 201))
+	forward := decode(request(editor, "POST", "/api/v1/release-orders", `{"items":[{"content":{"metadata":"null","value":"发布后新值"},"expected_record_version":"0","id":"forward","operation":"MODIFY","table_name":"history_items"}],"title":"集成测试发布单"}`, "history-create-forward", 201))
 	forward = action(editor, forward, "submit", "")
 	forward = action(reviewer, forward, "approve", "正向批准意见")
 	forward = action(publisher, forward, "execute", "")
@@ -103,11 +126,11 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 		t.Fatal("preview decode")
 	}
 	forward = decode(request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback", quickRollbackBody("4", preview.Digest, "事后可选原因"), "history-restore", 200))
-	if forward.State != "ROLLED_BACK" || forward.Rollback == nil || len(forward.Executions) != 2 {
+	if forward.State != "ROLLED_BACK" || len(forward.Executions) < 2 || len(forward.Executions) != 2 {
 		t.Fatal("original rollback history missing")
 	}
 	orders[forward.ID] = forward
-	completed := decode(request(editor, "POST", "/api/v1/release-orders", `{"title":"完结历史","table_name":"history_items","items":[{"operation":"ADD","content":{"id":"completed","value":"done"}}]}`, "history-completed", 201))
+	completed := decode(request(editor, "POST", "/api/v1/release-orders", `{"items":[{"content":{"id":"completed","value":"done"},"operation":"ADD","table_name":"history_items"}],"title":"完结历史"}`, "history-completed", 201))
 	completed = action(editor, completed, "submit", "")
 	completed = action(reviewer, completed, "approve", "completed approval")
 	completed = action(publisher, completed, "execute", "")
@@ -132,7 +155,7 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 				t.Fatalf("%s actor: %s, want %s", event.Action, event.ActorID, want)
 			}
 		}
-		if order.Publication != nil && (order.Publication.PublisherID != publisher.id || len(order.Publication.Commands) != 1) {
+		if len(order.Executions) >= 1 && (order.Executions[0].ActorID != publisher.id || len(executionCommands(order, "PUBLICATION")) != 1) {
 			t.Fatal("missing permanent publisher/command")
 		}
 	}
@@ -173,7 +196,7 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	process = accountProcessCommand(t, binary, settings)
 	process.ready(t)
 	for id, before := range orders {
-		after := decode(request(viewer, "GET", "/api/v1/release-orders/"+id, "", "", 200))
+		after := readOrderDetails(viewer, id)
 		if !reflect.DeepEqual(before, after) {
 			t.Fatalf("history changed after account/schema/migration/restart: %s", id)
 		}
@@ -185,7 +208,7 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 		if !strings.Contains(string(forged), `"code":"invalid_request"`) {
 			t.Fatalf("unexpected history rewrite contract: %s", forged)
 		}
-		unchanged := decode(request(viewer, "GET", "/api/v1/release-orders/"+id, "", "", 200))
+		unchanged := readOrderDetails(viewer, id)
 		if !reflect.DeepEqual(before, unchanged) {
 			t.Fatalf("negative history operations changed persisted order: %s", id)
 		}

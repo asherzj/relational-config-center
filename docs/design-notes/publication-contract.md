@@ -8,7 +8,7 @@
 
 ## 最终行
 
-`PublicationResult` 包含 execution_id、kind、按物理表名索引的 table_versions / notifications、publisher_id、数据库 executed_at 和全局有序 commands。table_version / notification 暂为首项表的显示别名，由 #88 移除。execution_id 为原单 ID 与 PUBLICATION / ROLLBACK 种类组成的唯一执行身份。每个 Command 包含 order_id、execution_id、execution_kind、table_name、sequence、table_version、operation、实际 id、发布后的 record_version、before 和 final。所有版本、游标、ID 均为 JSON 字符串。ADD 的 before 是 absent tombstone；DELETE 的 final 是 tombstone，before 保存实际已删行。记录版本墓碑持续保留；重建不回到零。
+事务内部 `PublicationCommit` 持有本次原子执行所需的全局有序 commands 与每表版本/通知；它不作为整单结果读取接口。对外 `executions` 只提供成功执行的 id、kind、actor_id、executed_at、item_count、operation_counts 和按表归属的 table_versions / notifications。实际 Command 保存在原始明细的 `publication` / `rollback` 中，通过版本绑定分页读取。execution_id 为原单 ID 与 PUBLICATION / ROLLBACK 种类组成的唯一执行身份。每个 Command 包含原明细的 detail_id、order_id、execution_id、execution_kind、table_name、sequence、table_version、operation、实际 id、发布后的 record_version、before 和 final。实际 Command 的 detail_id 在正向及倒序执行中沿用原申请的稳定明细身份，读取时必须与其所属明细一致；同执行同表不同记录的结果交换也拒绝。原申请 id 的输入字符串不用于近似 MySQL 等价比较；实际规范行的 ID、冻结 Schema 和执行归属仍独立校验。所有版本、游标、ID 均为 JSON 字符串。ADD 的 before 是 absent tombstone；DELETE 的 final 是 tombstone，before 保存实际已删行。记录版本墓碑持续保留；重建不回到零。
 
 `before` 与 `final` 的字段顺序为实际 Schema ordinal 顺序。类型使用 information_schema 的原始 COLUMN_TYPE（包括 unsigned、精度、enum 等），Schema digest 为已冻结完整执行定义的 SHA-256。当前数据库读取用显式 UTF-8 CAST 保留数值、零日期、带符号 TIME 时长和微秒；FLOAT 先提升 DOUBLE，避免 MySQL 默认六位有效数文本输出丢失真实位值，普通查询和草稿 before 同样保留实际浮点精度；TIMESTAMP 会话固定 UTC。真实主键从最终行（删除用 before）取得，TIMESTAMP 身份采用 UTC RFC3339 格式，空字符串主键有效。
 
@@ -20,7 +20,7 @@
 - `base64` 的 value 为标准补齐且规范的 Base64，固定样例可表示任意字节；当前业务 Schema 的 binary/blob/bit/geometry 等 unsupported 字段在草稿准备前拒绝，尚无这些字段的实时发布能力。
 - deleted=true 的 fields 必须为空数组；存在的行必须至少有一个字段。缺失 value、重复字段名、非法 UTF-8/JSON/Base64 和不匹配的摘要/校验和均拒绝。
 
-`admin/internal/domain/canonical_row_test.go` 有独立写定的字节样例（含字节 00 ff 80 41、SQL NULL、JSON null、字符串 null、空串）及固定 SHA-256 `de851d5c9c0e005044dd9906b21096e04b29ed8c65aa8161c6c87f630c181cff`。持久详情和原请求重放统一解码并调用 `ReleaseOrder.VerifyPublication`，从已保存的冻结 Schema 计算预期摘要，校验before/final的字段序列、原类型、Schema摘要与checksum；损坏数据明确不可用，不能重写配置来补偿。
+`admin/internal/domain/canonical_row_test.go` 有独立写定的字节样例（含字节 00 ff 80 41、SQL NULL、JSON null、字符串 null、空串）及固定 SHA-256 `de851d5c9c0e005044dd9906b21096e04b29ed8c65aa8161c6c87f630c181cff`。持久详情页按 `VerifyExecutionDetail` 验证本页，原请求重放与事务聚合按 `ReleaseOrder.VerifyPublication` 验证全部明细，从已保存的冻结 Schema 计算预期摘要，校验before/final的字段序列、原类型、Schema摘要与checksum；损坏数据明确不可用，不能重写配置来补偿。
 
 `CanonicalRow.Verify(expectedSchemaDigest)` 需要调用方提供可信预期摘要，不应把未验证输入中的摘要当成信任来源。
 
@@ -38,7 +38,7 @@
 
 ## 运行与恢复
 
-升级在停写维护窗口依次应用 010、011、012、013、014；014 增加逐项明细和成功执行结构，不更改业务配置，也不转换旧发布单 JSON。FLOAT 主键精度及 FLOAT/DOUBLE 正负零权重修订属于身份代际切换，须先取消旧在途单并按[记录版本维护流程](../admin-record-versions.md#t5-浮点身份修订的升级门禁)推进整表维护基线；旧 key 与历史必须保留，不能静默切换到新 key 的版本 0。服务就绪检查验证全部发布控制表的 InnoDB、列类型与精确主键；旧客户端没有兼容直写开关。每表一条进度行在提交事务中加锁并推进 table_version/command_cursor，不使用全局自增顺序。独立表可独立提交。
+升级在停写维护窗口完成适用历史步骤至 017 后显式接管；015 增加逐项明细和成功执行结构，016 增加管控键/表引用，017 删除主单默认表。已接管及新库使用 Goose `up`，不更改业务配置，也不转换旧发布单 JSON。FLOAT 主键精度及 FLOAT/DOUBLE 正负零权重修订属于身份代际切换，须先取消旧在途单并按[记录版本维护流程](../admin-record-versions.md#t5-浮点身份修订的升级门禁)推进整表维护基线；旧 key 与历史必须保留，不能静默切换到新 key 的版本 0。服务就绪检查验证全部发布控制表的 InnoDB、列类型与精确主键；旧客户端没有兼容直写开关。每表一条进度行在提交事务中加锁并推进 table_version/command_cursor，不使用全局自增顺序。独立表可独立提交。
 
 正式进程的发布期限为 `min(8s, MYSQL_CONNECT_TIMEOUT, MYSQL_READ_TIMEOUT, MYSQL_WRITE_TIMEOUT) × 4/5`，短于 socket 超时；默认 socket 5 秒对应实际发布期限 4 秒。直接 HTTP 组合未传值时回退 8 秒。期限覆盖发布单的全部 POST/PUT 请求，提交前明确超时返回 mutation_timeout；提交确认不确定返回 release_result_unknown。页面保留原 actor/action/key/input，允许查询详情及原键重试，不能因查不到立即换键。成功仅表示数据库生效；notification.status 固定 NOT_CONNECTED，没有投递 worker、远端调用或客户端已收敛的承诺。
 
@@ -60,8 +60,9 @@
 `rcc_release_details` 按 `(order_id, position)` 保存每项申请及独立的发布、回滚
 实际 Command；`rcc_release_executions` 按 `(order_id, kind)` 保存成功执行摘要，
 每单最多发布、回滚各一次，摘要不内嵌完整结果。原始申请及原发布结果在回滚后保持。
-详情外观仍组装 `items`、`publication`、`rollback` 和 `executions`，不再将完整
-数组写回主单。列表仅读取有界摘要，不逐单读取或验证结果明细。
+主单 GET 返回有界摘要与成功执行目录，不读取明细。详情页要求期望整单版本，以
+有界 LIMIT 读取本页申请及其两次实际结果，版本变化拒绝，不能拼接不同版本。
+编辑/复制明确收集全部同版本页；事务执行仍读取完整申请并一次提交。
 
 Command 仍属于供分发使用的技术记录，以执行身份区分同一原单的发布与回滚。
 通知主键为 `(execution_id, table_name)`；每次执行在每个涉及表上保存一条通知，两次执行
@@ -69,8 +70,9 @@ Command 仍属于供分发使用的技术记录，以执行身份区分同一原
 
 幂等快照保留当时流程与申请，但实际 Command 从不可变明细重建，避免另一份
 完整结果。原发布键在回滚后重放当时 SUCCEEDED 响应，回滚键重放 ROLLED_BACK
-响应；当前角色仍须通过鉴权。这个聚合读取与请求快照外观由 #88
-继续收敛，完整退出条件见 [T1 过渡清单](multitable-release-tickets/t1-transitions.md)。
+响应；当前角色仍须通过鉴权。原业务确认不能作为当前状态来源，界面另外读取
+当前主单。请求快照的职责是精确原键恢复，实际结果只从不可变明细取回；
+最终保留及删除的接口见 [T7 边界](multitable-release-tickets/t1-transitions.md)。
 
 
 #86 的确认失败仅追加操作历史，失败历史和原请求摘要独立提交，不推进业务 CAS 或成功执行记录；未知 COMMIT 不写失败历史。错误响应的提交结论与历史可用性、原操作重推和本地日志清理边界详见[执行失败契约](../admin-release-approvals.md#执行失败与失败历史86)。

@@ -16,9 +16,10 @@
 | `POST /api/v1/release-orders/:id/cancel` | `expected_version`, 必填 `reason` | 当前仍有编辑权限的申请人或 ADMIN，DRAFT/PENDING_APPROVAL/APPROVED；释放目标 |
 | `POST /api/v1/release-orders/:id/copy` | `expected_version`, `confirmed: true`, `items` | 当前 EDITOR/ADMIN，普通源单 REJECTED/CANCELLED；返回新 DRAFT（201） |
 | `POST /api/v1/release-orders/:id/reprepare` | `expected_version`, `confirmed: true`, `items` | 原申请人且当前 EDITOR，或当前 ADMIN；普通源单 APPROVED；返回新 DRAFT（201） |
-| `POST /api/v1/release-orders/:id/execute` | `expected_version` | 当前 PUBLISHER/ADMIN，APPROVED；普通整单成功进入 SUCCEEDED 待完结并保留真实目标；反向成功直接 COMPLETED 并释放 |
+| `POST /api/v1/release-orders/:id/execute` | `expected_version` | 当前 PUBLISHER/ADMIN，APPROVED；整单成功进入 SUCCEEDED 待完结并保留真实目标 |
 | `POST /api/v1/release-orders/:id/complete` | `expected_version`，无必填意见 | 当前 PUBLISHER/ADMIN，SUCCEEDED 普通单；COMPLETED 并释放目标，配置和原发布结果不变 |
-| `POST /api/v1/release-orders/:id/rollback` | `expected_version`, 必填 `reason` | 当前 EDITOR/ADMIN，原单 COMPLETED、非反向结果且没有在途反向申请；返回反向 DRAFT（201） |
+| `POST /api/v1/release-orders/:id/quick-rollback` | `expected_version`, `preview_digest`，可选 `reason` | 当前 PUBLISHER/ADMIN，SUCCEEDED；预览后一次确认，原单进入 ROLLED_BACK 并释放目标 |
+| `POST /api/v1/release-orders/:id/rollback-reason` | `reason`，可为空 | ROLLED_BACK；本次实际回滚人或当前 ADMIN，可事后补填/修改并留痕 |
 
 ADMIN 也不能审批自己的单据。一位独立审批人决定一次即足够。申请人可持有 PUBLISHER 并执行他人已批准的本人单据；审批人也可兼任发布人。历史合法审批不会因审批人后来停用或撤权而被改写；之后的新请求和成功重试仍按当前身份校验。批准继续持有目标，没有到期自动释放或强制覆盖。
 
@@ -34,7 +35,7 @@ ADMIN 也不能审批自己的单据。一位独立审批人决定一次即足�
 
 `RecordBaseline.TableName` 和 `ReleaseItem.RecordTable` 保留 T2/T3 的真实物理表名，`RecordKey` 继续使用同一 MySQL 主键比较权重、墓碑和维护基线。申请参数中的表名及字符串 id 不作为独立身份。`rcc_release_targets` 的唯一键是实际表名与同一记录键；草稿保存按固定顺序取得全部主键及已配置管控键目标，提交继续核实本单所有权，与状态、冻结内容、历史和成功请求结果共同提交。任意失败整体回滚。未知自增 id 不建立推测目标。自增列显式输入 `0` 且当前 SQL mode 没有 `NO_AUTO_VALUE_ON_ZERO` 时，数据库仍会生成新身份；草稿/预览/提交返回 `422 release_auto_id_ambiguous`，调用者应省略 id。开启该模式后，0 是真实已知身份，按普通记录基线和目标唯一性校验。
 
-持久 `frozen` 是 `mysql-8.4-execution-v1` 格式的完整固定投影和变更规则执行字段。`frozen_digest` 覆盖准备后的明细和执行快照。内部记录身份、原始执行元数据不会从详情、列表或 preview 输出；公开详情保留完整字段差异及摘要。
+持久 `frozen_tables` 按表保存 `mysql-8.4-execution-v1` 格式的完整固定投影和变更规则执行字段。`frozen_digest` 覆盖准备后的明细和执行快照。内部记录身份、原始执行元数据不会从详情、列表或 preview 输出；公开主单提供流程摘要；明细与实际结果按同一整单版本分页读取。
 
 固定投影包括：
 
@@ -54,7 +55,7 @@ ADMIN 也不能审批自己的单据。一位独立审批人决定一次即足�
 
 ## 升级与恢复
 
-已有 007 本地账号结构的部署在停写维护窗口按顺序应用 008～016。`011-release-targets.sql` 建立在途目标，`012-publication.sql` 建立发布进度、Command 和通知；`016-draft-target-reservations.sql` 增加管控键定义和未结束表引用；不能只完成审批结构就恢复新版服务。新安装的 `001-schema.sql` 包含完整定义。008～016 可重跑且保留既有控制数据，007 一次性迁移按[迁移说明](../deploy/mysql/migrations/README.md)确认后处理。Ready 校验控制表列、InnoDB 和完整唯一主键，缺失或不兼容时拒绝就绪。
+尚未接管且已有 007 本地账号结构的部署，在停写维护窗口完成适用历史迁移 008～017 及 Policy 收缩后，显式运行 `schema-migrate baseline` 并确认 current。015 建立原单明细/执行，016 增加管控键和表引用，017 删除主单默认表；这些步骤不转换旧发布单业务数据。已经纳入 Goose 的库使用 `schema-migrate up` 至当前 00005；新库同样只使用嵌入式 `up` 初始化。未确认操作按手册显式 `recover`，不能混用历史人工链和 Goose。Ready 只读核对完整版本前缀及每张控制表的完整定义。具体命令和历史边界见[迁移说明](../deploy/mysql/migrations/README.md)及[接管手册](schema-migrations.md)。
 
 Web 将草稿和发布动作（含提交、批准、拒绝、取消、复制、重新准备、执行、完结、快速回滚）的原请求内容、键及账号在发送前通过单一 IndexedDB 事务持久保存。事务完成前不发送，同账号窗口同步存储状态而不自动重推；存储失败保留输入并只阻止发布写入。未知结果保持原键和完整正文；重新准备未知时同一账号恢复同一请求，只在服务端返回明确失败后才重新核对并生成新键。只有 APPROVER 的账号也能恢复自己的审批请求，账号切换不会重放别人的请求。明确状态/记录/目标冲突后仍保留原意，读取最新状态与差异、显式确认后才生成新请求。普通草稿提交基线陈旧时须先明确更新草稿基线；回滚恢复基线不能更新。
 
@@ -66,7 +67,7 @@ Web 将草稿和发布动作（含提交、批准、拒绝、取消、复制、�
 
 发布单详情按准备、审批、发布、完结组织进度，节点人员与时间来自真实事件；准备完成取 SUBMIT。取消、拒绝和回滚明确显示终止，快速回滚结果不产生虚构审批。普通成功仍为 SUCCEEDED 待人工完结。历史默认倒序最近 5 条，可展开全部，姓名解析失败保持永久身份兜底。
 
-申请差异每页 20 项，初次仅展开首项，定位展开选中项。默认仅看变更过滤 MODIFY 中未提交（申请未写入）及状态和值均确定相同的字段，自动填写和数据库生成说明仍可见；完整视图分别表达 SQL NULL、JSON null、空字符串、未提交、不存在和发布时生成。申请筛选不承诺触发器执行后的实际值，最终结果仍取数据库发布结果。ADD/DELETE 保留完整字段。所有操作仍针对整单。成功初次默认可信实际发布结果，可切换申请差异；已回滚普通单可读取原单 `rollback` 的真实恢复结果，不从申请内容生成实际值。
+申请差异每页 20 项，初次仅展开首项，定位展开选中项。默认仅看变更过滤 MODIFY 中未提交（申请未写入）及状态和值均确定相同的字段，自动填写和数据库生成说明仍可见；完整视图分别表达 SQL NULL、JSON null、空字符串、未提交、不存在和发布时生成。申请筛选不承诺触发器执行后的实际值，最终结果仍取数据库发布结果。ADD/DELETE 保留完整字段。所有操作仍针对整单。成功初次默认可信实际发布结果，可切换申请差异；已回滚原单可分页读取原明细 `rollback` 的真实恢复结果，不从申请内容生成实际值。
 
 当前标签页只对真实 processing 请求保护同单操作；报错后的未知请求不构成额外确认门禁。用户从原操作再次提交，原账号、键与完整正文保持不变，同键处理中禁止重复发送。刷新后普通主单查询仍显示当前状态；旧请求可以重放原业务结果，不能将当前主单倒退。首次认证中断和后续权限错误保留原键及正文，同账号恢复后继续原请求，其他账号不显示或重放这份申请。明确版本、状态、目标或恢复冲突可进入最新审阅流程，经显式确认才重建新键；浏览器守卫不替代服务端授权、版本检查和幂等事务。
 

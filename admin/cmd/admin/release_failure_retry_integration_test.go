@@ -18,7 +18,7 @@ import (
 func TestConfirmedReleaseFailureHistoryPreservesOriginalRetry(t *testing.T) {
 	app, db := batchEdgeApplication(t, `INSERT INTO mutation_add_items(id,code,label) VALUES(90,'occupied','external')`)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
-	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"失败后原请求重推","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"10","code":"first","label":"first"}},{"operation":"ADD","content":{"id":"20","code":"occupied","label":"second"}}]}`, "failure-retry")
+	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"code":"first","id":"10","label":"first"},"operation":"ADD","table_name":"mutation_add_items"},{"content":{"code":"occupied","id":"20","label":"second"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"失败后原请求重推"}`, "failure-retry")
 	body, key := `{"expected_version":"3"}`, "failure-original-request"
 	failed := releaseRequest(t, app, "POST", path+"/execute", body, key)
 	assertIntegrationErrorCode(t, failed, 409, "duplicate_key")
@@ -31,8 +31,8 @@ func TestConfirmedReleaseFailureHistoryPreservesOriginalRetry(t *testing.T) {
 	if json.Unmarshal(failed.Body.Bytes(), &response) != nil || response.Error.ExecutionOutcome != "not_committed" || response.Error.FailureHistory != "saved" {
 		t.Fatalf("missing truthful failure history receipt: %s", failed.Body)
 	}
-	current := batchEdgeOrder(t, releaseRequest(t, app, "GET", path, "", ""), 200)
-	if current.State != "APPROVED" || current.Version != "3" || current.Publication != nil || len(current.Executions) != 0 || len(current.History) != 4 || current.History[3].Action != "EXECUTE_FAILED" || current.History[3].Version != "3" {
+	current := batchEdgeOrder(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
+	if current.State != "APPROVED" || current.Version != "3" || len(current.Executions) >= 1 || len(current.Executions) != 0 || len(current.History) != 4 || current.History[3].Action != "EXECUTE_FAILED" || current.History[3].Version != "3" {
 		t.Fatalf("failure changed execution/CAS or missed audit: %#v", current)
 	}
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM mutation_add_items WHERE id IN (10,20)`: 0, `SELECT COUNT(*) FROM rcc_release_executions`: 0, `SELECT COUNT(*) FROM rcc_publication_commands`: 0, `SELECT COUNT(*) FROM rcc_refresh_notifications`: 0, `SELECT COUNT(*) FROM rcc_record_versions`: 0})
@@ -54,7 +54,7 @@ func TestConfirmedReleaseFailureHistoryPreservesOriginalRetry(t *testing.T) {
 func TestReleaseFailureHistoryUnavailableDoesNotLeaveBusinessWrites(t *testing.T) {
 	app, db := batchEdgeApplication(t)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
-	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"审计存储故障","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"10","code":"audit-failure","label":"retained"}}]}`, "audit-failure")
+	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"code":"audit-failure","id":"10","label":"retained"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"审计存储故障"}`, "audit-failure")
 	// A real database dependency rejects the final workflow save and the later
 	// audit append. No owned Store or Session implementation is replaced.
 	deliveryExec(t, db, `CREATE TRIGGER reject_release_update BEFORE UPDATE ON rcc_release_orders FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='acceptance storage failure'`)
@@ -69,7 +69,7 @@ func TestReleaseFailureHistoryUnavailableDoesNotLeaveBusinessWrites(t *testing.T
 	if json.Unmarshal(response.Body.Bytes(), &receipt) != nil || receipt.Error.Outcome != "not_committed" || receipt.Error.History != "unavailable" {
 		t.Fatal("unavailable history misrepresented", response.Body)
 	}
-	current := batchEdgeOrder(t, releaseRequest(t, app, "GET", path, "", ""), 200)
+	current := batchEdgeOrder(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
 	if current.Version != "3" || current.State != "APPROVED" || len(current.History) != 3 || len(current.Executions) != 0 {
 		t.Fatal("fabricated history or result", current)
 	}
@@ -103,7 +103,7 @@ func assertReleaseFailureOnly(t *testing.T, before, current domain.ReleaseOrder,
 func TestReleaseFailureAuditPreservesConcurrentCancellation(t *testing.T) {
 	app, db := batchEdgeApplication(t)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
-	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"失败留痕与取消竞争","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"10","code":"audit-race","label":"intent"}}]}`, "audit-race")
+	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"code":"audit-race","id":"10","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"失败留痕与取消竞争"}`, "audit-race")
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	external, err := db.BeginTx(ctx, nil)
@@ -166,7 +166,7 @@ func TestReleaseFailureAuditPreservesConcurrentCancellation(t *testing.T) {
 	}
 	assertIntegrationErrorCode(t, failed, 409, "duplicate_key")
 	cancelledOrder := batchEdgeOrder(t, cancelled, 200)
-	current := batchEdgeOrder(t, releaseRequest(t, app, "GET", path, "", ""), 200)
+	current := batchEdgeOrder(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
 	if current.State != "CANCELLED" || current.Version != "4" {
 		t.Fatal("audit overwrote concurrent main state", current)
 	}

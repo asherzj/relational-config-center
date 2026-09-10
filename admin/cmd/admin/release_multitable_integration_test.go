@@ -17,7 +17,7 @@ import (
 // AC-001/007/009: interleaving tables is part of the approved intent. Grouping
 // parent writes would delete the referenced old parent before its child moves.
 func TestMultitablePublicationPreservesGlobalOrderAndOriginalResults(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -44,7 +44,7 @@ func TestMultitablePublicationPreservesGlobalOrderAndOriginalResults(t *testing.
 	deliveryExec(t, db, `UPDATE a_release_children SET label='original child' WHERE id=1`)
 	published := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "multitable-publish"), 200)
 	wantTables := []string{"z_release_parents", "a_release_children", "z_release_parents", "m_release_generated"}
-	for index, command := range published.Publication.Commands {
+	for index, command := range executionCommands(published, "PUBLICATION") {
 		if command.TableName != wantTables[index] || command.RecordVersion != "1" || command.TableVersion != "1" {
 			t.Fatalf("command %d: %+v", index, command)
 		}
@@ -71,10 +71,10 @@ func TestMultitablePublicationPreservesGlobalOrderAndOriginalResults(t *testing.
 		t.Fatalf("preview: %s", previewResponse.Body)
 	}
 	restored := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, ""), "multitable-rollback"), 200)
-	if restored.ID != published.ID || restored.State != "ROLLED_BACK" || !reflect.DeepEqual(restored.Items, published.Items) || !reflect.DeepEqual(restored.Publication, published.Publication) {
+	if restored.ID != published.ID || restored.State != "ROLLED_BACK" || !reflect.DeepEqual(applicationItems(restored), applicationItems(published)) || !reflect.DeepEqual(executionCommands(restored, "PUBLICATION"), executionCommands(published, "PUBLICATION")) {
 		t.Fatal("original facts changed")
 	}
-	for index, command := range restored.Rollback.Commands {
+	for index, command := range executionCommands(restored, "ROLLBACK") {
 		if command.TableName != wantTables[len(wantTables)-1-index] || command.RecordVersion != "2" || command.TableVersion != "2" {
 			t.Fatalf("reverse command %d: %+v", index, command)
 		}
@@ -85,7 +85,7 @@ func TestMultitablePublicationPreservesGlobalOrderAndOriginalResults(t *testing.
 	}
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_orders`: 1, `SELECT COUNT(*) FROM rcc_release_details`: 4, `SELECT COUNT(*) FROM rcc_release_executions`: 2, `SELECT COUNT(*) FROM rcc_refresh_notifications`: 6, `SELECT COUNT(*) FROM rcc_release_targets`: 0, `SELECT COUNT(*) FROM rcc_release_table_references`: 0, `SELECT COUNT(*) FROM z_release_parents WHERE id=1 AND label='original parent'`: 1, `SELECT COUNT(*) FROM m_release_generated`: 0})
 	for _, table := range wantTables {
-		response := releaseRequest(t, app, "GET", "/api/v1/release-orders?table_name="+table, "", "")
+		response := releaseReadAllDetails(t, app, "GET", "/api/v1/release-orders?table_name="+table, "", "")
 		var list struct {
 			Orders []domain.ReleaseOrderSummary `json:"orders"`
 		}
@@ -98,7 +98,7 @@ func TestMultitablePublicationPreservesGlobalOrderAndOriginalResults(t *testing.
 // AC-006/014: pagination is a save/view concern; the entire 1,000-detail order
 // freezes and executes together, including equal IDs in different tables.
 func TestMultitableThousandPagedDetailsExecuteAsOneOrder(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -135,10 +135,10 @@ func TestMultitableThousandPagedDetailsExecuteAsOneOrder(t *testing.T) {
 	started := time.Now()
 	published := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", fmt.Sprintf(`{"expected_version":%q}`, approved.Version), "thousand-multi-execute"), 200)
 	t.Logf("1000 multitable publish %s", time.Since(started))
-	if len(published.Publication.Commands) != 1000 || len(published.Executions) != 1 || published.Executions[0].ItemCount != 1000 {
+	if len(executionCommands(published, "PUBLICATION")) != 1000 || len(published.Executions) != 1 || published.Executions[0].ItemCount != 1000 {
 		t.Fatal("partial whole-order publication")
 	}
-	for i, command := range published.Publication.Commands {
+	for i, command := range executionCommands(published, "PUBLICATION") {
 		want := "thousand_release_a"
 		if i%2 == 1 {
 			want = "thousand_release_b"
@@ -155,7 +155,7 @@ func TestMultitableThousandPagedDetailsExecuteAsOneOrder(t *testing.T) {
 	started = time.Now()
 	restored := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody(published.Version, preview.Digest, ""), "thousand-multi-rollback"), 200)
 	t.Logf("1000 multitable rollback %s", time.Since(started))
-	if len(restored.Rollback.Commands) != 1000 || !reflect.DeepEqual(restored.Items, published.Items) {
+	if len(executionCommands(restored, "ROLLBACK")) != 1000 || !reflect.DeepEqual(applicationItems(restored), applicationItems(published)) {
 		t.Fatal("incomplete inverse")
 	}
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM thousand_release_a`: 0, `SELECT COUNT(*) FROM thousand_release_b`: 0, `SELECT COUNT(*) FROM rcc_publication_commands`: 2000, `SELECT COUNT(*) FROM rcc_release_executions`: 2, `SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=2`: 1000, `SELECT COUNT(*) FROM rcc_refresh_notifications`: 4, `SELECT COUNT(*) FROM rcc_release_targets`: 0})
@@ -164,7 +164,7 @@ func TestMultitableThousandPagedDetailsExecuteAsOneOrder(t *testing.T) {
 // Waiting for a later table guard must not reuse a snapshot established by the
 // earlier table. The external transaction models publication before target release.
 func TestMultitableDraftWaitsForAllGuardsBeforeAnySnapshot(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	settings := integrationConfig(driver)
 	settings.MySQL.MaxOpenConnections = 1
 	settings.MySQL.MaxIdleConnections = 1
@@ -242,7 +242,7 @@ func TestMultitableDraftWaitsForAllGuardsBeforeAnySnapshot(t *testing.T) {
 // AC-006: supported LONGTEXT values exceed both the former field threshold and
 // the former whole-order JSON budget, through the real HTTP lifecycle.
 func TestMultitableLargeValuesThroughHTTPLifecycle(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -285,11 +285,11 @@ func TestMultitableLargeValuesThroughHTTPLifecycle(t *testing.T) {
 			t.Fatalf("large %s: status %d, bytes %d, %.500s", action.name, response.Code, response.Body.Len(), response.Body.String())
 		}
 	}
-	read := releaseRequest(t, app, "GET", path, "", "")
-	if read.Code != 200 || json.Unmarshal(read.Body.Bytes(), &order) != nil || len(order.Publication.Commands) != 130 {
+	read := releaseReadAllDetails(t, app, "GET", path, "", "")
+	if read.Code != 200 || json.Unmarshal(read.Body.Bytes(), &order) != nil || len(executionCommands(order, "PUBLICATION")) != 130 {
 		t.Fatal("read complete actual results")
 	}
-	for _, command := range order.Publication.Commands {
+	for _, command := range executionCommands(order, "PUBLICATION") {
 		found := false
 		for _, field := range command.Final.Fields {
 			if field.Name == "payload" {

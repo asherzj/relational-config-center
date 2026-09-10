@@ -2,10 +2,8 @@ import { ApiError } from "./client";
 
 const errorMessages: Record<string, string> = {
   release_duplicate_target:"同一记录不能在一张发布单重复出现，请移除重复明细。",
-  release_cross_table:"所有明细必须属于发布单指定的同一张表。",
+  release_cross_table:"派生明细必须保留原申请中对应明细的所属表。",
   release_item_limit:"每张发布单必须包含 1～1,000 项明细。",
-  release_field_limit:"单字段不能超过 64 KiB，请缩减该明细的字段内容。",
-  release_result_limit:"完整草稿或发布结果超过 8 MiB，请调整整张申请后重新提交。",
   permission_denied: "当前账号没有执行此操作的角色，请联系管理员授权。",
   invalid_account_roles: "请至少选择一个角色，且不要重复选择。",
   account_roles_conflict: "角色已被其他管理员更新，请先查看最新角色。",
@@ -22,8 +20,6 @@ const errorMessages: Record<string, string> = {
   release_invalid: "发布请求无效，请检查内容、版本、必填意见和请求标识。",
   release_unavailable: "发布单存储暂时不可用，请保留原请求并稍后确认结果。",
   release_result_unknown: "提交结果未知，可刷新查看主单；再次点击原操作将安全重推同一请求。",
-  rollback_conflict: "这张原发布单已有进行中的回滚申请，请查看当前关联发布单。",
-  rollback_locked: "回滚发布单的明细来自原发布结果，不能编辑或复制。",
   rollback_restore_mismatch: "当前数据库规则无法完整恢复原业务值，回滚未提交；请查看失败原因和当前配置。",
   account_not_found: "账号不存在，请刷新列表。",
 

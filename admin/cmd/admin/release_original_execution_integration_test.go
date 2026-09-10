@@ -15,7 +15,7 @@ import (
 func TestOriginalOrderRollbackPreservesApplicationAndBothExecutions(t *testing.T) {
 	app, db := batchEdgeApplication(t, `INSERT INTO mutation_add_items(id,code,label) VALUES(10,'original-modify','old'),(20,'original-delete','retained')`)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
-	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"原单混合恢复","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"original-add","label":"added"}},{"operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"published"}},{"operation":"DELETE","id":"20","expected_record_version":"0","content":{}}]}`, "original-execution")
+	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"code":"original-add","label":"added"},"operation":"ADD","table_name":"mutation_add_items"},{"content":{"label":"published"},"expected_record_version":"0","id":"10","operation":"MODIFY","table_name":"mutation_add_items"},{"content":{},"expected_record_version":"0","id":"20","operation":"DELETE","table_name":"mutation_add_items"}],"title":"原单混合恢复"}`, "original-execution")
 	publicationResponse := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "original-publish")
 	published := rollbackOrderResponse(t, publicationResponse, 200)
 	actor := registerAccount(t, app, "original.publisher", "original.publisher@example.com", "correct horse battery staple")
@@ -24,23 +24,20 @@ func TestOriginalOrderRollbackPreservesApplicationAndBothExecutions(t *testing.T
 	body := quickRollbackBody("4", preview.Digest, "")
 	response := releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, "original-rollback")
 	restored := rollbackOrderResponse(t, response, 200)
-	if restored.ID != published.ID || restored.State != "ROLLED_BACK" || restored.Version != "5" || restored.ApplicantID != published.ApplicantID || restored.Title != published.Title || !reflect.DeepEqual(restored.Items, published.Items) || !reflect.DeepEqual(restored.Publication, published.Publication) {
+	if restored.ID != published.ID || restored.State != "ROLLED_BACK" || restored.Version != "5" || restored.ApplicantID != published.ApplicantID || restored.Title != published.Title || !reflect.DeepEqual(applicationItems(restored), applicationItems(published)) || !reflect.DeepEqual(executionCommands(restored, "PUBLICATION"), executionCommands(published, "PUBLICATION")) {
 		t.Fatal("rollback replaced the application or created another order", restored)
 	}
 	if len(restored.History) != len(published.History)+1 || !reflect.DeepEqual(restored.History[:len(published.History)], published.History) {
 		t.Fatal("application or approval history overwritten")
 	}
-	var result struct {
-		Rollback   *domain.PublicationResult   `json:"rollback"`
-		Executions []struct{ ID, Kind string } `json:"executions"`
-	}
+	var result domain.ReleaseOrder
 	if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
 		t.Fatal(err)
 	}
-	if result.Rollback == nil || result.Rollback.TableVersion != "2" || result.Rollback.PublisherID != accountID(t, actor) || len(result.Executions) != 2 || result.Executions[0].ID == result.Executions[1].ID {
+	if len(result.Executions) < 2 || singleExecutionTableVersion(result.Executions[1]) != "2" || result.Executions[1].ActorID != accountID(t, actor) || len(result.Executions) != 2 || result.Executions[0].ID == result.Executions[1].ID {
 		t.Fatal("missing separate successful executions", response.Body)
 	}
-	if result.Rollback.Commands[0].Operation != "ADD" || result.Rollback.Commands[2].Operation != "DELETE" || result.Rollback.Notification.ID == published.Publication.Notification.ID {
+	if executionCommands(result, "ROLLBACK")[0].Operation != "ADD" || executionCommands(result, "ROLLBACK")[2].Operation != "DELETE" || result.Executions[1].ID == published.Executions[0].ID {
 		t.Fatal("rollback order or execution notification identity incorrect")
 	}
 	for _, id := range []string{"10", "20"} {
@@ -69,6 +66,7 @@ func TestOriginalOrderRollbackPreservesApplicationAndBothExecutions(t *testing.T
 		`SELECT COUNT(*) FROM rcc_release_orders WHERE JSON_LENGTH(document,'$.items')>0 OR JSON_LENGTH(document,'$.publication.commands')>0`:                                                                                                                                                      0,
 		`SELECT COUNT(*) FROM rcc_release_executions WHERE JSON_CONTAINS_PATH(document,'one','$.commands')`:                                                                                                                                                                                        0,
 		`SELECT COUNT(*) FROM rcc_release_requests WHERE (JSON_TYPE(JSON_EXTRACT(result,'$.publication.commands'))='ARRAY' AND JSON_LENGTH(result,'$.publication.commands')>0) OR (JSON_TYPE(JSON_EXTRACT(result,'$.rollback.commands'))='ARRAY' AND JSON_LENGTH(result,'$.rollback.commands')>0)`: 0,
+		`SELECT COUNT(*) FROM rcc_release_requests WHERE JSON_CONTAINS_PATH(result,'one','$.items[*].publication','$.items[*].rollback')`:                                                                                                                                                          0,
 		`SELECT COUNT(*) FROM rcc_publication_commands`:  6,
 		`SELECT COUNT(*) FROM rcc_refresh_notifications`: 2,
 		`SELECT COUNT(*) FROM rcc_release_targets`:       0,

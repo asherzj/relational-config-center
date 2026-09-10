@@ -1,7 +1,7 @@
 import {useQuery} from "@tanstack/react-query";
 import {useId,useRef,useState} from "react";
 import {useNavigate} from "react-router-dom";
-import {releaseOrders,releaseRequests,type ReleaseOrder} from "../../api/release-orders";
+import {releaseOrders,releaseRequests,type ReleaseHeader} from "../../api/release-orders";
 import {DialogDescription,DialogTitle} from "../../components/shadcn/dialog";
 import {Textarea} from "../../components/shadcn/textarea";
 import {Button} from "../../components/ui/Button";
@@ -15,7 +15,7 @@ import {useReleaseWrite} from "./useReleaseWrite";
 import {ReleaseDiff} from "./ReleaseDiff";
 import {PendingIntent,pendingRequestReason} from "./ReleaseRequestReview";
 
-export function QuickRollbackDialog({order,onClose}:{order:ReleaseOrder;onClose:()=>void}){
+export function QuickRollbackDialog({order,onClose}:{order:ReleaseHeader;onClose:()=>void}){
  const write=useReleaseWrite(`quick-rollback:${order.id}`),navigate=useNavigate();
  const [version]=useState(order.version),[reason,setReason]=useState<string>(()=>pendingRequestReason(write.storedRequest));
  const accountID=useWorkspaceIdentity()!.account.id;

@@ -164,8 +164,8 @@ const definiteWriteRejections = new Set([
   // responses conservative because they do not prove the original outcome.
   "release_auto_id_ambiguous", "publication_unsupported", "publication_metadata_permission",
   "release_snapshot_unsupported", "release_metadata_permission", "release_cross_table",
-  "release_item_limit", "release_result_limit", "release_field_limit", "release_duplicate_target",
-  "release_invalid", "rollback_locked", "rollback_restore_mismatch",
+  "release_item_limit", "release_duplicate_target",
+  "release_invalid", "rollback_restore_mismatch",
   "concurrency_key_invalid", "concurrency_key_in_use", "concurrency_key_value_required",
 ]);
 

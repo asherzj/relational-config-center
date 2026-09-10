@@ -20,7 +20,7 @@ import (
 // AC-008: a derived draft confirms the exact ordered source details. The
 // caller may refresh record versions, but may not replace a stable detail ID.
 func TestMultitableDerivedDraftRequiresExactDetailIdentity(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -60,7 +60,6 @@ func TestMultitableDerivedDraftRequiresExactDetailIdentity(t *testing.T) {
 	items = derivedDraftItems(cancelled)
 	for _, item := range items {
 		delete(item, "detail_id")
-		delete(item, "table_name")
 	}
 	body, err = json.Marshal(map[string]any{"expected_version": cancelled.Version, "confirmed": true, "items": items})
 	if err != nil {
@@ -68,7 +67,7 @@ func TestMultitableDerivedDraftRequiresExactDetailIdentity(t *testing.T) {
 	}
 	derived := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/copy", string(body), "derived-identity-omitted"), 201)
 	if derived.Items[0].DetailID != cancelled.Items[0].DetailID || derived.Items[1].DetailID != cancelled.Items[1].DetailID || derived.Items[0].TableName != cancelled.Items[0].TableName || derived.Items[1].TableName != cancelled.Items[1].TableName {
-		t.Fatalf("omitted public identities were not restored from source: %+v", derived.Items)
+		t.Fatalf("omitted detail identities were not restored at their original table/position: %+v", derived.Items)
 	}
 }
 
@@ -77,7 +76,7 @@ func TestMultitableDerivedDraftRequiresExactDetailIdentity(t *testing.T) {
 // the conflict ends, the same request creates one independently owned draft and
 // links both the source and derivative histories.
 func TestMultitableCopyCompetesForEveryTargetAndLinksBothOrders(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -126,7 +125,7 @@ func TestMultitableCopyCompetesForEveryTargetAndLinksBothOrders(t *testing.T) {
 	if replay.Code != 201 || replay.Body.String() != copiedResponse.Body.String() {
 		t.Fatalf("copy replay changed result: %d %s", replay.Code, replay.Body)
 	}
-	currentSource := rollbackOrderResponse(t, releaseActorRequest(t, app, copier, "GET", sourcePath, "", ""), 200)
+	currentSource := rollbackOrderResponse(t, releaseActorReadAllDetails(t, app, copier, "GET", sourcePath, "", ""), 200)
 	last := currentSource.History[len(currentSource.History)-1]
 	if currentSource.State != "CANCELLED" || last.Action != "COPY" || last.RelatedOrderID != copied.ID {
 		t.Fatalf("source lacks reverse copy relation: %+v", currentSource.History)
@@ -153,7 +152,7 @@ func derivedDraftBody(t *testing.T, source domain.ReleaseOrder) string {
 // newly discovered targets. A failure at the final table-reference write keeps
 // the approved source, its independent approval and every old reservation.
 func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -192,12 +191,12 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
 	confirmed := source
 	confirmed.Items = preview.Items
 	body := derivedDraftBody(t, confirmed)
-	approved := releaseActorRequest(t, app, admin, "GET", path, "", "")
+	approved := releaseActorReadAllDetails(t, app, admin, "GET", path, "", "")
 
 	deliveryExec(t, ownerDB, `CREATE TRIGGER reject_reprepared_reference BEFORE INSERT ON rcc_release_table_references FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='injected reprepare reference failure'`)
 	failed := releaseActorRequest(t, app, admin, "POST", path+"/reprepare", body, "reprepare-multi-apply")
 	assertIntegrationErrorCode(t, failed, 503, "release_unavailable")
-	unchanged := releaseActorRequest(t, app, admin, "GET", path, "", "")
+	unchanged := releaseActorReadAllDetails(t, app, admin, "GET", path, "", "")
 	if unchanged.Body.String() != approved.Body.String() {
 		t.Fatalf("late failure changed approved source: %s", unchanged.Body)
 	}
@@ -313,7 +312,7 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
 	if replay.Code != 201 || replay.Body.String() != repreparedResponse.Body.String() {
 		t.Fatalf("reprepare replay changed result: %d %s", replay.Code, replay.Body)
 	}
-	retired := rollbackOrderResponse(t, releaseActorRequest(t, app, admin, "GET", path, "", ""), 200)
+	retired := rollbackOrderResponse(t, releaseActorReadAllDetails(t, app, admin, "GET", path, "", ""), 200)
 	last := retired.History[len(retired.History)-1]
 	if retired.State != "CANCELLED" || last.Action != "REPREPARE" || last.RelatedOrderID != reprepared.ID {
 		t.Fatalf("source replacement relation: %+v", retired.History)

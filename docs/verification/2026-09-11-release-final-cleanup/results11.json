@@ -1,0 +1,32 @@
+[
+  {
+    "log": "browser25-final-runner.log",
+    "command": [
+      "bash",
+      "scripts/browser-acceptance.sh"
+    ],
+    "environment": {
+      "RCC_E2E_SUITE": "all",
+      "RCC_E2E_ENGINES": "chromium,firefox,webkit",
+      "RCC_E2E_ARTIFACTS": "/private/tmp/rcc-88-final-verification/browser25-final"
+    },
+    "started": "2026-09-10T16:51:48.286210+00:00",
+    "finished": "2026-09-10T17:03:45.002393+00:00",
+    "exit": 0,
+    "sha256": "0780faafb6c0611a8d97bcfc4eef0cb15d0d5ef934ded25e5e5889c8f9f0a47d"
+  },
+  {
+    "log": "compose11-runner.log",
+    "command": [
+      "python3",
+      "scripts/compose-migration-acceptance.py",
+      "--artifacts",
+      "/private/tmp/rcc-88-final-verification/compose11"
+    ],
+    "environment": {},
+    "started": "2026-09-10T17:03:45.003757+00:00",
+    "finished": "2026-09-10T17:04:44.117818+00:00",
+    "exit": 1,
+    "sha256": "2fc26a9dd6efe4564b5e0634fd4b9399e1d7ffced63a12c397455c73d8e8c759"
+  }
+]

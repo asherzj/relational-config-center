@@ -1,3 +1,4 @@
+const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real Chrome → same-origin Admin process → isolated MySQL batch acceptance.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
@@ -29,7 +30,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     await page.getByRole('heading', { name: title, exact: true }).waitFor();
     await page.getByText(`${table} · ${state}`, { exact: true }).waitFor();
   } });
-  const read = (context, id) => api(context, 'GET', `/api/v1/release-orders/${id}`);
+  const read = async (context, id) => readAllReleaseDetailPages(context,base,await api(context,'GET',`/api/v1/release-orders/${id}`));
   const query = (context, conditions = [], pageNumber = 1) => api(context, 'POST', `/api/v1/tables/${table}/query`, {
     conditions, order: { field: 'id', direction: 'ASC' }, page_size: 200, page_number: pageNumber,
   });
@@ -220,8 +221,8 @@ const output = process.env.RCC_E2E_OUTPUT;
     assert.equal(writes.length, 2);
     assert.deepEqual(writes[0], writes[1]);
     order = await read(applicant, mixedID);
-    assert.deepEqual(order.publication, committed.publication);
-    assert.equal(order.publication.commands.length, 3);
+    assert.deepEqual(executionCommands(order), executionCommands(committed));
+    assert.equal(executionCommands(order).length, 3);
     assert.equal(order.history.filter(event => event.action === 'EXECUTE').length, 1);
     const mixedRows = await query(applicant);
     assert.equal(mixedRows.page.total_count, 3);
@@ -229,13 +230,12 @@ const output = process.env.RCC_E2E_OUTPUT;
     assert.equal(mixedRows.rows.some(row => row.id === '2'), false);
     assert.equal(mixedRows.rows.find(row => row.id === '3').label, 'original three');
     assert.equal(mixedRows.rows.filter(row => row.code === 'ui-added').length, 1);
-    assert.equal(order.publication.commands[2].id, mixedRows.rows.find(row => row.code === 'ui-added').id);
+    assert.equal(executionCommands(order)[2].id, mixedRows.rows.find(row => row.code === 'ui-added').id);
     check('independent APPROVER approves all mixed items; EDITOR/PUBLISHER recovers a genuinely committed lost execute response after refresh with the original key and no duplicate rows/history');
 
     const large = await api(applicant, 'POST', '/api/v1/release-orders', {
       title: '浏览器千条批量变更',
-      table_name: table,
-      items: Array.from({ length: 1000 }, (_, index) => ({ operation: 'ADD', content: { code: `large-${index + 1}`, label: `batch item ${index + 1}` } })),
+      items: Array.from({ length: 1000 }, (_, index) => ({ table_name:table,operation: 'ADD', content: { code: `large-${index + 1}`, label: `batch item ${index + 1}` } })),
     }, 201);
     await page.goto(`${base}/configuration/release-orders/${large.id}`);
     await heading(page, '草稿', '浏览器千条批量变更').waitFor();
@@ -262,11 +262,11 @@ const output = process.env.RCC_E2E_OUTPUT;
     await button(page, '确认发布到数据库').click();
     await heading(page, '已发布待完结', '浏览器千条批量变更').waitFor();
     const published = await read(applicant, large.id);
-    const commands = published.publication.commands;
+    const commands = executionCommands(published);
     assert.equal(commands.length, 1000);
     assert.equal(new Set(commands.map(command => command.id)).size, 1000);
     assert.ok(commands.every(command => command.record_version === '1' && command.operation === 'ADD'));
-    assert.equal(published.publication.table_version, '2');
+    assert.equal(published.executions[0].table_versions[table], '2');
     const actualRows = [];
     for (let number = 1; number <= 6; number++) {
       const data = await query(applicant, [], number);

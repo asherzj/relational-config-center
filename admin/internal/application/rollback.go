@@ -7,38 +7,17 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
 )
 
 var (
-	ErrRollbackConflict        = errors.New("publication already has an active rollback")
-	ErrRollbackLocked          = errors.New("rollback intent cannot be edited or copied")
 	ErrRollbackRestoreMismatch = errors.New("original business values cannot be restored")
 )
 
-// Rollback's former separate-order route is retired. The only restoration is
-// the publisher's reviewed QuickRollback of an unfinished original order.
-func (r *ReleaseOrders) Rollback(ctx context.Context, id string, input CancelReleaseInput, key string) (ReleaseOrder, error) {
-	if _, err := requireRole(ctx, RolePublisher); err != nil {
-		return ReleaseOrder{}, err
-	}
-	return ReleaseOrder{}, ErrReleaseState
-}
-
 func (r *ReleaseOrders) prepareOrder(ctx context.Context, s ReleaseOrderSession, order ReleaseOrder) ([]ReleaseItem, error) {
-	if order.RollbackOfID != "" {
-		original, err := s.GetReleaseOrder(ctx, order.RollbackOfID)
-		if err != nil {
-			return nil, err
-		}
-		if original.State != "COMPLETED" || !original.RollbackPending || original.RollbackOrderID != order.ID {
-			return nil, ErrRollbackConflict
-		}
-		return r.reverseItems(ctx, s, original)
-	}
-	input := DraftInput{TableName: order.TableName}
+
+	input := DraftInput{}
 	for _, item := range order.Items {
 		entry := DraftItemInput{DetailID: item.DetailID, TableName: item.TableName, Operation: item.Operation, ID: item.ID, ExpectedRecordVersion: item.ExpectedRecordVersion, Content: item.Content}
 		if entry.Operation == "ADD" {
@@ -50,7 +29,7 @@ func (r *ReleaseOrders) prepareOrder(ctx context.Context, s ReleaseOrderSession,
 }
 
 func (r *ReleaseOrders) reverseItems(ctx context.Context, s ReleaseOrderSession, original ReleaseOrder) ([]ReleaseItem, error) {
-	if original.Publication == nil || original.VerifyPublication() != nil {
+	if len(original.Executions) == 0 || original.VerifyPublication() != nil {
 		return nil, ErrReleaseUnavailable
 	}
 	// Callers already acquired every table guard before establishing a snapshot.
@@ -62,11 +41,11 @@ func (r *ReleaseOrders) reverseItems(ctx context.Context, s ReleaseOrderSession,
 		}
 		snapshots[table] = snapshot
 	}
-	input := DraftInput{TableName: original.TableName}
+	input := DraftInput{}
 	// Unwind the actual DML order so later items release any unique values
 	// before earlier items restore them. Error indexes belong to this new order.
-	for index := range original.Publication.Commands {
-		command := original.Publication.Commands[len(original.Publication.Commands)-1-index]
+	for index := range original.Items {
+		command := *original.Items[len(original.Items)-1-index].Publication
 		snapshot := snapshots[command.TableName]
 		reserved := rollbackDeferredFields(original.FrozenTables[command.TableName], snapshot.mutationPolicy)
 		id := domain.JSONString(command.ID)
@@ -105,7 +84,7 @@ func (r *ReleaseOrders) reverseItems(ctx context.Context, s ReleaseOrderSession,
 		input.Items = append(input.Items, item)
 	}
 	// These values were persisted by a verified publication, not uploaded by this
-	// small action request. Live schema/policy and complete-document budgets apply.
+	// small action request. Current schema and policy still apply.
 	return r.prepareInput(ctx, s, input, false, &original)
 }
 
@@ -143,12 +122,12 @@ func rollbackDeferredFields(frozen domain.ReleaseExecutionSnapshot, current doma
 	return fields
 }
 
-func verifyRollbackResult(original ReleaseOrder, result domain.PublicationResult, tables map[string]PublicationTable) error {
-	if original.Publication == nil || len(original.Publication.Commands) != len(result.Commands) {
+func verifyRollbackResult(original ReleaseOrder, result domain.PublicationCommit, tables map[string]PublicationTable) error {
+	if len(original.Executions) == 0 || len(original.Items) != len(result.Commands) {
 		return ErrReleaseUnavailable
 	}
 	for index, actual := range result.Commands {
-		source := original.Publication.Commands[len(original.Publication.Commands)-1-index]
+		source := *original.Items[len(original.Items)-1-index].Publication
 		table := tables[source.TableName]
 		deferred := rollbackDeferredFields(original.FrozenTables[source.TableName], table.Policy)
 		if actual.TableName != source.TableName || actual.ID != source.ID || actual.Final.Deleted != source.Before.Deleted {
@@ -182,38 +161,6 @@ func appendRelatedReleaseEvent(order *ReleaseOrder, actor, stamp, action, reason
 	return nil
 }
 
-// Linking and closing the original happens inside the same workflow/publication
-// transaction as the reverse order, including failure rollback and request result.
-func (r *ReleaseOrders) finishRollback(ctx context.Context, s ReleaseOrderSession, order ReleaseOrder, succeeded bool) error {
-	if order.RollbackOfID == "" {
-		return nil
-	}
-	original, err := s.GetReleaseOrder(ctx, order.RollbackOfID)
-	if err != nil {
-		return err
-	}
-	if original.State != "COMPLETED" || !original.RollbackPending || original.RollbackOrderID != order.ID {
-		return ErrRollbackConflict
-	}
-	original.RollbackPending = false
-	action := "ROLLBACK_" + order.State
-	if succeeded {
-		original.State, action = "ROLLED_BACK", "ROLLED_BACK"
-	}
-	now, err := s.DatabaseTime(ctx)
-	if err != nil {
-		return err
-	}
-	actor, err := requireRole(ctx, RoleViewer)
-	if err != nil {
-		return err
-	}
-	if err := appendRelatedReleaseEvent(&original, actor, now.UTC().Format(time.RFC3339Nano), action, "", order.ID); err != nil {
-		return err
-	}
-	return s.SaveReleaseOrder(ctx, original, false)
-}
-
 // Published MySQL TIME is a signed duration, while uploaded time inputs use the
 // existing clock-time contract. Only verified server-held history gets this parser.
 var storedTimeDuration = regexp.MustCompile(`^-?(?:[0-9]{2}|[0-7][0-9]{2}|8[0-2][0-9]|83[0-8]):[0-5][0-9]:[0-5][0-9](?:\.[0-9]{1,6})?$`)
@@ -228,12 +175,4 @@ func releaseMutationValues(schema domain.TableSchema, content MutationContent, a
 		}
 		return domain.ParseColumnValue(column, value)
 	})
-}
-
-func rollbackTitle(title string) string {
-	runes := []rune("回滚：" + title)
-	if len(runes) > 100 {
-		runes = runes[:100]
-	}
-	return string(runes)
 }

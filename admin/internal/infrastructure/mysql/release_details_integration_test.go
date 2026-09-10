@@ -22,7 +22,7 @@ func TestIndependentReleaseDetailGrowthDoesNotLockIndexGaps(t *testing.T) {
 		t.Run(fmt.Sprint(initial), func(t *testing.T) {
 			ids := []string{fmt.Sprintf("detail-%d-a", initial), fmt.Sprintf("detail-%d-b", initial)}
 			for _, id := range ids {
-				order := domain.ReleaseOrder{ID: id, Title: "storage concurrency", ApplicantID: "fixture", TableName: "fixture", State: "DRAFT", Version: "1", Items: []domain.ReleaseItem{}}
+				order := domain.ReleaseOrder{ID: id, Title: "storage concurrency", ApplicantID: "fixture", State: "DRAFT", Version: "1", Items: []domain.ReleaseItem{}}
 				for range initial {
 					order.Items = append(order.Items, domain.ReleaseItem{TableName: "fixture", Operation: "ADD"})
 				}
@@ -73,9 +73,9 @@ func TestIndependentReleaseDetailGrowthDoesNotLockIndexGaps(t *testing.T) {
 				}
 			}
 			for _, id := range ids {
-				order, err := adapter.GetReleaseOrder(ctx, id)
-				if err != nil || len(order.Items) != initial+1 {
-					t.Errorf("saved detail count: %d, error: %v", len(order.Items), err)
+				order, err := adapter.ReadReleaseHeader(ctx, id)
+				if err != nil || order.ItemCount != initial+1 {
+					t.Errorf("saved detail count: %d, error: %v", order.ItemCount, err)
 				}
 			}
 		})

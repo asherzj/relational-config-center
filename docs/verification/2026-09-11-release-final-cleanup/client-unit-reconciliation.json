@@ -1,0 +1,40 @@
+{
+  "manifest": "/private/tmp/rcc-88-final-verification/client-manifest1.log",
+  "manifest_sha256": "11142d0271263aac202c0e3b8e0feb5597b041f50c2a736b890ae6ffdd99b074",
+  "total": 0,
+  "counts": {},
+  "no_test_packages": [
+    "github.com/asherzj/relational-config-center/client"
+  ],
+  "sources": [
+    {
+      "path": "/private/tmp/rcc-88-final-verification/client-unit1.jsonl",
+      "sha256": "29043bee102dad1ccfaa33de46c6699a10a5cbdf24833e5888029e04f3e6f230"
+    }
+  ],
+  "nonpassing_attempts": [],
+  "nonpassing_subtest_attempts": [],
+  "nonpassing_subtests_in_latest_parent_run": [],
+  "package_events": [
+    {
+      "package": "github.com/asherzj/relational-config-center/client",
+      "test": null,
+      "action": "skip",
+      "source": "/private/tmp/rcc-88-final-verification/client-unit1.jsonl",
+      "line": 3,
+      "time": "2026-09-10T17:27:56.207842+08:00"
+    }
+  ],
+  "packages": [
+    {
+      "package": "github.com/asherzj/relational-config-center/client",
+      "test": null,
+      "action": "skip",
+      "source": "/private/tmp/rcc-88-final-verification/client-unit1.jsonl",
+      "line": 3,
+      "time": "2026-09-10T17:27:56.207842+08:00"
+    }
+  ],
+  "nonpassing_packages": [],
+  "cases": []
+}

@@ -1,0 +1,2 @@
+{"label":"single","tag":"INPUT","type":"text","maxLength":-1,"characters":524288,"bytes":1572864,"equal":false}
+{"label":"multi","tag":"TEXTAREA","type":"textarea","maxLength":-1,"characters":3145728,"bytes":9437184,"equal":true}

@@ -4,7 +4,7 @@
 
 ## 预览和一次确认
 
-先调用 `POST /api/v1/release-orders/:id/quick-rollback/preview`，正文为 `{"expected_version":"4"}`。返回原单 ID、版本、表名、全部恢复明细和 `preview_digest`。预览不创建单据、不写业务行或历史；摘要绑定原单版本、恢复内容和当前表结构/变更规则。
+先调用 `POST /api/v1/release-orders/:id/quick-rollback/preview`，正文为 `{"expected_version":"4"}`。返回原单 ID、版本、全部恢复明细和 `preview_digest`。预览不创建单据、不写业务行或历史；摘要绑定原单版本、恢复内容和当前表结构/变更规则。
 
 审阅后调用 `POST /api/v1/release-orders/:id/quick-rollback`，携带当前会话、CSRF 与 `Idempotency-Key`，正文例如：
 
@@ -12,7 +12,7 @@
 {"expected_version":"4","preview_digest":"<刚审阅的摘要>","reason":""}
 ```
 
-`reason` 可省略或为空，提供时最多 2,000 UTF-8 字节。HTTP 200 返回同一原单，版本推进且状态为 `ROLLED_BACK`。`publication` 保留原发布实际结果，`rollback` 保存倒序恢复的实际结果；`executions` 最多两条成功摘要，类型分别为 `PUBLICATION` 和 `ROLLBACK`。原 `POST /:id/rollback` 不再创建审批回滚草稿，返回状态拒绝，前端不提供该入口。
+`reason` 可省略或为空，提供时最多 2,000 UTF-8 字节。HTTP 200 返回同一原单，版本推进且状态为 `ROLLED_BACK`。每条 `items` 的 `publication` 保留原发布实际结果，`rollback` 保存该项恢复的实际结果；`executions` 最多两条成功摘要，类型分别为 `PUBLICATION` 和 `ROLLBACK`。旧 `POST /:id/rollback` 路由已删除，返回 `404 route_not_found`。
 
 Web 在同一个确认窗口中展示“当前值 → 恢复值”，原因选填；取消不写入。恢复成功留在原单，可切换“申请差异”“原发布结果”“恢复结果”。正向审批人员与事件保持真实，不为回滚补造审批。
 
@@ -40,10 +40,10 @@ Web 在同一个确认窗口中展示“当前值 → 恢复值”，原因选�
 
 原因历史、幂等请求结果和当前主单 JSON 在一个控制事务提交。失败不占用请求标识或生成历史；用户从原按钮手动重推时复用原正文和标识。写入不会更新业务行、发布单状态／版本／更新时间、变更明细、成功执行、Command、通知、记录／表版本、目标或表引用，也没有自动重试、期限、提醒及独立确认流程。
 
-## 存储与过渡边界
+## 存储与读取边界
 
-新安装使用 `deploy/mysql/init/001-schema.sql`，结构升级应用 `015-original-order-executions.sql`。`rcc_release_orders.document` 只保存流程、冻结元数据和摘要；`rcc_release_details` 每项保存所属表、顺序、申请及两次实际结果；`rcc_release_executions` 只保存成功执行摘要，不嵌入 commands。不存在独立回滚单或执行结果明细表。
+新安装及已接管库使用嵌入 Goose `up`；未接管旧库按维护手册完成历史步骤至 017 后显式 `baseline`。`rcc_release_orders.document` 只保存流程、冻结元数据和摘要；`rcc_release_details` 每项保存所属表、顺序、申请及两次实际结果；`rcc_release_executions` 只保存成功执行摘要，不嵌入 commands。不存在独立回滚单或执行结果明细表。
 
 Command 与通知都有 `execution_id`；执行身份由原单号和成功类型组成，通知主键为 `(execution_id,table_name)`，同一原单的两次执行不会覆盖。通知状态仍为 `NOT_CONNECTED`，不代表下游已收到。
 
-`items` 是正常的整单输入/输出；实际结果从明细与成功执行组装。主单 `table_name` / `frozen` 及首项表的版本/通知显示别名暂保留至 #88，无旧数据读取或双写。详细退出责任见 [T1 过渡清单](design-notes/multitable-release-tickets/t1-transitions.md)。不迁移旧发布单内容，也不自动清理环境数据。
+主单 GET 只提供流程及成功摘要；`/:id/details` 按期望整单版本读取申请及逐项实际结果，结果审阅保持原明细位置，执行仍严格倒序。必要的事务执行和原键业务确认保留整单聚合，普通读取不自动收集全部页。主单默认表、单表冻结别名、首表版本/通知别名及独立回滚关联均已删除。职责见 [最终接口边界](design-notes/multitable-release-tickets/t1-transitions.md)。不迁移旧发布单内容，也不自动清理环境数据。

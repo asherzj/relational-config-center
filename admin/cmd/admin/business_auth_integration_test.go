@@ -39,7 +39,7 @@ func (transport *droppedResponseTransport) RoundTrip(request *http.Request) (*ht
 }
 
 func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/008-mutation-policy-snapshot-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/008-mutation-policy-snapshot-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -128,7 +128,7 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
 	}
 
 	// Prepare and independently approve through the public release workflow.
-	created, err := do(http.MethodPost, "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_snapshot_items","items":[{"operation":"ADD","content":{"code":"response-loss","label":"committed once"}}]}`, csrf, "response-loss-create")
+	created, err := do(http.MethodPost, "/api/v1/release-orders", `{"items":[{"content":{"code":"response-loss","label":"committed once"},"operation":"ADD","table_name":"mutation_snapshot_items"}],"title":"集成测试发布单"}`, csrf, "response-loss-create")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -168,7 +168,7 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
 	}
 	var published domain.ReleaseOrder
 	decode(retried, &published)
-	if published.State != "SUCCEEDED" || published.Version != "4" || published.Publication == nil || len(published.Publication.Commands) != 1 || published.Publication.TableVersion != "1" || published.Publication.PublisherID != draft.ApplicantID || published.Publication.Notification.ID == "" {
+	if published.State != "SUCCEEDED" || published.Version != "4" || len(published.Executions) < 1 || len(executionCommands(published, "PUBLICATION")) != 1 || singleExecutionTableVersion(published.Executions[0]) != "1" || published.Executions[0].ActorID != draft.ApplicantID || published.Executions[0].ID == "" {
 		t.Fatalf("lost response retry did not recover one publication: %+v", published)
 	}
 	executions := 0
@@ -215,7 +215,7 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
 }
 
 func TestBusinessAPIsRequireSessionAndCSRF(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
+	app := startIntegrationApplication(t)
 	routes := []struct{ method, path string }{
 		{"GET", "/api/v1/database-tables"}, {"GET", "/api/v1/database-tables/example"},
 		{"GET", "/api/v1/query-policy-types"}, {"GET", "/api/v1/mutation-policy-types"},
@@ -324,16 +324,16 @@ func TestConcurrentAccountsOwnTheirBusinessChanges(t *testing.T) {
 				if err := json.Unmarshal(response.Body.Bytes(), &order); err != nil {
 					t.Fatal(err)
 				}
-				if order.Publication == nil || order.Publication.PublisherID != actor {
+				if len(order.Executions) < 1 || order.Executions[0].ActorID != actor {
 					t.Fatalf("publisher identity: %s", response.Body)
 				}
 				// Finish this actor's publication before the next independent row change.
 				rollbackOrderResponse(t, releaseActorRequest(t, app, session, "POST", path+"/complete", `{"expected_version":"4"}`, key+"-complete"), 200)
 				return order
 			}
-			added := publish(fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"items":[{"operation":"ADD","content":{"value":"created"}}]}`, table), table+"-add")
-			id := added.Publication.Commands[0].ID
-			publish(fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"items":[{"operation":"MODIFY","id":%q,"expected_record_version":"1","content":{"value":"modified"}}]}`, table, id), table+"-modify")
+			added := publish(fmt.Sprintf(`{"title":"集成测试发布单","items":[{"table_name":%q,"operation":"ADD","content":{"value":"created"}}]}`, table), table+"-add")
+			id := executionCommands(added, "PUBLICATION")[0].ID
+			publish(fmt.Sprintf(`{"title":"集成测试发布单","items":[{"table_name":%q,"operation":"MODIFY","id":%q,"expected_record_version":"1","content":{"value":"modified"}}]}`, table, id), table+"-modify")
 			result := request("POST", "/api/v1/tables/"+table+"/query", `{}`, 200)
 			if !strings.Contains(result.Body.String(), actor) || strings.Contains(result.Body.String(), "integration-test") {
 				t.Fatalf("row identity: %s", result.Body.String())
@@ -388,7 +388,7 @@ func TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory(t *testing.T)
 			t.Fatalf("setup %s: %d %s", step.path, response.Code, response.Body.String())
 		}
 	}
-	input := `{"title":"集成测试发布单","table_name":"actor_history","items":[{"operation":"ADD","content":{"value":"must not commit"}}]}`
+	input := `{"items":[{"content":{"value":"must not commit"},"operation":"ADD","table_name":"actor_history"}],"title":"集成测试发布单"}`
 	reviewer := publicationFixtureReviewer(t, app)
 	for i, definition := range []string{"VARCHAR(12)", "CHAR(35)", "ENUM('legacy-admin','aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa')"} {
 		key := fmt.Sprintf("operator-incompatible-%d", i)
@@ -411,9 +411,9 @@ func TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory(t *testing.T)
 		assertIntegrationErrorCode(t, submitted, 422, "operator_field_incompatible")
 		executed := releaseActorRequest(t, app, session, "POST", approvedPath+"/execute", `{"expected_version":"3"}`, key+"-invalid-execute")
 		assertIntegrationErrorCode(t, executed, 409, "release_frozen_changed")
-		stored := releaseActorRequest(t, app, session, "GET", approvedPath, "", "")
+		stored := releaseActorReadAllDetails(t, app, session, "GET", approvedPath, "", "")
 		var retained domain.ReleaseOrder
-		if stored.Code != 200 || json.Unmarshal(stored.Body.Bytes(), &retained) != nil || retained.State != "APPROVED" || retained.Version != "3" || retained.Publication != nil {
+		if stored.Code != 200 || json.Unmarshal(stored.Body.Bytes(), &retained) != nil || retained.State != "APPROVED" || retained.Version != "3" || len(retained.Executions) >= 1 {
 			t.Fatalf("invalid execution changed approval: %d %s", stored.Code, stored.Body)
 		}
 		history := request("POST", "/api/v1/tables/actor_history/query", `{}`)
@@ -427,7 +427,7 @@ func TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory(t *testing.T)
 	if _, err := db.Exec("ALTER TABLE actor_history MODIFY creator CHAR(36)"); err != nil {
 		t.Fatal(err)
 	}
-	path := approveActorPublication(t, app, session, reviewer, `{"title":"集成测试发布单","table_name":"actor_history","items":[{"operation":"ADD","content":{"value":"compatible"}}]}`, "operator-compatible")
+	path := approveActorPublication(t, app, session, reviewer, `{"items":[{"content":{"value":"compatible"},"operation":"ADD","table_name":"actor_history"}],"title":"集成测试发布单"}`, "operator-compatible")
 	if response := releaseActorRequest(t, app, session, "POST", path+"/execute", `{"expected_version":"3"}`, "operator-compatible-execute"); response.Code != 200 {
 		t.Fatalf("36 character column rejected: %d %s", response.Code, response.Body)
 	}
@@ -473,7 +473,7 @@ func integrationRouterOptions(app *adminApplication) httpinterface.RouterOptions
 }
 
 func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/008-mutation-policy-snapshot-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/008-mutation-policy-snapshot-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -491,7 +491,7 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
 	grantTestAdministrator(t, app, session)
 	actor := accountID(t, session)
 	csrf := sessionCSRF(t, session)
-	path := approveActorPublication(t, app, session, publicationFixtureReviewer(t, app), `{"title":"集成测试发布单","table_name":"mutation_snapshot_items","items":[{"operation":"ADD","content":{"code":"inflight","label":"already authenticated"}}]}`, "inflight-publication")
+	path := approveActorPublication(t, app, session, publicationFixtureReviewer(t, app), `{"items":[{"content":{"code":"inflight","label":"already authenticated"},"operation":"ADD","table_name":"mutation_snapshot_items"}],"title":"集成测试发布单"}`, "inflight-publication")
 	// A real external InnoDB row lock holds the request after authentication.
 	lock, err := owner.BeginTx(t.Context(), nil)
 	if err != nil {
@@ -547,7 +547,7 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
 		if err := json.Unmarshal(completed.Body.Bytes(), &order); err != nil {
 			t.Fatal(err)
 		}
-		if order.State != "SUCCEEDED" || order.Publication == nil || order.Publication.PublisherID != actor {
+		if order.State != "SUCCEEDED" || len(order.Executions) < 1 || order.Executions[0].ActorID != actor {
 			t.Fatalf("inflight publisher changed: %s", completed.Body)
 		}
 	case <-time.After(10 * time.Second):
@@ -561,7 +561,7 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
 }
 
 func TestAccountControlTablesCannotBeDiscoveredOrManaged(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql")
+	app := startIntegrationApplication(t)
 	session := registerAccount(t, app, "control.user", "control@example.com", "correct horse battery staple")
 	grantTestAdministrator(t, app, session)
 	request := func(method, path, body string) *httptest.ResponseRecorder {
@@ -571,7 +571,7 @@ func TestAccountControlTablesCannotBeDiscoveredOrManaged(t *testing.T) {
 	if discovered.Code != 200 || strings.Contains(discovered.Body.String(), "rcc_") {
 		t.Fatalf("control table discovered: %d %s", discovered.Code, discovered.Body.String())
 	}
-	for _, table := range []string{"rcc_accounts", "rcc_login_sessions", "rcc_preauth_credentials", "rcc_auth_rate_limits", "rcc_auth_control_lock", "rcc_account_role_history", "rcc_record_versions", "rcc_release_orders", "rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_table_publications", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_future_control", "RCC_ACCOUNTS"} {
+	for _, table := range []string{"rcc_accounts", "rcc_login_sessions", "rcc_preauth_credentials", "rcc_auth_rate_limits", "rcc_auth_control_lock", "rcc_account_role_history", "rcc_record_versions", "rcc_release_orders", "rcc_release_details", "rcc_release_executions", "rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_table_publications", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_goose_db_version", "rcc_schema_migration_attempts", "rcc_future_control", "RCC_ACCOUNTS"} {
 		if response := request("GET", "/api/v1/database-tables/"+table, ""); response.Code != 404 {
 			t.Fatalf("control detail %s: %d %s", table, response.Code, response.Body.String())
 		}
@@ -581,9 +581,9 @@ func TestAccountControlTablesCannotBeDiscoveredOrManaged(t *testing.T) {
 			{"PUT", "/api/v1/table-policies/" + table, tablePolicyCodePayload(table, "unused_query_v1", "unused_mutation_v1")},
 			{"POST", "/api/v1/table-policies/" + table + "/enable", ""}, {"POST", "/api/v1/table-policies/" + table + "/disable", ""},
 			{"POST", "/api/v1/tables/" + table + "/query", `{}`},
-			{"POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"items":[{"operation":"ADD","content":{}}]}`, table)},
-			{"POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{}}]}`, table)},
-			{"POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"items":[{"operation":"DELETE","id":"1","expected_record_version":"0","content":{}}]}`, table)},
+			{"POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","items":[{"table_name":%q,"operation":"ADD","content":{}}]}`, table)},
+			{"POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","items":[{"table_name":%q,"operation":"MODIFY","id":"1","expected_record_version":"0","content":{}}]}`, table)},
+			{"POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","items":[{"table_name":%q,"operation":"DELETE","id":"1","expected_record_version":"0","content":{}}]}`, table)},
 		} {
 			response := releaseActorRequest(t, app, session, route.method, route.path, route.body, fmt.Sprintf("protected-%d", publicationFixtureSequence.Add(1)))
 			assertIntegrationErrorCode(t, response, 403, "protected_table")

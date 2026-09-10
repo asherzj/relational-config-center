@@ -21,7 +21,7 @@ func encodeReleaseHeader(order domain.ReleaseOrder) ([]byte, error) {
 	if err = json.Unmarshal(encoded, &header); err != nil {
 		return nil, err
 	}
-	for _, key := range []string{"items", "publication", "rollback", "executions"} {
+	for _, key := range []string{"items", "executions"} {
 		delete(header, key)
 	}
 	summary := order.Summary()
@@ -48,22 +48,24 @@ func (s *releaseOrderSession) saveReleaseDetails(ctx context.Context, order doma
 		return err
 	}
 	for index, item := range order.Items {
-		applicationJSON, err := json.Marshal(item)
+		intent := item
+		intent.Publication, intent.Rollback = nil, nil
+		applicationJSON, err := json.Marshal(intent)
 		if err != nil {
 			return application.ErrReleaseUnavailable
 		}
 		var publication, rollback any
 		itemBytes := len(applicationJSON)
-		if order.Publication != nil {
-			value, e := json.Marshal(order.Publication.Commands[index])
+		if item.Publication != nil {
+			value, e := json.Marshal(item.Publication)
 			if e != nil {
 				return application.ErrReleaseUnavailable
 			}
 			publication = value
 			itemBytes += len(value)
 		}
-		if order.Rollback != nil {
-			value, e := json.Marshal(order.Rollback.Commands[len(order.Items)-1-index])
+		if item.Rollback != nil {
+			value, e := json.Marshal(item.Rollback)
 			if e != nil {
 				return application.ErrReleaseUnavailable
 			}
@@ -78,11 +80,7 @@ func (s *releaseOrderSession) saveReleaseDetails(ctx context.Context, order doma
 		}
 		encodedBytes += itemBytes
 		values = append(values, "(?,?,?,?,?,?)")
-		table := item.TableName
-		if table == "" {
-			table = order.TableName
-		}
-		arguments = append(arguments, order.ID, index, table, applicationJSON, publication, rollback)
+		arguments = append(arguments, order.ID, index, item.TableName, applicationJSON, publication, rollback)
 	}
 	if err := flush(); err != nil {
 		return application.ErrReleaseUnavailable
@@ -154,25 +152,11 @@ func readReleaseDetails(ctx context.Context, db *gorm.DB, order *domain.ReleaseO
 				return application.ErrReleaseUnavailable
 			}
 			order.Executions = append(order.Executions, execution)
-			result := &domain.PublicationResult{ExecutionID: execution.ID, Kind: execution.Kind, PublisherID: execution.ActorID, ExecutedAt: execution.ExecutedAt, TableVersions: execution.TableVersions, Notifications: execution.Notifications, TableVersion: execution.Notification.TableVersion, Notification: execution.Notification}
-			switch execution.Kind {
-			case "PUBLICATION":
-				order.Publication = result
-			case "ROLLBACK":
-				order.Rollback = result
-			default:
-				return application.ErrReleaseUnavailable
-			}
+
 		}
 	}
 	if len(order.Items) != len(details) {
 		return application.ErrReleaseUnavailable
-	}
-	if order.Publication != nil {
-		order.Publication.Commands = make([]domain.PublicationCommand, len(details))
-	}
-	if order.Rollback != nil {
-		order.Rollback.Commands = make([]domain.PublicationCommand, len(details))
 	}
 	for index, detail := range details {
 		if detail.Position != index {
@@ -184,10 +168,10 @@ func readReleaseDetails(ctx context.Context, db *gorm.DB, order *domain.ReleaseO
 		if detail.TableName != order.Items[index].TableName {
 			return application.ErrReleaseUnavailable
 		}
-		if order.Publication != nil && json.Unmarshal(detail.Publication, &order.Publication.Commands[index]) != nil {
+		if len(order.Executions) >= 1 && json.Unmarshal(detail.Publication, &order.Items[index].Publication) != nil {
 			return application.ErrReleaseUnavailable
 		}
-		if order.Rollback != nil && json.Unmarshal(detail.Rollback, &order.Rollback.Commands[len(details)-1-index]) != nil {
+		if len(order.Executions) == 2 && json.Unmarshal(detail.Rollback, &order.Items[index].Rollback) != nil {
 			return application.ErrReleaseUnavailable
 		}
 	}
@@ -208,15 +192,9 @@ func releaseDetailPositions(start, end int) []int {
 // Idempotency snapshots retain the exact acknowledged workflow and application,
 // but reference immutable actual results in details instead of copying them.
 func encodeReleaseRequestResult(order domain.ReleaseOrder) ([]byte, error) {
-	if order.Publication != nil {
-		result := *order.Publication
-		result.Commands = nil
-		order.Publication = &result
-	}
-	if order.Rollback != nil {
-		result := *order.Rollback
-		result.Commands = nil
-		order.Rollback = &result
+	order.Items = append([]domain.ReleaseItem(nil), order.Items...)
+	for index := range order.Items {
+		order.Items[index].Publication, order.Items[index].Rollback = nil, nil
 	}
 	return json.Marshal(order)
 }

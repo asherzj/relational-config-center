@@ -11,18 +11,19 @@ T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供�
 | `POST /api/v1/release-orders` | 创建唯一 DRAFT，返回 201；标题必填，`Idempotency-Key` 必填 |
 | `PUT /api/v1/release-orders/:id` | `items` 原子整体替换或 `changes` 增量保存，二者互斥；检查整单 `expected_version` 和本次变更基线；返回 200 |
 | `POST /api/v1/release-orders/:id/cancel` | `{ "expected_version": "1", "reason": "调整计划" }`，保留已取消历史 |
-| `GET /api/v1/release-orders/:id` | 当前单据、全部字段差异、永久申请人及操作历史；不存在返回 404 |
+| `GET /api/v1/release-orders/:id` | 当前主单摘要、执行摘要、永久申请人及操作历史，不含 `items` 或整单结果；不存在返回 404 |
+| `GET /api/v1/release-orders/:id/details?expected_version=4&offset=0&limit=20` | 同一整单版本的一页申请与逐项实际结果；返回 `order_id`、`version`、`item_count`、`offset`、`next_offset` 和 `items`。版本不符为 409，非法范围为 422 |
 | `GET /api/v1/release-orders/:id/people` | 仅解析本单申请、审批、发布和历史账号 ID 的当前显示名；VIEWER 可读，不授予账号列表或角色权限，找不到的 ID 省略 |
 | `GET /api/v1/release-orders` | `table_name`、`applicant_id`、`state`、`id` 精确筛选；`limit` 为 1～100，默认 20；按不可变单号升序、`after` 游标分页，返回摘要 `orders` / `next_cursor`，完整明细通过详情读取 |
-| `POST /api/v1/release-orders/preview` | 只读核实当前申请目标，返回 `table_name` / `items`；不保存草稿或幂等记录。用于先查看最新基线，再由用户明确采用 |
+| `POST /api/v1/release-orders/preview` | 只读核实当前申请目标，返回 `items`；不保存草稿或幂等记录。用于先查看最新基线，再由用户明确采用 |
 
 草稿输入只接受以下字段，客户端 `before`、差异字段、申请人、操作人及内部记录身份不能上传：
 
 ```json
 {
   "title": "更新通知模板文案",
-  "table_name": "notification_templates",
   "items": [{
+    "table_name": "notification_templates",
     "operation": "MODIFY",
     "id": "7",
     "expected_record_version": "3",
@@ -71,14 +72,15 @@ Web 在请求发送前将原键、路径和完整申请内容在一个 IndexedDB
 
 ## 存储和后续复用
 
-停写升级时，在 007/008/009 之后运行 `deploy/mysql/migrations/010-release-drafts.sql`；新安装的 `001-schema.sql` 包含同一表定义。迁移可重跑，Ready 检查完整字段、InnoDB 和唯一键。新控制表全部受 `rcc_*` 通用表保护：
+停写升级时，在 007/008/009 之后运行 `deploy/mysql/migrations/010-release-drafts.sql`；新安装的 Goose 当前迁移 包含同一表定义。迁移可重跑，Ready 检查完整字段、InnoDB 和唯一键。新控制表全部受 `rcc_*` 通用表保护：
 
-- `rcc_release_orders` 保存不可变单号、发布单标题、申请人、状态/版本及完整草稿文档（含操作历史和永久 Account ID）。
+- `rcc_release_orders` 保存不可变单号、发布单标题、申请人、状态/版本及流程摘要文档（含操作历史、冻结元数据和永久 Account ID），不保存整单明细。
+- `rcc_release_details` 保存每项申请及其独立发布、回滚实际结果；`rcc_release_executions` 只保存最多两条成功摘要。
 - `rcc_release_requests` 保存账号/操作/请求键、SHA-256 摘要与原结果，永久保留。
 
 `application.ReleaseOrderSession` 公开控制数据写入、目标集合替换和规则/记录基线读取，事务由 MySQL `ExecuteReleaseOrder` 拥有。保存与提交共用真实数据库身份；不能另造记录版本或应用字符串身份。`ReadRecordBaselines` 按同表成批读取，复用 `recordIdentityMetadata` / `recordWeightExpression`，缺行已知 id 通过 live 主键类型转换和同一 MySQL collation 权重解析，读取统一墓碑及整表维护基线。返回的 `RecordKey` 只用于内部持久化/后续占用，不公开给 Web。身份算法/数据库版本改变仍遵循 [记录版本维护流程](admin-record-versions.md)。
 
-`make test-browser` 可通过 `RCC_E2E_OUTPUT=/absolute/path` 保留各脚本的截图证据；默认仍写入测试临时目录。
+正式完整浏览器入口为 `RCC_E2E_ENGINES=chromium,firefox,webkit make test-browser-acceptance`，通过 `RCC_E2E_ARTIFACTS=/absolute/path` 保留证据；它串行复用一个专用 MySQL。`make test-browser` 是账号系统补充路径，使用 `RCC_E2E_OUTPUT`，不替代正式全部套件。
 ## 自增主键 0 的实际身份（T4 补充）
 
 显式 `content.id` 通常是已知 ADD 身份，但 MySQL 自增列在未开启
@@ -91,7 +93,7 @@ Web 在请求发送前将原键、路径和完整申请内容在一个 IndexedDB
 
 数据页的每次变更可以新建草稿，或选择本人已有 DRAFT；保存前重新读取目标草稿，并带其整单版本提交本次新增明细。多行删除必须逐行明确勾选，保存仍只修改草稿。详情的“添加明细”进入预选当前草稿的数据页，可继续选择其他受管表；编辑器可选择任意明细修改或移除，允许移除最后一项成为空草稿；空草稿不能提交审批。输入/记录冲突保留原意，任何非法项都不部分覆盖已保存草稿。
 
-同一已知 MySQL 记录身份只能出现一次，数值、字符排序规则及 PAD SPACE 等价表示不能借不同操作/顺序绕过。省略自增 id 的新增不按内容相似合并。每条明细以 `table_name` 指定自身表；顶层 `table_name` 仅是省略明细表名时的输入默认值。空草稿可不选起始表。不同表可使用相同主键值；同一物理表的大小写别名依 MySQL 名称语义统一，不能绕过重复目标或跨单占用。重复已知目标为 `422 release_duplicate_target`，无效数量为 `422 release_item_limit`。明细错误附带从 0 开始的 `error.item_index`，Web 显示从 1 开始的明细编号，可在编辑器定位；目标占用冲突也定位原请求序号。
+同一已知 MySQL 记录身份只能出现一次，数值、字符排序规则及 PAD SPACE 等价表示不能借不同操作/顺序绕过。省略自增 id 的新增不按内容相似合并。每条明细必须以 `table_name` 指定自身表，不接受顶层默认表。创建空草稿只需标题。不同表可使用相同主键值；同一物理表的大小写别名依 MySQL 名称语义统一，不能绕过重复目标或跨单占用。重复已知目标为 `422 release_duplicate_target`，无效数量为 `422 release_item_limit`。明细错误附带从 0 开始的 `error.item_index`，Web 显示从 1 开始的明细编号，可在编辑器定位；目标占用冲突也定位原请求序号。
 
 | 边界 | 对外行为 |
 | --- | --- |
@@ -101,7 +103,9 @@ Web 在请求发送前将原键、路径和完整申请内容在一个 IndexedDB
 | 全部发布单 POST/PUT 的事务/请求期限 | 正式值为 `min(8s, 正数 MYSQL_CONNECT_TIMEOUT / MYSQL_READ_TIMEOUT / MYSQL_WRITE_TIMEOUT) × 4/5`，默认 socket 5s 对应 4s；HTTP ReadTimeout/WriteTimeout 各 10s。超时整体回滚或返回提交待确认，不自动拆单 |
 | 列表 | 默认 20/最多 100 个摘要，每项仅标题、ID、实际表集合、申请人、状态/版本、时间、item_count、operation_counts 与 allowed_actions；按原单号稳定游标分页，任一明细表匹配时父单只返回一次 |
 
-列表只读取主单摘要；详情与幂等重放从明细重建并校验实际发布前后行。单据详情和原键恢复仍返回全部明细/最终结果；页面每次渲染 20 项且可定位任意序号，分页只影响展示。审批与执行明确包含整单。
+列表及详情主单只读取摘要。详情页每次从服务器读取 20 项，申请、原发布与恢复结果共用原始明细位置，可定位任意序号。分页 `limit` 为 1～100，`offset` 为 0～1,000，`expected_version` 必须匹配当前整单版本；每页在一致性事务内验证版本、顺序、实际结果归属与规范行。跨页版本变化返回 409，不能静默混合为一次审阅。
+
+编辑、复制、重新准备和已知冲突重建需要完整申请或全局顺序，明确按同一版本收集全部页，任一页失败就不交付部分内容。普通 `getReleaseOrder` 不自动填回全部明细；背景主单刷新可以撤销当前动作权限，不能替换已打开编辑器的本地输入、原基线或请求日志。持久写入及原键重放仍返回该次业务确认的完整申请和逐项结果，供原请求恢复；界面另读当前主单决定状态和动作，旧成功响应不能覆盖后来的终态。审批与事务内执行始终包含整单。
 
 浏览器发送前必须成功保存完整原键与请求内容；若 IndexedDB 存储失败，尚未发送的操作给出明确提示，保留输入和已有原请求。数据库语句按组装大小刷新内部批次，单个大明细独立写入；全部批次属于同一事务，这不是新的整单字节上限。千项、大值与跨表顺序的验证入口见 [T3 交接](design-notes/multitable-release-tickets/t3-multitable.md)。
 
@@ -115,10 +119,9 @@ Web 在请求发送前将原键、路径和完整申请内容在一个 IndexedDB
 ```json
 {
   "title": "更新通知模板文案",
-  "table_name": "notification_templates",
   "expected_version": "4",
   "changes": {
-    "upserts": [{"detail_id": "0123456789abcdef0123456789abcdef", "operation": "MODIFY", "id": "7", "expected_record_version": "3", "content": {"body": "新文案"}}],
+    "upserts": [{"table_name": "notification_templates", "detail_id": "0123456789abcdef0123456789abcdef", "operation": "MODIFY", "id": "7", "expected_record_version": "3", "content": {"body": "新文案"}}],
     "delete_detail_ids": [],
     "detail_order": ["0123456789abcdef0123456789abcdef"]
   }
@@ -133,4 +136,4 @@ ADD 占新值，MODIFY 占旧值和新值，DELETE 占旧值。同单共享业�
 
 目标冲突返回 `409 release_target_conflict`，含 `table_name`、占用 `order_id`、`applicant_id` 和候选整单 `item_index`。Web 提供新窗口查看占用单、当前姓名/永久 ID、错误明细定位；保留本次输入，查看最新草稿后明确重建。重建仅合并本次修改，保留其他窗口对未触及明细的编辑。取消、拒绝、完结及成功回滚释放主键、附加键和表引用；没有自动过期，管理员可通过已有取消动作处理遗留草稿。
 
-部署需在 015 后应用 [016](../deploy/mysql/migrations/016-draft-target-reservations.sql)。实现锁顺序及 T3 接缝见 [T2 交接](design-notes/multitable-release-tickets/t2-targets.md)。
+未接管旧库按维护手册完成 015～017 后显式 baseline；新库与已接管库使用嵌入 Goose 迁移。实现锁顺序及 T3 接缝见 [T2 交接](design-notes/multitable-release-tickets/t2-targets.md)。

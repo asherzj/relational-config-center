@@ -13,9 +13,9 @@ import (
 // AC-003: saving a draft, including its first detail, protects the target until
 // an explicit terminal action releases it. Conflicts identify the owner.
 func TestDraftReservationsBeginOnSaveAndEndOnCancel(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
-	empty := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"empty","table_name":"mutation_delete_parents","items":[]}`, "targets-empty-create")
+	empty := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[],"title":"empty"}`, "targets-empty-create")
 	if empty.Code != 201 {
 		t.Fatalf("empty draft: %d %s", empty.Code, empty.Body)
 	}
@@ -26,10 +26,10 @@ func TestDraftReservationsBeginOnSaveAndEndOnCancel(t *testing.T) {
 	if err := json.Unmarshal(empty.Body.Bytes(), &order); err != nil {
 		t.Fatal(err)
 	}
-	item := `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposed"}}`
-	body := fmt.Sprintf(`{"title":"owner","table_name":"mutation_delete_parents","items":[%s]}`, item)
+	item := `{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"proposed"}}`
+	body := fmt.Sprintf(`{"title":"owner","items":[%s]}`, item)
 	path := "/api/v1/release-orders/" + order.ID
-	saved := releaseRequest(t, app, "PUT", path, fmt.Sprintf(`{"title":"owner","table_name":"mutation_delete_parents","expected_version":"1","items":[%s]}`, item), "targets-first-detail")
+	saved := releaseRequest(t, app, "PUT", path, fmt.Sprintf(`{"title":"owner","expected_version":"1","items":[%s]}`, item), "targets-first-detail")
 	if saved.Code != 200 {
 		t.Fatalf("first detail: %d %s", saved.Code, saved.Body)
 	}
@@ -61,7 +61,7 @@ func TestDraftReservationsBeginOnSaveAndEndOnCancel(t *testing.T) {
 // AC-002/003: a configured key protects old and proposed values, while any
 // unfinished table reference makes its definition immutable.
 func TestDraftConcurrencyKeyProtectsValuesAndDefinition(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true, AllowAdd: true})
 	policy := policyIntegrationRequest(t, app, "GET", "/api/v1/table-policies/mutation_delete_parents", "")
 	var assignment map[string]any
@@ -75,11 +75,11 @@ func TestDraftConcurrencyKeyProtectsValuesAndDefinition(t *testing.T) {
 	if response := setKey([]string{"code"}); response.Code != 200 {
 		t.Fatalf("configure key: %d %s", response.Code, response.Body)
 	}
-	owner := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"key owner","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"Candidate"}}]}`, "key-owner-create")
+	owner := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"Candidate"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"key owner"}`, "key-owner-create")
 	if owner.Code != 201 {
 		t.Fatal(owner.Body)
 	}
-	conflict := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"equivalent key","table_name":"mutation_delete_parents","items":[{"operation":"ADD","content":{"id":"50","code":"candidate"}}]}`, "key-conflict-create")
+	conflict := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"candidate","id":"50"},"operation":"ADD","table_name":"mutation_delete_parents"}],"title":"equivalent key"}`, "key-conflict-create")
 	assertIntegrationErrorCode(t, conflict, 409, "release_target_conflict")
 	assertIntegrationErrorCode(t, setKey([]string{}), 409, "concurrency_key_in_use")
 	if response := setKey([]string{"code"}); response.Code != 200 {
@@ -90,7 +90,7 @@ func TestDraftConcurrencyKeyProtectsValuesAndDefinition(t *testing.T) {
 // AC-005: an incremental save changes only addressed stable details, and a
 // failed candidate target or stale whole-order version preserves the old set.
 func TestDraftIncrementalEditsReplaceTargetsAtomically(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -102,7 +102,7 @@ func TestDraftIncrementalEditsReplaceTargetsAtomically(t *testing.T) {
 	enableMutationPolicy(t, app, "draft_keys", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	setDraftTestKey(t, app, "draft_keys", []string{"code"})
 	create := func(items, key string) map[string]any {
-		r := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"incremental","table_name":"draft_keys","items":`+items+`}`, key)
+		r := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"incremental","items":`+items+`}`, key)
 		if r.Code != 201 {
 			t.Fatalf("create: %d %s", r.Code, r.Body)
 		}
@@ -110,8 +110,8 @@ func TestDraftIncrementalEditsReplaceTargetsAtomically(t *testing.T) {
 		_ = json.Unmarshal(r.Body.Bytes(), &result)
 		return result
 	}
-	owner := create(`[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"B"}},{"operation":"MODIFY","id":"2","expected_record_version":"0","content":{"label":"saved second"}}]`, "incremental-owner")
-	create(`[{"operation":"ADD","content":{"id":"99","code":"C"}}]`, "incremental-C-owner")
+	owner := create(`[{"table_name":"draft_keys","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"B"}},{"table_name":"draft_keys","operation":"MODIFY","id":"2","expected_record_version":"0","content":{"label":"saved second"}}]`, "incremental-owner")
+	create(`[{"table_name":"draft_keys","operation":"ADD","content":{"id":"99","code":"C"}}]`, "incremental-C-owner")
 	items := owner["items"].([]any)
 	first := items[0].(map[string]any)
 	second := items[1].(map[string]any)
@@ -121,18 +121,18 @@ func TestDraftIncrementalEditsReplaceTargetsAtomically(t *testing.T) {
 	}
 	path := "/api/v1/release-orders/" + owner["id"].(string)
 	patch := func(value, version, key string) *httptest.ResponseRecorder {
-		body, _ := json.Marshal(map[string]any{"table_name": "draft_keys", "title": "incremental", "expected_version": version, "changes": map[string]any{"upserts": []any{map[string]any{"detail_id": firstID, "operation": "MODIFY", "id": "1", "expected_record_version": "0", "content": map[string]string{"code": value}}}}})
+		body, _ := json.Marshal(map[string]any{"title": "incremental", "expected_version": version, "changes": map[string]any{"upserts": []any{map[string]any{"table_name": "draft_keys", "detail_id": firstID, "operation": "MODIFY", "id": "1", "expected_record_version": "0", "content": map[string]string{"code": value}}}}})
 		return releaseRequest(t, app, "PUT", path, string(body), key)
 	}
 	assertIntegrationErrorCode(t, patch("C", "1", "incremental-conflict"), 409, "release_target_conflict")
-	current := releaseRequest(t, app, "GET", path, "", "")
+	current := releaseReadAllDetails(t, app, "GET", path, "", "")
 	var unchanged map[string]any
 	_ = json.Unmarshal(current.Body.Bytes(), &unchanged)
 	if unchanged["version"] != "1" || unchanged["items"].([]any)[0].(map[string]any)["content"].(map[string]any)["code"] != "B" {
 		t.Fatalf("failed replacement changed draft: %s", current.Body)
 	}
 	for _, code := range []string{"A", "B"} {
-		r := releaseRequest(t, app, "POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"probe","table_name":"draft_keys","items":[{"operation":"ADD","content":{"id":"88","code":%q}}]}`, code), "incremental-probe-"+code)
+		r := releaseRequest(t, app, "POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"probe","items":[{"table_name":"draft_keys","operation":"ADD","content":{"id":"88","code":%q}}]}`, code), "incremental-probe-"+code)
 		assertIntegrationErrorCode(t, r, 409, "release_target_conflict")
 	}
 	saved := patch("D", "1", "incremental-new-target")
@@ -140,15 +140,15 @@ func TestDraftIncrementalEditsReplaceTargetsAtomically(t *testing.T) {
 		t.Fatal(saved.Body)
 	}
 	assertIntegrationErrorCode(t, patch("E", "1", "incremental-stale"), 409, "release_version_conflict")
-	create(`[{"operation":"ADD","content":{"id":"88","code":"B"}}]`, "incremental-B-released")
-	reorder, _ := json.Marshal(map[string]any{"table_name": "draft_keys", "title": "incremental", "expected_version": "2", "changes": map[string]any{"detail_order": []any{second["detail_id"], firstID}}})
+	create(`[{"table_name":"draft_keys","operation":"ADD","content":{"id":"88","code":"B"}}]`, "incremental-B-released")
+	reorder, _ := json.Marshal(map[string]any{"title": "incremental", "expected_version": "2", "changes": map[string]any{"detail_order": []any{second["detail_id"], firstID}}})
 	r := releaseRequest(t, app, "PUT", path, string(reorder), "incremental-reorder")
 	if r.Code != 200 {
 		t.Fatal(r.Body)
 	}
 	// Only the edited upsert is prepared, but its error points into the whole
 	// newly ordered candidate, not index zero of the changed-page payload.
-	bad, _ := json.Marshal(map[string]any{"table_name": "draft_keys", "title": "incremental", "expected_version": "3", "changes": map[string]any{"upserts": []any{map[string]any{"detail_id": firstID, "operation": "MODIFY", "id": "1", "expected_record_version": "0", "content": map[string]string{"missing_field": "invalid"}}}}})
+	bad, _ := json.Marshal(map[string]any{"title": "incremental", "expected_version": "3", "changes": map[string]any{"upserts": []any{map[string]any{"table_name": "draft_keys", "detail_id": firstID, "operation": "MODIFY", "id": "1", "expected_record_version": "0", "content": map[string]string{"missing_field": "invalid"}}}}})
 	invalid := releaseRequest(t, app, "PUT", path, string(bad), "incremental-error-position")
 	assertIntegrationErrorCode(t, invalid, 422, "invalid_mutation_content")
 	batchEdgeIndex(t, invalid, 1)
@@ -176,7 +176,7 @@ func setDraftTestKey(t *testing.T, app *adminApplication, table string, columns 
 // AC-002: generated and publication-time fields cannot define a key. An
 // auto-ID draft still references its table even when it has no concrete target.
 func TestDraftKeyEligibilityDefaultsAndAutoIDReferences(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -195,7 +195,7 @@ func TestDraftKeyEligibilityDefaultsAndAutoIDReferences(t *testing.T) {
 	for _, fields := range [][]string{{"id"}, {"generated_code"}, {"stamp"}, {"missing"}, {"code", "code"}} {
 		assertIntegrationErrorCode(t, set(fields), 422, "concurrency_key_invalid")
 	}
-	auto := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"no concrete target","table_name":"draft_auto_keys","items":[{"operation":"ADD","content":{}}]}`, "auto-no-target")
+	auto := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{},"operation":"ADD","table_name":"draft_auto_keys"}],"title":"no concrete target"}`, "auto-no-target")
 	if auto.Code != 201 {
 		t.Fatal(auto.Body)
 	}
@@ -208,8 +208,8 @@ func TestDraftKeyEligibilityDefaultsAndAutoIDReferences(t *testing.T) {
 	if configured := set([]string{"code"}); configured.Code != 200 {
 		t.Fatal(configured.Body)
 	}
-	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"default is ambiguous","table_name":"draft_auto_keys","items":[{"operation":"ADD","content":{}}]}`, "auto-default-missing"), 422, "concurrency_key_value_required")
-	null := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"explicit null","table_name":"draft_auto_keys","items":[{"operation":"ADD","content":{"code":null}}]}`, "auto-explicit-null")
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{},"operation":"ADD","table_name":"draft_auto_keys"}],"title":"default is ambiguous"}`, "auto-default-missing"), 422, "concurrency_key_value_required")
+	null := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":null},"operation":"ADD","table_name":"draft_auto_keys"}],"title":"explicit null"}`, "auto-explicit-null")
 	if null.Code != 201 {
 		t.Fatal(null.Body)
 	}
@@ -218,7 +218,7 @@ func TestDraftKeyEligibilityDefaultsAndAutoIDReferences(t *testing.T) {
 // AC-004: expected equivalence comes from independent literal examples of
 // database comparison. Distinct tables and NULL/empty/tuple boundaries survive.
 func TestDraftConcurrencyKeyDatabaseEquality(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -249,7 +249,7 @@ func TestDraftConcurrencyKeyDatabaseEquality(t *testing.T) {
 			enableMutationPolicy(t, app, table, mutationPolicyFixture{AllowAdd: true})
 			setDraftTestKey(t, app, table, []string{"code"})
 			create := func(id int, value any, key string) *httptest.ResponseRecorder {
-				body, _ := json.Marshal(map[string]any{"title": "database equality", "table_name": table, "items": []any{map[string]any{"operation": "ADD", "content": map[string]any{"id": fmt.Sprint(id), "code": value}}}})
+				body, _ := json.Marshal(map[string]any{"title": "database equality", "items": []any{map[string]any{"table_name": table, "operation": "ADD", "content": map[string]any{"id": fmt.Sprint(id), "code": value}}}})
 				return releaseRequest(t, app, "POST", "/api/v1/release-orders", string(body), key+"-"+test.name)
 			}
 			if r := create(1, test.first, "equality-first"); r.Code != 201 {
@@ -267,7 +267,7 @@ func TestDraftConcurrencyKeyDatabaseEquality(t *testing.T) {
 		enableMutationPolicy(t, app, "draft_time_duration", mutationPolicyFixture{AllowModify: true})
 		setDraftTestKey(t, app, "draft_time_duration", []string{"code"})
 		for index, id := range []string{"1", "2"} {
-			response := releaseRequest(t, app, "POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"stored time","table_name":"draft_time_duration","items":[{"operation":"MODIFY","id":%q,"expected_record_version":"0","content":{"label":"changed"}}]}`, id), "stored-duration-"+id)
+			response := releaseRequest(t, app, "POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"stored time","items":[{"table_name":"draft_time_duration","operation":"MODIFY","id":%q,"expected_record_version":"0","content":{"label":"changed"}}]}`, id), "stored-duration-"+id)
 			if index == 0 {
 				rollbackOrderResponse(t, response, 201)
 			} else {
@@ -280,7 +280,7 @@ func TestDraftConcurrencyKeyDatabaseEquality(t *testing.T) {
 		enableMutationPolicy(t, app, table, mutationPolicyFixture{AllowAdd: true})
 		setDraftTestKey(t, app, table, []string{"a", "b"})
 		for i, pair := range [][2]any{{"ab", "c"}, {"a", "bc"}, {nil, ""}, {"", nil}, {"", ""}} {
-			body, _ := json.Marshal(map[string]any{"title": "tuple boundary", "table_name": table, "items": []any{map[string]any{"operation": "ADD", "content": map[string]any{"id": fmt.Sprint(i + 1), "a": pair[0], "b": pair[1]}}}})
+			body, _ := json.Marshal(map[string]any{"title": "tuple boundary", "items": []any{map[string]any{"table_name": table, "operation": "ADD", "content": map[string]any{"id": fmt.Sprint(i + 1), "a": pair[0], "b": pair[1]}}}})
 			if r := releaseRequest(t, app, "POST", "/api/v1/release-orders", string(body), fmt.Sprintf("tuple-%s-%d", table, i)); r.Code != 201 {
 				t.Fatal(r.Body)
 			}
@@ -291,7 +291,7 @@ func TestDraftConcurrencyKeyDatabaseEquality(t *testing.T) {
 // AC-003: a business key may be referenced by several details in one order.
 // Omitted MODIFY fields use the saved real old value; only the last removal frees it.
 func TestDraftSharedKeyReferencesReleaseOnlyAfterLastDetail(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -302,18 +302,18 @@ func TestDraftSharedKeyReferencesReleaseOnlyAfterLastDetail(t *testing.T) {
 	deliveryExec(t, db, `INSERT INTO draft_shared VALUES(1,'shared','one'),(2,'SHARED','two')`)
 	enableMutationPolicy(t, app, "draft_shared", mutationPolicyFixture{AllowAdd: true, AllowModify: true})
 	setDraftTestKey(t, app, "draft_shared", []string{"code"})
-	owner := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"shared references","table_name":"draft_shared","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"label":"edit one"}},{"operation":"MODIFY","id":"2","expected_record_version":"0","content":{"label":"edit two"}}]}`, "shared-owner")
+	owner := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"label":"edit one"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"draft_shared"},{"content":{"label":"edit two"},"expected_record_version":"0","id":"2","operation":"MODIFY","table_name":"draft_shared"}],"title":"shared references"}`, "shared-owner")
 	if owner.Code != 201 {
 		t.Fatal(owner.Body)
 	}
 	var order map[string]any
 	_ = json.Unmarshal(owner.Body.Bytes(), &order)
 	probe := func(key string) *httptest.ResponseRecorder {
-		return releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"shared probe","table_name":"draft_shared","items":[{"operation":"ADD","content":{"id":"3","code":"Shared"}}]}`, key)
+		return releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"Shared","id":"3"},"operation":"ADD","table_name":"draft_shared"}],"title":"shared probe"}`, key)
 	}
 	for index, item := range order["items"].([]any) {
 		assertIntegrationErrorCode(t, probe(fmt.Sprintf("shared-probe-%d", index)), 409, "release_target_conflict")
-		body, _ := json.Marshal(map[string]any{"title": "shared references", "table_name": "draft_shared", "expected_version": fmt.Sprint(index + 1), "changes": map[string]any{"delete_detail_ids": []any{item.(map[string]any)["detail_id"]}}})
+		body, _ := json.Marshal(map[string]any{"title": "shared references", "expected_version": fmt.Sprint(index + 1), "changes": map[string]any{"delete_detail_ids": []any{item.(map[string]any)["detail_id"]}}})
 		if r := releaseRequest(t, app, "PUT", "/api/v1/release-orders/"+order["id"].(string), string(body), fmt.Sprintf("shared-remove-%d", index)); r.Code != 200 {
 			t.Fatal(r.Body)
 		}
@@ -326,7 +326,7 @@ func TestDraftSharedKeyReferencesReleaseOnlyAfterLastDetail(t *testing.T) {
 // AC-002: both HTTP writers start behind the same real database guard. Exactly
 // one may establish the definition/reference pair; the other must observe it.
 func TestDraftSaveAndKeyDefinitionRaceCannotBypassReferences(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -351,7 +351,7 @@ func TestDraftSaveAndKeyDefinitionRaceCannotBypassReferences(t *testing.T) {
 		}
 		saved, defined := make(chan *httptest.ResponseRecorder, 1), make(chan *httptest.ResponseRecorder, 1)
 		go func() {
-			saved <- releaseRequest(t, app, "POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"guard race","table_name":%q,"items":[{"operation":"ADD","content":{}}]}`, table), fmt.Sprintf("draft-guard-save-%d", round))
+			saved <- releaseRequest(t, app, "POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"guard race","items":[{"table_name":%q,"operation":"ADD","content":{}}]}`, table), fmt.Sprintf("draft-guard-save-%d", round))
 		}()
 		go func() {
 			defined <- policyIntegrationRequest(t, app, "PUT", "/api/v1/table-policies/"+table, string(definition))
@@ -382,7 +382,7 @@ func TestDraftSaveAndKeyDefinitionRaceCannotBypassReferences(t *testing.T) {
 // AC-003/005: a control-storage failure after target reconciliation leaves both
 // the acknowledged draft and its old target set intact, including request reuse.
 func TestDraftTargetReplacementRollsBackOnPersistenceFailure(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -393,7 +393,7 @@ func TestDraftTargetReplacementRollsBackOnPersistenceFailure(t *testing.T) {
 	deliveryExec(t, db, `INSERT INTO draft_atomic VALUES(1,'A')`)
 	enableMutationPolicy(t, app, "draft_atomic", mutationPolicyFixture{AllowAdd: true, AllowModify: true})
 	setDraftTestKey(t, app, "draft_atomic", []string{"code"})
-	r := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"atomic","table_name":"draft_atomic","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"B"}}]}`, "atomic-owner")
+	r := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"B"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"draft_atomic"}],"title":"atomic"}`, "atomic-owner")
 	if r.Code != 201 {
 		t.Fatal(r.Body)
 	}
@@ -403,16 +403,16 @@ func TestDraftTargetReplacementRollsBackOnPersistenceFailure(t *testing.T) {
 	rootDriver.User = "root"
 	root := deliveryDB(t, &rootDriver)
 	deliveryExec(t, root, `CREATE TRIGGER reject_draft_request BEFORE UPDATE ON rcc_release_requests FOR EACH ROW BEGIN IF NEW.result IS NOT NULL AND OLD.result IS NULL THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='injected request failure'; END IF; END`)
-	body := `{"title":"atomic","table_name":"draft_atomic","expected_version":"1","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"C"}}]}`
+	body := `{"expected_version":"1","items":[{"content":{"code":"C"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"draft_atomic"}],"title":"atomic"}`
 	path := "/api/v1/release-orders/" + owner["id"].(string)
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", path, body, "atomic-replace"), 503, "release_unavailable")
 	deliveryExec(t, root, `DROP TRIGGER reject_draft_request`)
-	current := releaseRequest(t, app, "GET", path, "", "")
+	current := releaseReadAllDetails(t, app, "GET", path, "", "")
 	if current.Body.String() != r.Body.String() {
 		t.Fatalf("failure changed saved draft: %s", current.Body)
 	}
 	for _, code := range []string{"A", "B"} {
-		probe := releaseRequest(t, app, "POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"atomic probe","table_name":"draft_atomic","items":[{"operation":"ADD","content":{"id":"2","code":%q}}]}`, code), "atomic-probe-"+code)
+		probe := releaseRequest(t, app, "POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"atomic probe","items":[{"table_name":"draft_atomic","operation":"ADD","content":{"id":"2","code":%q}}]}`, code), "atomic-probe-"+code)
 		assertIntegrationErrorCode(t, probe, 409, "release_target_conflict")
 	}
 	if retry := releaseRequest(t, app, "PUT", path, body, "atomic-replace"); retry.Code != 200 {
@@ -428,7 +428,7 @@ func TestDraftAllTargetTypesReleaseOnEveryTerminalAction(t *testing.T) {
 			app, db := batchEdgeApplication(t, `CREATE TABLE terminal_keys(id INT PRIMARY KEY,code VARCHAR(32),label VARCHAR(32))`, `INSERT INTO terminal_keys VALUES(1,'old','original')`)
 			enableMutationPolicy(t, app, "terminal_keys", mutationPolicyFixture{AllowAdd: true, AllowModify: true})
 			setDraftTestKey(t, app, "terminal_keys", []string{"code"})
-			created := rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"terminal target owner","table_name":"terminal_keys","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"new"}}]}`, "terminal-create"), 201)
+			created := rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"new"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"terminal_keys"}],"title":"terminal target owner"}`, "terminal-create"), 201)
 			path := "/api/v1/release-orders/" + created.ID
 			batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_targets`: 3, `SELECT COUNT(*) FROM rcc_release_table_references`: 1})
 			if action != "cancel" {
@@ -461,11 +461,11 @@ func TestDraftSubmitRejectsChangedTargetIdentity(t *testing.T) {
 	app, db := batchEdgeApplication(t, `CREATE TABLE draft_ddl_keys(id INT PRIMARY KEY,code VARCHAR(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin)`)
 	enableMutationPolicy(t, app, "draft_ddl_keys", mutationPolicyFixture{AllowAdd: true})
 	setDraftTestKey(t, app, "draft_ddl_keys", []string{"code"})
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"saved binary key","table_name":"draft_ddl_keys","items":[{"operation":"ADD","content":{"id":"1","code":"Alpha"}}]}`, "ddl-original")
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"Alpha","id":"1"},"operation":"ADD","table_name":"draft_ddl_keys"}],"title":"saved binary key"}`, "ddl-original")
 	original := batchEdgeOrder(t, created, 201)
 	path := "/api/v1/release-orders/" + original.ID
 	deliveryExec(t, db, `ALTER TABLE draft_ddl_keys MODIFY code VARCHAR(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci`)
-	blocker := batchEdgeOrder(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"current equivalent owner","table_name":"draft_ddl_keys","items":[{"operation":"ADD","content":{"id":"2","code":"ALPHA"}}]}`, "ddl-current-owner"), 201)
+	blocker := batchEdgeOrder(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"ALPHA","id":"2"},"operation":"ADD","table_name":"draft_ddl_keys"}],"title":"current equivalent owner"}`, "ddl-current-owner"), 201)
 	targets := func() string {
 		t.Helper()
 		var result string
@@ -478,12 +478,12 @@ func TestDraftSubmitRejectsChangedTargetIdentity(t *testing.T) {
 	refused := releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"1"}`, "ddl-submit")
 	assertIntegrationErrorCode(t, refused, 409, "record_version_conflict")
 	batchEdgeIndex(t, refused, 0)
-	if current := releaseRequest(t, app, "GET", path, "", ""); current.Body.String() != created.Body.String() || targets() != beforeTargets {
+	if current := releaseReadAllDetails(t, app, "GET", path, "", ""); current.Body.String() != created.Body.String() || targets() != beforeTargets {
 		t.Fatalf("refused submission changed draft or targets: %s", current.Body)
 	}
 	// Explicit saving performs the normal atomic replacement. A conflict retains
 	// the old set; ending the owner then permits repeating the same logical save.
-	edit, _ := json.Marshal(map[string]any{"title": original.Title, "table_name": original.TableName, "expected_version": "1", "changes": map[string]any{"upserts": []any{map[string]any{"detail_id": original.Items[0].DetailID, "operation": "ADD", "expected_record_version": "0", "content": map[string]string{"id": "1", "code": "Alpha"}}}}})
+	edit, _ := json.Marshal(map[string]any{"title": original.Title, "expected_version": "1", "changes": map[string]any{"upserts": []any{map[string]any{"table_name": original.Items[0].TableName, "detail_id": original.Items[0].DetailID, "operation": "ADD", "expected_record_version": "0", "content": map[string]string{"id": "1", "code": "Alpha"}}}}})
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", path, string(edit), "ddl-resave"), 409, "release_target_conflict")
 	if targets() != beforeTargets {
 		t.Fatal("failed replacement changed target ownership")

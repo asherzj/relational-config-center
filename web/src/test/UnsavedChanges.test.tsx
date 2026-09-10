@@ -1,3 +1,4 @@
+import { releaseFixture, withReleaseReadRoutes } from "./release-fixture";
 import { defaultFieldPolicies } from "./field-policy-fixture";
 import { withDefaultRecordVersions } from "./managed-data-fixture";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -15,8 +16,8 @@ const mutation = { ...audit, code: "mutation_v1", name: "变更基线", descript
 const assignment = { ...audit, table_name: "items", query_policy_code: "query_v1", mutation_policy_code: "mutation_v1", enabled: true };
 const columns = [{ name: "id", type: "uint64", nullable: false }, { name: "name", type: "string", nullable: false }, { name: "note", type: "string", nullable: true }] as const;
 const row = { id: "1", name: "original", note: null };
-const savedDraft={id:"12345678123456781234567812345678",title:"items 配置变更",table_name:"items",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{operation:"MODIFY",id:"1",expected_record_version:"0",content:{name:"originalchanged"},before:row,fields:[]}]};
-function json(value: unknown, status = 200) { value = withDefaultRecordVersions(value);
+const savedDraft={id:"12345678123456781234567812345678",title:"items 配置变更",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{table_name:"items",operation:"MODIFY",id:"1",expected_record_version:"0",content:{name:"originalchanged"},before:row,fields:[]}]};
+function json(value: unknown, status = 200) { value = releaseFixture(withDefaultRecordVersions(value));
   return new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } }); }
 const rejection = () => json({ error: { code: "invalid_mutation_content", message: "invalid", request_id: "req-preserved" } }, 400);
 
@@ -41,7 +42,7 @@ function backend({ active = false, write }: { active?: boolean; write?: (url: st
     if (url.endsWith("/query")) return json({ columns, rows: [row], page: { page_number: 1, page_size: 20, total_count: 1, total_pages: 1 } });
     throw new Error(`Unexpected read ${url}`);
   });
-  vi.stubGlobal("fetch", withAdminSession(fetch));
+  vi.stubGlobal("fetch", withAdminSession(withReleaseReadRoutes(fetch)));
   return fetch;
 }
 function mount(path: string, entries = [path], index = entries.length - 1) {

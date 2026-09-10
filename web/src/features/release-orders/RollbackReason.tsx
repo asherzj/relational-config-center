@@ -1,5 +1,5 @@
 import {useId,useRef,useState} from "react";
-import type {ReleaseOrder} from "../../api/release-orders";
+import type {ReleaseHeader} from "../../api/release-orders";
 import {releaseRequests} from "../../api/release-orders";
 import {DialogDescription,DialogTitle} from "../../components/shadcn/dialog";
 import {Textarea} from "../../components/shadcn/textarea";
@@ -12,7 +12,7 @@ import {ReleasePerson} from "./ReleasePerson";
 import {ReleaseTime} from "./ReleaseTime";
 import {useReleaseWrite} from "./useReleaseWrite";
 
-export function RollbackReason({order,people}:{order:ReleaseOrder;people:Record<string,string>}) {
+export function RollbackReason({order,people}:{order:ReleaseHeader;people:Record<string,string>}) {
  const [editing,setEditing]=useState(false);
  const revisions=order.history.filter(event=>event.action==="ROLLBACK_REASON");
  const current=revisions.at(-1)??[...order.history].reverse().find(event=>event.action==="QUICK_ROLLBACK");
@@ -28,7 +28,7 @@ export function RollbackReason({order,people}:{order:ReleaseOrder;people:Record<
  </section>{editing&&<RollbackReasonDialog order={order} initialReason={current?.reason??""} first={!hasRecordedReason} onClose={()=>setEditing(false)}/>}</>;
 }
 
-function RollbackReasonDialog({order,initialReason,first,onClose}:{order:ReleaseOrder;initialReason:string;first:boolean;onClose:()=>void}) {
+function RollbackReasonDialog({order,initialReason,first,onClose}:{order:ReleaseHeader;initialReason:string;first:boolean;onClose:()=>void}) {
  const write=useReleaseWrite(`edit-rollback-reason:${order.id}`);
  const [originalKey]=useState(write.storedRequest?.key);
  const [reason,setReason]=useState(()=>write.storedRequest?pendingRequestReason(write.storedRequest):initialReason);

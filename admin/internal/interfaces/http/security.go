@@ -202,7 +202,7 @@ func sessionAuthentication(options RouterOptions) gin.HandlerFunc {
 			if c.FullPath() == "/api/v1/release-orders/:id/rollback-reason" {
 				required = application.RoleViewer
 			}
-			if c.FullPath() == "/api/v1/release-orders/:id/rollback" || c.FullPath() == "/api/v1/release-orders/:id/copy" || c.FullPath() == "/api/v1/release-orders/:id/reprepare" || c.FullPath() == "/api/v1/release-orders/:id/submit" || c.FullPath() == "/api/v1/release-orders/preview" || c.FullPath() == "/api/v1/release-orders" || c.FullPath() == "/api/v1/release-orders/:id" || c.FullPath() == "/api/v1/release-orders/:id/cancel" {
+			if c.FullPath() == "/api/v1/release-orders/:id/copy" || c.FullPath() == "/api/v1/release-orders/:id/reprepare" || c.FullPath() == "/api/v1/release-orders/:id/submit" || c.FullPath() == "/api/v1/release-orders/preview" || c.FullPath() == "/api/v1/release-orders" || c.FullPath() == "/api/v1/release-orders/:id" || c.FullPath() == "/api/v1/release-orders/:id/cancel" {
 				required = application.RoleEditor
 			}
 			if c.FullPath() == "/api/v1/release-orders/:id/execute" || c.FullPath() == "/api/v1/release-orders/:id/complete" || c.FullPath() == "/api/v1/release-orders/:id/quick-rollback/preview" || c.FullPath() == "/api/v1/release-orders/:id/quick-rollback" {

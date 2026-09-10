@@ -1,3 +1,4 @@
+const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real browser -> production Web proxy -> Cookie-authenticated Admin -> disposable MySQL 8.4.
 // RCC_E2E_ENGINE chooses one Playwright engine; the runner records each separately.
@@ -321,10 +322,10 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     assert.equal(rejected.error.code, 'invalid_mutation_content');
     const retainedResponse = await authenticatedRequest(context, base, `/api/v1/release-orders/${invalidOrder.id}`);
     assert.equal(retainedResponse.status(), 200);
-    const retained = await retainedResponse.json();
+    const retained = await readAllReleaseDetailPages(context, base, await retainedResponse.json());
     assert.equal(retained.state, 'APPROVED');
     assert.equal(retained.items[0].content.note, rawCR);
-    assert.equal(retained.publication, undefined);
+    assert.deepEqual(retained.executions, []);
     assert.equal(sql(`SELECT COUNT(*) FROM ${table} WHERE name=${literal(`stage5_${engineName}_invalid`)};`), '0');
     await page.reload();
     await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();

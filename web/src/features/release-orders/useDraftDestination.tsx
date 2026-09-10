@@ -26,8 +26,8 @@ export function useDraftDestination(table:string,initialID=""){
    }
    const order=await releaseOrders.get(selected);
    if(order.applicant_id!==accountID||!order.allowed_actions.includes("edit")||order.state!=="DRAFT")throw new ApiError("release_destination_invalid","所选草稿已不可编辑，或不属于本人。请重新选择。",422);
-   if(order.items.length+input.items.length>1000)throw new ApiError("release_item_limit","合并后的草稿不能超过 1,000 项，请调整明细。",422);
-   return releaseRequests.edit(order.id,{title:order.title,table_name:order.table_name,expected_version:order.version,changes:{upserts:input.items.map(item=>({...item,table_name:item.table_name??input.table_name}))}});
+   if(order.item_count+input.items.length>1000)throw new ApiError("release_item_limit","合并后的草稿不能超过 1,000 项，请调整明细。",422);
+   return releaseRequests.edit(order.id,{title:order.title,expected_version:order.version,changes:{upserts:input.items}});
   }catch(cause){setError(cause);return undefined}
  };
  const picker=(disabled:boolean)=><section className="draft-destination" aria-label="草稿去向">
@@ -48,7 +48,7 @@ export function useDraftDestination(table:string,initialID=""){
     <NativeSelect id="release-draft-destination" aria-label="保存到草稿" disabled={disabled} value={selected} onChange={event=>setSelected(event.target.value)}>
      <option value="">新建草稿</option>
      {selected&&!list.data?.orders.some(order=>order.id===selected)&&<option value={selected}>{selected}</option>}
-     {list.data?.orders.filter(order=>!order.rollback_of_id&&order.allowed_actions.includes("edit")).map(order=><option key={order.id} value={order.id}>{order.title} · {order.id} · 版本 {order.version}</option>)}
+     {list.data?.orders.filter(order=>order.allowed_actions.includes("edit")).map(order=><option key={order.id} value={order.id}>{order.title} · {order.id} · 版本 {order.version}</option>)}
     </NativeSelect>
     {list.isPending&&<p className="draft-destination-hint">正在读取本人草稿…</p>}
     {list.isError&&<ErrorState error={list.error}/>}
@@ -66,10 +66,10 @@ export function useDraftDestination(table:string,initialID=""){
  const matchesInput=(request:ReleaseRequestEnvelope,input:DraftContentInput)=>{
   try{
    const intent=decodeReleaseRequest(request);
-   if(!selected&&intent.action==="create")return intent.input.title===title&&intent.input.table_name===input.table_name&&JSON.stringify(intent.input.items)===JSON.stringify(input.items.map(item=>draftItemSchema.parse(item)));
+   if(!selected&&intent.action==="create")return intent.input.title===title&&JSON.stringify(intent.input.items)===JSON.stringify(input.items.map(item=>draftItemSchema.parse(item)));
    if(selected&&intent.action==="edit-details"&&intent.id===selected){
     const changes=intent.input.changes;
-    return !changes.delete_detail_ids&&!changes.detail_order&&JSON.stringify(changes.upserts)===JSON.stringify(input.items.map(item=>draftItemSchema.parse({...item,table_name:item.table_name??input.table_name})));
+    return !changes.delete_detail_ids&&!changes.detail_order&&JSON.stringify(changes.upserts)===JSON.stringify(input.items.map(item=>draftItemSchema.parse(item)));
    }
   }catch{/* An unreadable retained request cannot acknowledge current input. */}
   return false;

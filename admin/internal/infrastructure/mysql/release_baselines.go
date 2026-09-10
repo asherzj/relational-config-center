@@ -20,7 +20,7 @@ func (s *releaseOrderSession) ReadRecordBaselines(ctx context.Context, schema do
 // Only a verified original DELETE can supply an absent ENUM's comparison key.
 // Ordinary ADD continues to reject unsupported missing-ENUM identity synthesis.
 func (s *releaseOrderSession) ReadRollbackBaselines(ctx context.Context, schema domain.TableSchema, ids []any, source domain.ReleaseOrder, detailIDs []string) ([]domain.RecordBaseline, error) {
-	if source.VerifyPublication() != nil || source.Publication == nil || len(detailIDs) != len(ids) {
+	if source.VerifyPublication() != nil || len(detailIDs) != len(ids) {
 		return nil, application.ErrReleaseUnavailable
 	}
 	return s.readRecordBaselines(ctx, schema, ids, &source, detailIDs)
@@ -94,7 +94,7 @@ func (s *releaseOrderSession) readRecordBaselines(ctx context.Context, schema do
 				return nil, application.ErrReleaseUnavailable
 			}
 			saved := source.Items[sourceIndex]
-			command := source.Publication.Commands[sourceIndex]
+			command := *source.Items[sourceIndex].Publication
 			if command.Operation != "DELETE" || saved.RecordTable != meta.TableName || len(saved.RecordKey) != 32 || !sameRollbackEnumDefinition(source.FrozenTables[schema.Name].Schema, meta) {
 				return nil, &application.ReleaseItemError{Index: index, Cause: application.ErrRecordVersionConflict}
 			}

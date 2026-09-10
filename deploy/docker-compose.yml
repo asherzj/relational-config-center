@@ -10,12 +10,29 @@ services:
       - "127.0.0.1:${MYSQL_PUBLISHED_PORT:-3306}:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./mysql/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 2s
       timeout: 2s
       retries: 30
+
+  schema-migrate:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.admin
+      target: migration
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-rcc}
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_TLS_MODE: "false"
+    command: ["up", "--timeout=5m", "--lock-timeout=10s"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: "no"
 
   mysql-local-fixture:
     image: mysql:8.4
@@ -28,11 +45,11 @@ services:
     entrypoint: ["/bin/sh", "-ec"]
     command:
       - >-
-        exec mysql --protocol=tcp --host=mysql --user="$${MYSQL_USER}"
+        exec mysql --default-character-set=utf8mb4 --protocol=tcp --host=mysql --user="$${MYSQL_USER}"
         "$${MYSQL_DATABASE}" < /local-fixture/002-notification-templates.sql
     depends_on:
-      mysql:
-        condition: service_healthy
+      schema-migrate:
+        condition: service_completed_successfully
     restart: "no"
 
   admin:

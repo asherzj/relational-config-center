@@ -1,3 +1,4 @@
+const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real Chrome → same-origin Admin process → isolated MySQL rollback acceptance.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
@@ -38,7 +39,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     await page.getByRole('heading', { name: reverse ? '回滚：浏览器回滚验收变更' : '浏览器回滚验收变更', exact: true }).waitFor();
     await page.getByText(`${table} · ${state}`, { exact: true }).waitFor();
   } });
-  const read = (context, id) => api(context, 'GET', `/api/v1/release-orders/${id}`);
+  const read = async (context, id) => readAllReleaseDetailPages(context,base,await api(context,'GET',`/api/v1/release-orders/${id}`));
   const query = context => api(context, 'POST', `/api/v1/tables/${table}/query`, {
     conditions: [{ field: 'id', operator: 'exact', value: '1' }],
   });
@@ -76,8 +77,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     assert.equal(before.record_versions[0], '0');
     const forward = await api(applicant, 'POST', '/api/v1/release-orders', {
       title: '浏览器回滚验收变更',
-      table_name: table,
-      items: [{ operation: 'MODIFY', id: '1', expected_record_version: '0', content: { name: `T8 ${engineName} browser published value` } }],
+      items:[{table_name:table,operation: 'MODIFY', id: '1', expected_record_version: '0', content: { name: `T8 ${engineName} browser published value` } }],
     }, 201);
     const forwardURL = `${base}/configuration/release-orders/${forward.id}`;
     await applicantPage.goto(forwardURL);
@@ -146,7 +146,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     assert.deepEqual(await query(applicant), changed);
     const completed = await read(publisher, forward.id);
     assert.equal(completed.history.filter(event => event.action === 'COMPLETE').length, 1);
-    assert.equal(completed.publication.notification.status, 'NOT_CONNECTED');
+    assert.equal(Object.values(completed.executions[0].notifications)[0].status, 'NOT_CONNECTED');
     check('completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration');
 
     await applicantPage.reload();
@@ -160,8 +160,7 @@ const output = process.env.RCC_E2E_OUTPUT;
       await page.getByText(`${table} · ${state}`, { exact: true }).waitFor();
     };
     const quickDraft = await api(applicant, 'POST', '/api/v1/release-orders', {
-      title: quickTitle, table_name: table,
-      items: [{ operation: 'MODIFY', id: '1', expected_record_version: '1', content: { name: `Quick ${engineName} published value` } }],
+      title: quickTitle, items:[{table_name:table,operation: 'MODIFY', id: '1', expected_record_version: '1', content: { name: `Quick ${engineName} published value` } }],
     }, 201);
     const quickURL = `${base}/configuration/release-orders/${quickDraft.id}`;
     await applicantPage.setViewportSize({ width: 1440, height: 1000 });
@@ -257,7 +256,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     assert.equal(quickOriginal.id, committedQuick.id);
     assert.equal(quickOriginal.id, quickDraft.id);
     assert.equal(quickOriginal.state, 'ROLLED_BACK');
-    assert.equal(quickOriginal.rollback.publisher_id, actualPublisher);
+    assert.equal(quickOriginal.executions[1].actor_id, actualPublisher);
     assert.equal(quickOriginal.applicant_id, (await identity(applicant)).account.id);
     assert.equal(quickOriginal.history.length, 5);
     assert.equal(quickOriginal.history.at(-1).action, 'QUICK_ROLLBACK');
@@ -266,7 +265,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     assert.equal(quickOriginal.history.filter(event => event.action === 'APPROVE').length, 1);
     assert.deepEqual(quickOriginal.items, (await read(applicant, quickDraft.id)).items);
     assert.equal(quickOriginal.executions.length, 2);
-    assert.notEqual(quickOriginal.publication.notification.id, quickOriginal.rollback.notification.id);
+    assert.notEqual(Object.values(quickOriginal.executions[0].notifications)[0].id, Object.values(quickOriginal.executions[1].notifications)[0].id);
     assert.equal(quickRestored.rows[0].name, `T8 ${engineName} browser published value`);
     assert.equal(quickRestored.record_versions[0], '3');
     for (const action of ['快速回滚', '完结发布单', '申请回滚', '批准发布单', '执行发布']) assert.equal(await button(publishPage, action).count(), 0);
@@ -287,8 +286,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     // restoration. Its real server write must win without partial restoration.
     const competingPublisher = await account(['PUBLISHER']);
     const competingDraft = await api(applicant, 'POST', '/api/v1/release-orders', {
-      title: '浏览器完结与快速回滚竞争', table_name: table,
-      items: [{ operation: 'MODIFY', id: '1', expected_record_version: '3', content: { name: 'Completion wins the reviewed quick rollback' } }],
+      title: '浏览器完结与快速回滚竞争', items:[{table_name:table,operation: 'MODIFY', id: '1', expected_record_version: '3', content: { name: 'Completion wins the reviewed quick rollback' } }],
     }, 201);
     const submittedCompetition = await api(applicant, 'POST', `/api/v1/release-orders/${competingDraft.id}/submit`, { expected_version: competingDraft.version });
     const approvedCompetition = await api(reviewer, 'POST', `/api/v1/release-orders/${competingDraft.id}/approve`, { expected_version: submittedCompetition.version, reason: 'Independent approval' });

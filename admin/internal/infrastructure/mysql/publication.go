@@ -76,8 +76,8 @@ func publicationGroups(plan application.PublicationPlan) (map[string]*publicatio
 	return groups, names
 }
 
-func (s *publicationSession) CommitPublication(ctx context.Context, plan application.PublicationPlan) (domain.PublicationResult, error) {
-	fail := func(err error) (domain.PublicationResult, error) { return domain.PublicationResult{}, err }
+func (s *publicationSession) CommitPublication(ctx context.Context, plan application.PublicationPlan) (domain.PublicationCommit, error) {
+	fail := func(err error) (domain.PublicationCommit, error) { return domain.PublicationCommit{}, err }
 	if err := s.available(); err != nil {
 		return fail(err)
 	}
@@ -155,7 +155,7 @@ func (s *publicationSession) CommitPublication(ctx context.Context, plan applica
 		}
 	}
 	executionID := plan.OrderID + ":" + plan.ExecutionKind
-	result := domain.PublicationResult{ExecutionID: executionID, Kind: plan.ExecutionKind, PublisherID: plan.PublisherID, ExecutedAt: plan.At.UTC().Format(time.RFC3339Nano), Commands: make([]domain.PublicationCommand, len(plan.Items)), TableVersions: map[string]string{}, Notifications: map[string]domain.RefreshNotification{}}
+	result := domain.PublicationCommit{ExecutionID: executionID, Kind: plan.ExecutionKind, PublisherID: plan.PublisherID, ExecutedAt: plan.At.UTC().Format(time.RFC3339Nano), Commands: make([]domain.PublicationCommand, len(plan.Items)), TableVersions: map[string]string{}, Notifications: map[string]domain.RefreshNotification{}}
 	generated := []domain.ActiveTarget{}
 	for _, name := range tables {
 		group := groups[name]
@@ -218,7 +218,7 @@ func (s *publicationSession) CommitPublication(ctx context.Context, plan applica
 				return fail(&application.ReleaseItemError{Index: group.positions[local], Cause: application.ErrInvalidMutation})
 			}
 			group.cursor++
-			result.Commands[group.positions[local]] = domain.PublicationCommand{ExecutionID: executionID, ExecutionKind: plan.ExecutionKind, OrderID: plan.OrderID, Sequence: strconv.FormatUint(group.cursor, 10), TableName: name, TableVersion: version, Operation: item.Intent.Operation, ID: actualID, RecordVersion: group.versions[local], Before: before, Final: final}
+			result.Commands[group.positions[local]] = domain.PublicationCommand{DetailID: item.Intent.DetailID, ExecutionID: executionID, ExecutionKind: plan.ExecutionKind, OrderID: plan.OrderID, Sequence: strconv.FormatUint(group.cursor, 10), TableName: name, TableVersion: version, Operation: item.Intent.Operation, ID: actualID, RecordVersion: group.versions[local], Before: before, Final: final}
 		}
 		if err := s.database.WithContext(ctx).Exec(`UPDATE rcc_table_publications SET table_version=?,command_cursor=? WHERE table_name=?`, group.version, group.cursor, name).Error; err != nil {
 			return fail(application.ErrReleaseUnavailable)
@@ -262,8 +262,6 @@ func (s *publicationSession) CommitPublication(ctx context.Context, plan applica
 		return fail(application.ErrReleaseUnavailable)
 	}
 	// Bounded single-table display aliases are retired with the T7 API facade.
-	result.Notification = result.Notifications[plan.Items[0].Intent.TableName]
-	result.TableVersion = result.Notification.TableVersion
 	return result, nil
 }
 
@@ -354,11 +352,12 @@ var _ application.ReleaseOrderStore = (*Adapter)(nil)
 // generated and audit fields. Record Versions alone cannot observe external SQL.
 // These row/gap locks remain held until quick restoration and target release commit.
 func (s *publicationSession) LockUnchangedPublication(ctx context.Context, original domain.ReleaseOrder, tables map[string]application.PublicationTable) error {
-	if original.Publication == nil || original.VerifyPublication() != nil {
+	if len(original.Executions) == 0 || original.VerifyPublication() != nil {
 		return application.ErrReleaseUnavailable
 	}
 	plan := application.PublicationPlan{Tables: tables}
-	for _, command := range original.Publication.Commands {
+	for _, detail := range original.Items {
+		command := detail.Publication
 		plan.Items = append(plan.Items, application.PublicationItem{Intent: domain.ReleaseItem{TableName: command.TableName}, ID: command.ID})
 	}
 	groups, names := publicationGroups(plan)
@@ -370,7 +369,7 @@ func (s *publicationSession) LockUnchangedPublication(ctx context.Context, origi
 		}
 		for local, row := range rows {
 			index := group.positions[local]
-			if row.Checksum != original.Publication.Commands[index].Final.Checksum {
+			if row.Checksum != original.Items[index].Publication.Final.Checksum {
 				return &application.ReleaseItemError{Index: len(plan.Items) - 1 - index, Cause: application.ErrRecordVersionConflict}
 			}
 		}

@@ -9,18 +9,18 @@ export function ReleaseValue({state,value,type}:{state:ReleaseField["proposed_st
  const labels={sql_null:"SQL NULL",omitted:"未提交",absent:"不存在",automatic:"发布时生成",generated:"数据库生成（发布后确认）"};
  return <span className="whitespace-pre-wrap break-all">{state==="value"?(type?.toLowerCase()==="json"?`JSON：${value}`:value===""?'空字符串（""）':<><small className="mr-2 rounded border px-1 text-muted-foreground">值</small><span>{value}</span></>):labels[state]}</span>;
 }
-export function ReleaseDiff({order,beforeLabel="服务器原值",proposedLabel="申请值"}:{order:Pick<ReleaseOrder,"items">;beforeLabel?:string;proposedLabel?:string}){
+export function ReleaseDiff({order,beforeLabel="服务器原值",proposedLabel="申请值",offset=0,paged=false,operationCounts,initiallyExpanded=offset}:{order:Pick<ReleaseOrder,"items">;beforeLabel?:string;proposedLabel?:string;offset?:number;paged?:boolean;operationCounts?:Record<string,number>;initiallyExpanded?:number}){
  const currentDisplay=useCurrentFieldDisplayContext();
  const [requestedPage,setPage]=useState(0),[onlyChanges,setOnlyChanges]=useState(true);
- const [expanded,setExpanded]=useState<Set<number>>(()=>new Set([0]));
- const page=Math.min(requestedPage,Math.max(0,Math.ceil(order.items.length/releasePageSize)-1));
+ const [expanded,setExpanded]=useState<Set<number>>(()=>new Set([initiallyExpanded]));
+ const page=paged?0:Math.min(requestedPage,Math.max(0,Math.ceil(order.items.length/releasePageSize)-1));
  return <section aria-label="变更内容" className="min-w-0">
   <CurrentFieldDisplayStatus pending={currentDisplay.pending} error={currentDisplay.error} onRetry={()=>void currentDisplay.retry()}/>
-  <div className="flex flex-wrap items-center justify-between gap-3 mb-3"><p className="text-muted-foreground">{["ADD","MODIFY","DELETE"].map(operation=>`${operation} ${order.items.filter(item=>item.operation===operation).length}`).join(" · ")}</p><label className="flex items-center gap-2"><Checkbox checked={onlyChanges} onCheckedChange={value=>setOnlyChanges(value===true)}/>仅看变更</label></div>
-  <ReleaseItemPager count={order.items.length} page={page} onPage={next=>{setPage(next);setExpanded(new Set([next*releasePageSize]))}} onLocate={index=>{setPage(Math.floor(index/releasePageSize));setExpanded(new Set([index]))}}/>
-  {order.items.slice(page*releasePageSize,(page+1)*releasePageSize).map((item,offset)=>{
-   const index=page*releasePageSize+offset;
-   const display=currentDisplay.forTable(item.table_name??"");
+  <div className="flex flex-wrap items-center justify-between gap-3 mb-3"><p className="text-muted-foreground">{["ADD","MODIFY","DELETE"].map(operation=>`${operation} ${operationCounts?.[operation]??order.items.filter(item=>item.operation===operation).length}`).join(" · ")}</p><label className="flex items-center gap-2"><Checkbox checked={onlyChanges} onCheckedChange={value=>setOnlyChanges(value===true)}/>仅看变更</label></div>
+  {!paged&&<ReleaseItemPager count={order.items.length} page={page} onPage={next=>{setPage(next);setExpanded(new Set([next*releasePageSize]))}} onLocate={index=>{setPage(Math.floor(index/releasePageSize));setExpanded(new Set([index]))}}/>}
+  {order.items.slice(page*releasePageSize,(page+1)*releasePageSize).map((item,localOffset)=>{
+   const index=offset+page*releasePageSize+localOffset;
+   const display=currentDisplay.forTable(item.table_name);
    const fields=orderDisplayedFields(display,item.fields.filter(field=>!onlyChanges||item.operation!=="MODIFY"||!(field.proposed_state==="omitted"||field.before_state===field.proposed_state&&(field.before_state==="sql_null"||field.before_state==="value"&&field.before===field.proposed))),field=>field.name);
    return <section key={index} aria-label={`明细 ${index+1}`}><details open={expanded.has(index)} className="release-diff-item mb-3 min-w-0 rounded-lg border">
     <summary onClick={event=>{event.preventDefault();setExpanded(previous=>{const next=new Set(previous);if(next.has(index))next.delete(index);else next.add(index);return next})}} className="cursor-pointer p-4 break-all font-medium">明细 {index+1} · {item.table_name} · {item.operation} · 记录 {item.id??"发布时生成 id"}</summary>

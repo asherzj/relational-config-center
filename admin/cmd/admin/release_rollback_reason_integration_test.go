@@ -25,21 +25,21 @@ func TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator(t *testing.T) {
 	rollbackExecutor := releaseReasonAccount(t, app, "reason.rollback", "PUBLISHER")
 	unrelated := registerAccount(t, app, "reason.unrelated", "reason.unrelated@example.com", "correct horse battery staple")
 
-	created := rollbackOrderResponse(t, releaseActorRequest(t, app, applicant, "POST", "/api/v1/release-orders", `{"title":"回滚原因留痕","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"published"}}]}`, "reason-create"), 201)
+	created := rollbackOrderResponse(t, releaseActorRequest(t, app, applicant, "POST", "/api/v1/release-orders", `{"items":[{"content":{"label":"published"},"expected_record_version":"0","id":"10","operation":"MODIFY","table_name":"mutation_add_items"}],"title":"回滚原因留痕"}`, "reason-create"), 201)
 	path := "/api/v1/release-orders/" + created.ID
 	submitted := rollbackOrderResponse(t, releaseActorRequest(t, app, applicant, "POST", path+"/submit", `{"expected_version":"1"}`, "reason-submit"), 200)
 	approved := rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"2","reason":"independent review"}`, "reason-approve"), 200)
 	published := rollbackOrderResponse(t, releaseActorRequest(t, app, forwardPublisher, "POST", path+"/execute", `{"expected_version":"3"}`, "reason-publish"), 200)
 	preview := readQuickPreview(t, app, rollbackExecutor, path, published.Version)
 	rolled := rollbackOrderResponse(t, releaseActorRequest(t, app, rollbackExecutor, "POST", path+"/quick-rollback", quickRollbackBody(published.Version, preview.Digest, ""), "reason-rollback"), 200)
-	if submitted.ApplicantID != accountID(t, applicant) || approved.ApplicantID != accountID(t, applicant) || rolled.Rollback == nil || rolled.Rollback.PublisherID != accountID(t, rollbackExecutor) || rolled.Publication.PublisherID != accountID(t, forwardPublisher) {
+	if submitted.ApplicantID != accountID(t, applicant) || approved.ApplicantID != accountID(t, applicant) || len(rolled.Executions) < 2 || rolled.Executions[1].ActorID != accountID(t, rollbackExecutor) || rolled.Executions[0].ActorID != accountID(t, forwardPublisher) {
 		t.Fatal("fixture identities did not remain distinct")
 	}
 
 	// The named executor keeps this right even after losing PUBLISHER. The
 	// endpoint must not inherit a generic publisher/editor middleware gate.
 	grantReleaseRole(t, app, rollbackExecutor, `["VIEWER"]`, "2", "reason-rollback-viewer")
-	detail := releaseActorRequest(t, app, rollbackExecutor, "GET", path, "", "")
+	detail := releaseActorReadAllDetails(t, app, rollbackExecutor, "GET", path, "", "")
 	if detail.Code != 200 || !strings.Contains(detail.Body.String(), `"edit-rollback-reason"`) {
 		t.Fatalf("recorded executor action missing after role change: %d %s", detail.Code, detail.Body)
 	}
@@ -72,7 +72,7 @@ func TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator(t *testing.T) {
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/rollback-reason", `{"reason":"different"}`, "reason-admin-correction"), 409, "idempotency_conflict")
 	rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/rollback-reason", `{"reason":""}`, "reason-admin-clear"), 200)
 
-	current := rollbackOrderResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
+	current := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
 	if !reflect.DeepEqual(withoutRollbackReasons(current), rolled) {
 		t.Fatal("reason history rewrote immutable order or execution facts")
 	}
@@ -86,7 +86,7 @@ func TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator(t *testing.T) {
 		t.Fatal("reason corrections did not retain real actor and content", revisions)
 	}
 	for _, event := range revisions {
-		if event.At == "" || event.Version != rolled.Version || event.ExecutionID != rolled.Rollback.ExecutionID {
+		if event.At == "" || event.Version != rolled.Version || event.ExecutionID != rolled.Executions[1].ID {
 			t.Fatal("reason correction is not tied to the immutable rollback execution", event)
 		}
 	}
@@ -104,7 +104,7 @@ func TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator(t *testing.T) {
 	failed := releaseActorRequest(t, app, rollbackExecutor, "POST", path+"/rollback-reason", `{"reason":"故障后仍保留的输入"}`, "reason-storage-failure")
 	assertIntegrationErrorCode(t, failed, 503, "release_unavailable")
 	deliveryExec(t, db, `DROP TRIGGER fail_reason_history`)
-	unchanged := rollbackOrderResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
+	unchanged := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
 	if !reflect.DeepEqual(unchanged, current) {
 		t.Fatal("failed persistence fabricated rollback reason history")
 	}

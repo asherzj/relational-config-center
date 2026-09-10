@@ -1,3 +1,4 @@
+const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 const {repeatReleaseAction}=require('./release-original-action.cjs');
 // Real browser -> production Web proxy -> Admin -> unique disposable MySQL.
 // route.fetch executes real writes; only delivery of selected responses is changed.
@@ -125,7 +126,7 @@ async function waitDatabase() {
       assert.equal(response.status(), expected, `${method} ${path}: ${await response.text()}`);
       return response.json();
     };
-    const read = id => api(publisher, 'GET', `/api/v1/release-orders/${id}`);
+    const read = async id => readAllReleaseDetailPages(publisher,base,await api(publisher,'GET',`/api/v1/release-orders/${id}`));
     const approve = async order => {
       const submitted = await api(applicant, 'POST', `/api/v1/release-orders/${order.id}/submit`, { expected_version: order.version });
       return api(reviewer, 'POST', `/api/v1/release-orders/${order.id}/approve`, { expected_version: submitted.version, reason: 'Independent recovery acceptance' });
@@ -133,7 +134,7 @@ async function waitDatabase() {
     const prepare = async (operation, name) => {
       const id = operation === 'ADD' ? undefined : seed(name);
       const item = { operation, content: operation === 'DELETE' ? {} : { name: operation === 'MODIFY' ? `${name}_saved` : name }, ...(id ? { id, expected_record_version: '0' } : {}) };
-      const draft = await api(applicant, 'POST', '/api/v1/release-orders', { title: `${table} recovery change`, table_name: table, items: [item] }, 201);
+      const draft = await api(applicant, 'POST', '/api/v1/release-orders', { title: `${table} recovery change`, items:[{...item,table_name:table}] }, 201);
       const order = await approve(draft);
       context = publisher;
       // Enter through a real in-app history entry so pending Back exercises
@@ -150,7 +151,7 @@ async function waitDatabase() {
       assert.equal(current.state, 'SUCCEEDED');
       assert.equal(current.history.filter(event => event.action === 'EXECUTE').length, 1);
       assert.equal(commands(order.id), 1);
-      assert.equal(current.publication.commands.length, 1);
+      assert.equal(executionCommands(current).length, 1);
       assert.equal(rowCount(operation === 'MODIFY' ? `${name}_saved` : name), operation === 'DELETE' ? 0 : 1);
       return current;
     };

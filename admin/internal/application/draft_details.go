@@ -24,7 +24,7 @@ func newDetailID() (string, error) {
 	return hex.EncodeToString(b), nil
 }
 
-func (r *ReleaseOrders) editDraftDetails(ctx context.Context, s ReleaseOrderSession, order ReleaseOrder, changes DraftChanges, defaultTable string) ([]ReleaseItem, error) {
+func (r *ReleaseOrders) editDraftDetails(ctx context.Context, s ReleaseOrderSession, order ReleaseOrder, changes DraftChanges) ([]ReleaseItem, error) {
 	existing := map[string]ReleaseItem{}
 	deleted := map[string]bool{}
 	updated := map[string]ReleaseItem{}
@@ -36,11 +36,6 @@ func (r *ReleaseOrders) editDraftDetails(ctx context.Context, s ReleaseOrderSess
 			return nil, ErrReleaseInvalid
 		}
 		deleted[id] = true
-	}
-	for i := range changes.Upserts {
-		if item, found := existing[changes.Upserts[i].DetailID]; found && changes.Upserts[i].TableName == "" {
-			changes.Upserts[i].TableName = item.TableName
-		}
 	}
 	seen := map[string]bool{}
 	for index, input := range changes.Upserts {
@@ -58,7 +53,7 @@ func (r *ReleaseOrders) editDraftDetails(ctx context.Context, s ReleaseOrderSess
 	var prepared []ReleaseItem
 	if len(changes.Upserts) > 0 {
 		var err error
-		prepared, err = r.prepare(ctx, s, DraftInput{TableName: defaultTable, Items: changes.Upserts}, false)
+		prepared, err = r.prepare(ctx, s, DraftInput{Items: changes.Upserts}, false)
 		if err != nil {
 			var itemError *ReleaseItemError
 			if errors.As(err, &itemError) {

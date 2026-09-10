@@ -298,8 +298,8 @@ func TestPublicationRejectsIdentityCreatedAfterApproval(t *testing.T) {
 		t.Fatalf("new current identity: %v", err)
 	}
 	assertIdentityGuardRows(t, owner, "guard_current_ids", 1)
-	stored, err := adapter.GetReleaseOrder(ctx, approved.ID)
-	if err != nil || stored.State != "APPROVED" || stored.Publication != nil {
+	stored, err := adapter.ReadReleaseHeader(ctx, approved.ID)
+	if err != nil || stored.State != "APPROVED" || len(stored.Executions) != 0 {
 		t.Fatalf("failed approved publication: %#v %v", stored, err)
 	}
 }
@@ -409,7 +409,7 @@ func identityGuardDatabase(t *testing.T) (context.Context, *Adapter, *sql.DB, *d
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	t.Cleanup(cancel)
-	container, err := tcmysql.Run(ctx, "mysql:8.4", tcmysql.WithDatabase("identity_guard"), tcmysql.WithUsername("root"), tcmysql.WithPassword("isolated-identity-fixture"), tcmysql.WithScripts("../../../../deploy/mysql/init/001-schema.sql"))
+	container, err := tcmysql.Run(ctx, "mysql:8.4", tcmysql.WithDatabase("identity_guard"), tcmysql.WithUsername("root"), tcmysql.WithPassword("isolated-identity-fixture"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -424,6 +424,12 @@ func identityGuardDatabase(t *testing.T) (context.Context, *Adapter, *sql.DB, *d
 	}
 	settings.ClientFoundRows = true
 	adapter := identityGuardAdapter(t, settings)
+	if _, err := adapter.MigrateControlSchema(ctx, SchemaMigrationOptions{LockTimeout: 5 * time.Second}); err != nil {
+		t.Fatal(err)
+	}
+	if err := adapter.Ready(ctx); err != nil {
+		t.Fatal(err)
+	}
 	admin, err := sql.Open("mysql", settings.FormatDSN())
 	if err != nil {
 		t.Fatal(err)
@@ -484,7 +490,7 @@ type identityGuardPublication struct {
 func (p *identityGuardPublication) approve(ctx context.Context, table string, content domain.MutationContent) (domain.ReleaseOrder, string, error) {
 	p.sequence++
 	key := fmt.Sprintf("identity-guard-%d", p.sequence)
-	order, err := p.orders.Create(ctx, application.DraftInput{Title: "身份保护测试发布单", TableName: table, Items: []application.DraftItemInput{{Operation: "ADD", Content: content}}}, key+"-create")
+	order, err := p.orders.Create(ctx, application.DraftInput{Title: "身份保护测试发布单", Items: []application.DraftItemInput{{TableName: table, Operation: "ADD", Content: content}}}, key+"-create")
 	if err != nil {
 		return order, key, err
 	}
@@ -504,7 +510,7 @@ func (p *identityGuardPublication) Add(ctx context.Context, table string, conten
 	if err != nil {
 		return "", err
 	}
-	return order.Publication.Commands[0].ID, nil
+	return order.Items[0].Publication.ID, nil
 }
 
 func identityGuardAdapter(t *testing.T, settings *driver.Config) *Adapter {

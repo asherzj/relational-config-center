@@ -21,7 +21,7 @@ type PublicationSession interface {
 	ReleaseOrderSession
 	LockPublicationTable(context.Context, string) error
 	LockUnchangedPublication(context.Context, domain.ReleaseOrder, map[string]PublicationTable) error
-	CommitPublication(context.Context, PublicationPlan) (domain.PublicationResult, error)
+	CommitPublication(context.Context, PublicationPlan) (domain.PublicationCommit, error)
 }
 type PublicationTable struct {
 	Schema       domain.TableSchema
@@ -82,8 +82,9 @@ func (r *ReleaseOrders) Execute(ctx context.Context, id string, input SubmitRele
 		if err != nil {
 			return err
 		}
-		order.Publication = &result
-		order.Executions = append(order.Executions, domain.SummarizeExecution(result))
+		if err := order.ApplyExecution(result); err != nil {
+			return ErrReleaseUnavailable
+		}
 		order.State = "SUCCEEDED"
 		return nil
 	})

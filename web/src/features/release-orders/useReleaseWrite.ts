@@ -36,13 +36,9 @@ export function useReleaseWrite(scope:string){
    const order=await sendReleaseRequest(accountID,intent);
    // A replay acknowledges the original write; mounted details must read current state.
    void client.invalidateQueries({queryKey:["release-orders"]});
-   if(order.publication)void client.invalidateQueries({queryKey:["managed-data"]});
+   if(order.executions.length)void client.invalidateQueries({queryKey:["managed-data"]});
    void client.invalidateQueries({queryKey:["release-order",order.id]});
    void client.invalidateQueries({queryKey:["release-order-people",order.id]});
-   if(order.rollback_of_id){
-    void client.invalidateQueries({queryKey:["release-order",order.rollback_of_id]});
-    void client.invalidateQueries({queryKey:["release-order-people",order.rollback_of_id]});
-   }
    if(order.copied_from_id){
     void client.invalidateQueries({queryKey:["release-order",order.copied_from_id]});
     void client.invalidateQueries({queryKey:["release-order-people",order.copied_from_id]});
@@ -59,7 +55,7 @@ export function useReleaseWrite(scope:string){
    if(!recorded){setError(cause instanceof ApiError?cause:new ApiError("release_journal_unavailable","浏览器无法保存完整请求，尚未发送。当前输入和已有待恢复请求保留，请释放浏览器存储空间后重试。",0));return;}
    // These write conflicts are returned only after original-key deduplication.
    // They prove no original success exists; authentication/read failures do not.
-   const rejected=cause instanceof ApiError&&["release_version_conflict","record_version_conflict","release_state_invalid","release_target_conflict","release_frozen_changed","rollback_conflict"].includes(cause.code);
+   const rejected=cause instanceof ApiError&&["release_version_conflict","record_version_conflict","release_state_invalid","release_target_conflict","release_frozen_changed"].includes(cause.code);
    const keep=Boolean(previous)||uncertainReleaseError(cause)||(cause instanceof ApiError&&cause.executionOutcome==="not_committed");
    try{if(rejected)await rememberReleaseRequest(accountID,{...intent,rejection:cause.code as PendingReleaseRequest["rejection"]});
    else if(stored?.rejection&&!keep)await rememberReleaseRequest(accountID,{...intent,rejection:stored.rejection});

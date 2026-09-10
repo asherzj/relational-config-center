@@ -1,3 +1,4 @@
+import {releaseFixture,withReleaseReadRoutes,withExecution} from "../../test/release-fixture";
 import {IDBObjectStore} from "fake-indexeddb";
 import {rememberReleaseRequest,pendingReleaseRequests,hydrateReleaseRequests} from "./release-journal";
 import {QueryClient,QueryClientProvider} from "@tanstack/react-query";
@@ -13,12 +14,14 @@ import {defaultFieldPolicies} from "../../test/field-policy-fixture";
 const id="12345678123456781234567812345678";
 const rollbackID="87654321876543218765432187654321";
 const repreparedID="abcdefabcdefabcdefabcdefabcdefab";
-const order={id,title:"更新渠道展示名称",table_name:"items",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-07T08:00:00Z",updated_at:"2026-09-07T08:00:00Z",history:[{action:"CREATE",actor_id:testAdminIdentity.account.id,version:"1",at:"2026-09-07T08:00:00Z",reason:""}],allowed_actions:["edit","cancel"],items:[{detail_id:"1".repeat(32),table_name:"items",operation:"MODIFY",id:"1",expected_record_version:"0",before:{id:"1",label:"original"},content:{label:"proposal"},fields:[{name:"id",type:"uint64",nullable:false,editable:false,before_state:"value",before:"1",proposed_state:"omitted",proposed:null},{name:"label",type:"string",nullable:true,editable:true,before_state:"value",before:"original",proposed_state:"value",proposed:"proposal"}]}]};
-const json=(value:unknown,status=200)=>new Response(JSON.stringify(value, (key,item)=>key==="orders"?item.map((order:{items:unknown[]})=>({...order,item_count:order.items.length,operation_counts:{MODIFY:order.items.length}})):item),{status,headers:{"Content-Type":"application/json"}});
+const order={id,title:"更新渠道展示名称",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-07T08:00:00Z",updated_at:"2026-09-07T08:00:00Z",history:[{action:"CREATE",actor_id:testAdminIdentity.account.id,version:"1",at:"2026-09-07T08:00:00Z",reason:""}],allowed_actions:["edit","cancel"],items:[{detail_id:"1".repeat(32),table_name:"items",operation:"MODIFY",id:"1",expected_record_version:"0",before:{id:"1",label:"original"},content:{label:"proposal"},fields:[{name:"id",type:"uint64",nullable:false,editable:false,before_state:"value",before:"1",proposed_state:"omitted",proposed:null},{name:"label",type:"string",nullable:true,editable:true,before_state:"value",before:"original",proposed_state:"value",proposed:"proposal"}]}]};
+const json=(value:unknown,status=200)=>new Response(JSON.stringify(releaseFixture(value)),{status,headers:{"Content-Type":"application/json"}});
 let fieldPolicyResponse: (tableName:string)=>Response=()=>json(defaultFieldPolicies("items",[{name:"id",type:"uint64",nullable:false},{name:"label",type:"string",nullable:true}]));
+let mountedFetch:typeof fetch|undefined,sourceFetch:typeof fetch;
 function mount(path="/configuration/release-orders"){
- const request=globalThis.fetch;
- vi.stubGlobal("fetch",(input:RequestInfo|URL,init?:RequestInit)=>String(input).includes("/table-field-policies/")?Promise.resolve(fieldPolicyResponse(decodeURIComponent(String(input).split("/").at(-1)!))):request(input,init));
+ const request=globalThis.fetch===mountedFetch?sourceFetch:globalThis.fetch;sourceFetch=request;
+ mountedFetch=withReleaseReadRoutes((input,init)=>String(input).includes("/table-field-policies/")?Promise.resolve(fieldPolicyResponse(decodeURIComponent(String(input).split("/").at(-1)!))):request(input,init));
+ vi.stubGlobal("fetch",mountedFetch);
  const client=new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}});
  return {...render(<QueryClientProvider client={client}><ToastProvider><TestRouter initialEntries={[path]}><AppRoutes/></TestRouter></ToastProvider></QueryClientProvider>),client};
 }
@@ -40,7 +43,7 @@ it("原申请人或管理员核对最新配置后原子化重新准备已批准�
  const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
   const path=String(input);
-  if(path.endsWith("/preview"))return json({table_name:"items",items:freshItems});
+  if(path.endsWith("/preview"))return json({items:freshItems});
   if(path.endsWith("/reprepare")){writes.push(init!);return json(draft,201)}
   if(path.endsWith("/people"))return json({people:{}});
   if(path===`/api/v1/release-orders/${repreparedID}`)return json(draft);
@@ -73,7 +76,7 @@ it("重新准备响应丢失后跨刷新保留原正文与幂等键并恢复同�
  const writes:RequestInit[]=[];let attempts=0;
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
   const path=String(input);
-  if(path.endsWith("/preview"))return json({table_name:"items",items:order.items});
+  if(path.endsWith("/preview"))return json({items:order.items});
   if(path.endsWith("/reprepare")){writes.push(init!);attempts++;if(attempts===1)throw new TypeError("lost response");return json(draft,201)}
   if(path.endsWith("/people"))return json({people:{}});
   if(path===`/api/v1/release-orders/${repreparedID}`)return json(draft);
@@ -264,13 +267,13 @@ it("回滚原因窗口打开后服务端撤销动作仍保留输入并禁止提�
 
 it("原执行旧键重放返回已发布快照后仍重新读取当前已回滚详情",async()=>{
  const published={...order,state:"SUCCEEDED",version:"4",allowed_actions:[]};
- const current={...published,state:"ROLLED_BACK",version:"6",rollback_order_id:rollbackID,rollback_pending:false,history:[...published.history,{action:"ROLLBACK_EXECUTE",actor_id:testAdminIdentity.account.id,version:"6",at:"2026-09-08T09:00:00Z",reason:"",related_order_id:rollbackID}]};
+ const current={...published,state:"ROLLED_BACK",version:"6",history:[...published.history,{action:"QUICK_ROLLBACK",actor_id:testAdminIdentity.account.id,version:"6",at:"2026-09-08T09:00:00Z",reason:"",execution_id:`${id}:ROLLBACK`}]};
  await rememberReleaseRequest(testAdminIdentity.account.id,{scope:`execute:${id}`,path:`/api/v1/release-orders/${id}/execute`,method:"POST",body:'{"expected_version":"3"}',key:"original-execute-key",label:`执行发布 ${id}`})
  const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(String(input).endsWith("/execute")){writes.push(init!);return json(published)}if(String(input)===`/api/v1/release-orders/${id}`)return json(current);return json({orders:[],next_cursor:""})})));
  const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
  await repeatOriginal(user,"执行发布","确认发布到数据库");
- expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();expect(screen.getByText("最新回滚发布单",{exact:false})).toBeVisible();
+ expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();expect(within(screen.getByRole("list",{name:"发布阶段"})).getByText("已回滚")).toBeVisible();
  await waitFor(()=>expect(writes).toHaveLength(1));expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBe("original-execute-key");await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
 });
 it("从列表的查看详情入口打开持久草稿，并取消后保留历史",async()=>{
@@ -397,7 +400,7 @@ it("已知 ADD 冲突后查看缺行墓碑并明确重建，保留当前申请�
  const add={...order,items:[{...order.items[0]!,operation:"ADD",before:null,content:{id:"1",label:"proposal"},fields:order.items[0]!.fields.map(field=>({...field,editable:true,before_state:"absent",before:null}))}]};
  const writes:RequestInit[]=[];let previews=0;
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
-  if(String(input).endsWith("/preview")){previews++;return json({table_name:"items",items:[{...add.items[0]!,expected_record_version:"2"}]})}
+  if(String(input).endsWith("/preview")){previews++;return json({items:[{...add.items[0]!,expected_record_version:"2"}]})}
   if(init?.method==="PUT"){writes.push(init);return writes.length===1?json({error:{code:"record_version_conflict",message:"stale record",request_id:"record-conflict"}},409):json({...add,version:"2"})}
   return json(add);
  })));
@@ -474,7 +477,7 @@ it("未知请求明确被取消状态拒绝后，保留输入并只读查看终�
 it("刷新后原请求被明确拒绝仍保留申请，核对后才能确认重建",async()=>{
  let current=structuredClone(order);const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
-  if(String(input).endsWith("/preview"))return json({table_name:"items",items:current.items});
+  if(String(input).endsWith("/preview"))return json({items:current.items});
   if(init?.method==="PUT"){
    writes.push(init);
    if(writes.length===1)throw new TypeError("response lost before commit");
@@ -596,7 +599,7 @@ it("审批状态冲突跨刷新保留原意见，查看最新后才显式重建"
 it("仅 PUBLISHER 执行原审批，丢响应后跨刷新使用原键确认并显示最终值",async()=>{
  const identity={...testAdminIdentity,account:{...testAdminIdentity.account,roles:["PUBLISHER"]}};
  const approved={...order,state:"APPROVED",version:"3",allowed_actions:["execute"]};
- const final={...approved,state:"SUCCEEDED",version:"4",allowed_actions:[],publication:{table_version:"7",publisher_id:identity.account.id,executed_at:"2026-09-08T01:00:00Z",notification:{id:"notice",table_version:"7",status:"NOT_CONNECTED"},commands:[{order_id:id,sequence:"9",table_name:"items",table_version:"7",operation:"MODIFY",id:"1",record_version:"2",before:{format:"rcc-admin-mysql-row-v1",schema_digest:"a".repeat(64),deleted:false,fields:[{name:"label",type:"varchar(40)",encoding:"text",value:"original"}],checksum:"b".repeat(64)},final:{format:"rcc-admin-mysql-row-v1",schema_digest:"a".repeat(64),deleted:false,fields:[{name:"label",type:"varchar(40)",encoding:"text",value:"actual database value"},{name:"empty",type:"text",encoding:"text",value:""},{name:"nil",type:"json",encoding:"sql_null",value:null},{name:"json",type:"json",encoding:"json",value:"null"}],checksum:"c".repeat(64)}}]}};
+ const final=withExecution({...approved,state:"SUCCEEDED",version:"4",allowed_actions:[]},"PUBLICATION",[{order_id:id,sequence:"9",table_name:"items",table_version:"7",operation:"MODIFY",id:"1",record_version:"2",before:{format:"rcc-admin-mysql-row-v1",schema_digest:"a".repeat(64),deleted:false,fields:[{name:"label",type:"varchar(40)",encoding:"text",value:"original"}],checksum:"b".repeat(64)},final:{format:"rcc-admin-mysql-row-v1",schema_digest:"a".repeat(64),deleted:false,fields:[{name:"label",type:"varchar(40)",encoding:"text",value:"actual database value"},{name:"empty",type:"text",encoding:"text",value:""},{name:"nil",type:"json",encoding:"sql_null",value:null},{name:"json",type:"json",encoding:"json",value:"null"}],checksum:"c".repeat(64)}}],identity.account.id,"2026-09-08T01:00:00Z");
  let current:typeof approved|typeof final=approved;
  const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",vi.fn(async(input,init)=>{
@@ -620,7 +623,7 @@ it("仅 PUBLISHER 执行原审批，丢响应后跨刷新使用原键确认并�
  expect((await screen.findAllByText("发布人小程")).length).toBeGreaterThan(0);expect(screen.getAllByText(identity.account.id).length).toBeGreaterThan(0);
  expect(await screen.findByText("items · 已发布待完结")).toBeVisible();
  expect(screen.getByText("值：actual database value")).toBeVisible();expect(screen.getByText("SQL NULL")).toBeVisible();expect(screen.getByText("JSON：null")).toBeVisible();
- expect(screen.getByText("刷新通知：notice · 分发尚未接入")).toBeVisible();await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
+ expect(screen.getByText(`items · 表发布版本 7 · 刷新通知 ${id}:PUBLICATION · 分发尚未接入`)).toBeVisible();await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
 });
 
 it("分页编辑及删除只提交本次明细变化和整单版本",async()=>{
@@ -652,7 +655,7 @@ it("千项预览可定位最后一项，审批仍包含整单",async()=>{
 });
 
 it("大单与待恢复请求超出浏览器保存容量时发送前拒绝并保留原请求",async()=>{
- const previous=[{scope:"create",path:"/api/v1/release-orders",method:"POST",body:JSON.stringify({title:"原申请标题",table_name:"items",items:[{operation:"ADD",content:{label:"original intent"}}]}),key:"original-key",label:"已有原请求"}] as const;
+ const previous=[{scope:"create",path:"/api/v1/release-orders",method:"POST",body:JSON.stringify({title:"原申请标题",items:[{table_name:"items",operation:"ADD",content:{label:"original intent"}}]}),key:"original-key",label:"已有原请求"}] as const;
  await rememberReleaseRequest(testAdminIdentity.account.id,previous[0]);
  const large={...order,items:Array.from({length:1000},(_,index)=>({...order.items[0]!,detail_id:String(index+1).padStart(32,"0"),id:String(index+1)}))};let writes=0;
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(init?.method==="PUT")writes++;return json(large)})));
@@ -823,7 +826,7 @@ it("重新准备发送前响应未知时，关闭和刷新保留原正文和键�
  vi.stubGlobal("fetch",vi.fn(async(input,init)=>{
   const path=String(input);
   if(path.includes("/auth/"))return json(identity);
-  if(path.endsWith("/preview"))return json({table_name:"items",items:order.items});
+  if(path.endsWith("/preview"))return json({items:order.items});
   if(path.endsWith("/reprepare")){writes.push(init!);if(++attempts===1)throw new TypeError("disconnected before dispatch");return json(draft,201)}
   if(path.endsWith("/people"))return json({people:{}});
   if(path===`/api/v1/release-orders/${repreparedID}`)return json(draft);
@@ -845,10 +848,9 @@ it("重新准备发送前响应未知时，关闭和刷新保留原正文和键�
 });
 it("已回滚详情默认实际原发布结果并可读取可信恢复结果或申请差异",async()=>{
  const row=(value:string)=>({format:"rcc-admin-mysql-row-v1",schema_digest:"a".repeat(64),deleted:false,fields:[{name:"generated",type:"varchar(40)",encoding:"text",value}],checksum:"b".repeat(64)});
- const publication=(value:string)=>({table_version:"8",publisher_id:order.applicant_id,executed_at:order.updated_at,notification:{id:"notice",table_version:"8",status:"NOT_CONNECTED"},commands:[{order_id:id,sequence:"9",table_name:"items",table_version:"8",operation:"MODIFY",id:"1",record_version:"3",before:row("before"),final:row(value)}]});
- const original={...order,state:"ROLLED_BACK",publication:publication("actual original generated"),rollback:publication("actual restored generated"),allowed_actions:[]};
- const reverse={...order,id:rollbackID,state:"COMPLETED",rollback_of_id:id,publication:publication("actual restored generated"),allowed_actions:[]};
- vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json(String(input).endsWith(rollbackID)?reverse:original))));
+ const commands=(value:string)=>[{order_id:id,sequence:"9",table_name:"items",table_version:"8",operation:"MODIFY",id:"1",record_version:"3",before:row("before"),final:row(value)}];
+ const original=withExecution(withExecution({...order,state:"ROLLED_BACK",allowed_actions:[]},"PUBLICATION",commands("actual original generated")),"ROLLBACK",commands("actual restored generated"));
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json(original))));
  const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
  expect(await screen.findByText("值：actual original generated")).toBeVisible();expect(screen.queryByText("proposal")).not.toBeInTheDocument();
  await user.click(screen.getByRole("button",{name:"恢复结果"}));expect(await screen.findByText("值：actual restored generated")).toBeVisible();expect(screen.queryByText("值：actual original generated")).not.toBeInTheDocument();
@@ -858,7 +860,7 @@ it("已回滚详情默认实际原发布结果并可读取可信恢复结果或�
 
 it("字段名称和选项标签重读后实时更新，但申请 before 与持久化 final 原值不变",async()=>{
  const row=(value:string)=>({format:"rcc-admin-mysql-row-v1",schema_digest:"a".repeat(64),deleted:false,fields:[{name:"channel",type:"varchar(40)",encoding:"text",value}],checksum:"b".repeat(64)});
- const current={...order,state:"SUCCEEDED",allowed_actions:[],items:[{...order.items[0]!,fields:[{name:"channel",type:"string",nullable:false,editable:true,before_state:"value",before:"old",proposed_state:"value",proposed:"new"}]}],publication:{table_version:"8",publisher_id:order.applicant_id,executed_at:order.updated_at,notification:{id:"notice",table_version:"8",status:"NOT_CONNECTED"},commands:[{order_id:id,sequence:"9",table_name:"items",table_version:"8",operation:"MODIFY",id:"1",record_version:"3",before:row("old"),final:row("new")}]}};
+ const current=withExecution({...order,state:"SUCCEEDED",allowed_actions:[],items:[{...order.items[0]!,fields:[{name:"channel",type:"string",nullable:false,editable:true,before_state:"value",before:"old",proposed_state:"value",proposed:"new"}]}]},"PUBLICATION",[{order_id:id,sequence:"9",table_name:"items",table_version:"8",operation:"MODIFY",id:"1",record_version:"3",before:row("old"),final:row("new")}]);
  let currentName="渠道";let oldLabel="旧渠道";let newLabel="新渠道";let metadataReads=0;
  fieldPolicyResponse=()=>{
   metadataReads++;
@@ -963,9 +965,10 @@ it.each([
  expect(stages.getByText(progress)).toBeVisible();expect(stages.getAllByRole("listitem")[3]).toHaveTextContent(ending);
  if(["REJECTED","CANCELLED","ROLLED_BACK"].includes(state))expect(stages.getAllByRole("listitem")[3]).not.toHaveClass("is-complete");
 });
-it("快速回滚结果的审批阶段明确无需新审批",async()=>{
- vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json({...order,state:"COMPLETED",rollback_of_id:rollbackID,allowed_actions:[],history:[{...order.history[0],action:"QUICK_ROLLBACK"}]}))));
- mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("list",{name:"发布阶段"}));expect(stages.getByText("无需再次审批")).toBeVisible();expect(stages.getAllByRole("listitem")[1]).not.toHaveClass("is-complete");
+it("原单快速回滚保留原批准阶段且不创建新的审批阶段",async()=>{
+ const current={...order,state:"ROLLED_BACK",allowed_actions:[],history:[...order.history,{...order.history[0]!,action:"APPROVE",actor_id:"original-approver"},{...order.history[0]!,action:"QUICK_ROLLBACK",actor_id:"actual-rollback"}]};
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json(current))));
+ mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("list",{name:"发布阶段"}));expect(stages.getByText("已批准")).toBeVisible();expect(stages.getAllByRole("listitem")[1]).toHaveClass("is-complete");expect(stages.getByText("已回滚")).toBeVisible();
 });
 it("步骤人员时间来自提交而非创建，完结显示真实完结操作者",async()=>{
  const events=[{action:"CREATE",actor_id:"creator",at:"2026-09-01T01:00:00Z"},{action:"SUBMIT",actor_id:"submitter",at:"2026-09-02T02:00:00Z"},{action:"APPROVE",actor_id:"approver",at:"2026-09-03T03:00:00Z"},{action:"EXECUTE",actor_id:"publisher",at:"2026-09-04T04:00:00Z"},{action:"COMPLETE",actor_id:"closer",at:"2026-09-05T05:00:00Z"}].map((event,index)=>({...event,version:String(index+1),reason:""}));
@@ -981,7 +984,7 @@ it("重新准备未知后明确拒绝，必须读取最新版本和差异才可�
  const writes:RequestInit[]=[];let previews=0;
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
   const path=String(input);if(path.endsWith("/people"))return json({people:{}});
-  if(path.endsWith("/preview")){previews++;return json({table_name:"items",items:order.items.map(item=>({...item,expected_record_version:previews===1?"0":"2",fields:item.fields.map(field=>field.name==="label"?{...field,before:previews===1?"original":"fresh reviewed value"}:field)}))})}
+  if(path.endsWith("/preview")){previews++;return json({items:order.items.map(item=>({...item,expected_record_version:previews===1?"0":"2",fields:item.fields.map(field=>field.name==="label"?{...field,before:previews===1?"original":"fresh reviewed value"}:field)}))})}
   if(path.endsWith("/reprepare")){writes.push(init!);if(writes.length===1)throw new TypeError("unknown");if(writes.length===2){current={...approved,version:"4"};return json({error:{code:"release_version_conflict",message:"updated",request_id:"changed"}},409)}return json({...order,id:repreparedID,copied_from_id:id})}
   return json(current);
  })));
@@ -1001,7 +1004,7 @@ it.each([false,true])("重新准备会话中断隐藏浮层，重新登录后按
   if(path.endsWith("/auth/login")){signedIn=true;if(otherAccount)currentIdentity={...currentIdentity,account:{...currentIdentity.account,id:"00000000-0000-4000-8000-000000000099"}};return json(currentIdentity)}
   if(path.includes("/auth/"))return signedIn?json(currentIdentity):json({error:{code:"session_invalid",message:"expired",request_id:"expired"}},401);
   if(path.endsWith("/people"))return json({people:{}});
-  if(path.endsWith("/preview"))return json({table_name:"items",items:order.items});
+  if(path.endsWith("/preview"))return json({items:order.items});
   if(path.endsWith("/reprepare")){writes.push(init!);if(writes.length===1){signedIn=false;return json({error:{code:"session_invalid",message:"expired",request_id:"expired"}},401)}return json({...order,id:repreparedID,copied_from_id:id})}
   return json(approved);
  }));
@@ -1016,7 +1019,7 @@ it.each([false,true])("重新准备会话中断隐藏浮层，重新登录后按
 
 it.each(["DRAFT","PENDING_APPROVAL"] as const)("冷账号在%s读取持久编辑请求后仍可原键重推，不倒退主单",async(state)=>{
  const account={...testAdminIdentity.account,id:state==="DRAFT"?"deadbeef-dead-4000-8000-000000000001":"deadbeef-dead-4000-8000-000000000002"};
- const body=JSON.stringify({title:order.title,table_name:"items",expected_version:"1",items:[{...order.items[0],content:{label:"cold stored intent"}}]});
+ const body=JSON.stringify({title:order.title,expected_version:"1",items:[{...order.items[0],content:{label:"cold stored intent"}}]});
  // Seed the browser boundary directly: this account has never hydrated the
  // module mirror, unlike the default fixture account in test setup.
  await new Promise<void>((resolve,reject)=>{const opening=indexedDB.open("rcc-release-requests",1);opening.onsuccess=()=>{const db=opening.result,tx=db.transaction("accounts","readwrite");tx.objectStore("accounts").put([{scope:`edit:${id}`,method:"PUT",path:`/api/v1/release-orders/${id}`,body,key:"cold-original-key",label:"冷启动原申请"}],account.id);tx.oncomplete=()=>{db.close();resolve()};tx.onabort=()=>reject(tx.error)};opening.onerror=()=>reject(opening.error)});
@@ -1038,7 +1041,7 @@ it("另一窗口留下同范围原请求时锁定当前输入，恢复后保留�
  const writes:RequestInit[]=[];vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(init?.method==="PUT")writes.push(init);return String(input).endsWith("/people")?json({people:{}}):json(order)})));
  const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
  await user.click(await screen.findByRole("button",{name:"编辑草稿"}));await user.clear(screen.getByLabelText("label 申请值"));await user.type(screen.getByLabelText("label 申请值"),"this window unsaved");
- const body=JSON.stringify({title:order.title,table_name:"items",expected_version:"1",items:[{...order.items[0],content:{label:"other window request"}}]});
+ const body=JSON.stringify({title:order.title,expected_version:"1",items:[{...order.items[0],content:{label:"other window request"}}]});
  await act(async()=>{await rememberReleaseRequest(testAdminIdentity.account.id,{scope:`edit:${id}`,method:"PUT",path:`/api/v1/release-orders/${id}`,body,key:"other-window-key",label:"另一窗口原请求"})});
  expect(screen.getByLabelText("label 申请值")).toBeDisabled();expect(screen.getByLabelText("label 申请值")).toHaveValue("this window unsaved");
  await user.click(screen.getByRole("button",{name:"保存草稿修改"}));await waitFor(()=>expect(writes).toHaveLength(1));
@@ -1055,8 +1058,8 @@ it("多表审阅按所属表读取一次当前标签，申请与两次实际结�
  };
  const items=["items","other","items"].map((table_name,index)=>({...order.items[0]!,table_name,detail_id:String(index+1).repeat(32),id:String(index+1)}));
  const row=(value:string)=>({format:"rcc-admin-mysql-row-v1",schema_digest:"a".repeat(64),deleted:false,fields:[{name:"label",type:"varchar(40)",encoding:"text",value}],checksum:"b".repeat(64)});
- const publication={table_version:"1",table_versions:{items:"2",other:"1"},publisher_id:order.applicant_id,executed_at:order.updated_at,notification:{id:"notice",table_version:"1",status:"NOT_CONNECTED"},commands:items.map((item,index)=>({order_id:id,sequence:String(index===2?2:1),table_name:item.table_name,table_version:"1",operation:"MODIFY",id:item.id,record_version:"1",before:row("original"),final:row("proposal")}))};
- const current={...order,items,state:"ROLLED_BACK",allowed_actions:[],publication,rollback:{...publication,commands:[...publication.commands].reverse().map(command=>({...command,before:command.final,final:command.before}))}};
+ const commands=items.map((item,index)=>({order_id:id,sequence:String(index===2?2:1),table_name:item.table_name,table_version:"1",operation:"MODIFY",id:item.id,record_version:"1",before:row("original"),final:row("proposal")}));
+ const current=withExecution(withExecution({...order,items,state:"ROLLED_BACK",allowed_actions:[]},"PUBLICATION",commands),"ROLLBACK",commands.map(command=>({...command,before:command.final,final:command.before})));
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json(current))));
  const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
  expect(await screen.findByText("other新值")).toBeVisible();
@@ -1131,7 +1134,7 @@ it("HTTP成功后的IndexedDB清理失败仍读取真实主单且不会变成业
 
 it("冷账号日志尚未读出时新建原操作等待，读出后保持完整原请求",async()=>{
  const account={...testAdminIdentity.account,id:"deadbeef-dead-4000-8000-000000000086"};
- const body=JSON.stringify({title:"冷启动原草稿",table_name:"items",items:[{...order.items[0],table_name:"items",id:"1",content:{label:"cold create intent"}},{...order.items[0],table_name:"other",id:"1",content:{label:"other cold intent"}}]});
+ const body=JSON.stringify({title:"冷启动原草稿",items:[{...order.items[0],table_name:"items",id:"1",content:{label:"cold create intent"}},{...order.items[0],table_name:"other",id:"1",content:{label:"other cold intent"}}]});
  await new Promise<void>((resolve,reject)=>{const opening=indexedDB.open("rcc-release-requests",1);opening.onsuccess=()=>{const db=opening.result,tx=db.transaction("accounts","readwrite");tx.objectStore("accounts").put([{scope:"create",method:"POST",path:"/api/v1/release-orders",body,key:"cold-create-key",label:"冷启动原申请"}],account.id);tx.oncomplete=()=>{db.close();resolve()};tx.onabort=()=>reject(tx.error)};opening.onerror=()=>reject(opening.error)});
  const open=indexedDB.open.bind(indexedDB);let releaseRead:()=>void=()=>{};
  vi.spyOn(indexedDB,"open").mockImplementationOnce((...args)=>{
@@ -1153,4 +1156,18 @@ it("冷账号日志尚未读出时新建原操作等待，读出后保持完整�
  await user.click(await screen.findByText("查看原申请内容"));expect(screen.getByText("明细 1 · items · MODIFY · 记录 1")).toBeVisible();expect(screen.getByText("明细 2 · other · MODIFY · 记录 1")).toBeVisible();
  await user.click(await screen.findByRole("button",{name:"确认并保存草稿"}));await waitFor(()=>expect(writes).toHaveLength(1));
  expect(writes[0]!.body).toBe(body);expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBe("cold-create-key");
+});
+
+it("后台 header 换版本和撤销编辑动作不重挂载输入，也不替换已留存原请求",async()=>{
+ let current={...order};
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json(current))));
+ const user=userEvent.setup();const {client}=mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"编辑草稿"}));
+ const input=await screen.findByLabelText("label 申请值");await user.clear(input);await user.type(input,"本窗口独立输入");
+ const retained={scope:`edit:${id}`,path:`/api/v1/release-orders/${id}`,method:"PUT" as const,body:JSON.stringify({title:order.title,expected_version:"1",changes:{upserts:[{detail_id:order.items[0]!.detail_id,table_name:"items",operation:"MODIFY",id:"1",expected_record_version:"0",content:{label:"已发原输入"}}]}}),key:"immutable-editor-request",label:"保留原保存"};
+ await act(async()=>{await rememberReleaseRequest(testAdminIdentity.account.id,retained)});
+ await act(async()=>{current={...order,version:"2",allowed_actions:[],items:order.items.map(item=>({...item,content:{label:"他人新内容"}}))};await client.refetchQueries({queryKey:["release-order",id]})});
+ expect(screen.getByLabelText("label 申请值")).toBe(input);expect(input).toHaveValue("本窗口独立输入");expect(input).toBeDisabled();
+ expect(pendingReleaseRequests(testAdminIdentity.account.id)).toEqual([retained]);
+ expect(await screen.findByText("当前身份或发布单状态不允许编辑，已输入内容保留。")).toBeVisible();
 });

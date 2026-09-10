@@ -95,11 +95,17 @@ func frozenReleaseTables(tables map[string]PublicationTable) map[string]domain.R
 }
 
 func frozenOrderDigest(order ReleaseOrder) string {
+	// Successful results never become part of the independently frozen application.
+	items := append([]ReleaseItem(nil), order.Items...)
+	for index := range items {
+		items[index].Publication = nil
+		items[index].Rollback = nil
+	}
 	return hex.EncodeToString(releaseDigest(struct {
 		Title  string
 		Items  []ReleaseItem
 		Tables map[string]domain.ReleaseExecutionSnapshot
-	}{order.Title, order.Items, order.FrozenTables}))
+	}{order.Title, items, order.FrozenTables}))
 }
 
 func verifyFrozenTables(order ReleaseOrder, tables map[string]PublicationTable) error {

@@ -1,3 +1,4 @@
+const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real Playwright browser -> production same-origin Web proxy -> Cookie-authenticated Admin -> disposable MySQL 8.4.
 // SQL arranges this suite's tables and independently verifies bytes and database semantics.
@@ -18,7 +19,7 @@ const tables = ['stage4_complex', 'stage4_ids', 'stage4_defaults', 'stage4_auto'
 const hex = (value) => Buffer.from(value, 'utf8').toString('hex');
 const literal = (value) => `CONVERT(0x${hex(value)} USING utf8mb4)`;
 const sql = (statement) => execFileSync('docker', ['exec', '-i', container, 'sh', '-c', 'MYSQL_PWD="$MYSQL_PASSWORD" mysql --default-character-set=utf8mb4 --raw --batch --skip-column-names -u"$MYSQL_USER" "$MYSQL_DATABASE"'], { input: statement, encoding: 'utf8', timeout: 20000, stdio: ['pipe', 'pipe', 'pipe'] }).trim();
-const releaseOrderCount = (table) => sql(`SELECT COUNT(*) FROM rcc_release_orders WHERE table_name=${literal(table)};`);
+const releaseOrderCount = (table) => sql(`SELECT COUNT(DISTINCT order_id) FROM rcc_release_details WHERE table_name=${literal(table)};`);
 const sqlAsRoot = (statement) => execFileSync('docker', ['exec', '-i', container, 'sh', '-c', 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --default-character-set=utf8mb4 --raw --batch --skip-column-names -uroot "$MYSQL_DATABASE"'], { input: statement, encoding: 'utf8', timeout: 20000, stdio: ['pipe', 'pipe', 'pipe'] }).trim();
 const publicationState = (table) => ({
   businessRows: sql(`SELECT COUNT(*) FROM ${table};`),
@@ -173,7 +174,8 @@ function fixtureSQL() {
     const pending = page.waitForResponse((response) => new URL(response.url()).pathname === '/api/v1/release-orders' && response.request().method() === 'POST');
     await button('确认并保存草稿').click();
     const draft = await record(await pending);
-    assert.equal(draft.body.table_name, table);
+    assert.equal(draft.body.table_name, undefined);
+    assert.equal(draft.body.items[0].table_name, table);
     assert.equal(draft.body.items.length, 1);
     assert.equal(draft.body.items[0].operation, operation);
     assert.deepEqual(draft.body.items[0].content, expectedContent, 'release draft content must preserve edited and unchanged original values');
@@ -193,7 +195,7 @@ function fixtureSQL() {
     const submitted = await api(context, 'POST', `/api/v1/release-orders/${currentOrder.id}/submit`, { expected_version: currentOrder.version }, expectedFailures.length ? [200, ...expectedFailures] : 200);
     if (submitted.status !== 200) {
       const retained = await api(context, 'GET', `/api/v1/release-orders/${currentOrder.id}`);
-      currentOrder = retained.response;
+      currentOrder = await readAllReleaseDetailPages(context,base,retained.response);
       assert.equal(currentOrder.state, 'DRAFT');
       assert.deepEqual(currentOrder.items[0].content, expectedContent);
       return { ...submitted, stage: 'submit', order: currentOrder };
@@ -203,7 +205,7 @@ function fixtureSQL() {
     const approved = await api(approver, 'POST', `/api/v1/release-orders/${currentOrder.id}/approve`, { expected_version: currentOrder.version, reason: 'Independent complex field review' }, expectedFailures.length ? [200, ...expectedFailures] : 200);
     if (approved.status !== 200) {
       const retained = await api(context, 'GET', `/api/v1/release-orders/${currentOrder.id}`);
-      currentOrder = retained.response;
+      currentOrder = await readAllReleaseDetailPages(context,base,retained.response);
       assert.equal(currentOrder.state, 'PENDING_APPROVAL');
       assert.deepEqual(currentOrder.items[0].content, expectedContent);
       return { ...approved, stage: 'approval', order: currentOrder };
@@ -218,7 +220,7 @@ function fixtureSQL() {
       const afterPublication = publicationState(table);
       assert.deepEqual(afterPublication, beforePublication, 'failed publication must roll back business rows, versions, commands, table version and notifications');
       const retained = await api(context, 'GET', `/api/v1/release-orders/${currentOrder.id}`);
-      currentOrder = retained.response;
+      currentOrder = await readAllReleaseDetailPages(context,base,retained.response);
       assert.equal(currentOrder.state, 'APPROVED', 'failed publication keeps the approved release retryable');
       assert.deepEqual(currentOrder.items[0].content, expectedContent, 'failed publication retains the exact approved input');
       await page.reload();
@@ -227,18 +229,18 @@ function fixtureSQL() {
     }
     currentOrder = result.response;
     assert.equal(currentOrder.state, 'SUCCEEDED');
-    assert.equal(currentOrder.publication.commands.length, 1);
-    assert.equal(currentOrder.publication.commands[0].operation, operation);
+    assert.equal(executionCommands(currentOrder).length, 1);
+    assert.equal(executionCommands(currentOrder)[0].operation, operation);
     await page.reload();
     await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();
     await page.getByText(`${table} · 已发布待完结`, { exact: true }).waitFor();
     // Finish each independent data fixture before a later case uses its identity.
     await api(publisher, 'POST', `/api/v1/release-orders/${currentOrder.id}/complete`, { expected_version: currentOrder.version });
-    return { ...result, response: { ...result.response, id: currentOrder.publication.commands[0].id }, stage: 'publication' };
+    return { ...result, response: { ...result.response, id: executionCommands(currentOrder)[0].id }, stage: 'publication' };
   }
   async function closeSuccess(operation, expected, commandExpected = expected) {
     assert.equal(currentOrder.state, 'SUCCEEDED');
-    const command = currentOrder.publication.commands[0];
+    const command = executionCommands(currentOrder)[0];
     assert.equal(command.operation, operation);
     if (commandExpected) {
       const actual = Object.fromEntries(command.final.fields.map((field) => [field.name, field.encoding === 'sql_null' ? null : field.value]));
@@ -437,7 +439,7 @@ function fixtureSQL() {
       const publishedID = item.canonical;
       const queryID = item.queryID ?? publishedID;
       assert.equal(response.response.id, publishedID);
-      assert.equal(currentOrder.publication.commands[0].id, publishedID, 'publication command must use the canonical published identity');
+      assert.equal(executionCommands(currentOrder)[0].id, publishedID, 'publication command must use the canonical published identity');
       await closeSuccess('ADD', { id: publishedID, label: item.name }, { id: item.commandValue ?? publishedID, label: item.name });
       const sqlID = sql(`SELECT JSON_QUOTE(CAST(id AS CHAR)) FROM ${table};`);
       const query = { conditions: [{ field: 'id', operator: 'exact', value: publishedID }], page_number: 1, page_size: 1 };
@@ -447,7 +449,7 @@ function fixtureSQL() {
       const modified = await execute(table, 'MODIFY', { label: 'canonical-patched' }, queryID);
       assert.equal(currentOrder.items[0].id, queryID, 'MODIFY draft must retain the query/editor identity');
       assert.equal(modified.response.id, publishedID);
-      assert.equal(currentOrder.publication.commands[0].id, publishedID, 'MODIFY command must return the canonical published identity');
+      assert.equal(executionCommands(currentOrder)[0].id, publishedID, 'MODIFY command must return the canonical published identity');
       await closeSuccess('MODIFY', { id: publishedID, label: 'canonical-patched' }, { id: item.commandValue ?? publishedID, label: 'canonical-patched' });
       const final = await api(context, 'POST', `/api/v1/tables/${table}/query`, query); assert.equal(final.response.rows.length, 1); assert.equal(final.response.rows[0].id, queryID); assert.equal(final.response.rows[0].label, 'canonical-patched'); assert.equal(sql(`SELECT COUNT(*) FROM ${table};`), '1');
       return { ...item, publishedID, queryID, responseID: response.response.id, sqlID, sqlMode, exactQueryAndReleaseModify: true };
@@ -536,7 +538,7 @@ function fixtureSQL() {
       const table = 'stage4_explicit_ids';
       sql(`DROP TABLE ${table}; CREATE TABLE ${table}(id DECIMAL(6,2) PRIMARY KEY, label VARCHAR(64)) ENGINE=MyISAM;`);
       const values = { id: '1.235', label: 'nontransactional' };
-      const response = await api(context, 'POST', '/api/v1/release-orders', { title: `${table} capability check`, table_name: table, items: [{ operation: 'ADD', content: values }] }, 422);
+      const response = await api(context, 'POST', '/api/v1/release-orders', { title: `${table} capability check`, items:[{table_name:table,operation: 'ADD', content: values }] }, 422);
       assert.equal(response.response.error.code, 'incompatible_table');
       assert.equal(sql(`SELECT COUNT(*) FROM ${table};`), '0', 'a known rejection must leave no persisted row');
       return { engine: 'MyISAM', status: response.status, code: response.response.error.code, rows: '0' };
@@ -649,8 +651,8 @@ function fixtureSQL() {
       assert.equal(await checkbox(`包含 ${field}`).count(), 0, 'generated columns must be excluded from the ADD editor');
       assert.equal(await input(field).count(), 0, 'generated columns must not offer an ADD input');
       const response = await api(context, 'POST', '/api/v1/release-orders', {
-        title: 'Reject generated column input', table_name: 'stage4_generated',
-        items: [{ operation: 'ADD', content: { base_value: '9', [field]: '123' } }],
+        title: 'Reject generated column input',
+        items: [{ table_name:'stage4_generated',operation: 'ADD', content: { base_value: '9', [field]: '123' } }],
       }, 422);
       assert.equal(response.response.error.code, 'invalid_mutation_content'); assert.equal(sql('SELECT COUNT(*) FROM stage4_generated;'), '0');
       return { metadata: sql("SELECT CONCAT_WS('|',COLUMN_NAME,EXTRA,GENERATION_EXPRESSION) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='stage4_generated';") };
@@ -664,7 +666,7 @@ function fixtureSQL() {
         await managed('stage4_generated'); await button(`修改记录 ${id}`).click();
         assert.equal(await input(field).count(), 0, 'generated columns must be excluded from the MODIFY editor');
         const current = (await api(context, 'POST', '/api/v1/tables/stage4_generated/query', { conditions: [{ field: 'id', operator: 'exact', value: id }] })).response;
-        const rejected = await api(context, 'POST', '/api/v1/release-orders', { title: 'Reject generated column input', table_name: 'stage4_generated', items: [{ operation: 'MODIFY', id, expected_record_version: current.record_versions[0], content: { [field]: '123' } }] }, 422);
+        const rejected = await api(context, 'POST', '/api/v1/release-orders', { title: 'Reject generated column input', items: [{ table_name:'stage4_generated',operation: 'MODIFY', id, expected_record_version: current.record_versions[0], content: { [field]: '123' } }] }, 422);
         assert.equal(rejected.response.error.code, 'invalid_mutation_content');
         assert.equal(sql(`SELECT CONCAT_WS('|',base_value,stored_value,virtual_value) FROM stage4_generated WHERE id=${id};`), '9|18|10');
       }

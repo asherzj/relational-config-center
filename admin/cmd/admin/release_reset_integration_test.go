@@ -17,7 +17,7 @@ import (
 
 // AC-021 uses a new disposable MySQL and the shipped maintenance process.
 func TestReleaseResetPreservesRecordsAndContinuesPublication(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	db := deliveryDB(t, driver)
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
@@ -30,7 +30,7 @@ func TestReleaseResetPreservesRecordsAndContinuesPublication(t *testing.T) {
 	if first.RecordVersion != "41" || first.Sequence != "1" || first.TableVersion != "1" {
 		t.Fatalf("unexpected initial publication: %+v", first)
 	}
-	_ = approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"pending cleanup","table_name":"mutation_supplied_id_items","items":[{"operation":"MODIFY","id":"kept","expected_record_version":"41","content":{"label":"never applied"}}]}`, "reset-approved")
+	_ = approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"label":"never applied"},"expected_record_version":"41","id":"kept","operation":"MODIFY","table_name":"mutation_supplied_id_items"}],"title":"pending cleanup"}`, "reset-approved")
 	before := resetCounts(t, driver)
 	for table, count := range before {
 		if count == 0 {
@@ -123,7 +123,7 @@ func resetCommand(binary string, driver *mysqldriver.Config, args ...string) *ex
 }
 
 func TestReleaseResetRefusesUnverifiedTargetsAndSchema(t *testing.T) {
-	_, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	_, driver := startCurrentIntegrationMySQL(t)
 	db := deliveryDB(t, driver)
 	seedReleaseResetHistory(t, driver)
 	before := resetCounts(t, driver)
@@ -189,8 +189,24 @@ func TestReleaseResetRefusesUnverifiedTargetsAndSchema(t *testing.T) {
 }
 
 func TestReleaseResetInterruptedTransactionRollsBackAndRetries(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
-	db := deliveryDB(t, driver)
+	// Offline maintenance remains available before Goose adoption and without
+	// unrelated field-policy/Goose tables. Upgrade only its eight owned tables.
+	ctx, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql")
+	maintenance := *driver
+	maintenance.MultiStatements = true
+	maintenance.Params = map[string]string{"charset": "utf8mb4"}
+	db := deliveryDB(t, &maintenance)
+	for _, file := range []string{"015-original-order-executions.sql", "016-draft-target-reservations.sql", "017-release-main-order.sql"} {
+		source, err := os.ReadFile(filepath.Join("..", "..", "..", "deploy", "mysql", "migrations", file))
+		if err != nil {
+			t.Fatal(err)
+		}
+		deliveryExec(t, db, string(source))
+	}
+	var unrelated int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('rcc_goose_db_version','rcc_schema_migration_attempts','rcc_table_field_policies')`).Scan(&unrelated); err != nil || unrelated != 0 {
+		t.Fatalf("offline fixture silently became adopted/current: %d %v", unrelated, err)
+	}
 	seedReleaseResetHistory(t, driver)
 	before := resetCounts(t, driver)
 	binary := buildReleaseReset(t)
@@ -273,7 +289,7 @@ func seedReleaseResetHistory(t *testing.T, driver *mysqldriver.Config) {
 	t.Helper()
 	db := deliveryDB(t, driver)
 	for _, statement := range []string{
-		`INSERT INTO rcc_release_orders VALUES('old','example','actor','APPROVED',3,JSON_OBJECT())`,
+		`INSERT INTO rcc_release_orders(id,applicant_id,state,version,document) VALUES('old','actor','APPROVED',3,JSON_OBJECT())`,
 		`INSERT INTO rcc_release_requests VALUES('actor','create','historic',UNHEX(REPEAT('00',32)),JSON_OBJECT('id','old','state','DRAFT'))`,
 		`INSERT INTO rcc_release_requests VALUES('actor','execute:old','unfinished',UNHEX(REPEAT('00',32)),NULL)`,
 		`INSERT INTO rcc_release_targets VALUES('example',UNHEX(REPEAT('01',32)),'old')`,

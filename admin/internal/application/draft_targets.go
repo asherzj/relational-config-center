@@ -19,7 +19,7 @@ func (r *ReleaseOrders) describeTargetConflict(ctx context.Context, err error) e
 	if errors.As(err, &conflict) {
 		// The failed save has rolled back. Read the current owner without taking
 		// another order's lock inside the target acquisition transaction.
-		if owner, readErr := r.store.GetReleaseOrder(ctx, conflict.OrderID); readErr == nil {
+		if owner, readErr := r.store.ReadReleaseHeader(ctx, conflict.OrderID); readErr == nil {
 			conflict.ApplicantID = owner.ApplicantID
 		}
 	}

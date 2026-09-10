@@ -13,7 +13,7 @@ it.each([['SQL NULL','sql_null'],['未提交','omitted'],['不存在','absent'],
 
 it("仅看变更默认开启，隐藏 MODIFY 未提交及确定同值字段，完整视图保留状态区别",async()=>{
  const field=(name:string,before_state:string,before:string|null,proposed_state:string,proposed:string|null)=>({name,type:name==="payload"?"json":"string",nullable:true,editable:true,before_state,before,proposed_state,proposed});
- const item={operation:"MODIFY",id:"17",expected_record_version:"3",content:{},before:{},fields:[field("same","value","equal","value","equal"),field("same_null","sql_null",null,"sql_null",null),field("empty","value","before","value",""),field("nullable","value","before","sql_null",null),field("payload","sql_null",null,"value","null"),field("omitted","value","before","omitted",null),field("stamp","value","old","automatic",null),field("derived","value","old","generated",null)]};
+ const item={detail_id:"1",table_name:"items",operation:"MODIFY",id:"17",expected_record_version:"3",content:{},before:{},fields:[field("same","value","equal","value","equal"),field("same_null","sql_null",null,"sql_null",null),field("empty","value","before","value",""),field("nullable","value","before","sql_null",null),field("payload","sql_null",null,"value","null"),field("omitted","value","before","omitted",null),field("stamp","value","old","automatic",null),field("derived","value","old","generated",null)]};
  render(<ReleaseDiff order={{items:[item] as ReleaseOrder["items"]}}/>);
  const user=userEvent.setup();
  expect(screen.getByRole("checkbox",{name:"仅看变更"})).toBeChecked();
@@ -25,7 +25,7 @@ it("仅看变更默认开启，隐藏 MODIFY 未提交及确定同值字段，�
  await user.click(screen.getByRole("checkbox",{name:"仅看变更"}));expect(screen.queryByText("omitted")).not.toBeInTheDocument();expect(screen.getByText("发布时生成")).toBeVisible();expect(screen.getByText("数据库生成（发布后确认）")).toBeVisible();
 });
 it("千项混合差异每页20项，仅展开首项且 ADD/DELETE 保持完整",async()=>{
- const items=Array.from({length:1000},(_,index)=>({operation:index%2?"DELETE":"ADD",id:String(index+1),expected_record_version:"1",content:{},before:{},fields:[{name:`field_${index+1}`,type:"string",nullable:false,editable:true,before_state:"value",before:"same",proposed_state:"value",proposed:"same"}]})) as ReleaseOrder["items"];
+ const items=Array.from({length:1000},(_,index)=>({detail_id:"1",table_name:"items",operation:index%2?"DELETE":"ADD",id:String(index+1),expected_record_version:"1",content:{},before:{},fields:[{name:`field_${index+1}`,type:"string",nullable:false,editable:true,before_state:"value",before:"same",proposed_state:"value",proposed:"same"}]})) as ReleaseOrder["items"];
  const {container}=render(<ReleaseDiff order={{items}}/>);const user=userEvent.setup();
  expect(container.querySelectorAll("details")).toHaveLength(20);expect(container.querySelectorAll("details[open]")).toHaveLength(1);
  expect(screen.getByText("field_1")).toBeVisible();expect(screen.getByText("field_2")).not.toBeVisible();
@@ -36,7 +36,7 @@ it("千项混合差异每页20项，仅展开首项且 ADD/DELETE 保持完整",
  expect(screen.getByText(/共 1,000 项，当前展示 981–1000 项/)).toBeVisible();
 });
 it("字段对比的实际横向滚动容器可经键盘聚焦且有明确名称",()=>{
- const items=[{operation:"MODIFY",id:"17",expected_record_version:"1",content:{label:"next"},before:{label:"previous"},fields:[{name:"label",type:"string",nullable:false,editable:true,before_state:"value",before:"previous",proposed_state:"value",proposed:"next"}]}] as ReleaseOrder["items"];
+ const items=[{detail_id:"1",table_name:"items",operation:"MODIFY",id:"17",expected_record_version:"1",content:{label:"next"},before:{label:"previous"},fields:[{name:"label",type:"string",nullable:false,editable:true,before_state:"value",before:"previous",proposed_state:"value",proposed:"next"}]}] as ReleaseOrder["items"];
  render(<ReleaseDiff order={{items}}/>);
  const scroll=screen.getByRole("region",{name:"明细 1 字段对比，可横向滚动"});expect(scroll).toHaveAttribute("tabindex","0");expect(scroll).toHaveAttribute("data-slot","table-container");expect(scroll).toContainElement(screen.getByRole("table"));
 });

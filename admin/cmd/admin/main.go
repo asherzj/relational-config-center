@@ -23,16 +23,8 @@ func runMain(standardError *os.File) int {
 
 	application, err := newApplication(context.Background(), settings)
 	if err != nil {
-		if errors.Is(err, mysqladapter.ErrAuthenticationSchemaIncomplete) {
-			fmt.Fprintln(standardError, "startup error: authentication schema is incomplete; apply migration 007 (see deploy/mysql/migrations/README.md)")
-		} else if errors.Is(err, mysqladapter.ErrAccountRoleSchemaIncomplete) {
-			fmt.Fprintln(standardError, "startup error: account role schema is incomplete; apply migration 008 (see deploy/mysql/migrations/README.md)")
-		} else if errors.Is(err, mysqladapter.ErrRecordVersionSchemaIncomplete) {
-			fmt.Fprintln(standardError, "startup error: record version schema is incomplete; apply migration 009 (see deploy/mysql/migrations/README.md)")
-		} else if errors.Is(err, mysqladapter.ErrReleaseSchemaIncomplete) {
-			fmt.Fprintln(standardError, "startup error: release order schema is incomplete; apply migrations 010, 011, 012, 015 and 016 (see deploy/mysql/migrations/README.md)")
-		} else if errors.Is(err, mysqladapter.ErrFieldPolicySchemaIncomplete) {
-			fmt.Fprintln(standardError, "startup error: table field policy schema is incomplete; apply migration 014 (see deploy/mysql/migrations/README.md)")
+		if errors.Is(err, mysqladapter.ErrControlSchemaNotReady) {
+			fmt.Fprintf(standardError, "startup error: %v\n", err)
 		} else {
 			fmt.Fprintln(standardError, "startup error: Managed Data Source is unavailable")
 		}

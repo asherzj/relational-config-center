@@ -1,0 +1,364 @@
+{
+  "compose": {
+    "exitCode": 0,
+    "cases": [
+      {
+        "case": "fresh_volume",
+        "result": "PASS",
+        "services": {
+          "admin": {
+            "Status": "running",
+            "Running": true,
+            "ExitCode": 0
+          },
+          "mysql": {
+            "Status": "running",
+            "Running": true,
+            "ExitCode": 0
+          },
+          "mysql-local-fixture": {
+            "Status": "exited",
+            "Running": false,
+            "ExitCode": 0
+          },
+          "schema-migrate": {
+            "Status": "exited",
+            "Running": false,
+            "ExitCode": 0
+          }
+        }
+      },
+      {
+        "case": "adopted_volume_repeat",
+        "result": "PASS",
+        "services": {
+          "admin": {
+            "Status": "running",
+            "Running": true,
+            "ExitCode": 0
+          },
+          "mysql": {
+            "Status": "running",
+            "Running": true,
+            "ExitCode": 0
+          },
+          "mysql-local-fixture": {
+            "Status": "exited",
+            "Running": false,
+            "ExitCode": 0
+          },
+          "schema-migrate": {
+            "Status": "exited",
+            "Running": false,
+            "ExitCode": 0
+          }
+        }
+      },
+      {
+        "case": "unmanaged_volume_blocks",
+        "result": "PASS",
+        "services": {
+          "admin": {
+            "Status": "created",
+            "Running": false,
+            "ExitCode": 0
+          },
+          "mysql": {
+            "Status": "running",
+            "Running": true,
+            "ExitCode": 0
+          },
+          "mysql-local-fixture": {
+            "Status": "created",
+            "Running": false,
+            "ExitCode": 0
+          },
+          "schema-migrate": {
+            "Status": "exited",
+            "Running": false,
+            "ExitCode": 1
+          }
+        }
+      },
+      {
+        "case": "explicit_adoption_restores_deployment",
+        "result": "PASS",
+        "services": {
+          "admin": {
+            "Status": "running",
+            "Running": true,
+            "ExitCode": 0
+          },
+          "mysql": {
+            "Status": "running",
+            "Running": true,
+            "ExitCode": 0
+          },
+          "mysql-local-fixture": {
+            "Status": "exited",
+            "Running": false,
+            "ExitCode": 0
+          },
+          "schema-migrate": {
+            "Status": "exited",
+            "Running": false,
+            "ExitCode": 0
+          }
+        }
+      },
+      {
+        "case": "unconfirmed_volume_blocks",
+        "result": "PASS",
+        "services": {
+          "admin": {
+            "Status": "created",
+            "Running": false,
+            "ExitCode": 0
+          },
+          "mysql": {
+            "Status": "running",
+            "Running": true,
+            "ExitCode": 0
+          },
+          "mysql-local-fixture": {
+            "Status": "created",
+            "Running": false,
+            "ExitCode": 0
+          },
+          "schema-migrate": {
+            "Status": "exited",
+            "Running": false,
+            "ExitCode": 1
+          }
+        }
+      },
+      {
+        "case": "explicit_recovery_restores_deployment",
+        "result": "PASS",
+        "services": {
+          "admin": {
+            "Status": "running",
+            "Running": true,
+            "ExitCode": 0
+          },
+          "mysql": {
+            "Status": "running",
+            "Running": true,
+            "ExitCode": 0
+          },
+          "mysql-local-fixture": {
+            "Status": "exited",
+            "Running": false,
+            "ExitCode": 0
+          },
+          "schema-migrate": {
+            "Status": "exited",
+            "Running": false,
+            "ExitCode": 0
+          }
+        }
+      }
+    ]
+  },
+  "browser": {
+    "exitCode": 0,
+    "suite": "field-interactions",
+    "results": [
+      {
+        "engine": "chromium",
+        "browser": "151.0.7922.34",
+        "checks": [
+          {
+            "viewport": "1440x1000",
+            "name": "administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration"
+          },
+          {
+            "viewport": "1440x1000",
+            "name": "keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally"
+          },
+          {
+            "viewport": "1440x1000",
+            "name": "required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions",
+            "changeMetrics": {
+              "client": 980,
+              "total": 980,
+              "outlineWidth": "3px",
+              "outlineStyle": "solid",
+              "keyboardScrollLeft": 0
+            },
+            "reviewMetrics": {
+              "client": 1068,
+              "total": 1068,
+              "outlineWidth": "3px",
+              "outlineStyle": "solid",
+              "keyboardScrollLeft": 0
+            }
+          },
+          {
+            "viewport": "390x844",
+            "name": "administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration"
+          },
+          {
+            "viewport": "390x844",
+            "name": "keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally"
+          },
+          {
+            "viewport": "390x844",
+            "name": "required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions",
+            "changeMetrics": {
+              "client": 358,
+              "total": 600,
+              "outlineWidth": "2px",
+              "outlineStyle": "solid",
+              "keyboardScrollLeft": 48
+            },
+            "reviewMetrics": {
+              "client": 290,
+              "total": 560,
+              "outlineWidth": "3px",
+              "outlineStyle": "solid",
+              "keyboardScrollLeft": 48
+            }
+          }
+        ],
+        "errors": [],
+        "policiesRestored": true,
+        "ok": true
+      },
+      {
+        "engine": "firefox",
+        "browser": "153.0",
+        "checks": [
+          {
+            "viewport": "1440x1000",
+            "name": "administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration"
+          },
+          {
+            "viewport": "1440x1000",
+            "name": "keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally"
+          },
+          {
+            "viewport": "1440x1000",
+            "name": "required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions",
+            "changeMetrics": {
+              "client": 980,
+              "total": 980,
+              "outlineWidth": "2px",
+              "outlineStyle": "solid",
+              "keyboardScrollLeft": 0
+            },
+            "reviewMetrics": {
+              "client": 1068,
+              "total": 1068,
+              "outlineWidth": "2px",
+              "outlineStyle": "solid",
+              "keyboardScrollLeft": 0
+            }
+          },
+          {
+            "viewport": "390x844",
+            "name": "administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration"
+          },
+          {
+            "viewport": "390x844",
+            "name": "keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally"
+          },
+          {
+            "viewport": "390x844",
+            "name": "required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions",
+            "changeMetrics": {
+              "client": 358,
+              "total": 600,
+              "outlineWidth": "2px",
+              "outlineStyle": "solid",
+              "keyboardScrollLeft": 48
+            },
+            "reviewMetrics": {
+              "client": 290,
+              "total": 560,
+              "outlineWidth": "3px",
+              "outlineStyle": "solid",
+              "keyboardScrollLeft": 48
+            }
+          }
+        ],
+        "errors": [],
+        "policiesRestored": true,
+        "ok": true
+      },
+      {
+        "engine": "webkit",
+        "browser": "26.5",
+        "checks": [
+          {
+            "viewport": "1440x1000",
+            "name": "administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration"
+          },
+          {
+            "viewport": "1440x1000",
+            "name": "keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally"
+          },
+          {
+            "viewport": "1440x1000",
+            "name": "required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions",
+            "changeMetrics": {
+              "client": 980,
+              "total": 980,
+              "outlineWidth": "3px",
+              "outlineStyle": "solid",
+              "keyboardScrollLeft": 0
+            },
+            "reviewMetrics": {
+              "client": 1068,
+              "total": 1068,
+              "outlineWidth": "3px",
+              "outlineStyle": "solid",
+              "keyboardScrollLeft": 0
+            }
+          },
+          {
+            "viewport": "390x844",
+            "name": "administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration"
+          },
+          {
+            "viewport": "390x844",
+            "name": "keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally"
+          },
+          {
+            "viewport": "390x844",
+            "name": "required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions",
+            "changeMetrics": {
+              "client": 358,
+              "total": 600,
+              "outlineWidth": "3px",
+              "outlineStyle": "solid",
+              "keyboardScrollLeft": 48
+            },
+            "reviewMetrics": {
+              "client": 290,
+              "total": 560,
+              "outlineWidth": "3px",
+              "outlineStyle": "solid",
+              "keyboardScrollLeft": 48
+            }
+          }
+        ],
+        "errors": [],
+        "policiesRestored": true,
+        "ok": true
+      }
+    ],
+    "authenticationBoundary": {
+      "ok": true,
+      "anonymous": 401,
+      "registered": 201,
+      "authenticatedRead": 200,
+      "missingCSRF": 403,
+      "authenticatedQuery": 200,
+      "logout": 204,
+      "afterLogout": 401,
+      "credentialsPersisted": false
+    },
+    "databasePostCheck": "5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED"
+  }
+}

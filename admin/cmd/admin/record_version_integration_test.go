@@ -37,7 +37,7 @@ func recordVersionRow(t *testing.T, app *adminApplication, table, id string) (ma
 }
 
 func TestRecordVersionLegacyBaseline(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true, AllowDelete: true})
 	row, version := recordVersionRow(t, app, "mutation_delete_parents", "01")
 	if version != "0" || *row["code"] != "delete-rollback" {
@@ -49,7 +49,7 @@ func TestRecordVersionLegacyBaseline(t *testing.T) {
 }
 
 func TestRecordVersionCompareAndSwap(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true, AllowDelete: true})
 	missing := publicationFixtureRequest(t, app, "MODIFY", "mutation_delete_parents", "1", `{"content":{"code":"missing"}}`)
 	assertIntegrationErrorCode(t, missing, http.StatusUnprocessableEntity, "record_version_required")
@@ -74,7 +74,7 @@ func TestRecordVersionCompareAndSwap(t *testing.T) {
 }
 
 func TestRecordVersionAddDeleteRecreateAndRollback(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	add := func() {
 		t.Helper()
@@ -107,7 +107,7 @@ func TestRecordVersionAddDeleteRecreateAndRollback(t *testing.T) {
 }
 
 func TestRecordVersionMySQLPrimaryKeyEquivalence(t *testing.T) {
-	app := startIntegrationApplication(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/010-record-identity-fixture.sql")
+	app := startIntegrationApplication(t, "testdata/010-record-identity-fixture.sql")
 	for _, test := range []struct{ table, first, equivalent, recreated string }{
 		{"record_identity_ci", "Résumé", "resume", "RESUME"},
 		{"record_identity_pad", "Code ", "code", "CÓDE"},
@@ -154,7 +154,7 @@ func TestRecordVersionMySQLPrimaryKeyEquivalence(t *testing.T) {
 }
 
 func TestRecordVersionRealConcurrentWriters(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -174,7 +174,7 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 		if !valid {
 			t.Fatalf("competing publication: %d %s", loser.Code, loser.Body)
 		}
-		rows, err := db.Query("SELECT document FROM rcc_release_orders WHERE table_name=? AND state<>'COMPLETED'", table)
+		rows, err := db.Query("SELECT o.document FROM rcc_release_orders o WHERE o.state<>'COMPLETED' AND EXISTS (SELECT 1 FROM rcc_release_details d WHERE d.order_id=o.id AND d.table_name=?)", table)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -188,11 +188,11 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 			}
 			// Workflow/frozen metadata stays in the header; application details
 			// now come from the public detail contract, not an embedded array.
-			frozen := draft.Frozen
-			draft = rollbackOrderResponse(t, releaseRequest(t, app, "GET", "/api/v1/release-orders/"+draft.ID, "", ""), 200)
-			draft.Frozen = frozen
+			frozen := draft.FrozenTables
+			draft = rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", "/api/v1/release-orders/"+draft.ID, "", ""), 200)
+			draft.FrozenTables = frozen
 			losers++
-			if len(draft.Items) != 1 || draft.Items[0].ExpectedRecordVersion != baseline || draft.Publication != nil {
+			if len(draft.Items) != 1 || draft.Items[0].ExpectedRecordVersion != baseline || len(draft.Executions) >= 1 {
 				t.Fatalf("loser changed its baseline or published: %+v", draft)
 			}
 			switch draft.State {
@@ -204,7 +204,7 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 			case "CANCELLED":
 				// The real fixture verifies APPROVED v3 after an execute failure,
 				// then explicitly cancels it. Preserve that distinct history.
-				if failure.Error.Code == "release_target_conflict" || draft.Version != "4" || draft.Frozen == nil || len(draft.History) != 4 {
+				if failure.Error.Code == "release_target_conflict" || draft.Version != "4" || draft.FrozenTables == nil || len(draft.History) != 4 {
 					t.Fatalf("invalid execute-failure cleanup: %+v", draft)
 				}
 				for i, action := range []string{"CREATE", "SUBMIT", "APPROVE", "CANCEL"} {
@@ -226,11 +226,11 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 		for _, draft := range drafts {
 			cancelled := releaseRequest(t, app, "POST", "/api/v1/release-orders/"+draft.ID+"/cancel", `{"expected_version":"1","reason":"concurrent loser cleanup"}`, "race-cleanup-"+draft.ID)
 			var result domain.ReleaseOrder
-			if cancelled.Code != 200 || json.Unmarshal(cancelled.Body.Bytes(), &result) != nil || result.State != "CANCELLED" || result.Version != "2" || result.Publication != nil {
+			if cancelled.Code != 200 || json.Unmarshal(cancelled.Body.Bytes(), &result) != nil || result.State != "CANCELLED" || result.Version != "2" || len(result.Executions) >= 1 {
 				t.Fatalf("loser cleanup: %d %s", cancelled.Code, cancelled.Body)
 			}
 		}
-		for _, query := range []string{"SELECT COUNT(*) FROM rcc_publication_commands WHERE table_name=?", "SELECT COUNT(*) FROM rcc_refresh_notifications WHERE table_name=?", "SELECT COUNT(*) FROM rcc_release_orders WHERE table_name=? AND state='COMPLETED'", "SELECT table_version FROM rcc_table_publications WHERE table_name=?", "SELECT command_cursor FROM rcc_table_publications WHERE table_name=?", "SELECT lock_version FROM rcc_record_versions WHERE table_name=? AND LENGTH(record_key)=32"} {
+		for _, query := range []string{"SELECT COUNT(*) FROM rcc_publication_commands WHERE table_name=?", "SELECT COUNT(*) FROM rcc_refresh_notifications WHERE table_name=?", "SELECT COUNT(*) FROM rcc_release_orders o WHERE o.state='COMPLETED' AND EXISTS (SELECT 1 FROM rcc_release_details d WHERE d.order_id=o.id AND d.table_name=?)", "SELECT table_version FROM rcc_table_publications WHERE table_name=?", "SELECT command_cursor FROM rcc_table_publications WHERE table_name=?", "SELECT lock_version FROM rcc_record_versions WHERE table_name=? AND LENGTH(record_key)=32"} {
 			var n int
 			if err := db.QueryRow(query, table).Scan(&n); err != nil || n != committed {
 				t.Fatalf("race must commit once, got %d %v: %s", n, err, query)
@@ -286,7 +286,7 @@ func TestRecordVersionRealConcurrentWriters(t *testing.T) {
 }
 
 func TestRecordVersionSchemaReadinessAndRestartableMigration(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -324,7 +324,7 @@ func TestRecordVersionSchemaReadinessAndRestartableMigration(t *testing.T) {
 }
 
 func TestRecordVersionLosslessMaintenanceFloor(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -359,7 +359,7 @@ func TestRecordVersionLosslessMaintenanceFloor(t *testing.T) {
 }
 
 func TestRecordVersionSnapshotAndIndependentResources(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
@@ -405,10 +405,10 @@ func TestRecordVersionSnapshotAndIndependentResources(t *testing.T) {
 	// Actual publication locks progress per table. Two different records of
 	// that table serialize, while another table can finish independently.
 	reviewer := publicationFixtureReviewer(t, app)
-	firstPath := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"1","expected_record_version":"2","content":{"label":"held"}}]}`, "resource-first")
-	secondPath := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"2","expected_record_version":"1","content":{"label":"ordered"}}]}`, "resource-second")
+	firstPath := approvePublication(t, app, reviewer, `{"items":[{"content":{"label":"held"},"expected_record_version":"2","id":"1","operation":"MODIFY","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "resource-first")
+	secondPath := approvePublication(t, app, reviewer, `{"items":[{"content":{"label":"ordered"},"expected_record_version":"1","id":"2","operation":"MODIFY","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "resource-second")
 	enableMutationPolicy(t, app, "mutation_supplied_id_items", mutationPolicyFixture{AllowAdd: true})
-	otherPath := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_supplied_id_items","items":[{"operation":"ADD","content":{"id":"other","label":"independent"}}]}`, "resource-other")
+	otherPath := approvePublication(t, app, reviewer, `{"items":[{"content":{"id":"other","label":"independent"},"operation":"ADD","table_name":"mutation_supplied_id_items"}],"title":"集成测试发布单"}`, "resource-other")
 	holder, err := owner.BeginTx(ctx, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -458,7 +458,7 @@ func TestRecordVersionSnapshotAndIndependentResources(t *testing.T) {
 }
 
 func TestRecordVersionRejectsNonTransactionalBusinessWrite(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t)
 	db := deliveryDB(t, driver)
 	if _, err := db.Exec(`CREATE TABLE nontransactional_items(id INT PRIMARY KEY,label VARCHAR(64)) ENGINE=MyISAM`); err != nil {
 		t.Fatal(err)
@@ -483,7 +483,7 @@ func TestRecordVersionRejectsNonTransactionalBusinessWrite(t *testing.T) {
 }
 
 func TestRecordVersionControlStorageFailureRollsBackBusinessWrites(t *testing.T) {
-	ctx, driver := startIntegrationMySQL(t, "../../../deploy/mysql/init/001-schema.sql", "testdata/006-mutation-fixture.sql")
+	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {
 		t.Fatal(err)
