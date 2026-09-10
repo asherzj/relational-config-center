@@ -1,0 +1,10 @@
+{
+  "base": "dafdde3a4a41a2b8afd03ae57fa51b9908fae08b",
+  "files": {
+    "web/e2e/browser-accessibility.cjs": "2efb5cfbb0345582a8f4b5a249251ad9be0eda6de42c4f99efff7d8b9695a0ef",
+    "web/src/features/managed-data/CombinedQueryForm.test.tsx": "beaa0b41d8992270e47e0ee585153dca297a7949fd78cdff93db7b57a0e20c1b"
+  },
+  "diff_sha256": "fe7d05fa1942f1e2d63d1fd2f5f85365b0a7de85a4691cfc6e21e4573cc8e920",
+  "verification": "results3.json",
+  "browser_ci_artifact_sha256": "6c16ccf511a9197325896f4defadc7ae3713270e73caba3eea3a02413145b0ad"
+}

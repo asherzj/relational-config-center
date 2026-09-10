@@ -88,9 +88,13 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await page.goto(`${base}${pathname}`);
   }
   async function managed(viewport) {
-    await open('/configuration/managed-data', viewport);
-    await page.getByRole('combobox', { name: 'Managed Table', exact: true }).selectOption(table);
-    await button('新增记录').waitFor();
+    const httpStart = http.length;
+    await open(`/configuration/managed-data?table_name=${encodeURIComponent(table)}`, viewport);
+    await button('新增记录').click({ trial: true });
+    assert.equal(await page.getByRole('combobox', { name: 'Managed Table', exact: true }).inputValue(), table);
+    const queries = http.slice(httpStart).filter((entry) => entry.method === 'POST' && /^\/api\/v1\/tables\/[^/]+\/query$/.test(entry.path));
+    assert.ok(queries.length > 0, 'managed data must finish its initial query before editing');
+    assert.ok(queries.every((entry) => entry.path === `/api/v1/tables/${encodeURIComponent(table)}/query` && entry.status === 200), JSON.stringify(queries));
   }
   async function include(field, value) {
     await page.getByRole('checkbox', { name: `包含 ${field}`, exact: true }).check();
@@ -312,6 +316,8 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     const created = await draftResponse;
     assert.equal(created.status(), 201);
     const failureBody = created.request().postDataJSON();
+    assert.equal(failureBody.title, `${table} 配置变更`);
+    assert.deepEqual(failureBody.items.map((item) => item.table_name), [table]);
     assert.equal(failureBody.items[0].content.note, rawCR);
     await page.waitForURL('**/configuration/release-orders/*');
     let invalidOrder = await (await authenticatedRequest(context, base, new URL(page.url()).pathname.replace('/configuration', '/api/v1'))).json();

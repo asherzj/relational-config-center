@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-88-final-release-cleanup/web
+> vitest run
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-88-final-release-cleanup/web
+
+
+ Test Files  37 passed (37)
+      Tests  398 passed (398)
+   Start at  01:59:31
+   Duration  26.36s (transform 4.05s, setup 8.82s, import 12.44s, tests 108.85s, environment 18.46s)
+

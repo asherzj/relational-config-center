@@ -1,0 +1,132 @@
+{
+  "ci-web.log": {
+    "sha256": "8347fe1cb237b2c61d02bd2b5c1994f11a34f1ac2a31432e29fbefdc91af2e9e",
+    "bytes": 63432,
+    "source": "/private/tmp/rcc-mr99-web-ci-clean.log"
+  },
+  "ci-browser.log": {
+    "sha256": "cb44cf5c046a6f2bc6e271723cc5e7cee53c7519e530ece36c8f4ace3c68e0c2",
+    "bytes": 199028,
+    "source": "/private/tmp/rcc-mr99-browser-ci-clean.log"
+  },
+  "ci-webkit-http.json": {
+    "sha256": "470b0428bc29804ab37cc3d9dc178e51f4d572d5cfd717443a890e14030bcc46",
+    "bytes": 2811,
+    "source": "/private/tmp/rcc-mr99-browser-ci-artifacts/browser-accessibility/webkit/http-evidence.json"
+  },
+  "ci-webkit-result.json": {
+    "sha256": "6f63e68d794d0eb3efa1282b4ec678357b4a20fd5ceddf119b913ed8093c48e1",
+    "bytes": 12538,
+    "source": "/private/tmp/rcc-mr99-browser-ci-artifacts/browser-accessibility/webkit/result.json"
+  },
+  "ci-webkit-body.txt": {
+    "sha256": "5defc7efd4707f3baead58a626aa238c40e4559d9e9bc993c12608126c4e9c87",
+    "bytes": 2226,
+    "source": "/private/tmp/rcc-mr99-browser-ci-artifacts/browser-accessibility/webkit/failure-body.txt"
+  },
+  "web-file.log": {
+    "sha256": "f44f125614689b53550dea0a0b2de5bd9b969b6c8439be2c77b8bf594b9a714d",
+    "bytes": 2249,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/file-green3.log"
+  },
+  "web-all.log": {
+    "sha256": "d22cd61fcea4faf8c892d5611a525f5c34974c117ae328ec14d5553dd9512b15",
+    "bytes": 365,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/full-green3.log"
+  },
+  "web-typecheck.log": {
+    "sha256": "3b940ccb3a62cfdf539f8114ccd09c103f33beb857c5ab0819ff68653e009672",
+    "bytes": 117,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/typecheck3.log"
+  },
+  "web-results.json": {
+    "sha256": "661b0fc4285db500b5d32134353fea616e6e4e0f972b3a9017c959af0537d9f3",
+    "bytes": 1081,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/results3.json"
+  },
+  "intermediate-loopback-denied.log": {
+    "sha256": "49d515109b2e462c599e8a4cee21f45b5dba5d902680167444a8f288fba6cb04",
+    "bytes": 2608,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/full-green.log"
+  },
+  "intermediate-type-error.log": {
+    "sha256": "97c9fa2072ce7fca6b9e02f8ef373d8a3ac7e6d8ca5f20dc86422febb21d4dfa",
+    "bytes": 684,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/typecheck.log"
+  },
+  "source.json": {
+    "sha256": "d8b34b0d73f9ea6d6602c527ddc44dc00355720b5eae4db106e0dfdc488f94dc",
+    "bytes": 535,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/source-final.json"
+  },
+  "change.diff": {
+    "sha256": "fe7d05fa1942f1e2d63d1fd2f5f85365b0a7de85a4691cfc6e21e4573cc8e920",
+    "bytes": 4168,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/change-final.diff"
+  },
+  "standards-review.md": {
+    "sha256": "2321f5a6f372acb519c5f21c89a715cb45a8d76a5a2a18f7e216e295a651b106",
+    "bytes": 1744,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/standards-review-final.md"
+  },
+  "spec-review.md": {
+    "sha256": "51289fe67f94f786dc171ff2390cf85dd6f19d4f797ecd6a896ee7c4ebdf4331",
+    "bytes": 1627,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/spec-review-final.md"
+  },
+  "browser-results.json": {
+    "sha256": "5c54e13ac5c247f554635af50b5a760f301aca1cc3815bfe43b3679490c385ed",
+    "bytes": 524,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/browser-results.json"
+  },
+  "browser-runner.log": {
+    "sha256": "b4376884244d1791ea75e13cda7a6257e2bb592406be074fb7bf848af861b846",
+    "bytes": 13411,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/browser-accessibility-green-runner.log"
+  },
+  "browser-chromium.json": {
+    "sha256": "42b88594d2d690813fe1a8ffe0ec6bb42a0feda63e78ebf073a4225c7d17694a",
+    "bytes": 24116,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/browser-accessibility-green/browser-accessibility/chromium/result.json"
+  },
+  "browser-firefox.json": {
+    "sha256": "6584e9881ce5ea976398995819bd7ab2af7faa5cf625f610f82891f51c4bf94d",
+    "bytes": 23977,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/browser-accessibility-green/browser-accessibility/firefox/result.json"
+  },
+  "browser-webkit.json": {
+    "sha256": "12cf405bdf0709182b36e250c2fb4d92930d0561b7f60bb26a8ba178dff4d5f6",
+    "bytes": 23736,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/browser-accessibility-green/browser-accessibility/webkit/result.json"
+  },
+  "run.txt": {
+    "sha256": "25a3964270b3f8fa8427108ea82287af0c8aaad103168049e225119f662793cb",
+    "bytes": 435,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/browser-accessibility-green/run.txt"
+  },
+  "auth-boundary.txt": {
+    "sha256": "c486e027ef59c7a5a9c83f2c9cdf08d8a94a5b7565048b52af5c209965c8f504",
+    "bytes": 77,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/browser-accessibility-green/auth-boundary.txt"
+  },
+  "authenticated-boundary.json": {
+    "sha256": "3a8aad9aeeb0c14b97ef8a6f54a2f008738ae45b1de5c8252cf0b8548c089232",
+    "bytes": 172,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/browser-accessibility-green/authenticated-boundary.json"
+  },
+  "fixture-before.tsv": {
+    "sha256": "7719a1cd7eb7206f1f3976d77cdf79953d7a7d66e1b56ed68450274d784c618f",
+    "bytes": 701,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/browser-accessibility-green/fixture-before.tsv"
+  },
+  "fixture-after.tsv": {
+    "sha256": "7719a1cd7eb7206f1f3976d77cdf79953d7a7d66e1b56ed68450274d784c618f",
+    "bytes": 701,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/browser-accessibility-green/fixture-after.tsv"
+  },
+  "database-postcheck.txt": {
+    "sha256": "c746319945f2bc04e3b231a7f97796e4c1b17d2a557a333698b0602b155e1c63",
+    "bytes": 67,
+    "source": "/private/tmp/rcc-mr99-web-ci-followup/browser-accessibility-green/database-postcheck.txt"
+  }
+}

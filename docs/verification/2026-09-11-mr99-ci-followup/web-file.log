@@ -1,0 +1,22 @@
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-88-final-release-cleanup/web
+
+ ✓ src/features/managed-data/CombinedQueryForm.test.tsx > freezes the first successful direct configuration without requesting again for a new response object 138ms
+ ✓ src/features/managed-data/CombinedQueryForm.test.tsx > AC-004 directly displays only queryable fields and submits entered conditions after collapsing 134ms
+ ✓ src/features/managed-data/CombinedQueryForm.test.tsx > AC-005/006 explicit operators determine shape, preserve compatible values and clear incompatible ones 423ms
+ ✓ src/features/managed-data/CombinedQueryForm.test.tsx > AC-007 select options and custom set values are lossless 147ms
+ ✓ src/features/managed-data/CombinedQueryForm.test.tsx > AC-006 explicit empty strings differ from unfilled and NULL; clear resets control state 52ms
+ ✓ src/features/managed-data/CombinedQueryForm.test.tsx > AC-016 uses the server capacity and accepts every field above the former 20 limit 898ms
+ ✓ src/features/managed-data/CombinedQueryForm.test.tsx > AC-017 100 values submit and a 101st filled value gives an explicit Web error 3074ms
+ ✓ src/features/managed-data/CombinedQueryForm.test.tsx > AC-006 select empty choice participates while clearing custom input leaves the field unfiltered; radio empty remains selectable 166ms
+ ✓ src/features/managed-data/CombinedQueryForm.test.tsx > clear resets date-time's intermediate UI as well as submitted values 67ms
+ ✓ src/features/managed-data/CombinedQueryForm.test.tsx > AC-015 read failures require retry; confirmed incompatible controls warn and fall back 25ms
+ ✓ src/features/managed-data/CombinedQueryForm.test.tsx > AC-016 reports unsupported capacity before querying and uses server-provided limits 9ms
+ ✓ src/features/managed-data/CombinedQueryForm.test.tsx > removing a set value does not reuse the removed date control's local state for the following blank value 31ms
+ ✓ src/features/managed-data/CombinedQueryForm.test.tsx > AC-003/015 uses the latest metadata schema for default exact query and sorting 94ms
+
+ Test Files  1 passed (1)
+      Tests  13 passed (13)
+   Start at  01:59:25
+   Duration  6.18s (transform 117ms, setup 168ms, import 277ms, tests 5.26s, environment 381ms)
+

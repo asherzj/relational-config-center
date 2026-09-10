@@ -1,0 +1,14 @@
+{
+  "command": [
+    "bash",
+    "scripts/browser-acceptance.sh"
+  ],
+  "suite": "browser-accessibility",
+  "engines": "chromium,firefox,webkit",
+  "started": "2026-09-10T18:12:00.042915+00:00",
+  "finished": "2026-09-10T18:13:03.033832+00:00",
+  "exit": 0,
+  "log": "/private/tmp/rcc-mr99-web-ci-followup/browser-accessibility-green-runner.log",
+  "sha256": "b4376884244d1791ea75e13cda7a6257e2bb592406be074fb7bf848af861b846",
+  "source_manifest_sha256": "d8b34b0d73f9ea6d6602c527ddc44dc00355720b5eae4db106e0dfdc488f94dc"
+}

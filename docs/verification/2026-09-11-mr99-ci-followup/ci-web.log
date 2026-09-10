@@ -1,0 +1,698 @@
+﻿2026-09-10T17:45:15.0633208Z Current runner version: '2.337.0'
+2026-09-10T17:45:15.0660332Z ##[group]Runner Image Provisioner
+2026-09-10T17:45:15.0661269Z Hosted Compute Agent
+2026-09-10T17:45:15.0662003Z Version: 20260828.587
+2026-09-10T17:45:15.0662707Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-10T17:45:15.0663506Z Build Date: 2026-08-28T16:44:25Z
+2026-09-10T17:45:15.0664401Z Worker ID: {d6ba78ee-70f6-4d19-9b2a-022608378e28}
+2026-09-10T17:45:15.0665196Z Azure Region: westus
+2026-09-10T17:45:15.0665856Z ##[endgroup]
+2026-09-10T17:45:15.0667483Z ##[group]Operating System
+2026-09-10T17:45:15.0668160Z Ubuntu
+2026-09-10T17:45:15.0668857Z 24.04.5
+2026-09-10T17:45:15.0669397Z LTS
+2026-09-10T17:45:15.0670330Z ##[endgroup]
+2026-09-10T17:45:15.0670941Z ##[group]Runner Image
+2026-09-10T17:45:15.0671572Z Image: ubuntu-24.04
+2026-09-10T17:45:15.0672281Z Version: 20260907.300.1
+2026-09-10T17:45:15.0673652Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260907.300/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-10T17:45:15.0675432Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260907.300
+2026-09-10T17:45:15.0676483Z ##[endgroup]
+2026-09-10T17:45:15.0677733Z ##[group]GITHUB_TOKEN Permissions
+2026-09-10T17:45:15.0679990Z Contents: read
+2026-09-10T17:45:15.0680776Z Metadata: read
+2026-09-10T17:45:15.0681349Z ##[endgroup]
+2026-09-10T17:45:15.0683703Z Secret source: Actions
+2026-09-10T17:45:15.0684677Z Cache mode: write
+2026-09-10T17:45:15.0685462Z Prepare workflow directory
+2026-09-10T17:45:15.1113093Z Prepare all required actions
+2026-09-10T17:45:15.1163850Z Getting action download info
+2026-09-10T17:45:15.4761049Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-09-10T17:45:15.5906746Z Download action repository 'pnpm/action-setup@v6' (SHA:0977fd99725f1db4007ccb2928dbb4e90d06cc86)
+2026-09-10T17:45:16.0373620Z Download action repository 'actions/setup-node@v7' (SHA:820762786026740c76f36085b0efc47a31fe5020)
+2026-09-10T17:45:16.2292237Z Complete job name: Web
+2026-09-10T17:45:16.3102456Z ##[group]Run actions/checkout@v7
+2026-09-10T17:45:16.3103362Z with:
+2026-09-10T17:45:16.3103889Z   repository: asherzj/relational-config-center
+2026-09-10T17:45:16.3108737Z   token: ***
+2026-09-10T17:45:16.3109263Z   ssh-strict: true
+2026-09-10T17:45:16.3110059Z   ssh-user: git
+2026-09-10T17:45:16.3110608Z   persist-credentials: true
+2026-09-10T17:45:16.3111141Z   clean: true
+2026-09-10T17:45:16.3111615Z   sparse-checkout-cone-mode: true
+2026-09-10T17:45:16.3112176Z   fetch-depth: 1
+2026-09-10T17:45:16.3112640Z   fetch-tags: false
+2026-09-10T17:45:16.3113106Z   show-progress: true
+2026-09-10T17:45:16.3113584Z   lfs: false
+2026-09-10T17:45:16.3114020Z   submodules: false
+2026-09-10T17:45:16.3114496Z   set-safe-directory: true
+2026-09-10T17:45:16.3115028Z   allow-unsafe-pr-checkout: false
+2026-09-10T17:45:16.3116013Z ##[endgroup]
+2026-09-10T17:45:16.4209298Z Syncing repository: asherzj/relational-config-center
+2026-09-10T17:45:16.4213083Z ##[group]Getting Git version info
+2026-09-10T17:45:16.4214917Z Working directory is '/home/runner/work/relational-config-center/relational-config-center'
+2026-09-10T17:45:16.4216504Z [command]/usr/bin/git version
+2026-09-10T17:45:16.4302185Z git version 2.55.0
+2026-09-10T17:45:16.4330921Z ##[endgroup]
+2026-09-10T17:45:16.4346594Z Temporarily overriding HOME='/home/runner/work/_temp/0e7453e5-f81d-4fb2-a7de-5b59eaf19b02' before making global git config changes
+2026-09-10T17:45:16.4350131Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-10T17:45:16.4353564Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/relational-config-center/relational-config-center
+2026-09-10T17:45:16.4407989Z Deleting the contents of '/home/runner/work/relational-config-center/relational-config-center'
+2026-09-10T17:45:16.4412357Z ##[group]Determining repository object format
+2026-09-10T17:45:16.4414462Z ##[endgroup]
+2026-09-10T17:45:16.4415979Z ##[group]Initializing the repository
+2026-09-10T17:45:16.4420550Z [command]/usr/bin/git init /home/runner/work/relational-config-center/relational-config-center
+2026-09-10T17:45:16.4543113Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-10T17:45:16.4545313Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-10T17:45:16.4548445Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-10T17:45:16.4550418Z hint: call:
+2026-09-10T17:45:16.4551318Z hint:
+2026-09-10T17:45:16.4552393Z hint: 	git config --global init.defaultBranch <name>
+2026-09-10T17:45:16.4553800Z hint:
+2026-09-10T17:45:16.4555436Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-10T17:45:16.4557330Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-10T17:45:16.4558799Z hint:
+2026-09-10T17:45:16.4559919Z hint: 	git branch -m <name>
+2026-09-10T17:45:16.4560611Z hint:
+2026-09-10T17:45:16.4561351Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-10T17:45:16.4562682Z Initialized empty Git repository in /home/runner/work/relational-config-center/relational-config-center/.git/
+2026-09-10T17:45:16.4564861Z [command]/usr/bin/git remote add origin https://github.com/asherzj/relational-config-center
+2026-09-10T17:45:16.4624985Z ##[endgroup]
+2026-09-10T17:45:16.4626412Z ##[group]Disabling automatic garbage collection
+2026-09-10T17:45:16.4631487Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-10T17:45:16.4666111Z ##[endgroup]
+2026-09-10T17:45:16.4667516Z ##[group]Setting up auth
+2026-09-10T17:45:16.4668683Z Removing SSH command configuration
+2026-09-10T17:45:16.4674307Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-10T17:45:16.4712201Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-10T17:45:16.5107593Z Removing HTTP extra header
+2026-09-10T17:45:16.5114840Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-10T17:45:16.5159473Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-10T17:45:16.5381292Z Removing includeIf entries pointing to credentials config files
+2026-09-10T17:45:16.5387245Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-10T17:45:16.5426153Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-10T17:45:16.5658877Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-2deb3558-1eba-43c1-b490-73a530133987.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-10T17:45:16.5701122Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/relational-config-center/relational-config-center/.git.path /home/runner/work/_temp/git-credentials-2deb3558-1eba-43c1-b490-73a530133987.config
+2026-09-10T17:45:16.5734552Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/relational-config-center/relational-config-center/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-2deb3558-1eba-43c1-b490-73a530133987.config
+2026-09-10T17:45:16.5772538Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-2deb3558-1eba-43c1-b490-73a530133987.config
+2026-09-10T17:45:16.5812402Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-2deb3558-1eba-43c1-b490-73a530133987.config
+2026-09-10T17:45:16.5844728Z ##[endgroup]
+2026-09-10T17:45:16.5846019Z ##[group]Fetching the repository
+2026-09-10T17:45:16.5852115Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +cafa2476d2d2c65f4b1ecb20913b730fd77c2e93:refs/remotes/pull/99/merge
+2026-09-10T17:45:17.3673060Z From https://github.com/asherzj/relational-config-center
+2026-09-10T17:45:17.3676141Z  * [new ref]         cafa2476d2d2c65f4b1ecb20913b730fd77c2e93 -> pull/99/merge
+2026-09-10T17:45:17.3682652Z ##[endgroup]
+2026-09-10T17:45:17.3684507Z ##[group]Determining the checkout info
+2026-09-10T17:45:17.3686466Z ##[endgroup]
+2026-09-10T17:45:17.3690431Z [command]/usr/bin/git sparse-checkout disable
+2026-09-10T17:45:17.3748559Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-10T17:45:17.3783403Z ##[group]Checking out the ref
+2026-09-10T17:45:17.3787296Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/99/merge
+2026-09-10T17:45:17.4941407Z Note: switching to 'refs/remotes/pull/99/merge'.
+2026-09-10T17:45:17.4942358Z 
+2026-09-10T17:45:17.4943018Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-09-10T17:45:17.4944403Z changes and commit them, and you can discard any commits you make in this
+2026-09-10T17:45:17.4945787Z state without impacting any branches by switching back to a branch.
+2026-09-10T17:45:17.4946612Z 
+2026-09-10T17:45:17.4947219Z If you want to create a new branch to retain commits you create, you may
+2026-09-10T17:45:17.4948594Z do so (now or later) by using -c with the switch command. Example:
+2026-09-10T17:45:17.4949308Z 
+2026-09-10T17:45:17.4949931Z   git switch -c <new-branch-name>
+2026-09-10T17:45:17.4950648Z 
+2026-09-10T17:45:17.4951076Z Or undo this operation with:
+2026-09-10T17:45:17.4951662Z 
+2026-09-10T17:45:17.4952040Z   git switch -
+2026-09-10T17:45:17.4952465Z 
+2026-09-10T17:45:17.4952949Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-09-10T17:45:17.4953553Z 
+2026-09-10T17:45:17.4954213Z HEAD is now at cafa247 Merge dafdde3a4a41a2b8afd03ae57fa51b9908fae08b into 9aa4bdd38ec9122b06a8899bdfd2f165cbcc7b5f
+2026-09-10T17:45:17.4958956Z ##[endgroup]
+2026-09-10T17:45:17.5013983Z [command]/usr/bin/git log -1 --format=%H
+2026-09-10T17:45:17.5044572Z cafa2476d2d2c65f4b1ecb20913b730fd77c2e93
+2026-09-10T17:45:17.5382996Z ##[group]Run pnpm/action-setup@v6
+2026-09-10T17:45:17.5383568Z with:
+2026-09-10T17:45:17.5384006Z   version: 10.28.2
+2026-09-10T17:45:17.5384447Z   dest: ~/setup-pnpm
+2026-09-10T17:45:17.5384896Z   run_install: null
+2026-09-10T17:45:17.5385336Z   cache: false
+2026-09-10T17:45:17.5385793Z   cache_dependency_path: pnpm-lock.yaml
+2026-09-10T17:45:17.5386356Z   package_json_file: package.json
+2026-09-10T17:45:17.5386846Z   standalone: false
+2026-09-10T17:45:17.5387287Z ##[endgroup]
+2026-09-10T17:45:17.6940139Z ##[group]Running self-installer...
+2026-09-10T17:45:23.7128971Z 
+2026-09-10T17:45:23.7129991Z added 1 package, and audited 2 packages in 3s
+2026-09-10T17:45:23.7130920Z 
+2026-09-10T17:45:23.7131402Z 1 package is looking for funding
+2026-09-10T17:45:23.7132111Z   run `npm fund` for details
+2026-09-10T17:45:23.7150576Z 
+2026-09-10T17:45:23.7151182Z found 0 vulnerabilities
+2026-09-10T17:45:24.3562137Z Checking for updates...
+2026-09-10T17:45:24.6854832Z Switching pnpm from v11.19.0 to v10.28.2...
+2026-09-10T17:45:25.1420679Z .../v11/8eb-1a08c6ca2ce-66505bbaf592c4d0 | Progress: resolved 1, reused 0, downloaded 0, added 0
+2026-09-10T17:45:25.1440090Z .../v11/8eb-1a08c6ca2ce-66505bbaf592c4d0 |   +1 +
+2026-09-10T17:45:25.3995822Z .../v11/8eb-1a08c6ca2ce-66505bbaf592c4d0 | Progress: resolved 1, reused 0, downloaded 1, added 1, done
+2026-09-10T17:45:25.8575742Z [WARN] Detected a pnpm v10 installation layout at PNPM_HOME. The pnpm shims at PNPM_HOME have been refreshed so the new version is active, but pnpm v11 expects bins in PNPM_HOME/bin. Run "pnpm setup" to migrate your PATH to the v11 layout.
+2026-09-10T17:45:25.8607323Z Successfully updated pnpm to v10.28.2
+2026-09-10T17:45:25.8915403Z ##[endgroup]
+2026-09-10T17:45:25.8915966Z Installation Completed!
+2026-09-10T17:45:25.9129176Z ##[group]Run actions/setup-node@v7
+2026-09-10T17:45:25.9129993Z with:
+2026-09-10T17:45:25.9130210Z   node-version: 24.19.0
+2026-09-10T17:45:25.9130449Z   cache: pnpm
+2026-09-10T17:45:25.9130691Z   cache-dependency-path: web/pnpm-lock.yaml
+2026-09-10T17:45:25.9130995Z   check-latest: false
+2026-09-10T17:45:25.9134160Z   token: ***
+2026-09-10T17:45:25.9134389Z   package-manager-cache: true
+2026-09-10T17:45:25.9134641Z env:
+2026-09-10T17:45:25.9134884Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+2026-09-10T17:45:25.9135205Z ##[endgroup]
+2026-09-10T17:45:26.0434781Z Attempting to download 24.19.0...
+2026-09-10T17:45:26.6757319Z Acquiring 24.19.0 - x64 from https://github.com/actions/node-versions/releases/download/24.19.0-30872449280/node-24.19.0-linux-x64.tar.gz
+2026-09-10T17:45:27.2399003Z Extracting ...
+2026-09-10T17:45:27.2537901Z [command]/usr/bin/tar xz --strip 1 --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/b4a3b03f-a828-4a97-91a7-d9c3f17c790e -f /home/runner/work/_temp/d5a77fd1-9207-4281-970d-aaaaa777ca2c
+2026-09-10T17:45:28.5081874Z Adding to the cache ...
+2026-09-10T17:45:30.5504896Z ##[group]Environment details
+2026-09-10T17:45:30.7891233Z node: v24.19.0
+2026-09-10T17:45:30.7891635Z npm: 11.17.0
+2026-09-10T17:45:30.7891952Z yarn: 1.22.22
+2026-09-10T17:45:30.7892805Z ##[endgroup]
+2026-09-10T17:45:30.7912678Z [command]/home/runner/setup-pnpm/node_modules/.bin/bin/pnpm store path --silent
+2026-09-10T17:45:31.1970941Z /home/runner/setup-pnpm/node_modules/.bin/store/v10
+2026-09-10T17:45:31.8080496Z pnpm cache is not found
+2026-09-10T17:45:31.8267373Z ##[group]Run pnpm install --frozen-lockfile
+2026-09-10T17:45:31.8267860Z pnpm install --frozen-lockfile
+2026-09-10T17:45:31.8309979Z shell: /usr/bin/bash -e {0}
+2026-09-10T17:45:31.8310303Z env:
+2026-09-10T17:45:31.8310627Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+2026-09-10T17:45:31.8311038Z ##[endgroup]
+2026-09-10T17:45:32.1738075Z Lockfile is up to date, resolution step is skipped
+2026-09-10T17:45:32.2091949Z Progress: resolved 1, reused 0, downloaded 0, added 0
+2026-09-10T17:45:32.2526970Z Packages: +222
+2026-09-10T17:45:32.2536189Z ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+2026-09-10T17:45:33.2121817Z Progress: resolved 222, reused 0, downloaded 94, added 83
+2026-09-10T17:45:34.2121728Z Progress: resolved 222, reused 0, downloaded 221, added 209
+2026-09-10T17:45:34.3037214Z Progress: resolved 222, reused 0, downloaded 222, added 222, done
+2026-09-10T17:45:34.4275027Z 
+2026-09-10T17:45:34.4275746Z dependencies:
+2026-09-10T17:45:34.4276484Z + @tanstack/react-query 5.102.3
+2026-09-10T17:45:34.4277130Z + class-variance-authority 0.7.1
+2026-09-10T17:45:34.4277684Z + cn 0.2.6
+2026-09-10T17:45:34.4278089Z + lucide-react 1.34.0
+2026-09-10T17:45:34.4278520Z + radix-ui 1.6.7
+2026-09-10T17:45:34.4278950Z + react 19.2.8
+2026-09-10T17:45:34.4279369Z + react-dom 19.2.8
+2026-09-10T17:45:34.4280144Z + react-router-dom 7.18.2
+2026-09-10T17:45:34.4280637Z + sonner 2.0.8
+2026-09-10T17:45:34.4281018Z + zod 4.4.3
+2026-09-10T17:45:34.4281271Z 
+2026-09-10T17:45:34.4281477Z devDependencies:
+2026-09-10T17:45:34.4281933Z + @tailwindcss/vite 4.3.3
+2026-09-10T17:45:34.4282446Z + @testing-library/jest-dom 7.0.1
+2026-09-10T17:45:34.4283043Z + @testing-library/react 16.3.2
+2026-09-10T17:45:34.4283727Z + @testing-library/user-event 14.6.6
+2026-09-10T17:45:34.4284108Z + @types/node 26.3.0
+2026-09-10T17:45:34.4284445Z + @types/react 19.2.18
+2026-09-10T17:45:34.4284899Z + @types/react-dom 19.2.5
+2026-09-10T17:45:34.4285529Z + @vitejs/plugin-react 6.1.0
+2026-09-10T17:45:34.4286067Z + fake-indexeddb 6.2.5
+2026-09-10T17:45:34.4286509Z + jsdom 30.0.1
+2026-09-10T17:45:34.4286977Z + playwright 1.62.1
+2026-09-10T17:45:34.4287436Z + tailwindcss 4.3.3
+2026-09-10T17:45:34.4287921Z + tw-animate-css 1.4.0
+2026-09-10T17:45:34.4288381Z + typescript 7.0.2
+2026-09-10T17:45:34.4288905Z + vite 8.2.2
+2026-09-10T17:45:34.4289291Z + vitest 4.1.11
+2026-09-10T17:45:34.4289516Z 
+2026-09-10T17:45:34.4478795Z Done in 2.5s using pnpm v10.28.2
+2026-09-10T17:45:34.6007789Z ##[group]Run pnpm test:run
+2026-09-10T17:45:34.6008130Z pnpm test:run
+2026-09-10T17:45:34.6047419Z shell: /usr/bin/bash -e {0}
+2026-09-10T17:45:34.6047718Z env:
+2026-09-10T17:45:34.6048015Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+2026-09-10T17:45:34.6048391Z ##[endgroup]
+2026-09-10T17:45:34.9007277Z 
+2026-09-10T17:45:34.9008782Z > @relational-config-center/web@0.0.0 test:run /home/runner/work/relational-config-center/relational-config-center/web
+2026-09-10T17:45:34.9010242Z > vitest run
+2026-09-10T17:45:34.9010492Z 
+2026-09-10T17:45:35.3120706Z 
+2026-09-10T17:45:35.3126051Z  RUN  v4.1.11 /home/runner/work/relational-config-center/relational-config-center/web
+2026-09-10T17:45:35.3126899Z 
+2026-09-10T17:45:48.5751429Z  ✓ src/features/table-policies/TablePoliciesPage.test.tsx (15 tests) 10330ms
+2026-09-10T17:45:48.5753843Z      ✓ 通过正式路由展示真实表发现状态、表规则目录并在客户端筛选  1012ms
+2026-09-10T17:45:48.5755489Z      ✓ 只从兼容未分配表和 Active Policy 创建 disabled 分配  935ms
+2026-09-10T17:45:48.5801849Z      ✓ does not replay a table-rule assignment whose response was lost and offers a read-only check  1084ms
+2026-09-10T17:45:48.5861965Z      ✓ blocks a table-rule state command after its response is lost until a read-only check  1733ms
+2026-09-10T17:45:48.5878821Z      ✓ keeps a table-rule assignment across same-account login and revalidates its candidates  1072ms
+2026-09-10T17:45:48.5891608Z      ✓ 从可复制详情 URL 一起替换两个 Code，并警告 enabled 分配下一次请求立即生效  948ms
+2026-09-10T17:45:48.5925615Z      ✓ 已启用分配一起替换失败后呈现稳定错误和 Request ID  610ms
+2026-09-10T17:45:48.5929506Z      ✓ 关闭详情后进入新建会清空旧分配，不能提交已分配表  564ms
+2026-09-10T17:45:48.5965004Z      ✓ 确认后启用和停用表规则  830ms
+2026-09-10T17:45:48.6000978Z      ✓ 清晰呈现 Admin 的实时 Schema 稳定错误和 Request ID  370ms
+2026-09-10T17:45:48.6031559Z    ✓ ends an uncertain enable/disable check in the refreshed table directory  428ms
+2026-09-10T17:46:01.6974494Z  ✓ src/features/mutation-policies/MutationPoliciesPage.test.tsx (15 tests) 10878ms
+2026-09-10T17:46:01.6978318Z      ✓ 在空目录中使用变更规则的领域文案  335ms
+2026-09-10T17:46:01.6980312Z      ✓ is a formal route that renders Type operations and the real catalog  353ms
+2026-09-10T17:46:01.6982203Z      ✓ loads a copyable detail URL from the dedicated endpoint  365ms
+2026-09-10T17:46:01.7011232Z      ✓ creates a Draft with all capabilities and nullable Auto Fill fields in the Admin DTO  1497ms
+2026-09-10T17:46:01.7017371Z      ✓ rejects unsafe, primary-key, duplicate and permission-dependent Auto Fill targets before fetch  1209ms
+2026-09-10T17:46:01.7019416Z      ✓ does not replay a mutation-rule write whose response was lost and offers a read-only check  1421ms
+2026-09-10T17:46:01.7021834Z      ✓ blocks a mutation-rule lifecycle command after its response is lost until a read-only check  1502ms
+2026-09-10T17:46:01.7023945Z      ✓ keeps a mutation-rule draft across same-account login and refetches before allowing save  836ms
+2026-09-10T17:46:01.7025909Z      ✓ fails an unknown Type closed while allowing only safe metadata updates  423ms
+2026-09-10T17:46:01.7028167Z      ✓ fails a known Type closed when its registry capabilities are incomplete  319ms
+2026-09-10T17:46:01.7030272Z      ✓ activates a Draft only after explicit confirmation  509ms
+2026-09-10T17:46:01.7044771Z      ✓ replaces a Draft with the complete execution DTO  462ms
+2026-09-10T17:46:01.7048334Z      ✓ updates only display metadata on an Active Policy  475ms
+2026-09-10T17:46:01.7080982Z      ✓ confirms 弃用 before issuing its lifecycle command  561ms
+2026-09-10T17:46:01.7108761Z      ✓ confirms 删除 before issuing its lifecycle command  609ms
+2026-09-10T17:46:08.8599042Z  ✓ src/features/accounts/AccountPage.test.tsx (23 tests) 5292ms
+2026-09-10T17:46:08.8601255Z    ✓ registers with a prepared CSRF credential and presents the real current identity  724ms
+2026-09-10T17:46:08.8603178Z    ✓ offers session rechecking after an uncertain registration without replaying it  372ms
+2026-09-10T17:46:08.8605022Z    ✓ updates its own profile and keeps the session on a wrong current password  512ms
+2026-09-10T17:46:08.8606744Z    ✓ changes the password and returns to login after every session is revoked  370ms
+2026-09-10T17:46:08.8608489Z    ✓ offers the login path after a password response is lost without replaying the change  516ms
+2026-09-10T17:46:08.8610291Z    ✓ clears sensitive drafts before showing an account selected in another tab  611ms
+2026-09-10T17:46:08.8611803Z    ✓ ignores an email response that arrives after another tab selects a new account  396ms
+2026-09-10T17:46:19.7470417Z  ✓ src/features/query-policies/QueryPoliciesPage.test.tsx (15 tests) 9081ms
+2026-09-10T17:46:19.7472771Z      ✓ renders localized policies from the real Admin contract shape  379ms
+2026-09-10T17:46:19.7502492Z      ✓ loads details from the dedicated detail endpoint  390ms
+2026-09-10T17:46:19.7507319Z      ✓ blocks execution editing for an unknown Type but still offers safe metadata editing  356ms
+2026-09-10T17:46:19.7509111Z      ✓ executes lifecycle commands only after confirmation  454ms
+2026-09-10T17:46:19.7511087Z      ✓ deprecates an active Policy only after confirmation  469ms
+2026-09-10T17:46:19.7512987Z      ✓ cancels and then confirms Draft deletion  794ms
+2026-09-10T17:46:19.7514788Z      ✓ does not replay a query-rule write whose response was lost and offers a read-only check  1631ms
+2026-09-10T17:46:19.7516965Z      ✓ blocks a query-rule lifecycle command after its response is lost until a read-only check  1514ms
+2026-09-10T17:46:19.7519234Z      ✓ retains the dirty rule draft and its leave protection across expiry and recovery refetch failures  1271ms
+2026-09-10T17:46:19.7521831Z    ✓ ends an uncertain lifecycle check in the refreshed directory instead of leaving stale detail actions  666ms
+2026-09-10T17:46:24.7853706Z  ✓ src/features/release-orders/ReleaseOrdersPage.test.tsx (69 tests) 46536ms
+2026-09-10T17:46:24.7870200Z    ✓ 原申请人或管理员核对最新配置后原子化重新准备已批准普通单  2041ms
+2026-09-10T17:46:24.7887370Z    ✓ 重新准备响应丢失后跨刷新保留原正文与幂等键并恢复同一草稿  1502ms
+2026-09-10T17:46:24.7921808Z    ✓ 详情同时展示标题、相关人员当前姓名、首字头像和永久 ID  328ms
+2026-09-10T17:46:24.7951126Z    ✓ 人员姓名重读失败时清除缓存姓名、显示错误标识并允许独立重试  666ms
+2026-09-10T17:46:24.7971537Z    ✓ 发布者明确确认完结，取消无写入且不要求意见  865ms
+2026-09-10T17:46:24.8064670Z    ✓ 回滚执行人在原单补填和修正可选原因并看到每次真实留痕  1041ms
+2026-09-10T17:46:24.8091061Z    ✓ 回滚原因写入报错保留输入且只在再次点击时复用原正文和标识  761ms
+2026-09-10T17:46:24.8120800Z    ✓ 回滚原因编辑时晚到的另一窗口原请求先恢复且不丢本窗口输入  628ms
+2026-09-10T17:46:24.8140826Z    ✓ 回滚原因窗口打开后服务端撤销动作仍保留输入并禁止提交原请求  529ms
+2026-09-10T17:46:24.8170957Z    ✓ 原执行旧键重放返回已发布快照后仍重新读取当前已回滚详情  578ms
+2026-09-10T17:46:24.8180740Z    ✓ 从列表的查看详情入口打开持久草稿，并取消后保留历史  990ms
+2026-09-10T17:46:24.8200778Z    ✓ 编辑冲突保留输入，读取最新后必须明确重建再保存  1161ms
+2026-09-10T17:46:24.8230864Z    ✓ 发布单标题按 Unicode 字符计数并允许 100 个 emoji  466ms
+2026-09-10T17:46:24.8260792Z    ✓ 编辑发布草稿时保留原始 CRLF 和 CR，明确转换后才允许修改  485ms
+2026-09-10T17:46:24.8291055Z    ✓ 刷新后恢复未知请求，随后403也不丢弃原标识或跨账号重放  1651ms
+2026-09-10T17:46:24.8292930Z    ✓ 已知 ADD 冲突后查看缺行墓碑并明确重建，保留当前申请值  1499ms
+2026-09-10T17:46:24.8321074Z    ✓ 未知请求重试得到明确版本冲突后，可核对并用新请求重建  1394ms
+2026-09-10T17:46:24.8325279Z    ✓ 未知请求明确被取消状态拒绝后，保留输入并只读查看终态  1200ms
+2026-09-10T17:46:24.8351180Z    ✓ 刷新后原请求被明确拒绝仍保留申请，核对后才能确认重建  2378ms
+2026-09-10T17:46:24.8386132Z    ✓ 原业务结果重放成功后重新读取已挂载详情的当前版本  514ms
+2026-09-10T17:46:24.8410898Z    ✓ 取消请求刷新恢复冲突后，明确显示真实取消动作并保留原因  1642ms
+2026-09-10T17:46:24.8440974Z    ✓ 仅有审批角色的人填写意见批准冻结单据  465ms
+2026-09-10T17:46:24.8442112Z    ✓ 审批状态冲突跨刷新保留原意见，查看最新后才显式重建  644ms
+2026-09-10T17:46:24.8471058Z    ✓ 仅 PUBLISHER 执行原审批，丢响应后跨刷新使用原键确认并显示最终值  912ms
+2026-09-10T17:46:24.8500828Z    ✓ 分页编辑及删除只提交本次明细变化和整单版本  764ms
+2026-09-10T17:46:24.8503966Z    ✓ 千项预览可定位最后一项，审批仍包含整单  1392ms
+2026-09-10T17:46:24.8543210Z    ✓ 大单与待恢复请求超出浏览器保存容量时发送前拒绝并保留原请求  812ms
+2026-09-10T17:46:24.8560780Z    ✓ 千项编辑器只列当前20项并能直接编辑第1000项  1162ms
+2026-09-10T17:46:24.8590816Z    ✓ 完结丢响应后保留原请求并通过原完结操作安全重推  752ms
+2026-09-10T17:46:24.8594268Z    ✓ 快速回滚先读取整单恢复预览，取消无写入且无需必填原因  413ms
+2026-09-10T17:46:24.8631453Z    ✓ 快速回滚未知结果保留原摘要原因与标识，正常读取当前终态并跨刷新重推  1014ms
+2026-09-10T17:46:24.8652838Z    ✓ 快速回滚明确拒绝后保留原因，只有主动重读并审阅新预览才重建  1073ms
+2026-09-10T17:46:24.8654593Z    ✓ 快速回滚预览失败时保留原因，主动重读成功后仍拒绝超长原因  705ms
+2026-09-10T17:46:24.8656133Z    ✓ 重新准备发送前响应未知时，关闭和刷新保留原正文和键且当前主单操作可用  1575ms
+2026-09-10T17:46:24.8657741Z    ✓ 已回滚详情默认实际原发布结果并可读取可信恢复结果或申请差异  379ms
+2026-09-10T17:46:24.8659239Z    ✓ 字段名称和选项标签重读后实时更新，但申请 before 与持久化 final 原值不变  419ms
+2026-09-10T17:46:24.8661021Z    ✓ 同一表的不同发布单在每次查看详情时重读当前显示规则  584ms
+2026-09-10T17:46:24.8662340Z    ✓ 重新准备未知后明确拒绝，必须读取最新版本和差异才可用新键重建  1420ms
+2026-09-10T17:46:24.8663699Z    ✓ 重新准备会话中断隐藏浮层，重新登录后按账号隔离原请求（切换账号=false）  870ms
+2026-09-10T17:46:24.8665051Z    ✓ 重新准备会话中断隐藏浮层，重新登录后按账号隔离原请求（切换账号=true）  878ms
+2026-09-10T17:46:24.8666383Z    ✓ 冷账号在DRAFT读取持久编辑请求后仍可原键重推，不倒退主单  510ms
+2026-09-10T17:46:24.8667781Z    ✓ 冷账号在PENDING_APPROVAL读取持久编辑请求后仍可原键重推，不倒退主单  511ms
+2026-09-10T17:46:24.8669122Z    ✓ 另一窗口留下同范围原请求时锁定当前输入，恢复后保留本窗口未保存内容  776ms
+2026-09-10T17:46:24.8670711Z    ✓ 多表审阅按所属表读取一次当前标签，申请与两次实际结果不串表  571ms
+2026-09-10T17:46:24.8672039Z    ✓ 版本冲突的最新草稿首次加入另一表时读取其标签并保留本窗口输入  1168ms
+2026-09-10T17:46:24.8673414Z    ✓ 发布异常只报错，原动作手动重复保持原身份与正文（历史saved）  677ms
+2026-09-10T17:46:24.8674863Z    ✓ 发布异常只报错，原动作手动重复保持原身份与正文（历史unavailable）  620ms
+2026-09-10T17:46:24.8676298Z    ✓ HTTP成功后的IndexedDB清理失败仍读取真实主单且不会变成业务失败  773ms
+2026-09-10T17:46:24.8677727Z    ✓ 后台 header 换版本和撤销编辑动作不重挂载输入，也不替换已留存原请求  354ms
+2026-09-10T17:46:25.8404307Z  ✓ src/features/managed-data/ManagedDataMutationPage.test.tsx (30 tests) 47595ms
+2026-09-10T17:46:25.8442479Z      ✓ fails closed by capability, offers optional id, and excludes every server-managed Auto Fill field from ADD  1388ms
+2026-09-10T17:46:25.8461754Z      ✓ keeps a Change Set across same-account login, refetches rules and schema, and requires confirmation again  1750ms
+2026-09-10T17:46:25.8465154Z      ✓ keeps MODIFY input but rechecks the exact current target before rebuilding its Change Set  2278ms
+2026-09-10T17:46:25.8467489Z      ✓ allows a fresh editor opened after the recovered list was already rechecked  1245ms
+2026-09-10T17:46:25.8470019Z      ✓ keeps a recovered MODIFY Change Set gated through failed latest reads (version changed: false)  2060ms
+2026-09-10T17:46:25.8472552Z      ✓ keeps a recovered MODIFY Change Set gated through failed latest reads (version changed: true)  2202ms
+2026-09-10T17:46:25.8485723Z      ✓ preserves a stale change, reads latest separately, and requires an explicit rebuild before retry  2462ms
+2026-09-10T17:46:25.8487581Z      ✓ 从现有 Change Set 保存发布草稿，不调用记录写接口  1167ms
+2026-09-10T17:46:25.8488844Z    ✓ ADD 的唯一确认保存草稿并保留字段三态与记录版本  1513ms
+2026-09-10T17:46:25.8490282Z    ✓ MODIFY 的唯一确认保存草稿并保留字段三态与记录版本  1620ms
+2026-09-10T17:46:25.8491580Z    ✓ DELETE 的唯一确认保存草稿并保留字段三态与记录版本  1048ms
+2026-09-10T17:46:25.8492773Z    ✓ 空字符串主键的DELETE仍保存准确身份和版本  503ms
+2026-09-10T17:46:25.8493980Z    ✓ 首次发布能力明确拒绝后保留输入并允许返回修改  1406ms
+2026-09-10T17:46:25.8495189Z    ✓ AC-019 配置下拉草稿结果未知后仍以原正文和键恢复  2821ms
+2026-09-10T17:46:25.8496462Z    ✓ 明确勾选两行后加入本人跨表已有草稿，保留原明细和各行版本  1115ms
+2026-09-10T17:46:25.8497548Z    ✓ 已有草稿去向只列出当前可编辑的草稿  1070ms
+2026-09-10T17:46:25.8498678Z    ✓ 批量选择把原型属性名当作普通字符串记录 id  768ms
+2026-09-10T17:46:25.8500037Z    ✓ 批量删除核对每页20项，末页定位后仍保存全部选择  6802ms
+2026-09-10T17:46:25.8501978Z    ✓ AC-012 freezes configured query/editor input through same-account recovery and reopens with latest rules  3206ms
+2026-09-10T17:46:25.8503898Z    ✓ 重新进入时等待本次字段配置读取再冻结，并且后续实时刷新不重绘查询输入  1140ms
+2026-09-10T17:46:25.8505163Z    ✓ 列表首次成功后的配置刷新失败独立报错重试，并保留已冻结筛选输入  748ms
+2026-09-10T17:46:25.8506728Z    ✓ AC-012 isolates configured query and editor drafts when the account changes  1899ms
+2026-09-10T17:46:25.8508950Z    ✓ AC-015 independently retries field metadata without replacing already entered query input  724ms
+2026-09-10T17:46:25.8511351Z    ✓ AC-015 passes newly discovered real fields through the editor into Change Set  976ms
+2026-09-10T17:46:25.8513538Z    ✓ AC-015/019 shows fresh MODIFY defaults in Change Set while retaining the original record version  1381ms
+2026-09-10T17:46:25.8515200Z    ✓ 另一窗口原请求重推后保留配置页single未保存输入  1087ms
+2026-09-10T17:46:25.8516375Z    ✓ 另一窗口原请求重推后保留配置页batch未保存输入  674ms
+2026-09-10T17:46:25.8517531Z    ✓ 配置页single未知结果后可以退出且不清除原请求  1108ms
+2026-09-10T17:46:25.8518717Z    ✓ 配置页batch未知结果后可以退出且不清除原请求  1167ms
+2026-09-10T17:46:30.6031240Z stderr | src/test/UnsavedChanges.test.tsx > rule drafts and navigation protection > cancels and confirms history back/forward, resource/mode changes, and main navigation
+2026-09-10T17:46:30.6034477Z An update to ForwardRef(DismissableLayer) inside a test was not wrapped in act(...).
+2026-09-10T17:46:30.6039901Z 
+2026-09-10T17:46:30.6040631Z When testing, code that causes React state updates should be wrapped into act(...):
+2026-09-10T17:46:30.6041293Z 
+2026-09-10T17:46:30.6041465Z act(() => {
+2026-09-10T17:46:30.6041915Z   /* fire events that update state */
+2026-09-10T17:46:30.6042398Z });
+2026-09-10T17:46:30.6042786Z /* assert on the output */
+2026-09-10T17:46:30.6043071Z 
+2026-09-10T17:46:30.6044123Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+2026-09-10T17:46:30.6045693Z An update to ForwardRef(DismissableLayer) inside a test was not wrapped in act(...).
+2026-09-10T17:46:30.6046330Z 
+2026-09-10T17:46:30.6046955Z When testing, code that causes React state updates should be wrapped into act(...):
+2026-09-10T17:46:30.6047578Z 
+2026-09-10T17:46:30.6047728Z act(() => {
+2026-09-10T17:46:30.6048150Z   /* fire events that update state */
+2026-09-10T17:46:30.6048615Z });
+2026-09-10T17:46:30.6048983Z /* assert on the output */
+2026-09-10T17:46:30.6049254Z 
+2026-09-10T17:46:30.6050568Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+2026-09-10T17:46:30.6051494Z 
+2026-09-10T17:46:30.6053278Z stderr | src/test/UnsavedChanges.test.tsx > rule drafts and navigation protection > cancels and confirms history back/forward, resource/mode changes, and main navigation
+2026-09-10T17:46:30.6056203Z A component suspended inside an `act` scope, but the `act` call was not awaited. When testing React components that depend on asynchronous data, you must await the result:
+2026-09-10T17:46:30.6057398Z 
+2026-09-10T17:46:30.6057612Z await act(() => ...)
+2026-09-10T17:46:30.6057858Z 
+2026-09-10T17:46:31.0257715Z  ✓ src/features/managed-data/ManagedDataPage.test.tsx (11 tests) 4096ms
+2026-09-10T17:46:31.0259932Z      ✓ 没有已启用表规则时显示明确空状态且不调用 Managed Data API  337ms
+2026-09-10T17:46:31.0261346Z      ✓ 只列出 enabled Managed Table，并用首次查询的动态列区分 NULL 与空字符串  656ms
+2026-09-10T17:46:31.0262770Z      ✓ 按当前字段配置隐藏和排序列表列，并用真实字段和值消除重复标签歧义  838ms
+2026-09-10T17:46:31.0264125Z      ✓ 把空字符串 exact 条件作为真实 JSON String 提交  407ms
+2026-09-10T17:46:31.0265426Z      ✓ 提交单字段排序并只用服务端页信息翻页、设置每页数量和清空查询  929ms
+2026-09-10T17:46:32.1413219Z stderr | src/test/UnsavedChanges.test.tsx > rule drafts and navigation protection > cancels and confirms history back/forward, resource/mode changes, and main navigation
+2026-09-10T17:46:32.1432602Z An update to ForwardRef(DismissableLayer) inside a test was not wrapped in act(...).
+2026-09-10T17:46:32.1434017Z 
+2026-09-10T17:46:32.1434923Z When testing, code that causes React state updates should be wrapped into act(...):
+2026-09-10T17:46:32.1435878Z 
+2026-09-10T17:46:32.1436234Z act(() => {
+2026-09-10T17:46:32.1436996Z   /* fire events that update state */
+2026-09-10T17:46:32.1437805Z });
+2026-09-10T17:46:32.1438500Z /* assert on the output */
+2026-09-10T17:46:32.1439074Z 
+2026-09-10T17:46:32.1440787Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+2026-09-10T17:46:32.1444526Z An update to ForwardRef(DismissableLayer) inside a test was not wrapped in act(...).
+2026-09-10T17:46:32.1445783Z 
+2026-09-10T17:46:32.1446700Z When testing, code that causes React state updates should be wrapped into act(...):
+2026-09-10T17:46:32.1447626Z 
+2026-09-10T17:46:32.1447968Z act(() => {
+2026-09-10T17:46:32.1448722Z   /* fire events that update state */
+2026-09-10T17:46:32.1449525Z });
+2026-09-10T17:46:32.1450429Z /* assert on the output */
+2026-09-10T17:46:32.1450941Z 
+2026-09-10T17:46:32.1452192Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+2026-09-10T17:46:32.1453419Z 
+2026-09-10T17:46:32.2179955Z stderr | src/test/UnsavedChanges.test.tsx > rule drafts and navigation protection > cancels and confirms history back/forward, resource/mode changes, and main navigation
+2026-09-10T17:46:32.2192203Z The current testing environment is not configured to support act(...)
+2026-09-10T17:46:32.2192817Z 
+2026-09-10T17:46:32.5446087Z stderr | src/test/UnsavedChanges.test.tsx > rule drafts and navigation protection > cancels and confirms history back/forward, resource/mode changes, and main navigation
+2026-09-10T17:46:32.5449241Z An update to ForwardRef(DismissableLayer) inside a test was not wrapped in act(...).
+2026-09-10T17:46:32.5450547Z 
+2026-09-10T17:46:32.5451420Z When testing, code that causes React state updates should be wrapped into act(...):
+2026-09-10T17:46:32.5452345Z 
+2026-09-10T17:46:32.5452688Z act(() => {
+2026-09-10T17:46:32.5453363Z   /* fire events that update state */
+2026-09-10T17:46:32.5454089Z });
+2026-09-10T17:46:32.5454688Z /* assert on the output */
+2026-09-10T17:46:32.5455168Z 
+2026-09-10T17:46:32.5456589Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+2026-09-10T17:46:32.5458495Z An update to ForwardRef(DismissableLayer) inside a test was not wrapped in act(...).
+2026-09-10T17:46:32.5459321Z 
+2026-09-10T17:46:32.5460295Z When testing, code that causes React state updates should be wrapped into act(...):
+2026-09-10T17:46:32.5461101Z 
+2026-09-10T17:46:32.5461427Z act(() => {
+2026-09-10T17:46:32.5462032Z   /* fire events that update state */
+2026-09-10T17:46:32.5462699Z });
+2026-09-10T17:46:32.5463241Z /* assert on the output */
+2026-09-10T17:46:32.5463711Z 
+2026-09-10T17:46:32.5464864Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+2026-09-10T17:46:32.5465964Z 
+2026-09-10T17:46:32.6204962Z stderr | src/test/UnsavedChanges.test.tsx > rule drafts and navigation protection > cancels and confirms history back/forward, resource/mode changes, and main navigation
+2026-09-10T17:46:32.6206926Z The current testing environment is not configured to support act(...)
+2026-09-10T17:46:32.6207599Z 
+2026-09-10T17:46:32.8909898Z stderr | src/test/UnsavedChanges.test.tsx > rule drafts and navigation protection > does not let a discarded draft block the next history action before React unmounts it
+2026-09-10T17:46:32.8913932Z An update to ForwardRef(DismissableLayer) inside a test was not wrapped in act(...).
+2026-09-10T17:46:32.8915462Z 
+2026-09-10T17:46:32.8920318Z When testing, code that causes React state updates should be wrapped into act(...):
+2026-09-10T17:46:32.8921125Z 
+2026-09-10T17:46:32.8921465Z act(() => {
+2026-09-10T17:46:32.8923193Z   /* fire events that update state */
+2026-09-10T17:46:32.8923845Z });
+2026-09-10T17:46:32.8924387Z /* assert on the output */
+2026-09-10T17:46:32.8924852Z 
+2026-09-10T17:46:32.8926079Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+2026-09-10T17:46:32.8927947Z An update to ForwardRef(DismissableLayer) inside a test was not wrapped in act(...).
+2026-09-10T17:46:32.8928749Z 
+2026-09-10T17:46:32.8929565Z When testing, code that causes React state updates should be wrapped into act(...):
+2026-09-10T17:46:32.8930630Z 
+2026-09-10T17:46:32.8930975Z act(() => {
+2026-09-10T17:46:32.8931571Z   /* fire events that update state */
+2026-09-10T17:46:32.8932169Z });
+2026-09-10T17:46:32.8932671Z /* assert on the output */
+2026-09-10T17:46:32.8933070Z 
+2026-09-10T17:46:32.8934121Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+2026-09-10T17:46:32.8935113Z 
+2026-09-10T17:46:33.0503261Z stderr | src/test/UnsavedChanges.test.tsx > rule drafts and navigation protection > does not let a discarded draft block the next history action before React unmounts it
+2026-09-10T17:46:33.0511591Z An update to ForwardRef(DismissableLayer) inside a test was not wrapped in act(...).
+2026-09-10T17:46:33.0512703Z 
+2026-09-10T17:46:33.0513570Z When testing, code that causes React state updates should be wrapped into act(...):
+2026-09-10T17:46:33.0514482Z 
+2026-09-10T17:46:33.0514823Z act(() => {
+2026-09-10T17:46:33.0515494Z   /* fire events that update state */
+2026-09-10T17:46:33.0516219Z });
+2026-09-10T17:46:33.0516846Z /* assert on the output */
+2026-09-10T17:46:33.0517326Z 
+2026-09-10T17:46:33.0518524Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+2026-09-10T17:46:33.0520330Z An update to ForwardRef(DismissableLayer) inside a test was not wrapped in act(...).
+2026-09-10T17:46:33.0521193Z 
+2026-09-10T17:46:33.0521994Z When testing, code that causes React state updates should be wrapped into act(...):
+2026-09-10T17:46:33.0522735Z 
+2026-09-10T17:46:33.0523029Z act(() => {
+2026-09-10T17:46:33.0523619Z   /* fire events that update state */
+2026-09-10T17:46:33.0524205Z });
+2026-09-10T17:46:33.0524782Z /* assert on the output */
+2026-09-10T17:46:33.0525265Z 
+2026-09-10T17:46:33.0526639Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+2026-09-10T17:46:33.0527876Z 
+2026-09-10T17:46:34.7584933Z  ✓ src/features/accounts/WorkspaceAccess.test.tsx (15 tests) 6589ms
+2026-09-10T17:46:34.7611614Z    ✓ requires login before showing the workspace and remembers its internal destination  335ms
+2026-09-10T17:46:34.7624679Z    ✓ returns from /configuration/managed-data?table=items#row to an allowed workspace destination after /configuration/managed-data?table=items#row  599ms
+2026-09-10T17:46:34.7627479Z    ✓ returns from /platform/mutation-policies to an allowed workspace destination after /platform/mutation-policies  533ms
+2026-09-10T17:46:34.7630105Z    ✓ returns from //evil.example/steal to an allowed workspace destination after /platform/query-policies  415ms
+2026-09-10T17:46:34.7632219Z    ✓ returns from /\evil.example/steal to an allowed workspace destination after /platform/query-policies  348ms
+2026-09-10T17:46:34.7635187Z    ✓ cancels pending dirty navigation on expiry and restores the guarded draft after same-account reauthentication  1391ms
+2026-09-10T17:46:34.7637655Z    ✓ clears an in-memory rule draft when focus reveals a different Cookie account  531ms
+2026-09-10T17:46:34.7647091Z    ✓ clears an in-memory rule draft when another tab ends the session  934ms
+2026-09-10T17:46:34.7649100Z    ✓ keeps same-account memory hidden through an authentication service failure  328ms
+2026-09-10T17:46:34.7687592Z    ✓ destroys recoverable drafts when the server identifies a disabled account  414ms
+2026-09-10T17:46:38.8118439Z stderr | src/test/UnsavedChanges.test.tsx > rule drafts and navigation protection > query draft survives refreshed details and changed server status
+2026-09-10T17:46:38.8121208Z An update to ForwardRef(DismissableLayer) inside a test was not wrapped in act(...).
+2026-09-10T17:46:38.8122334Z 
+2026-09-10T17:46:38.8123040Z When testing, code that causes React state updates should be wrapped into act(...):
+2026-09-10T17:46:38.8123876Z 
+2026-09-10T17:46:38.8124195Z act(() => {
+2026-09-10T17:46:38.8124795Z   /* fire events that update state */
+2026-09-10T17:46:38.8125436Z });
+2026-09-10T17:46:38.8125974Z /* assert on the output */
+2026-09-10T17:46:38.8126380Z 
+2026-09-10T17:46:38.8127539Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+2026-09-10T17:46:38.8129256Z An update to ForwardRef(DismissableLayer) inside a test was not wrapped in act(...).
+2026-09-10T17:46:38.8130480Z 
+2026-09-10T17:46:38.8131271Z When testing, code that causes React state updates should be wrapped into act(...):
+2026-09-10T17:46:38.8132020Z 
+2026-09-10T17:46:38.8132335Z act(() => {
+2026-09-10T17:46:38.8132904Z   /* fire events that update state */
+2026-09-10T17:46:38.8133504Z });
+2026-09-10T17:46:38.8133999Z /* assert on the output */
+2026-09-10T17:46:38.8134420Z 
+2026-09-10T17:46:38.8135484Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+2026-09-10T17:46:38.8136481Z 
+2026-09-10T17:46:39.1387005Z  ✓ src/features/managed-data/ManagedRowEditor.test.tsx (8 tests) 2446ms
+2026-09-10T17:46:39.1410720Z    ✓ preserves multiline string and JSON when reopening and editing a row  530ms
+2026-09-10T17:46:39.1413172Z    ✓ submits original values with edits, retaining NULL and empty values and excluding managed columns  659ms
+2026-09-10T17:46:39.1415214Z    ✓ offers an omitted-by-default id for ADD while keeping id immutable on MODIFY  344ms
+2026-09-10T17:46:39.1421656Z    ✓ AC-009/010 keeps omitted, explicit NULL and empty distinct; rejects required empty but accepts zero and false  376ms
+2026-09-10T17:46:39.3049393Z stderr | src/test/UnsavedChanges.test.tsx > rule drafts and navigation protection > mutation draft survives refreshed details and changed server status
+2026-09-10T17:46:39.3062341Z An update to ForwardRef(DismissableLayer) inside a test was not wrapped in act(...).
+2026-09-10T17:46:39.3063317Z 
+2026-09-10T17:46:39.3064011Z When testing, code that causes React state updates should be wrapped into act(...):
+2026-09-10T17:46:39.3064720Z 
+2026-09-10T17:46:39.3064886Z act(() => {
+2026-09-10T17:46:39.3065365Z   /* fire events that update state */
+2026-09-10T17:46:39.3065908Z });
+2026-09-10T17:46:39.3066319Z /* assert on the output */
+2026-09-10T17:46:39.3066628Z 
+2026-09-10T17:46:39.3068420Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+2026-09-10T17:46:39.3070637Z An update to ForwardRef(DismissableLayer) inside a test was not wrapped in act(...).
+2026-09-10T17:46:39.3071368Z 
+2026-09-10T17:46:39.3072038Z When testing, code that causes React state updates should be wrapped into act(...):
+2026-09-10T17:46:39.3072732Z 
+2026-09-10T17:46:39.3072904Z act(() => {
+2026-09-10T17:46:39.3073369Z   /* fire events that update state */
+2026-09-10T17:46:39.3073883Z });
+2026-09-10T17:46:39.3074290Z /* assert on the output */
+2026-09-10T17:46:39.3074596Z 
+2026-09-10T17:46:39.3075707Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+2026-09-10T17:46:39.3076652Z 
+2026-09-10T17:46:46.6199413Z  ✓ src/features/account-roles/AccountRolesPage.test.tsx (9 tests) 5451ms
+2026-09-10T17:46:46.6222012Z    ✓ 管理员通过界面组合分配角色，并保留并发版本和请求标识  1211ms
+2026-09-10T17:46:46.6223540Z    ✓ query 规则编辑中撤权保留输入并禁止保存  455ms
+2026-09-10T17:46:46.6224746Z    ✓ mutation 规则编辑中撤权保留输入并禁止保存  510ms
+2026-09-10T17:46:46.6225845Z    ✓ 角色保存收到503时使用原标识和内容重试  445ms
+2026-09-10T17:46:46.6226829Z    ✓ 角色编辑中撤权保留选择并禁止提交  493ms
+2026-09-10T17:46:46.6227871Z    ✓ 并发冲突后的读取失败只重试读取，保留选择并使用新版本再次保存  587ms
+2026-09-10T17:46:46.6228896Z    ✓ 不确定保存重试收到 401 后仍保留原请求  774ms
+2026-09-10T17:46:46.6230128Z    ✓ 不确定保存重试收到 403 后仍保留原请求  693ms
+2026-09-10T17:46:48.4266307Z  ✓ src/test/UnsavedChanges.test.tsx (24 tests) 26727ms
+2026-09-10T17:46:48.4269654Z      ✓ 'query' 'create': protects all drawer exits and treats exact restoration as clean  1813ms
+2026-09-10T17:46:48.4272191Z      ✓ 'query' 'edit': protects all drawer exits and treats exact restoration as clean  1419ms
+2026-09-10T17:46:48.4274289Z      ✓ 'query' 'metadata': protects all drawer exits and treats exact restoration as clean  960ms
+2026-09-10T17:46:48.4276383Z      ✓ 'mutation' 'create': protects all drawer exits and treats exact restoration as clean  1654ms
+2026-09-10T17:46:48.4278386Z      ✓ 'mutation' 'edit': protects all drawer exits and treats exact restoration as clean  1551ms
+2026-09-10T17:46:48.4280520Z      ✓ 'mutation' 'metadata': protects all drawer exits and treats exact restoration as clean  1291ms
+2026-09-10T17:46:48.4282559Z      ✓ cancels and confirms history back/forward, resource/mode changes, and main navigation  2292ms
+2026-09-10T17:46:48.4284548Z      ✓ does not let a discarded draft block the next history action before React unmounts it  387ms
+2026-09-10T17:46:48.4286688Z      ✓ 'query' 'create': pending blocks repeat/leave, failure retains draft, success clears protection  820ms
+2026-09-10T17:46:48.4288758Z      ✓ 'query' 'edit': pending blocks repeat/leave, failure retains draft, success clears protection  761ms
+2026-09-10T17:46:48.4291060Z      ✓ 'query' 'metadata': pending blocks repeat/leave, failure retains draft, success clears protection  836ms
+2026-09-10T17:46:48.4293234Z      ✓ 'mutation' 'create': pending blocks repeat/leave, failure retains draft, success clears protection  1266ms
+2026-09-10T17:46:48.4295386Z      ✓ 'mutation' 'edit': pending blocks repeat/leave, failure retains draft, success clears protection  953ms
+2026-09-10T17:46:48.4298004Z      ✓ 'mutation' 'metadata': pending blocks repeat/leave, failure retains draft, success clears protection  820ms
+2026-09-10T17:46:48.4300331Z      ✓ query draft survives refreshed details and changed server status  320ms
+2026-09-10T17:46:48.4302066Z      ✓ mutation draft survives refreshed details and changed server status  494ms
+2026-09-10T17:46:48.4303665Z      ✓ mutation read-only detail reflects refreshed values  324ms
+2026-09-10T17:46:48.4305508Z      ✓ table create preserves selections on cancel/refresh/failure and clears protection on success  957ms
+2026-09-10T17:46:48.4307601Z      ✓ table replace preserves selections on cancel/refresh/failure and clears protection on success  1555ms
+2026-09-10T17:46:48.4309828Z      ✓ keeps the same row draft across Change Set, canceled exits and refreshed table catalog  2022ms
+2026-09-10T17:46:48.4311881Z      ✓ draft saving cannot be canceled or repeated in flight and preserves input until durable save  2666ms
+2026-09-10T17:46:48.4313876Z      ✓ restoring row controls is clean and DELETE preview explicitly cancels without writing  1149ms
+2026-09-10T17:46:49.3500415Z  ✓ src/components/ui/ModalFocus.test.tsx (11 tests) 1021ms
+2026-09-10T17:46:50.9139210Z  ✓ src/features/policies/lifecycle-submission.test.tsx (5 tests) 333ms
+2026-09-10T17:46:51.0634781Z  ✓ src/api/client.test.ts (47 tests) 42ms
+2026-09-10T17:46:53.0701910Z  ✓ src/features/policies/lifecycle.test.ts (6 tests) 208ms
+2026-09-10T17:46:54.1655028Z  ✓ src/features/managed-data/ConfiguredRowEditor.test.tsx (5 tests) 1258ms
+2026-09-10T17:46:54.1657368Z    ✓ AC-015 fails explicitly on configuration read errors and retries before exposing editor fields  457ms
+2026-09-10T17:46:54.1659381Z    ✓ AC-003/015 uses fresh real metadata when the previous query schema has removed, added or generated fields  399ms
+2026-09-10T17:46:55.6920682Z  ✓ src/features/managed-data/model.test.ts (16 tests) 24ms
+2026-09-10T17:46:56.5092289Z  ✓ src/features/release-orders/ReleaseDiff.test.tsx (7 tests) 1458ms
+2026-09-10T17:46:56.5144934Z    ✓ 仅看变更默认开启，隐藏 MODIFY 未提交及确定同值字段，完整视图保留状态区别  402ms
+2026-09-10T17:46:56.5201622Z    ✓ 千项混合差异每页20项，仅展开首项且 ADD/DELETE 保持完整  780ms
+2026-09-10T17:46:57.9604827Z  ✓ src/api/managed-data.test.ts (10 tests) 47ms
+2026-09-10T17:46:58.1601022Z  ✓ src/components/ui/WriteRecovery.test.tsx (3 tests) 568ms
+2026-09-10T17:46:58.1603318Z    ✓ requires a fresh read for each unknown attempt and keeps NULL/empty/string values distinct  442ms
+2026-09-10T17:47:00.2319544Z  ✓ src/features/managed-data/mutation-workflow.test.tsx (1 test) 94ms
+2026-09-10T17:47:00.4781973Z  ✓ src/features/managed-data/FieldValueInput.test.tsx (5 tests) 511ms
+2026-09-10T17:47:00.4784140Z    ✓ AC-008 edits timestamp microseconds without local timezone or precision conversion  386ms
+2026-09-10T17:47:01.5982907Z  ✓ src/api/table-policies.test.ts (3 tests) 21ms
+2026-09-10T17:47:02.1251912Z  ✓ src/api/release-orders.test.ts (8 tests) 43ms
+2026-09-10T17:47:03.2682092Z  ✓ src/features/mutation-policies/model.test.ts (5 tests) 19ms
+2026-09-10T17:47:03.8111957Z  ✓ src/api/field-policies.test.ts (3 tests) 24ms
+2026-09-10T17:47:05.3683615Z  ✓ src/api/mutation-policies.test.ts (4 tests) 25ms
+2026-09-10T17:47:05.8753657Z  ❯ src/features/managed-data/CombinedQueryForm.test.tsx (13 tests | 1 failed) 32678ms
+2026-09-10T17:47:05.8756814Z    ✓ freezes the first successful direct configuration without requesting again for a new response object  387ms
+2026-09-10T17:47:05.8759199Z    ✓ AC-004 directly displays only queryable fields and submits entered conditions after collapsing  393ms
+2026-09-10T17:47:05.8761788Z    ✓ AC-005/006 explicit operators determine shape, preserve compatible values and clear incompatible ones  825ms
+2026-09-10T17:47:05.8763663Z    ✓ AC-007 select options and custom set values are lossless  328ms
+2026-09-10T17:47:05.8765499Z    ✓ AC-006 explicit empty strings differ from unfilled and NULL; clear resets control state 142ms
+2026-09-10T17:47:05.8767503Z    ✓ AC-016 uses the server capacity and accepts every field above the former 20 limit  2251ms
+2026-09-10T17:47:05.8770146Z    × AC-017 100 values submit and a 101st filled value gives an explicit Web error 27459ms
+2026-09-10T17:47:05.8772483Z    ✓ AC-006 select empty choice participates while clearing custom input leaves the field unfiltered; radio empty remains selectable  358ms
+2026-09-10T17:47:05.8774489Z    ✓ clear resets date-time's intermediate UI as well as submitted values 161ms
+2026-09-10T17:47:05.8776136Z    ✓ AC-015 read failures require retry; confirmed incompatible controls warn and fall back 51ms
+2026-09-10T17:47:05.8777948Z    ✓ AC-016 reports unsupported capacity before querying and uses server-provided limits 27ms
+2026-09-10T17:47:05.8780211Z    ✓ removing a set value does not reuse the removed date control's local state for the following blank value 83ms
+2026-09-10T17:47:05.8782760Z    ✓ AC-003/015 uses the latest metadata schema for default exact query and sorting 211ms
+2026-09-10T17:47:06.7522364Z  ✓ src/features/mutation-policies/MutationPolicyError.test.tsx (1 test) 1356ms
+2026-09-10T17:47:06.7524764Z    ✓ keeps form input and presents stable Admin errors with Request ID  1355ms
+2026-09-10T17:47:07.6950660Z  ✓ src/features/managed-data/ChangeSetDialog.test.tsx (1 test) 351ms
+2026-09-10T17:47:07.6952005Z    ✓ 删除确认按当前顺序显示全部实际字段，并保留重复标签对应的真实字段和值  349ms
+2026-09-10T17:47:07.9886112Z  ✓ src/features/managed-data/ManagedTextInput.test.tsx (2 tests) 292ms
+2026-09-10T17:47:08.3442656Z  ✓ src/features/accounts/sessionCoordination.test.ts (1 test) 11ms
+2026-09-10T17:47:08.7390959Z  ✓ src/api/client-stream.test.ts (1 test) 74ms
+2026-09-10T17:47:09.2396822Z  ✓ src/features/managed-data/number-constraints.test.ts (2 tests) 16ms
+2026-09-10T17:47:10.1611766Z  ✓ src/components/shadcn/table.test.tsx (1 test) 237ms
+2026-09-10T17:47:10.3281636Z  ✓ src/features/query-policies/model.test.ts (2 tests) 9ms
+2026-09-10T17:47:10.6660382Z  ✓ src/features/release-orders/release-journal.test.ts (1 test) 28ms
+2026-09-10T17:47:10.6694521Z 
+2026-09-10T17:47:10.6696000Z ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+2026-09-10T17:47:10.6696772Z 
+2026-09-10T17:47:10.6701844Z  FAIL  src/features/managed-data/CombinedQueryForm.test.tsx > AC-017 100 values submit and a 101st filled value gives an explicit Web error
+2026-09-10T17:47:10.6708275Z Error: Test timed out in 20000ms.
+2026-09-10T17:47:10.6710127Z If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+2026-09-10T17:47:10.6711909Z  ❯ src/features/managed-data/CombinedQueryForm.test.tsx:96:1
+2026-09-10T17:47:10.6785793Z      94|   expect(submit.mock.calls[0][0].conditions).toHaveLength(21);
+2026-09-10T17:47:10.6787101Z      95| });
+2026-09-10T17:47:10.6788011Z      96| it("AC-017 100 values submit and a 101st filled value gives an explici…
+2026-09-10T17:47:10.6788836Z        | ^
+2026-09-10T17:47:10.6790499Z      97|  const submit=setup([field("codes",{query_operators:["in"]})]);
+2026-09-10T17:47:10.6792886Z      98|  await screen.findByRole("textbox",{name:"筛选 codes 集合值 1"});
+2026-09-10T17:47:10.6793958Z 
+2026-09-10T17:47:10.6794491Z ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+2026-09-10T17:47:10.6794951Z 
+2026-09-10T17:47:10.6795004Z 
+2026-09-10T17:47:10.6801128Z  Test Files  1 failed | 36 passed (37)
+2026-09-10T17:47:10.6820460Z       Tests  1 failed | 397 passed (398)
+2026-09-10T17:47:10.6821169Z    Start at  17:45:35
+2026-09-10T17:47:10.6822328Z    Duration  95.34s (transform 2.47s, setup 12.95s, import 14.75s, tests 215.77s, environment 34.54s)
+2026-09-10T17:47:10.6822894Z 
+2026-09-10T17:47:10.6823131Z 
+2026-09-10T17:47:10.6846452Z ##[error]Error: Test timed out in 20000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/features/managed-data/CombinedQueryForm.test.tsx:96:1
+
+
+2026-09-10T17:47:10.7470983Z  ELIFECYCLE  Command failed with exit code 1.
+2026-09-10T17:47:10.7868742Z ##[error]Process completed with exit code 1.
+2026-09-10T17:47:10.7993018Z Post job cleanup.
+2026-09-10T17:47:10.9542815Z Pruning is unnecessary.
+2026-09-10T17:47:10.9727748Z Post job cleanup.
+2026-09-10T17:47:11.0741026Z [command]/usr/bin/git version
+2026-09-10T17:47:11.0787412Z git version 2.55.0
+2026-09-10T17:47:11.0830544Z Temporarily overriding HOME='/home/runner/work/_temp/bd762282-336d-46a8-80aa-872e215bce19' before making global git config changes
+2026-09-10T17:47:11.0832308Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-10T17:47:11.0837135Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/relational-config-center/relational-config-center
+2026-09-10T17:47:11.0887852Z Removing SSH command configuration
+2026-09-10T17:47:11.0898146Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-10T17:47:11.0980990Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-10T17:47:11.1361310Z Removing HTTP extra header
+2026-09-10T17:47:11.1362667Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-10T17:47:11.1421277Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-10T17:47:11.1776197Z Removing includeIf entries pointing to credentials config files
+2026-09-10T17:47:11.1784529Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-10T17:47:11.1841334Z includeif.gitdir:/home/runner/work/relational-config-center/relational-config-center/.git.path
+2026-09-10T17:47:11.1843236Z includeif.gitdir:/home/runner/work/relational-config-center/relational-config-center/.git/worktrees/*.path
+2026-09-10T17:47:11.1844531Z includeif.gitdir:/github/workspace/.git.path
+2026-09-10T17:47:11.1845473Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-10T17:47:11.1850924Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/relational-config-center/relational-config-center/.git.path
+2026-09-10T17:47:11.1890886Z /home/runner/work/_temp/git-credentials-2deb3558-1eba-43c1-b490-73a530133987.config
+2026-09-10T17:47:11.1908391Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/relational-config-center/relational-config-center/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-2deb3558\-1eba\-43c1\-b490\-73a530133987\.config
+2026-09-10T17:47:11.1976584Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/relational-config-center/relational-config-center/.git/worktrees/*.path
+2026-09-10T17:47:11.2029378Z /home/runner/work/_temp/git-credentials-2deb3558-1eba-43c1-b490-73a530133987.config
+2026-09-10T17:47:11.2043234Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/relational-config-center/relational-config-center/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-2deb3558\-1eba\-43c1\-b490\-73a530133987\.config
+2026-09-10T17:47:11.2090844Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-09-10T17:47:11.2123255Z /github/runner_temp/git-credentials-2deb3558-1eba-43c1-b490-73a530133987.config
+2026-09-10T17:47:11.2132954Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-2deb3558\-1eba\-43c1\-b490\-73a530133987\.config
+2026-09-10T17:47:11.2174138Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-10T17:47:11.2202582Z /github/runner_temp/git-credentials-2deb3558-1eba-43c1-b490-73a530133987.config
+2026-09-10T17:47:11.2213676Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-2deb3558\-1eba\-43c1\-b490\-73a530133987\.config
+2026-09-10T17:47:11.2258251Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-10T17:47:11.2514699Z Removing credentials config '/home/runner/work/_temp/git-credentials-2deb3558-1eba-43c1-b490-73a530133987.config'
+2026-09-10T17:47:11.2701328Z Cleaning up orphan processes

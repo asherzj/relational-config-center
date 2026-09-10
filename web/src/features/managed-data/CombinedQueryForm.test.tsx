@@ -96,14 +96,16 @@ it("AC-016 uses the server capacity and accepts every field above the former 20 
 it("AC-017 100 values submit and a 101st filled value gives an explicit Web error", async()=>{
  const submit=setup([field("codes",{query_operators:["in"]})]);
  await screen.findByRole("textbox",{name:"筛选 codes 集合值 1"});
+ const addValue=screen.getByRole("button",{name:"codes 添加集合值"});
+ const query=screen.getByRole("button",{name:"查询"});
  for(let i=1;i<=100;i++) {
-  if(i>1)fireEvent.click(screen.getByRole("button",{name:"codes 添加集合值"}));
-  fireEvent.change(screen.getByRole("textbox",{name:`筛选 codes 集合值 ${i}`}),{target:{value:String(i)}});
+  if(i>1)fireEvent.click(addValue);
+  fireEvent.change(screen.getByLabelText(`筛选 codes 集合值 ${i}`,{exact:true}),{target:{value:String(i)}});
  }
- fireEvent.click(screen.getByRole("button",{name:"查询"}));expect(submit.mock.calls[0][0].conditions[0].values).toHaveLength(100);
- fireEvent.click(screen.getByRole("button",{name:"codes 添加集合值"}));
- fireEvent.change(screen.getByRole("textbox",{name:"筛选 codes 集合值 101"}),{target:{value:"101"}});
- fireEvent.click(screen.getByRole("button",{name:"查询"}));
+ fireEvent.click(query);expect(submit.mock.calls[0][0].conditions[0].values).toEqual(Array.from({length:100},(_,i)=>String(i+1)));
+ fireEvent.click(addValue);
+ fireEvent.change(screen.getByLabelText("筛选 codes 集合值 101",{exact:true}),{target:{value:"101"}});
+ fireEvent.click(query);
  expect(screen.getByRole("alert")).toHaveTextContent("集合值数量必须是 1 到 100");expect(submit).toHaveBeenCalledOnce();
 },20000);
 it("AC-006 select empty choice participates while clearing custom input leaves the field unfiltered; radio empty remains selectable",async()=>{

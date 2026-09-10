@@ -1,0 +1,45 @@
+[
+  {
+    "log": "file-green3.log",
+    "command": [
+      "pnpm",
+      "--dir",
+      "web",
+      "exec",
+      "vitest",
+      "run",
+      "src/features/managed-data/CombinedQueryForm.test.tsx",
+      "--reporter=verbose"
+    ],
+    "exit": 0,
+    "started": "2026-09-10T17:59:24.582215+00:00",
+    "finished": "2026-09-10T17:59:31.501367+00:00",
+    "sha256": "f44f125614689b53550dea0a0b2de5bd9b969b6c8439be2c77b8bf594b9a714d"
+  },
+  {
+    "log": "full-green3.log",
+    "command": [
+      "pnpm",
+      "--dir",
+      "web",
+      "test:run"
+    ],
+    "exit": 0,
+    "started": "2026-09-10T17:59:31.502109+00:00",
+    "finished": "2026-09-10T17:59:58.366569+00:00",
+    "sha256": "d22cd61fcea4faf8c892d5611a525f5c34974c117ae328ec14d5553dd9512b15"
+  },
+  {
+    "log": "typecheck3.log",
+    "command": [
+      "pnpm",
+      "--dir",
+      "web",
+      "typecheck"
+    ],
+    "exit": 0,
+    "started": "2026-09-10T17:59:58.367409+00:00",
+    "finished": "2026-09-10T17:59:59.224265+00:00",
+    "sha256": "3b940ccb3a62cfdf539f8114ccd09c103f33beb857c5ab0819ff68653e009672"
+  }
+]

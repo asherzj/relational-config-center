@@ -1,0 +1,57 @@
+diff --git a/web/e2e/browser-accessibility.cjs b/web/e2e/browser-accessibility.cjs
+index 76647c3..1be956c 100644
+--- a/web/e2e/browser-accessibility.cjs
++++ b/web/e2e/browser-accessibility.cjs
+@@ -88,9 +88,13 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
+     await page.goto(`${base}${pathname}`);
+   }
+   async function managed(viewport) {
+-    await open('/configuration/managed-data', viewport);
+-    await page.getByRole('combobox', { name: 'Managed Table', exact: true }).selectOption(table);
+-    await button('新增记录').waitFor();
++    const httpStart = http.length;
++    await open(`/configuration/managed-data?table_name=${encodeURIComponent(table)}`, viewport);
++    await button('新增记录').click({ trial: true });
++    assert.equal(await page.getByRole('combobox', { name: 'Managed Table', exact: true }).inputValue(), table);
++    const queries = http.slice(httpStart).filter((entry) => entry.method === 'POST' && /^\/api\/v1\/tables\/[^/]+\/query$/.test(entry.path));
++    assert.ok(queries.length > 0, 'managed data must finish its initial query before editing');
++    assert.ok(queries.every((entry) => entry.path === `/api/v1/tables/${encodeURIComponent(table)}/query` && entry.status === 200), JSON.stringify(queries));
+   }
+   async function include(field, value) {
+     await page.getByRole('checkbox', { name: `包含 ${field}`, exact: true }).check();
+@@ -312,6 +316,8 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
+     const created = await draftResponse;
+     assert.equal(created.status(), 201);
+     const failureBody = created.request().postDataJSON();
++    assert.equal(failureBody.title, `${table} 配置变更`);
++    assert.deepEqual(failureBody.items.map((item) => item.table_name), [table]);
+     assert.equal(failureBody.items[0].content.note, rawCR);
+     await page.waitForURL('**/configuration/release-orders/*');
+     let invalidOrder = await (await authenticatedRequest(context, base, new URL(page.url()).pathname.replace('/configuration', '/api/v1'))).json();
+diff --git a/web/src/features/managed-data/CombinedQueryForm.test.tsx b/web/src/features/managed-data/CombinedQueryForm.test.tsx
+index ece0a56..6e497c4 100644
+--- a/web/src/features/managed-data/CombinedQueryForm.test.tsx
++++ b/web/src/features/managed-data/CombinedQueryForm.test.tsx
+@@ -96,14 +96,16 @@ it("AC-016 uses the server capacity and accepts every field above the former 20
+ it("AC-017 100 values submit and a 101st filled value gives an explicit Web error", async()=>{
+  const submit=setup([field("codes",{query_operators:["in"]})]);
+  await screen.findByRole("textbox",{name:"筛选 codes 集合值 1"});
++ const addValue=screen.getByRole("button",{name:"codes 添加集合值"});
++ const query=screen.getByRole("button",{name:"查询"});
+  for(let i=1;i<=100;i++) {
+-  if(i>1)fireEvent.click(screen.getByRole("button",{name:"codes 添加集合值"}));
+-  fireEvent.change(screen.getByRole("textbox",{name:`筛选 codes 集合值 ${i}`}),{target:{value:String(i)}});
++  if(i>1)fireEvent.click(addValue);
++  fireEvent.change(screen.getByLabelText(`筛选 codes 集合值 ${i}`,{exact:true}),{target:{value:String(i)}});
+  }
+- fireEvent.click(screen.getByRole("button",{name:"查询"}));expect(submit.mock.calls[0][0].conditions[0].values).toHaveLength(100);
+- fireEvent.click(screen.getByRole("button",{name:"codes 添加集合值"}));
+- fireEvent.change(screen.getByRole("textbox",{name:"筛选 codes 集合值 101"}),{target:{value:"101"}});
+- fireEvent.click(screen.getByRole("button",{name:"查询"}));
++ fireEvent.click(query);expect(submit.mock.calls[0][0].conditions[0].values).toEqual(Array.from({length:100},(_,i)=>String(i+1)));
++ fireEvent.click(addValue);
++ fireEvent.change(screen.getByLabelText("筛选 codes 集合值 101",{exact:true}),{target:{value:"101"}});
++ fireEvent.click(query);
+  expect(screen.getByRole("alert")).toHaveTextContent("集合值数量必须是 1 到 100");expect(submit).toHaveBeenCalledOnce();
+ },20000);
+ it("AC-006 select empty choice participates while clearing custom input leaves the field unfiltered; radio empty remains selectable",async()=>{

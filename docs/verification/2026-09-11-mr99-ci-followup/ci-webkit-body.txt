@@ -1,0 +1,151 @@
+关系型配置中心
+发布单
+配置管理 / 发布单 / 详情
+返回发布单列表
+准备
+
+已准备
+
+B
+Browser acceptance
+c4614d64-745f-4e76-8e04-8e8616f6d01f
+
+2026/09/10 17:52:38
+
+审批
+
+已批准
+
+B
+Browser acceptance
+7bab6bdb-c3b3-44b7-8490-e0055590f3bf
+
+2026/09/10 17:52:38
+
+3
+发布
+
+待执行
+
+4
+完结
+
+待发布后完结
+
+field_display_browser_items 配置变更
+
+field_display_browser_items · 已批准
+
+发布单号
+1ce1806ae461e9e237592b390db12831复制发布单号
+申请人
+B
+Browser acceptance
+c4614d64-745f-4e76-8e04-8e8616f6d01f
+创建时间
+2026/09/10 17:52:38
+审批人
+B
+Browser acceptance
+7bab6bdb-c3b3-44b7-8490-e0055590f3bf
+发布单版本
+3
+发布操作
+
+已批准
+
+本次操作始终针对全部 1 项变更，分页与筛选仅用于审阅。
+
+取消发布单
+执行发布
+重新准备
+
+提交内容已冻结，审批和发布以这份差异为准。
+
+变更内容
+申请差异
+
+以下是申请时的差异；发布时生成的字段以实际数据库结果为准。
+
+共 1 项明细
+
+ADD 1 · MODIFY 0 · DELETE 0
+
+仅看变更
+明细 1 · field_display_browser_items · ADD · 记录 发布时生成 id
+
+记录基线 尚无已知 id
+
+字段	服务器原值	申请值
+category
+string
+不存在	未提交
+created_at
+datetime
+不存在	发布时生成
+created_by
+string
+不存在	发布时生成
+id
+uint64
+不存在	未提交
+name
+string
+不存在	值stage5_webkit_invalid
+note
+string
+不存在	值prefix-webkit
+secondtail
+priority
+int64
+不存在	未提交
+state
+string
+不存在	值invalid-state
+updated_at
+datetime
+不存在	发布时生成
+updated_by
+string
+不存在	发布时生成
+操作历史
+
+发布未提交
+
+EXECUTE_FAILED · 版本 3
+
+2026/09/10 17:52:38
+B
+Browser acceptance
+c4614d64-745f-4e76-8e04-8e8616f6d01f
+
+本次执行未提交，未产生业务变更或成功执行记录。
+
+批准了发布单
+
+APPROVE · 版本 3
+
+2026/09/10 17:52:38
+B
+Browser acceptance
+7bab6bdb-c3b3-44b7-8490-e0055590f3bf
+
+Independent accessibility validation review
+
+提交了审批
+
+SUBMIT · 版本 2
+
+2026/09/10 17:52:38
+B
+Browser acceptance
+c4614d64-745f-4e76-8e04-8e8616f6d01f
+
+创建了草稿
+
+CREATE · 版本 1
+
+2026/09/10 17:52:38
+B
+Browser acceptance
+c4614d64-745f-4e76-8e04-8e8616f6d01f
