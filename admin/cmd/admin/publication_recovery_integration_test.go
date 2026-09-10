@@ -162,6 +162,30 @@ func TestPublicationCommitUnknownSurvivesExecutableRestart(t *testing.T) {
 		if proxy.mode.Load() != 0 {
 			t.Fatal("wire fault did not reach target SQL")
 		}
+		var receipt struct {
+			Error struct {
+				Outcome string `json:"execution_outcome"`
+				History string `json:"failure_history"`
+			}
+		}
+		if json.Unmarshal(body, &receipt) != nil {
+			t.Fatal("invalid error receipt")
+		}
+		current := batchEdgeOrder(t, releaseRequest(t, app, "GET", path, "", ""), 200)
+		failed := 0
+		for _, event := range current.History {
+			if event.Action == "EXECUTE_FAILED" {
+				failed++
+			}
+		}
+		if fault.mode < 3 {
+			if receipt.Error.Outcome != "not_committed" || receipt.Error.History != "saved" || current.Version != "3" || len(current.Executions) != 0 || failed != int(fault.mode) {
+				t.Fatalf("pre-COMMIT fault history/CAS incorrect: %s %#v", body, current)
+			}
+		} else if receipt.Error.Outcome != "" || receipt.Error.History != "" || current.State != "SUCCEEDED" || current.Version != "4" || len(current.Executions) != 1 || failed != 2 {
+			t.Fatalf("unknown COMMIT was recorded as failure: %s %#v", body, current)
+		}
+
 	}
 	if proxy.ack.Load() != 1 {
 		t.Fatal("test must consume exactly one actual COMMIT OK")
@@ -179,7 +203,7 @@ func TestPublicationCommitUnknownSurvivesExecutableRestart(t *testing.T) {
 		t.Fatal("replay changed durable result")
 	}
 	db := deliveryDB(t, driver)
-	for _, query := range []string{`SELECT COUNT(*) FROM mutation_add_items WHERE code='commit-loss'`, `SELECT COUNT(*) FROM rcc_publication_commands`, `SELECT COUNT(*) FROM rcc_refresh_notifications`, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%'`, `SELECT COUNT(*) FROM rcc_table_publications WHERE table_version=1 AND command_cursor=1`} {
+	for _, query := range []string{`SELECT COUNT(*) FROM mutation_add_items WHERE code='commit-loss'`, `SELECT COUNT(*) FROM rcc_release_executions`, `SELECT COUNT(*) FROM rcc_publication_commands`, `SELECT COUNT(*) FROM rcc_refresh_notifications`, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%'`, `SELECT COUNT(*) FROM rcc_table_publications WHERE table_version=1 AND command_cursor=1`} {
 		var n int
 		if err := db.QueryRow(query).Scan(&n); err != nil || n != 1 {
 			t.Fatalf("durable count %d %v: %s", n, err, query)

@@ -3,7 +3,7 @@ import {ReleaseItemPager,releasePageSize} from "../release-orders/ReleaseItemPag
 import {useDraftDestination} from "../release-orders/useDraftDestination";
 import {Drawer} from "../../components/ui/Drawer";
 import {useReleaseWrite} from "../release-orders/useReleaseWrite";
-import {ReleaseRecovery} from "../release-orders/ReleaseRecovery";
+import {ReleaseConflictReview} from "../release-orders/ReleaseRequestReview";
 import {ApiError} from "../../api/client";
 import { useAccountRole } from "../accounts/roles";
 import { CombinedQueryForm } from "./CombinedQueryForm";
@@ -90,15 +90,16 @@ export function ManagedDataPage() {
  const saveDraft=async(input:DraftContentInput)=>{
   if(saving||draftWrite.pending)return;setSaving(true);
   try{
+   const matchesInput=!draftWrite.unresolved||Boolean(draftWrite.storedRequest&&destination.matchesInput(draftWrite.storedRequest,input));
    const request=draftWrite.unresolved?undefined:await destination.prepare(input);
    const saved=draftWrite.unresolved?await draftWrite.retry():request?await draftWrite.send({...request,label:`保存 ${selectedTable} 草稿`}):undefined;
-   if(saved)protection.afterSave(()=>{changes.send({type:"cancel-pending"});setBatchReview(false);setSelectedRows(new Map());navigate(`/configuration/release-orders/${saved.id}`)});
+   if(saved&&matchesInput)protection.afterSave(()=>{changes.send({type:"cancel-pending"});setBatchReview(false);setSelectedRows(new Map());navigate(`/configuration/release-orders/${saved.id}`)});
   }finally{setSaving(false)}
  };
 
   return (
     <main className="workspace managed-data-workspace">
-      <ReleaseRecovery scopeFilter="create"/>
+      <ReleaseConflictReview scopeFilter="create"/>
  <div className="page-heading">
         <div>
           <h1>配置内容管理</h1>
@@ -240,9 +241,8 @@ export function ManagedDataPage() {
           />}
           <ChangeSetDialog
             fieldDisplay={currentDisplay.display}
-            draftAction={<Button variant="primary" disabled={!canEdit||!destination.valid||changes.view.reviewDisabled||saving||draftWrite.pending||draftRecordConflict} onClick={()=>{if(changes.view.draftInput)void saveDraft(changes.view.draftInput)}}>{draftWrite.pending?"正在保存草稿…":draftWrite.unresolved?"使用原请求重试":"确认并保存草稿"}</Button>}
-            draftLocked={draftWrite.pending||draftWrite.unresolved}
-            draftFeedback={<>{destination.picker(saving||draftWrite.pending||draftWrite.unresolved)}{draftWrite.unresolved&&<p role="alert">草稿保存结果待确认。原请求已保留，刷新后仍可找回。</p>}</>}
+            draftAction={<Button variant="primary" disabled={!canEdit||!destination.valid||changes.view.reviewDisabled||saving||draftWrite.pending||draftRecordConflict} onClick={()=>{if(changes.view.draftInput)void saveDraft(changes.view.draftInput)}}>{draftWrite.pending?"正在保存草稿…":"确认并保存草稿"}</Button>}
+            draftFeedback={<>{destination.picker(saving||draftWrite.pending||draftWrite.unresolved)}{draftWrite.unresolved&&<p role="alert">原请求已保留；再次保存将提交同一份草稿。</p>}</>}
 
             recordConflict={changes.view.recordConflict||(draftWrite.error instanceof ApiError&&draftWrite.error.code==="record_version_conflict")}
             latest={changes.view.latest}
@@ -256,7 +256,7 @@ export function ManagedDataPage() {
             onEdit={() => changes.send({ type: "edit-pending" })}
             onCancel={() => send({ type: "cancel-pending" })}
           />
-    {batchReview&&<Drawer open eyebrow="发布草稿" title="删除所选记录" onClose={()=>{if(!saving&&!draftWrite.pending&&!draftWrite.unresolved)setBatchReview(false)}} footer={<><Button disabled={saving||draftWrite.pending||draftWrite.unresolved} onClick={()=>setBatchReview(false)}>取消删除</Button><Button disabled={!canEdit||!destination.valid||Boolean(capabilityReasons.DELETE)||saving||draftWrite.pending} onClick={()=>void saveDraft({table_name:selectedTable,items:Array.from(selectedRows.values()).map(row=>({operation:"DELETE",id:row.id,expected_record_version:row.version,content:{}}))})}>{draftWrite.unresolved?"使用原请求重试":"确认并保存草稿"}</Button></>}><p>将所选 {selectedRows.size} 项加入发布草稿。现在不会删除配置。</p><fieldset disabled={saving||draftWrite.pending||draftWrite.unresolved}><ReleaseItemPager count={selectedRows.size} page={batchPage} onPage={setBatchPage} label="待删除明细"/></fieldset><ol start={batchPage*releasePageSize+1}>{Array.from(selectedRows.values()).slice(batchPage*releasePageSize,(batchPage+1)*releasePageSize).map((selected,index)=><li key={selected.id}><details><summary>明细 {batchPage*releasePageSize+index+1} · 记录 {selected.id} · 记录基线 {selected.version}</summary><dl>{orderDisplayedFields(currentDisplay.display,result.data?.columns??[],column=>column.name).map(column=><div key={column.name} className="border-b py-2"><dt><CurrentFieldName display={currentDisplay.display} name={column.name} detail={column.type}/></dt><dd><CurrentFieldValue display={currentDisplay.display} name={column.name} value={selected.row[column.name]??null}><CellValue value={selected.row[column.name]??null}/></CurrentFieldValue></dd></div>)}</dl></details></li>)}</ol>{destination.picker(saving||draftWrite.pending||draftWrite.unresolved)}{Boolean(draftWrite.error)&&<ErrorState error={draftWrite.error}/>}</Drawer>}
+    {batchReview&&<Drawer open eyebrow="发布草稿" title="删除所选记录" onClose={()=>{if(!saving&&!draftWrite.pending)protection.requestLeave(()=>setBatchReview(false))}} footer={<><Button disabled={saving||draftWrite.pending} onClick={()=>protection.requestLeave(()=>setBatchReview(false))}>取消删除</Button><Button disabled={!canEdit||!destination.valid||Boolean(capabilityReasons.DELETE)||saving||draftWrite.pending} onClick={()=>void saveDraft({table_name:selectedTable,items:Array.from(selectedRows.values()).map(row=>({operation:"DELETE",id:row.id,expected_record_version:row.version,content:{}}))})}>{"确认并保存草稿"}</Button></>}><p>将所选 {selectedRows.size} 项加入发布草稿。现在不会删除配置。</p><fieldset disabled={saving||draftWrite.pending}><ReleaseItemPager count={selectedRows.size} page={batchPage} onPage={setBatchPage} label="待删除明细"/></fieldset><ol start={batchPage*releasePageSize+1}>{Array.from(selectedRows.values()).slice(batchPage*releasePageSize,(batchPage+1)*releasePageSize).map((selected,index)=><li key={selected.id}><details><summary>明细 {batchPage*releasePageSize+index+1} · 记录 {selected.id} · 记录基线 {selected.version}</summary><dl>{orderDisplayedFields(currentDisplay.display,result.data?.columns??[],column=>column.name).map(column=><div key={column.name} className="border-b py-2"><dt><CurrentFieldName display={currentDisplay.display} name={column.name} detail={column.type}/></dt><dd><CurrentFieldValue display={currentDisplay.display} name={column.name} value={selected.row[column.name]??null}><CellValue value={selected.row[column.name]??null}/></CurrentFieldValue></dd></div>)}</dl></details></li>)}</ol>{destination.picker(saving||draftWrite.pending||draftWrite.unresolved)}{Boolean(draftWrite.error)&&<ErrorState error={draftWrite.error}/>}</Drawer>}
     </main>
   );
 }

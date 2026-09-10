@@ -1,3 +1,4 @@
+import originalReleaseActions from "./release-original-action.cjs";
 import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -265,18 +266,15 @@ try {
     await route.abort('failed');
   });
   await page.getByRole('button', { name: '确认发布到数据库', exact: true }).click();
-  await page.getByText('结果待确认。原请求与意见已保留，请使用原请求重试。', { exact: true }).waitFor();
-  await page.getByRole('button', { name: '使用原请求重试', exact: true }).waitFor();
+  await page.getByText('原请求与意见已保留；再次点击同一操作将提交原请求。', { exact: true }).waitFor();
+  await page.getByRole('button', { name: '确认发布到数据库', exact: true }).waitFor();
   if (process.env.RCC_E2E_OUTPUT) await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'publication-unknown.png'), fullPage: true });
   await page.unroute(`**${executePath}`);
   const acceptReload = dialog => dialog.accept();
   page.on('dialog', acceptReload);
   await page.reload();
   page.off('dialog', acceptReload);
-  const recoveryPanel = page.getByRole('region', { name: '待处理发布请求' });
-  const recoverExecute = page.getByRole('button', { name: '恢复原发布请求', exact: true });
-  await recoverExecute.click();
-  await recoveryPanel.waitFor({ state: 'detached' });
+  await originalReleaseActions.repeatReleaseAction(page,'执行发布','确认发布到数据库');
   await releaseState(page, '已发布待完结');
   await page.getByRole('heading', { name: '数据库发布结果', exact: true }).waitFor();
   await page.getByRole('region', { name: '发布结果' }).getByText(/分发尚未接入/, { exact: false }).waitFor();

@@ -1,3 +1,4 @@
+const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real browser -> production Web proxy -> Cookie-authenticated Admin -> disposable MySQL 8.4.
 // RCC_E2E_ENGINE chooses one Playwright engine; the runner records each separately.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
@@ -373,17 +374,17 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     });
     await button('查看 Change Set').click();
     await button('确认并保存草稿').click();
-    const uncertain = page.getByRole('alert').filter({ hasText: '草稿保存结果待确认' });
+    const uncertain = page.getByRole('alert').filter({ hasText: '原请求已保留' });
     await uncertain.waitFor();
     assert.deepEqual(faultEvidence && { actualStatus: faultEvidence.actualStatus, injectedStatus: faultEvidence.injectedStatus }, { actualStatus: 201, injectedStatus: 503 });
     assert.equal(sql(`SELECT COUNT(*) FROM ${table} WHERE name=${literal(unknownName)};`), '0');
-    assert.equal(await button('使用原请求重试').isEnabled(), true);
-    assert.equal(await visibleInViewport(button('使用原请求重试')), true);
+    assert.equal(await button('确认并保存草稿').isEnabled(), true);
+    assert.equal(await visibleInViewport(button('确认并保存草稿')), true);
     assert.ok((await pageOverflow()) <= 1);
     await page.unroute(`**${writePath}`);
     page.once('dialog', dialog => dialog.accept());
     await page.reload();
-    await button('恢复原发布请求').click();
+    await repeatDraftSave(page);
     await page.waitForURL('**/configuration/release-orders/*');
     const draftWrites = requests.slice(unknownRequestStart).filter((entry) => entry.method === 'POST' && entry.path === writePath);
     assert.equal(draftWrites.length, 2);

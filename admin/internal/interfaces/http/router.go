@@ -889,6 +889,13 @@ func tableResponse(table application.DatabaseTable) databaseTableResponse {
 
 func writeError(context *gin.Context, status int, code, message string) {
 	detail := gin.H{"code": code, "message": message, "request_id": requestID(context)}
+	if saved, exists := context.Get("release_execution_failure"); exists {
+		detail["execution_outcome"] = "not_committed"
+		detail["failure_history"] = "unavailable"
+		if saved == true {
+			detail["failure_history"] = "saved"
+		}
+	}
 	if index, exists := context.Get("release_item_index"); exists {
 		detail["item_index"] = index
 	}

@@ -53,7 +53,7 @@ func (r *ReleaseOrders) Execute(ctx context.Context, id string, input SubmitRele
 	execute := func(ctx context.Context, change func(ReleaseOrderSession) error) error {
 		return r.store.ExecutePublication(ctx, func(s PublicationSession) error { publication = s; return change(s) })
 	}
-	return r.changeOrderUsing(ctx, id, input.ExpectedVersion, "execute", key, input, execute, func(s ReleaseOrderSession, order *ReleaseOrder) error {
+	result, err := r.changeOrderUsing(ctx, id, input.ExpectedVersion, "execute", key, input, execute, func(s ReleaseOrderSession, order *ReleaseOrder) error {
 		tables, err := r.resolveReleaseTables(ctx, publication, order.Items, true)
 		if err != nil {
 			return err
@@ -87,6 +87,7 @@ func (r *ReleaseOrders) Execute(ctx context.Context, id string, input SubmitRele
 		order.State = "SUCCEEDED"
 		return nil
 	})
+	return result, r.recordExecutionFailure(ctx, releaseExecutionAttempt{OrderID: id, ActorID: actor, Operation: "execute", Key: key, ExpectedVersion: input.ExpectedVersion, Input: input}, err)
 }
 func publicationContent(schema domain.TableSchema, p domain.MutationPolicy, item ReleaseItem, actor string, now time.Time) (domain.MutationContent, error) {
 	content := domain.MutationContent{}

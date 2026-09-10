@@ -1,3 +1,4 @@
+import {rememberReleaseRequest,pendingReleaseRequests} from "../release-orders/release-journal";
 import { defaultFieldPolicies } from "../../test/field-policy-fixture";
 import { withDefaultRecordVersions } from "../../test/managed-data-fixture";
 import { testAdminIdentity, withAdminSession } from "../../test/account-session";
@@ -513,9 +514,14 @@ it("AC-019 配置下拉草稿结果未知后仍以原正文和键恢复",async()
  await user.type(screen.getByRole("textbox",{name:"template_key 值 自定义值"}),"same-release-intent");
  await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
  await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
- await user.click(await screen.findByRole("button",{name:"使用原请求重试"}));
+ await screen.findByText("原请求已保留；再次保存将提交同一份草稿。");
+ expect(screen.getByRole("button",{name:"返回修改"})).toBeEnabled();
+ await user.click(screen.getByRole("button",{name:"返回修改"}));
+ expect(screen.getByRole("textbox",{name:"template_key 值 自定义值"})).toHaveValue("same-release-intent");
+ await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
+ await user.click(await screen.findByRole("button",{name:"确认并保存草稿"}));
  await waitFor(()=>expect(writes).toHaveLength(2));
- const retry=await screen.findByRole("button",{name:"使用原请求重试"});
+ const retry=await screen.findByRole("button",{name:"确认并保存草稿"});
  await waitFor(()=>expect(retry).toBeEnabled());
  await user.click(retry);
  expect(await screen.findByRole("heading",{name:"notification_templates 配置变更"})).toBeVisible();
@@ -830,4 +836,45 @@ it("AC-015/019 shows fresh MODIFY defaults in Change Set while retaining the ori
   expect(writes).toEqual([{title:"notification_templates 配置变更",table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",expected_record_version:"0",content:{template_key:"welcome",subject:null,body:"my change",new_default:"database default",new_null:null}}]}]);
   expect(screen.getByRole("button",{name:"确认并保存草稿"})).toBeDisabled();
   expect(within(review).getByText("my change")).toBeVisible();
+});
+
+
+it.each(["single","batch"] as const)("另一窗口原请求重推后保留配置页%s未保存输入",async(kind)=>{
+ const releaseID="88888888aaaabbbbccccddddeeeeeeee",writes:RequestInit[]=[];
+ const body=JSON.stringify({title:"other window",table_name:"notification_templates",items:[{operation:"ADD",content:{template_key:"other-value"}}]});
+ const saved={id:releaseID,title:"other window",table_name:"notification_templates",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{operation:"ADD",id:null,expected_record_version:"",content:{template_key:"other-value"},before:null,fields:[]}]};
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  if(String(input)==="/api/v1/release-orders"&&init?.method==="POST"){writes.push(init);return json(saved,201)}
+  if(String(input)===`/api/v1/release-orders/${releaseID}`)return json(saved);
+  return readFetch(input,init,{...mutationPolicy,allow_delete:true});
+ })));
+ const user=userEvent.setup();renderPage();
+ if(kind==="single"){
+  await user.click(await screen.findByRole("button",{name:"新增记录"}));await user.click(screen.getByLabelText("包含 template_key"));await user.type(screen.getByLabelText("template_key 值"),"this-window-value");await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
+ }else{await user.click(await screen.findByRole("checkbox",{name:"选择记录 41"}));await user.click(screen.getByRole("button",{name:"删除已选 1 项"}));}
+ await act(async()=>{await rememberReleaseRequest(testAdminIdentity.account.id,{scope:"create",path:"/api/v1/release-orders",method:"POST",body,key:"other-create-key",label:"另一窗口原申请"})});
+ await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));await waitFor(()=>expect(writes).toHaveLength(1));
+ await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
+ expect(writes[0]!.body).toBe(body);expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBe("other-create-key");
+ if(kind==="single"){
+  expect(screen.getByRole("dialog",{name:"ADD Change Set"})).toBeVisible();await user.click(screen.getByRole("button",{name:"返回修改"}));expect(screen.getByLabelText("template_key 值")).toHaveValue("this-window-value");
+ }else{expect(screen.getByRole("dialog",{name:"删除所选记录"})).toBeVisible();await user.click(screen.getByRole("button",{name:"取消删除"}));expect(screen.getByRole("checkbox",{name:"选择记录 41"})).toBeChecked();}
+});
+
+
+it.each(["single","batch"] as const)("配置页%s未知结果后可以退出且不清除原请求",async(kind)=>{
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  if(String(input)==="/api/v1/release-orders"&&init?.method==="POST"){writes.push(init);throw new TypeError("response lost")}
+  return readFetch(input,init,{...mutationPolicy,allow_delete:true});
+ })));
+ const user=userEvent.setup();renderPage();
+ if(kind==="single"){
+  await user.click(await screen.findByRole("button",{name:"新增记录"}));await user.click(screen.getByLabelText("包含 template_key"));await user.type(screen.getByLabelText("template_key 值"),"kept-after-close");await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
+ }else{await user.click(await screen.findByRole("checkbox",{name:"选择记录 41"}));await user.click(screen.getByRole("button",{name:"删除已选 1 项"}));}
+ await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));await screen.findByText("Admin 连接或响应传输中断。");
+ expect(screen.getByRole("button",{name:kind==="single"?"放弃本次编辑":"取消删除"})).toBeEnabled();
+ await user.keyboard("{Escape}");await user.click(await screen.findByRole("button",{name:"放弃修改并离开"}));
+ await waitFor(()=>expect(screen.queryByRole("dialog")).not.toBeInTheDocument());expect(writes).toHaveLength(1);
+ const retained=pendingReleaseRequests(testAdminIdentity.account.id);expect(retained).toHaveLength(1);expect(retained[0].body).toBe(writes[0]!.body);expect(retained[0].key).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
 });

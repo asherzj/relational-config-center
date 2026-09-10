@@ -1,3 +1,4 @@
+const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real Playwright browser -> production same-origin Web proxy -> Cookie-authenticated Admin -> disposable MySQL 8.4.
 // SQL arranges this suite's tables and independently verifies bytes and database semantics.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
@@ -518,10 +519,10 @@ function fixtureSQL() {
         await warmCatalog();
       }
       assert.deepEqual(sql('SHOW GRANTS;').split('\n').sort(), grantsBefore, 'restore the isolated user permissions');
-      await page.getByText('草稿保存结果待确认。原请求已保留，刷新后仍可找回。', { exact: true }).waitFor();
+      await page.getByText('原请求已保留；再次保存将提交同一份草稿。', { exact: true }).waitFor();
       const original = http.at(-1);
       const retriedResponse = page.waitForResponse(response => new URL(response.url()).pathname === '/api/v1/release-orders' && response.request().method() === 'POST');
-      await button('使用原请求重试').click();
+      await button('确认并保存草稿').click();
       const retried = await record(await retriedResponse);
       assert.equal(retried.status, 201, JSON.stringify(retried));
       assert.deepEqual(retried.body, original.body);

@@ -21,7 +21,7 @@ const errorMessages: Record<string, string> = {
   release_state_invalid: "当前发布单状态不允许此操作，请查看最新详情。",
   release_invalid: "发布请求无效，请检查内容、版本、必填意见和请求标识。",
   release_unavailable: "发布单存储暂时不可用，请保留原请求并稍后确认结果。",
-  release_result_unknown: "结果待确认，请保留原请求标识并恢复查询。",
+  release_result_unknown: "提交结果未知，可刷新查看主单；再次点击原操作将安全重推同一请求。",
   rollback_conflict: "这张原发布单已有进行中的回滚申请，请查看当前关联发布单。",
   rollback_locked: "回滚发布单的明细来自原发布结果，不能编辑或复制。",
   rollback_restore_mismatch: "当前数据库规则无法完整恢复原业务值，回滚未提交；请查看失败原因和当前配置。",

@@ -13,5 +13,5 @@ export function useReleaseJournal(){
   void ensureReleaseRequests(accountID).catch(()=>{});
   return()=>window.removeEventListener(releaseJournalChanged,update);
  },[accountID]);
- return {...releaseJournalState(accountID),requests:pendingReleaseRequests(accountID),reload:()=>hydrateReleaseRequests(accountID).catch(()=>{})};
+ return {accountID,...releaseJournalState(accountID),requests:pendingReleaseRequests(accountID),reload:()=>hydrateReleaseRequests(accountID).catch(()=>{})};
 }

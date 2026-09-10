@@ -1,3 +1,4 @@
+const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // T3 real browser → same-origin Admin → one isolated MySQL database.
 const playwright=require(process.env.RCC_PLAYWRIGHT_MODULE||'playwright');
 const assert=require('node:assert/strict');
@@ -112,9 +113,11 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
   await copyDrawer.getByRole('link',{name:`占用发布单：${blocker.id}（新窗口查看）`,exact:true}).waitFor();await copyDrawer.getByText('申请人：Browser acceptance',{exact:true}).waitFor();assert.match(adminPerson.accountID,/^[a-f0-9-]{36}$/);
   assert.equal(await copyDrawer.getByText('fresh-copy-b',{exact:true}).isVisible(),true);assert.equal(await copyDrawer.getByText('copy-intent-b',{exact:true}).isVisible(),true);await conflictTable.scrollIntoViewIfNeeded();await shot(page,'multitable-copy-conflict.png');
   await copyDrawer.getByRole('button',{name:'关闭',exact:true}).last().click();blocker=await api(admin,'POST',blockerPath+'/cancel',{expected_version:blocker.version,reason:'解除第二表占用'});
-  const latestCopy=await api(editor,'POST','/api/v1/release-orders/preview',{title:copySource.title,items:draftItems(copySource)});
-  const copied=await api(editor,'POST',copySourcePath+'/copy',{expected_version:copySource.version,confirmed:true,items:draftItems({...copySource,items:latestCopy.items})},201);
-  await page.reload();const copyBack=page.getByRole('link',{name:copied.id,exact:true});await copyBack.waitFor();await copyBack.click();
+  await button(page,'复制新草稿').click();await page.getByRole('dialog',{name:'复制新草稿',exact:true}).getByRole('button',{name:'读取最新配置',exact:true}).click();
+  await page.getByRole('dialog',{name:'复制新草稿',exact:true}).getByRole('button',{name:'确认最新基线并复制',exact:true}).click();
+  await page.waitForURL(url=>url.pathname.startsWith('/configuration/release-orders/')&&!url.pathname.endsWith(copySource.id));
+  const copied=await api(editor,'GET','/api/v1/release-orders/'+new URL(page.url()).pathname.split('/').pop());
+  await page.goto(`${base}/configuration/release-orders/${copySource.id}`);const copyBack=page.getByRole('link',{name:copied.id,exact:true});await copyBack.waitFor();await copyBack.click();
   const copiedFrom=page.getByText(/^复制自 /);await copiedFrom.waitFor();await copiedFrom.getByRole('link',{name:copySource.id,exact:true}).waitFor();
   assert.deepEqual(copied.items.map(item=>item.table_name),tables);assert.deepEqual(copied.items.map(item=>item.detail_id),copySource.items.map(item=>item.detail_id));
   check('复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联');
@@ -138,13 +141,13 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
   const payload='宽'.repeat(3<<20);await largePage.getByLabel('payload 值',{exact:true}).fill(payload);await button(largePage,'查看 Change Set').click();await largePage.getByLabel('发布单标题',{exact:true}).fill('大值原请求恢复');
   const writes=[];editor.on('request',request=>{if(request.method()==='POST'&&new URL(request.url()).pathname==='/api/v1/release-orders')writes.push({body:request.postData(),key:request.headers()['idempotency-key']})});
   let saved;await largePage.route('**/api/v1/release-orders',async route=>{if(route.request().method()!=='POST')return route.continue();const response=await route.fetch();assert.equal(response.status(),201);saved=await response.json();await route.abort('failed')});
-  await button(largePage,'确认并保存草稿').click();await button(largePage,'使用原请求重试').waitFor();assert.equal(writes.length,1);assert.ok(Buffer.byteLength(writes[0].body)>(9<<20));await largePage.unroute('**/api/v1/release-orders');
-  await largePage.reload();await button(largePage,'恢复原发布请求').waitFor();
-  await setFixtureRoles(admin,base,person.accountID,['VIEWER']);await largePage.reload();assert.equal(await button(largePage,'恢复原发布请求').isEnabled(),false);assert.equal(writes.length,1);
+  await button(largePage,'确认并保存草稿').click();await largePage.getByText('Admin 连接或响应传输中断。',{exact:true}).waitFor();assert.equal(writes.length,1);assert.ok(Buffer.byteLength(writes[0].body)>(9<<20));await largePage.unroute('**/api/v1/release-orders');
+  await largePage.reload();await reopenDraftSave(largePage);await button(largePage,'确认并保存草稿').waitFor();
+  await setFixtureRoles(admin,base,person.accountID,['VIEWER']);await largePage.reload();assert.equal(await button(largePage,'新建草稿').count(),0);assert.equal(writes.length,1);
   await setFixtureRoles(admin,base,person.accountID,['EDITOR','PUBLISHER']);
-  const switched=await registerFixtureAccount(editor,base,{roles:['VIEWER']});await largePage.reload();assert.equal(await button(largePage,'恢复原发布请求').count(),0);assert.equal(writes.length,1);
+  const switched=await registerFixtureAccount(editor,base,{roles:['VIEWER']});await largePage.reload();assert.equal(await button(largePage,'新建草稿').count(),0);assert.equal(writes.length,1);
   const pre=await (await editor.request.get(base+'/api/v1/auth/csrf')).json();const login=await editor.request.post(base+'/api/v1/auth/login',{headers:{Origin:base,'X-CSRF-Token':pre.csrf_token},data:{username:person.credentials.username,password:person.credentials.password}});assert.equal(login.status(),200);
-  await largePage.reload();await button(largePage,'恢复原发布请求').click();await largePage.getByRole('heading',{name:'大值原请求恢复',exact:true}).waitFor();assert.equal(writes.length,2);assert.equal(writes[1].key,writes[0].key);assert.equal(digest(writes[1].body),digest(writes[0].body));
+  await largePage.reload();await repeatDraftSave(largePage);await largePage.getByRole('heading',{name:'大值原请求恢复',exact:true}).waitFor();assert.equal(writes.length,2);assert.equal(writes[1].key,writes[0].key);assert.equal(digest(writes[1].body),digest(writes[0].body));
   const reloaded=await api(editor,'GET',`/api/v1/release-orders/${saved.id}`);assert.equal(reloaded.version,'1');assert.equal(reloaded.items[0].content.payload,payload);
   evidence.large_request={bytes:Buffer.byteLength(writes[0].body),sha256:digest(writes[0].body),same_key:true,same_order:true,account_isolation:switched.accountID!==person.accountID};
   check('真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿');

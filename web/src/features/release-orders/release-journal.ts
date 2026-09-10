@@ -56,13 +56,12 @@ export function hydrateReleaseRequests(accountID:string):Promise<void>{
 export function pendingReleaseRequests(accountID:string):PendingReleaseRequest[]{return mirror.get(accountID)??[]}
 export function rememberReleaseRequest(accountID:string,value:PendingReleaseRequest,replacesKey?:string){
  return journalTransaction(accountID,previous=>{
-  const orderID=releaseRequestOrder(value);
   for(const saved of previous){
    if(saved.key===value.key){
     if(saved.scope!==value.scope||saved.body!==value.body||saved.path!==value.path||saved.method!==value.method)throw new ApiError("idempotency_conflict","原请求标识对应的正文不能改变。",409);
    }else if(saved.scope===value.scope){
     if(!saved.rejection||saved.key!==replacesKey)throw new ApiError("release_request_pending","另一个窗口已有待处理的原请求，请先读取并恢复。",409);
-   }else if(orderID&&!saved.rejection&&releaseRequestOrder(saved)===orderID)throw new ApiError("release_request_pending","此发布单已有待处理的原请求，请先恢复。",409);
+   }
   }
   return [...previous.filter(item=>item.scope!==value.scope),pendingSchema.parse(value)];
  });
@@ -76,13 +75,13 @@ export async function sendReleaseRequest(accountID:string,value:PendingReleaseRe
 }
 export function uncertainReleaseError(error:unknown){return isUncertainWriteError(error)||(error instanceof ApiError&&(error.status>=500||error.status===401||error.status===403))}
 
-// All actions targeting the same order share an exclusion boundary. The durable
-// journal survives reload; this in-memory set also excludes simultaneous replay.
+// Only active sends exclude another same-order action. Durable unresolved
+// requests survive reload by scope; each original key remains immutable.
 const sending=new Set<string>();
 export const releaseRequestOrder=(request:Pick<PendingReleaseRequest,"path">)=>request.path.match(/^\/api\/v1\/release-orders\/([a-f0-9]{32})(?:\/|$)/)?.[1];
 export function conflictingReleaseRequest(accountID:string,path:string,scope:string){
  const id=releaseRequestOrder({path});
- return id&&pendingReleaseRequests(accountID).find(item=>!item.rejection&&item.scope!==scope&&releaseRequestOrder(item)===id);
+ return id&&pendingReleaseRequests(accountID).find(item=>releaseRequestSending(accountID,item.key)&&item.scope!==scope&&releaseRequestOrder(item)===id);
 }
 export function releaseRequestSending(accountID:string,key:string){return sending.has(`${accountID}:${key}`)}
 export function startReleaseRequest(accountID:string,key:string){

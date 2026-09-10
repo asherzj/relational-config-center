@@ -148,9 +148,7 @@ func TestQuickRollbackRejectsUnversionedExternalChangesBeforePreviewAndExecution
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, ""), 409, "record_version_conflict")
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, "restore"), "quick-external-execute"), 409, "record_version_conflict")
 	current := rollbackOrderResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
-	if !reflect.DeepEqual(original, current) {
-		t.Fatal("failed restoration changed the original")
-	}
+	assertReleaseFailureOnly(t, original, current, "QUICK_ROLLBACK_FAILED")
 	for _, id := range []string{"10", "20"} {
 		row, version := recordVersionRow(t, app, "mutation_add_items", id)
 		expected := "external-newer"
@@ -177,9 +175,7 @@ func TestQuickRollbackRequiresItsOriginalRetainedTargets(t *testing.T) {
 	deliveryExec(t, db, `DELETE FROM rcc_release_targets WHERE order_id=? LIMIT 1`, original.ID)
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, "restore"), "quick-target-execute"), 409, "release_target_conflict")
 	current := rollbackOrderResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
-	if !reflect.DeepEqual(original, current) {
-		t.Fatal("missing target was silently reacquired or order changed")
-	}
+	assertReleaseFailureOnly(t, original, current, "QUICK_ROLLBACK_FAILED")
 	for _, id := range []string{"10", "20"} {
 		row, version := recordVersionRow(t, app, "mutation_add_items", id)
 		if *row["label"] != "published" || version != "1" {
@@ -336,9 +332,8 @@ func TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets
 			}
 			assertIntegrationErrorCode(t, response, 503, code)
 			current := rollbackOrderResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
-			if !reflect.DeepEqual(original, current) {
-				t.Fatal("failed reverse changed history or original")
-			}
+			assertReleaseFailureOnly(t, original, current, "QUICK_ROLLBACK_FAILED")
+			original = current
 			for _, id := range []string{"10", "20"} {
 				row, version := recordVersionRow(t, app, "mutation_add_items", id)
 				if *row["label"] != "published" || version != "1" {
@@ -370,9 +365,8 @@ func TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions(t *testing.T) {
 		assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, ""), 409, code)
 		assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, "restore"), "quick-semantics-execute"), 409, code)
 		current := rollbackOrderResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
-		if !reflect.DeepEqual(original, current) {
-			t.Fatal("semantic rejection changed original")
-		}
+		assertReleaseFailureOnly(t, original, current, "QUICK_ROLLBACK_FAILED")
+		original = current
 	}
 	deliveryExec(t, db, `ALTER TABLE quick_semantics MODIFY label varchar(65) NOT NULL`)
 	reject("release_frozen_changed")
@@ -425,9 +419,7 @@ func TestQuickRollbackConstraintFailureRollsBackEarlierItems(t *testing.T) {
 		t.Fatal("failed ADD survived", absent.Body)
 	}
 	current := rollbackOrderResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
-	if !reflect.DeepEqual(original, current) {
-		t.Fatal("constraint failure changed original")
-	}
+	assertReleaseFailureOnly(t, original, current, "QUICK_ROLLBACK_FAILED")
 }
 
 func TestQuickRollbackCanTerminateAtAcceptedPublicationCapacity(t *testing.T) {
@@ -477,7 +469,5 @@ func TestQuickRollbackRejectsDatabaseEffectsThatCannotRestoreOriginalValues(t *t
 		t.Fatal("mismatched restore was committed", row, version)
 	}
 	current := rollbackOrderResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
-	if !reflect.DeepEqual(original, current) {
-		t.Fatal("mismatched restore ended original")
-	}
+	assertReleaseFailureOnly(t, original, current, "QUICK_ROLLBACK_FAILED")
 }

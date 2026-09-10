@@ -30,6 +30,7 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
     <div className="feedback-state feedback-error" role="alert">
       <AlertCircle aria-hidden="true" />
       <strong>{presented.message}</strong>
+      {error instanceof ApiError && error.executionOutcome === "not_committed" && <span>{error.failureHistory === "saved" ? "本次执行未提交，失败已记录在操作历史中。" : "本次执行未提交，但未能确认失败历史已保存。"}</span>}
       {error instanceof ApiError && error.targetConflict && <TargetConflict {...error.targetConflict}/>}
       {presented.requestId && <span>请求编号：{presented.requestId}</span>}
       {onRetry && (

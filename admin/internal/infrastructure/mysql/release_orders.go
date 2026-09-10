@@ -278,3 +278,29 @@ func (a *Adapter) AccountDisplayNames(ctx context.Context, ids []string) (map[st
 	}
 	return result, nil
 }
+
+// AppendReleaseFailure locks only the current main record and appends audit.
+// It never rewrites detail facts, advances the business CAS, or saves a stale
+// pre-execution aggregate over a concurrent legitimate workflow change.
+func (s *releaseOrderSession) AppendReleaseFailure(ctx context.Context, id string, event domain.ReleaseEvent) error {
+	if err := s.available(); err != nil {
+		return err
+	}
+	var locked string
+	if err := s.database.WithContext(ctx).Raw("SELECT id FROM rcc_release_orders WHERE id=? FOR UPDATE", id).Row().Scan(&locked); err != nil {
+		return application.ErrReleaseUnavailable
+	}
+	now, err := s.DatabaseTime(ctx)
+	if err != nil {
+		return err
+	}
+	event.At = now.UTC().Format(time.RFC3339Nano)
+	encoded, err := json.Marshal(event)
+	if err != nil {
+		return application.ErrReleaseUnavailable
+	}
+	if err := s.database.WithContext(ctx).Exec("UPDATE rcc_release_orders SET document=JSON_ARRAY_APPEND(document,'$.history',CAST(? AS JSON)) WHERE id=?", string(encoded), id).Error; err != nil {
+		return application.ErrReleaseUnavailable
+	}
+	return nil
+}

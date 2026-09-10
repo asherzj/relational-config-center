@@ -1,3 +1,4 @@
+const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real Chrome → same-origin Admin process → isolated MySQL batch acceptance.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
@@ -207,13 +208,13 @@ const output = process.env.RCC_E2E_OUTPUT;
     await button(page, '执行发布').click();
     await page.getByText('全部 3 项将一起发布，预览分页不改变操作范围。', { exact: true }).waitFor();
     await button(page, '确认发布到数据库').click();
-    await button(page, '使用原请求重试').waitFor();
+    await page.getByText('Admin 连接或响应传输中断。',{exact:true}).waitFor();
     assert.equal(committed.state, 'SUCCEEDED');
     await page.unroute(executeRoute);
     page.once('dialog', dialog => dialog.accept());
     await page.reload();
     const executeReplay=page.waitForResponse(response=>response.request().method()==='POST'&&response.url().endsWith(`/${mixedID}/execute`));
-    await button(page, '恢复原发布请求').click();
+    await repeatReleaseAction(page,'执行发布','确认发布到数据库');
     assert.equal((await executeReplay).status(),200);
     await heading(page, '已发布待完结').waitFor();
     assert.equal(writes.length, 2);

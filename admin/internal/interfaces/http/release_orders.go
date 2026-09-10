@@ -248,6 +248,10 @@ func writeReleaseError(c *gin.Context, err error) bool {
 	if err == nil {
 		return false
 	}
+	var failure *application.ReleaseExecutionFailure
+	if errors.As(err, &failure) {
+		c.Set("release_execution_failure", failure.HistorySaved)
+	}
 	var itemError *application.ReleaseItemError
 	if errors.As(err, &itemError) {
 		c.Set("release_item_index", itemError.Index)
@@ -314,7 +318,7 @@ func writeReleaseError(c *gin.Context, err error) bool {
 	case errors.Is(err, application.ErrReleaseSnapshotUnsupported):
 		status, code, message = 422, "release_snapshot_unsupported", "table contains a field the draft snapshot cannot represent losslessly"
 	case errors.Is(err, application.ErrReleaseUnknown):
-		status, code, message = 503, "release_result_unknown", "result pending confirmation; retry the original request identifier"
+		status, code, message = 503, "release_result_unknown", "commit outcome is unknown; read the order or manually repeat the original request"
 	case errors.Is(err, application.ErrReleaseUnavailable):
 	default:
 		return writeManagedMutationError(c, err)

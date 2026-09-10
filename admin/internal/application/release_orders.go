@@ -38,7 +38,7 @@ var (
 	ErrReleaseState               = errors.New("release order state does not allow this action")
 	ErrReleaseIdempotencyConflict = errors.New("release request identifier already used with different content")
 	ErrReleaseUnavailable         = errors.New("release order storage unavailable")
-	ErrReleaseUnknown             = errors.New("release result is pending confirmation")
+	ErrReleaseUnknown             = errors.New("release commit outcome is unknown")
 	ErrReleaseMetadataPermission  = errors.New("explicit TRIGGER metadata permission is required")
 	ErrReleaseSnapshotUnsupported = errors.New("table contains fields unsupported by the draft snapshot format")
 )
@@ -78,6 +78,7 @@ type DraftInput struct {
 // ReleaseOrderSession exposes only control-data writes and consistent baseline
 // reads. Preparing a draft cannot call business-row mutation methods.
 type ReleaseOrderSession interface {
+	AppendReleaseFailure(context.Context, string, domain.ReleaseEvent) error
 	PolicySnapshotReader
 	ResolveReleaseTable(context.Context, string) (string, error)
 	ReadRecordBaselines(context.Context, domain.TableSchema, []any) ([]domain.RecordBaseline, error)

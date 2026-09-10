@@ -148,6 +148,8 @@ export const adminErrorDtoSchema = z.object({
     item_index: z.number().int().nonnegative().optional(),
     table_name: z.string().optional(), order_id: z.string().optional(), applicant_id: z.string().optional(),
     field_name: z.string().optional(),
+    execution_outcome: z.literal("not_committed").optional(),
+    failure_history: z.enum(["saved","unavailable"]).optional(),
     code: z.string(),
     message: z.string(),
     request_id: z.string(),

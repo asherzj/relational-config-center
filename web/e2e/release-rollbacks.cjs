@@ -1,3 +1,4 @@
+const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real Chrome → same-origin Admin process → isolated MySQL rollback acceptance.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
@@ -131,13 +132,13 @@ const output = process.env.RCC_E2E_OUTPUT;
       await route.abort('failed');
     });
     await button(publishPage, '确认完结').dblclick();
-    await button(publishPage, '使用原请求重试').waitFor();
+    await publishPage.getByText('Admin 连接或响应传输中断。',{exact:true}).waitFor();
     assert.equal(completionWrites.length, 1);
     await publishPage.unroute(completionRoute);
     publishPage.once('dialog', dialog => dialog.accept());
     await publishPage.reload();
     const completionReplay=publishPage.waitForResponse(response=>response.request().method()==='POST'&&response.url().endsWith(`/${forward.id}/complete`));
-    await button(publishPage, '恢复原发布请求').click();
+    await repeatReleaseAction(publishPage,'完结发布单','确认完结');
     assert.equal((await completionReplay).status(),200);
     await heading(publishPage, '已完结').waitFor();
     assert.equal(completionWrites.length, 2);
@@ -225,18 +226,25 @@ const output = process.env.RCC_E2E_OUTPUT;
       await route.abort('failed');
     });
     await button(quickDialog, '确认整单快速回滚').dblclick();
-    await button(quickDialog, '使用原请求重试').waitFor();
+    await quickDialog.getByText('Admin 连接或响应传输中断。',{exact:true}).waitFor();
     assert.equal(quickWrites.length, 1);
-    assert.equal(await button(publishPage, '完结发布单').isDisabled(), true);
-    assert.equal(await button(publishPage, '快速回滚').isDisabled(), true);
+    await publishPage.getByText(/ · 已回滚$/).waitFor();
+    assert.equal(await button(publishPage, '完结发布单').count(), 0);
+    assert.equal(await button(publishPage, '快速回滚').isEnabled(), true);
     assert.equal(await quickDialog.getByLabel('快速回滚原因（选填）', { exact: true }).isDisabled(), true);
     assert.equal(quickPreviews.length, previewCountBeforeWrite);
+    await quickDialog.getByText('Admin 连接或响应传输中断。',{exact:true}).scrollIntoViewIfNeeded();
     if (output) await publishPage.screenshot({ path: join(output, 'release-quick-rollback-unknown.png'), fullPage: false, animations: 'disabled' });
+    await publishPage.setViewportSize({width:390,height:844});
+    await quickDialog.getByText('Admin 连接或响应传输中断。',{exact:true}).scrollIntoViewIfNeeded();
+    await assertMobileLayout(publishPage,'release-quick-rollback-error');
+    if(output)await publishPage.screenshot({path:join(output,'release-quick-rollback-unknown-mobile.png'),fullPage:false,animations:'disabled'});
+    await publishPage.setViewportSize({width:1440,height:1000});
     await publishPage.unroute(quickRoute);
     publishPage.once('dialog', dialog => dialog.accept());
     await publishPage.reload();
     const quickReplay=publishPage.waitForResponse(response=>response.request().method()==='POST'&&response.url().endsWith(`/${quickDraft.id}/quick-rollback`));
-    await button(publishPage, '恢复原发布请求').click();
+    await repeatReleaseAction(publishPage,'快速回滚','确认整单快速回滚');
     assert.equal((await quickReplay).status(),200);
     await quickHeading(publishPage, '已回滚');
     assert.equal(quickWrites.length, 2);
@@ -323,7 +331,10 @@ const output = process.env.RCC_E2E_OUTPUT;
     }, null, 2));
     console.log(JSON.stringify({ checks }));
   } catch (error) {
-    if (applicantPage && output) await applicantPage.screenshot({ path: join(output, 'release-rollback-failure.png'), fullPage: false }).catch(() => {});
+    if (publishPage && output) {
+      await publishPage.screenshot({ path: join(output, 'release-rollback-failure.png'), fullPage: false }).catch(() => {});
+      await writeFile(join(output, 'release-rollback-failure.txt'), await publishPage.locator('body').innerText()).catch(() => {});
+    }
     throw error;
   } finally {
     await browser.close();

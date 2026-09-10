@@ -223,7 +223,7 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 				t.Fatal(current.Body)
 			}
 			var targets, commands, notifications, requests, versions int
-			for query, dest := range map[string]*int{`SELECT COUNT(*) FROM rcc_release_targets`: &targets, `SELECT COUNT(*) FROM rcc_publication_commands`: &commands, `SELECT COUNT(*) FROM rcc_refresh_notifications`: &notifications, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%'`: &requests, `SELECT COUNT(*) FROM rcc_table_publications`: &versions} {
+			for query, dest := range map[string]*int{`SELECT COUNT(*) FROM rcc_release_targets`: &targets, `SELECT COUNT(*) FROM rcc_publication_commands`: &commands, `SELECT COUNT(*) FROM rcc_refresh_notifications`: &notifications, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%' AND result IS NOT NULL`: &requests, `SELECT COUNT(*) FROM rcc_table_publications`: &versions} {
 				if err := owner.QueryRow(query).Scan(dest); err != nil {
 					t.Fatal(err)
 				}

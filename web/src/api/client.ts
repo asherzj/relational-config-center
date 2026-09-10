@@ -19,6 +19,8 @@ export class ApiError extends Error {
     public readonly itemIndex?: number,
     public readonly targetConflict?: {tableName:string;orderID:string;applicantID:string},
     public readonly fieldName?: string,
+    public readonly executionOutcome?: "not_committed",
+    public readonly failureHistory?: "saved"|"unavailable",
   ) {
     super(message, options);
     this.name = "ApiError";
@@ -112,6 +114,8 @@ export async function request<T>(path: string, options: RequestOptions<T> = {}):
         parsedError.data.error.item_index,
         parsedError.data.error.order_id ? {tableName:parsedError.data.error.table_name??"",orderID:parsedError.data.error.order_id,applicantID:parsedError.data.error.applicant_id??""}:undefined,
         parsedError.data.error.field_name,
+        parsedError.data.error.execution_outcome,
+        parsedError.data.error.failure_history,
       );
     }
     throw new ApiError(

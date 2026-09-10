@@ -1,3 +1,4 @@
+const {repeatReleaseAction}=require('./release-original-action.cjs');
 // Real browser -> production Web proxy -> Admin -> unique disposable MySQL.
 // route.fetch executes real writes; only delivery of selected responses is changed.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
@@ -154,7 +155,7 @@ async function waitDatabase() {
       return current;
     };
     const recover = async (order, path, reload = false) => {
-      await button('使用原请求重试').waitFor();
+      await page.getByText('原请求与意见已保留；再次点击同一操作将提交原请求。',{exact:true}).waitFor();
       const first = executeRequests(path);
       assert.equal(first.length, 1);
       assert.ok(first[0].key);
@@ -163,13 +164,16 @@ async function waitDatabase() {
       // A read can establish current state but cannot acknowledge the pending
       // request. Only the original immutable request is allowed to resolve it.
       assert.equal(executeRequests(path).length, 1);
-      assert.equal(await button('使用原请求重试').count(), 1);
+      assert.equal(await button('确认发布到数据库').count(), 1);
       await page.unroute(`**${path}`);
+      const repeated=page.waitForResponse(response=>response.request().method()==='POST'&&new URL(response.url()).pathname===path);
       if (reload) {
         page.once('dialog', dialog => dialog.accept());
         await page.reload();
-        await button('恢复原发布请求').click();
-      } else await button('使用原请求重试').click();
+        await repeatReleaseAction(page,'执行发布','确认发布到数据库');
+      } else await button('确认发布到数据库').click();
+      assert.equal((await repeated).status(),200);
+      await page.getByRole('dialog',{name:'执行发布',exact:true}).waitFor({state:'detached'});
       await waitRelease('已发布待完结');
       const attempts = executeRequests(path);
       assert.equal(attempts.length, 2);
@@ -183,7 +187,7 @@ async function waitDatabase() {
       const { order, path } = await prepare('ADD', name);
       await fault(path, 'POST', kind);
       await button('确认发布到数据库').click();
-      await button('使用原请求重试').waitFor();
+      await page.getByText('原请求与意见已保留；再次点击同一操作将提交原请求。',{exact:true}).waitFor();
       await published(order, name);
       assert.match(await page.getByRole('dialog', { name: '执行发布', exact: true }).innerText(), new RegExp(name));
       if (kind === 'abort') await page.screenshot({ path: `${output}/add-response-lost.png`, fullPage: true });
@@ -196,7 +200,7 @@ async function waitDatabase() {
       const { order, path, id } = await prepare(operation, name);
       await fault(path, 'POST');
       await button('确认发布到数据库').click();
-      await button('使用原请求重试').waitFor();
+      await page.getByText('原请求与意见已保留；再次点击同一操作将提交原请求。',{exact:true}).waitFor();
       await published(order, name, operation);
       const attempts = await recover(order, path);
       const actual = await published(order, name, operation);
@@ -211,7 +215,7 @@ async function waitDatabase() {
       const { order, path } = await prepare('ADD', name);
       await fault(path, 'POST');
       await button('确认发布到数据库').click();
-      await button('使用原请求重试').waitFor();
+      await page.getByText('原请求与意见已保留；再次点击同一操作将提交原请求。',{exact:true}).waitFor();
       const attempts = await recover(order, path);
       recoveredKeys.push(attempts[0].key);
       await published(order, name);
@@ -315,7 +319,7 @@ async function waitDatabase() {
     const databaseEndpointBefore = docker('port', container, '3306/tcp');
     stopped = true; docker('stop', '--time', '1', container);
     await button('确认发布到数据库').click();
-    await page.getByRole('button', { name: '使用原请求重试', exact: true, includeHidden: true }).waitFor({ state: 'attached', timeout: 40000 });
+    await page.getByText('原请求与意见已保留；再次点击同一操作将提交原请求。',{exact:true}).waitFor({state:'attached',timeout:40000});
     const original = executeRequests(outage.path)[0];
     docker('start', container); await waitDatabase(); stopped = false;
     assert.equal(docker('port', container, '3306/tcp'), databaseEndpointBefore);
@@ -351,14 +355,14 @@ async function waitDatabase() {
       await waitForAccount();
       const [response] = await Promise.all([
         page.waitForResponse(response => new URL(response.url()).pathname === outage.path),
-        button('使用原请求重试').click(),
+        button('确认发布到数据库').click(),
       ]);
       replayStatuses.push(response.status());
       if (response.status() === 200) break;
       const payload = await response.json();
       assert.ok([503, 504].includes(response.status()), `unexpected original-key recovery status: ${response.status()}`);
       assert.ok(['auth_unavailable', 'auth_timeout', 'release_unavailable', 'release_result_unknown', 'request_timeout'].includes(payload.error.code), payload.error.code);
-      await button('使用原请求重试').waitFor();
+      await page.getByText('原请求与意见已保留；再次点击同一操作将提交原请求。',{exact:true}).waitFor();
       await sleep(300);
     }
     assert.equal(replayStatuses.at(-1), 200);

@@ -11,6 +11,7 @@ import {useAccountRole} from "../accounts/roles";
 import {useReleaseWrite} from "./useReleaseWrite";
 import {CurrentFieldDisplayProvider} from "../field-display/CurrentFieldDisplay";
 import {ReleaseDiff} from "./ReleaseDiff";
+import {PendingIntent} from "./ReleaseRequestReview";
 import {ReleaseItemPager,releasePageSize} from "./ReleaseItemPager";
 import {ManagedTextInput} from "../managed-data/ManagedTextInput";
 
@@ -23,7 +24,10 @@ export function ReleaseDraftEditor({order,onClose}:{order:ReleaseOrder;onClose:(
  const [latest,setLatest]=useState<ReleaseOrder>();const [readError,setReadError]=useState<unknown>();const [reading,setReading]=useState(false);
  const [recordLatest,setRecordLatest]=useState<Awaited<ReturnType<typeof releaseOrders.preview>>>();
  const write=useReleaseWrite(`edit:${order.id}`);
- const allowed=useAccountRole("EDITOR")&&baseline.allowed_actions.includes("edit")&&baseline.state==="DRAFT";
+ const [originalKey]=useState(write.storedRequest?.key);
+ const hasRole=useAccountRole("EDITOR");
+ const allowed=hasRole&&baseline.allowed_actions.includes("edit")&&baseline.state==="DRAFT";
+ const canRepeat=hasRole&&Boolean(write.storedRequest);
  const conflict=write.error instanceof ApiError&&["release_version_conflict","release_state_invalid","release_target_conflict"].includes(write.error.code);
  const recordConflict=write.error instanceof ApiError&&write.error.code==="record_version_conflict";
  const titleError=releaseTitleError(title);
@@ -43,7 +47,7 @@ export function ReleaseDraftEditor({order,onClose}:{order:ReleaseOrder;onClose:(
   }));setRecordLatest(undefined);
  };
  const save=async()=>{
-  const saved=await write.send({...releaseRequests.edit(order.id,incrementalDraft(baseline,{...baseline,title,items})),label:`修改 ${order.id}`});
+  const saved=originalKey&&write.unresolved&&originalKey===write.storedRequest?.key?await write.retry():await write.send({...releaseRequests.edit(order.id,incrementalDraft(baseline,{...baseline,title,items})),label:`修改 ${order.id}`});
   if(saved){protection.afterSave(onClose)}
  };
  const inspect=async()=>{
@@ -54,7 +58,7 @@ export function ReleaseDraftEditor({order,onClose}:{order:ReleaseOrder;onClose:(
   if(reading)return;setReading(true);setReadError(undefined);
   try{setRecordLatest(await releaseOrders.preview(currentInput()))}catch(cause){setReadError(cause)}finally{setReading(false)}
  };
- return <Drawer open eyebrow="发布草稿" title="编辑多表草稿" onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>关闭</Button><Button variant="primary" disabled={write.blocked||!allowed||Boolean(titleError)||write.pending||reading||conflict||recordConflict} onClick={()=>void save()}>{write.pending?"正在保存…":write.unresolved?"使用原请求重试":"保存草稿修改"}</Button></>}>
+ return <Drawer open eyebrow="发布草稿" title="编辑多表草稿" onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>关闭</Button><Button variant="primary" disabled={write.blocked||(!allowed&&!canRepeat)||Boolean(titleError)||write.pending||reading||conflict||recordConflict} onClick={()=>void save()}>{write.pending?"正在保存…":"保存草稿修改"}</Button></>}>
  {!allowed&&<p role="alert">当前身份或发布单状态不允许编辑，已输入内容保留。</p>}
  <p>保存草稿即占用目标，直到移除最后一条引用或发布单结束。只提交本次明细变更，全部分页共用整单版本。</p>
  <div className="grid gap-2 my-5"><label htmlFor="release-order-title">发布单标题</label><Input id="release-order-title" value={title} required aria-invalid={Boolean(titleError)} aria-describedby={`release-order-title-count${titleError?" release-order-title-error":""}`} disabled={write.blocked||!allowed||write.pending||write.unresolved} onChange={event=>setTitle(event.target.value)}/><span id="release-order-title-count" className="text-xs text-muted-foreground">{Array.from(title).length} / 100 字符</span>{titleError&&<small id="release-order-title-error" className="field-error">{titleError}</small>}</div>
@@ -66,9 +70,10 @@ export function ReleaseDraftEditor({order,onClose}:{order:ReleaseOrder;onClose:(
   const value=fields[field.name]??{state:"omitted",value:""};
   return <div key={field.name} className="grid min-w-0 gap-2"><label className="min-w-0 break-all">{field.name} 提交方式<NativeSelect aria-label={`${field.name} 提交方式`} value={value.state} onChange={event=>updateField(field.name,{...value,state:event.target.value as FieldInput["state"]})}><option value="omitted">未提交</option><option value="value">提交值（可为空字符串）</option>{field.nullable&&<option value="sql_null">SQL NULL</option>}</NativeSelect></label>{field.type==="string"||field.type==="json"?<ManagedTextInput label={`${field.name} 申请值`} value={value.value} disabled={value.state!=="value"} onChange={next=>updateField(field.name,{...value,value:next})}/>:<label className="min-w-0 break-all">{field.name} 申请值<Input value={value.value} disabled={value.state!=="value"} onChange={event=>updateField(field.name,{...value,value:event.target.value})}/></label>}</div>
  })}</fieldset>
+ {write.storedRequest&&<PendingIntent item={write.storedRequest}/>}
  {Boolean(write.error)&&<ErrorState error={write.error}/>}
  {write.error instanceof ApiError&&write.error.itemIndex!==undefined&&write.error.itemIndex<items.length&&<Button onClick={()=>setSelected((write.error as ApiError).itemIndex!)}>定位错误明细</Button>}
- {write.unresolved&&<p role="alert">结果待确认。原请求与全部输入已保留，刷新后也可从发布单页使用原请求重试。</p>}
+ {write.unresolved&&<p role="alert">原请求与全部输入已保留；再次保存将提交原请求。</p>}
  {conflict&&<section className="inline-alert"><p>{write.error instanceof ApiError&&write.error.code==="release_target_conflict"?"目标被另一张发布单占用。修改后的输入已保留，请核对当前草稿再重建保存。":"发布单已被其他窗口修改。你的输入已保留，请先查看最新发布单。"}</p><Button disabled={reading} onClick={()=>void inspect()}>查看最新发布单</Button>{latest&&<><p>最新发布单版本：{latest.version}，状态：{latest.state}</p><CurrentFieldDisplayProvider tableNames={releaseDetailTables(latest)}><ReleaseDiff order={latest}/></CurrentFieldDisplayProvider><Button disabled={!latest.allowed_actions.includes("edit")||latest.state!=="DRAFT"} onClick={()=>{const rebuilt=rebaseDraftInput(baseline,{...baseline,title,items},latest);setItems(rebuilt.items);setSelected(current=>Math.min(current,Math.max(0,rebuilt.items.length-1)));setTitle(rebuilt.title);setBaseline(latest);setLatest(undefined);write.confirmRebuild();write.clearError()}}>基于最新发布单重建</Button></>}</section>}
 
  {(recordConflict||item?.operation==="ADD")&&<section className="inline-alert"><p>{recordConflict?"配置记录基线已变化，输入保留。请核对最新配置后明确重建。":"更换新增 id 或记录基线变化时，先查看该目标的最新基线。"}</p><Button disabled={reading||write.pending||write.unresolved} onClick={()=>void inspectRecord()}>查看最新配置</Button>{recordLatest&&<><p>已读取服务器最新记录基线；此预览没有保存或执行任何变更。</p><CurrentFieldDisplayProvider tableNames={releaseDetailTables(recordLatest)}><ReleaseDiff order={{...baseline,items:recordLatest.items}}/></CurrentFieldDisplayProvider><Button disabled={write.pending||write.unresolved} onClick={()=>{

@@ -1,7 +1,7 @@
 import {useReleaseJournal} from "./useReleaseJournal";
 import {useState} from "react";
 import {Link,useNavigate} from "react-router-dom";
-import {decodeReleaseRequest,draftFromOrder,releaseActionLabels,releaseActionRole,releaseOrders,releaseDetailTables,releaseRequests,type ReleaseOrder,type ReleaseRequestEnvelope} from "../../api/release-orders";
+import {decodeReleaseRequest,draftFromOrder,releaseActionLabels,releaseActionRole,releaseOrders,releaseDetailTables,releaseRequests,type DraftItem,type ReleaseOrder,type ReleaseRequestEnvelope} from "../../api/release-orders";
 import {useAccountRole} from "../accounts/roles";
 import {Button} from "../../components/ui/Button";
 import {ErrorState,LoadingState} from "../../components/ui/Feedback";
@@ -11,23 +11,15 @@ import {useReleaseWrite} from "./useReleaseWrite";
 import {ReleaseDiff} from "./ReleaseDiff";
 import {CurrentFieldDisplayProvider} from "../field-display/CurrentFieldDisplay";
 
-export function ReleaseRecovery({scopeFilter}:{scopeFilter?:string}){
+export function ReleaseConflictReview({scopeFilter}:{scopeFilter?:string}){
  const {requests,error,pending,reload}=useReleaseJournal();
  if(error)return <ErrorState error={error} onRetry={()=>void reload()}/>;
  if(pending&&!requests.length)return <LoadingState label="正在读取原发布请求…"/>;
- const selected=requests.filter(item=>!scopeFilter||item.scope===scopeFilter);
+ const selected=requests.filter(item=>item.rejection&&(!scopeFilter||item.scope===scopeFilter));
  if(!selected.length)return null;
- return <section className="inline-alert release-recovery mb-6" aria-label="待处理发布请求"><h2>待处理发布请求</h2>{selected.map(item=><div key={item.key} className="mt-3"><p>{item.label}</p><PendingIntent item={item}/>{item.rejection?<RejectedRequest item={item}/>:<RecoveryRequest item={item}/>}</div>)}</section>;
+ return <section className="inline-alert release-conflict-review mb-6" aria-label="申请冲突审阅"><h2>申请冲突审阅</h2>{selected.map(item=><div key={item.key} className="mt-3"><p>{item.label}</p><PendingIntent item={item}/><RejectedRequest item={item}/></div>)}</section>;
 }
 function requestAction(item:PendingReleaseRequest){try{return decodeReleaseRequest(item).action}catch{return undefined}}
-function RecoveryRequest({item}:{item:PendingReleaseRequest}){
- const action=requestAction(item),write=useReleaseWrite(item.scope),navigate=useNavigate();const allowed=useAccountRole(releaseActionRole(action??""));
- const protection=useDraftProtection(false,write.pending);
- return <><p>结果待确认。原内容与标识已保留，使用原请求重试可找回业务结果。</p><Button disabled={!action||!allowed||write.pending} onClick={async()=>{
-  const result=await write.send(item);if(result)protection.afterSave(()=>navigate(`/configuration/release-orders/${result.id}`));
- }}>{write.pending?"正在确认…":"恢复原发布请求"}</Button>{Boolean(write.error)&&<ErrorState error={write.error}/>}</>;
-}
-
 // A definitive rejection resolves uncertainty, but never removes the only copy
 // of the user's intent. Every state action is rebuilt only after current review.
 function RejectedRequest({item}:{item:PendingReleaseRequest}){
@@ -95,15 +87,27 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
   {Boolean(error)&&<ErrorState error={error}/>} {Boolean(write.error)&&<ErrorState error={write.error}/>}
  </>;
 }
-function PendingIntent({item}:{item:PendingReleaseRequest}){
+export function PendingIntent({item}:{item:PendingReleaseRequest}){
  let intent:ReturnType<typeof decodeReleaseRequest>;
  try{intent=decodeReleaseRequest(item)}catch{return <p>原申请内容无法读取；原请求标识仍保留。</p>}
- if(intent.action==="quick-rollback")return <details className="my-2"><summary>查看原申请内容</summary><p>原发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>快速回滚原因：{intent.input.reason}</p><p>原恢复预览摘要已保留，将使用原请求确认结果。</p></details>;
+ if(intent.action==="quick-rollback")return <details className="my-2"><summary>查看原申请内容</summary><p>原发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>快速回滚原因：{intent.input.reason}</p><p>原恢复预览摘要已保留，再次操作将提交原请求。</p></details>;
  if(intent.action==="complete")return <details className="my-2"><summary>查看原申请内容</summary><p>完结发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>释放全部目标记录的占用，并关闭快速回滚；配置内容保持不变。</p></details>;
  if(intent.action==="execute")return <details className="my-2"><summary>查看原申请内容</summary><p>发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
  if(intent.action==="submit")return <details className="my-2"><summary>查看原申请内容</summary><p>提交单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
  if(intent.action==="rollback")return <details className="my-2"><summary>查看原申请内容</summary><p>原发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>回滚原因：{intent.input.reason}</p></details>;
  if(intent.action==="cancel"||intent.action==="approve"||intent.action==="reject")return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="cancel"?"取消原因":"审批意见"}：{intent.input.reason}</p></details>;
- if(intent.action==="edit-details")return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.input.table_name} · 整单版本 {intent.input.expected_version}</p><p>删除明细：{intent.input.changes.delete_detail_ids?.join("、")||"无"}</p><p>明细顺序：{intent.input.changes.detail_order?.join("、")||"保持"}</p>{intent.input.changes.upserts?.map((entry,index)=><div key={entry.detail_id??index}><strong>{entry.operation} · {entry.id??entry.content.id??"待生成 id"}</strong><dl>{Object.entries(entry.content).map(([name,value])=><div key={name} className="break-all"><dt>{name}</dt><dd className="whitespace-pre-wrap">{value===null?"SQL NULL":`值：${value}`}</dd></div>)}</dl></div>)}</details>;
- return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="copy"?`复制原单 ${intent.id}`:intent.action==="reprepare"?`重新准备原单 ${intent.id}`:intent.input.table_name}</p>{intent.input.items.map((entry,index)=><div key={index}><strong>{entry.operation} · {entry.id??entry.content.id??"待生成 id"}</strong><dl>{Object.entries(entry.content).map(([field,value])=><div key={field} className="break-all"><dt>{field}</dt><dd className="whitespace-pre-wrap">{value===null?"SQL NULL":value===""?"空字符串（\"\"）":<>值：{value}</>}</dd></div>)}</dl></div>)}</details>;
+ if(intent.action==="edit-details")return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.input.table_name} · 整单版本 {intent.input.expected_version}</p><p>删除明细：{intent.input.changes.delete_detail_ids?.join("、")||"无"}</p><p>明细顺序：{intent.input.changes.detail_order?.join("、")||"保持"}</p>{intent.input.changes.upserts?.map((entry,index)=>{
+  const position=entry.detail_id?intent.input.changes.detail_order?.indexOf(entry.detail_id):undefined;
+  return <PendingDetail key={entry.detail_id??index} entry={entry} tableName={intent.input.table_name} position={position!==undefined&&position>=0?position+1:undefined}/>;
+ })}</details>;
+ return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="copy"?`复制原单 ${intent.id}`:intent.action==="reprepare"?`重新准备原单 ${intent.id}`:intent.input.table_name}</p>{intent.input.items.map((entry,index)=><PendingDetail key={index} entry={entry} tableName={"table_name" in intent.input?intent.input.table_name:""} position={index+1}/>)}</details>;
+}
+function PendingDetail({entry,tableName,position}:{entry:DraftItem;tableName:string;position?:number}){
+ return <div><strong>{position?`明细 ${position}`:"变更明细"} · {entry.table_name||tableName} · {entry.operation} · 记录 {entry.id??entry.content.id??"待生成 id"}</strong>{entry.detail_id&&<p className="break-all text-xs">明细标识：{entry.detail_id}</p>}<dl>{Object.entries(entry.content).map(([field,value])=><div key={field} className="break-all"><dt>{field}</dt><dd className="whitespace-pre-wrap">{value===null?"SQL NULL":value===""?"空字符串（\"\"）":<>值：{value}</>}</dd></div>)}</dl></div>;
+
+}
+
+export function pendingRequestReason(item:PendingReleaseRequest|undefined):string {
+ if(!item)return "";
+ try{const {input}=decodeReleaseRequest(item);return "reason" in input?input.reason:""}catch{return ""}
 }

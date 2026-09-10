@@ -1,7 +1,7 @@
 import {useEffect,useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {ApiError,shouldRetryQuery} from "../../api/client";
-import {defaultReleaseTitle,releaseOrders,releaseRequests,releaseTitleError,type DraftContentInput} from "../../api/release-orders";
+import {decodeReleaseRequest,draftItemSchema,defaultReleaseTitle,releaseOrders,releaseRequests,releaseTitleError,type ReleaseRequestEnvelope,type DraftContentInput} from "../../api/release-orders";
 import {useWorkspaceIdentity} from "../accounts/ProtectedWorkspace";
 import {Button} from "../../components/ui/Button";
 import {NativeSelect} from "../../components/shadcn/native-select";
@@ -61,5 +61,18 @@ export function useDraftDestination(table:string,initialID=""){
   <p className="draft-destination-hint">同一数据源内多表合计最多 1,000 项。整单按明细顺序审批与发布。</p>
   {Boolean(error)&&<ErrorState error={error}/>}
  </section>;
- return {prepare,picker,valid:Boolean(selected)||!titleError};
+ // Replaying a request from another window must not acknowledge this
+ // window's different unsaved fields, title, destination or selected rows.
+ const matchesInput=(request:ReleaseRequestEnvelope,input:DraftContentInput)=>{
+  try{
+   const intent=decodeReleaseRequest(request);
+   if(!selected&&intent.action==="create")return intent.input.title===title&&intent.input.table_name===input.table_name&&JSON.stringify(intent.input.items)===JSON.stringify(input.items.map(item=>draftItemSchema.parse(item)));
+   if(selected&&intent.action==="edit-details"&&intent.id===selected){
+    const changes=intent.input.changes;
+    return !changes.delete_detail_ids&&!changes.detail_order&&JSON.stringify(changes.upserts)===JSON.stringify(input.items.map(item=>draftItemSchema.parse({...item,table_name:item.table_name??input.table_name})));
+   }
+  }catch{/* An unreadable retained request cannot acknowledge current input. */}
+  return false;
+ };
+ return {prepare,picker,matchesInput,valid:Boolean(selected)||!titleError};
 }

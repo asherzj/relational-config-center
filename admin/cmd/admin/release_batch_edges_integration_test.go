@@ -223,9 +223,7 @@ func TestReleaseBatchEdgeStaleMemberRollsBack(t *testing.T) {
 	assertIntegrationErrorCode(t, response, 409, "record_version_conflict")
 	batchEdgeIndex(t, response, 3)
 	current := releaseRequest(t, app, "GET", path, "", "")
-	if current.Body.String() != before.Body.String() {
-		t.Fatalf("stale execute changed approval/history: %s", current.Body)
-	}
+	assertReleaseFailureOnly(t, batchEdgeOrder(t, before, 200), batchEdgeOrder(t, current, 200), "EXECUTE_FAILED")
 	for _, tc := range []struct{ id, label, version string }{{"10", "old", "0"}, {"20", "newer", "2"}, {"30", "old", "0"}} {
 		row, version := recordVersionRow(t, app, "mutation_add_items", tc.id)
 		if row["label"] == nil || *row["label"] != tc.label || version != tc.version {
@@ -233,13 +231,13 @@ func TestReleaseBatchEdgeStaleMemberRollsBack(t *testing.T) {
 		}
 	}
 	batchEdgeCounts(t, db, map[string]int{
-		`SELECT COUNT(*) FROM mutation_add_items`:                                                3,
-		`SELECT COUNT(*) FROM rcc_release_targets`:                                               3,
-		`SELECT COUNT(*) FROM rcc_publication_commands`:                                          1,
-		`SELECT COUNT(*) FROM rcc_refresh_notifications`:                                         1,
-		`SELECT COUNT(*) FROM rcc_record_versions`:                                               1,
-		`SELECT table_version FROM rcc_table_publications WHERE table_name='mutation_add_items'`: 1,
-		`SELECT COUNT(*) FROM rcc_release_requests WHERE request_key='stale-batch-execute'`:      0,
+		`SELECT COUNT(*) FROM mutation_add_items`:                                                              3,
+		`SELECT COUNT(*) FROM rcc_release_targets`:                                                             3,
+		`SELECT COUNT(*) FROM rcc_publication_commands`:                                                        1,
+		`SELECT COUNT(*) FROM rcc_refresh_notifications`:                                                       1,
+		`SELECT COUNT(*) FROM rcc_record_versions`:                                                             1,
+		`SELECT table_version FROM rcc_table_publications WHERE table_name='mutation_add_items'`:               1,
+		`SELECT COUNT(*) FROM rcc_release_requests WHERE request_key='stale-batch-execute' AND result IS NULL`: 1,
 	})
 }
 
@@ -261,18 +259,16 @@ func TestReleaseBatchEdgeMidwayConstraintRollback(t *testing.T) {
 			assertIntegrationErrorCode(t, response, tc.status, tc.errorCode)
 			batchEdgeIndex(t, response, 3)
 			current := releaseRequest(t, app, "GET", path, "", "")
-			if current.Body.String() != before.Body.String() {
-				t.Fatalf("failed execute changed approval/history: %s", current.Body)
-			}
+			assertReleaseFailureOnly(t, batchEdgeOrder(t, before, 200), batchEdgeOrder(t, current, 200), "EXECUTE_FAILED")
 			batchEdgeCounts(t, db, map[string]int{
-				`SELECT COUNT(*) FROM mutation_add_items`:                                    3,
-				`SELECT COUNT(*) FROM mutation_add_items WHERE label='old'`:                  3,
-				`SELECT COUNT(*) FROM rcc_release_targets`:                                   2,
-				`SELECT COUNT(*) FROM rcc_record_versions`:                                   0,
-				`SELECT COUNT(*) FROM rcc_publication_commands`:                              0,
-				`SELECT COUNT(*) FROM rcc_table_publications`:                                0,
-				`SELECT COUNT(*) FROM rcc_refresh_notifications`:                             0,
-				`SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%'`: 0,
+				`SELECT COUNT(*) FROM mutation_add_items`:                                                           3,
+				`SELECT COUNT(*) FROM mutation_add_items WHERE label='old'`:                                         3,
+				`SELECT COUNT(*) FROM rcc_release_targets`:                                                          2,
+				`SELECT COUNT(*) FROM rcc_record_versions`:                                                          0,
+				`SELECT COUNT(*) FROM rcc_publication_commands`:                                                     0,
+				`SELECT COUNT(*) FROM rcc_table_publications`:                                                       0,
+				`SELECT COUNT(*) FROM rcc_refresh_notifications`:                                                    0,
+				`SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%' AND result IS NOT NULL`: 0,
 			})
 			batchEdgeOrder(t, releaseRequest(t, app, "POST", path+"/cancel", `{"expected_version":"3","reason":"constraint failure reviewed"}`, "constraint-cancel-"+tc.name), 200)
 		})
