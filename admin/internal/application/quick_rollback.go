@@ -136,6 +136,7 @@ func (r *ReleaseOrders) QuickRollback(ctx context.Context, id string, input Quic
 		if err = appendRelatedReleaseEvent(&original, actor, stamp, "QUICK_ROLLBACK", input.Reason, ""); err != nil {
 			return err
 		}
+		original.History[len(original.History)-1].ExecutionID = publication.ExecutionID
 		if err = s.SaveReleaseOrder(ctx, original, false); err != nil {
 			return err
 		}

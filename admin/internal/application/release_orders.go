@@ -79,6 +79,7 @@ type DraftInput struct {
 // reads. Preparing a draft cannot call business-row mutation methods.
 type ReleaseOrderSession interface {
 	AppendReleaseFailure(context.Context, string, domain.ReleaseEvent) error
+	AppendRollbackReason(context.Context, string, domain.ReleaseEvent) error
 	PolicySnapshotReader
 	ResolveReleaseTable(context.Context, string) (string, error)
 	ReadRecordBaselines(context.Context, domain.TableSchema, []any) ([]domain.RecordBaseline, error)
@@ -212,7 +213,7 @@ func (r *ReleaseOrders) People(ctx context.Context, id string) (map[string]strin
 
 func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) []string {
 	actions := []string{}
-	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute", "rollback", "complete", "quick-rollback", "reprepare"} {
+	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute", "rollback", "complete", "quick-rollback", "edit-rollback-reason", "reprepare"} {
 		if releaseOrderActionState(order, action) && authorizeReleaseAction(ctx, order, action) == nil {
 			actions = append(actions, action)
 		}
@@ -220,6 +221,9 @@ func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) 
 	return actions
 }
 func releaseActionRole(action string) AccountRoles {
+	if action == "edit-rollback-reason" {
+		return RoleViewer
+	}
 	if action == "execute" || action == "complete" || action == "quick-rollback" {
 		return RolePublisher
 	}
@@ -231,6 +235,17 @@ func releaseActionRole(action string) AccountRoles {
 func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action string) error {
 	actor, err := requireRole(ctx, releaseActionRole(action))
 	if err != nil {
+		return err
+	}
+	if action == "edit-rollback-reason" {
+		rollback, found := rollbackExecution(order)
+		if !found {
+			return ErrReleaseUnavailable
+		}
+		if actor == rollback.ActorID {
+			return nil
+		}
+		_, err = requireRole(ctx, RoleAdmin)
 		return err
 	}
 	if action == "approve" || action == "reject" {
@@ -264,6 +279,8 @@ func releaseActionState(state, action string) bool {
 		return state == "APPROVED"
 	case "complete", "quick-rollback":
 		return state == "SUCCEEDED"
+	case "edit-rollback-reason":
+		return state == "ROLLED_BACK"
 	case "rollback":
 		return false
 	case "execute":
@@ -278,6 +295,18 @@ func releaseActionState(state, action string) bool {
 		return state == "DRAFT" || state == "PENDING_APPROVAL" || state == "APPROVED"
 	}
 	return false
+}
+
+func rollbackExecution(order ReleaseOrder) (domain.ReleaseExecution, bool) {
+	if order.State != "ROLLED_BACK" || order.VerifyPublication() != nil {
+		return domain.ReleaseExecution{}, false
+	}
+	for _, execution := range order.Executions {
+		if execution.Kind == "ROLLBACK" {
+			return execution, true
+		}
+	}
+	return domain.ReleaseExecution{}, false
 }
 
 func (r *ReleaseOrders) prepare(ctx context.Context, s ReleaseOrderSession, input DraftInput, refreshBaseline bool) ([]ReleaseItem, error) {

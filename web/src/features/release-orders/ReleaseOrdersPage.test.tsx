@@ -154,6 +154,114 @@ it("已完结原单没有回滚入口",async()=>{
  expect(screen.queryByRole("button",{name:"申请回滚"})).not.toBeInTheDocument();
 });
 
+it("回滚执行人在原单补填和修正可选原因并看到每次真实留痕",async()=>{
+ const rollbackExecutionID=`${id}:ROLLBACK`,executorID=testAdminIdentity.account.id;
+ let current={...order,state:"ROLLED_BACK" as const,version:"5",updated_at:"2026-09-10T01:00:00Z",allowed_actions:["edit-rollback-reason"],executions:[{id:`${id}:PUBLICATION`,kind:"PUBLICATION" as const,actor_id:"forward-publisher",executed_at:"2026-09-10T00:30:00Z",table_versions:{items:"1"},item_count:1,outcome:"SUCCEEDED" as const},{id:rollbackExecutionID,kind:"ROLLBACK" as const,actor_id:executorID,executed_at:"2026-09-10T01:00:00Z",table_versions:{items:"2"},item_count:1,outcome:"SUCCEEDED" as const}],history:[...order.history,{action:"QUICK_ROLLBACK",actor_id:executorID,at:"2026-09-10T01:00:00Z",version:"5",reason:"",execution_id:rollbackExecutionID}]};
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  const path=String(input);
+  if(path.endsWith("/people"))return json({people:{[executorID]:"真实回滚人"}});
+  if(path.endsWith("/rollback-reason")){
+   writes.push(init!);const reason=JSON.parse(String(init!.body)).reason;
+   current={...current,history:[...current.history,{action:"ROLLBACK_REASON",actor_id:executorID,at:"2026-09-10T02:00:00Z",version:"5",reason,execution_id:rollbackExecutionID}]};
+   return json(current);
+  }
+  return json(current);
+ })));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ const reasonPanel=await screen.findByRole("region",{name:"回滚原因"});
+ expect(within(reasonPanel).getByText("尚未填写回滚原因。",{exact:true})).toBeVisible();
+ await user.click(within(reasonPanel).getByRole("button",{name:"补填回滚原因"}));
+ const dialog=screen.getByRole("dialog",{name:"补填回滚原因 · 更新渠道展示名称"});
+ const input=within(dialog).getByLabelText("回滚原因（选填）");
+ expect(input).not.toBeRequired();expect(input).toHaveValue("");
+ expect(within(dialog).getByRole("button",{name:"取消"})).toHaveFocus();
+ fireEvent.change(input,{target:{value:"界".repeat(667)}});expect(within(dialog).getByRole("alert")).toHaveTextContent("2000 字节");expect(within(dialog).getByRole("button",{name:"保存回滚原因"})).toBeDisabled();
+ fireEvent.change(input,{target:{value:""}});
+ await user.type(input,"数据库约束冲突");
+ await user.click(within(dialog).getByRole("button",{name:"保存回滚原因"}));
+ await waitFor(()=>expect(writes).toHaveLength(1));
+ expect(JSON.parse(String(writes[0]!.body))).toEqual({reason:"数据库约束冲突"});
+ expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBeTruthy();
+ expect(await within(reasonPanel).findByText("数据库约束冲突",{exact:true})).toBeVisible();
+ expect(screen.getByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
+ expect(screen.getByText("items · 已回滚",{exact:true})).toBeVisible();
+ expect(screen.getAllByText("版本 5",{exact:false}).length).toBeGreaterThan(0);
+
+ await user.click(within(reasonPanel).getByRole("button",{name:"修改回滚原因"}));
+ const correction=screen.getByRole("dialog",{name:"修改回滚原因 · 更新渠道展示名称"});
+ expect(within(correction).getByLabelText("回滚原因（选填）")).toHaveValue("数据库约束冲突");
+ await user.clear(within(correction).getByLabelText("回滚原因（选填）"));
+ expect(within(correction).getByRole("button",{name:"保存回滚原因"})).toBeEnabled();
+ await user.type(within(correction).getByLabelText("回滚原因（选填）"),"确认是外键约束冲突");
+ await user.click(within(correction).getByRole("button",{name:"保存回滚原因"}));
+ await waitFor(()=>expect(writes).toHaveLength(2));
+ expect(await within(reasonPanel).findByText("确认是外键约束冲突",{exact:true})).toBeVisible();
+ const history=screen.getByRole("region",{name:"操作历史"});
+ expect(within(history).getAllByText("修改了回滚原因",{exact:true})).toHaveLength(2);
+ expect(within(history).getByText("数据库约束冲突",{exact:true})).toBeVisible();
+ expect(within(history).getByText("确认是外键约束冲突",{exact:true})).toBeVisible();
+});
+
+it("回滚原因写入报错保留输入且只在再次点击时复用原正文和标识",async()=>{
+ const rollbackExecutionID=`${id}:ROLLBACK`,writes:RequestInit[]=[];let attempts=0;
+ const rolled={...order,state:"ROLLED_BACK" as const,version:"5",allowed_actions:["edit-rollback-reason"],executions:[{id:`${id}:PUBLICATION`,kind:"PUBLICATION" as const,actor_id:"forward",executed_at:order.updated_at,table_versions:{items:"1"},item_count:1,outcome:"SUCCEEDED" as const},{id:rollbackExecutionID,kind:"ROLLBACK" as const,actor_id:testAdminIdentity.account.id,executed_at:order.updated_at,table_versions:{items:"2"},item_count:1,outcome:"SUCCEEDED" as const}],history:[...order.history,{action:"QUICK_ROLLBACK",actor_id:testAdminIdentity.account.id,at:order.updated_at,version:"5",reason:"",execution_id:rollbackExecutionID}]};
+ let current=rolled;
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  if(String(input).endsWith("/people"))return json({people:{}});
+  if(String(input).endsWith("/rollback-reason")){writes.push(init!);attempts++;if(attempts===1)throw new TypeError("lost response");current={...rolled,history:[...rolled.history,{action:"ROLLBACK_REASON",actor_id:testAdminIdentity.account.id,at:"2026-09-10T02:00:00Z",version:"5",reason:"保留这段输入",execution_id:rollbackExecutionID}]};return json(current)}
+  return json(current);
+ })));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"补填回滚原因"}));
+ await user.type(screen.getByLabelText("回滚原因（选填）"),"保留这段输入");
+ await user.click(screen.getByRole("button",{name:"保存回滚原因"}));
+ expect(await screen.findByText("Admin 连接或响应传输中断。",{exact:true})).toBeVisible();
+ expect(writes).toHaveLength(1);expect(screen.getByLabelText("回滚原因（选填）")).toHaveValue("保留这段输入");
+ await new Promise(resolve=>setTimeout(resolve,20));expect(writes).toHaveLength(1);
+ await user.click(screen.getByRole("button",{name:"保存回滚原因"}));
+ await waitFor(()=>expect(writes).toHaveLength(2));
+ expect(writes[1]!.body).toBe(writes[0]!.body);
+ expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
+ expect(await within(screen.getByRole("region",{name:"回滚原因"})).findByText("保留这段输入",{exact:true})).toBeVisible();
+});
+
+it("回滚原因编辑时晚到的另一窗口原请求先恢复且不丢本窗口输入",async()=>{
+ const rollbackExecutionID=`${id}:ROLLBACK`,writes:RequestInit[]=[];
+ const rolled={...order,state:"ROLLED_BACK" as const,version:"5",allowed_actions:["edit-rollback-reason"],executions:[{id:`${id}:PUBLICATION`,kind:"PUBLICATION" as const,actor_id:"forward",executed_at:order.updated_at,table_versions:{items:"1"},item_count:1,outcome:"SUCCEEDED" as const},{id:rollbackExecutionID,kind:"ROLLBACK" as const,actor_id:testAdminIdentity.account.id,executed_at:order.updated_at,table_versions:{items:"2"},item_count:1,outcome:"SUCCEEDED" as const}],history:[...order.history,{action:"QUICK_ROLLBACK",actor_id:testAdminIdentity.account.id,at:order.updated_at,version:"5",reason:"",execution_id:rollbackExecutionID}]};
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  if(String(input).endsWith("/people"))return json({people:{}});
+  if(String(input).endsWith("/rollback-reason")){writes.push(init!);const reason=JSON.parse(String(init!.body)).reason;return json({...rolled,history:[...rolled.history,{action:"ROLLBACK_REASON",actor_id:testAdminIdentity.account.id,at:"2026-09-10T02:00:00Z",version:"5",reason,execution_id:rollbackExecutionID}]})}
+  return json(rolled);
+ })));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"补填回滚原因"}));
+ const input=screen.getByLabelText("回滚原因（选填）");await user.type(input,"本窗口未保存内容");
+ const otherBody=JSON.stringify({reason:"另一窗口原请求"});
+ await act(async()=>{await rememberReleaseRequest(testAdminIdentity.account.id,{scope:`edit-rollback-reason:${id}`,method:"POST",path:`/api/v1/release-orders/${id}/rollback-reason`,body:otherBody,key:"other-reason-key",label:"另一窗口回滚原因"})});
+ expect(input).toBeDisabled();expect(input).toHaveValue("本窗口未保存内容");
+ await user.click(screen.getByRole("button",{name:"保存回滚原因"}));
+ await waitFor(()=>expect(writes).toHaveLength(1));expect(writes[0]!.body).toBe(otherBody);
+ await waitFor(()=>expect(input).toBeEnabled());expect(input).toHaveValue("本窗口未保存内容");
+ expect(screen.getByRole("dialog",{name:"补填回滚原因 · 更新渠道展示名称"})).toBeVisible();
+ await user.click(screen.getByRole("button",{name:"保存回滚原因"}));
+ await waitFor(()=>expect(writes).toHaveLength(2));expect(JSON.parse(String(writes[1]!.body))).toEqual({reason:"本窗口未保存内容"});
+ expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).not.toBe("other-reason-key");
+});
+
+it("回滚原因窗口打开后服务端撤销动作仍保留输入并禁止提交原请求",async()=>{
+ const rollbackExecutionID=`${id}:ROLLBACK`,writes:RequestInit[]=[];
+ let rolled={...order,state:"ROLLED_BACK" as const,version:"5",allowed_actions:["edit-rollback-reason"],executions:[{id:`${id}:PUBLICATION`,kind:"PUBLICATION" as const,actor_id:"forward",executed_at:order.updated_at,table_versions:{items:"1"},item_count:1,outcome:"SUCCEEDED" as const},{id:rollbackExecutionID,kind:"ROLLBACK" as const,actor_id:testAdminIdentity.account.id,executed_at:order.updated_at,table_versions:{items:"2"},item_count:1,outcome:"SUCCEEDED" as const}],history:[...order.history,{action:"QUICK_ROLLBACK",actor_id:testAdminIdentity.account.id,at:order.updated_at,version:"5",reason:"",execution_id:rollbackExecutionID}]};
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(String(input).endsWith("/people"))return json({people:{}});if(String(input).endsWith("/rollback-reason")){writes.push(init!);return json(rolled)}return json(rolled)})));
+ const user=userEvent.setup();const {client}=mount(`/configuration/release-orders/${id}`);
+ await user.click(await screen.findByRole("button",{name:"补填回滚原因"}));
+ const input=screen.getByLabelText("回滚原因（选填）");await user.type(input,"撤权后保留");
+ await act(async()=>{rolled={...rolled,allowed_actions:[]};await client.refetchQueries({queryKey:["release-order",id]})});
+ expect(input).toHaveValue("撤权后保留");await waitFor(()=>expect(screen.getByRole("button",{name:"保存回滚原因"})).toBeDisabled());
+ await act(async()=>{await rememberReleaseRequest(testAdminIdentity.account.id,{scope:`edit-rollback-reason:${id}`,method:"POST",path:`/api/v1/release-orders/${id}/rollback-reason`,body:JSON.stringify({reason:"已存原请求"}),key:"revoked-reason-key",label:"已撤权原请求"})});
+ expect(screen.getByRole("button",{name:"保存回滚原因"})).toBeDisabled();expect(writes).toHaveLength(0);
+});
+
 it("原执行旧键重放返回已发布快照后仍重新读取当前已回滚详情",async()=>{
  const published={...order,state:"SUCCEEDED",version:"4",allowed_actions:[]};
  const current={...published,state:"ROLLED_BACK",version:"6",rollback_order_id:rollbackID,rollback_pending:false,history:[...published.history,{action:"ROLLBACK_EXECUTE",actor_id:testAdminIdentity.account.id,version:"6",at:"2026-09-08T09:00:00Z",reason:"",related_order_id:rollbackID}]};

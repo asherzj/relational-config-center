@@ -295,12 +295,29 @@ func (s *releaseOrderSession) AppendReleaseFailure(ctx context.Context, id strin
 		return err
 	}
 	event.At = now.UTC().Format(time.RFC3339Nano)
+	return s.appendReleaseEvent(ctx, id, event)
+}
+
+// AppendRollbackReason changes only append-only audit state. In particular it
+// does not rewrite detail rows, successful executions, workflow columns or CAS.
+func (s *releaseOrderSession) AppendRollbackReason(ctx context.Context, id string, event domain.ReleaseEvent) error {
+	if err := s.available(); err != nil {
+		return err
+	}
+	return s.appendReleaseEvent(ctx, id, event)
+}
+
+func (s *releaseOrderSession) appendReleaseEvent(ctx context.Context, id string, event domain.ReleaseEvent) error {
 	encoded, err := json.Marshal(event)
 	if err != nil {
 		return application.ErrReleaseUnavailable
 	}
-	if err := s.database.WithContext(ctx).Exec("UPDATE rcc_release_orders SET document=JSON_ARRAY_APPEND(document,'$.history',CAST(? AS JSON)) WHERE id=?", string(encoded), id).Error; err != nil {
+	result := s.database.WithContext(ctx).Exec("UPDATE rcc_release_orders SET document=JSON_ARRAY_APPEND(document,'$.history',CAST(? AS JSON)) WHERE id=?", string(encoded), id)
+	if result.Error != nil {
 		return application.ErrReleaseUnavailable
+	}
+	if result.RowsAffected != 1 {
+		return application.ErrReleaseNotFound
 	}
 	return nil
 }

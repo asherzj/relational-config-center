@@ -1,0 +1,126 @@
+{
+  "viewport": 390,
+  "document": 390,
+  "overflowing": [
+    {
+      "tag": "TABLE",
+      "role": null,
+      "text": "字段实际 before实际 finalcategoryvarchar(32)SQL NULLSQL NULLcreated_atdatetime(6)值：2026-09-10 07:24:38.858",
+      "right": 593
+    },
+    {
+      "tag": "THEAD",
+      "role": null,
+      "text": "字段实际 before实际 final",
+      "right": 593
+    },
+    {
+      "tag": "TR",
+      "role": null,
+      "text": "字段实际 before实际 final",
+      "right": 593
+    },
+    {
+      "tag": "TH",
+      "role": null,
+      "text": "实际 before",
+      "right": 406.3125
+    },
+    {
+      "tag": "TH",
+      "role": null,
+      "text": "实际 final",
+      "right": 593
+    },
+    {
+      "tag": "TBODY",
+      "role": null,
+      "text": "categoryvarchar(32)SQL NULLSQL NULLcreated_atdatetime(6)值：2026-09-10 07:24:38.858898值：2026-09-10 07:",
+      "right": 593
+    },
+    {
+      "tag": "TR",
+      "role": null,
+      "text": "categoryvarchar(32)SQL NULLSQL NULL",
+      "right": 593
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "text": "SQL NULL",
+      "right": 406.3125
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "text": "SQL NULL",
+      "right": 593
+    },
+    {
+      "tag": "TR",
+      "role": null,
+      "text": "created_atdatetime(6)值：2026-09-10 07:24:38.858898值：2026-09-10 07:24:38.858898",
+      "right": 593
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "text": "值：2026-09-10 07:24:38.858898",
+      "right": 406.3125
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "text": "值：2026-09-10 07:24:38.858898",
+      "right": 593
+    },
+    {
+      "tag": "TR",
+      "role": null,
+      "text": "created_byvarchar(64)值：fixture值：fixture",
+      "right": 593
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "text": "值：fixture",
+      "right": 406.3125
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "text": "值：fixture",
+      "right": 593
+    },
+    {
+      "tag": "TR",
+      "role": null,
+      "text": "idbigint unsigned值：1值：1",
+      "right": 593
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "text": "值：1",
+      "right": 406.3125
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "text": "值：1",
+      "right": 593
+    },
+    {
+      "tag": "TR",
+      "role": null,
+      "text": "namevarchar(64)值：Rollback seed值：Published before reason correction",
+      "right": 593
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "text": "值：Rollback seed",
+      "right": 406.3125
+    }
+  ]
+}

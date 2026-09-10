@@ -30,6 +30,7 @@ type ReleaseField struct {
 
 type ReleaseEvent struct {
 	RelatedOrderID string `json:"related_order_id,omitempty"`
+	ExecutionID    string `json:"execution_id,omitempty"`
 	Action         string `json:"action"`
 	ActorID        string `json:"actor_id"`
 	At             string `json:"at"`

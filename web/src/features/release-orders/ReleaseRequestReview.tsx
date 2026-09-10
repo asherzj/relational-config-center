@@ -42,6 +42,8 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
      const restoration=await releaseOrders.quickRollbackPreview(intent.id,latest.version);setPreview(restoration);
      setRebuilt(releaseRequests.quickRollback(intent.id,latest.version,restoration.preview_digest,intent.input.reason));
     }
+   }else if(intent.action==="edit-rollback-reason"){
+    if(latest?.allowed_actions.includes("edit-rollback-reason"))setRebuilt(releaseRequests.rollbackReason(intent.id,intent.input.reason));
    }else if(intent.action==="rollback"){
     if(latest?.allowed_actions.includes("rollback"))setRebuilt(releaseRequests.action("rollback",intent.id,latest.version,intent.input.reason));
    }else if(intent.action==="cancel"||intent.action==="approve"||intent.action==="reject"){
@@ -91,6 +93,7 @@ export function PendingIntent({item}:{item:PendingReleaseRequest}){
  let intent:ReturnType<typeof decodeReleaseRequest>;
  try{intent=decodeReleaseRequest(item)}catch{return <p>原申请内容无法读取；原请求标识仍保留。</p>}
  if(intent.action==="quick-rollback")return <details className="my-2"><summary>查看原申请内容</summary><p>原发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>快速回滚原因：{intent.input.reason}</p><p>原恢复预览摘要已保留，再次操作将提交原请求。</p></details>;
+ if(intent.action==="edit-rollback-reason")return <details className="my-2"><summary>查看原申请内容</summary><p>原发布单号：{intent.id}</p><p>回滚原因：{intent.input.reason}</p></details>;
  if(intent.action==="complete")return <details className="my-2"><summary>查看原申请内容</summary><p>完结发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>释放全部目标记录的占用，并关闭快速回滚；配置内容保持不变。</p></details>;
  if(intent.action==="execute")return <details className="my-2"><summary>查看原申请内容</summary><p>发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
  if(intent.action==="submit")return <details className="my-2"><summary>查看原申请内容</summary><p>提交单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;

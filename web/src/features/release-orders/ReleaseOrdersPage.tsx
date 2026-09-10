@@ -20,6 +20,7 @@ import {useToast} from "../../components/ui/Toast";
 import {ReleaseTime} from "./ReleaseTime";
 import {ReleaseProgress} from "./ReleaseProgress";
 import {ReleaseHistory} from "./ReleaseHistory";
+import {RollbackReason} from "./RollbackReason";
 import {ReleaseReview} from "./ReleaseReview";
 
 import {QuickRollbackDialog} from "./QuickRollbackDialog";
@@ -85,7 +86,7 @@ function ReleaseDetail({id}:{id:string}){
  </div>
  {peopleFailure&&<section className="inline-alert mb-4 min-w-0 flex-wrap" role="alert"><div><strong>人员姓名读取失败，当前仅显示永久账号 ID。</strong><span>{peopleFailure.message}</span><span>错误代码：{peopleCode}</span>{peopleFailure.requestId&&<span>请求编号：{peopleFailure.requestId}</span>}</div><Button variant="secondary" disabled={people.isFetching} onClick={()=>void people.refetch()}>{people.isFetching?"正在读取人员姓名…":"重新读取人员姓名"}</Button></section>}
  {order.rollback_pending&&<p className="inline-alert mb-4">这张已发布单已有回滚申请处理中。</p>}{order.frozen_digest&&<p className="mb-4">{reverse?"回滚意图":"提交内容"}已冻结，审批和发布以这份差异为准。</p>}{order.copied_from_id&&<p className="mb-4">{order.history[0]?.action==="REPREPARE"?"重新准备自":"复制自"} <Link to={`/configuration/release-orders/${order.copied_from_id}`}>{order.copied_from_id}</Link></p>}{order.rollback_of_id&&<p className="mb-4">回滚原发布单 <Link to={`/configuration/release-orders/${order.rollback_of_id}`}>{order.rollback_of_id}</Link>；明细来自原发布的实际结果，不可编辑或复制。</p>}{order.rollback_order_id&&<p className="mb-4">最新回滚发布单 <Link to={`/configuration/release-orders/${order.rollback_order_id}`}>{order.rollback_order_id}</Link></p>}
- <ReleaseReview order={order} people={names}/><ReleaseHistory order={order} people={names}/>
+ <ReleaseReview order={order} people={names}/>{order.state==="ROLLED_BACK"&&<RollbackReason order={order} people={names}/>}<ReleaseHistory order={order} people={names}/>
  {editing&&<ReleaseDraftEditor order={order} onClose={()=>setEditing(false)}/>}
  {action&&<ReleaseActionDialog order={order} action={action} onClose={()=>setAction(undefined)}/>}
  {quickRollback&&<QuickRollbackDialog order={order} onClose={()=>setQuickRollback(false)}/>}

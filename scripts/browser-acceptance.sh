@@ -31,7 +31,7 @@ for command in docker node pnpm go curl od tr grep sort cmp; do
 done
 
 case ${RCC_E2E_SUITE:-all} in
-  all|unsaved-changes|rule-clarity|write-recovery|operation-coverage|complex-fields|browser-accessibility|release-workflow|field-interactions) ;;
+  all|unsaved-changes|rule-clarity|write-recovery|operation-coverage|complex-fields|browser-accessibility|release-workflow|rollback-reason|field-interactions) ;;
   *) printf 'unknown browser suite: %s\n' "$RCC_E2E_SUITE" >&2; exit 2 ;;
 esac
 
@@ -475,6 +475,11 @@ for browser_engine in "${browser_engine_list[@]}"; do
   run_browser_suite "publication and rollback ($browser_engine)" "$repo_root/web/e2e/release-rollbacks.cjs" "$artifact_root/release-workflow/rollback-$browser_engine" 420 "$browser_engine"
   run_browser_suite "session, conflict and unknown recovery ($browser_engine)" "$repo_root/web/e2e/accounts.mjs" "$artifact_root/release-workflow/recovery-$browser_engine" 600 "$browser_engine"
 done
+run_browser_suite "rollback reason history" "$repo_root/web/e2e/release-rollback-reason.cjs" "$artifact_root/release-workflow/rollback-reason" 240 chromium
+fi
+
+if [[ ${RCC_E2E_SUITE:-all} == rollback-reason ]]; then
+run_browser_suite "rollback reason history" "$repo_root/web/e2e/release-rollback-reason.cjs" "$artifact_root/release-workflow/rollback-reason" 240 chromium
 fi
 
 if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == field-interactions ]]; then

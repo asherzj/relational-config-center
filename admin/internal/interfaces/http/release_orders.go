@@ -112,6 +112,18 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 		}
 		respondReleaseWrite(c, orders, result, 200)
 	})
+	router.POST("/api/v1/release-orders/:id/rollback-reason", func(c *gin.Context) {
+		var input application.RollbackReasonInput
+		if err := decodeRequest(c, &input); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		result, err := orders.ChangeRollbackReason(c.Request.Context(), c.Param("id"), input, c.GetHeader("Idempotency-Key"))
+		if writeReleaseError(c, err) {
+			return
+		}
+		respondReleaseWrite(c, orders, result, 200)
+	})
 	router.POST("/api/v1/release-orders/:id/quick-rollback/preview", func(c *gin.Context) {
 		var input application.SubmitReleaseInput
 		if err := decodeRequest(c, &input); err != nil {
