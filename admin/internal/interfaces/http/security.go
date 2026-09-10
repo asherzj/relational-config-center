@@ -34,6 +34,7 @@ type RouterOptions struct {
 	FieldPolicies      *application.TableFieldPolicyManagement
 	Authentication     *application.Authentication
 	AccountRoles       *application.AccountRoleManagement
+	ApprovalRoles      *application.ApprovalRoleManagement
 	ReleaseOrders      *application.ReleaseOrders
 	PublicationTimeout time.Duration
 	AccountHTTP        AccountHTTPOptions

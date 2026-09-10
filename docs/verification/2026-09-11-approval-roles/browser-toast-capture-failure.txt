@@ -1,0 +1,86 @@
+=== RUN   TestApprovalRoleBrowserSystemPath
+2026/09/11 01:32:25 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: b4cbab8ce099af68120e959c7e06f6b96740c419c1136731c73710e4078064e9
+  Test ProcessID: 38489cf5-6d0c-413a-be7c-85b9447b5db2
+2026/09/11 01:32:25 🐳 Creating container for image mysql:8.4
+2026/09/11 01:32:25 ✅ Container created: 26474593a263
+2026/09/11 01:32:25 🐳 Starting container: 26474593a263
+2026/09/11 01:32:25 ✅ Container started: 26474593a263
+2026/09/11 01:32:25 ⏳ Waiting for container id 26474593a263 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 01:32:32 🔔 Container is ready: 26474593a263
+    approval_roles_browser_integration_test.go:70: browser system path: exit status 1 locator.click: Timeout 10000ms exceeded.
+        Call log:
+        [2m  - waiting for getByRole('button', { name: 'Close toast', exact: true }).first()[22m
+        [2m    - locator resolved to <button class="" data-disabled="false" aria-label="Close toast" data-close-button="true">…</button>[22m
+        [2m  - attempting click action[22m
+        [2m    2 × waiting for element to be visible, enabled and stable[22m
+        [2m      - element is visible, enabled and stable[22m
+        [2m      - scrolling into view if needed[22m
+        [2m      - done scrolling[22m
+        [2m      - <footer class="drawer-footer">…</footer> from <div aria-hidden="false" class="protected-workspace" data-session-status="ready">…</div> subtree intercepts pointer events[22m
+        [2m    - retrying click action[22m
+        [2m    - waiting 20ms[22m
+        [2m    2 × waiting for element to be visible, enabled and stable[22m
+        [2m      - element is visible, enabled and stable[22m
+        [2m      - scrolling into view if needed[22m
+        [2m      - done scrolling[22m
+        [2m      - <footer class="drawer-footer">…</footer> from <div aria-hidden="false" class="protected-workspace" data-session-status="ready">…</div> subtree intercepts pointer events[22m
+        [2m    - retrying click action[22m
+        [2m      - waiting 100ms[22m
+        [2m    4 × waiting for element to be visible, enabled and stable[22m
+        [2m      - element is visible, enabled and stable[22m
+        [2m      - scrolling into view if needed[22m
+        [2m      - done scrolling[22m
+        [2m      - <footer class="drawer-footer">…</footer> from <div aria-hidden="false" class="protected-workspace" data-session-status="ready">…</div> subtree intercepts pointer events[22m
+        [2m    - retrying click action[22m
+        [2m      - waiting 500ms[22m
+        [2m    - waiting for element to be visible, enabled and stable[22m
+        [2m  - element was detached from the DOM, retrying[22m
+        
+            at stableScreenshot (/private/tmp/rcc-issue-93-approval-role-management/web/e2e/approval-roles.cjs:15:107)
+            at async /private/tmp/rcc-issue-93-approval-role-management/web/e2e/approval-roles.cjs:88:5 {
+          log: [
+            "  - waiting for getByRole('button', { name: 'Close toast', exact: true }).first()",
+            '    - locator resolved to <button class="" data-disabled="false" aria-label="Close toast" data-close-button="true">…</button>',
+            '  - attempting click action',
+            '    2 × waiting for element to be visible, enabled and stable',
+            '      - element is visible, enabled and stable',
+            '      - scrolling into view if needed',
+            '      - done scrolling',
+            '      - <footer class="drawer-footer">…</footer> from <div aria-hidden="false" class="protected-workspace" data-session-status="ready">…</div> subtree intercepts pointer events',
+            '    - retrying click action',
+            '    - waiting 20ms',
+            '    2 × waiting for element to be visible, enabled and stable',
+            '      - element is visible, enabled and stable',
+            '      - scrolling into view if needed',
+            '      - done scrolling',
+            '      - <footer class="drawer-footer">…</footer> from <div aria-hidden="false" class="protected-workspace" data-session-status="ready">…</div> subtree intercepts pointer events',
+            '    - retrying click action',
+            '      - waiting 100ms',
+            '    4 × waiting for element to be visible, enabled and stable',
+            '      - element is visible, enabled and stable',
+            '      - scrolling into view if needed',
+            '      - done scrolling',
+            '      - <footer class="drawer-footer">…</footer> from <div aria-hidden="false" class="protected-workspace" data-session-status="ready">…</div> subtree intercepts pointer events',
+            '    - retrying click action',
+            '      - waiting 500ms',
+            '    - waiting for element to be visible, enabled and stable',
+            '  - element was detached from the DOM, retrying'
+          ],
+          name: 'TimeoutError'
+        }
+2026/09/11 01:32:54 🐳 Stopping container: 26474593a263
+2026/09/11 01:32:56 ✅ Container stopped: 26474593a263
+2026/09/11 01:32:56 🐳 Terminating container: 26474593a263
+2026/09/11 01:32:56 🚫 Container terminated: 26474593a263
+--- FAIL: TestApprovalRoleBrowserSystemPath (30.84s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	32.193s
+FAIL

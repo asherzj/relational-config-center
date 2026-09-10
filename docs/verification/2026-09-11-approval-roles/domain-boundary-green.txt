@@ -1,0 +1,1 @@
+ok  	github.com/asherzj/relational-config-center/admin/internal/interfaces/http	0.569s

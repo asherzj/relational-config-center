@@ -1,0 +1,33 @@
+2026/09/11 00:16:27 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: f3a7465c9f1c4d55da416fde647a3fca86ef1be83dfa28112a9c500b0c3d3bb6
+  Test ProcessID: aacdf7cb-7392-4d64-ba5e-a9d7dd990e2f
+2026/09/11 00:16:27 🐳 Creating container for image mysql:8.4
+2026/09/11 00:16:27 ✅ Container created: 2205d3a755ab
+2026/09/11 00:16:27 🐳 Starting container: 2205d3a755ab
+2026/09/11 00:16:27 ✅ Container started: 2205d3a755ab
+2026/09/11 00:16:27 ⏳ Waiting for container id 2205d3a755ab image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 00:16:35 🔔 Container is ready: 2205d3a755ab
+{"request_id":"rcc-fa6e91fff79fd79c9f5bd900da72d7e3","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":9}
+{"request_id":"rcc-c36ad0af854535e4a526d41c98b160f8","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":50}
+{"request_id":"rcc-c393f4546ce6c76b76b34ce1842a6ccf","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-5dadb78136b2111f6086ada6250b28eb","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":50}
+{"request_id":"rcc-9858cf61f91a44b442f627734ffeefc4","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-5a2146c005f8a36a19fe79cb4bfea985","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":49}
+{"request_id":"rcc-3d1c96ada4d760e2871506f70f7e4176","method":"GET","path":"/api/v1/account-roles","status":200,"duration_ms":2}
+{"request_id":"rcc-c34ce53ca5725c071bdf0f70e9d1e0d3","method":"POST","path":"unmatched","status":404,"duration_ms":1}
+2026/09/11 00:16:37 🐳 Stopping container: 2205d3a755ab
+2026/09/11 00:16:38 ✅ Container stopped: 2205d3a755ab
+2026/09/11 00:16:38 🐳 Terminating container: 2205d3a755ab
+2026/09/11 00:16:38 🚫 Container terminated: 2205d3a755ab
+--- FAIL: TestApprovalRoleMembershipPersistsWithoutGrantingAccountRoles (11.61s)
+    approval_roles_integration_test.go:46: POST /api/v1/approval-roles: got 404 {"error":{"code":"route_not_found","message":"route not found","request_id":"rcc-c34ce53ca5725c071bdf0f70e9d1e0d3"}}; want 201
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	12.949s
+FAIL

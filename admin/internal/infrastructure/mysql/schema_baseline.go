@@ -8,7 +8,11 @@ import (
 	"github.com/pressly/goose/v3/database"
 )
 
-// BaselineControlSchema adopts only the complete structure of this release.
+// The historical adoption boundary is frozen at Goose 00005. Later releases
+// must explicitly upgrade; adding a migration never moves this boundary.
+const historicalBaselineVersion int64 = 5
+
+// BaselineControlSchema adopts only the complete historical baseline.
 // It uses the migration session lock and journal, but never executes migration SQL.
 func (adapter *Adapter) BaselineControlSchema(ctx context.Context, options SchemaMigrationOptions) (status SchemaMigrationStatus, err error) {
 	status, err = adapter.ControlSchemaStatus(ctx)
@@ -20,7 +24,7 @@ func (adapter *Adapter) BaselineControlSchema(ctx context.Context, options Schem
 		return status, errors.New("baseline_unavailable: cannot open maintenance connection")
 	}
 	defer conn.Close()
-	lock := &schemaMigrationLock{wait: options.LockTimeout, version: status.Required, baseline: true, recover: options.Recover}
+	lock := &schemaMigrationLock{wait: options.LockTimeout, version: min(status.Required, historicalBaselineVersion), baseline: true, recover: options.Recover}
 	if options.Recover && status.AttemptID > 0 {
 		lock.version = status.AttemptVersion
 	}

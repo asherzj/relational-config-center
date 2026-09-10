@@ -62,9 +62,9 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 	assertReadiness(200)
 	for _, fault := range []struct{ name, apply, restore string }{
 		{"unmanaged", `RENAME TABLE rcc_goose_db_version TO held_versions, rcc_schema_migration_attempts TO held_attempts`, `RENAME TABLE held_versions TO rcc_goose_db_version, held_attempts TO rcc_schema_migration_attempts`},
-		{"ahead", `UPDATE rcc_goose_db_version SET version_id=99 WHERE version_id=5`, `UPDATE rcc_goose_db_version SET version_id=5 WHERE version_id=99`},
+		{"ahead", `UPDATE rcc_goose_db_version SET version_id=99 WHERE version_id=6`, `UPDATE rcc_goose_db_version SET version_id=6 WHERE version_id=99`},
 		{"unknown", `UPDATE rcc_goose_db_version SET version_id=77 WHERE version_id=1`, `UPDATE rcc_goose_db_version SET version_id=1 WHERE version_id=77`},
-		{"release_digest", `UPDATE rcc_schema_migration_attempts SET release_digest=REPEAT('0',64) WHERE target_version=5`, ""},
+		{"release_digest", `UPDATE rcc_schema_migration_attempts SET release_digest=REPEAT('0',64) WHERE target_version=6`, ""},
 		{"missing_column", `ALTER TABLE rcc_query_policies RENAME COLUMN description TO missing_description`, `ALTER TABLE rcc_query_policies RENAME COLUMN missing_description TO description`},
 		{"wrong_default", `ALTER TABLE rcc_accounts ALTER COLUMN enabled SET DEFAULT 0`, `ALTER TABLE rcc_accounts ALTER COLUMN enabled SET DEFAULT 1`},
 		{"missing_index", `ALTER TABLE rcc_query_policies DROP INDEX idx_query_policy_status_type`, `ALTER TABLE rcc_query_policies ADD KEY idx_query_policy_status_type(status,type_code)`},
@@ -84,7 +84,7 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 		t.Run(fault.name, func(t *testing.T) {
 			var digest string
 			if fault.name == "release_digest" {
-				if err := db.QueryRow(`SELECT release_digest FROM rcc_schema_migration_attempts WHERE target_version=5`).Scan(&digest); err != nil {
+				if err := db.QueryRow(`SELECT release_digest FROM rcc_schema_migration_attempts WHERE target_version=6`).Scan(&digest); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -102,12 +102,12 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 			if fault.restore != "" {
 				deliveryExec(t, db, fault.restore)
 			} else {
-				deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET release_digest=? WHERE target_version=5`, digest)
+				deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET release_digest=? WHERE target_version=6`, digest)
 			}
 			assertReadiness(200)
 		})
 	}
-	deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET state='RUNNING',finished_at=NULL WHERE target_version=5`)
+	deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET state='RUNNING',finished_at=NULL WHERE target_version=6`)
 	assertReadiness(503)
 	requireSchemaStartupRejected(t, accountProcessCommand(t, binary, &reader))
 	if output, err := schemaMigrationCommand(migration, driver, "up").CombinedOutput(); err == nil {
