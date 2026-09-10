@@ -62,7 +62,7 @@ const base=process.env.RCC_WEB_URL,table='draft_browser_items'+suffix,longField=
   check('两个真实窗口冲突重建保留本次输入及他人未触及明细；390px可键盘排序');
 
   await settings.goto(`${base}/platform/table-policies/${table}?mode=replace`);await button(settings,'移除字段 code').click();await button(settings,'检查并替换').click();await button(settings,'确认替换').click();await settings.getByText('此表仍有未结束发布单的明细。取消、拒绝、完结或回滚后才能更改管控键。',{exact:true}).waitFor();
-  await settings.goto(`${base}/configuration/release-orders/${id}`);await button(settings,'取消草稿').click();await settings.getByLabel('取消原因',{exact:true}).fill('管理员清理遗留草稿');await button(settings,'确认取消草稿').click();await settings.getByText(`${table} · 已取消`,{exact:true}).waitFor();await shot(settings,'draft-admin-cancel.png');
+  await settings.goto(`${base}/configuration/release-orders/${id}`);await button(settings,'更多操作').click();await settings.getByRole('menuitem',{name:'取消草稿',exact:true}).click();await settings.getByLabel('取消原因',{exact:true}).fill('管理员清理遗留草稿');await button(settings,'确认取消草稿').click();await settings.getByLabel('发布单状态', { exact: true }).filter({ hasText: /^已取消$/ }).waitFor();await shot(settings,'draft-admin-cancel.png');
   const cancelled=await api(admin,'GET',`/api/v1/release-orders/${id}`);assert.equal(cancelled.applicant_id,person.accountID);assert.equal(cancelled.state,'CANCELLED');
   await api(admin,'POST',`/api/v1/release-orders/${blocker.id}/cancel`,{expected_version:blocker.version,reason:'end blocker fixture'});
   const policy=await api(admin,'GET',`/api/v1/table-policies/${table}`);await api(admin,'PUT',`/api/v1/table-policies/${table}`,{table_name:table,query_policy_code:policy.query_policy_code,mutation_policy_code:policy.mutation_policy_code,concurrency_key:[]});

@@ -177,10 +177,11 @@ const engine = process.env.RCC_E2E_ENGINE || 'chromium';
       await reachable(page.getByRole('button', { name: '编辑草稿', exact: true }));
       pass(label, 'required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions', { changeMetrics, reviewMetrics });
       // UI cancellation retires our draft without touching any business record.
-      await enter(page.getByRole('button', { name: '取消草稿', exact: true }));
+      await enter(page.getByRole('button', { name: '更多操作', exact: true }));
+      await enter(page.getByRole('menuitem', { name: '取消草稿', exact: true }));
       await page.getByLabel('取消原因', { exact: true }).fill('完整字段流程验收结束');
       await enter(page.getByRole('button', { name: '确认取消草稿', exact: true }));
-      await page.getByText(`${table} · 已取消`, { exact: true }).waitFor();
+      await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: /^已取消$/ }).waitFor();
       drafts.pop();
     }
     assert.deepEqual(errors, []);

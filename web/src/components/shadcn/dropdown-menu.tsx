@@ -33,11 +33,10 @@ function DropdownMenuTrigger({
 function DropdownMenuContent({
   className,
   sideOffset = 4,
+  inline = false,
   ...props
-}: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
-  return (
-    <DropdownMenuPrimitive.Portal>
-      <DropdownMenuPrimitive.Content
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Content> & { inline?: boolean }) {
+  const content = <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         className={cn(
@@ -46,8 +45,7 @@ function DropdownMenuContent({
         )}
         {...props}
       />
-    </DropdownMenuPrimitive.Portal>
-  )
+  return inline ? content : <DropdownMenuPrimitive.Portal>{content}</DropdownMenuPrimitive.Portal>
 }
 
 function DropdownMenuGroup({

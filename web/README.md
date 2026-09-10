@@ -13,7 +13,7 @@
 - Database Table Discovery 的真实表状态、稳定不兼容原因和表规则完整目录。
 - 仅从兼容未分配表和 Active 规则创建未启用分配，并支持详情、原子替换、启用、停用与客户端筛选。
 - 替换已启用表规则前明确提示下一次请求立即生效；实时 Schema 与引用错误保留稳定错误码和 Request ID。
-- 配置内容管理只列出 enabled Managed Table，以实时动态列构造全部八种 Query Spec 操作符、单字段排序和服务端分页。
+- 统一变更入口只列出 enabled Managed Table，以实时动态列构造全部八种 Query Spec 操作符、单字段排序和服务端分页。
 - Managed Data 值保持 JSON String 语义，并在结果中明确区分 SQL NULL 与空字符串。
 - 变更规则驱动的 ADD、MODIFY、DELETE 始终显示能力状态；未授权、未知类型、无效 Auto Fill 或不可执行规则快照均失败关闭。
 - 通用写入编辑器以字段开关表达省略，并区分 NULL、空字符串和普通 JSON String。ADD 可显式填写非自增主键 `id`；自增主键可保持省略。MODIFY 不修改 `id`，全部 Auto Fill 字段由后端填充。

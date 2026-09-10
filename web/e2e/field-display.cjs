@@ -74,7 +74,7 @@ const table = 'field_display_browser_items';
     const persistedFinal = JSON.stringify(executionCommands(published)[0].final);
 
     await page.goto(`${base}/configuration/release-orders/${draft.id}`);
-    await page.getByText(`${table} · 已发布待完结`, { exact: true }).waitFor();
+    await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: /^已发布待完结$/ }).waitFor();
     const result = page.getByRole('region', { name: '发布结果', exact: true });
     await result.getByRole('rowheader', { name: /当前名称\s+name/ }).waitFor();
     assert.ok(await result.getByText('同名选项', { exact: true }).count() >= 2);
@@ -94,7 +94,7 @@ const table = 'field_display_browser_items';
     assert.equal(JSON.stringify(executionCommands(afterPolicyChange)[0].final), persistedFinal);
     check('reopening history reads new names and option labels without changing persisted before/final');
 
-    await page.getByRole('button', { name: '申请差异', exact: true }).click();
+    await page.getByRole('button', { name: '申请内容', exact: true }).click();
     const request = page.getByRole('region', { name: '变更内容', exact: true });
     await request.getByRole('rowheader', { name: /最新名称\s+name/ }).waitFor();
     await request.getByText('原始名称', { exact: true }).waitFor();

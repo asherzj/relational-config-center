@@ -102,7 +102,7 @@ export function ManagedDataPage() {
       <ReleaseConflictReview scopeFilter="create"/>
  <div className="page-heading">
         <div>
-          <h1>配置内容管理</h1>
+          <h1>统一变更入口</h1>
         </div>
         <div className="page-heading-actions">
           <Button variant="secondary" icon={<RefreshCw size={16} />} disabled={!selectedTable || result.isFetching} onClick={() => void result.refetch()}>重新查询</Button>
