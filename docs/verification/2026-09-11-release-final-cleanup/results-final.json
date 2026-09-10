@@ -1,0 +1,34 @@
+[
+  {
+    "log": "browser25-final-runner.log",
+    "command": [
+      "bash",
+      "scripts/browser-acceptance.sh"
+    ],
+    "environment": {
+      "RCC_E2E_SUITE": "all",
+      "RCC_E2E_ENGINES": "chromium,firefox,webkit",
+      "RCC_E2E_ARTIFACTS": "/private/tmp/rcc-88-final-verification/browser25-final"
+    },
+    "started": "2026-09-10T16:51:48.286210+00:00",
+    "finished": "2026-09-10T17:03:45.002393+00:00",
+    "exit": 0,
+    "sha256": "0780faafb6c0611a8d97bcfc4eef0cb15d0d5ef934ded25e5e5889c8f9f0a47d",
+    "original_command_record": "results11.json[0]"
+  },
+  {
+    "command": [
+      "python3",
+      "/Users/asher/.codex/visualizations/2026/09/09/01a0850d-11fa-7f83-b97d-d58527309794/rcc-88-compose-9df93a5bb851/scripts/compose-migration-acceptance.py",
+      "--artifacts",
+      "/private/tmp/rcc-88-final-verification/compose12"
+    ],
+    "working_directory": "/Users/asher/.codex/visualizations/2026/09/09/01a0850d-11fa-7f83-b97d-d58527309794/rcc-88-compose-9df93a5bb851",
+    "log": "compose12-runner.log",
+    "started": "2026-09-10T17:12:56.132354+00:00",
+    "finished": "2026-09-10T17:13:41.916784+00:00",
+    "exit": 0,
+    "sha256": "5ece802ce81ca193032c48850297c8cafb4908b1881ac870e58498321a1b69b8",
+    "original_command_record": "results12.json[0]"
+  }
+]

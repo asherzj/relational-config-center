@@ -1,0 +1,266 @@
+[
+  {
+    "log": "admin-manifest1.log",
+    "command": [
+      "go",
+      "-C",
+      "admin",
+      "test",
+      "-p",
+      "1",
+      "-list",
+      "^Test",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "831542954676a7a0788a16ec3196d65db882173346026b918201a14b972b6547"
+  },
+  {
+    "log": "admin-unit1.jsonl",
+    "command": [
+      "go",
+      "-C",
+      "admin",
+      "test",
+      "-p",
+      "1",
+      "-count=1",
+      "-json",
+      "./..."
+    ],
+    "exit": 1,
+    "sha256": "b865f990e9b04cdcc1afddaabfc9168ea550533bf8519cc62fe0e068402b0bce"
+  },
+  {
+    "log": "admin-build1.log",
+    "command": [
+      "go",
+      "-C",
+      "admin",
+      "build",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "log": "client-manifest1.log",
+    "command": [
+      "go",
+      "-C",
+      "client",
+      "test",
+      "-p",
+      "1",
+      "-list",
+      "^Test",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "11142d0271263aac202c0e3b8e0feb5597b041f50c2a736b890ae6ffdd99b074"
+  },
+  {
+    "log": "client-unit1.jsonl",
+    "command": [
+      "go",
+      "-C",
+      "client",
+      "test",
+      "-p",
+      "1",
+      "-count=1",
+      "-json",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "29043bee102dad1ccfaa33de46c6699a10a5cbdf24833e5888029e04f3e6f230"
+  },
+  {
+    "log": "client-build1.log",
+    "command": [
+      "go",
+      "-C",
+      "client",
+      "build",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "log": "server-manifest1.log",
+    "command": [
+      "go",
+      "-C",
+      "server",
+      "test",
+      "-p",
+      "1",
+      "-list",
+      "^Test",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "1de6138a21217ddd1de764a4e5a7cd30c7d5b53889560be87025dba0a0d783e0"
+  },
+  {
+    "log": "server-unit1.jsonl",
+    "command": [
+      "go",
+      "-C",
+      "server",
+      "test",
+      "-p",
+      "1",
+      "-count=1",
+      "-json",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "6d9e96d5844abda8ffae0872ad171682cd9461fd67c20f7f5763235341f63774"
+  },
+  {
+    "log": "server-build1.log",
+    "command": [
+      "go",
+      "-C",
+      "server",
+      "build",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "log": "shared-manifest1.log",
+    "command": [
+      "go",
+      "-C",
+      "shared",
+      "test",
+      "-p",
+      "1",
+      "-list",
+      "^Test",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "4f4b5d1bb7b53bd00ea14981360c926c7b5f99b06306e9f30ad85089cb977658"
+  },
+  {
+    "log": "shared-unit1.jsonl",
+    "command": [
+      "go",
+      "-C",
+      "shared",
+      "test",
+      "-p",
+      "1",
+      "-count=1",
+      "-json",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "0ea4759a4e1577cee86e80cf1b5e57456ea6202eb544eba380eb6500a599a4f4"
+  },
+  {
+    "log": "shared-build1.log",
+    "command": [
+      "go",
+      "-C",
+      "shared",
+      "build",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "log": "make-build1.log",
+    "command": [
+      "make",
+      "build"
+    ],
+    "exit": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "log": "web-test-run1.log",
+    "command": [
+      "pnpm",
+      "--dir",
+      "web",
+      "test:run"
+    ],
+    "exit": 1,
+    "sha256": "329445427c89ba805a8fb3df19e04cf0dc42c72d78ff809382bdda21780053f1"
+  },
+  {
+    "log": "web-test-dev1.log",
+    "command": [
+      "pnpm",
+      "--dir",
+      "web",
+      "test:dev"
+    ],
+    "exit": 0,
+    "sha256": "0390d194435bb7adf3009467b21f912c4ef66fe927e1046399b4b73bf239d201"
+  },
+  {
+    "log": "web-typecheck1.log",
+    "command": [
+      "pnpm",
+      "--dir",
+      "web",
+      "typecheck"
+    ],
+    "exit": 0,
+    "sha256": "3b940ccb3a62cfdf539f8114ccd09c103f33beb857c5ab0819ff68653e009672"
+  },
+  {
+    "log": "web-build1.log",
+    "command": [
+      "pnpm",
+      "--dir",
+      "web",
+      "build"
+    ],
+    "exit": 0,
+    "sha256": "ce9d78be8cbda4217b266f3a7e80fa8733a9b73481035b42f63431b6a1ab113b"
+  },
+  {
+    "log": "integration-manifest1.log",
+    "command": [
+      "go",
+      "-C",
+      "admin",
+      "test",
+      "-p",
+      "1",
+      "-tags=integration",
+      "-list",
+      "^Test",
+      "./..."
+    ],
+    "exit": 0,
+    "sha256": "838fa4c4491214f82664ccc9c9df26a94be865892478d4dbf4a0d56469560385"
+  },
+  {
+    "log": "integration1.jsonl",
+    "command": [
+      "go",
+      "-C",
+      "admin",
+      "test",
+      "-p",
+      "1",
+      "-count=1",
+      "-timeout=60m",
+      "-json",
+      "-tags=integration",
+      "./..."
+    ],
+    "exit": 1,
+    "sha256": "b22b5bc1523a4950da87368edf3709871218c8f568a79fee35d10b3800cd0a24"
+  }
+]

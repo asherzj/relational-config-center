@@ -47,35 +47,19 @@ func TestReleasePublicationAddsFinalRow(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	reviewer := registerAccount(t, app, "publication.reviewer", "publication.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER","PUBLISHER"]`, "1", "publication-roles")
-	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"published","label":"","metadata":"null"}}]}`, "publication-add")
+	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"published","label":"","metadata":"null"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "publication-add")
 	response := releaseActorRequest(t, app, reviewer, "POST", path+"/execute", `{"expected_version":"3"}`, "publication-execute")
 	if response.Code != 200 {
 		t.Fatalf("execute: %d %s", response.Code, response.Body)
 	}
-	var result struct {
-		State, Version string
-		Publication    struct {
-			TableVersion string `json:"table_version"`
-			Commands     []struct {
-				ID            string
-				RecordVersion string `json:"record_version"`
-				Final         struct {
-					Deleted bool
-					Fields  []struct {
-						Name, Encoding string
-						Value          *string
-					}
-				}
-			}
-		}
-	}
+	var result domain.ReleaseOrder
 	if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
 		t.Fatal(err)
 	}
-	if result.State != "SUCCEEDED" || result.Version != "4" || result.Publication.TableVersion != "1" || len(result.Publication.Commands) != 1 {
+	if result.State != "SUCCEEDED" || result.Version != "4" || singleExecutionTableVersion(result.Executions[0]) != "1" || len(executionCommands(result, "PUBLICATION")) != 1 {
 		t.Fatal(response.Body)
 	}
-	command := result.Publication.Commands[0]
+	command := executionCommands(result, "PUBLICATION")[0]
 	row, version := recordVersionRow(t, app, "mutation_add_items", command.ID)
 	if version != "1" || command.RecordVersion != "1" || *row["defaulted_value"] != "database-default" || *row["generated_value"] != "published:generated" || *row["label"] != "" || *row["metadata"] != "null" || row["nullable_value"] != nil {
 		t.Fatalf("final row %v version %s: %s", row, version, response.Body)
@@ -118,7 +102,7 @@ func TestPublicationRejectsUntrackedCascade(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowDelete: true})
 	reviewer := registerAccount(t, app, "cascade.reviewer", "cascade.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "cascade-roles")
-	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"DELETE","id":"1","expected_record_version":"0","content":{}}]}`, "cascade")
+	path := approvePublication(t, app, reviewer, `{"items":[{"content":{},"expected_record_version":"0","id":"1","operation":"DELETE","table_name":"mutation_delete_parents"}],"title":"集成测试发布单"}`, "cascade")
 	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "cascade-execute")
 	assertIntegrationErrorCode(t, response, 422, "publication_unsupported")
 	row, version := recordVersionRow(t, app, "mutation_delete_parents", "1")
@@ -147,7 +131,7 @@ func TestPublicationSupportsTargetRowTrigger(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	reviewer := registerAccount(t, app, "trigger.reviewer", "trigger.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "trigger-roles")
-	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"triggered","label":"intent"}}]}`, "trigger")
+	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"triggered","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "trigger")
 	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "trigger-execute")
 	if response.Code != 200 {
 		t.Fatalf("target trigger: %d %s", response.Code, response.Body)
@@ -156,20 +140,9 @@ func TestPublicationSupportsTargetRowTrigger(t *testing.T) {
 	if err := owner.QueryRow(`SELECT label FROM mutation_add_items WHERE code='triggered'`).Scan(&finalLabel); err != nil || finalLabel != "intent!" {
 		t.Fatalf("final %q err %v", finalLabel, err)
 	}
-	var order struct {
-		Publication struct {
-			Commands []struct {
-				Final struct {
-					Fields []struct {
-						Name  string
-						Value *string
-					}
-				}
-			}
-		}
-	}
+	var order domain.ReleaseOrder
 	json.Unmarshal(response.Body.Bytes(), &order)
-	for _, f := range order.Publication.Commands[0].Final.Fields {
+	for _, f := range executionCommands(order, "PUBLICATION")[0].Final.Fields {
 		if f.Name == "label" && f.Value != nil && *f.Value == "intent!" {
 			return
 		}
@@ -190,10 +163,13 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 	}
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowAdd: true, AllowModify: true})
+	deliveryExec(t, owner, `CREATE TABLE z_atomic_second(id INT PRIMARY KEY,label VARCHAR(80))`)
+	deliveryExec(t, owner, `INSERT INTO z_atomic_second VALUES(1,'before')`)
+	enableMutationPolicy(t, app, "z_atomic_second", mutationPolicyFixture{AllowModify: true})
 	reviewer := registerAccount(t, app, "atomic.reviewer", "atomic.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "atomic-roles")
-	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"committed"}},{"operation":"ADD","content":{"code":"new-atomic"}}]}`, "atomic")
-	for _, failure := range []struct{ table, event, condition string }{{"rcc_record_versions", "INSERT", "TRUE"}, {"rcc_publication_commands", "INSERT", "TRUE"}, {"rcc_table_publications", "UPDATE", "NEW.table_version>0"}, {"rcc_refresh_notifications", "INSERT", "TRUE"}, {"rcc_release_targets", "INSERT", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='SUCCEEDED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
+	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"committed"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"},{"content":{"code":"new-atomic"},"operation":"ADD","table_name":"mutation_delete_parents"},{"content":{"label":"after"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"z_atomic_second"}],"title":"集成测试发布单"}`, "atomic")
+	for _, failure := range []struct{ table, event, condition string }{{"rcc_record_versions", "INSERT", "TRUE"}, {"rcc_publication_commands", "INSERT", "TRUE"}, {"rcc_table_publications", "UPDATE", "NEW.table_version>0 AND NEW.table_name='z_atomic_second'"}, {"rcc_refresh_notifications", "INSERT", "NEW.table_name='z_atomic_second'"}, {"rcc_release_targets", "INSERT", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='SUCCEEDED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
 		t.Run(failure.table, func(t *testing.T) {
 			statement := fmt.Sprintf("CREATE TRIGGER fail_publication BEFORE %s ON %s FOR EACH ROW BEGIN IF %s THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='injected persistence failure'; END IF; END", failure.event, failure.table, failure.condition)
 			if _, err := owner.Exec(statement); err != nil {
@@ -210,17 +186,22 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 			if version != "0" || *row["code"] != "delete-rollback" {
 				t.Fatal("partial configuration or record version")
 			}
-			current := releaseRequest(t, app, "GET", path, "", "")
+			second, secondVersion := recordVersionRow(t, app, "z_atomic_second", "1")
+			if secondVersion != "0" || *second["label"] != "before" {
+				t.Fatal("partial second table value/version")
+			}
+			batchEdgeCounts(t, owner, map[string]int{`SELECT COUNT(*) FROM rcc_release_details WHERE publication IS NOT NULL`: 0, `SELECT COUNT(*) FROM rcc_release_executions`: 0, `SELECT COUNT(*) FROM rcc_release_table_references`: 2})
+			current := releaseReadAllDetails(t, app, "GET", path, "", "")
 			if !strings.Contains(current.Body.String(), `"state":"APPROVED"`) || strings.Contains(current.Body.String(), `"action":"EXECUTE"`) {
 				t.Fatal(current.Body)
 			}
 			var targets, commands, notifications, requests, versions int
-			for query, dest := range map[string]*int{`SELECT COUNT(*) FROM rcc_release_targets`: &targets, `SELECT COUNT(*) FROM rcc_publication_commands`: &commands, `SELECT COUNT(*) FROM rcc_refresh_notifications`: &notifications, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%'`: &requests, `SELECT COUNT(*) FROM rcc_table_publications`: &versions} {
+			for query, dest := range map[string]*int{`SELECT COUNT(*) FROM rcc_release_targets`: &targets, `SELECT COUNT(*) FROM rcc_publication_commands`: &commands, `SELECT COUNT(*) FROM rcc_refresh_notifications`: &notifications, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%' AND result IS NOT NULL`: &requests, `SELECT COUNT(*) FROM rcc_table_publications`: &versions} {
 				if err := owner.QueryRow(query).Scan(dest); err != nil {
 					t.Fatal(err)
 				}
 			}
-			if targets != 1 || commands != 0 || notifications != 0 || requests != 0 || versions != 0 {
+			if targets != 2 || commands != 0 || notifications != 0 || requests != 0 || versions != 0 {
 				t.Fatalf("partial state: targets %d commands %d notifications %d requests %d table versions %d", targets, commands, notifications, requests, versions)
 			}
 		})
@@ -229,6 +210,7 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 	if response.Code != 200 {
 		t.Fatalf("same key retry: %d %s", response.Code, response.Body)
 	}
+	batchEdgeCounts(t, owner, map[string]int{`SELECT COUNT(*) FROM rcc_refresh_notifications`: 2, `SELECT COUNT(*) FROM rcc_table_publications WHERE table_version=1`: 2, `SELECT COUNT(*) FROM z_atomic_second WHERE label='after'`: 1})
 }
 
 func TestOldRecordWriteRoutesAreRemoved(t *testing.T) {
@@ -303,7 +285,7 @@ func TestPublicationRejectsImplicitWritesAndAuditSpoofing(t *testing.T) {
 	for i, body := range []string{`INSERT INTO trigger_side_effect VALUES(1)`, `SET NEW.id=999`, `SET NEW.creator='spoofed'`, `SET NEW.executed_at='2000-01-01'`, `BEGIN SET NEW.label='changed'; INSERT INTO trigger_side_effect VALUES(1); END`, `SET @publication_side_effect=1`} {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			deliveryExec(t, db, "CREATE TRIGGER hidden_write BEFORE INSERT ON mutation_add_items FOR EACH ROW "+body)
-			path := approvePublication(t, app, reviewer, fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"unsupported-%d","label":"intent"}}]}`, i), fmt.Sprintf("unsupported-%d", i))
+			path := approvePublication(t, app, reviewer, fmt.Sprintf(`{"items":[{"content":{"code":"unsupported-%d","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, i), fmt.Sprintf("unsupported-%d", i))
 			response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, fmt.Sprintf("unsupported-execute-%d", i))
 			assertIntegrationErrorCode(t, response, 422, "publication_unsupported")
 			var rows, effects int
@@ -316,7 +298,7 @@ func TestPublicationRejectsImplicitWritesAndAuditSpoofing(t *testing.T) {
 		})
 	}
 	// PROCESS is required for visibility of hidden cross-schema FK metadata.
-	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"permissions","label":"intent"}}]}`, "permissions")
+	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"permissions","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "permissions")
 	deliveryExec(t, db, `REVOKE PROCESS ON *.* FROM 'rcc_admin'@'%'`)
 	// This fixture has no idle connections, so global privilege changes apply.
 	denied := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "permissions-execute")
@@ -334,7 +316,7 @@ func TestPublicationPublisherHistoryAndApprovalSurvivesRevocation(t *testing.T) 
 	publisher := registerAccount(t, app, "history.publisher", "history.publisher@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "history-reviewer-role")
 	grantReleaseRole(t, app, publisher, `["PUBLISHER"]`, "1", "history-publisher-role")
-	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_auto_fill_items","items":[{"operation":"ADD","content":{"code":"history","status":"active","quantity":"1"}}]}`, "history")
+	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"history","quantity":"1","status":"active"},"operation":"ADD","table_name":"mutation_auto_fill_items"}],"title":"集成测试发布单"}`, "history")
 	grantReleaseRole(t, app, reviewer, `["VIEWER"]`, "2", "history-reviewer-revoked")
 	denied := releaseActorRequest(t, app, reviewer, "POST", path+"/execute", `{"expected_version":"3"}`, "revoked-execute")
 	assertIntegrationErrorCode(t, denied, 403, "permission_denied")
@@ -346,10 +328,10 @@ func TestPublicationPublisherHistoryAndApprovalSurvivesRevocation(t *testing.T) 
 	c := accountID(t, publisher)
 	b := accountID(t, reviewer)
 	a := integrationAccountID(t, app)
-	if *row["creator"] != c || order.Publication.PublisherID != c {
+	if *row["creator"] != c || order.Executions[0].ActorID != c {
 		t.Fatal("publisher permanent identity lost")
 	}
-	executed, err := time.Parse(time.RFC3339Nano, order.Publication.ExecutedAt)
+	executed, err := time.Parse(time.RFC3339Nano, order.Executions[0].ExecutedAt)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -381,7 +363,7 @@ func TestPublicationFrozenChangesAndDescriptions(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_supplied_id_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true})
 	publishedFixtureCommand(t, publicationFixtureRequest(t, app, "ADD", "mutation_supplied_id_items", "", `{"content":{"id":"one","label":"initial"}}`))
 	reviewer := publicationFixtureReviewer(t, app)
-	path := approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_supplied_id_items","items":[{"operation":"MODIFY","id":"one","expected_record_version":"1","content":{"label":"approved"}}]}`, "frozen")
+	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"label":"approved"},"expected_record_version":"1","id":"one","operation":"MODIFY","table_name":"mutation_supplied_id_items"}],"title":"集成测试发布单"}`, "frozen")
 	// The schema changed after approval. Failure retains the approved intent and target.
 	deliveryExec(t, db, `ALTER TABLE mutation_supplied_id_items MODIFY label varchar(65) NOT NULL`)
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "frozen-execute"), 409, "release_frozen_changed")
@@ -394,12 +376,12 @@ func TestPublicationFrozenChangesAndDescriptions(t *testing.T) {
 	success := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "frozen-execute")
 	publishedFixtureCommand(t, success)
 	completePublicationFixture(t, app, path, "frozen-complete")
-	path = approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_supplied_id_items","items":[{"operation":"MODIFY","id":"one","expected_record_version":"2","content":{"label":"stale"}}]}`, "stale-execution")
+	path = approvePublication(t, app, reviewer, `{"items":[{"content":{"label":"stale"},"expected_record_version":"2","id":"one","operation":"MODIFY","table_name":"mutation_supplied_id_items"}],"title":"集成测试发布单"}`, "stale-execution")
 	deliveryExec(t, db, `UPDATE mutation_supplied_id_items SET label='newer' WHERE id='one'`)
 	deliveryExec(t, db, `UPDATE rcc_record_versions SET lock_version=lock_version+1 WHERE table_name='mutation_supplied_id_items'`)
 	stale := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "stale-execution")
 	assertIntegrationErrorCode(t, stale, 409, "record_version_conflict")
-	current := releaseRequest(t, app, "GET", path, "", "")
+	current := releaseReadAllDetails(t, app, "GET", path, "", "")
 	if !strings.Contains(current.Body.String(), `"state":"APPROVED"`) {
 		t.Fatal(current.Body)
 	}
@@ -412,14 +394,14 @@ func TestPublicationFrozenChangesAndDescriptions(t *testing.T) {
 	if cancelled.Code != 200 {
 		t.Fatal(cancelled.Body)
 	}
-	path = approvePublication(t, app, reviewer, `{"title":"集成测试发布单","table_name":"mutation_supplied_id_items","items":[{"operation":"MODIFY","id":"one","expected_record_version":"3","content":{"label":"should stay newer"}}]}`, "disabled-valid")
+	path = approvePublication(t, app, reviewer, `{"items":[{"content":{"label":"should stay newer"},"expected_record_version":"3","id":"one","operation":"MODIFY","table_name":"mutation_supplied_id_items"}],"title":"集成测试发布单"}`, "disabled-valid")
 	off := policyIntegrationRequest(t, app, "POST", "/api/v1/table-policies/mutation_supplied_id_items/disable", "")
 	if off.Code != 200 {
 		t.Fatal(off.Body)
 	}
 	denied := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "inactive-execution")
 	assertIntegrationErrorCode(t, denied, 403, "table_policy_disabled")
-	current = releaseRequest(t, app, "GET", path, "", "")
+	current = releaseReadAllDetails(t, app, "GET", path, "", "")
 	if !strings.Contains(current.Body.String(), `"state":"APPROVED"`) {
 		t.Fatal(current.Body)
 	}
@@ -442,7 +424,7 @@ func TestPublicationActionCompetitionAndTableOrder(t *testing.T) {
 	session := integrationAdminSession(t, app)
 	cookies, csrf := session.Result().Cookies(), sessionCSRF(t, session)
 	for i, actions := range [][]string{{"execute", "cancel"}, {"execute", "execute"}} {
-		path := approvePublication(t, app, reviewer, fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"race-%d","label":"intent"}}]}`, i), fmt.Sprintf("race-%d", i))
+		path := approvePublication(t, app, reviewer, fmt.Sprintf(`{"items":[{"content":{"code":"race-%d","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, i), fmt.Sprintf("race-%d", i))
 		responses := make(chan *httptest.ResponseRecorder, 2)
 		for j, action := range actions {
 			go func(j int, action string) {
@@ -465,7 +447,7 @@ func TestPublicationActionCompetitionAndTableOrder(t *testing.T) {
 		if successes != 1 {
 			t.Fatal("more than one terminal action")
 		}
-		current := releaseRequest(t, app, "GET", path, "", "")
+		current := releaseReadAllDetails(t, app, "GET", path, "", "")
 		var order domain.ReleaseOrder
 		json.Unmarshal(current.Body.Bytes(), &order)
 		query := policyIntegrationRequest(t, app, "POST", "/api/v1/tables/mutation_add_items/query", fmt.Sprintf(`{"conditions":[{"field":"code","operator":"exact","value":"race-%d"}]}`, i))
@@ -477,7 +459,7 @@ func TestPublicationActionCompetitionAndTableOrder(t *testing.T) {
 	}
 	paths := []string{}
 	for i := range 2 {
-		paths = append(paths, approvePublication(t, app, reviewer, fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"ordered-%d","label":"intent"}}]}`, i), fmt.Sprintf("ordered-%d", i)))
+		paths = append(paths, approvePublication(t, app, reviewer, fmt.Sprintf(`{"items":[{"content":{"code":"ordered-%d","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, i), fmt.Sprintf("ordered-%d", i)))
 	}
 	responses := make(chan *httptest.ResponseRecorder, 2)
 	for i, path := range paths {
@@ -564,7 +546,7 @@ func TestPublicationRejectsUnknownNonAutoIncrementIdentity(t *testing.T) {
 	}
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "default_identity", mutationPolicyFixture{AllowAdd: true})
-	unknown := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"default_identity","items":[{"operation":"ADD","content":{"label":"default identity"}}]}`, "unknown-default-id")
+	unknown := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"label":"default identity"},"operation":"ADD","table_name":"default_identity"}],"title":"集成测试发布单"}`, "unknown-default-id")
 	assertIntegrationErrorCode(t, unknown, 422, "publication_unsupported")
 	command := publishedFixtureCommand(t, publicationFixtureRequest(t, app, "ADD", "default_identity", "", `{"content":{"id":"1","label":"explicit identity"}}`))
 	if command.ID != "1" {
@@ -585,21 +567,21 @@ func TestPublicationStoredRowsAreVerifiedBeforeReadOrReplay(t *testing.T) {
 	t.Cleanup(func() { app.Close() })
 	db := deliveryDB(t, driver)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
-	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"verify-storage","label":"trusted"}}]}`, "verify-storage")
+	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"code":"verify-storage","label":"trusted"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "verify-storage")
 	publishedFixtureCommand(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "verify-storage-execute"))
 	id := strings.TrimPrefix(path, "/api/v1/release-orders/")
 	var original []byte
-	if err := db.QueryRow(`SELECT document FROM rcc_release_orders WHERE id=?`, id).Scan(&original); err != nil {
+	if err := db.QueryRow(`SELECT publication FROM rcc_release_details WHERE order_id=? AND position=0`, id).Scan(&original); err != nil {
 		t.Fatal(err)
 	}
-	for _, jsonPath := range []string{"$.publication.commands[0].final.checksum", "$.publication.commands[0].before.schema_digest", "$.publication.commands[0].id"} {
-		deliveryExec(t, db, `UPDATE rcc_release_orders SET document=JSON_SET(document,?,'damaged') WHERE id=?`, jsonPath, id)
-		for _, read := range []string{path, "/api/v1/release-orders"} {
-			assertIntegrationErrorCode(t, releaseRequest(t, app, "GET", read, "", ""), 503, "release_unavailable")
+	for _, jsonPath := range []string{"$.final.checksum", "$.before.schema_digest", "$.id"} {
+		deliveryExec(t, db, `UPDATE rcc_release_details SET publication=JSON_SET(publication,?,'damaged') WHERE order_id=? AND position=0`, jsonPath, id)
+		for _, read := range []string{path} {
+			assertIntegrationErrorCode(t, releaseReadAllDetails(t, app, "GET", read, "", ""), 503, "release_unavailable")
 		}
-		deliveryExec(t, db, `UPDATE rcc_release_orders SET document=? WHERE id=?`, original, id)
+		deliveryExec(t, db, `UPDATE rcc_release_details SET publication=? WHERE order_id=? AND position=0`, original, id)
 	}
-	deliveryExec(t, db, `UPDATE rcc_release_requests SET result=JSON_SET(result,'$.publication.commands[0].final.fields[0].value','incorrect') WHERE operation=?`, "execute:"+id)
+	deliveryExec(t, db, `UPDATE rcc_release_details SET publication=JSON_SET(publication,'$.final.fields[0].value','incorrect') WHERE order_id=?`, id)
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "verify-storage-execute"), 503, "release_unavailable")
 	var n int
 	db.QueryRow(`SELECT COUNT(*) FROM mutation_add_items WHERE code='verify-storage'`).Scan(&n)

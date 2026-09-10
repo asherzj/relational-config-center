@@ -100,7 +100,7 @@ func TestFieldPolicyAC020MigrationPreservesExistingData(t *testing.T) {
 	}
 	defer app.Close()
 	session := integrationAdminSession(t, app)
-	draft := releaseActorRequest(t, app, session, "POST", "/api/v1/release-orders", `{"title":"迁移前保留发布单","table_name":"notification_templates","items":[{"operation":"ADD","content":{"template_key":"migration-keep","channel":"EMAIL","subject":"keep","body":"keep","enabled":"1","priority":"1","metadata":"{}"}}]}`, "field-migration-draft")
+	draft := releaseActorRequest(t, app, session, "POST", "/api/v1/release-orders", `{"items":[{"content":{"body":"keep","channel":"EMAIL","enabled":"1","metadata":"{}","priority":"1","subject":"keep","template_key":"migration-keep"},"operation":"ADD","table_name":"notification_templates"}],"title":"迁移前保留发布单"}`, "field-migration-draft")
 	if draft.Code != 201 {
 		t.Fatalf("prepare old draft: %d %s", draft.Code, draft.Body.String())
 	}

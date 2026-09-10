@@ -2,107 +2,24 @@ package application
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"math"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
 )
 
 var (
-	ErrRollbackConflict        = errors.New("publication already has an active rollback")
-	ErrRollbackLocked          = errors.New("rollback intent cannot be edited or copied")
 	ErrRollbackRestoreMismatch = errors.New("original business values cannot be restored")
 )
 
-// Rollback saves a new immutable reverse intent. Only Execute owns business DML.
-// The original's lock serializes applications, cancellation and reverse success.
-func (r *ReleaseOrders) Rollback(ctx context.Context, id string, input CancelReleaseInput, key string) (ReleaseOrder, error) {
-	actor, err := requireRole(ctx, RoleEditor)
-	if err != nil {
-		return ReleaseOrder{}, err
-	}
-	if !roleRequestKey.MatchString(key) {
-		return ReleaseOrder{}, ErrReleaseInvalid
-	}
-	var result ReleaseOrder
-	err = r.store.ExecuteReleaseOrder(ctx, func(s ReleaseOrderSession) error {
-		operation := "rollback:" + id
-		previous, err := s.BeginReleaseRequest(ctx, actor, operation, key, releaseDigest(input))
-		if err != nil {
-			return err
-		}
-		original, err := s.GetReleaseOrder(ctx, id)
-		if err != nil {
-			return err
-		}
-		if previous != nil {
-			result = *previous
-			return nil
-		}
-		if strings.TrimSpace(input.Reason) == "" || len(input.Reason) > 2000 || ValidateRecordVersion(input.ExpectedVersion) != nil || input.ExpectedVersion == "0" {
-			return ErrReleaseInvalid
-		}
-		if original.Version != input.ExpectedVersion {
-			return ErrReleaseVersionConflict
-		}
-		if original.State != "COMPLETED" || original.RollbackOfID != "" {
-			return ErrReleaseState
-		}
-		if original.RollbackPending {
-			return ErrRollbackConflict
-		}
-		if _, err := s.LockAndReadTableExecutionSchema(ctx, original.TableName); err != nil {
-			return err
-		}
-		items, err := r.reverseItems(ctx, s, original)
-		if err != nil {
-			return err
-		}
-		now, err := s.DatabaseTime(ctx)
-		if err != nil {
-			return err
-		}
-		var randomID [16]byte
-		if _, err := rand.Read(randomID[:]); err != nil {
-			return ErrReleaseUnavailable
-		}
-		stamp := now.UTC().Format(time.RFC3339Nano)
-		result = ReleaseOrder{Title: rollbackTitle(original.Title), ID: hex.EncodeToString(randomID[:]), RollbackOfID: id, TableName: original.TableName, ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "ROLLBACK_REQUEST", ActorID: actor, At: stamp, Version: "1", Reason: input.Reason, RelatedOrderID: id}}}
-		original.RollbackOrderID, original.RollbackPending = result.ID, true
-		if err := appendRelatedReleaseEvent(&original, actor, stamp, "ROLLBACK_REQUEST", input.Reason, result.ID); err != nil {
-			return err
-		}
-		if err := s.SaveReleaseOrder(ctx, original, false); err != nil {
-			return err
-		}
-		if err := s.SaveReleaseOrder(ctx, result, true); err != nil {
-			return err
-		}
-		return s.CompleteReleaseRequest(ctx, actor, operation, key, result)
-	})
-	return result, err
-}
-
 func (r *ReleaseOrders) prepareOrder(ctx context.Context, s ReleaseOrderSession, order ReleaseOrder) ([]ReleaseItem, error) {
-	if order.RollbackOfID != "" {
-		original, err := s.GetReleaseOrder(ctx, order.RollbackOfID)
-		if err != nil {
-			return nil, err
-		}
-		if original.State != "COMPLETED" || !original.RollbackPending || original.RollbackOrderID != order.ID {
-			return nil, ErrRollbackConflict
-		}
-		return r.reverseItems(ctx, s, original)
-	}
-	input := DraftInput{TableName: order.TableName}
+
+	input := DraftInput{}
 	for _, item := range order.Items {
-		entry := DraftItemInput{Operation: item.Operation, ID: item.ID, ExpectedRecordVersion: item.ExpectedRecordVersion, Content: item.Content}
+		entry := DraftItemInput{DetailID: item.DetailID, TableName: item.TableName, Operation: item.Operation, ID: item.ID, ExpectedRecordVersion: item.ExpectedRecordVersion, Content: item.Content}
 		if entry.Operation == "ADD" {
 			entry.ID = nil
 		}
@@ -112,21 +29,28 @@ func (r *ReleaseOrders) prepareOrder(ctx context.Context, s ReleaseOrderSession,
 }
 
 func (r *ReleaseOrders) reverseItems(ctx context.Context, s ReleaseOrderSession, original ReleaseOrder) ([]ReleaseItem, error) {
-	if original.Publication == nil || original.VerifyPublication() != nil {
+	if len(original.Executions) == 0 || original.VerifyPublication() != nil {
 		return nil, ErrReleaseUnavailable
 	}
-	snapshot, err := r.snapshots.resolve(ctx, s, original.TableName, mutationPolicySnapshot)
-	if err != nil {
-		return nil, err
+	// Callers already acquired every table guard before establishing a snapshot.
+	snapshots := map[string]resolvedPolicySnapshot{}
+	for _, table := range releaseTableNames(original.Items) {
+		snapshot, err := r.snapshots.resolve(ctx, s, table, mutationPolicySnapshot)
+		if err != nil {
+			return nil, err
+		}
+		snapshots[table] = snapshot
 	}
-	reserved := rollbackDeferredFields(original, snapshot.mutationPolicy)
-	input := DraftInput{TableName: original.TableName}
+	input := DraftInput{}
 	// Unwind the actual DML order so later items release any unique values
 	// before earlier items restore them. Error indexes belong to this new order.
-	for index := range original.Publication.Commands {
-		command := original.Publication.Commands[len(original.Publication.Commands)-1-index]
+	for index := range original.Items {
+		command := *original.Items[len(original.Items)-1-index].Publication
+		snapshot := snapshots[command.TableName]
+		reserved := rollbackDeferredFields(original.FrozenTables[command.TableName], snapshot.mutationPolicy)
 		id := domain.JSONString(command.ID)
-		item := DraftItemInput{ID: &id, ExpectedRecordVersion: command.RecordVersion, Content: MutationContent{}}
+		source := original.Items[len(original.Items)-1-index]
+		item := DraftItemInput{DetailID: source.DetailID, TableName: source.TableName, ID: &id, ExpectedRecordVersion: command.RecordVersion, Content: MutationContent{}}
 		switch command.Operation {
 		case "ADD":
 			item.Operation = "DELETE"
@@ -160,7 +84,7 @@ func (r *ReleaseOrders) reverseItems(ctx context.Context, s ReleaseOrderSession,
 		input.Items = append(input.Items, item)
 	}
 	// These values were persisted by a verified publication, not uploaded by this
-	// small action request. Live schema/policy and complete-document budgets apply.
+	// small action request. Current schema and policy still apply.
 	return r.prepareInput(ctx, s, input, false, &original)
 }
 
@@ -179,9 +103,9 @@ func rollbackFieldValue(field domain.CanonicalField) (*domain.JSONString, error)
 	return &result, nil
 }
 
-func rollbackDeferredFields(original ReleaseOrder, current domain.MutationPolicy) map[string]bool {
+func rollbackDeferredFields(frozen domain.ReleaseExecutionSnapshot, current domain.MutationPolicy) map[string]bool {
 	fields := map[string]bool{}
-	for _, p := range []domain.ReleaseMutationSemantics{original.Frozen.Mutation, domain.NewReleaseMutationSemantics(current)} {
+	for _, p := range []domain.ReleaseMutationSemantics{frozen.Mutation, domain.NewReleaseMutationSemantics(current)} {
 		for _, name := range []*string{p.CreateOperatorField, p.CreateTimeField, p.ModifyOperatorField, p.ModifyTimeField} {
 			if name != nil {
 				fields[*name] = true
@@ -189,7 +113,7 @@ func rollbackDeferredFields(original ReleaseOrder, current domain.MutationPolicy
 		}
 	}
 	// VerifyPublication has already validated this frozen column projection.
-	columns, _ := original.Frozen.Schema.Columns()
+	columns, _ := frozen.Schema.Columns()
 	for _, column := range columns {
 		if column.GenerationExpression != nil && *column.GenerationExpression != "" {
 			fields[column.Name] = true
@@ -198,14 +122,15 @@ func rollbackDeferredFields(original ReleaseOrder, current domain.MutationPolicy
 	return fields
 }
 
-func verifyRollbackResult(original ReleaseOrder, result domain.PublicationResult, schema domain.TableSchema, policy domain.MutationPolicy) error {
-	if original.Publication == nil || len(original.Publication.Commands) != len(result.Commands) {
+func verifyRollbackResult(original ReleaseOrder, result domain.PublicationCommit, tables map[string]PublicationTable) error {
+	if len(original.Executions) == 0 || len(original.Items) != len(result.Commands) {
 		return ErrReleaseUnavailable
 	}
-	deferred := rollbackDeferredFields(original, policy)
 	for index, actual := range result.Commands {
-		source := original.Publication.Commands[len(original.Publication.Commands)-1-index]
-		if actual.ID != source.ID || actual.Final.Deleted != source.Before.Deleted {
+		source := *original.Items[len(original.Items)-1-index].Publication
+		table := tables[source.TableName]
+		deferred := rollbackDeferredFields(original.FrozenTables[source.TableName], table.Policy)
+		if actual.TableName != source.TableName || actual.ID != source.ID || actual.Final.Deleted != source.Before.Deleted {
 			return &ReleaseItemError{Index: index, Cause: ErrRollbackRestoreMismatch}
 		}
 		fields := map[string]domain.CanonicalField{}
@@ -213,7 +138,7 @@ func verifyRollbackResult(original ReleaseOrder, result domain.PublicationResult
 			fields[field.Name] = field
 		}
 		for _, expected := range source.Before.Fields {
-			column, exists := schema.Column(expected.Name)
+			column, exists := table.Schema.Column(expected.Name)
 			if deferred[expected.Name] || exists && column.Generated {
 				continue
 			}
@@ -236,38 +161,6 @@ func appendRelatedReleaseEvent(order *ReleaseOrder, actor, stamp, action, reason
 	return nil
 }
 
-// Linking and closing the original happens inside the same workflow/publication
-// transaction as the reverse order, including failure rollback and request result.
-func (r *ReleaseOrders) finishRollback(ctx context.Context, s ReleaseOrderSession, order ReleaseOrder, succeeded bool) error {
-	if order.RollbackOfID == "" {
-		return nil
-	}
-	original, err := s.GetReleaseOrder(ctx, order.RollbackOfID)
-	if err != nil {
-		return err
-	}
-	if original.State != "COMPLETED" || !original.RollbackPending || original.RollbackOrderID != order.ID {
-		return ErrRollbackConflict
-	}
-	original.RollbackPending = false
-	action := "ROLLBACK_" + order.State
-	if succeeded {
-		original.State, action = "ROLLED_BACK", "ROLLED_BACK"
-	}
-	now, err := s.DatabaseTime(ctx)
-	if err != nil {
-		return err
-	}
-	actor, err := requireRole(ctx, RoleViewer)
-	if err != nil {
-		return err
-	}
-	if err := appendRelatedReleaseEvent(&original, actor, now.UTC().Format(time.RFC3339Nano), action, "", order.ID); err != nil {
-		return err
-	}
-	return s.SaveReleaseOrder(ctx, original, false)
-}
-
 // Published MySQL TIME is a signed duration, while uploaded time inputs use the
 // existing clock-time contract. Only verified server-held history gets this parser.
 var storedTimeDuration = regexp.MustCompile(`^-?(?:[0-9]{2}|[0-7][0-9]{2}|8[0-2][0-9]|83[0-8]):[0-5][0-9]:[0-5][0-9](?:\.[0-9]{1,6})?$`)
@@ -282,12 +175,4 @@ func releaseMutationValues(schema domain.TableSchema, content MutationContent, a
 		}
 		return domain.ParseColumnValue(column, value)
 	})
-}
-
-func rollbackTitle(title string) string {
-	runes := []rune("回滚：" + title)
-	if len(runes) > 100 {
-		runes = runes[:100]
-	}
-	return string(runes)
 }

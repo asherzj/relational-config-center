@@ -19,7 +19,7 @@ var (
 
 // The order is explicit; every historical request result is removed, including
 // old workflow snapshots that do not have an order_id column.
-var releaseResetTables = []string{"rcc_release_requests", "rcc_release_targets", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_release_orders"}
+var releaseResetTables = []string{"rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_release_details", "rcc_release_executions", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_release_orders"}
 
 type ReleaseResetFingerprint struct {
 	Rows   uint64 `json:"rows"`

@@ -4,14 +4,19 @@ package domain
 // Before means no record, while a nil field value means SQL NULL. Content omits
 // unsupplied fields. Automatic fields remain deferred until actual publication.
 type ReleaseItem struct {
-	Operation             string          `json:"operation"`
-	ID                    *JSONString     `json:"id"`
-	ExpectedRecordVersion string          `json:"expected_record_version"`
-	Content               MutationContent `json:"content"`
-	Before                Row             `json:"before"`
-	RecordTable           string          `json:"record_table,omitempty"`
-	RecordKey             []byte          `json:"record_key,omitempty"`
-	Fields                []ReleaseField  `json:"fields"`
+	Publication           *PublicationCommand `json:"publication,omitempty"`
+	Rollback              *PublicationCommand `json:"rollback,omitempty"`
+	TableName             string              `json:"table_name"`
+	DetailID              string              `json:"detail_id"`
+	ConcurrencyKeys       [][]byte            `json:"concurrency_keys,omitempty"`
+	Operation             string              `json:"operation"`
+	ID                    *JSONString         `json:"id"`
+	ExpectedRecordVersion string              `json:"expected_record_version"`
+	Content               MutationContent     `json:"content"`
+	Before                Row                 `json:"before"`
+	RecordTable           string              `json:"record_table,omitempty"`
+	RecordKey             []byte              `json:"record_key,omitempty"`
+	Fields                []ReleaseField      `json:"fields"`
 }
 
 type ReleaseField struct {
@@ -27,6 +32,7 @@ type ReleaseField struct {
 
 type ReleaseEvent struct {
 	RelatedOrderID string `json:"related_order_id,omitempty"`
+	ExecutionID    string `json:"execution_id,omitempty"`
 	Action         string `json:"action"`
 	ActorID        string `json:"actor_id"`
 	At             string `json:"at"`
@@ -35,23 +41,20 @@ type ReleaseEvent struct {
 }
 
 type ReleaseOrder struct {
-	Title           string                    `json:"title"`
-	RollbackOfID    string                    `json:"rollback_of_id,omitempty"`
-	RollbackOrderID string                    `json:"rollback_order_id,omitempty"`
-	RollbackPending bool                      `json:"rollback_pending,omitempty"`
-	Publication     *PublicationResult        `json:"publication,omitempty"`
-	CopiedFromID    string                    `json:"copied_from_id,omitempty"`
-	Frozen          *ReleaseExecutionSnapshot `json:"frozen,omitempty"`
-	FrozenDigest    string                    `json:"frozen_digest,omitempty"`
-	ID              string                    `json:"id"`
-	TableName       string                    `json:"table_name"`
-	ApplicantID     string                    `json:"applicant_id"`
-	State           string                    `json:"state"`
-	Version         string                    `json:"version"`
-	Items           []ReleaseItem             `json:"items"`
-	History         []ReleaseEvent            `json:"history"`
-	CreatedAt       string                    `json:"created_at"`
-	UpdatedAt       string                    `json:"updated_at"`
+	FrozenTables map[string]ReleaseExecutionSnapshot `json:"frozen_tables,omitempty"`
+	TableNames   []string                            `json:"table_names"`
+	Title        string                              `json:"title"`
+	Executions   []ReleaseExecution                  `json:"executions"`
+	CopiedFromID string                              `json:"copied_from_id,omitempty"`
+	FrozenDigest string                              `json:"frozen_digest,omitempty"`
+	ID           string                              `json:"id"`
+	ApplicantID  string                              `json:"applicant_id"`
+	State        string                              `json:"state"`
+	Version      string                              `json:"version"`
+	Items        []ReleaseItem                       `json:"items"`
+	History      []ReleaseEvent                      `json:"history"`
+	CreatedAt    string                              `json:"created_at"`
+	UpdatedAt    string                              `json:"updated_at"`
 }
 
 type RecordBaseline struct {
@@ -74,8 +77,8 @@ type ExecutionMetadata struct {
 	Rows [][]*string `json:"rows"`
 }
 type TableExecutionSchema struct {
-	Format    string              `json:"format"`
 	TableName string              `json:"table_name"`
+	Format    string              `json:"format"`
 	Sections  []ExecutionMetadata `json:"sections"`
 }
 
@@ -133,12 +136,9 @@ func NewReleaseMutationSemantics(policy MutationPolicy) ReleaseMutationSemantics
 // ReleaseOrderSummary carries bounded catalog information; complete intent and
 // verified publication history are available through the order detail.
 type ReleaseOrderSummary struct {
+	TableNames      []string       `json:"table_names"`
 	Title           string         `json:"title"`
-	RollbackOfID    string         `json:"rollback_of_id,omitempty"`
-	RollbackOrderID string         `json:"rollback_order_id,omitempty"`
-	RollbackPending bool           `json:"rollback_pending,omitempty"`
 	ID              string         `json:"id"`
-	TableName       string         `json:"table_name"`
 	ApplicantID     string         `json:"applicant_id"`
 	State           string         `json:"state"`
 	Version         string         `json:"version"`
@@ -149,7 +149,7 @@ type ReleaseOrderSummary struct {
 }
 
 func (order ReleaseOrder) Summary() ReleaseOrderSummary {
-	result := ReleaseOrderSummary{Title: order.Title, RollbackOfID: order.RollbackOfID, RollbackOrderID: order.RollbackOrderID, RollbackPending: order.RollbackPending, ID: order.ID, TableName: order.TableName, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
+	result := ReleaseOrderSummary{TableNames: order.TableNames, Title: order.Title, ID: order.ID, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
 	for _, item := range order.Items {
 		result.OperationCounts[item.Operation]++
 	}

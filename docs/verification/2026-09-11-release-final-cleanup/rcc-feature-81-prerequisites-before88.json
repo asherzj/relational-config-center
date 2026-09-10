@@ -1,0 +1,91 @@
+{
+  "integration_parent": "e626885c0b63d283ed795c780232cbef52bb8594",
+  "verified_primary_acs": [
+    {
+      "ac": "AC-001",
+      "issue": 84,
+      "dependency_in_head": "9fd38ddda5de05d341491bf93752159e9631cc9f",
+      "evidence_paths_present": true
+    },
+    {
+      "ac": "AC-002",
+      "issue": 83,
+      "dependency_in_head": "220b54479d13ae09d4c6a8a0f96c10aa6045fea3",
+      "evidence_paths_present": true
+    },
+    {
+      "ac": "AC-003",
+      "issue": 83,
+      "dependency_in_head": "220b54479d13ae09d4c6a8a0f96c10aa6045fea3",
+      "evidence_paths_present": true
+    },
+    {
+      "ac": "AC-004",
+      "issue": 83,
+      "dependency_in_head": "220b54479d13ae09d4c6a8a0f96c10aa6045fea3",
+      "evidence_paths_present": true
+    },
+    {
+      "ac": "AC-005",
+      "issue": 83,
+      "dependency_in_head": "220b54479d13ae09d4c6a8a0f96c10aa6045fea3",
+      "evidence_paths_present": true
+    },
+    {
+      "ac": "AC-006",
+      "issue": 84,
+      "dependency_in_head": "9fd38ddda5de05d341491bf93752159e9631cc9f",
+      "evidence_paths_present": true
+    },
+    {
+      "ac": "AC-007",
+      "issue": 84,
+      "dependency_in_head": "9fd38ddda5de05d341491bf93752159e9631cc9f",
+      "evidence_paths_present": true
+    },
+    {
+      "ac": "AC-008",
+      "issue": 85,
+      "dependency_in_head": "f341a458b8313aa865f3bf0cf96fda131977bea3",
+      "evidence_paths_present": true
+    },
+    {
+      "ac": "AC-009",
+      "issue": 84,
+      "dependency_in_head": "9fd38ddda5de05d341491bf93752159e9631cc9f",
+      "evidence_paths_present": true
+    },
+    {
+      "ac": "AC-010",
+      "issue": 82,
+      "dependency_in_head": "950a319669120ac3cd16af0cad68a9a6164672f3",
+      "evidence_paths_present": true
+    },
+    {
+      "ac": "AC-011",
+      "issue": 86,
+      "dependency_in_head": "7daa8b50f002d98ca6b8d41228a9cae2bcfd2f1b",
+      "evidence_paths_present": true
+    },
+    {
+      "ac": "AC-012",
+      "issue": 86,
+      "dependency_in_head": "7daa8b50f002d98ca6b8d41228a9cae2bcfd2f1b",
+      "evidence_paths_present": true
+    },
+    {
+      "ac": "AC-013",
+      "issue": 87,
+      "dependency_in_head": "e626885c0b63d283ed795c780232cbef52bb8594",
+      "evidence_paths_present": true
+    },
+    {
+      "ac": "AC-014",
+      "issue": 84,
+      "dependency_in_head": "9fd38ddda5de05d341491bf93752159e9631cc9f",
+      "evidence_paths_present": true
+    }
+  ],
+  "remaining": "AC-015 + final combined-source full verification",
+  "scope": "existing dependency evidence presence/ancestry only; not final combined validation"
+}

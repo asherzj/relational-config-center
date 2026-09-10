@@ -360,6 +360,7 @@ describe("变更规则页面", () => {
     await user.type(screen.getByLabelText("密码"), "correct horse battery staple");
     await user.click(screen.getByRole("button", { name: "登录" }));
     await waitFor(() => expect(screen.queryByRole("heading", { name: "登录本地账号" })).not.toBeInTheDocument());
+ await waitFor(()=>expect(screen.getByLabelText("显示名称")).toBeVisible());
     expect(screen.getByLabelText("显示名称")).toHaveValue("恢复后的变更意图");
     expect(detailReads).toBeGreaterThanOrEqual(2);
     expect(writes).toBe(0);

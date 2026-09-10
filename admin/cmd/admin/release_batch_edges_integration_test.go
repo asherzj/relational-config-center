@@ -75,26 +75,29 @@ func TestReleaseBatchEdgeDraftValidation(t *testing.T) {
 		enableMutationPolicy(t, app, table, mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	}
 	for _, tc := range []struct{ name, table, original, replacement, code string }{
-		{"invalid-later-field", "mutation_delete_parents", `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"kept"}}`, `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"discarded"}},{"operation":"ADD","content":{"not_a_column":"bad"}}`, "invalid_mutation_content"},
-		{"numeric-existing", "mutation_delete_parents", `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"kept"}}`, `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"discarded"}},{"operation":"DELETE","id":"01","expected_record_version":"0","content":{}}`, "release_duplicate_target"},
-		{"numeric-missing-add", "mutation_add_items", `{"operation":"ADD","content":{"code":"kept","label":"kept"}}`, `{"operation":"ADD","expected_record_version":"0","content":{"id":"99","code":"first","label":"first"}},{"operation":"ADD","expected_record_version":"0","content":{"id":"099","code":"second","label":"second"}}`, "release_duplicate_target"},
-		{"collation-existing", "record_identity_ci", `{"operation":"MODIFY","id":"Résumé","expected_record_version":"0","content":{"label":"kept"}}`, `{"operation":"MODIFY","id":"Résumé","expected_record_version":"0","content":{"label":"discarded"}},{"operation":"DELETE","id":"RESUME","expected_record_version":"0","content":{}}`, "release_duplicate_target"},
-		{"collation-missing-add", "record_identity_ci", `{"operation":"ADD","content":{"id":"other","label":"kept"}}`, `{"operation":"ADD","expected_record_version":"0","content":{"id":"Café","label":"first"}},{"operation":"ADD","expected_record_version":"0","content":{"id":"CAFE","label":"second"}}`, "release_duplicate_target"},
-		{"pad-space-existing", "record_identity_pad", `{"operation":"MODIFY","id":"key","expected_record_version":"0","content":{"label":"kept"}}`, `{"operation":"DELETE","id":"key ","expected_record_version":"0","content":{}},{"operation":"MODIFY","id":"key","expected_record_version":"0","content":{"label":"discarded"}}`, "release_duplicate_target"},
-		{"pad-space-missing-add", "record_identity_pad", `{"operation":"ADD","content":{"id":"other","label":"kept"}}`, `{"operation":"ADD","expected_record_version":"0","content":{"id":"missing","label":"first"}},{"operation":"ADD","expected_record_version":"0","content":{"id":"missing ","label":"second"}}`, "release_duplicate_target"},
-		{"cross-table", "mutation_delete_parents", `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"kept"}}`, `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"discarded"}},{"table_name":"mutation_add_items","operation":"ADD","content":{"code":"cross","label":"cross"}}`, "release_cross_table"},
+		{"invalid-later-field", "mutation_delete_parents", `{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"kept"}}`, `{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"discarded"}},{"table_name":"mutation_delete_parents","operation":"ADD","content":{"not_a_column":"bad"}}`, "invalid_mutation_content"},
+		{"numeric-existing", "mutation_delete_parents", `{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"kept"}}`, `{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"discarded"}},{"table_name":"mutation_delete_parents","operation":"DELETE","id":"01","expected_record_version":"0","content":{}}`, "release_duplicate_target"},
+		{"numeric-missing-add", "mutation_add_items", `{"table_name":"mutation_add_items","operation":"ADD","content":{"code":"kept","label":"kept"}}`, `{"table_name":"mutation_add_items","operation":"ADD","expected_record_version":"0","content":{"id":"99","code":"first","label":"first"}},{"table_name":"mutation_add_items","operation":"ADD","expected_record_version":"0","content":{"id":"099","code":"second","label":"second"}}`, "release_duplicate_target"},
+		{"collation-existing", "record_identity_ci", `{"table_name":"record_identity_ci","operation":"MODIFY","id":"Résumé","expected_record_version":"0","content":{"label":"kept"}}`, `{"table_name":"record_identity_ci","operation":"MODIFY","id":"Résumé","expected_record_version":"0","content":{"label":"discarded"}},{"table_name":"record_identity_ci","operation":"DELETE","id":"RESUME","expected_record_version":"0","content":{}}`, "release_duplicate_target"},
+		{"collation-missing-add", "record_identity_ci", `{"table_name":"record_identity_ci","operation":"ADD","content":{"id":"other","label":"kept"}}`, `{"table_name":"record_identity_ci","operation":"ADD","expected_record_version":"0","content":{"id":"Café","label":"first"}},{"table_name":"record_identity_ci","operation":"ADD","expected_record_version":"0","content":{"id":"CAFE","label":"second"}}`, "release_duplicate_target"},
+		{"pad-space-existing", "record_identity_pad", `{"table_name":"record_identity_pad","operation":"MODIFY","id":"key","expected_record_version":"0","content":{"label":"kept"}}`, `{"table_name":"record_identity_pad","operation":"DELETE","id":"key ","expected_record_version":"0","content":{}},{"table_name":"record_identity_pad","operation":"MODIFY","id":"key","expected_record_version":"0","content":{"label":"discarded"}}`, "release_duplicate_target"},
+		{"pad-space-missing-add", "record_identity_pad", `{"table_name":"record_identity_pad","operation":"ADD","content":{"id":"other","label":"kept"}}`, `{"table_name":"record_identity_pad","operation":"ADD","expected_record_version":"0","content":{"id":"missing","label":"first"}},{"table_name":"record_identity_pad","operation":"ADD","expected_record_version":"0","content":{"id":"missing ","label":"second"}}`, "release_duplicate_target"},
+		{"invalid-cross-table-field", "mutation_delete_parents", `{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"kept"}}`, `{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"discarded"}},{"table_name":"mutation_add_items","operation":"ADD","content":{"not_a_column":"cross"}}`, "invalid_mutation_content"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			created := releaseRequest(t, app, "POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"items":[%s]}`, tc.table, tc.original), tc.name+"-create")
+			created := releaseRequest(t, app, "POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","items":[%s]}`, tc.original), tc.name+"-create")
 			order := batchEdgeOrder(t, created, 201)
 			path := "/api/v1/release-orders/" + order.ID
-			response := releaseRequest(t, app, "PUT", path, fmt.Sprintf(`{"title":"集成测试发布单","table_name":%q,"expected_version":"1","items":[%s]}`, tc.table, tc.replacement), tc.name+"-replace")
+			response := releaseRequest(t, app, "PUT", path, fmt.Sprintf(`{"title":"集成测试发布单","expected_version":"1","items":[%s]}`, tc.replacement), tc.name+"-replace")
 			assertIntegrationErrorCode(t, response, 422, tc.code)
 			batchEdgeIndex(t, response, 1)
-			current := releaseRequest(t, app, "GET", path, "", "")
+			current := releaseReadAllDetails(t, app, "GET", path, "", "")
 			if current.Code != 200 || current.Body.String() != created.Body.String() {
 				t.Fatalf("invalid replacement altered draft: %s", current.Body)
 			}
+			// Keep each invalid replacement's unchanged-content assertion, then end
+			// the independent fixture before another case uses the same target.
+			batchEdgeOrder(t, releaseRequest(t, app, "POST", path+"/cancel", `{"expected_version":"1","reason":"end validation fixture"}`, tc.name+"-cancel"), 200)
 		})
 	}
 	batchEdgeCounts(t, db, map[string]int{
@@ -110,29 +113,34 @@ func TestReleaseBatchEdgeDraftValidation(t *testing.T) {
 func TestReleaseBatchEdgeRequestLimitsPreserveDraft(t *testing.T) {
 	app, db := batchEdgeApplication(t)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
-	item := `{"operation":"ADD","content":{"code":"kept","label":"kept"}}`
-	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[`+item+`]}`, "limits-create")
+	item := `{"table_name":"mutation_add_items","operation":"ADD","content":{"code":"kept","label":"kept"}}`
+	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","items":[`+item+`]}`, "limits-create")
 	order := batchEdgeOrder(t, created, 201)
 	path := "/api/v1/release-orders/" + order.ID
 	for _, tc := range []struct {
 		name, items, code string
 		status            int
 	}{
-		{"empty", "", "release_item_limit", 422},
 		{"1001", strings.Repeat(item+",", 1000) + item, "release_item_limit", 422},
-		{"body", `{"operation":"ADD","content":{"code":"large","label":"` + strings.Repeat("x", 1<<20) + `"}}`, "request_body_too_large", 400},
+		{"large-invalid-field", `{"table_name":"mutation_add_items","operation":"ADD","content":{"not_a_column":"` + strings.Repeat("x", 1<<20) + `"}}`, "invalid_mutation_content", 422},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			body := `{"title":"集成测试发布单","table_name":"mutation_add_items","expected_version":"1","items":[` + tc.items + `]}`
+			body := `{"title":"集成测试发布单","expected_version":"1","items":[` + tc.items + `]}`
 			response := releaseRequest(t, app, "PUT", path, body, "limits-"+tc.name)
 			assertIntegrationErrorCode(t, response, tc.status, tc.code)
-			current := releaseRequest(t, app, "GET", path, "", "")
+			current := releaseReadAllDetails(t, app, "GET", path, "", "")
 			if current.Code != 200 || current.Body.String() != created.Body.String() {
 				t.Fatalf("limit failure altered draft: %s", current.Body)
 			}
 		})
 	}
-	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_orders`: 1, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'edit:%'`: 0, `SELECT COUNT(*) FROM mutation_add_items`: 0})
+	// Removing the last detail is now a valid atomic save; submission stays invalid.
+	empty := batchEdgeOrder(t, releaseRequest(t, app, "PUT", path, `{"expected_version":"1","items":[],"title":"empty"}`, "limits-empty"), 200)
+	if len(empty.Items) != 0 || empty.Version != "2" {
+		t.Fatal("empty replacement was not saved")
+	}
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"2"}`, "limits-empty-submit"), 422, "release_item_limit")
+	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_orders`: 1, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'edit:%'`: 1, `SELECT COUNT(*) FROM mutation_add_items`: 0})
 }
 
 // AC-039: each competing batch has an exclusive target plus a shared target.
@@ -141,9 +149,11 @@ func TestReleaseBatchEdgeOverlappingSubmissions(t *testing.T) {
 	app, db := batchEdgeApplication(t)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	paths := make([]string, 2)
+	bodies := make([]string, 2)
 	for i, ids := range [][]int{{10, 20}, {30, 20}} {
-		body := fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"id":"%d","code":"exclusive-%d","label":"draft"}},{"operation":"ADD","content":{"id":"%d","code":"shared","label":"draft"}}]}`, ids[0], i, ids[1])
-		order := batchEdgeOrder(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", body, fmt.Sprintf("overlap-create-%d", i)), 201)
+		body := fmt.Sprintf(`{"title":"集成测试发布单","expected_version":"1","changes":{"upserts":[{"table_name":"mutation_add_items","operation":"ADD","content":{"id":"%d","code":"exclusive-%d","label":"draft"}},{"table_name":"mutation_add_items","operation":"ADD","content":{"id":"%d","code":"shared","label":"draft"}}]}}`, ids[0], i, ids[1])
+		bodies[i] = body
+		order := batchEdgeOrder(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[],"title":"empty"}`, fmt.Sprintf("overlap-create-%d", i)), 201)
 		paths[i] = "/api/v1/release-orders/" + order.ID
 	}
 	session := integrationAdminSession(t, app)
@@ -157,7 +167,7 @@ func TestReleaseBatchEdgeOverlappingSubmissions(t *testing.T) {
 	for i := range paths {
 		go func(i int) {
 			<-start
-			results <- outcome{i, accountRequestFrom(app, "POST", paths[i]+"/submit", `{"expected_version":"1"}`, cookies, csrf, "192.0.2.1:1234", map[string]string{"Idempotency-Key": fmt.Sprintf("overlap-submit-%d", i)})}
+			results <- outcome{i, accountRequestFrom(app, "PUT", paths[i], bodies[i], cookies, csrf, "192.0.2.1:1234", map[string]string{"Idempotency-Key": fmt.Sprintf("overlap-save-%d", i)})}
 		}(i)
 	}
 	close(start)
@@ -166,7 +176,7 @@ func TestReleaseBatchEdgeOverlappingSubmissions(t *testing.T) {
 		result := <-results
 		if result.response.Code == 200 {
 			if winner != -1 {
-				t.Fatal("both overlapping batches submitted")
+				t.Fatal("both overlapping batches saved")
 			}
 			winner = result.index
 		} else {
@@ -181,18 +191,18 @@ func TestReleaseBatchEdgeOverlappingSubmissions(t *testing.T) {
 	batchEdgeCounts(t, db, map[string]int{
 		`SELECT COUNT(*) FROM rcc_release_targets`: 2,
 		fmt.Sprintf(`SELECT COUNT(*) FROM rcc_release_targets WHERE order_id='%s'`, strings.TrimPrefix(paths[loser], "/api/v1/release-orders/")): 0,
-		`SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'submit:%'`:                                                              1,
+		`SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'edit:%'`:                                                                1,
 		`SELECT COUNT(*) FROM mutation_add_items`:                                                                                                0,
 		`SELECT COUNT(*) FROM rcc_record_versions`:                                                                                               0,
 	})
-	losingOrder := batchEdgeOrder(t, releaseRequest(t, app, "GET", paths[loser], "", ""), 200)
-	if losingOrder.State != "DRAFT" || losingOrder.Version != "1" {
-		t.Fatal("failed submit changed order")
+	losingOrder := batchEdgeOrder(t, releaseReadAllDetails(t, app, "GET", paths[loser], "", ""), 200)
+	if losingOrder.State != "DRAFT" || losingOrder.Version != "1" || len(losingOrder.Items) != 0 {
+		t.Fatal("failed save changed empty draft")
 	}
 	batchEdgeOrder(t, releaseRequest(t, app, "POST", paths[winner]+"/cancel", `{"expected_version":"2","reason":"release complete target set"}`, "overlap-cancel-winner"), 200)
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_targets`: 0})
 	// Reuse the failed original request key to prove no durable failed request remains.
-	batchEdgeOrder(t, releaseRequest(t, app, "POST", paths[loser]+"/submit", `{"expected_version":"1"}`, fmt.Sprintf("overlap-submit-%d", loser)), 200)
+	batchEdgeOrder(t, releaseRequest(t, app, "PUT", paths[loser], bodies[loser], fmt.Sprintf("overlap-save-%d", loser)), 200)
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_targets`: 2})
 	batchEdgeOrder(t, releaseRequest(t, app, "POST", paths[loser]+"/cancel", `{"expected_version":"2","reason":"done"}`, "overlap-cancel-loser"), 200)
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_targets`: 0})
@@ -203,8 +213,8 @@ func TestReleaseBatchEdgeStaleMemberRollsBack(t *testing.T) {
 	app, db := batchEdgeApplication(t, `INSERT INTO mutation_add_items(id,code,label) VALUES(10,'ten','old'),(30,'thirty','old')`)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	publishedFixtureCommand(t, publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"id":"20","code":"twenty","label":"old"}}`))
-	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"must-rollback"}},{"operation":"DELETE","id":"30","expected_record_version":"0","content":{}},{"operation":"ADD","content":{"code":"must-rollback","label":"new"}},{"operation":"MODIFY","id":"20","expected_record_version":"1","content":{"label":"stale"}}]}`, "stale-batch")
-	before := releaseRequest(t, app, "GET", path, "", "")
+	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"label":"must-rollback"},"expected_record_version":"0","id":"10","operation":"MODIFY","table_name":"mutation_add_items"},{"content":{},"expected_record_version":"0","id":"30","operation":"DELETE","table_name":"mutation_add_items"},{"content":{"code":"must-rollback","label":"new"},"operation":"ADD","table_name":"mutation_add_items"},{"content":{"label":"stale"},"expected_record_version":"1","id":"20","operation":"MODIFY","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "stale-batch")
+	before := releaseReadAllDetails(t, app, "GET", path, "", "")
 	// Simulate a supported external maintenance writer that advances the known
 	// version together with its business change; only id 20 has a version row.
 	deliveryExec(t, db, `UPDATE mutation_add_items SET label='newer' WHERE id=20`)
@@ -212,10 +222,8 @@ func TestReleaseBatchEdgeStaleMemberRollsBack(t *testing.T) {
 	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "stale-batch-execute")
 	assertIntegrationErrorCode(t, response, 409, "record_version_conflict")
 	batchEdgeIndex(t, response, 3)
-	current := releaseRequest(t, app, "GET", path, "", "")
-	if current.Body.String() != before.Body.String() {
-		t.Fatalf("stale execute changed approval/history: %s", current.Body)
-	}
+	current := releaseReadAllDetails(t, app, "GET", path, "", "")
+	assertReleaseFailureOnly(t, batchEdgeOrder(t, before, 200), batchEdgeOrder(t, current, 200), "EXECUTE_FAILED")
 	for _, tc := range []struct{ id, label, version string }{{"10", "old", "0"}, {"20", "newer", "2"}, {"30", "old", "0"}} {
 		row, version := recordVersionRow(t, app, "mutation_add_items", tc.id)
 		if row["label"] == nil || *row["label"] != tc.label || version != tc.version {
@@ -223,13 +231,13 @@ func TestReleaseBatchEdgeStaleMemberRollsBack(t *testing.T) {
 		}
 	}
 	batchEdgeCounts(t, db, map[string]int{
-		`SELECT COUNT(*) FROM mutation_add_items`:                                                3,
-		`SELECT COUNT(*) FROM rcc_release_targets`:                                               3,
-		`SELECT COUNT(*) FROM rcc_publication_commands`:                                          1,
-		`SELECT COUNT(*) FROM rcc_refresh_notifications`:                                         1,
-		`SELECT COUNT(*) FROM rcc_record_versions`:                                               1,
-		`SELECT table_version FROM rcc_table_publications WHERE table_name='mutation_add_items'`: 1,
-		`SELECT COUNT(*) FROM rcc_release_requests WHERE request_key='stale-batch-execute'`:      0,
+		`SELECT COUNT(*) FROM mutation_add_items`:                                                              3,
+		`SELECT COUNT(*) FROM rcc_release_targets`:                                                             3,
+		`SELECT COUNT(*) FROM rcc_publication_commands`:                                                        1,
+		`SELECT COUNT(*) FROM rcc_refresh_notifications`:                                                       1,
+		`SELECT COUNT(*) FROM rcc_record_versions`:                                                             1,
+		`SELECT table_version FROM rcc_table_publications WHERE table_name='mutation_add_items'`:               1,
+		`SELECT COUNT(*) FROM rcc_release_requests WHERE request_key='stale-batch-execute' AND result IS NULL`: 1,
 	})
 }
 
@@ -244,25 +252,23 @@ func TestReleaseBatchEdgeMidwayConstraintRollback(t *testing.T) {
 		status                       int
 	}{{"check", "bad-check", "rollback", "mutation_unavailable", 503}, {"unique", "thirty", "valid", "duplicate_key", 409}} {
 		t.Run(tc.name, func(t *testing.T) {
-			body := fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"must-rollback"}},{"operation":"DELETE","id":"20","expected_record_version":"0","content":{}},{"operation":"ADD","content":{"code":"early-add","label":"valid"}},{"operation":"ADD","content":{"code":%q,"label":%q}}]}`, tc.code, tc.label)
+			body := fmt.Sprintf(`{"title":"集成测试发布单","items":[{"table_name":"mutation_add_items","operation":"MODIFY","id":"10","expected_record_version":"0","content":{"label":"must-rollback"}},{"table_name":"mutation_add_items","operation":"DELETE","id":"20","expected_record_version":"0","content":{}},{"table_name":"mutation_add_items","operation":"ADD","content":{"code":"early-add","label":"valid"}},{"table_name":"mutation_add_items","operation":"ADD","content":{"code":%q,"label":%q}}]}`, tc.code, tc.label)
 			path := approvePublication(t, app, reviewer, body, "constraint-"+tc.name)
-			before := releaseRequest(t, app, "GET", path, "", "")
+			before := releaseReadAllDetails(t, app, "GET", path, "", "")
 			response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "constraint-execute-"+tc.name)
 			assertIntegrationErrorCode(t, response, tc.status, tc.errorCode)
 			batchEdgeIndex(t, response, 3)
-			current := releaseRequest(t, app, "GET", path, "", "")
-			if current.Body.String() != before.Body.String() {
-				t.Fatalf("failed execute changed approval/history: %s", current.Body)
-			}
+			current := releaseReadAllDetails(t, app, "GET", path, "", "")
+			assertReleaseFailureOnly(t, batchEdgeOrder(t, before, 200), batchEdgeOrder(t, current, 200), "EXECUTE_FAILED")
 			batchEdgeCounts(t, db, map[string]int{
-				`SELECT COUNT(*) FROM mutation_add_items`:                                    3,
-				`SELECT COUNT(*) FROM mutation_add_items WHERE label='old'`:                  3,
-				`SELECT COUNT(*) FROM rcc_release_targets`:                                   2,
-				`SELECT COUNT(*) FROM rcc_record_versions`:                                   0,
-				`SELECT COUNT(*) FROM rcc_publication_commands`:                              0,
-				`SELECT COUNT(*) FROM rcc_table_publications`:                                0,
-				`SELECT COUNT(*) FROM rcc_refresh_notifications`:                             0,
-				`SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%'`: 0,
+				`SELECT COUNT(*) FROM mutation_add_items`:                                                           3,
+				`SELECT COUNT(*) FROM mutation_add_items WHERE label='old'`:                                         3,
+				`SELECT COUNT(*) FROM rcc_release_targets`:                                                          2,
+				`SELECT COUNT(*) FROM rcc_record_versions`:                                                          0,
+				`SELECT COUNT(*) FROM rcc_publication_commands`:                                                     0,
+				`SELECT COUNT(*) FROM rcc_table_publications`:                                                       0,
+				`SELECT COUNT(*) FROM rcc_refresh_notifications`:                                                    0,
+				`SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%' AND result IS NOT NULL`: 0,
 			})
 			batchEdgeOrder(t, releaseRequest(t, app, "POST", path+"/cancel", `{"expected_version":"3","reason":"constraint failure reviewed"}`, "constraint-cancel-"+tc.name), 200)
 		})
@@ -276,7 +282,7 @@ func TestReleaseBatchEdgeAutoIncrementAndIndependentRequests(t *testing.T) {
 		`CREATE TABLE batch_auto_items(id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,label VARCHAR(64) NOT NULL) ENGINE=InnoDB`,
 		`SET GLOBAL auto_increment_increment=3`, `SET GLOBAL auto_increment_offset=2`)
 	enableMutationPolicy(t, app, "batch_auto_items", mutationPolicyFixture{AllowAdd: true})
-	body := `{"title":"集成测试发布单","table_name":"batch_auto_items","items":[{"operation":"ADD","content":{"label":"first"}},{"operation":"ADD","content":{"label":"second"}},{"operation":"ADD","content":{"label":"third"}}]}`
+	body := `{"items":[{"content":{"label":"first"},"operation":"ADD","table_name":"batch_auto_items"},{"content":{"label":"second"},"operation":"ADD","table_name":"batch_auto_items"},{"content":{"label":"third"},"operation":"ADD","table_name":"batch_auto_items"}],"title":"集成测试发布单"}`
 	reviewer := publicationFixtureReviewer(t, app)
 	paths := []string{approvePublication(t, app, reviewer, body, "auto-one"), approvePublication(t, app, reviewer, body, "auto-two")}
 	if paths[0] == paths[1] {
@@ -288,10 +294,10 @@ func TestReleaseBatchEdgeAutoIncrementAndIndependentRequests(t *testing.T) {
 		key := fmt.Sprintf("auto-execute-%d", i)
 		response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, key)
 		order := batchEdgeOrder(t, response, 200)
-		if order.State != "SUCCEEDED" || order.Publication == nil || len(order.Publication.Commands) != 3 {
+		if order.State != "SUCCEEDED" || len(order.Executions) < 1 || len(executionCommands(order, "PUBLICATION")) != 3 {
 			t.Fatal(response.Body)
 		}
-		for j, command := range order.Publication.Commands {
+		for j, command := range executionCommands(order, "PUBLICATION") {
 			id, err := strconv.ParseUint(command.ID, 10, 64)
 			if err != nil || id%3 != 2 || (previous != 0 && id-previous != 3) || seen[command.ID] || command.RecordVersion != "1" {
 				t.Fatalf("wrong actual ID/version: %+v", command)
@@ -332,7 +338,7 @@ func TestReleaseBatchEdgeIndependentUniqueConflict(t *testing.T) {
 	reviewer := publicationFixtureReviewer(t, app)
 	paths := []string{}
 	for i := range 2 {
-		body := fmt.Sprintf(`{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"exclusive-%d","label":"valid"}},{"operation":"ADD","content":{"code":"shared-business-key","label":"valid"}}]}`, i)
+		body := fmt.Sprintf(`{"items":[{"content":{"code":"exclusive-%d","label":"valid"},"operation":"ADD","table_name":"mutation_add_items"},{"content":{"code":"shared-business-key","label":"valid"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, i)
 		paths = append(paths, approvePublication(t, app, reviewer, body, fmt.Sprintf("independent-%d", i)))
 	}
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_orders WHERE state='APPROVED'`: 2, `SELECT COUNT(*) FROM rcc_release_targets`: 0})
@@ -360,7 +366,7 @@ func TestReleaseBatchEdgeIndependentUniqueConflict(t *testing.T) {
 			}
 			winner = result.index
 			order := batchEdgeOrder(t, result.response, 200)
-			if order.State != "SUCCEEDED" || order.Publication == nil || len(order.Publication.Commands) != 2 {
+			if order.State != "SUCCEEDED" || len(order.Executions) < 1 || len(executionCommands(order, "PUBLICATION")) != 2 {
 				t.Fatal(result.response.Body)
 			}
 		} else {
@@ -372,20 +378,22 @@ func TestReleaseBatchEdgeIndependentUniqueConflict(t *testing.T) {
 	if winner == -1 || loser == -1 {
 		t.Fatalf("winner %d loser %d", winner, loser)
 	}
-	order := batchEdgeOrder(t, releaseRequest(t, app, "GET", paths[loser], "", ""), 200)
-	if order.State != "APPROVED" || order.Version != "3" || order.Publication != nil {
+	order := batchEdgeOrder(t, releaseReadAllDetails(t, app, "GET", paths[loser], "", ""), 200)
+	if order.State != "APPROVED" || order.Version != "3" || len(order.Executions) != 0 || len(order.History) != 4 || order.History[3].Action != "EXECUTE_FAILED" || order.History[3].Version != "3" {
 		t.Fatal("unique loser lost approval")
 	}
 	batchEdgeCounts(t, db, map[string]int{
-		`SELECT COUNT(*) FROM mutation_add_items`:                                                2,
-		fmt.Sprintf(`SELECT COUNT(*) FROM mutation_add_items WHERE code='exclusive-%d'`, winner): 1,
-		fmt.Sprintf(`SELECT COUNT(*) FROM mutation_add_items WHERE code='exclusive-%d'`, loser):  0,
-		`SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=1`:                          2,
-		`SELECT COUNT(*) FROM rcc_publication_commands`:                                          2,
-		`SELECT COUNT(*) FROM rcc_refresh_notifications`:                                         1,
-		`SELECT COUNT(*) FROM rcc_release_targets`:                                               2,
-		`SELECT table_version FROM rcc_table_publications WHERE table_name='mutation_add_items'`: 1,
-		`SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%'`:             1,
+		`SELECT COUNT(*) FROM mutation_add_items`:                                                           2,
+		fmt.Sprintf(`SELECT COUNT(*) FROM mutation_add_items WHERE code='exclusive-%d'`, winner):            1,
+		fmt.Sprintf(`SELECT COUNT(*) FROM mutation_add_items WHERE code='exclusive-%d'`, loser):             0,
+		`SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=1`:                                     2,
+		`SELECT COUNT(*) FROM rcc_publication_commands`:                                                     2,
+		`SELECT COUNT(*) FROM rcc_refresh_notifications`:                                                    1,
+		`SELECT COUNT(*) FROM rcc_release_targets`:                                                          2,
+		`SELECT table_version FROM rcc_table_publications WHERE table_name='mutation_add_items'`:            1,
+		`SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%'`:                        2,
+		`SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%' AND result IS NOT NULL`: 1,
+		`SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%' AND result IS NULL`:     1,
 	})
 }
 
@@ -394,10 +402,10 @@ func TestReleaseBatchEdgeIndependentUniqueConflict(t *testing.T) {
 func TestReleaseBatchExistingEnumPrimaryKeys(t *testing.T) {
 	app, db := batchEdgeApplication(t, `CREATE TABLE batch_enum_keys(id ENUM('alpha','beta','gamma') COLLATE utf8mb4_0900_ai_ci PRIMARY KEY,label VARCHAR(64) NOT NULL) ENGINE=InnoDB`, `INSERT INTO batch_enum_keys VALUES('alpha','original'),('beta','delete')`)
 	enableMutationPolicy(t, app, "batch_enum_keys", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
-	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"集成测试发布单","table_name":"batch_enum_keys","items":[{"operation":"MODIFY","id":"ALPHA","expected_record_version":"0","content":{"label":"changed"}},{"operation":"DELETE","id":"beta","expected_record_version":"0","content":{}}]}`, "enum-batch")
+	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"label":"changed"},"expected_record_version":"0","id":"ALPHA","operation":"MODIFY","table_name":"batch_enum_keys"},{"content":{},"expected_record_version":"0","id":"beta","operation":"DELETE","table_name":"batch_enum_keys"}],"title":"集成测试发布单"}`, "enum-batch")
 	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "enum-execute")
 	order := batchEdgeOrder(t, response, 200)
-	if order.Publication == nil || len(order.Publication.Commands) != 2 || order.Publication.Commands[0].ID != "alpha" || order.Publication.Commands[1].ID != "beta" || !order.Publication.Commands[1].Final.Deleted {
+	if len(order.Executions) < 1 || len(executionCommands(order, "PUBLICATION")) != 2 || executionCommands(order, "PUBLICATION")[0].ID != "alpha" || executionCommands(order, "PUBLICATION")[1].ID != "beta" || !executionCommands(order, "PUBLICATION")[1].Final.Deleted {
 		t.Fatalf("wrong ENUM results: %s", response.Body)
 	}
 	replay := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "enum-execute")
@@ -405,16 +413,16 @@ func TestReleaseBatchExistingEnumPrimaryKeys(t *testing.T) {
 		t.Fatal("ENUM replay changed")
 	}
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM batch_enum_keys WHERE id='alpha' AND label='changed'`: 1, `SELECT COUNT(*) FROM batch_enum_keys`: 1, `SELECT COUNT(*) FROM rcc_record_versions WHERE lock_version=1`: 2, `SELECT COUNT(*) FROM rcc_publication_commands`: 2, `SELECT COUNT(*) FROM rcc_release_targets`: 2})
-	missing := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"集成测试发布单","table_name":"batch_enum_keys","items":[{"operation":"ADD","content":{"id":"gamma","label":"unsupported"}}]}`, "enum-missing")
+	missing := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"id":"gamma","label":"unsupported"},"operation":"ADD","table_name":"batch_enum_keys"}],"title":"集成测试发布单"}`, "enum-missing")
 	assertIntegrationErrorCode(t, missing, 422, "release_snapshot_unsupported")
 }
 
 func TestReleaseBatchCopyInvalidItemIsLocated(t *testing.T) {
 	app, db := batchEdgeApplication(t, `INSERT INTO mutation_delete_parents(id,code) VALUES(2,'copy-second')`)
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
-	first := `{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"first"}}`
-	second := `{"operation":"MODIFY","id":"2","expected_record_version":"0","content":{"code":"second"}}`
-	body := `{"title":"集成测试发布单","table_name":"mutation_delete_parents","items":[` + first + `,` + second + `]}`
+	first := `{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"first"}}`
+	second := `{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"2","expected_record_version":"0","content":{"code":"second"}}`
+	body := `{"title":"集成测试发布单","items":[` + first + `,` + second + `]}`
 	created := batchEdgeOrder(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "copy-batch-create"), 201)
 	path := "/api/v1/release-orders/" + created.ID
 	cancelled := releaseRequest(t, app, "POST", path+"/cancel", `{"expected_version":"1","reason":"rework"}`, "copy-batch-cancel")
@@ -425,7 +433,7 @@ func TestReleaseBatchCopyInvalidItemIsLocated(t *testing.T) {
 		batchEdgeIndex(t, response, 1)
 	}
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_orders`: 1, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'copy:%'`: 0})
-	if current := releaseRequest(t, app, "GET", path, "", ""); current.Body.String() != cancelled.Body.String() {
+	if current := releaseReadAllDetails(t, app, "GET", path, "", ""); current.Body.String() != cancelled.Body.String() {
 		t.Fatal("invalid copy changed source")
 	}
 	copied := batchEdgeOrder(t, releaseRequest(t, app, "POST", path+"/copy", `{"expected_version":"2","confirmed":true,"items":[`+first+`,`+second+`]}`, "copy-batch-valid"), 201)

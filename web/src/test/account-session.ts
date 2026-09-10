@@ -1,6 +1,6 @@
 import { beforeEach, vi } from "vitest";
 beforeEach(() => {
-  vi.stubGlobal("navigator", Object.assign(Object.create(navigator), { locks: { request: (_name: string, callback: () => Promise<unknown>) => callback() } }));
+  vi.stubGlobal("navigator", Object.defineProperty(Object.create(navigator), "locks", { configurable: true, value: { request: (_name: string, callback: () => Promise<unknown>) => callback() } }));
 });
 export const testIdentity = {
   account: { id: "ab09850e-ef9a-4317-a000-d67465416b5b", username: "test.user", display_name: "测试账号", email: "test@example.com", email_verified: false, status: "enabled", roles: ["VIEWER"] },

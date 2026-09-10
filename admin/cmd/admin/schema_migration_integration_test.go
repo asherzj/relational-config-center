@@ -20,7 +20,7 @@ import (
 	mysqldriver "github.com/go-sql-driver/mysql"
 )
 
-const currentTestSchemaVersion int64 = 3
+const currentTestSchemaVersion int64 = 5
 
 // A second isolated release uses the unchanged public command and adds an
 // embedded migration. No production test hook or arbitrary-SQL CLI is needed.
@@ -321,7 +321,7 @@ func TestSchemaMigrationUpgradesToNextRelease(t *testing.T) {
 	if _, err := db.Exec(`INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,created_at) VALUES('fixture-account','fixture','fixture@example.test','Retained account','opaque-password-hash','2026-01-01')`); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := db.Exec(`INSERT INTO rcc_release_orders(id,table_name,applicant_id,state,version,document) VALUES('fixture-order','business_marker','fixture-account','PUBLISHED',7,'{"retained":true}')`); err != nil {
+	if _, err := db.Exec(`INSERT INTO rcc_release_orders(id,applicant_id,state,version,document) VALUES('fixture-order','fixture-account','PUBLISHED',7,'{"retained":true}')`); err != nil {
 		t.Fatal(err)
 	}
 	requireSchemaMigrationState(t, next, driver, "pending", "status")
@@ -392,7 +392,7 @@ func TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery(t *testing.T) {
 	for _, statement := range []string{
 		`INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,created_at) VALUES('fixture-account','fixture','fixture@example.test','Retained account','opaque-password-hash','2026-01-01')`,
 		`INSERT INTO rcc_query_policies(code,name,type_code,default_order_field,default_order_direction,default_page_size,max_page_size,creator,modifier,created_at,updated_at) VALUES('retained_v1','Retained policy','business_marker','id','ASC',20,100,'fixture-account','fixture-account','2026-01-01','2026-01-02')`,
-		`INSERT INTO rcc_release_orders(id,table_name,applicant_id,state,version,document) VALUES('fixture-order','business_marker','fixture-account','PUBLISHED',7,'{"retained":true}')`,
+		`INSERT INTO rcc_release_orders(id,applicant_id,state,version,document) VALUES('fixture-order','fixture-account','PUBLISHED',7,'{"retained":true}')`,
 		`CREATE TABLE business_marker(id int PRIMARY KEY,note varchar(20) NOT NULL)`,
 		`INSERT INTO business_marker VALUES(1,'retained')`,
 	} {

@@ -17,7 +17,10 @@ export class ApiError extends Error {
     options?: ErrorOptions,
     public readonly retryAfter?: number,
     public readonly itemIndex?: number,
+    public readonly targetConflict?: {tableName:string;orderID:string;applicantID:string},
     public readonly fieldName?: string,
+    public readonly executionOutcome?: "not_committed",
+    public readonly failureHistory?: "saved"|"unavailable",
   ) {
     super(message, options);
     this.name = "ApiError";
@@ -109,7 +112,10 @@ export async function request<T>(path: string, options: RequestOptions<T> = {}):
         undefined,
         response.headers.has("Retry-After") ? Number(response.headers.get("Retry-After")) : undefined,
         parsedError.data.error.item_index,
+        parsedError.data.error.order_id ? {tableName:parsedError.data.error.table_name??"",orderID:parsedError.data.error.order_id,applicantID:parsedError.data.error.applicant_id??""}:undefined,
         parsedError.data.error.field_name,
+        parsedError.data.error.execution_outcome,
+        parsedError.data.error.failure_history,
       );
     }
     throw new ApiError(
@@ -158,8 +164,9 @@ const definiteWriteRejections = new Set([
   // responses conservative because they do not prove the original outcome.
   "release_auto_id_ambiguous", "publication_unsupported", "publication_metadata_permission",
   "release_snapshot_unsupported", "release_metadata_permission", "release_cross_table",
-  "release_item_limit", "release_result_limit", "release_field_limit", "release_duplicate_target",
-  "release_invalid", "rollback_locked", "rollback_restore_mismatch",
+  "release_item_limit", "release_duplicate_target",
+  "release_invalid", "rollback_restore_mismatch",
+  "concurrency_key_invalid", "concurrency_key_in_use", "concurrency_key_value_required",
 ]);
 
 export function isUncertainWriteError(error: unknown): boolean {

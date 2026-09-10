@@ -42,10 +42,10 @@ bin/admin/schema-migrate recover --timeout=5m --lock-timeout=10s
 
 ## 校验并接管现有库
 
-当前接管基线对应主分支 `4aeb54e` 的完整控制结构，包含历史 013 的 Policy 审计列和历史 014 的 `rcc_table_field_policies`。已发布 Goose `00001`、`00002` 的 SQL 和清单保持不变；`00003_table_field_policies.sql` 追加字段策略表，与历史 014 的真实 MySQL 结构一致。新库顺序执行三个版本；已有 Goose 版本 1/2 的库通过 `up` 升级，保留审计值、字段配置、账号和发布历史。未接管库必须先达到包括 014 在内的完整结构，再显式 `baseline` 登记 1～3。
+当前基线包括历史 013 审计列、014 字段规则及 015～017 的原单明细、执行、管控键、表引用和主单字段收敛。已发布 Goose 00001～00003 的 SQL 和清单保持不变；追加 00004/00005 分阶段完成整张表的可恢复变更。新库顺序执行五个版本；已有 Goose 版本通过 `up` 升级。未接管库必须先达到当前完整结构，再显式 `baseline` 登记 1～5。旧发布单业务 JSON 保留原样且不兼容读取；账号、会话、规则、版本及技术通知保留，详见[发布升级](admin-release-upgrade.md)。
 
 1. 按维护窗口停止 Admin 和外部写入者并备份，用 `status` 确认状态。未接管库的 `up` 不会创建迁移账本或静默登记。
-2. 更旧库先按 [历史升级说明](../deploy/mysql/migrations/README.md) 执行合法的历史步骤：001～005、013、当前 `policy-migrate` 收缩，以及适用的 007～012 和 014。已执行过的脚本不应盲目重放；已有账号授权、维护基线和发布权限继续由原维护流程负责。
+2. 更旧库先按 [历史升级说明](../deploy/mysql/migrations/README.md) 执行合法的历史步骤：001～005、013、当前 `policy-migrate` 收缩，以及适用的 007～012 和 014～017。已执行过的脚本不应盲目重放；已有账号授权、维护基线和发布权限继续由原维护流程负责。
 3. 对完整当前存量库显式运行 `baseline`。命令在 T1 的同一把锁内比较全部已知控制表的列、顺序、类型、NULL、默认值、索引、外键、CHECK 及其执行状态、引擎、字符集和排序规则，并检查认证控制锁的唯一 `id=1` 行，以及账号角色范围和正角色版本等必要控制数据。缺失或不兼容时非零退出、指出控制表并给历史升级指引；在通过校验前不创建账本、不改业务或控制数据。
 4. 只有完整校验通过，才建立 `BASELINING` 尝试并通过 Goose Store 在一个 InnoDB 事务中登记全部基线版本；随后核查并确认 `BASELINED`。不会执行基线 SQL、历史回填或重置账号/会话、Policy、记录版本、发布历史、管理员权限与游标。已有业务表保持不变。
 5. 再运行 `status`。重复 `baseline` 返回已确认的实际状态，不新增记录；已接管的旧版返回 `pending`，后续版本需显式 `up`。
@@ -97,13 +97,13 @@ Admin 的 `/health/ready` 成功为 200，异常为既有 `503 {"status":"not_re
 
 迁移及目标结构清单位于 `admin/internal/infrastructure/mysql/migrations/`，随维护二进制嵌入。第一版基线冻结自 `94a88058f5fbe6a54d3ad13d7e04c29a78b33b5d`，没有把历史一次性脚本改成 Goose 全量历史。
 
-- 新增唯一、递增的编号，例如 `00004_description.sql`，使用 Goose `Up` 和 `NO TRANSACTION` 注解，显式指定 InnoDB、字符集及排序规则。不要新增 Down。
+- 新增唯一、递增的编号，例如 `00006_description.sql`，使用 Goose `Up` 和 `NO TRANSACTION` 注解，显式指定 InnoDB、字符集及排序规则。不要新增 Down。
 - 新版本必须能从已完成版本升级，也能从空库顺序执行。SQL 必须可在声明的恢复条件下安全重试。`IF NOT EXISTS` 不能替代实际结构检查；DML 不能在重放时覆盖已有业务状态。
-- 同时提供 `00004_schema.json`，包含此版本全部 RCC 控制表的目标 `SHOW CREATE TABLE` 定义。使用真实 MySQL 8.4、UTC、utf8mb4 连接生成并审阅，与 SQL 独立检查。命令行 mysql 导出必须带 `--default-character-set=utf8mb4`，否则 CHECK 字面量的字符集会改变比较结果。
+- 同时提供 `00006_schema.json`，包含此版本全部 RCC 控制表的目标 `SHOW CREATE TABLE` 定义。使用真实 MySQL 8.4、UTC、utf8mb4 连接生成并审阅，与 SQL 独立检查。命令行 mysql 导出必须带 `--default-character-set=utf8mb4`，否则 CHECK 字面量的字符集会改变比较结果。
 - 清单比较保留列类型、默认值、列注释、索引、约束、引擎、字符集/排序规则，仅忽略表级自增计数和描述性表注释。必要的认证控制锁必须保留唯一 `id=1` 行；账号角色须处于既有有效范围且角色版本为正。后续改变必要控制元数据时，同时扩展验证及真实恢复测试。
 - 已发布 SQL 和清单不可改写；SQL 与清单的前缀摘要绑定持久尝试。前向修复使用新版本，失败中的原版本则先恢复原内容并核查实际结构。
 - 覆盖新安装、旧版升级结构等价、部分成功、进程中断、确认失败及数据保留。T1 的两份测试构建在临时目录追加下一版迁移，不向生产定义添加测试字段或运行时注入入口。
 
-历史 `deploy/mysql/migrations/001`～`014` 及特殊 Policy 维护命令继续承担旧库升级职责。旧当前初始化入口已删除。`admin/cmd/admin/testdata/pre-goose-8b5cd859.sql` 是冻结的历史接管结构，配套数据来自 T2 的真实账号/审批/发布流程；仅用于旧库测试，不随新迁移演进。当前独立结构对照在该冻结快照上显式应用历史 014，再与 Goose 新装结果比较。
+历史 `deploy/mysql/migrations/001`～`017` 及特殊 Policy 维护命令继续承担旧库升级职责。旧当前初始化入口已删除。`admin/cmd/admin/testdata/pre-goose-8b5cd859.sql` 是冻结的历史接管结构，配套数据来自 T2 的真实账号/审批/发布流程；仅用于旧库测试，不随新迁移演进。当前独立结构对照在该冻结快照上显式应用历史 014～017，再与 Goose 新装结果比较；冻结结构和配套业务数据本身不改写。
 
 参见 [ADR-0024](adr/0024-adopt-goose-at-a-verified-control-schema-baseline.md) 和 [完整规格](specs/goose-migrations/spec.md)。

@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	mysqldriver "github.com/go-sql-driver/mysql"
 	"sort"
 	"time"
 
@@ -70,10 +69,27 @@ func readReleaseOrder(ctx context.Context, db *gorm.DB, id string, lock bool) (d
 	if err != nil {
 		return domain.ReleaseOrder{}, application.ErrReleaseUnavailable
 	}
-	return decodeStoredReleaseOrder(encoded)
-}
-func (a *Adapter) GetReleaseOrder(ctx context.Context, id string) (domain.ReleaseOrder, error) {
-	return readReleaseOrder(ctx, a.gorm, id, false)
+	var order domain.ReleaseOrder
+	if json.Unmarshal(encoded, &order) != nil {
+		return order, application.ErrReleaseUnavailable
+	}
+	// A legacy aggregate document is deliberately unsupported, not migrated.
+	var shape map[string]json.RawMessage
+	if json.Unmarshal(encoded, &shape) != nil || shape["item_count"] == nil || shape["items"] != nil || shape["publication"] != nil || shape["rollback"] != nil {
+		return domain.ReleaseOrder{}, application.ErrReleaseUnavailable
+	}
+	var summary domain.ReleaseOrderSummary
+	if json.Unmarshal(encoded, &summary) != nil || summary.ItemCount < 0 || summary.ItemCount > 1000 {
+		return domain.ReleaseOrder{}, application.ErrReleaseUnavailable
+	}
+	order.Items = make([]domain.ReleaseItem, summary.ItemCount)
+	if err := readReleaseDetails(ctx, db, &order, true, lock); err != nil {
+		return domain.ReleaseOrder{}, err
+	}
+	if len(order.Items) != summary.ItemCount {
+		return domain.ReleaseOrder{}, application.ErrReleaseUnavailable
+	}
+	return order, nil
 }
 func (s *releaseOrderSession) GetReleaseOrder(ctx context.Context, id string) (domain.ReleaseOrder, error) {
 	if err := s.available(); err != nil {
@@ -85,22 +101,25 @@ func (s *releaseOrderSession) SaveReleaseOrder(ctx context.Context, order domain
 	if err := s.available(); err != nil {
 		return err
 	}
-	encoded, err := json.Marshal(order)
+	encoded, err := encodeReleaseHeader(order)
 	if err != nil {
 		return application.ErrReleaseUnavailable
 	}
-	if len(encoded) > releaseDocumentBudget(order) {
-		return application.ErrReleaseResultLimit
+	previousCount := 0
+	if !create {
+		if err = s.database.WithContext(ctx).Raw(`SELECT JSON_EXTRACT(document,'$.item_count') FROM rcc_release_orders WHERE id=? FOR UPDATE`, order.ID).Row().Scan(&previousCount); err != nil || previousCount < 0 || previousCount > 1000 {
+			return application.ErrReleaseUnavailable
+		}
 	}
 	if create {
-		err = s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_orders(id,table_name,applicant_id,state,version,document) VALUES(?,?,?,?,?,?)`, order.ID, order.TableName, order.ApplicantID, order.State, order.Version, encoded).Error
+		err = s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_orders(id,applicant_id,state,version,document) VALUES(?,?,?,?,?)`, order.ID, order.ApplicantID, order.State, order.Version, encoded).Error
 	} else {
 		err = s.database.WithContext(ctx).Exec(`UPDATE rcc_release_orders SET state=?,version=?,document=? WHERE id=?`, order.State, order.Version, encoded, order.ID).Error
 	}
 	if err != nil {
 		return application.ErrReleaseUnavailable
 	}
-	return nil
+	return s.saveReleaseDetails(ctx, order, previousCount)
 }
 func (s *releaseOrderSession) BeginReleaseRequest(ctx context.Context, actor, operation, key string, digest []byte) (*domain.ReleaseOrder, error) {
 	if err := s.available(); err != nil {
@@ -119,9 +138,26 @@ func (s *releaseOrderSession) BeginReleaseRequest(ctx context.Context, actor, op
 	if result == nil {
 		return nil, nil
 	}
-	order, err := decodeStoredReleaseOrder(result)
-	if err != nil {
-		return nil, err
+	var order domain.ReleaseOrder
+	if json.Unmarshal(result, &order) != nil {
+		return nil, application.ErrReleaseUnavailable
+	}
+	for _, item := range order.Items {
+		if item.Publication != nil || item.Rollback != nil {
+			return nil, application.ErrReleaseUnavailable
+		}
+	}
+	if len(order.Executions) > 0 {
+		// Match every ordinary write's request → order → details lock order.
+		var locked string
+		if err := s.database.WithContext(ctx).Raw(`SELECT id FROM rcc_release_orders WHERE id=? FOR UPDATE`, order.ID).Row().Scan(&locked); err != nil {
+			return nil, application.ErrReleaseUnavailable
+		}
+		if err := readReleaseDetails(ctx, s.database, &order, false, true); err != nil {
+			return nil, err
+		}
+	} else if order.VerifyPublication() != nil {
+		return nil, application.ErrReleaseUnavailable
 	}
 	return &order, nil
 }
@@ -129,12 +165,9 @@ func (s *releaseOrderSession) CompleteReleaseRequest(ctx context.Context, actor,
 	if err := s.available(); err != nil {
 		return err
 	}
-	encoded, err := json.Marshal(order)
+	encoded, err := encodeReleaseRequestResult(order)
 	if err != nil {
 		return application.ErrReleaseUnavailable
-	}
-	if len(encoded) > releaseDocumentBudget(order) {
-		return application.ErrReleaseResultLimit
 	}
 	if err = s.database.WithContext(ctx).Exec(`UPDATE rcc_release_requests SET result=? WHERE actor_id=? AND operation=? AND request_key=?`, encoded, actor, operation, key).Error; err != nil {
 		return application.ErrReleaseUnavailable
@@ -143,10 +176,13 @@ func (s *releaseOrderSession) CompleteReleaseRequest(ctx context.Context, actor,
 }
 func (a *Adapter) ListReleaseOrders(ctx context.Context, filter domain.ReleaseFilter) ([]domain.ReleaseOrderSummary, error) {
 	query := a.gorm.WithContext(ctx).Table("rcc_release_orders").Select("document").Order("id ASC").Limit(filter.Limit)
-	for field, value := range map[string]string{"table_name": filter.TableName, "applicant_id": filter.ApplicantID, "state": filter.State, "id": filter.ID} {
+	for field, value := range map[string]string{"applicant_id": filter.ApplicantID, "state": filter.State, "id": filter.ID} {
 		if value != "" {
 			query = query.Where(field+" = ?", value)
 		}
+	}
+	if filter.TableName != "" {
+		query = query.Where("EXISTS (SELECT 1 FROM rcc_release_details d WHERE d.order_id=rcc_release_orders.id AND d.table_name=?)", filter.TableName)
 	}
 	if filter.After != "" {
 		query = query.Where("id > ?", filter.After)
@@ -162,11 +198,11 @@ func (a *Adapter) ListReleaseOrders(ctx context.Context, filter domain.ReleaseFi
 		if rows.Scan(&encoded) != nil {
 			return nil, application.ErrReleaseUnavailable
 		}
-		order, err := decodeStoredReleaseOrder(encoded)
-		if err != nil {
-			return nil, err
+		var summary domain.ReleaseOrderSummary
+		if json.Unmarshal(encoded, &summary) != nil {
+			return nil, application.ErrReleaseUnavailable
 		}
-		result = append(result, order.Summary())
+		result = append(result, summary)
 	}
 	if rows.Err() != nil {
 		return nil, application.ErrReleaseUnavailable
@@ -174,7 +210,7 @@ func (a *Adapter) ListReleaseOrders(ctx context.Context, filter domain.ReleaseFi
 	return result, nil
 }
 
-// Sorted target locks make a whole submitted set atomic and avoid opposite lock
+// Sorted target locks make a whole saved set atomic and avoid opposite lock
 // order for overlapping sets. Unknown auto-increment ids contribute no target.
 func (s *releaseOrderSession) ReserveReleaseTargets(ctx context.Context, orderID string, targets []domain.ActiveTarget) error {
 	if err := s.available(); err != nil {
@@ -188,13 +224,16 @@ func (s *releaseOrderSession) ReserveReleaseTargets(ctx context.Context, orderID
 		return bytes.Compare(targets[i].RecordKey, targets[j].RecordKey) < 0
 	})
 	for _, target := range targets {
-		err := s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_targets(table_name,record_key,order_id) VALUES(?,?,?)`, target.TableName, target.RecordKey, orderID).Error
-		var mysqlError *mysqldriver.MySQLError
-		if errors.As(err, &mysqlError) && mysqlError.Number == 1062 {
-			return &application.ReleaseItemError{Index: target.ItemIndex, Cause: application.ErrReleaseTargetConflict}
-		}
+		err := s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_targets(table_name,record_key,order_id) VALUES(?,?,?) ON DUPLICATE KEY UPDATE order_id=order_id`, target.TableName, target.RecordKey, orderID).Error
 		if err != nil {
 			return application.ErrReleaseUnavailable
+		}
+		var owner string
+		if err := s.database.WithContext(ctx).Raw(`SELECT order_id FROM rcc_release_targets WHERE table_name=? AND record_key=? FOR UPDATE`, target.TableName, target.RecordKey).Row().Scan(&owner); err != nil {
+			return application.ErrReleaseUnavailable
+		}
+		if owner != orderID {
+			return &application.ReleaseItemError{Index: target.ItemIndex, Cause: &application.ReleaseTargetConflict{TableName: target.TableName, OrderID: owner}}
 		}
 	}
 	return nil
@@ -203,10 +242,10 @@ func (s *releaseOrderSession) ReleaseTargets(ctx context.Context, orderID string
 	if err := s.available(); err != nil {
 		return err
 	}
-	if err := s.database.WithContext(ctx).Exec(`DELETE FROM rcc_release_targets WHERE order_id=?`, orderID).Error; err != nil {
-		return application.ErrReleaseUnavailable
+	if err := s.ReplaceReleaseTargets(ctx, orderID, nil); err != nil {
+		return err
 	}
-	return nil
+	return s.ReplaceReleaseTableReferences(ctx, orderID, nil)
 }
 
 func decodeStoredReleaseOrder(encoded []byte) (domain.ReleaseOrder, error) {
@@ -216,30 +255,6 @@ func decodeStoredReleaseOrder(encoded []byte) (domain.ReleaseOrder, error) {
 	}
 	return order, nil
 }
-
-// Reserve enough room for required terminating actions and future rollback
-// linkage; a large approval/result must never prevent cancellation or completion.
-func releaseDocumentBudget(order domain.ReleaseOrder) int {
-	state := order.State
-	if state == "COMPLETED" {
-		if order.RollbackOrderID == "" {
-			// Completion consumes up to 4 KiB of the forward result's 64 KiB
-			// reserve; the remaining 60 KiB still funds ordinary rollback.
-			return application.ReleaseResultBytes - application.ReleaseContinuationHeadroom + 4096
-		}
-		// A newly accepted association must leave room to terminate. Cancellation
-		// or rejection consumes that room even while the original stays COMPLETED.
-		if order.RollbackPending {
-			return application.ReleaseResultBytes - application.ReleaseTransportHeadroom - 4096
-		}
-		return application.ReleaseResultBytes - application.ReleaseTransportHeadroom
-	}
-	if state == "CANCELLED" || state == "REJECTED" || state == "ROLLED_BACK" {
-		return application.ReleaseResultBytes - application.ReleaseTransportHeadroom
-	}
-	return application.ReleaseResultBytes - application.ReleaseContinuationHeadroom
-}
-
 func (a *Adapter) AccountDisplayNames(ctx context.Context, ids []string) (map[string]string, error) {
 	result := map[string]string{}
 	for start := 0; start < len(ids); start += 100 {
@@ -256,4 +271,47 @@ func (a *Adapter) AccountDisplayNames(ctx context.Context, ids []string) (map[st
 		}
 	}
 	return result, nil
+}
+
+// AppendReleaseFailure locks only the current main record and appends audit.
+// It never rewrites detail facts, advances the business CAS, or saves a stale
+// pre-execution aggregate over a concurrent legitimate workflow change.
+func (s *releaseOrderSession) AppendReleaseFailure(ctx context.Context, id string, event domain.ReleaseEvent) error {
+	if err := s.available(); err != nil {
+		return err
+	}
+	var locked string
+	if err := s.database.WithContext(ctx).Raw("SELECT id FROM rcc_release_orders WHERE id=? FOR UPDATE", id).Row().Scan(&locked); err != nil {
+		return application.ErrReleaseUnavailable
+	}
+	now, err := s.DatabaseTime(ctx)
+	if err != nil {
+		return err
+	}
+	event.At = now.UTC().Format(time.RFC3339Nano)
+	return s.appendReleaseEvent(ctx, id, event)
+}
+
+// AppendRollbackReason changes only append-only audit state. In particular it
+// does not rewrite detail rows, successful executions, workflow columns or CAS.
+func (s *releaseOrderSession) AppendRollbackReason(ctx context.Context, id string, event domain.ReleaseEvent) error {
+	if err := s.available(); err != nil {
+		return err
+	}
+	return s.appendReleaseEvent(ctx, id, event)
+}
+
+func (s *releaseOrderSession) appendReleaseEvent(ctx context.Context, id string, event domain.ReleaseEvent) error {
+	encoded, err := json.Marshal(event)
+	if err != nil {
+		return application.ErrReleaseUnavailable
+	}
+	result := s.database.WithContext(ctx).Exec("UPDATE rcc_release_orders SET document=JSON_ARRAY_APPEND(document,'$.history',CAST(? AS JSON)) WHERE id=?", string(encoded), id)
+	if result.Error != nil {
+		return application.ErrReleaseUnavailable
+	}
+	if result.RowsAffected != 1 {
+		return application.ErrReleaseNotFound
+	}
+	return nil
 }

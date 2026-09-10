@@ -1,0 +1,18 @@
+[
+  {
+    "log": "browser23-final-runner.log",
+    "command": [
+      "bash",
+      "scripts/browser-acceptance.sh"
+    ],
+    "environment": {
+      "RCC_E2E_SUITE": "all",
+      "RCC_E2E_ENGINES": "chromium,firefox,webkit",
+      "RCC_E2E_ARTIFACTS": "/private/tmp/rcc-88-final-verification/browser23-final"
+    },
+    "started": "2026-09-10T16:10:47.823923+00:00",
+    "finished": "2026-09-10T16:22:35.748893+00:00",
+    "exit": 1,
+    "sha256": "d239e925e18b372cecb51882e56f0dea66505455bdb2e680a8548291d15bb298"
+  }
+]

@@ -20,7 +20,7 @@ func TestReleaseReprepareReplacesApprovedOrderWithEditableDraft(t *testing.T) {
 	grantReleaseRole(t, app, applicant, `["EDITOR","APPROVER"]`, "1", "reprepare-applicant-role")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "reprepare-reviewer-role")
 
-	created := releaseActorRequest(t, app, applicant, "POST", "/api/v1/release-orders", `{"title":"继承后仍可编辑的标题","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"reprepared"}}]}`, "reprepare-create")
+	created := releaseActorRequest(t, app, applicant, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"reprepared"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"继承后仍可编辑的标题"}`, "reprepare-create")
 	if created.Code != 201 {
 		t.Fatalf("create: %d %s", created.Code, created.Body)
 	}
@@ -36,11 +36,11 @@ func TestReleaseReprepareReplacesApprovedOrderWithEditableDraft(t *testing.T) {
 		t.Fatalf("approve: %d %s", approved.Code, approved.Body)
 	}
 
-	preview := releaseActorRequest(t, app, applicant, "POST", "/api/v1/release-orders/preview", `{"title":"继承后仍可编辑的标题","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"reprepared"}}]}`, "")
+	preview := releaseActorRequest(t, app, applicant, "POST", "/api/v1/release-orders/preview", `{"items":[{"content":{"code":"reprepared"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"继承后仍可编辑的标题"}`, "")
 	if preview.Code != 200 || !strings.Contains(preview.Body.String(), `"expected_record_version":"0"`) {
 		t.Fatalf("preview latest configuration: %d %s", preview.Code, preview.Body)
 	}
-	body := `{"expected_version":"3","confirmed":true,"items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"reprepared"}}]}`
+	body := `{"expected_version":"3","confirmed":true,"items":[{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"reprepared"}}]}`
 	reprepared := releaseActorRequest(t, app, applicant, "POST", path+"/reprepare", body, "reprepare-apply")
 	if reprepared.Code != 201 {
 		t.Fatalf("reprepare: %d %s", reprepared.Code, reprepared.Body)
@@ -62,13 +62,13 @@ func TestReleaseReprepareReplacesApprovedOrderWithEditableDraft(t *testing.T) {
 		t.Fatalf("replacement draft: %s", reprepared.Body)
 	}
 
-	old := releaseActorRequest(t, app, applicant, "GET", path, "", "")
+	old := releaseActorReadAllDetails(t, app, applicant, "GET", path, "", "")
 	if old.Code != 200 || !strings.Contains(old.Body.String(), `"state":"CANCELLED"`) || !strings.Contains(old.Body.String(), `"version":"4"`) || !strings.Contains(old.Body.String(), `"action":"REPREPARE"`) || !strings.Contains(old.Body.String(), `"related_order_id":"`+draft.ID+`"`) || strings.Contains(old.Body.String(), `"execute"`) {
 		t.Fatalf("original cancellation and history: %d %s", old.Code, old.Body)
 	}
 
 	draftPath := "/api/v1/release-orders/" + draft.ID
-	edited := releaseActorRequest(t, app, applicant, "PUT", draftPath, `{"title":"重新准备后修改的标题","table_name":"mutation_delete_parents","expected_version":"1","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"reprepared"}}]}`, "reprepare-edit")
+	edited := releaseActorRequest(t, app, applicant, "PUT", draftPath, `{"expected_version":"1","items":[{"content":{"code":"reprepared"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"重新准备后修改的标题"}`, "reprepare-edit")
 	if edited.Code != 200 || !strings.Contains(edited.Body.String(), `"title":"重新准备后修改的标题"`) {
 		t.Fatalf("edit replacement title: %d %s", edited.Code, edited.Body)
 	}
@@ -91,7 +91,7 @@ func TestReleaseReprepareRequiresCurrentApplicantEditorOrAdmin(t *testing.T) {
 	grantReleaseRole(t, app, outsider, `["EDITOR"]`, "1", "reprepare-outsider-role")
 
 	path := approvedOrderForReprepare(t, app, applicant, reviewer, "reprepare-owner")
-	body := `{"expected_version":"3","confirmed":true,"items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"reprepare-owner"}}]}`
+	body := `{"expected_version":"3","confirmed":true,"items":[{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"reprepare-owner"}}]}`
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, outsider, "POST", path+"/reprepare", body, "reprepare-outsider"), 403, "permission_denied")
 	grantReleaseRole(t, app, applicant, `["VIEWER"]`, "2", "reprepare-owner-revoked")
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, applicant, "POST", path+"/reprepare", body, "reprepare-revoked"), 403, "permission_denied")
@@ -129,12 +129,12 @@ func TestReleaseReprepareFailureKeepsApprovedOrderAndTarget(t *testing.T) {
 	grantReleaseRole(t, app, applicant, `["EDITOR"]`, "1", "reprepare-atomic-role")
 	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "reprepare-atomic-reviewer-role")
 	path := approvedOrderForReprepare(t, app, applicant, reviewer, "reprepare-atomic")
-	approved := releaseActorRequest(t, app, applicant, "GET", path, "", "")
+	approved := releaseActorReadAllDetails(t, app, applicant, "GET", path, "", "")
 
 	deliveryExec(t, owner, `CREATE TRIGGER reject_reprepared_draft BEFORE INSERT ON rcc_release_orders FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='injected reprepare failure'`)
-	body := `{"expected_version":"3","confirmed":true,"items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"reprepare-atomic"}}]}`
+	body := `{"expected_version":"3","confirmed":true,"items":[{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"reprepare-atomic"}}]}`
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, applicant, "POST", path+"/reprepare", body, "reprepare-atomic-apply"), 503, "release_unavailable")
-	unchanged := releaseActorRequest(t, app, applicant, "GET", path, "", "")
+	unchanged := releaseActorReadAllDetails(t, app, applicant, "GET", path, "", "")
 	if unchanged.Body.String() != approved.Body.String() {
 		t.Fatalf("explicit failure changed approved order: %s", unchanged.Body)
 	}
@@ -150,12 +150,14 @@ func TestReleaseReprepareFailureKeepsApprovedOrderAndTarget(t *testing.T) {
 		t.Fatalf("idempotent recovery changed draft: %d %s", replay.Code, replay.Body)
 	}
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, applicant, "POST", path+"/reprepare", strings.Replace(body, "reprepare-atomic", "changed-intent", 1), "reprepare-atomic-apply"), 409, "idempotency_conflict")
-	assertReprepareStorageCounts(t, owner, 2, 0, 1)
+	// The replacement draft takes the reservation in the same transaction that
+	// releases the cancelled approval's ownership.
+	assertReprepareStorageCounts(t, owner, 2, 1, 1)
 }
 
 func approvedOrderForReprepare(t *testing.T, app *adminApplication, applicant, reviewer *httptest.ResponseRecorder, key string) string {
 	t.Helper()
-	created := releaseActorRequest(t, app, applicant, "POST", "/api/v1/release-orders", `{"title":"待重新准备的批准单","table_name":"mutation_delete_parents","items":[{"operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"`+key+`"}}]}`, key+"-create")
+	created := releaseActorRequest(t, app, applicant, "POST", "/api/v1/release-orders", `{"title":"待重新准备的批准单","items":[{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"`+key+`"}}]}`, key+"-create")
 	if created.Code != 201 {
 		t.Fatalf("create approved fixture: %d %s", created.Code, created.Body)
 	}

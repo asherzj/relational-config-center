@@ -16,6 +16,7 @@ var (
 )
 
 type CreateTablePolicy struct {
+	ConcurrencyKey     []string
 	TableName          string
 	QueryPolicyCode    string
 	MutationPolicyCode string
@@ -63,7 +64,7 @@ func (management *TablePolicyManagement) Create(ctx context.Context, candidate C
 	if !schema.Compatible {
 		return domain.TablePolicy{}, fmt.Errorf("%w: %s", ErrIncompatibleTable, *schema.IncompatibilityReason)
 	}
-	policy, err := management.assignmentFromActiveDefinitions(ctx, candidate.TableName, candidate.QueryPolicyCode, candidate.MutationPolicyCode, schema)
+	policy, err := management.assignmentFromActiveDefinitions(ctx, candidate.TableName, candidate.QueryPolicyCode, candidate.MutationPolicyCode, schema, candidate.ConcurrencyKey)
 	if err != nil {
 		return domain.TablePolicy{}, err
 	}
@@ -111,7 +112,7 @@ func (management *TablePolicyManagement) Replace(ctx context.Context, tableName 
 	if !schema.Compatible {
 		return domain.TablePolicy{}, fmt.Errorf("%w: %s", ErrIncompatibleTable, *schema.IncompatibilityReason)
 	}
-	policy, err := management.assignmentFromActiveDefinitions(ctx, tableName, queryCode, mutationCode, schema)
+	policy, err := management.assignmentFromActiveDefinitions(ctx, tableName, queryCode, mutationCode, schema, candidate.ConcurrencyKey)
 	if err != nil {
 		return domain.TablePolicy{}, err
 	}
@@ -157,7 +158,7 @@ func (management *TablePolicyManagement) Disable(ctx context.Context, tableName 
 	return management.catalog.SetEnabled(ctx, tableName, false, operator)
 }
 
-func (management *TablePolicyManagement) assignmentFromActiveDefinitions(ctx context.Context, tableName, queryCode, mutationCode string, schema domain.TableSchema) (domain.TablePolicy, error) {
+func (management *TablePolicyManagement) assignmentFromActiveDefinitions(ctx context.Context, tableName, queryCode, mutationCode string, schema domain.TableSchema, key []string) (domain.TablePolicy, error) {
 	queryPolicy, err := management.queryPolicies.GetForNewAssignment(ctx, queryCode)
 	if err != nil {
 		return domain.TablePolicy{}, err
@@ -172,7 +173,10 @@ func (management *TablePolicyManagement) assignmentFromActiveDefinitions(ctx con
 	if err := management.mutationPolicies.ValidateForTable(mutationPolicy, schema); err != nil {
 		return domain.TablePolicy{}, err
 	}
-	return domain.TablePolicy{TableName: tableName, QueryPolicyCode: queryCode, MutationPolicyCode: mutationCode}, nil
+	if err := ValidateConcurrencyKey(schema, mutationPolicy, key); err != nil {
+		return domain.TablePolicy{}, err
+	}
+	return domain.TablePolicy{TableName: tableName, QueryPolicyCode: queryCode, MutationPolicyCode: mutationCode, ConcurrencyKey: key}, nil
 }
 
 func (management *TablePolicyManagement) validateExistingAssignment(ctx context.Context, policy domain.TablePolicy, schema domain.TableSchema) error {
@@ -193,7 +197,10 @@ func (management *TablePolicyManagement) validateExistingAssignment(ctx context.
 	if err := management.queryPolicies.ValidateForTable(queryPolicy, schema); err != nil {
 		return err
 	}
-	return management.mutationPolicies.ValidateForTable(mutationPolicy, schema)
+	if err := management.mutationPolicies.ValidateForTable(mutationPolicy, schema); err != nil {
+		return err
+	}
+	return ValidateConcurrencyKey(schema, mutationPolicy, policy.ConcurrencyKey)
 }
 
 func protectedTable(tableName string) bool {

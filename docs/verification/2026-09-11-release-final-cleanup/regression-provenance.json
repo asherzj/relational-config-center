@@ -1,0 +1,2191 @@
+{
+  "required_current_source_count": 242,
+  "valid_count": 242,
+  "reusable_original_count": 93,
+  "allowed_logs": [
+    "integration-additional2.jsonl",
+    "integration-affected2.jsonl",
+    "integration-fixture3.jsonl",
+    "integration-packages2.jsonl"
+  ],
+  "cases": [
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountControlTablesCannotBeDiscoveredOrManaged",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 492,
+      "time": "2026-09-10T20:08:48.075013+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 847,
+      "time": "2026-09-10T20:10:29.261549+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestBusinessAPIsRequireSessionAndCSRF",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 177,
+      "time": "2026-09-10T20:08:19.981944+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 56,
+      "time": "2026-09-10T20:08:11.984711+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestConcurrentAccountsOwnTheirBusinessChanges",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 98,
+      "time": "2026-09-10T19:43:42.977788+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestConfirmedReleaseFailureHistoryPreservesOriginalRetry",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 2360,
+      "time": "2026-09-10T20:16:45.569113+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestCurrentGooseInstallationMatchesFrozenAdoptionStructure",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4203,
+      "time": "2026-09-10T20:01:09.176476+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftAllTargetTypesReleaseOnEveryTerminalAction",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 2300,
+      "time": "2026-09-10T20:16:28.122495+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftConcurrencyKeyDatabaseEquality",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 2098,
+      "time": "2026-09-10T20:15:25.4006+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftConcurrencyKeyProtectsValuesAndDefinition",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1888,
+      "time": "2026-09-10T20:14:57.746721+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftIncrementalEditsReplaceTargetsAtomically",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1920,
+      "time": "2026-09-10T20:15:06.642194+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftKeyEligibilityDefaultsAndAutoIDReferences",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1950,
+      "time": "2026-09-10T20:15:15.515953+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftReservationsBeginOnSaveAndEndOnCancel",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1864,
+      "time": "2026-09-10T20:14:48.833749+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftSaveAndKeyDefinitionRaceCannotBypassReferences",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 2154,
+      "time": "2026-09-10T20:15:43.429321+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftSharedKeyReferencesReleaseOnlyAfterLastDetail",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 2124,
+      "time": "2026-09-10T20:15:34.538914+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftSubmitRejectsChangedTargetIdentity",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 2329,
+      "time": "2026-09-10T20:16:35.919745+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestDraftTargetReplacementRollsBackOnPersistenceFailure",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 2181,
+      "time": "2026-09-10T20:15:52.342764+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestFieldPolicyAC001RoundTrip",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 514,
+      "time": "2026-09-10T20:08:57.20454+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestFieldPolicyAC002InvalidConfigurationIsAtomic",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 556,
+      "time": "2026-09-10T20:09:06.287582+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestFieldPolicyAC009AC018KeepDatabaseDefaultsAndExecutionBoundary",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 700,
+      "time": "2026-09-10T20:09:53.06572+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestFieldPolicyAC020MigrationPreservesExistingData",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 575,
+      "time": "2026-09-10T20:09:15.779512+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestFieldPolicyDatabaseFailureRollsBackWholeReplacement",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 657,
+      "time": "2026-09-10T20:09:43.93754+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestFieldPolicyDefaultsNumericOptionsAndAudit",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 636,
+      "time": "2026-09-10T20:09:34.864208+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestFieldPolicyReadDistinguishesDisabledSchemaDriftAndFailure",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 603,
+      "time": "2026-09-10T20:09:25.743623+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMultitableCopyCompetesForEveryTargetAndLinksBothOrders",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1794,
+      "time": "2026-09-10T20:14:31.013488+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMultitableDerivedDraftRequiresExactDetailIdentity",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-fixture3.jsonl",
+      "line": 41,
+      "time": "2026-09-10T20:19:25.748452+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMultitableDraftWaitsForAllGuardsBeforeAnySnapshot",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 2456,
+      "time": "2026-09-10T20:17:26.22122+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMultitableLargeValuesThroughHTTPLifecycle",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 2487,
+      "time": "2026-09-10T20:17:45.268058+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 2396,
+      "time": "2026-09-10T20:16:55.43748+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMultitableReprepareTransfersChangedTargetsAtomically",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1841,
+      "time": "2026-09-10T20:14:39.905298+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMultitableThousandPagedDetailsExecuteAsOneOrder",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 2436,
+      "time": "2026-09-10T20:17:17.22737+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationAddFailsClosedAndUsesTheLatestPolicySnapshot",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1646,
+      "time": "2026-09-10T20:13:49.227923+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationAddFailsClosedForInvalidLivePolicyAndSchema",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1666,
+      "time": "2026-09-10T20:13:57.373052+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationAddFailsClosedWhenPolicyCatalogIsUnavailable",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1685,
+      "time": "2026-09-10T20:14:05.290492+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyAddsRowAndReturnsJSONStringID",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 874,
+      "time": "2026-09-10T20:10:38.242344+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyAutoFillUsesAccountOperatorAndDatabaseTimeAndRejectsManagedInput",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1023,
+      "time": "2026-09-10T20:11:15.224442+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteDefaultsToDeniedThenUsesTheCurrentReplacement",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1447,
+      "time": "2026-09-10T20:12:46.854629+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteFailsClosedBeforeExecution",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1482,
+      "time": "2026-09-10T20:12:55.7575+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteFailsClosedForInvalidCurrentPolicyAndLiveTable",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1615,
+      "time": "2026-09-10T20:13:40.115493+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteFailsClosedForStaleAutoFillSchemaRules",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1581,
+      "time": "2026-09-10T20:13:31.22199+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteFailsClosedForUnsupportedLiveColumns",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1561,
+      "time": "2026-09-10T20:13:21.503461+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteMapsMissingRowsToNotFound",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1502,
+      "time": "2026-09-10T20:13:03.688911+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteRollsBackDatabaseFailures",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1532,
+      "time": "2026-09-10T20:13:12.612469+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1730,
+      "time": "2026-09-10T20:14:14.186147+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyMapsMySQLUniqueKeyViolationsToConflict",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1088,
+      "time": "2026-09-10T20:11:33.648825+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchAutoFillUsesModifySlotsAndRejectsManagedInput",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1299,
+      "time": "2026-09-10T20:12:10.095289+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchFailsClosedForCurrentPolicyAndSchema",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1410,
+      "time": "2026-09-10T20:12:37.975822+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchMapsUniqueKeyConflictsAndRollsBack",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1374,
+      "time": "2026-09-10T20:12:29.060764+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchRejectsInvalidAndNonWritableFields",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1218,
+      "time": "2026-09-10T20:11:51.852579+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchRollsBackDatabaseFailures",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1334,
+      "time": "2026-09-10T20:12:20.030606+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchUsesLatestPolicyAndLiveSchema",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1263,
+      "time": "2026-09-10T20:12:00.976364+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchesOnlySubmittedFieldsWithJSONStringSemantics",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1141,
+      "time": "2026-09-10T20:11:42.758296+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyRejectsMissingRequiredFieldsAndRollsBackDatabaseFailures",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 1054,
+      "time": "2026-09-10T20:11:24.198855+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyReturnsARequiredNonAutoIncrementID",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 927,
+      "time": "2026-09-10T20:10:57.277484+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyReturnsExplicitAutoIncrementID",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 901,
+      "time": "2026-09-10T20:10:47.275878+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 995,
+      "time": "2026-09-10T20:11:06.292919+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestOldRecordWriteRoutesAreRemoved",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 2543,
+      "time": "2026-09-10T20:18:03.263997+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 240,
+      "time": "2026-09-10T20:08:29.921982+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestOriginalOrderRollbackPreservesApplicationAndBothExecutions",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 2522,
+      "time": "2026-09-10T20:17:54.335262+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2598,
+      "time": "2026-09-10T19:53:51.4477+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationActionCompetitionAndTableOrder",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3010,
+      "time": "2026-09-10T19:55:15.679844+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationAtomicPersistenceFailures",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2764,
+      "time": "2026-09-10T19:54:28.883468+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationCommitUnknownSurvivesExecutableRestart",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 301,
+      "time": "2026-09-10T19:44:22.329261+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationFloatIdentityMaintenanceKeepsOldVersions",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 271,
+      "time": "2026-09-10T19:44:08.807899+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationFloatValuesAndIdentityRoundTrip",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 229,
+      "time": "2026-09-10T19:44:01.151127+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationFrozenChangesAndDescriptions",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2965,
+      "time": "2026-09-10T19:55:06.730391+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationIdentityCanonicalAndDelete",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2810,
+      "time": "2026-09-10T19:54:38.775487+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationPublisherHistoryAndApprovalSurvivesRevocation",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2917,
+      "time": "2026-09-10T19:54:57.69908+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationRejectsImplicitWritesAndAuditSpoofing",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2884,
+      "time": "2026-09-10T19:54:48.775535+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationRejectsUnknownNonAutoIncrementIdentity",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3051,
+      "time": "2026-09-10T19:55:35.58576+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationRejectsUntrackedCascade",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2651,
+      "time": "2026-09-10T19:54:09.370023+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationSessionCannotBeReusedAfterTransaction",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 112,
+      "time": "2026-09-10T19:43:50.816334+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationSessionLocksHiddenForeignKeyDDL",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3024,
+      "time": "2026-09-10T19:55:26.690643+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationStoredRowsAreVerifiedBeforeReadOrReplay",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3083,
+      "time": "2026-09-10T19:55:44.57359+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPublicationSupportsTargetRowTrigger",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2676,
+      "time": "2026-09-10T19:54:18.952123+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackCanTerminateAtAcceptedPublicationCapacity",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3586,
+      "time": "2026-09-10T19:57:19.697725+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3350,
+      "time": "2026-09-10T19:56:40.001281+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackConstraintFailureRollsBackEarlierItems",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3555,
+      "time": "2026-09-10T19:57:08.989121+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3480,
+      "time": "2026-09-10T19:56:51.122595+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackPreviewShowsWholeRestorationWithoutWriting",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3115,
+      "time": "2026-09-10T19:55:53.543471+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3523,
+      "time": "2026-09-10T19:57:00.095298+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackRejectsDatabaseEffectsThatCannotRestoreOriginalValues",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3616,
+      "time": "2026-09-10T19:57:28.565892+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackRejectsUnversionedExternalChangesBeforePreviewAndExecution",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3193,
+      "time": "2026-09-10T19:56:11.407873+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackRequiresItsOriginalRetainedTargets",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3227,
+      "time": "2026-09-10T19:56:20.419888+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3157,
+      "time": "2026-09-10T19:56:02.471872+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3281,
+      "time": "2026-09-10T19:56:29.600504+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionAddDeleteRecreateAndRollback",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 403,
+      "time": "2026-09-10T19:44:45.268974+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionCompareAndSwap",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 355,
+      "time": "2026-09-10T19:44:37.664012+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionControlStorageFailureRollsBackBusinessWrites",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 746,
+      "time": "2026-09-10T19:45:45.18819+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionLegacyBaseline",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 320,
+      "time": "2026-09-10T19:44:29.970139+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionLosslessMaintenanceFloor",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 639,
+      "time": "2026-09-10T19:45:22.020601+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionMySQLPrimaryKeyEquivalence",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 542,
+      "time": "2026-09-10T19:44:55.818813+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionRealConcurrentWriters",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 581,
+      "time": "2026-09-10T19:45:04.572068+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionRejectsNonTransactionalBusinessWrite",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 707,
+      "time": "2026-09-10T19:45:37.523177+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionSchemaReadinessAndRestartableMigration",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 608,
+      "time": "2026-09-10T19:45:13.309649+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRecordVersionSnapshotAndIndependentResources",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 688,
+      "time": "2026-09-10T19:45:30.7785+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOneSnapshot",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 743,
+      "time": "2026-09-10T20:10:02.074817+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 818,
+      "time": "2026-09-10T20:10:20.216389+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRelationalMutationPolicyIsSoleAuthorizationSourceAndDeprecatedExecutes",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 773,
+      "time": "2026-09-10T20:10:11.174035+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseApprovalCurrentRolesAndHistory",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 869,
+      "time": "2026-09-10T19:46:18.831313+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseAutoIncrementZeroIdentity",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1078,
+      "time": "2026-09-10T19:47:17.886005+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchCopyInvalidItemIsLocated",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1522,
+      "time": "2026-09-10T19:48:49.225808+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchDuplicateIdentityDoesNotReplaceDraft",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1572,
+      "time": "2026-09-10T19:49:04.464386+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchEdgeAutoIncrementAndIndependentRequests",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1439,
+      "time": "2026-09-10T19:48:24.064017+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchEdgeDraftValidation",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1263,
+      "time": "2026-09-10T19:47:44.638651+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchEdgeIndependentUniqueConflict",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1470,
+      "time": "2026-09-10T19:48:32.791041+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchEdgeMidwayConstraintRollback",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1408,
+      "time": "2026-09-10T19:48:16.403907+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchEdgeOverlappingSubmissions",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1324,
+      "time": "2026-09-10T19:48:00.012693+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchEdgeRequestLimitsPreserveDraft",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1298,
+      "time": "2026-09-10T19:47:53.365738+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchEdgeStaleMemberRollsBack",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1361,
+      "time": "2026-09-10T19:48:08.706879+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchExistingEnumPrimaryKeys",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1497,
+      "time": "2026-09-10T19:48:41.464194+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchExpandedResultsExceedFormerBudget",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1659,
+      "time": "2026-09-10T19:49:40.553831+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchLargeFieldDraftPreservesInput",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1631,
+      "time": "2026-09-10T19:49:31.881901+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseBatchLargeHistoryCanApproveAndCancel",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1684,
+      "time": "2026-09-10T19:49:50.300001+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionAtPublicationCapacityClosesRollbackWindow",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1975,
+      "time": "2026-09-10T19:50:58.174274+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionPermanentlyClosesRollbackWindow",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1746,
+      "time": "2026-09-10T19:50:06.996964+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionPersistenceFailureIsAtomic",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1918,
+      "time": "2026-09-10T19:50:39.801521+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionProtectsActualAndDeletedIDs",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1813,
+      "time": "2026-09-10T19:50:23.399743+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionReleasesWithoutRepublishing",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1781,
+      "time": "2026-09-10T19:50:15.725154+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionRequiresTrustedPublicationOnReadAndReplay",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1947,
+      "time": "2026-09-10T19:50:47.449743+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionRetainsKnownTargets",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1715,
+      "time": "2026-09-10T19:49:58.314096+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseCompletionRolesConcurrencyAndReplay",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1863,
+      "time": "2026-09-10T19:50:31.132517+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftCASCancelAndIdempotency",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2095,
+      "time": "2026-09-10T19:51:33.473268+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftConcurrentAndAtomicStorage",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2349,
+      "time": "2026-09-10T19:52:32.298004+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftCurrentAuthorizationAndListing",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2264,
+      "time": "2026-09-10T19:51:59.991498+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftDiffAndServerBaseline",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2117,
+      "time": "2026-09-10T19:51:41.235072+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftKnownAddUpdateRequiresOriginalBaseline",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2299,
+      "time": "2026-09-10T19:52:16.887229+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftMissingIdentityAndTombstone",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2223,
+      "time": "2026-09-10T19:51:51.014038+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftPreviewRebuildsMissingAddBaseline",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2320,
+      "time": "2026-09-10T19:52:23.605585+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftRejectsLossySnapshotAndRetainsSavedSchema",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2372,
+      "time": "2026-09-10T19:52:40.946569+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftReplayUsesCurrentActionsAndRejectsChangedDigest",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2394,
+      "time": "2026-09-10T19:52:49.871932+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftSaveAndReload",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2065,
+      "time": "2026-09-10T19:51:26.760636+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftSchemaReadiness",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2278,
+      "time": "2026-09-10T19:52:08.355258+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftTitleEditCASAndFreeze",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2043,
+      "time": "2026-09-10T19:51:19.184978+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftTitlePersistsAndReloads",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1997,
+      "time": "2026-09-10T19:51:04.836296+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseDraftTitleUnicodeValidation",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2018,
+      "time": "2026-09-10T19:51:12.510109+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseExecutionSchemaHoldsMetadataLock",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1046,
+      "time": "2026-09-10T19:47:10.145566+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseFailureAuditPreservesConcurrentCancellation",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2494,
+      "time": "2026-09-10T19:53:16.348443+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseFailureHistoryUnavailableDoesNotLeaveBusinessWrites",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2466,
+      "time": "2026-09-10T19:53:07.490937+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseFreezeMetadataCaseInsensitiveNames",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1173,
+      "time": "2026-09-10T19:47:36.110269+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseFreezeMetadataGrantNameIdentity",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1138,
+      "time": "2026-09-10T19:47:25.560946+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseFreezeMetadataVisibility",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1007,
+      "time": "2026-09-10T19:46:52.761042+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseFreezeTracksExecutionSemantics",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 975,
+      "time": "2026-09-10T19:46:43.942965+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseHeaderAndDetailPagesRequireOneWholeOrderVersion",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2537,
+      "time": "2026-09-10T19:53:42.579569+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2508,
+      "time": "2026-09-10T19:53:33.286994+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseMixedBatchPublication",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1550,
+      "time": "2026-09-10T19:48:56.839021+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 830,
+      "time": "2026-09-10T19:46:10.092975+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleasePublicationAddsFinalRow",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2625,
+      "time": "2026-09-10T19:54:00.337773+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseRejectedCopyRechecksBaseline",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 908,
+      "time": "2026-09-10T19:46:27.529435+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseReprepareFailureKeepsApprovedOrderAndTarget",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3721,
+      "time": "2026-09-10T19:57:56.188958+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseReprepareReplacesApprovedOrderWithEditableDraft",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3650,
+      "time": "2026-09-10T19:57:37.489485+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseReprepareRequiresCurrentApplicantEditorOrAdmin",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3686,
+      "time": "2026-09-10T19:57:47.189056+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseResetInterruptedTransactionRollsBackAndRetries",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3834,
+      "time": "2026-09-10T19:58:28.560682+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseResetPreservesRecordsAndContinuesPublication",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3757,
+      "time": "2026-09-10T19:58:08.971657+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseResetRefusesUnverifiedTargetsAndSchema",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3819,
+      "time": "2026-09-10T19:58:19.695103+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseRollbackRestoresBusinessFieldsWithNewAudit",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3965,
+      "time": "2026-09-10T19:59:04.336411+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseRollbackRestoresDeletedEnumIdentity",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3933,
+      "time": "2026-09-10T19:58:55.640504+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseRollbackRestoresStoredTimeDuration",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3995,
+      "time": "2026-09-10T19:59:13.180917+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseRollbackUnwindsUniqueValueDependencies",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 3902,
+      "time": "2026-09-10T19:58:46.397889+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4519,
+      "time": "2026-09-10T20:04:38.413493+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseSubmitFreezesIntent",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 768,
+      "time": "2026-09-10T19:45:53.695902+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseSubmitRevalidatesBaselineAndRules",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1032,
+      "time": "2026-09-10T19:47:01.501937+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseTargetsCompeteAndCancelReleases",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 792,
+      "time": "2026-09-10T19:46:01.352956+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseThousandItemsThroughExecutable",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 1612,
+      "time": "2026-09-10T19:49:24.211571+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseWorkflowAtomicityAndCompetition",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 940,
+      "time": "2026-09-10T19:46:36.247965+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseWritesRequireExplicitTableOnEveryDetail",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 2438,
+      "time": "2026-09-10T19:52:58.700208+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 274,
+      "time": "2026-09-10T20:08:38.940833+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-additional2.jsonl",
+      "line": 2611,
+      "time": "2026-09-10T20:18:12.212343+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4011,
+      "time": "2026-09-10T19:59:25.376901+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4147,
+      "time": "2026-09-10T20:00:28.133573+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaBaselineProcessInterruptionRetainsUnconfirmedState",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4161,
+      "time": "2026-09-10T20:00:40.700708+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaBaselineRecoversBeforeAttemptWasRecorded",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4133,
+      "time": "2026-09-10T20:00:18.637436+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaBaselineRecoversUnconfirmedRegistration",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4095,
+      "time": "2026-09-10T19:59:49.140646+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaBaselineRefusesToRecreateLostConfirmedHistory",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4189,
+      "time": "2026-09-10T20:01:00.069922+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4081,
+      "time": "2026-09-10T19:59:36.406612+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaBaselineReleaseUpgradesT1AndRecoversPartialAuditRename",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4119,
+      "time": "2026-09-10T20:00:08.28403+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaBaselineUsesTransactionalVersionLedger",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4175,
+      "time": "2026-09-10T20:00:50.699341+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaMigrationAddsFieldPoliciesWithoutChangingPublishedState",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4217,
+      "time": "2026-09-10T20:01:26.54214+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4311,
+      "time": "2026-09-10T20:02:43.438567+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaMigrationConcurrentInitialization",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4245,
+      "time": "2026-09-10T20:01:46.533569+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaMigrationConnectionDeadlineAndSafeDiagnostics",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4371,
+      "time": "2026-09-10T20:03:35.323495+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaMigrationInitializesEmptyDatabase",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4231,
+      "time": "2026-09-10T20:01:36.046237+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaMigrationLeavesUnmanagedDatabaseUntouched",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4385,
+      "time": "2026-09-10T20:03:44.915804+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaMigrationPartialDDLRequiresExplicitRecovery",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4273,
+      "time": "2026-09-10T20:02:09.1129+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaMigrationProcessInterruptionRequiresSameReleaseRecovery",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4339,
+      "time": "2026-09-10T20:03:12.550102+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaMigrationRecoversInterruptedBootstrap",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4325,
+      "time": "2026-09-10T20:02:53.092105+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaMigrationRecoversMissingZeroVersion",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4367,
+      "time": "2026-09-10T20:03:33.98958+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaMigrationRejectsIncompleteVersionHistory",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4353,
+      "time": "2026-09-10T20:03:23.460674+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaMigrationUpgradesToNextRelease",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4297,
+      "time": "2026-09-10T20:02:30.122927+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaMigrationWaitsForMaintenanceLockWithDeadline",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4259,
+      "time": "2026-09-10T20:01:56.807557+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4489,
+      "time": "2026-09-10T20:04:11.102318+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaReadinessRejectsKnownOldRelease",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4503,
+      "time": "2026-09-10T20:04:25.147436+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaReadinessRejectsUnmanagedStartup",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-affected2.jsonl",
+      "line": 4399,
+      "time": "2026-09-10T20:03:55.152038+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestMutationPolicyActivationValidatesTypeAutoFillAndAuthorization",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 670,
+      "time": "2026-09-10T20:07:57.930557+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestMutationPolicyDraftRejectsValuesBlockedByCatalogConstraints",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 702,
+      "time": "2026-09-10T20:07:57.930919+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestMutationPolicyDraftWithUnknownTypeCanBeCompletedBeforeActivation",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 674,
+      "time": "2026-09-10T20:07:57.930596+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestMutationPolicyLifecycleAndAssignmentRules",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 642,
+      "time": "2026-09-10T20:07:57.930137+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestMutationPolicyTableValidationRejectsMissingGeneratedAndTypeIncompatibleTargets",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 722,
+      "time": "2026-09-10T20:07:57.931103+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestPolicySnapshotResolverAllowsAssignedDeprecatedDefinitions",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 726,
+      "time": "2026-09-10T20:07:57.931153+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestPolicySnapshotResolverFailsClosedBeforeExecution",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 758,
+      "time": "2026-09-10T20:07:57.931398+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestQueryPolicyActivationValidatesRegisteredTypeAndSafetyLimits",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 790,
+      "time": "2026-09-10T20:07:57.93166+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestQueryPolicyCodeIsVersionedLowerCaseAndTechnologyNeutral",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 822,
+      "time": "2026-09-10T20:07:57.931921+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestQueryPolicyDraftRejectsValuesBlockedByCatalogScalarConstraints",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 818,
+      "time": "2026-09-10T20:07:57.931892+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestQueryPolicyLifecycleAndAssignmentRules",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 762,
+      "time": "2026-09-10T20:07:57.931427+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "test": "TestTransactionalManagedTableQueryLoadsAndExecutesCompleteRelationalSnapshotPerRequest",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 826,
+      "time": "2026-09-10T20:07:57.93195+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/domain",
+      "test": "TestCanonicalRowDeletionAndInvalidRepresentations",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 894,
+      "time": "2026-09-10T20:07:58.611522+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/domain",
+      "test": "TestCanonicalRowFixedLosslessValues",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 890,
+      "time": "2026-09-10T20:07:58.611475+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/domain",
+      "test": "TestRegistrationFieldBoundaries",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 886,
+      "time": "2026-09-10T20:07:58.610806+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestDraftBaselineAndPublicationSerializeBeforeSnapshot",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 40,
+      "time": "2026-09-10T20:04:50.449863+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityAutoResultBelongsToThisInsert",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 210,
+      "time": "2026-09-10T20:06:02.678341+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityKeepsEngineStableUntilInsertTransactionEnds",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 117,
+      "time": "2026-09-10T20:05:25.514328+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityNeverReturnsExistingRowAfterTriggerChangesKey",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 146,
+      "time": "2026-09-10T20:05:43.548375+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityReadPermissionFailureAfterInsertRollsBack",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 131,
+      "time": "2026-09-10T20:05:34.563949+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityRejectsNontransactionalTableBeforeWriting",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 88,
+      "time": "2026-09-10T20:05:07.409138+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityReturnedAutoIDMustRemainSchemaAddressable",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 103,
+      "time": "2026-09-10T20:05:16.424363+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestIndependentReleaseDetailGrowthDoesNotLockIndexGaps",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 264,
+      "time": "2026-09-10T20:06:10.708125+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestLegacyBackfillMapsOnlyStandardAuditAutoFill",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 218,
+      "time": "2026-09-10T20:06:02.678465+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestLegacyBackfillNormalizesDefaultsAndProducesStableTechnologyNeutralCodes",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 214,
+      "time": "2026-09-10T20:06:02.678434+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestLegacyBackfillReportsLiteralArbitraryAndNonMirroredRules",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 234,
+      "time": "2026-09-10T20:06:02.678549+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestMutationStorageValueErrorsAreEditableButOtherDatabaseFailuresRemainUnavailable",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 242,
+      "time": "2026-09-10T20:06:02.678582+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestPublicationJSONIdentityDoesNotUseURLPathSegments",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 70,
+      "time": "2026-09-10T20:04:59.385908+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestPublicationRejectsIdentityCreatedAfterApproval",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 160,
+      "time": "2026-09-10T20:05:53.591953+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestValidContractionPolicyCodeRejectsTechnologyPrefixes",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 238,
+      "time": "2026-09-10T20:06:02.678563+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIAccessLogIsStructuredAndRedactsRequestDetails",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 518,
+      "time": "2026-09-10T20:06:47.219782+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIAccessLogUsesRouteTemplatesWithoutDynamicTableOrRowValues",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 532,
+      "time": "2026-09-10T20:06:56.272172+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIBodyLimitRejectsOversizedJSONWithStableError",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 560,
+      "time": "2026-09-10T20:07:12.326802+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIDoesNotOfferCrossOriginCredentialAccess",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 574,
+      "time": "2026-09-10T20:07:20.599248+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 620,
+      "time": "2026-09-10T20:07:47.706421+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIRejectsOldBearerCredentialsWhileHealthRemainsPublic",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 504,
+      "time": "2026-09-10T20:06:39.211476+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIRequestIDAcceptsOnlyTightlyValidatedValues",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 546,
+      "time": "2026-09-10T20:07:04.272626+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIUnknownRoutesUseTheSafeErrorEnvelope",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 634,
+      "time": "2026-09-10T20:07:56.389615+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestFieldPolicyErrorPreservesTimeoutContract",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 300,
+      "time": "2026-09-10T20:06:14.879901+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestHTTPDependsOnApplicationRatherThanDomainOrInfrastructure",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 272,
+      "time": "2026-09-10T20:06:14.867405+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestMutationPolicyResponseUsesTypedRelationalFieldsAndCatalogAuditNames",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 304,
+      "time": "2026-09-10T20:06:14.880068+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestQueryPolicyResponseUsesCatalogAuditFieldNames",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 308,
+      "time": "2026-09-10T20:06:14.880108+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestRawPathMutationRoutingPreservesAPIGuards",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 490,
+      "time": "2026-09-10T20:06:31.183646+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestRecoveryRedactsPanics",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 450,
+      "time": "2026-09-10T20:06:14.885859+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestReleaseDetailCapacityRouteContract",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 415,
+      "time": "2026-09-10T20:06:14.885626+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestReleaseDraftSessionCannotWriteBusinessRows",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 280,
+      "time": "2026-09-10T20:06:14.87917+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestReleaseWorkflowPublicRoutes",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 441,
+      "time": "2026-09-10T20:06:14.885807+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestRemovedMutationRoutesCannotBeRevivedByEncodedIdentity",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 476,
+      "time": "2026-09-10T20:06:23.205785+08:00",
+      "valid_current_source": true
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestSharedBusinessServicesDoNotStoreRequestIdentity",
+      "action": "pass",
+      "source": "/private/tmp/rcc-88-final-verification/integration-packages2.jsonl",
+      "line": 276,
+      "time": "2026-09-10T20:06:14.878005+08:00",
+      "valid_current_source": true
+    }
+  ]
+}

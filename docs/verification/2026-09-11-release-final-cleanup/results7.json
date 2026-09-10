@@ -1,0 +1,74 @@
+[
+  {
+    "log": "test-run7.log",
+    "command": [
+      "pnpm",
+      "--dir",
+      "web",
+      "test:run"
+    ],
+    "environment": {},
+    "started": "2026-09-10T15:17:11.587289+00:00",
+    "finished": "2026-09-10T15:17:37.420420+00:00",
+    "exit": 0,
+    "sha256": "63dbca17ec46f492b731662295c3044b8b41e319442f7512615203908d2d4c2d"
+  },
+  {
+    "log": "test-dev7.log",
+    "command": [
+      "pnpm",
+      "--dir",
+      "web",
+      "test:dev"
+    ],
+    "environment": {},
+    "started": "2026-09-10T15:17:37.421388+00:00",
+    "finished": "2026-09-10T15:17:37.921333+00:00",
+    "exit": 0,
+    "sha256": "65071f396954e13fb6629903ac47b5c3d0cff62e33b9c521673c9a9baaca3e27"
+  },
+  {
+    "log": "typecheck7.log",
+    "command": [
+      "pnpm",
+      "--dir",
+      "web",
+      "typecheck"
+    ],
+    "environment": {},
+    "started": "2026-09-10T15:17:37.921730+00:00",
+    "finished": "2026-09-10T15:17:38.759613+00:00",
+    "exit": 0,
+    "sha256": "3b940ccb3a62cfdf539f8114ccd09c103f33beb857c5ab0819ff68653e009672"
+  },
+  {
+    "log": "build7.log",
+    "command": [
+      "pnpm",
+      "--dir",
+      "web",
+      "build"
+    ],
+    "environment": {},
+    "started": "2026-09-10T15:17:38.760279+00:00",
+    "finished": "2026-09-10T15:17:39.966005+00:00",
+    "exit": 0,
+    "sha256": "03957e88b63bde384db25913563e50c1a52bee6456865ac21ad93bcd4f99db31"
+  },
+  {
+    "log": "browser12-fields-runner.log",
+    "command": [
+      "bash",
+      "scripts/browser-acceptance.sh"
+    ],
+    "environment": {
+      "RCC_E2E_SUITE": "field-interactions",
+      "RCC_E2E_ENGINES": "chromium,firefox,webkit",
+      "RCC_E2E_ARTIFACTS": "/private/tmp/rcc-88-final-verification/browser12-fields"
+    },
+    "started": "2026-09-10T15:17:39.966561+00:00",
+    "finished": "2026-09-10T15:18:13.929330+00:00",
+    "exit": 1,
+    "sha256": "288eee2ab9502df93bf51d9dadb3cc48fb75583bd3e7d7ea2ed5d358afc5a325"
+  }
+]

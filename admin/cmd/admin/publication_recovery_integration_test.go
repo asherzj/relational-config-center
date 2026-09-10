@@ -141,7 +141,7 @@ func TestPublicationCommitUnknownSurvivesExecutableRestart(t *testing.T) {
 	}
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
-	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"集成测试发布单","table_name":"mutation_add_items","items":[{"operation":"ADD","content":{"code":"commit-loss","label":"committed once"}}]}`, "wire-publication")
+	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"code":"commit-loss","label":"committed once"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "wire-publication")
 	proxy := newPublicationWireProxy(t, driver.Addr)
 	through := *driver
 	through.Addr = proxy.listener.Addr().String()
@@ -162,6 +162,30 @@ func TestPublicationCommitUnknownSurvivesExecutableRestart(t *testing.T) {
 		if proxy.mode.Load() != 0 {
 			t.Fatal("wire fault did not reach target SQL")
 		}
+		var receipt struct {
+			Error struct {
+				Outcome string `json:"execution_outcome"`
+				History string `json:"failure_history"`
+			}
+		}
+		if json.Unmarshal(body, &receipt) != nil {
+			t.Fatal("invalid error receipt")
+		}
+		current := batchEdgeOrder(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
+		failed := 0
+		for _, event := range current.History {
+			if event.Action == "EXECUTE_FAILED" {
+				failed++
+			}
+		}
+		if fault.mode < 3 {
+			if receipt.Error.Outcome != "not_committed" || receipt.Error.History != "saved" || current.Version != "3" || len(current.Executions) != 0 || failed != int(fault.mode) {
+				t.Fatalf("pre-COMMIT fault history/CAS incorrect: %s %#v", body, current)
+			}
+		} else if receipt.Error.Outcome != "" || receipt.Error.History != "" || current.State != "SUCCEEDED" || current.Version != "4" || len(current.Executions) != 1 || failed != 2 {
+			t.Fatalf("unknown COMMIT was recorded as failure: %s %#v", body, current)
+		}
+
 	}
 	if proxy.ack.Load() != 1 {
 		t.Fatal("test must consume exactly one actual COMMIT OK")
@@ -171,7 +195,7 @@ func TestPublicationCommitUnknownSurvivesExecutableRestart(t *testing.T) {
 	process.ready(t)
 	status, body := publicationProcessRequest(t, process, path+"/execute", "original-execute", cookies, csrf)
 	var order domain.ReleaseOrder
-	if status != 200 || json.Unmarshal(body, &order) != nil || order.State != "SUCCEEDED" || order.Publication == nil || len(order.Publication.Commands) != 1 {
+	if status != 200 || json.Unmarshal(body, &order) != nil || order.State != "SUCCEEDED" || len(order.Executions) < 1 || len(executionCommands(order, "PUBLICATION")) != 1 {
 		t.Fatalf("restart recovery: %d %s", status, body)
 	}
 	again, replay := publicationProcessRequest(t, process, path+"/execute", "original-execute", cookies, csrf)
@@ -179,7 +203,7 @@ func TestPublicationCommitUnknownSurvivesExecutableRestart(t *testing.T) {
 		t.Fatal("replay changed durable result")
 	}
 	db := deliveryDB(t, driver)
-	for _, query := range []string{`SELECT COUNT(*) FROM mutation_add_items WHERE code='commit-loss'`, `SELECT COUNT(*) FROM rcc_publication_commands`, `SELECT COUNT(*) FROM rcc_refresh_notifications`, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%'`, `SELECT COUNT(*) FROM rcc_table_publications WHERE table_version=1 AND command_cursor=1`} {
+	for _, query := range []string{`SELECT COUNT(*) FROM mutation_add_items WHERE code='commit-loss'`, `SELECT COUNT(*) FROM rcc_release_executions`, `SELECT COUNT(*) FROM rcc_publication_commands`, `SELECT COUNT(*) FROM rcc_refresh_notifications`, `SELECT COUNT(*) FROM rcc_release_requests WHERE operation LIKE 'execute:%'`, `SELECT COUNT(*) FROM rcc_table_publications WHERE table_version=1 AND command_cursor=1`} {
 		var n int
 		if err := db.QueryRow(query).Scan(&n); err != nil || n != 1 {
 			t.Fatalf("durable count %d %v: %s", n, err, query)
@@ -191,7 +215,7 @@ func TestPublicationCommitUnknownSurvivesExecutableRestart(t *testing.T) {
 			events++
 		}
 	}
-	if events != 1 || order.Publication.Notification.Status != "NOT_CONNECTED" {
+	if events != 1 || order.Executions[0].Notifications[order.Items[0].TableName].Status != "NOT_CONNECTED" {
 		t.Fatal("false delivery or duplicate execution")
 	}
 	process.stop(t)

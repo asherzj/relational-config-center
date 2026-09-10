@@ -1,0 +1,13 @@
+# Spec review — #88 / T7
+
+Reviewed frozen staged candidate `bbf5180bed0ce3bf66f8e29195a289e7cacd7fcb` against feature `e626885`, incoming main `9aa4bdd`, and initial AUTO_MERGE `b2ef8c6`, including unstaged/untracked inspection. Paths below are relative to `/private/tmp/rcc-issue-88-final-release-cleanup`. No tests, builds, database operations, or candidate edits were performed.
+
+1. **[P2] Active delivery documentation still contradicts implemented scope.** T7 requires synchronized domain/design/contracts and a final AC evidence index; the parent specification’s exit condition requires documentation synchronization. `docs/design-notes/release-order-draft-targets-spec.md:3` still says slices await confirmation and implementation has not changed; line 99 repeats that the code does not implement the goals. `docs/design-notes/release-order-draft-targets.md:3`, ticket status headers (e.g. `multitable-release-tickets/07-ticket.md:3`), the ticket README, and `docs/adr/0025-multitable-drafts-reserve-targets-and-record-executions.md:13` retain pending-stage descriptions. Reconcile them with actual local implementation and verification links before T7 completion, preserving approved AC definitions and distinguishing local verification from merge/deployment.
+
+2. **[P3] Standalone rollback identifiers remain in production branches.** AC-015/T7 explicitly owns deletion of remaining old rollback paths and confirmation fields. `admin/internal/interfaces/http/security.go:205` still selects authority for deleted `/:id/rollback`; `web/src/features/release-orders/release-journal.ts:6` still accepts that path and `rollback_conflict`; `useReleaseWrite.ts:58` still classifies the obsolete error. Remove these residues while preserving `quick-rollback`, `rollback-reason`, and legitimate known-conflict review. The obsolete route itself is removed; this is incomplete cleanup, not an observed authorization bypass.
+
+Evidence assessment: version-bound paged reads, immutable original-position results, original-key/current-authority behavior, migration 4/5 interruption/recovery, legacy technical notification multiplicity, and the same-order 25-detail browser journey have substantive evidence. Published-file protection reports 22/22 matches. No additional functional omission, unrequested scope, or unsupported failure scenario was identified in the reviewed seams.
+
+Final acceptance remains open: fresh `results1.json` records nonpassing Admin unit and Web runs (HTTP dependency/route tests; UnsavedChanges durable-save case). Diagnose and reconcile repaired runs; integration/Compose/three-engine completion is still ongoing and is not itself a review failure. Earlier migration failures have explicit later passing reruns.
+
+**Spec findings: 2; highest P2.**

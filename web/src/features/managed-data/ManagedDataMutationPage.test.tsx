@@ -1,3 +1,5 @@
+import {releaseFixture,withReleaseReadRoutes} from "../../test/release-fixture";
+import {rememberReleaseRequest,pendingReleaseRequests} from "../release-orders/release-journal";
 import { defaultFieldPolicies } from "../../test/field-policy-fixture";
 import { withDefaultRecordVersions } from "../../test/managed-data-fixture";
 import { testAdminIdentity, withAdminSession } from "../../test/account-session";
@@ -79,7 +81,7 @@ const row = {
 };
 
 function json(value: unknown, status = 200, requestId = "req-change-set") {
-  value = withDefaultRecordVersions(value);
+  value = releaseFixture(withDefaultRecordVersions(value));
   return new Response(JSON.stringify(value), {
     status,
     headers: { "Content-Type": "application/json", "X-Request-ID": requestId },
@@ -87,6 +89,7 @@ function json(value: unknown, status = 200, requestId = "req-change-set") {
 }
 
 function renderPage() {
+  vi.stubGlobal("fetch",withReleaseReadRoutes(globalThis.fetch));
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return {...render(
     <QueryClientProvider client={client}>
@@ -370,7 +373,7 @@ it("preserves a stale change, reads latest separately, and requires an explicit 
   await user.click(screen.getByRole("button", { name: "查看 Change Set" }));
   await user.click(screen.getByRole("button", { name: "确认并保存草稿" }));
   await screen.findByText("stale-33", { exact: false });
-  expect(writes).toEqual([{title:"notification_templates 配置变更",table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",content:{template_key:"welcome",subject:null,body:"my pending input"},expected_record_version:"9007199254740993"}]}]);
+  expect(writes).toEqual([{title:"notification_templates 配置变更",items:[{table_name:"notification_templates",operation:"MODIFY",id:"41",content:{template_key:"welcome",subject:null,body:"my pending input"},expected_record_version:"9007199254740993"}]}]);
   expect(screen.getByRole("button", { name: "确认并保存草稿" })).toBeDisabled();
   expect(latestReads).toBe(0);
   await user.click(screen.getByRole("button", { name: "查看最新值" }));
@@ -389,12 +392,12 @@ it("preserves a stale change, reads latest separately, and requires an explicit 
   expect(within(screen.getByRole("dialog", { name: "MODIFY Change Set" })).getByText("other editor")).toBeVisible();
   await user.click(screen.getByRole("button", { name: "确认并保存草稿" }));
   await waitFor(() => expect(writes).toHaveLength(2));
-  expect(writes[1]).toEqual({title:"notification_templates 配置变更",table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",content:{template_key:"welcome",subject:null,body:"my pending input"},expected_record_version:"9007199254740994"}]});
+  expect(writes[1]).toEqual({title:"notification_templates 配置变更",items:[{table_name:"notification_templates",operation:"MODIFY",id:"41",content:{template_key:"welcome",subject:null,body:"my pending input"},expected_record_version:"9007199254740994"}]});
 });
 
 it("从现有 Change Set 保存发布草稿，不调用记录写接口",async()=>{
  const writes:RequestInit[]=[];const releaseID="11111111222222223333333344444444";
- const saved={id:releaseID,title:"notification_templates 配置变更",table_name:"notification_templates",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-07T08:00:00Z",updated_at:"2026-09-07T08:00:00Z",history:[],allowed_actions:["edit","cancel"],items:[{operation:"MODIFY",id:"41",expected_record_version:"0",content:{template_key:"welcome",subject:null,body:"draft only"},before:row,fields:[]}]};
+ const saved={id:releaseID,title:"notification_templates 配置变更",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-07T08:00:00Z",updated_at:"2026-09-07T08:00:00Z",history:[],allowed_actions:["edit","cancel"],items:[{table_name:"notification_templates",operation:"MODIFY",id:"41",expected_record_version:"0",content:{template_key:"welcome",subject:null,body:"draft only"},before:row,fields:[]}]};
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
   if(String(input)==="/api/v1/release-orders"&&init?.method==="POST"){writes.push(init);return json(saved,201)}
   if(String(input)===`/api/v1/release-orders/${releaseID}`)return json(saved);
@@ -408,7 +411,7 @@ it("从现有 Change Set 保存发布草稿，不调用记录写接口",async()=
  await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
  expect(await screen.findByRole("heading",{name:"notification_templates 配置变更"})).toBeVisible();
  expect(writes).toHaveLength(1);
- expect(JSON.parse(String(writes[0].body))).toEqual({title:"notification_templates 配置变更",table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",expected_record_version:"0",content:{template_key:"welcome",subject:null,body:"draft only"}}]});
+ expect(JSON.parse(String(writes[0].body))).toEqual({title:"notification_templates 配置变更",items:[{table_name:"notification_templates",operation:"MODIFY",id:"41",expected_record_version:"0",content:{template_key:"welcome",subject:null,body:"draft only"}}]});
 });
 });
 
@@ -417,7 +420,7 @@ it.each(["ADD","MODIFY","DELETE"] as const)("%s 的唯一确认保存草稿并�
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
   const path=String(input);
   if(path==="/api/v1/release-orders"&&init?.method==="POST"){
-   writes.push(init);const intent=JSON.parse(String(init.body));saved={id:savedID,title:intent.title,table_name:intent.table_name,applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:intent.items.map((item:object)=>({...item,id:operation==="ADD"?null:"41",expected_record_version:operation==="ADD"?"":"0",before:operation==="ADD"?null:row,fields:[]}))};return json(saved,201)
+   writes.push(init);const intent=JSON.parse(String(init.body));saved={id:savedID,title:intent.title,applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:intent.items.map((item:object)=>({...item,id:operation==="ADD"?null:"41",expected_record_version:operation==="ADD"?"":"0",before:operation==="ADD"?null:row,fields:[]}))};return json(saved,201)
   }
   if(path===`/api/v1/release-orders/${savedID}`)return json(saved);
   if(path.includes("/rows"))throw new Error("removed row API must never be called");
@@ -463,7 +466,7 @@ it("空字符串主键的DELETE仍保存准确身份和版本",async()=>{
  await user.click(await screen.findByRole("button",{name:/^删除记录/}));
  await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
  await waitFor(()=>expect(writes).toHaveLength(1));
- expect(JSON.parse(String(writes[0].body)).items[0]).toEqual({operation:"DELETE",id:"",expected_record_version:"9007199254740993",content:{}});
+ expect(JSON.parse(String(writes[0].body)).items[0]).toEqual({table_name:"notification_templates",operation:"DELETE",id:"",expected_record_version:"9007199254740993",content:{}});
 });
 
 it("首次发布能力明确拒绝后保留输入并允许返回修改",async()=>{
@@ -491,7 +494,7 @@ it("首次发布能力明确拒绝后保留输入并允许返回修改",async()=
 
 it("AC-019 配置下拉草稿结果未知后仍以原正文和键恢复",async()=>{
  const releaseID="99999999aaaabbbbccccddddeeeeeeee";let attempts=0;const writes:RequestInit[]=[];
- const saved={id:releaseID,title:"notification_templates 配置变更",table_name:"notification_templates",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit","cancel"],items:[{operation:"ADD",id:null,expected_record_version:"",content:{template_key:"same-release-intent"},before:null,fields:[]}]};
+ const saved={id:releaseID,title:"notification_templates 配置变更",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit","cancel"],items:[{table_name:"notification_templates",operation:"ADD",id:null,expected_record_version:"",content:{template_key:"same-release-intent"},before:null,fields:[]}]};
  const metadata=defaultFieldPolicies("notification_templates",columns);
  const template=metadata.fields.find(field=>field.field_name==="template_key")!;
  template.effective={...template.effective,ui_type:"select",ui_options:{options:[{label:"原目录",value:"catalog"}]}};
@@ -513,9 +516,14 @@ it("AC-019 配置下拉草稿结果未知后仍以原正文和键恢复",async()
  await user.type(screen.getByRole("textbox",{name:"template_key 值 自定义值"}),"same-release-intent");
  await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
  await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
- await user.click(await screen.findByRole("button",{name:"使用原请求重试"}));
+ await screen.findByText("原请求已保留；再次保存将提交同一份草稿。");
+ expect(screen.getByRole("button",{name:"返回修改"})).toBeEnabled();
+ await user.click(screen.getByRole("button",{name:"返回修改"}));
+ expect(screen.getByRole("textbox",{name:"template_key 值 自定义值"})).toHaveValue("same-release-intent");
+ await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
+ await user.click(await screen.findByRole("button",{name:"确认并保存草稿"}));
  await waitFor(()=>expect(writes).toHaveLength(2));
- const retry=await screen.findByRole("button",{name:"使用原请求重试"});
+ const retry=await screen.findByRole("button",{name:"确认并保存草稿"});
  await waitFor(()=>expect(retry).toBeEnabled());
  await user.click(retry);
  expect(await screen.findByRole("heading",{name:"notification_templates 配置变更"})).toBeVisible();
@@ -527,14 +535,14 @@ it("AC-019 配置下拉草稿结果未知后仍以原正文和键恢复",async()
  expect(JSON.parse(String(writes[0]!.body)).title).toBe("notification_templates 配置变更");
 });
 
-it("明确勾选两行后加入本人同表已有草稿，保留原明细和各行版本",async()=>{
+it("明确勾选两行后加入本人跨表已有草稿，保留原明细和各行版本",async()=>{
  const existingID="bbbbbbbbccccccccddddddddeeeeeeee";
- const existing={id:existingID,title:"继续整理消息模板",table_name:"notification_templates",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"4",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{operation:"ADD",id:null,expected_record_version:"",content:{template_key:"kept",body:"kept"},before:null,fields:[]}]};
+ const existing={id:existingID,title:"继续整理消息模板",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"4",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{table_name:"other_config",operation:"ADD",id:null,expected_record_version:"",content:{template_key:"kept",body:"kept"},before:null,fields:[]}]};
  const writes:RequestInit[]=[];
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
   const path=String(input);
   if(path===`/api/v1/release-orders/${existingID}`){if(init?.method==="PUT")writes.push(init);return json(existing)}
-  if(path.startsWith("/api/v1/release-orders?"))return json({orders:[{...existing,item_count:1,operation_counts:{ADD:1}}],next_cursor:""});
+  if(path.startsWith("/api/v1/release-orders?")){expect(new URL(path,"http://localhost").searchParams.has("table_name")).toBe(false);return json({orders:[{...existing,item_count:1,operation_counts:{ADD:1}}],next_cursor:""})};
   if(path.endsWith("/tables/notification_templates/query"))return json({columns,rows:[row,{...row,id:"42"}],record_versions:["7","8"],page:{page_number:1,page_size:20,total_count:2,total_pages:1}});
   return readFetch(input,init,{...mutationPolicy,allow_delete:true});
  })));
@@ -546,20 +554,20 @@ it("明确勾选两行后加入本人同表已有草稿，保留原明细和各�
  await user.selectOptions(await screen.findByLabelText("保存到草稿"),existingID);
  await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
  await waitFor(()=>expect(writes).toHaveLength(1));
- expect(JSON.parse(String(writes[0]!.body))).toEqual({title:"继续整理消息模板",table_name:"notification_templates",expected_version:"4",items:[{operation:"ADD",expected_record_version:"",content:{template_key:"kept",body:"kept"}},{operation:"DELETE",id:"41",expected_record_version:"7",content:{}},{operation:"DELETE",id:"42",expected_record_version:"8",content:{}}]});
+ expect(JSON.parse(String(writes[0]!.body))).toEqual({title:"继续整理消息模板",expected_version:"4",changes:{upserts:[{table_name:"notification_templates",operation:"DELETE",id:"41",expected_record_version:"7",content:{}},{table_name:"notification_templates",operation:"DELETE",id:"42",expected_record_version:"8",content:{}}]}});
 });
 
-it("已有草稿去向不列出不可编辑的反向草稿",async()=>{
- const editableID="11111111222222223333333344444444",reverseID="55555555666666667777777788888888";
- const summary=(id:string,extra:object={})=>({id,title:"消息模板草稿",table_name:"notification_templates",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",allowed_actions:["edit"],item_count:1,operation_counts:{MODIFY:1},...extra});
+it("已有草稿去向只列出当前可编辑的草稿",async()=>{
+ const editableID="11111111222222223333333344444444",readonlyID="55555555666666667777777788888888";
+ const summary=(id:string,extra:object={})=>({id,title:"消息模板草稿",table_names:["notification_templates"],applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",allowed_actions:["edit"],item_count:1,operation_counts:{MODIFY:1},...extra});
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
-  if(String(input).startsWith("/api/v1/release-orders?"))return json({orders:[summary(editableID),summary(reverseID,{rollback_of_id:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",allowed_actions:["submit","cancel"]})],next_cursor:""});
+  if(String(input).startsWith("/api/v1/release-orders?"))return json({orders:[summary(editableID),summary(readonlyID,{allowed_actions:["submit","cancel"]})],next_cursor:""});
   return readFetch(input,init,{...mutationPolicy,allow_modify:true});
  })));
  const user=userEvent.setup();renderPage();
  await user.click(await screen.findByRole("button",{name:"修改记录 41"}));await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
  await user.click(screen.getByRole("button",{name:"选择已有草稿"}));
- expect(await screen.findByRole("option",{name:`消息模板草稿 · ${editableID} · 版本 1`})).toBeVisible();expect(screen.queryByRole("option",{name:`消息模板草稿 · ${reverseID} · 版本 1`})).not.toBeInTheDocument();
+ expect(await screen.findByRole("option",{name:`消息模板草稿 · ${editableID} · 版本 1`})).toBeVisible();expect(screen.queryByRole("option",{name:`消息模板草稿 · ${readonlyID} · 版本 1`})).not.toBeInTheDocument();
 });
 
 it("批量选择把原型属性名当作普通字符串记录 id",async()=>{
@@ -578,7 +586,7 @@ it("批量选择把原型属性名当作普通字符串记录 id",async()=>{
  await user.click(screen.getByRole("button",{name:"删除已选 2 项"}));
  await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
  await waitFor(()=>expect(writes).toHaveLength(1));
- expect(JSON.parse(String(writes[0]!.body)).items).toEqual([{operation:"DELETE",id:"__proto__",expected_record_version:"7",content:{}},{operation:"DELETE",id:"constructor",expected_record_version:"8",content:{}}]);
+ expect(JSON.parse(String(writes[0]!.body)).items).toEqual([{table_name:"notification_templates",operation:"DELETE",id:"__proto__",expected_record_version:"7",content:{}},{table_name:"notification_templates",operation:"DELETE",id:"constructor",expected_record_version:"8",content:{}}]);
 });
 
 it("批量删除核对每页20项，末页定位后仍保存全部选择",async()=>{
@@ -827,7 +835,48 @@ it("AC-015/019 shows fresh MODIFY defaults in Change Set while retaining the ori
   expect(within(review).getAllByText("database default")).toHaveLength(2);
   await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));
   await screen.findByText("drift-conflict",{exact:false});
-  expect(writes).toEqual([{title:"notification_templates 配置变更",table_name:"notification_templates",items:[{operation:"MODIFY",id:"41",expected_record_version:"0",content:{template_key:"welcome",subject:null,body:"my change",new_default:"database default",new_null:null}}]}]);
+  expect(writes).toEqual([{title:"notification_templates 配置变更",items:[{table_name:"notification_templates",operation:"MODIFY",id:"41",expected_record_version:"0",content:{template_key:"welcome",subject:null,body:"my change",new_default:"database default",new_null:null}}]}]);
   expect(screen.getByRole("button",{name:"确认并保存草稿"})).toBeDisabled();
   expect(within(review).getByText("my change")).toBeVisible();
+});
+
+
+it.each(["single","batch"] as const)("另一窗口原请求重推后保留配置页%s未保存输入",async(kind)=>{
+ const releaseID="88888888aaaabbbbccccddddeeeeeeee",writes:RequestInit[]=[];
+ const body=JSON.stringify({title:"other window",items:[{table_name:"notification_templates",operation:"ADD",content:{template_key:"other-value"}}]});
+ const saved={id:releaseID,title:"other window",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{table_name:"notification_templates",operation:"ADD",id:null,expected_record_version:"",content:{template_key:"other-value"},before:null,fields:[]}]};
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  if(String(input)==="/api/v1/release-orders"&&init?.method==="POST"){writes.push(init);return json(saved,201)}
+  if(String(input)===`/api/v1/release-orders/${releaseID}`)return json(saved);
+  return readFetch(input,init,{...mutationPolicy,allow_delete:true});
+ })));
+ const user=userEvent.setup();renderPage();
+ if(kind==="single"){
+  await user.click(await screen.findByRole("button",{name:"新增记录"}));await user.click(screen.getByLabelText("包含 template_key"));await user.type(screen.getByLabelText("template_key 值"),"this-window-value");await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
+ }else{await user.click(await screen.findByRole("checkbox",{name:"选择记录 41"}));await user.click(screen.getByRole("button",{name:"删除已选 1 项"}));}
+ await act(async()=>{await rememberReleaseRequest(testAdminIdentity.account.id,{scope:"create",path:"/api/v1/release-orders",method:"POST",body,key:"other-create-key",label:"另一窗口原申请"})});
+ await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));await waitFor(()=>expect(writes).toHaveLength(1));
+ await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
+ expect(writes[0]!.body).toBe(body);expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBe("other-create-key");
+ if(kind==="single"){
+  expect(screen.getByRole("dialog",{name:"ADD Change Set"})).toBeVisible();await user.click(screen.getByRole("button",{name:"返回修改"}));expect(screen.getByLabelText("template_key 值")).toHaveValue("this-window-value");
+ }else{expect(screen.getByRole("dialog",{name:"删除所选记录"})).toBeVisible();await user.click(screen.getByRole("button",{name:"取消删除"}));expect(screen.getByRole("checkbox",{name:"选择记录 41"})).toBeChecked();}
+});
+
+
+it.each(["single","batch"] as const)("配置页%s未知结果后可以退出且不清除原请求",async(kind)=>{
+ const writes:RequestInit[]=[];
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  if(String(input)==="/api/v1/release-orders"&&init?.method==="POST"){writes.push(init);throw new TypeError("response lost")}
+  return readFetch(input,init,{...mutationPolicy,allow_delete:true});
+ })));
+ const user=userEvent.setup();renderPage();
+ if(kind==="single"){
+  await user.click(await screen.findByRole("button",{name:"新增记录"}));await user.click(screen.getByLabelText("包含 template_key"));await user.type(screen.getByLabelText("template_key 值"),"kept-after-close");await user.click(screen.getByRole("button",{name:"查看 Change Set"}));
+ }else{await user.click(await screen.findByRole("checkbox",{name:"选择记录 41"}));await user.click(screen.getByRole("button",{name:"删除已选 1 项"}));}
+ await user.click(screen.getByRole("button",{name:"确认并保存草稿"}));await screen.findByText("Admin 连接或响应传输中断。");
+ expect(screen.getByRole("button",{name:kind==="single"?"放弃本次编辑":"取消删除"})).toBeEnabled();
+ await user.keyboard("{Escape}");await user.click(await screen.findByRole("button",{name:"放弃修改并离开"}));
+ await waitFor(()=>expect(screen.queryByRole("dialog")).not.toBeInTheDocument());expect(writes).toHaveLength(1);
+ const retained=pendingReleaseRequests(testAdminIdentity.account.id);expect(retained).toHaveLength(1);expect(retained[0].body).toBe(writes[0]!.body);expect(retained[0].key).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
 });

@@ -21,6 +21,7 @@ export function ManagedTextInput({ label, value, onChange, disabled, rows = 3, r
   return (
     <div className="managed-text-input">
       <Textarea
+        className="max-h-[42dvh] overflow-y-auto"
         aria-label={label}
         autoFocus={autoFocus}
         aria-describedby={[protectedCR ? explanationId : "", errorId].filter(Boolean).join(" ") || undefined}

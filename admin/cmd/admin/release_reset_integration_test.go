@@ -30,7 +30,7 @@ func TestReleaseResetPreservesRecordsAndContinuesPublication(t *testing.T) {
 	if first.RecordVersion != "41" || first.Sequence != "1" || first.TableVersion != "1" {
 		t.Fatalf("unexpected initial publication: %+v", first)
 	}
-	_ = approvePublication(t, app, publicationFixtureReviewer(t, app), `{"title":"pending cleanup","table_name":"mutation_supplied_id_items","items":[{"operation":"MODIFY","id":"kept","expected_record_version":"41","content":{"label":"never applied"}}]}`, "reset-approved")
+	_ = approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"label":"never applied"},"expected_record_version":"41","id":"kept","operation":"MODIFY","table_name":"mutation_supplied_id_items"}],"title":"pending cleanup"}`, "reset-approved")
 	before := resetCounts(t, driver)
 	for table, count := range before {
 		if count == 0 {
@@ -87,7 +87,7 @@ func TestReleaseResetPreservesRecordsAndContinuesPublication(t *testing.T) {
 	t.Logf("AC-021 before=%v after=%v; business value kept; generation=40; actual publication record 41→42, table 1→2, cursor 1→2; repeat succeeded", before, report.After)
 }
 
-var resetTables = []string{"rcc_release_orders", "rcc_release_requests", "rcc_release_targets", "rcc_publication_commands", "rcc_refresh_notifications"}
+var resetTables = []string{"rcc_release_orders", "rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_release_details", "rcc_release_executions", "rcc_publication_commands", "rcc_refresh_notifications"}
 
 func resetCounts(t *testing.T, driver *mysqldriver.Config) map[string]uint64 {
 	t.Helper()
@@ -190,9 +190,23 @@ func TestReleaseResetRefusesUnverifiedTargetsAndSchema(t *testing.T) {
 
 func TestReleaseResetInterruptedTransactionRollsBackAndRetries(t *testing.T) {
 	// Offline maintenance remains available before Goose adoption and without
-	// the unrelated field-policy table; only its own seven tables are required.
+	// unrelated field-policy/Goose tables. Upgrade only its eight owned tables.
 	ctx, driver := startIntegrationMySQL(t, "testdata/pre-goose-8b5cd859.sql")
-	db := deliveryDB(t, driver)
+	maintenance := *driver
+	maintenance.MultiStatements = true
+	maintenance.Params = map[string]string{"charset": "utf8mb4"}
+	db := deliveryDB(t, &maintenance)
+	for _, file := range []string{"015-original-order-executions.sql", "016-draft-target-reservations.sql", "017-release-main-order.sql"} {
+		source, err := os.ReadFile(filepath.Join("..", "..", "..", "deploy", "mysql", "migrations", file))
+		if err != nil {
+			t.Fatal(err)
+		}
+		deliveryExec(t, db, string(source))
+	}
+	var unrelated int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('rcc_goose_db_version','rcc_schema_migration_attempts','rcc_table_field_policies')`).Scan(&unrelated); err != nil || unrelated != 0 {
+		t.Fatalf("offline fixture silently became adopted/current: %d %v", unrelated, err)
+	}
 	seedReleaseResetHistory(t, driver)
 	before := resetCounts(t, driver)
 	binary := buildReleaseReset(t)
@@ -232,7 +246,7 @@ func TestReleaseResetInterruptedTransactionRollsBackAndRetries(t *testing.T) {
 		time.Sleep(20 * time.Millisecond)
 	}
 	if !waiting {
-		t.Fatal("reset did not reach last DELETE with previous four deletes uncommitted")
+		t.Fatal("reset did not reach last DELETE with previous child deletes uncommitted")
 	}
 	if !reflect.DeepEqual(before, resetCounts(t, driver)) {
 		t.Fatal("partial reset visible before commit")
@@ -268,19 +282,22 @@ func TestReleaseResetInterruptedTransactionRollsBackAndRetries(t *testing.T) {
 			t.Fatalf("retry left %s=%d", table, n)
 		}
 	}
-	t.Log("AC-021: signal interrupted final DELETE after four transaction-local deletes; no partial changes visible; rollback preserved all five counts; same target retry cleared all five")
+	t.Log("AC-021: signal interrupted final DELETE after transaction-local child deletes; no partial changes visible; rollback preserved all eight counts; same target retry cleared all eight")
 }
 
 func seedReleaseResetHistory(t *testing.T, driver *mysqldriver.Config) {
 	t.Helper()
 	db := deliveryDB(t, driver)
 	for _, statement := range []string{
-		`INSERT INTO rcc_release_orders VALUES('old','example','actor','APPROVED',3,JSON_OBJECT())`,
+		`INSERT INTO rcc_release_orders(id,applicant_id,state,version,document) VALUES('old','actor','APPROVED',3,JSON_OBJECT())`,
 		`INSERT INTO rcc_release_requests VALUES('actor','create','historic',UNHEX(REPEAT('00',32)),JSON_OBJECT('id','old','state','DRAFT'))`,
 		`INSERT INTO rcc_release_requests VALUES('actor','execute:old','unfinished',UNHEX(REPEAT('00',32)),NULL)`,
 		`INSERT INTO rcc_release_targets VALUES('example',UNHEX(REPEAT('01',32)),'old')`,
-		`INSERT INTO rcc_publication_commands VALUES('example',7,'old',JSON_OBJECT())`,
-		`INSERT INTO rcc_refresh_notifications VALUES('old','example',6,JSON_OBJECT())`,
+		`INSERT INTO rcc_release_table_references VALUES('example','old')`,
+		`INSERT INTO rcc_release_details VALUES('old',0,'example',JSON_OBJECT(),NULL,NULL)`,
+		`INSERT INTO rcc_release_executions VALUES('old','PUBLICATION','execution',JSON_OBJECT())`,
+		`INSERT INTO rcc_publication_commands VALUES('example',7,'old','execution',JSON_OBJECT())`,
+		`INSERT INTO rcc_refresh_notifications VALUES('old','execution','example',6,JSON_OBJECT())`,
 		`INSERT INTO rcc_table_publications VALUES('example',6,7)`,
 		`INSERT INTO rcc_record_versions VALUES('example',X'',40),('example',UNHEX(REPEAT('01',32)),41)`,
 	} {

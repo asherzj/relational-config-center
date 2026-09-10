@@ -1,3 +1,5 @@
+const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
+const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real Chrome → same-origin Admin process → isolated MySQL batch acceptance.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
@@ -28,7 +30,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     await page.getByRole('heading', { name: title, exact: true }).waitFor();
     await page.getByText(`${table} · ${state}`, { exact: true }).waitFor();
   } });
-  const read = (context, id) => api(context, 'GET', `/api/v1/release-orders/${id}`);
+  const read = async (context, id) => readAllReleaseDetailPages(context,base,await api(context,'GET',`/api/v1/release-orders/${id}`));
   const query = (context, conditions = [], pageNumber = 1) => api(context, 'POST', `/api/v1/tables/${table}/query`, {
     conditions, order: { field: 'id', direction: 'ASC' }, page_size: 200, page_number: pageNumber,
   });
@@ -120,7 +122,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     await page.getByRole('checkbox', { name: '选择记录 3', exact: true }).check();
     await button(page, '删除已选 2 项').click();
     assert.equal(await page.getByLabel('保存到草稿', { exact: true }).inputValue(), mixedID);
-    await page.getByText('将所选 2 项加入同表草稿。现在不会删除配置。', { exact: true }).waitFor();
+    await page.getByText('将所选 2 项加入发布草稿。现在不会删除配置。', { exact: true }).waitFor();
     await screenshot(page, 'batch-explicit-delete-selection.png');
     await button(page, '确认并保存草稿').click();
     await page.waitForURL(`**/configuration/release-orders/${mixedID}`);
@@ -150,13 +152,15 @@ const output = process.env.RCC_E2E_OUTPUT;
     };
     if (output) await writeFile(join(output, 'batch-edit-response.json'), JSON.stringify(editEvidence, null, 2));
     assert.equal(editEvidence.status, 200, `PUT release order: ${editEvidence.response}`);
-    assert.deepEqual(editEvidence.request.items.map(item => [item.operation, item.id]), [['MODIFY', '1'], ['DELETE', '2']]);
+    assert.equal(editEvidence.request.items, undefined);
+    assert.deepEqual(editEvidence.request.changes.upserts.map(item => [item.operation, item.id]), [['MODIFY', '1']]);
+    assert.deepEqual(editEvidence.request.changes.delete_detail_ids, [order.items[2].detail_id]);
     const savedOrder = JSON.parse(editEvidence.response);
     assert.equal(savedOrder.items.length, 2);
     assert.equal(savedOrder.items[0].content.label, 'published mixed label');
     // The edited value is already visible before save completes. Wait for the
     // actual response and the editor to close before reading durable state.
-    await page.getByRole('dialog', { name: `编辑 ${table} 草稿`, exact: true }).waitFor({ state: 'hidden' });
+    await page.getByRole('dialog', { name: `编辑多表草稿`, exact: true }).waitFor({ state: 'hidden' });
     await heading(page, '草稿').waitFor();
     await page.getByText('published mixed label', { exact: true }).waitFor();
     order = await read(applicant, mixedID);
@@ -205,18 +209,20 @@ const output = process.env.RCC_E2E_OUTPUT;
     await button(page, '执行发布').click();
     await page.getByText('全部 3 项将一起发布，预览分页不改变操作范围。', { exact: true }).waitFor();
     await button(page, '确认发布到数据库').click();
-    await button(page, '使用原请求重试').waitFor();
+    await page.getByText('Admin 连接或响应传输中断。',{exact:true}).waitFor();
     assert.equal(committed.state, 'SUCCEEDED');
     await page.unroute(executeRoute);
     page.once('dialog', dialog => dialog.accept());
     await page.reload();
-    await button(page, '恢复原发布请求').click();
+    const executeReplay=page.waitForResponse(response=>response.request().method()==='POST'&&response.url().endsWith(`/${mixedID}/execute`));
+    await repeatReleaseAction(page,'执行发布','确认发布到数据库');
+    assert.equal((await executeReplay).status(),200);
     await heading(page, '已发布待完结').waitFor();
     assert.equal(writes.length, 2);
     assert.deepEqual(writes[0], writes[1]);
     order = await read(applicant, mixedID);
-    assert.deepEqual(order.publication, committed.publication);
-    assert.equal(order.publication.commands.length, 3);
+    assert.deepEqual(executionCommands(order), executionCommands(committed));
+    assert.equal(executionCommands(order).length, 3);
     assert.equal(order.history.filter(event => event.action === 'EXECUTE').length, 1);
     const mixedRows = await query(applicant);
     assert.equal(mixedRows.page.total_count, 3);
@@ -224,13 +230,12 @@ const output = process.env.RCC_E2E_OUTPUT;
     assert.equal(mixedRows.rows.some(row => row.id === '2'), false);
     assert.equal(mixedRows.rows.find(row => row.id === '3').label, 'original three');
     assert.equal(mixedRows.rows.filter(row => row.code === 'ui-added').length, 1);
-    assert.equal(order.publication.commands[2].id, mixedRows.rows.find(row => row.code === 'ui-added').id);
+    assert.equal(executionCommands(order)[2].id, mixedRows.rows.find(row => row.code === 'ui-added').id);
     check('independent APPROVER approves all mixed items; EDITOR/PUBLISHER recovers a genuinely committed lost execute response after refresh with the original key and no duplicate rows/history');
 
     const large = await api(applicant, 'POST', '/api/v1/release-orders', {
       title: '浏览器千条批量变更',
-      table_name: table,
-      items: Array.from({ length: 1000 }, (_, index) => ({ operation: 'ADD', content: { code: `large-${index + 1}`, label: `batch item ${index + 1}` } })),
+      items: Array.from({ length: 1000 }, (_, index) => ({ table_name:table,operation: 'ADD', content: { code: `large-${index + 1}`, label: `batch item ${index + 1}` } })),
     }, 201);
     await page.goto(`${base}/configuration/release-orders/${large.id}`);
     await heading(page, '草稿', '浏览器千条批量变更').waitFor();
@@ -257,11 +262,11 @@ const output = process.env.RCC_E2E_OUTPUT;
     await button(page, '确认发布到数据库').click();
     await heading(page, '已发布待完结', '浏览器千条批量变更').waitFor();
     const published = await read(applicant, large.id);
-    const commands = published.publication.commands;
+    const commands = executionCommands(published);
     assert.equal(commands.length, 1000);
     assert.equal(new Set(commands.map(command => command.id)).size, 1000);
     assert.ok(commands.every(command => command.record_version === '1' && command.operation === 'ADD'));
-    assert.equal(published.publication.table_version, '2');
+    assert.equal(published.executions[0].table_versions[table], '2');
     const actualRows = [];
     for (let number = 1; number <= 6; number++) {
       const data = await query(applicant, [], number);
@@ -276,7 +281,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     });
     await page.getByLabel('定位结果', { exact: true }).fill('1000');
     const result = page.getByRole('region', { name: '发布结果', exact: true });
-    const finalResult = result.getByRole('article').filter({ has: page.getByRole('heading', { name: `ADD · 记录 ${commands[999].id}`, exact: true }) });
+    const finalResult = result.getByRole('article').filter({ has: page.getByRole('heading', { name: `明细 1000 · ${commands[999].table_name} · ADD · 记录 ${commands[999].id}`, exact: true }) });
     await finalResult.getByText('值：batch item 1000', { exact: true }).waitFor();
     await finalResult.scrollIntoViewIfNeeded();
     await screenshot(page, 'batch-1000-final-result-desktop.png');

@@ -1,0 +1,1569 @@
+{
+  "issue": 86,
+  "parent": 81,
+  "fixed_base": "e66d96e5aadd54f9ec0f6bf2a6138c2ff7ed0e9c",
+  "scope": "affected regressions; coordinator owns one final full suite",
+  "backend": {
+    "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+    "required": 32,
+    "passed": 32,
+    "missing": [],
+    "cases": [
+      {
+        "test": "TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestConfirmedReleaseFailureHistoryPreservesOriginalRetry",
+        "pass_source": "backend-reviewed-final.log"
+      },
+      {
+        "test": "TestOriginalOrderRollbackPreservesApplicationAndBothExecutions",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestPublicationActionCompetitionAndTableOrder",
+        "pass_source": "backend-affected-step2.log"
+      },
+      {
+        "test": "TestPublicationAtomicPersistenceFailures",
+        "pass_source": "backend-affected-step2.log"
+      },
+      {
+        "test": "TestPublicationCommitUnknownSurvivesExecutableRestart",
+        "pass_source": "backend-reviewed-final.log"
+      },
+      {
+        "test": "TestPublicationFrozenChangesAndDescriptions",
+        "pass_source": "backend-affected-step2.log"
+      },
+      {
+        "test": "TestPublicationPublisherHistoryAndApprovalSurvivesRevocation",
+        "pass_source": "backend-affected-step2.log"
+      },
+      {
+        "test": "TestPublicationStoredRowsAreVerifiedBeforeReadOrReplay",
+        "pass_source": "backend-affected-step2.log"
+      },
+      {
+        "test": "TestQuickRollbackCanTerminateAtAcceptedPublicationCapacity",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestQuickRollbackConstraintFailureRollsBackEarlierItems",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestQuickRollbackPreviewShowsWholeRestorationWithoutWriting",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestQuickRollbackRejectsDatabaseEffectsThatCannotRestoreOriginalValues",
+        "pass_source": "backend-reviewed-final.log"
+      },
+      {
+        "test": "TestQuickRollbackRejectsUnversionedExternalChangesBeforePreviewAndExecution",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestQuickRollbackRequiresItsOriginalRetainedTargets",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestReleaseBatchEdgeMidwayConstraintRollback",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestReleaseBatchEdgeStaleMemberRollsBack",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestReleaseCompletionAtPublicationCapacityClosesRollbackWindow",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestReleaseCompletionPermanentlyClosesRollbackWindow",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestReleaseCompletionPersistenceFailureIsAtomic",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestReleaseCompletionProtectsActualAndDeletedIDs",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestReleaseCompletionReleasesWithoutRepublishing",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestReleaseCompletionRequiresTrustedPublicationOnReadAndReplay",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestReleaseCompletionRetainsKnownTargets",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestReleaseCompletionRolesConcurrencyAndReplay",
+        "pass_source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestReleaseFailureAuditPreservesConcurrentCancellation",
+        "pass_source": "backend-reviewed-final.log"
+      },
+      {
+        "test": "TestReleaseFailureHistoryUnavailableDoesNotLeaveBusinessWrites",
+        "pass_source": "backend-reviewed-final.log"
+      }
+    ],
+    "original_failed_cases": [
+      {
+        "test": "TestQuickRollbackRejectsDatabaseEffectsThatCannotRestoreOriginalValues",
+        "source": "backend-affected-step1.log"
+      },
+      {
+        "test": "TestReleaseFailureAuditPreservesConcurrentCancellation",
+        "source": "backend-affected-step2.log"
+      }
+    ]
+  },
+  "web": {
+    "total": 213,
+    "passed": 213,
+    "failed": 0,
+    "skipped": 0,
+    "files": [
+      {
+        "path": "web/src/api/client-stream.test.ts",
+        "passed": 1,
+        "cases": [
+          {
+            "name": "retains received HTTP status and Request ID after a real TCP response body interruption",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "web/src/api/client.test.ts",
+        "passed": 50,
+        "cases": [
+          {
+            "name": "Admin API client validates successful responses at the boundary",
+            "status": "passed"
+          },
+          {
+            "name": "Admin API client preserves stable Admin error codes and request IDs",
+            "status": "passed"
+          },
+          {
+            "name": "Admin API client fails closed when the response violates the Web contract",
+            "status": "passed"
+          },
+          {
+            "name": "Admin API client preserves response headers when the response body stream fails",
+            "status": "passed"
+          },
+          {
+            "name": "Admin API client retries only transient reads once",
+            "status": "passed"
+          },
+          {
+            "name": "Admin API client rejects a business response authenticated as a different Cookie account before exposing its body",
+            "status": "passed"
+          },
+          {
+            "name": "Admin API client classifies a response body stream failure after a write as an uncertain network result",
+            "status": "passed"
+          },
+          {
+            "name": "Admin API client turns a late old-account success into a stale result",
+            "status": "passed"
+          },
+          {
+            "name": "Admin API client turns a late old-account 401 into a stale result",
+            "status": "passed"
+          },
+          {
+            "name": "Admin API client turns a late old-account network error into a stale result",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes treats network_error/0 as potentially committed",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes treats network_error/201 as potentially committed",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes treats contract_mismatch/200 as potentially committed",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes treats unexpected_response/400 as potentially committed",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes treats mutation_unavailable/503 as potentially committed",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes treats policy_catalog_unavailable/503 as potentially committed",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes treats query_policy_not_found/404 as potentially committed",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes treats mutation_policy_not_found/404 as potentially committed",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes treats table_policy_not_found/404 as potentially committed",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes treats mutation_timeout/504 as potentially committed",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes treats internal_error/500 as potentially committed",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes treats unrecognized_rejection/422 as potentially committed",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized duplicate_key rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized invalid_mutation_content rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized query_policy_exists rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized invalid_policy_transition rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized session_invalid rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized account_disabled rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized csrf_invalid rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release release_auto_id_ambiguous rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release publication_unsupported rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release publication_metadata_permission rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release release_snapshot_unsupported rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release release_metadata_permission rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release release_cross_table rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release release_item_limit rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release release_result_limit rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release release_field_limit rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release release_duplicate_target rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release release_invalid rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release rollback_locked rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release rollback_restore_mismatch rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release concurrency_key_invalid rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release concurrency_key_in_use rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes allows correction after recognized release concurrency_key_value_required rejection",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes keeps an original request after non-conclusive release permission_denied",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes keeps an original request after non-conclusive release authentication_required",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes keeps an original request after non-conclusive release release_not_found",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes keeps an original request after non-conclusive release idempotency_conflict",
+            "status": "passed"
+          },
+          {
+            "name": "uncertain writes does not infer a rejection from an unknown exception or absent error",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "web/src/test/UnsavedChanges.test.tsx",
+        "passed": 24,
+        "cases": [
+          {
+            "name": "rule drafts and navigation protection 'query' 'create': protects all drawer exits and treats exact restoration as clean",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection 'query' 'edit': protects all drawer exits and treats exact restoration as clean",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection 'query' 'metadata': protects all drawer exits and treats exact restoration as clean",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection 'mutation' 'create': protects all drawer exits and treats exact restoration as clean",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection 'mutation' 'edit': protects all drawer exits and treats exact restoration as clean",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection 'mutation' 'metadata': protects all drawer exits and treats exact restoration as clean",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection cancels and confirms history back/forward, resource/mode changes, and main navigation",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection does not let a discarded draft block the next history action before React unmounts it",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection 'query' 'create': pending blocks repeat/leave, failure retains draft, success clears protection",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection 'query' 'edit': pending blocks repeat/leave, failure retains draft, success clears protection",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection 'query' 'metadata': pending blocks repeat/leave, failure retains draft, success clears protection",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection 'mutation' 'create': pending blocks repeat/leave, failure retains draft, success clears protection",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection 'mutation' 'edit': pending blocks repeat/leave, failure retains draft, success clears protection",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection 'mutation' 'metadata': pending blocks repeat/leave, failure retains draft, success clears protection",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection query draft survives refreshed details and changed server status",
+            "status": "passed"
+          },
+          {
+            "name": "rule drafts and navigation protection mutation draft survives refreshed details and changed server status",
+            "status": "passed"
+          },
+          {
+            "name": "table assignments and managed row drafts table read-only effects follow refreshed references",
+            "status": "passed"
+          },
+          {
+            "name": "table assignments and managed row drafts query read-only detail reflects refreshed values",
+            "status": "passed"
+          },
+          {
+            "name": "table assignments and managed row drafts mutation read-only detail reflects refreshed values",
+            "status": "passed"
+          },
+          {
+            "name": "table assignments and managed row drafts table create preserves selections on cancel/refresh/failure and clears protection on success",
+            "status": "passed"
+          },
+          {
+            "name": "table assignments and managed row drafts table replace preserves selections on cancel/refresh/failure and clears protection on success",
+            "status": "passed"
+          },
+          {
+            "name": "table assignments and managed row drafts keeps the same row draft across Change Set, canceled exits and refreshed table catalog",
+            "status": "passed"
+          },
+          {
+            "name": "table assignments and managed row drafts draft saving cannot be canceled or repeated in flight and preserves input until durable save",
+            "status": "passed"
+          },
+          {
+            "name": "table assignments and managed row drafts restoring row controls is clean and DELETE preview explicitly cancels without writing",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "web/src/components/ui/WriteRecovery.test.tsx",
+        "passed": 3,
+        "cases": [
+          {
+            "name": "requires a fresh read for each unknown attempt and keeps NULL/empty/string values distinct",
+            "status": "passed"
+          },
+          {
+            "name": "does not attach a delayed observation of target A to target B",
+            "status": "passed"
+          },
+          {
+            "name": "replaces the previous observation when a second read is missing or unavailable",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "web/src/features/accounts/WorkspaceAccess.test.tsx",
+        "passed": 15,
+        "cases": [
+          {
+            "name": "requires login before showing the workspace and remembers its internal destination",
+            "status": "passed"
+          },
+          {
+            "name": "returns from /configuration/managed-data?table=items#row to an allowed workspace destination after /configuration/managed-data?table=items#row",
+            "status": "passed"
+          },
+          {
+            "name": "returns from /platform/mutation-policies to an allowed workspace destination after /platform/mutation-policies",
+            "status": "passed"
+          },
+          {
+            "name": "returns from https://evil.example/steal to an allowed workspace destination after /platform/query-policies",
+            "status": "passed"
+          },
+          {
+            "name": "returns from //evil.example/steal to an allowed workspace destination after /platform/query-policies",
+            "status": "passed"
+          },
+          {
+            "name": "returns from /\\evil.example/steal to an allowed workspace destination after /platform/query-policies",
+            "status": "passed"
+          },
+          {
+            "name": "keeps an authenticated rule rejection on the workspace instead of redirecting to login",
+            "status": "passed"
+          },
+          {
+            "name": "preserves a service failure as a retryable session check",
+            "status": "passed"
+          },
+          {
+            "name": "handles a business session 401 by hiding the workspace behind reauthentication",
+            "status": "passed"
+          },
+          {
+            "name": "cancels pending dirty navigation on expiry and restores the guarded draft after same-account reauthentication",
+            "status": "passed"
+          },
+          {
+            "name": "clears an in-memory rule draft when focus reveals a different Cookie account",
+            "status": "passed"
+          },
+          {
+            "name": "clears an in-memory rule draft when another tab ends the session",
+            "status": "passed"
+          },
+          {
+            "name": "keeps same-account memory hidden through an authentication service failure",
+            "status": "passed"
+          },
+          {
+            "name": "destroys recoverable drafts when the server identifies a disabled account",
+            "status": "passed"
+          },
+          {
+            "name": "destroys an interrupted draft when the embedded login inspection discovers a disabled account",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "web/src/features/managed-data/ChangeSetDialog.test.tsx",
+        "passed": 1,
+        "cases": [
+          {
+            "name": "删除确认按当前顺序显示全部实际字段，并保留重复标签对应的真实字段和值",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "web/src/features/managed-data/ConfiguredRowEditor.test.tsx",
+        "passed": 5,
+        "cases": [
+          {
+            "name": "AC-015 fails explicitly on configuration read errors and retries before exposing editor fields",
+            "status": "passed"
+          },
+          {
+            "name": "AC-003/015 uses fresh real metadata when the previous query schema has removed, added or generated fields",
+            "status": "passed"
+          },
+          {
+            "name": "AC-015 reads actual values for newly discovered MODIFY fields instead of manufacturing empty strings",
+            "status": "passed"
+          },
+          {
+            "name": "AC-015 does not create an editor from a missing current row and retries the current-schema read",
+            "status": "passed"
+          },
+          {
+            "name": "AC-015 rejects a second schema change between metadata and the current-row read",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "web/src/features/managed-data/ManagedDataMutationPage.test.tsx",
+        "passed": 30,
+        "cases": [
+          {
+            "name": "Managed Data draft confirmation fails closed by capability, offers optional id, and excludes every server-managed Auto Fill field from ADD",
+            "status": "passed"
+          },
+          {
+            "name": "Managed Data draft confirmation fails closed when an applicable Auto Fill target is absent from the live dynamic Schema",
+            "status": "passed"
+          },
+          {
+            "name": "Managed Data draft confirmation keeps a Change Set across same-account login, refetches rules and schema, and requires confirmation again",
+            "status": "passed"
+          },
+          {
+            "name": "Managed Data draft confirmation keeps MODIFY input but rechecks the exact current target before rebuilding its Change Set",
+            "status": "passed"
+          },
+          {
+            "name": "Managed Data draft confirmation allows a fresh editor opened after the recovered list was already rechecked",
+            "status": "passed"
+          },
+          {
+            "name": "Managed Data draft confirmation keeps a recovered MODIFY Change Set gated through failed latest reads (version changed: false)",
+            "status": "passed"
+          },
+          {
+            "name": "Managed Data draft confirmation keeps a recovered MODIFY Change Set gated through failed latest reads (version changed: true)",
+            "status": "passed"
+          },
+          {
+            "name": "Managed Data draft confirmation preserves a stale change, reads latest separately, and requires an explicit rebuild before retry",
+            "status": "passed"
+          },
+          {
+            "name": "Managed Data draft confirmation 从现有 Change Set 保存发布草稿，不调用记录写接口",
+            "status": "passed"
+          },
+          {
+            "name": "ADD 的唯一确认保存草稿并保留字段三态与记录版本",
+            "status": "passed"
+          },
+          {
+            "name": "MODIFY 的唯一确认保存草稿并保留字段三态与记录版本",
+            "status": "passed"
+          },
+          {
+            "name": "DELETE 的唯一确认保存草稿并保留字段三态与记录版本",
+            "status": "passed"
+          },
+          {
+            "name": "空字符串主键的DELETE仍保存准确身份和版本",
+            "status": "passed"
+          },
+          {
+            "name": "首次发布能力明确拒绝后保留输入并允许返回修改",
+            "status": "passed"
+          },
+          {
+            "name": "AC-019 配置下拉草稿结果未知后仍以原正文和键恢复",
+            "status": "passed"
+          },
+          {
+            "name": "明确勾选两行后加入本人跨表已有草稿，保留原明细和各行版本",
+            "status": "passed"
+          },
+          {
+            "name": "已有草稿去向不列出不可编辑的反向草稿",
+            "status": "passed"
+          },
+          {
+            "name": "批量选择把原型属性名当作普通字符串记录 id",
+            "status": "passed"
+          },
+          {
+            "name": "批量删除核对每页20项，末页定位后仍保存全部选择",
+            "status": "passed"
+          },
+          {
+            "name": "AC-012 freezes configured query/editor input through same-account recovery and reopens with latest rules",
+            "status": "passed"
+          },
+          {
+            "name": "重新进入时等待本次字段配置读取再冻结，并且后续实时刷新不重绘查询输入",
+            "status": "passed"
+          },
+          {
+            "name": "列表首次成功后的配置刷新失败独立报错重试，并保留已冻结筛选输入",
+            "status": "passed"
+          },
+          {
+            "name": "AC-012 isolates configured query and editor drafts when the account changes",
+            "status": "passed"
+          },
+          {
+            "name": "AC-015 independently retries field metadata without replacing already entered query input",
+            "status": "passed"
+          },
+          {
+            "name": "AC-015 passes newly discovered real fields through the editor into Change Set",
+            "status": "passed"
+          },
+          {
+            "name": "AC-015/019 shows fresh MODIFY defaults in Change Set while retaining the original record version",
+            "status": "passed"
+          },
+          {
+            "name": "另一窗口原请求重推后保留配置页single未保存输入",
+            "status": "passed"
+          },
+          {
+            "name": "另一窗口原请求重推后保留配置页batch未保存输入",
+            "status": "passed"
+          },
+          {
+            "name": "配置页single未知结果后可以退出且不清除原请求",
+            "status": "passed"
+          },
+          {
+            "name": "配置页batch未知结果后可以退出且不清除原请求",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "web/src/features/managed-data/ManagedDataPage.test.tsx",
+        "passed": 11,
+        "cases": [
+          {
+            "name": "配置内容管理页面 没有已启用表规则时显示明确空状态且不调用 Managed Data API",
+            "status": "passed"
+          },
+          {
+            "name": "配置内容管理页面 只列出 enabled Managed Table，并用首次查询的动态列区分 NULL 与空字符串",
+            "status": "passed"
+          },
+          {
+            "name": "配置内容管理页面 按当前字段配置隐藏和排序列表列，并用真实字段和值消除重复标签歧义",
+            "status": "passed"
+          },
+          {
+            "name": "配置内容管理页面 切换 enabled Managed Table 时重置 Query Spec 并查询所选表的动态列",
+            "status": "passed"
+          },
+          {
+            "name": "配置内容管理页面 把空字符串 exact 条件作为真实 JSON String 提交",
+            "status": "passed"
+          },
+          {
+            "name": "配置内容管理页面 提交单字段排序并只用服务端页信息翻页、设置每页数量和清空查询",
+            "status": "passed"
+          },
+          {
+            "name": "配置内容管理页面 即使 Query Spec 已经为空，清空也会重新查询",
+            "status": "passed"
+          },
+          {
+            "name": "配置内容管理页面 清晰呈现 Managed Data 稳定错误和 Request ID",
+            "status": "passed"
+          },
+          {
+            "name": "配置内容管理页面 呈现 invalid_policy_snapshot 稳定错误和 Request ID",
+            "status": "passed"
+          },
+          {
+            "name": "配置内容管理页面 呈现 incompatible_table 稳定错误和 Request ID",
+            "status": "passed"
+          },
+          {
+            "name": "配置内容管理页面 不会自动重放 POST Query Spec",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "web/src/features/managed-data/mutation-workflow.test.tsx",
+        "passed": 1,
+        "cases": [
+          {
+            "name": "Managed Data mutation workflow pins reviewed table and field intent for draft saving without a row write",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "web/src/features/release-orders/ReleaseDiff.test.tsx",
+        "passed": 7,
+        "cases": [
+          {
+            "name": "值 SQL NULL 与同名特殊状态有不同语义",
+            "status": "passed"
+          },
+          {
+            "name": "值 未提交 与同名特殊状态有不同语义",
+            "status": "passed"
+          },
+          {
+            "name": "值 不存在 与同名特殊状态有不同语义",
+            "status": "passed"
+          },
+          {
+            "name": "值 发布时生成 与同名特殊状态有不同语义",
+            "status": "passed"
+          },
+          {
+            "name": "仅看变更默认开启，隐藏 MODIFY 未提交及确定同值字段，完整视图保留状态区别",
+            "status": "passed"
+          },
+          {
+            "name": "千项混合差异每页20项，仅展开首项且 ADD/DELETE 保持完整",
+            "status": "passed"
+          },
+          {
+            "name": "字段对比的实际横向滚动容器可经键盘聚焦且有明确名称",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "web/src/features/release-orders/ReleaseOrdersPage.test.tsx",
+        "passed": 64,
+        "cases": [
+          {
+            "name": "原申请人或管理员核对最新配置后原子化重新准备已批准普通单",
+            "status": "passed"
+          },
+          {
+            "name": "重新准备响应丢失后跨刷新保留原正文与幂等键并恢复同一草稿",
+            "status": "passed"
+          },
+          {
+            "name": "详情同时展示标题、相关人员当前姓名、首字头像和永久 ID",
+            "status": "passed"
+          },
+          {
+            "name": "人员姓名重读失败时清除缓存姓名、显示错误标识并允许独立重试",
+            "status": "passed"
+          },
+          {
+            "name": "发布者明确确认完结，取消无写入且不要求意见",
+            "status": "passed"
+          },
+          {
+            "name": "已完结原单没有回滚入口",
+            "status": "passed"
+          },
+          {
+            "name": "原执行旧键重放返回已发布快照后仍重新读取当前已回滚详情",
+            "status": "passed"
+          },
+          {
+            "name": "从列表的查看详情入口打开持久草稿，并取消后保留历史",
+            "status": "passed"
+          },
+          {
+            "name": "编辑冲突保留输入，读取最新后必须明确重建再保存",
+            "status": "passed"
+          },
+          {
+            "name": "发布单标题按 Unicode 字符计数并允许 100 个 emoji",
+            "status": "passed"
+          },
+          {
+            "name": "编辑发布草稿时保留原始 CRLF 和 CR，明确转换后才允许修改",
+            "status": "passed"
+          },
+          {
+            "name": "刷新后恢复未知请求，随后403也不丢弃原标识或跨账号重放",
+            "status": "passed"
+          },
+          {
+            "name": "已知 ADD 冲突后查看缺行墓碑并明确重建，保留当前申请值",
+            "status": "passed"
+          },
+          {
+            "name": "未知请求重试得到明确版本冲突后，可核对并用新请求重建",
+            "status": "passed"
+          },
+          {
+            "name": "未知请求明确被取消状态拒绝后，保留输入并只读查看终态",
+            "status": "passed"
+          },
+          {
+            "name": "刷新后原请求被明确拒绝仍保留申请，核对后才能确认重建",
+            "status": "passed"
+          },
+          {
+            "name": "原业务结果重放成功后重新读取已挂载详情的当前版本",
+            "status": "passed"
+          },
+          {
+            "name": "发布单GET 403遵循有限重试规则",
+            "status": "passed"
+          },
+          {
+            "name": "发布单GET 404遵循有限重试规则",
+            "status": "passed"
+          },
+          {
+            "name": "发布单GET 503遵循有限重试规则",
+            "status": "passed"
+          },
+          {
+            "name": "取消请求刷新恢复冲突后，明确显示真实取消动作并保留原因",
+            "status": "passed"
+          },
+          {
+            "name": "仅有审批角色的人填写意见批准冻结单据",
+            "status": "passed"
+          },
+          {
+            "name": "审批状态冲突跨刷新保留原意见，查看最新后才显式重建",
+            "status": "passed"
+          },
+          {
+            "name": "仅 PUBLISHER 执行原审批，丢响应后跨刷新使用原键确认并显示最终值",
+            "status": "passed"
+          },
+          {
+            "name": "分页编辑及删除只提交本次明细变化和整单版本",
+            "status": "passed"
+          },
+          {
+            "name": "千项预览可定位最后一项，审批仍包含整单",
+            "status": "passed"
+          },
+          {
+            "name": "大单与待恢复请求超出浏览器保存容量时发送前拒绝并保留原请求",
+            "status": "passed"
+          },
+          {
+            "name": "千项编辑器只列当前20项并能直接编辑第1000项",
+            "status": "passed"
+          },
+          {
+            "name": "完结丢响应后保留原请求并通过原完结操作安全重推",
+            "status": "passed"
+          },
+          {
+            "name": "快速回滚先读取整单恢复预览，取消无写入且无需必填原因",
+            "status": "passed"
+          },
+          {
+            "name": "快速回滚未知结果保留原摘要原因与标识，正常读取当前终态并跨刷新重推",
+            "status": "passed"
+          },
+          {
+            "name": "快速回滚明确拒绝后保留原因，只有主动重读并审阅新预览才重建",
+            "status": "passed"
+          },
+          {
+            "name": "快速回滚预览失败时保留原因，主动重读成功后仍拒绝超长原因",
+            "status": "passed"
+          },
+          {
+            "name": "当前 VIEWER 即使详情旧权限含快速回滚也不提供入口",
+            "status": "passed"
+          },
+          {
+            "name": "当前 EDITOR 即使详情旧权限含快速回滚也不提供入口",
+            "status": "passed"
+          },
+          {
+            "name": "当前 APPROVER 即使详情旧权限含快速回滚也不提供入口",
+            "status": "passed"
+          },
+          {
+            "name": "重新准备发送前响应未知时，关闭和刷新保留原正文和键且当前主单操作可用",
+            "status": "passed"
+          },
+          {
+            "name": "已回滚详情默认实际原发布结果并可读取可信恢复结果或申请差异",
+            "status": "passed"
+          },
+          {
+            "name": "字段名称和选项标签重读后实时更新，但申请 before 与持久化 final 原值不变",
+            "status": "passed"
+          },
+          {
+            "name": "字段显示读取失败时保留发布单原始内容，并可独立重试当前标签",
+            "status": "passed"
+          },
+          {
+            "name": "同一表的不同发布单在每次查看详情时重读当前显示规则",
+            "status": "passed"
+          },
+          {
+            "name": "详情四阶段与最近五条历史可展开，并复制真实单号",
+            "status": "passed"
+          },
+          {
+            "name": "DRAFT 详情使用真实阶段",
+            "status": "passed"
+          },
+          {
+            "name": "PENDING_APPROVAL 详情使用真实阶段",
+            "status": "passed"
+          },
+          {
+            "name": "APPROVED 详情使用真实阶段",
+            "status": "passed"
+          },
+          {
+            "name": "SUCCEEDED 详情使用真实阶段",
+            "status": "passed"
+          },
+          {
+            "name": "COMPLETED 详情使用真实阶段",
+            "status": "passed"
+          },
+          {
+            "name": "REJECTED 详情使用真实阶段",
+            "status": "passed"
+          },
+          {
+            "name": "CANCELLED 详情使用真实阶段",
+            "status": "passed"
+          },
+          {
+            "name": "ROLLED_BACK 详情使用真实阶段",
+            "status": "passed"
+          },
+          {
+            "name": "快速回滚结果的审批阶段明确无需新审批",
+            "status": "passed"
+          },
+          {
+            "name": "步骤人员时间来自提交而非创建，完结显示真实完结操作者",
+            "status": "passed"
+          },
+          {
+            "name": "重新准备未知后明确拒绝，必须读取最新版本和差异才可用新键重建",
+            "status": "passed"
+          },
+          {
+            "name": "重新准备会话中断隐藏浮层，重新登录后按账号隔离原请求（切换账号=false）",
+            "status": "passed"
+          },
+          {
+            "name": "重新准备会话中断隐藏浮层，重新登录后按账号隔离原请求（切换账号=true）",
+            "status": "passed"
+          },
+          {
+            "name": "冷账号在DRAFT读取持久编辑请求后仍可原键重推，不倒退主单",
+            "status": "passed"
+          },
+          {
+            "name": "冷账号在PENDING_APPROVAL读取持久编辑请求后仍可原键重推，不倒退主单",
+            "status": "passed"
+          },
+          {
+            "name": "另一窗口留下同范围原请求时锁定当前输入，恢复后保留本窗口未保存内容",
+            "status": "passed"
+          },
+          {
+            "name": "多表审阅按所属表读取一次当前标签，申请与两次实际结果不串表",
+            "status": "passed"
+          },
+          {
+            "name": "版本冲突的最新草稿首次加入另一表时读取其标签并保留本窗口输入",
+            "status": "passed"
+          },
+          {
+            "name": "发布异常只报错，原动作手动重复保持原身份与正文（历史saved）",
+            "status": "passed"
+          },
+          {
+            "name": "发布异常只报错，原动作手动重复保持原身份与正文（历史unavailable）",
+            "status": "passed"
+          },
+          {
+            "name": "HTTP成功后的IndexedDB清理失败仍读取真实主单且不会变成业务失败",
+            "status": "passed"
+          },
+          {
+            "name": "冷账号日志尚未读出时新建原操作等待，读出后保持完整原请求",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "web/src/features/release-orders/release-journal.test.ts",
+        "passed": 1,
+        "cases": [
+          {
+            "name": "persists a request larger than sessionStorage without changing its key or body",
+            "status": "passed"
+          }
+        ]
+      }
+    ]
+  },
+  "browser": [
+    {
+      "source": "/private/tmp/rcc-t5-evidence/write-recovery-step2/write-recovery/result.json",
+      "ok": true,
+      "checks": [
+        "ADD abort: one publication, immutable intent, original-key recovery",
+        "ADD json: one publication, immutable intent, original-key recovery",
+        "ADD contract: one publication, immutable intent, original-key recovery",
+        "ADD 503: one publication, immutable intent, original-key recovery",
+        "MODIFY lost response: exact identity and original-key replay",
+        "DELETE lost response: exact identity and original-key replay",
+        "separate unknown publications retain separate original request keys",
+        "known publication followed by detail read failure recovers with GET only",
+        "double-click, Enter and pending back/close execute once",
+        "real ENUM failure preserves frozen intent; copied correction needs new approval and publishes once",
+        "real database stop/start retains endpoint and original request, publishes once after recovery",
+        "query create: saved state retained after response failure",
+        "query replace: saved state retained after response failure",
+        "query metadata: saved state retained after response failure",
+        "query activate: lifecycle response loss is recoverable by reads",
+        "query deprecate: lifecycle response loss is recoverable by reads",
+        "query delete: lost response, missing-resource check never repeats deletion",
+        "mutation create: saved state retained after response failure",
+        "mutation replace: saved state retained after response failure",
+        "mutation metadata: saved state retained after response failure",
+        "mutation activate: lifecycle response loss is recoverable by reads",
+        "mutation deprecate: lifecycle response loss is recoverable by reads",
+        "mutation delete: lost response, missing-resource check never repeats deletion",
+        "rapid lifecycle confirmation and pending back navigation update once",
+        "table assignment create: persisted change and read-only recovery",
+        "table assignment replace: persisted change and read-only recovery",
+        "table assignment enable: persisted change and read-only recovery",
+        "table assignment disable: persisted change and read-only recovery"
+      ]
+    },
+    {
+      "source": "/private/tmp/rcc-t5-evidence/browser-accessibility-final/browser-accessibility/chromium/result.json",
+      "ok": true,
+      "checks": [
+        {
+          "name": "drawer background is inert and actual Shift+Tab/Tab loops inside the drawer",
+          "evidence": {
+            "inert": true,
+            "focusStayedInTopModal": true,
+            "bodyClasses": [
+              "modal-open"
+            ],
+            "rootLocked": true,
+            "focusProbe": "programmatic HTMLElement.focus used only for native inert",
+            "keyboardPath": [
+              "Shift+Tab skips appended hidden/disabled fixtures -> 取消",
+              "Tab -> 关闭",
+              "focus-loss fixture then real Tab -> 关闭"
+            ]
+          }
+        },
+        {
+          "name": "native back cancel/confirm and forward preserve the intended history entry",
+          "evidence": {
+            "unloadProbe": {
+              "defaultPrevented": true,
+              "dispatchReturned": false,
+              "fixture": "cancelable browser event; no user-agent prompt"
+            },
+            "lowerDrawerInertWhilePromptOpen": true,
+            "focusRestoredToDrawer": true
+          }
+        },
+        {
+          "name": "320px long drawer scroll keeps the action footer reachable",
+          "evidence": {
+            "viewport": "320x568 CSS pixels",
+            "documentOverflow": 0,
+            "optionalIdIncluded": false,
+            "actualMouseWheel": {
+              "before": 668,
+              "after": 1028
+            },
+            "surfaces": [
+              {
+                "selector": ".drawer",
+                "metrics": {
+                  "left": 0,
+                  "right": 320,
+                  "width": 320,
+                  "clientWidth": 320,
+                  "scrollWidth": 320,
+                  "innerWidth": 320
+                }
+              },
+              {
+                "selector": ".drawer-header",
+                "metrics": {
+                  "left": 0,
+                  "right": 320,
+                  "width": 320,
+                  "clientWidth": 320,
+                  "scrollWidth": 320,
+                  "innerWidth": 320
+                }
+              },
+              {
+                "selector": ".drawer-body",
+                "metrics": {
+                  "left": 0,
+                  "right": 320,
+                  "width": 320,
+                  "clientWidth": 320,
+                  "scrollWidth": 320,
+                  "innerWidth": 320
+                }
+              },
+              {
+                "selector": ".drawer-footer",
+                "metrics": {
+                  "left": 0,
+                  "right": 320,
+                  "width": 320,
+                  "clientWidth": 320,
+                  "scrollWidth": 320,
+                  "innerWidth": 320
+                }
+              }
+            ],
+            "noteRect": {
+              "left": 20,
+              "right": 300,
+              "top": 12.375,
+              "bottom": 102.375,
+              "width": 280,
+              "height": 90,
+              "innerWidth": 320,
+              "innerHeight": 568
+            },
+            "footerActions": [
+              {
+                "action": "取消",
+                "rect": {
+                  "left": 20,
+                  "right": 156,
+                  "top": 512.5,
+                  "bottom": 548.5,
+                  "width": 136,
+                  "height": 36,
+                  "innerWidth": 320,
+                  "innerHeight": 568
+                }
+              },
+              {
+                "action": "查看 Change Set",
+                "rect": {
+                  "left": 164,
+                  "right": 300,
+                  "top": 512.5,
+                  "bottom": 548.5,
+                  "width": 136,
+                  "height": 36,
+                  "innerWidth": 320,
+                  "innerHeight": 568
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "320px Change Set owns horizontal/vertical overflow and keeps actions reachable",
+          "evidence": {
+            "keyboardPath": [
+              "Shift+Tab -> 确认并保存草稿",
+              "Tab -> 变更字段对比，可横向滚动",
+              "Tab -> 发布单标题",
+              "Tab -> 选择已有草稿"
+            ],
+            "documentOverflow": 0,
+            "scrolling": {
+              "horizontal": {
+                "client": 288,
+                "total": 600,
+                "offset": 312
+              },
+              "vertical": {
+                "client": 132,
+                "total": 700,
+                "offset": 568
+              }
+            },
+            "footerActions": [
+              {
+                "action": "放弃本次编辑",
+                "rect": {
+                  "left": 32,
+                  "right": 155.5,
+                  "top": 455,
+                  "bottom": 491,
+                  "width": 123.5,
+                  "height": 36,
+                  "innerWidth": 320,
+                  "innerHeight": 568
+                }
+              },
+              {
+                "action": "返回修改",
+                "rect": {
+                  "left": 164.5,
+                  "right": 288,
+                  "top": 455,
+                  "bottom": 491,
+                  "width": 123.5,
+                  "height": 36,
+                  "innerWidth": 320,
+                  "innerHeight": 568
+                }
+              },
+              {
+                "action": "确认并保存草稿",
+                "rect": {
+                  "left": 32,
+                  "right": 288,
+                  "top": 500,
+                  "bottom": 536,
+                  "width": 256,
+                  "height": 36,
+                  "innerWidth": 320,
+                  "innerHeight": 568
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "only the top nested leave dialog handles Tab/Escape and focus returns to Change Set",
+          "evidence": {
+            "lowerChangeSetInert": true,
+            "bodyRemainedLocked": true
+          }
+        },
+        {
+          "name": "real MySQL rejection freezes raw CR; a copied draft requires explicit LF conversion before editing",
+          "evidence": {
+            "status": 422,
+            "rejectedOrder": "c3b9d6a55773b4a0b2bccb4361c2e36b",
+            "rawHex": "7072656669782d6368726f6d69756d0d0a7365636f6e640d7461696c",
+            "submittedHex": "7072656669782d6368726f6d69756d0d0a7365636f6e640d7461696c",
+            "clipboardBoundary": "synthetic paste Event with injected DataTransfer; no OS clipboard access"
+          }
+        },
+        {
+          "name": "390px unknown release-draft recovery replays one intent and then publishes it",
+          "evidence": {
+            "faultEvidence": {
+              "actualStatus": 201,
+              "requestId": "rcc-554c25aef478b8e9ab695a7216fdf66f",
+              "injectedStatus": 503
+            },
+            "releaseDraftRequests": 2,
+            "replayedOriginalBodyAndKey": true,
+            "releaseOrder": "9ed67a9bc8ce14dd6ca6c14290c2485a",
+            "sqlRows": 1,
+            "faultBoundary": "Playwright API response fault injection after route.fetch durably created the release draft",
+            "documentOverflow": 0
+          }
+        }
+      ]
+    },
+    {
+      "source": "/private/tmp/rcc-t5-evidence/complex-fields-final/complex-fields/result.json",
+      "ok": true,
+      "checks": [
+        "TEXT and JSON browser ADD, MODIFY, SQL byte comparison, readback and reopened editor",
+        "multiline TEXT query uses the exact browser input without removing LF",
+        "SQL NULL, JSON null literal and string, empty and omitted values stay distinct",
+        "uint64 auto ID 9007199254740993 survives browser create, query, release MODIFY and reopen",
+        "uint64 auto ID 9223372036854775808 survives browser create, query, release MODIFY and reopen",
+        "uint64 auto ID 18446744073709551614 survives browser create, query, release MODIFY and reopen",
+        "ambiguous auto ID zero is rejected while omitted ID publishes the actual generated identity",
+        "non-auto default ID stage4_default_id_constant requires explicit identity before publication",
+        "non-auto default ID stage4_default_id_expression requires explicit identity before publication",
+        "identity review: explicit numeric ID returns the stored canonical identity",
+        "identity matrix: signed integer publishes a canonical stored key",
+        "identity matrix: decimal equal value publishes a canonical stored key",
+        "identity matrix: decimal rounding publishes a canonical stored key",
+        "identity matrix: CHAR trailing spaces publishes a canonical stored key",
+        "identity matrix: VARCHAR trailing spaces publishes a canonical stored key",
+        "identity matrix: VARCHAR Unicode and URI delimiters publishes a canonical stored key",
+        "identity matrix: ENUM case normalization is rejected before draft creation",
+        "identity matrix: TIME equal value publishes a canonical stored key",
+        "identity matrix: TIME rounding publishes a canonical stored key",
+        "identity matrix: DATETIME equal value publishes a canonical stored key",
+        "identity matrix: DATETIME rounding publishes a canonical stored key",
+        "identity matrix: TIMESTAMP equal value publishes a canonical stored key",
+        "identity matrix: TIMESTAMP rounding publishes a canonical stored key",
+        "identity matrix: FLOAT exact publishes a canonical stored key",
+        "identity matrix: FLOAT precision boundary publishes a canonical stored key",
+        "identity matrix: DOUBLE publishes a canonical stored key",
+        "identity matrix: DATE publishes a canonical stored key",
+        "identity preflight read denial prevents INSERT and preserves the draft",
+        "publication capability gate rejects a nontransactional table before business DML",
+        "JSON identity \"\" publishes without path reinterpretation",
+        "JSON identity \".\" publishes without path reinterpretation",
+        "JSON identity \"..\" publishes without path reinterpretation",
+        "JSON identity \"键/值 %2F?#\" publishes without path reinterpretation",
+        "CRLF and standalone CR stay protected through unrelated writes and explicit normalization",
+        "raw CR clipboard selection is preserved in record and query inputs before conversion",
+        "ordinary expression defaults allow explicit values and omission defaults",
+        "Auto Fill records the publisher identity and one UTC database time",
+        "stored_value remains rejected as a real generated column",
+        "virtual_value remains rejected as a real generated column",
+        "generated fields calculate on omitted ADD and stay unwritable on release MODIFY",
+        "VARCHAR length is editable rejection with rollback and corrected browser retry",
+        "TINYINT range is editable rejection with rollback and corrected browser retry"
+      ]
+    },
+    {
+      "source": "/private/tmp/rcc-t5-evidence/browser-review-final/release-multitable.cjs/result.json",
+      "ok": true,
+      "checks": [
+        "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+        "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+        "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+        "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+        "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+        "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+        "真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿",
+        "持久化失败前零业务发送且保留输入，日志读取失败不阻断账号或无关只读页面"
+      ],
+      "large_request": {
+        "bytes": 9437321,
+        "sha256": "f1147ba0f23b0c613cb22c6685206f16361df063fd8ae36a080565ed5b612567",
+        "same_key": true,
+        "same_order": true,
+        "account_isolation": true
+      }
+    },
+    {
+      "source": "/private/tmp/rcc-t5-evidence/browser-review-final/field-recovery.cjs/result.json",
+      "ok": true,
+      "checks": [
+        "metadata 503 has explicit query/editor errors and independent retries; no silent defaults; query input survives editor retry",
+        "real missing-cookie session reauthentication keeps same configured input DOM, custom value and query draft despite administrator configuration replacement",
+        "actual draft POST succeeds then response is lost; mobile error allows Escape/leave without another write, then the original save action replays identical key/body to the same version-1 draft and configured custom value",
+        "reopening query/editor reads latest rules; switching to a second real account discards prior account drafts"
+      ]
+    },
+    {
+      "source": "/private/tmp/rcc-t5-evidence/browser-review-final/release-rollbacks.cjs/rollback-evidence.json",
+      "ok": true,
+      "checks": [
+        "separate EDITOR, APPROVER and PUBLISHER accounts complete the forward publication",
+        "completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration",
+        "completion permanently closes both rollback entry points",
+        "quick rollback is publisher-only, reviews actual current and restoration values, has no mandatory reason and cancels without writes on desktop and 390px",
+        "the original detail switches preserved application, actual publication and actual rollback",
+        "quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish the original order",
+        "a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends"
+      ]
+    }
+  ],
+  "reviews": {
+    "standards": {
+      "status": "completed",
+      "agent": "/root/issue_84/standards_review",
+      "written_standard_violations": 0,
+      "subjective_smells": 0,
+      "scope": "independent read-only fixed-base working diff plus final incremental fixes/evidence"
+    },
+    "spec": {
+      "status": "completed",
+      "agent": "/root/issue_84",
+      "remaining_findings": 0,
+      "resolved_initial_p2": 2,
+      "scope": "independent read-only fixed-base working diff plus final ManagedData fixes/evidence"
+    }
+  },
+  "logs": [
+    {
+      "path": "/private/tmp/rcc-t5-evidence/failure-wire-green.log",
+      "sha256": "56f9d3ae2c8fcaecc4b4be8555953269018cb49cf2fef02aea1892a4e92272a7"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/backend-affected-step1.log",
+      "sha256": "1ed8dd0a48342fc6e9c111a03ff26d2b3331122884e9571c7e8d185b69aebd9a"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/backend-affected-step2.log",
+      "sha256": "6b4d1c02aa1b8d684cac45173d1da63099b1436ac863cf446b383bcc9305c063"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/audit-concurrency-row-lock.log",
+      "sha256": "672bf3768bb06498a90b79ac93b226a40891f76509abda59086f942026182db8"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/backend-reviewed-final.log",
+      "sha256": "ad0c6d523ab34f2960b94327297e6b7ccb5ec62cfe3b4355d28db64c919bd6c5"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/failure-history-red.log",
+      "sha256": "10d54b78f6e621631432230dbdc6bb023a11dd16cc33e601c62c1d4b9c9b8344"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/failed-identity-red.log",
+      "sha256": "8420d61cf6ef3b693588632778e892b36d01466868d2dc8b30ad472320e7542b"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/manual-action-red.log",
+      "sha256": "e26b88d61b7801b98fe82bec080d11e8176c1ae286ece15778934a2c0a2496c3"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/cold-create-red.log",
+      "sha256": "4dc758ba667a2e0258874b842d9bfac26f964593441666e539ced56a43698735"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/pending-detail-identity-red2.log",
+      "sha256": "508ebed2975bb4c65aa900771022f19e314a9bedc998e95e024674ad4512a056"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/unknown-exit-red.log",
+      "sha256": "3a648aa4eebe14116db113472854aba74d5340d7d1af028153a6c31322b4235f"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/managed-crosswindow-red2.log",
+      "sha256": "325171ff1e4eb474c7d942f806c0a7c7180e6ab3f26569e8939b564ef8ac14e3"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/review-fixes-step2.log",
+      "sha256": "13ae3eb4544da10a76547183c07bf14cdf1909795d3c2c0f80bc0ccbf5bcbb16"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/web-reviewed-final.log",
+      "sha256": "d1574b23bc2af9c4f6de9b943cd7f357269a5c9740f6b47a95ebbd2e1ff9b8c2"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/web-reviewed-final.json",
+      "sha256": "23ad788e259688d9b1c3d39143337a244188e3f5ad36d757cc46db36692549e1"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/go-ordinary-final.log",
+      "sha256": "d13075c966d092602bc9f3c7e63fbb2e046c8ba3f6ec3db98a8a95b6cb2e778a"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/go-build-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/web-build-final.log",
+      "sha256": "76d0c0aedeb287cbce7cd49ea2d49ac926b757d6db9a35db22c9044f7508cb70"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/browser-step1.log",
+      "sha256": "8e601171fde3e42eade0c301a6278fd14aba97119b5926f8f9eba06a79018d97"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/browser-step2.log",
+      "sha256": "c67c0f83a965c7884ffba53562cf1393f0cae2e7bc1df6c99a4d6165618910a0"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/browser-step3.log",
+      "sha256": "046af0283baaf6ff12ac5c6b081d2601e8b4056c149dffbc09d67b5d8d124c50"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/browser-review-final.log",
+      "sha256": "d2e93259b6bae1e79a9923fc775715c56aa7016cdf4b545165b00fbfb07ca3ee"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/write-recovery-final.log",
+      "sha256": "a205444c1f503809bf185479a12985d4fb87e30c75cabc7496cb8c91638c3075"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/write-recovery-step2.log",
+      "sha256": "4003ee61c4aa7107eb31368e0a7c7d038e213fd77d552b697e36b76495a3718b"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/browser-accessibility-final.log",
+      "sha256": "98d9bb6581d256513fa396d27bfb2485ed1dc8d489b30e23e5bc099d0cd0ca5b"
+    },
+    {
+      "path": "/private/tmp/rcc-t5-evidence/complex-fields-final.log",
+      "sha256": "dd81362f4edcac74dc0ceed4ba5b48c3bec4b7fb780f70ee6091fb37bcd389cb"
+    }
+  ]
+}

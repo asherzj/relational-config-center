@@ -1,0 +1,216 @@
+{
+  "formal_command": "RCC_E2E_SUITE=all RCC_E2E_ENGINES=chromium,firefox,webkit bash scripts/browser-acceptance.sh",
+  "expected_scripts": [
+    {
+      "artifact": "unsaved-changes",
+      "script": "web/e2e/unsaved-changes.cjs",
+      "engine": "chromium",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "rule-clarity",
+      "script": "web/e2e/rule-clarity.cjs",
+      "engine": "chromium",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "write-recovery",
+      "script": "web/e2e/write-recovery.cjs",
+      "engine": "chromium",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "operation-coverage",
+      "script": "web/e2e/operation-coverage.cjs",
+      "engine": "chromium",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "complex-fields",
+      "script": "web/e2e/complex-fields.cjs",
+      "engine": "chromium",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "browser-accessibility/chromium",
+      "script": "web/e2e/browser-accessibility.cjs",
+      "engine": "chromium",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "browser-accessibility/firefox",
+      "script": "web/e2e/browser-accessibility.cjs",
+      "engine": "firefox",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "browser-accessibility/webkit",
+      "script": "web/e2e/browser-accessibility.cjs",
+      "engine": "webkit",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "release-workflow/drafts",
+      "script": "web/e2e/release-drafts.cjs",
+      "engine": "chromium",
+      "result_location": "runner.log (successful stdout JSON)"
+    },
+    {
+      "artifact": "release-workflow/approvals",
+      "script": "web/e2e/release-approvals.cjs",
+      "engine": "chromium",
+      "result_location": "runner.log (successful stdout JSON)"
+    },
+    {
+      "artifact": "release-workflow/batches",
+      "script": "web/e2e/release-batches.cjs",
+      "engine": "chromium",
+      "result_location": "runner.log (successful stdout JSON)"
+    },
+    {
+      "artifact": "release-workflow/rollback-chromium",
+      "script": "web/e2e/release-rollbacks.cjs",
+      "engine": "chromium",
+      "result_location": "runner.log (successful stdout JSON)"
+    },
+    {
+      "artifact": "release-workflow/recovery-chromium",
+      "script": "web/e2e/accounts.mjs",
+      "engine": "chromium",
+      "result_location": "runner.log (successful stdout JSON)"
+    },
+    {
+      "artifact": "release-workflow/targets-chromium",
+      "script": "web/e2e/draft-targets.cjs",
+      "engine": "chromium",
+      "result_location": "runner.log (successful stdout JSON)"
+    },
+    {
+      "artifact": "release-workflow/multitable-chromium",
+      "script": "web/e2e/release-multitable.cjs",
+      "engine": "chromium",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "release-workflow/rollback-reason-chromium",
+      "script": "web/e2e/release-rollback-reason.cjs",
+      "engine": "chromium",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "release-workflow/rollback-firefox",
+      "script": "web/e2e/release-rollbacks.cjs",
+      "engine": "firefox",
+      "result_location": "runner.log (successful stdout JSON)"
+    },
+    {
+      "artifact": "release-workflow/recovery-firefox",
+      "script": "web/e2e/accounts.mjs",
+      "engine": "firefox",
+      "result_location": "runner.log (successful stdout JSON)"
+    },
+    {
+      "artifact": "release-workflow/targets-firefox",
+      "script": "web/e2e/draft-targets.cjs",
+      "engine": "firefox",
+      "result_location": "runner.log (successful stdout JSON)"
+    },
+    {
+      "artifact": "release-workflow/multitable-firefox",
+      "script": "web/e2e/release-multitable.cjs",
+      "engine": "firefox",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "release-workflow/rollback-reason-firefox",
+      "script": "web/e2e/release-rollback-reason.cjs",
+      "engine": "firefox",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "release-workflow/rollback-webkit",
+      "script": "web/e2e/release-rollbacks.cjs",
+      "engine": "webkit",
+      "result_location": "runner.log (successful stdout JSON)"
+    },
+    {
+      "artifact": "release-workflow/recovery-webkit",
+      "script": "web/e2e/accounts.mjs",
+      "engine": "webkit",
+      "result_location": "runner.log (successful stdout JSON)"
+    },
+    {
+      "artifact": "release-workflow/targets-webkit",
+      "script": "web/e2e/draft-targets.cjs",
+      "engine": "webkit",
+      "result_location": "runner.log (successful stdout JSON)"
+    },
+    {
+      "artifact": "release-workflow/multitable-webkit",
+      "script": "web/e2e/release-multitable.cjs",
+      "engine": "webkit",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "release-workflow/rollback-reason-webkit",
+      "script": "web/e2e/release-rollback-reason.cjs",
+      "engine": "webkit",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "field-interactions/field-policies",
+      "script": "web/e2e/field-policies.cjs",
+      "engine": "chromium",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "field-interactions/field-inputs",
+      "script": "web/e2e/field-inputs.cjs",
+      "engine": "chromium",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "field-interactions/combined-query",
+      "script": "web/e2e/combined-query.cjs",
+      "engine": "chromium",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "field-interactions/field-recovery",
+      "script": "web/e2e/field-recovery.cjs",
+      "engine": "chromium",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "field-interactions/field-display",
+      "script": "web/e2e/field-display.cjs",
+      "engine": "chromium",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "field-interactions/chromium",
+      "script": "web/e2e/field-interactions.cjs",
+      "engine": "chromium",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "field-interactions/firefox",
+      "script": "web/e2e/field-interactions.cjs",
+      "engine": "firefox",
+      "result_location": "result.json"
+    },
+    {
+      "artifact": "field-interactions/webkit",
+      "script": "web/e2e/field-interactions.cjs",
+      "engine": "webkit",
+      "result_location": "result.json"
+    }
+  ],
+  "additional_checks": [
+    "authenticated-boundary.json",
+    "auth-boundary.txt",
+    "database-postcheck.txt",
+    "fixture-before.tsv equals fixture-after.tsv",
+    "task-owned cleanup"
+  ]
+}

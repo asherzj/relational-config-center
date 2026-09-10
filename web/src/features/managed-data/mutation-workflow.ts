@@ -309,7 +309,7 @@ export function useManagedDataMutationWorkflow({ canEdit, tableName, mutationPol
 
   return {
     view: {
-      draftInput: pendingChange ? {table_name:pendingChange.tableName,items:[{operation:pendingChange.operation,...(pendingChange.id!==undefined?{id:pendingChange.id}:{}),...(pendingChange.expectedVersion!==undefined?{expected_record_version:pendingChange.expectedVersion}:{}),content:pendingChange.content}]} : null,
+      draftInput: pendingChange ? {items:[{table_name:pendingChange.tableName,operation:pendingChange.operation,...(pendingChange.id!==undefined?{id:pendingChange.id}:{}),...(pendingChange.expectedVersion!==undefined?{expected_record_version:pendingChange.expectedVersion}:{}),content:pendingChange.content}]} : null,
       editor,
       changeSet,
       capabilityReasons,

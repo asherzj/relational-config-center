@@ -1,0 +1,40 @@
+{
+  "manifest": "/private/tmp/rcc-88-final-verification/shared-manifest1.log",
+  "manifest_sha256": "4f4b5d1bb7b53bd00ea14981360c926c7b5f99b06306e9f30ad85089cb977658",
+  "total": 0,
+  "counts": {},
+  "no_test_packages": [
+    "github.com/asherzj/relational-config-center/shared"
+  ],
+  "sources": [
+    {
+      "path": "/private/tmp/rcc-88-final-verification/shared-unit1.jsonl",
+      "sha256": "0ea4759a4e1577cee86e80cf1b5e57456ea6202eb544eba380eb6500a599a4f4"
+    }
+  ],
+  "nonpassing_attempts": [],
+  "nonpassing_subtest_attempts": [],
+  "nonpassing_subtests_in_latest_parent_run": [],
+  "package_events": [
+    {
+      "package": "github.com/asherzj/relational-config-center/shared",
+      "test": null,
+      "action": "skip",
+      "source": "/private/tmp/rcc-88-final-verification/shared-unit1.jsonl",
+      "line": 3,
+      "time": "2026-09-10T17:27:56.748489+08:00"
+    }
+  ],
+  "packages": [
+    {
+      "package": "github.com/asherzj/relational-config-center/shared",
+      "test": null,
+      "action": "skip",
+      "source": "/private/tmp/rcc-88-final-verification/shared-unit1.jsonl",
+      "line": 3,
+      "time": "2026-09-10T17:27:56.748489+08:00"
+    }
+  ],
+  "nonpassing_packages": [],
+  "cases": []
+}

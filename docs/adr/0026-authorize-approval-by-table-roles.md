@@ -12,4 +12,6 @@ status: accepted
 
 提交时固定各表的审批角色，后续成员资格按当前状态检查，已合法完成的审批不会因撤权或停用自动作废；之后调整表绑定只影响新提交的申请。相比让审批配置变化重算既有决定，这保证每次申请的审批责任可追溯，又允许新成员接手未完成的工作。需要改换旧申请的审批角色时取消并重新提交。部分表通过后仅剩余待审批表可以继续处理，不能凭已经完成的表资格反复审批或拒绝整单。
 
-本决定是已确认的业务目标，尚未实现。角色维护、旧 `APPROVER` 退出、通知范围、资格变更后的提醒及失败语义均已确认，见[澄清记录](../design-notes/approval-roles-notification-center-discussion.md) Q1～Q12；正式验收和交付安排见[规格草稿](../specs/approval-roles-notifications/spec.md)。
+本决定是已确认的业务目标，尚未实现。角色维护、旧 `APPROVER` 退出、通知范围、资格变更后的提醒及失败语义均已确认，见[澄清记录](../design-notes/approval-roles-notification-center-discussion.md) Q1～Q12；正式验收和交付安排见[规格](../specs/approval-roles-notifications/spec.md)。
+
+2026-09-11 接入多表交付时，本记录由原功能分支的 0025 调整为 0026，以保留已交付的多表 ADR-0025；业务决定不变。

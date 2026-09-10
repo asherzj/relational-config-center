@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries, type UseQueryResult } from "@tanstack/react-query";
 import { createContext, useContext, type ReactNode } from "react";
 import { getFieldPolicies, type FieldPolicies } from "../../api/field-policies";
 import { ErrorState } from "../../components/ui/Feedback";
@@ -8,8 +8,8 @@ export type CurrentFieldDisplay = {
   configuration?: FieldPolicies;
 };
 
-type CurrentFieldDisplayContextValue = { display: CurrentFieldDisplay; pending: boolean; error: unknown; retry: () => unknown };
-const CurrentFieldDisplayContext = createContext<CurrentFieldDisplayContextValue>({ display: {}, pending: false, error: null, retry: () => undefined });
+type CurrentFieldDisplayContextValue = { forTable: (tableName: string) => CurrentFieldDisplay; display: CurrentFieldDisplay; pending: boolean; error: unknown; retry: () => unknown };
+const CurrentFieldDisplayContext = createContext<CurrentFieldDisplayContextValue>({ forTable: () => ({}), display: {}, pending: false, error: null, retry: () => undefined });
 
 type FieldDisplayRule = {
   name: string;
@@ -51,27 +51,48 @@ export function CurrentFieldValue({ display, name, value, children }: { display:
   return <span className="field-display-value"><span className="block break-all">{label}</span><small aria-label={`真实值：${value}`} className="block whitespace-pre-wrap break-all font-mono text-muted-foreground">真实值：{children}</small></span>;
 }
 
-export function useCurrentFieldDisplay(tableName: string, enabled = true): CurrentFieldDisplayContextValue {
-  const accountID = useWorkspaceIdentity()?.account.id ?? "anonymous";
-  const query = useQuery({
+function displayQuery(accountID: string, tableName: string, enabled = true) {
+  return {
     queryKey: ["current-field-display", accountID, tableName],
     queryFn: () => getFieldPolicies(tableName),
     enabled: enabled && Boolean(tableName),
-    retry: false,
+    retry: false as const,
     staleTime: 0,
-    refetchOnMount: "always",
-  });
-  const fresh = query.isSuccess && !query.isFetching;
+    refetchOnMount: "always" as const,
+  };
+}
+
+function queryDisplay(query: UseQueryResult<FieldPolicies>): CurrentFieldDisplay {
+  return { configuration: query.isSuccess && !query.isFetching ? query.data : undefined };
+}
+
+export function useCurrentFieldDisplay(tableName: string, enabled = true): CurrentFieldDisplayContextValue {
+  const accountID = useWorkspaceIdentity()?.account.id ?? "anonymous";
+  const query = useQuery(displayQuery(accountID, tableName, enabled));
+  const display = queryDisplay(query);
   return {
-    display: { configuration: fresh ? query.data : undefined },
-    pending: enabled && (query.isPending || query.isFetching),
+    display,
+    forTable: name => !name || name === tableName ? display : {},
+    pending: enabled && Boolean(tableName) && (query.isPending || query.isFetching),
     error: query.error,
     retry: query.refetch,
   };
 }
 
-export function CurrentFieldDisplayProvider({ tableName, children }: { tableName: string; children: ReactNode }) {
-  return <CurrentFieldDisplayContext value={useCurrentFieldDisplay(tableName)}>{children}</CurrentFieldDisplayContext>;
+export function CurrentFieldDisplayProvider({ tableName, tableNames, children }: { tableName?: string; tableNames?: readonly string[]; children: ReactNode }) {
+  const accountID = useWorkspaceIdentity()?.account.id ?? "anonymous";
+  const names = [...new Set(tableNames ?? [tableName ?? ""])].filter(Boolean).sort();
+  const queries = useQueries({ queries: names.map(name => displayQuery(accountID, name)) });
+  const byTable = new Map(names.map((name, index) => [name, queryDisplay(queries[index])]));
+  const display = names.length === 1 ? byTable.get(names[0])! : {};
+  const value: CurrentFieldDisplayContextValue = {
+    display,
+    forTable: name => name ? byTable.get(name) ?? {} : display,
+    pending: queries.some(query => query.isPending || query.isFetching),
+    error: queries.find(query => query.error)?.error ?? null,
+    retry: () => Promise.all(queries.map(query => query.refetch())),
+  };
+  return <CurrentFieldDisplayContext value={value}>{children}</CurrentFieldDisplayContext>;
 }
 
 export function useCurrentFieldDisplayContext() {

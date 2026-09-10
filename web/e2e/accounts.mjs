@@ -1,3 +1,5 @@
+import {readAllReleaseDetailPages,executionCommands,applicationItems} from './release-detail-pages.cjs';
+import originalReleaseActions from "./release-original-action.cjs";
 import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -66,8 +68,7 @@ async function releaseWrite(api, path, data, key = randomUUID()) {
 async function publishSingle({ applicant, approver, publisher, item, keyPrefix }) {
   const createdResponse = await releaseWrite(applicant, '/api/v1/release-orders', {
     title: '通知模板账号验收变更',
-    table_name: 'notification_templates',
-    items: [item],
+    items: [{...item,table_name:'notification_templates'}],
   }, `${keyPrefix}-create`);
   assert.equal(createdResponse.status(), 201);
   const created = await createdResponse.json();
@@ -265,18 +266,15 @@ try {
     await route.abort('failed');
   });
   await page.getByRole('button', { name: '确认发布到数据库', exact: true }).click();
-  await page.getByText('结果待确认。原请求与意见已保留，请使用原请求重试。', { exact: true }).waitFor();
-  await page.getByRole('button', { name: '使用原请求重试', exact: true }).waitFor();
+  await page.getByText('原请求与意见已保留；再次点击同一操作将提交原请求。', { exact: true }).waitFor();
+  await page.getByRole('button', { name: '确认发布到数据库', exact: true }).waitFor();
   if (process.env.RCC_E2E_OUTPUT) await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'publication-unknown.png'), fullPage: true });
   await page.unroute(`**${executePath}`);
   const acceptReload = dialog => dialog.accept();
   page.on('dialog', acceptReload);
   await page.reload();
   page.off('dialog', acceptReload);
-  const recoveryPanel = page.getByRole('region', { name: '待处理发布请求' });
-  const recoverExecute = page.getByRole('button', { name: '恢复原发布请求', exact: true });
-  await recoverExecute.click();
-  await recoveryPanel.waitFor({ state: 'detached' });
+  await originalReleaseActions.repeatReleaseAction(page,'执行发布','确认发布到数据库');
   await releaseState(page, '已发布待完结');
   await page.getByRole('heading', { name: '数据库发布结果', exact: true }).waitFor();
   await page.getByRole('region', { name: '发布结果' }).getByText(/分发尚未接入/, { exact: false }).waitFor();
@@ -290,18 +288,18 @@ try {
   await page.setViewportSize({ width: 1280, height: 900 });
   if (process.env.RCC_E2E_OUTPUT) await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'publication-result-desktop.png'), fullPage: true });
 
-  const addPublication = await page.evaluate(async id => (await (await fetch(`/api/v1/release-orders/${id}`)).json()), addOrderID);
+  const addPublication = await readAllReleaseDetailPages(page.context(),origin,await page.evaluate(async id => (await (await fetch(`/api/v1/release-orders/${id}`)).json()), addOrderID));
   assert.equal(addPublication.state, 'SUCCEEDED');
   assert.equal(addPublication.applicant_id, identity.account.id);
-  assert.equal(addPublication.publication.publisher_id, identity.account.id);
-  assert.equal(addPublication.publication.notification.status, 'NOT_CONNECTED');
-  assert.equal(addPublication.publication.commands.length, 1);
-  assert.equal(addPublication.publication.commands[0].operation, 'ADD');
-  assert.equal(addPublication.publication.commands[0].record_version, '1');
-  assert.equal(addPublication.publication.commands[0].final.deleted, false);
+  assert.equal(addPublication.executions[0].actor_id, identity.account.id);
+  assert.equal(Object.values(addPublication.executions[0].notifications)[0].status, 'NOT_CONNECTED');
+  assert.equal(executionCommands(addPublication).length, 1);
+  assert.equal(executionCommands(addPublication)[0].operation, 'ADD');
+  assert.equal(executionCommands(addPublication)[0].record_version, '1');
+  assert.equal(executionCommands(addPublication)[0].final.deleted, false);
   assert.equal(addPublication.history.find(event => event.action === 'APPROVE')?.actor_id, memberIdentity.account.id);
   assert.equal(addPublication.history.find(event => event.action === 'EXECUTE')?.actor_id, identity.account.id);
-  const addFinalFields = Object.fromEntries(addPublication.publication.commands[0].final.fields.map(field => [field.name, field.value]));
+  const addFinalFields = Object.fromEntries(executionCommands(addPublication)[0].final.fields.map(field => [field.name, field.value]));
   assert.equal(addFinalFields.template_key, templateKey);
   assert.equal(addFinalFields.enabled, '1');
   assert.equal(addFinalFields.priority, '100');
@@ -322,7 +320,7 @@ try {
     })).json();
     return { id: result.rows[0].id, version: result.record_versions[0] };
   }, templateKey);
-  assert.equal(baseline.id, addPublication.publication.commands[0].id);
+  assert.equal(baseline.id, executionCommands(addPublication)[0].id);
   assert.equal(baseline.version, '1');
   await page.getByRole('button', { name: `修改记录 ${baseline.id}`, exact: true }).click();
   await page.getByLabel('body 值', { exact: true }).fill('browser system configuration');
@@ -340,8 +338,8 @@ try {
     },
     keyPrefix: `browser-concurrent-${randomUUID()}`,
   });
-  assert.equal(concurrent.publication.publisher_id, identity.account.id);
-  assert.equal(concurrent.publication.commands[0].record_version, '2');
+  assert.equal(concurrent.executions[0].actor_id, identity.account.id);
+  assert.equal(executionCommands(concurrent)[0].record_version, '2');
 
   await page.getByRole('button', { name: '确认并保存草稿', exact: true }).click();
   await page.getByText('明细 1：记录已被其他操作修改；你的输入已保留，请查看最新值并重新确认。', { exact: true }).waitFor();
@@ -380,13 +378,13 @@ try {
   await page.getByRole('heading', { name: '数据库发布结果', exact: true }).waitFor();
   await page.getByRole('region', { name: '发布结果' }).getByText(/分发尚未接入/, { exact: false }).waitFor();
 
-  const modifyPublication = await page.evaluate(async id => (await (await fetch(`/api/v1/release-orders/${id}`)).json()), modifyOrderID);
+  const modifyPublication = await readAllReleaseDetailPages(page.context(),origin,await page.evaluate(async id => (await (await fetch(`/api/v1/release-orders/${id}`)).json()), modifyOrderID));
   assert.equal(modifyPublication.state, 'SUCCEEDED');
-  assert.equal(modifyPublication.publication.publisher_id, identity.account.id);
-  assert.equal(modifyPublication.publication.notification.status, 'NOT_CONNECTED');
-  assert.equal(modifyPublication.publication.commands[0].operation, 'MODIFY');
-  assert.equal(modifyPublication.publication.commands[0].record_version, '3');
-  const modifyFinalFields = Object.fromEntries(modifyPublication.publication.commands[0].final.fields.map(field => [field.name, field.value]));
+  assert.equal(modifyPublication.executions[0].actor_id, identity.account.id);
+  assert.equal(Object.values(modifyPublication.executions[0].notifications)[0].status, 'NOT_CONNECTED');
+  assert.equal(executionCommands(modifyPublication)[0].operation, 'MODIFY');
+  assert.equal(executionCommands(modifyPublication)[0].record_version, '3');
+  const modifyFinalFields = Object.fromEntries(executionCommands(modifyPublication)[0].final.fields.map(field => [field.name, field.value]));
   assert.equal(modifyFinalFields.body, 'browser system configuration');
   assert.equal(modifyFinalFields.creator, identity.account.id);
   assert.equal(modifyFinalFields.modifier, identity.account.id);

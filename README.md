@@ -9,7 +9,7 @@ Relational Configuration Center 是一个面向实体、字段和关系建模的
 
 ## 当前状态
 
-项目已完成 Admin 第一迭代后端基线和正式 Web 管理台。Admin 通过运行时 Table Policy 治理一个部署配置的 MySQL 数据源中的既有表，Web 提供规则目录、表规则分配、受控的单表查询与变更操作。Server 与 Client 仍是后续迭代；`web/prototype/` 只作视觉参考，正式入口是 Vite/React 应用。
+项目已完成 Admin 第一迭代后端基线和正式 Web 管理台。Admin 通过运行时 Table Policy 治理一个部署配置的 MySQL 数据源中的既有表，Web 提供规则目录、表规则分配、受控的单表查询、同一数据源多表草稿与整单审批发布/回滚。Server 与 Client 仍是后续迭代；`web/prototype/` 只作视觉参考，正式入口是 Vite/React 应用。
 
 - [Admin V1 技术基线](./docs/admin-v1-technical-baseline.md)
 - [Web 管理台运行与验收](./web/README.md)

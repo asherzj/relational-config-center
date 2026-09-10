@@ -33,8 +33,12 @@ An existing base table governed by an enabled Table Policy, whose schema is main
 _Avoid_: View, system table, remote table, arbitrary table
 
 **Table Policy（表规则）**:
-A runtime-configured assignment of one predefined Query Policy and one predefined Mutation Policy to an existing base table by stable code, together with the table's Approval Role assignment. Enabling the assignment makes that table a Managed Table; the Table Policy does not override either assigned Policy, duplicate database field metadata, or contain connection information.
+A runtime-configured assignment of one predefined Query Policy and one predefined Mutation Policy to an existing base table by stable code, together with the table's Approval Role assignment and optional Concurrency Control Key. Enabling the assignment makes that table a Managed Table; the Table Policy does not override either assigned Policy, duplicate database field metadata, or contain connection information.
 _Avoid_: Table configuration, database configuration, schema migration, 表策略
+
+**Concurrency Control Key（并发管控键）**:
+An optional single field or field combination defined by a Table Policy whose values, compared using the fields' database equality rules with NULL treated as a value, identify additional targets protected against other Release Orders. It supplements primary-key protection and cannot be added, changed, or removed while any unfinished Release Order contains a change for that table.
+_Avoid_: Primary key, unique constraint, Release Order Version
 
 **Query Policy（查询规则）**:
 A predefined, versioned rule set governing single-table queries against a Managed Table. A Table Policy references it by stable code and cannot override it per table.
@@ -81,8 +85,16 @@ A complete field-by-field comparison of one proposed ADD, MODIFY, or DELETE agai
 _Avoid_: Release, revision, audit record
 
 **Release Order（发布单）**:
-The authoritative record of a proposed configuration change and its progression through approval, publication, completion, cancellation, or rollback, associating the requested content with its applicant and operation history.
+The authoritative record of an ordered collection of proposed changes across Managed Tables in one Managed Data Source and its progression through approval, publication, completion, cancellation, or rollback. It associates the frozen application with its applicant, change details, execution results, and operation history.
 _Avoid_: Change Set, deployment, notification task
+
+**Release Change Detail（发布单变更明细）**:
+One ordered ADD, MODIFY, or DELETE intent for a specific Managed Table within a Release Order, retaining its original application separately from its actual publication and rollback results. Once submitted, its approved intent and order cannot be overwritten by execution results.
+_Avoid_: Publication Command, execution result detail, Release Order
+
+**Release Execution（发布执行记录）**:
+The record of one successfully committed publication or rollback of an entire Release Order, attributing its type, actor, time, versions, and overall outcome while referring to the actual results retained by its change details. An order has at most one successful publication and one successful rollback; execution records have no independent approval or completion lifecycle.
+_Avoid_: Rollback Release Order, failed attempt, approval, notification receipt
 
 **Release Order Title（发布单标题）**:
 The applicant-provided short description of a Release Order's intent, fixed when the order is submitted. It does not replace the order's identifier or the name of its Managed Table.
@@ -112,25 +124,25 @@ _Avoid_: Record Version, Table Version
 The publication progress of one Managed Table, advanced when a change set is committed for that table. It identifies published table progress rather than the concurrency identity of an individual record.
 _Avoid_: Record Version, Release Order Version, cache refresh time
 
-**Rollback Release Order（回滚发布单）**:
-A Release Order linked to the ordinary publication it reverses. Restoration after Release Completion begins as a new request subject to fresh approval; Quick Rollback records its successful reversal directly as a completed result. Both check that no later change would be overwritten and cannot themselves be reversed.
-_Avoid_: History deletion, forced restore, cancellation
-
 **Quick Rollback（快速回滚）**:
-The whole-order restoration of a successful ordinary publication during its protected recovery period, authorized by any current publisher after reviewing the restoration intent and recording a reason. It needs no new approval, retains the original Active Targets throughout restoration, and ends both the original and reversal result together.
-_Avoid_: Fresh approval, partial restore, history deletion, forced overwrite
+The whole-order emergency reversal of a successful ordinary publication before Release Completion, authorized by a current publisher after reviewing the restoration intent, without new approval. It retains the original Active Targets throughout restoration and ends the original order on success, with the actual reversal recorded as its rollback Release Execution.
+_Avoid_: Rollback Release Order, partial restore, history deletion, forced overwrite
+
+**Rollback Reason（回滚原因）**:
+An optional explanation associated with a successful rollback Release Execution, which its executor or an administrator can supply or revise afterward with each change attributed in history. It has no completion deadline and does not gate subsequent publications.
+_Avoid_: Release Approval, prerequisite for rollback
 
 **Release Completion（发布完结）**:
-The explicit end of a successful ordinary publication's protected recovery period, authorized by a current publisher. It releases the publication's targets and closes quick rollback without changing configuration values or claiming downstream delivery; later restoration requires an independently approved Rollback Release Order.
+The explicit end of a successful ordinary publication's protected recovery period, authorized by a current publisher. It releases the publication's targets and permanently closes rollback for that order without changing configuration values or claiming downstream delivery.
 _Avoid_: Publication, cancellation, delivery confirmation
 
 **Reprepared Release Order（重新准备发布单）**:
-A new editable Release Order that replaces an approved but unpublished ordinary Release Order after its original applicant or an administrator reviews the current configuration. The replacement belongs to the person who performs the operation and must receive a fresh independent approval; cancelling the source, releasing its Active Targets, creating the replacement and linking both histories form one atomic change.
+A new editable Release Order that replaces an approved but unpublished ordinary Release Order after its original applicant or an administrator reviews the current configuration. The replacement belongs to the person who performs the operation and must receive a fresh independent approval; cancelling the source, creating the replacement, transferring still-needed Active Targets and acquiring any additional targets, and linking both histories form one atomic change.
 _Avoid_: Editing an approval, approval reuse, quick rollback
 
 **Active Target（在途目标）**:
-A configuration record identity reserved by a submitted, unfinished Release Order, including the actual identities created or deleted by a successful publication, until completion or successful rollback releases it. Other orders may submit changes to unrelated identities.
-_Avoid_: Draft editing lock, business-field similarity
+A primary-key identity or Concurrency Control Key value reserved by a Release Order when its change details are saved, protecting the old and proposed identities needed for publication and rollback against other orders. Reservations continue through publication and end when no draft detail needs them, or the order is cancelled, rejected, completed, or successfully rolled back.
+_Avoid_: Database transaction lock, Release Order Version, unique constraint
 
 **Account Role（账号角色）**:
 A global, composable grant governing a Local Account's viewing, editing, publication or administration capabilities across this deployment. Table approval eligibility follows Approval Roles and the Default Approver rule, and no account role permits approval of one's own order.
@@ -153,7 +165,7 @@ A personal indication that a Release Order requires the recipient's review or th
 _Avoid_: Refresh Notification Record, Table Approval, publication result
 
 **Publication Command（发布变更记录）**:
-An immutable record of a configuration change actually committed by a publication, retaining the final configuration state or the fact of deletion and linking it to its originating Release Order.
+An immutable record of a configuration change actually committed by a publication, retaining the final configuration state or the fact of deletion and linking it to its originating Release Order and Release Execution.
 _Avoid_: Approval request, editable draft, SQL command
 
 **Refresh Notification Record（刷新通知记录）**:
@@ -162,6 +174,8 @@ _Avoid_: Published configuration, delivery receipt, cache version
 
 ## Related documents
 
+- [Multi-table draft targets and execution decision](../docs/adr/0025-multitable-drafts-reserve-targets-and-record-executions.md): the accepted model for multi-table orders, draft reservations, and original-order rollback.
+- [Table approval roles and default reviewers](../docs/adr/0026-authorize-approval-by-table-roles.md): the accepted approval responsibility and eligibility model.
 - [Admin technical baseline](../docs/admin-v1-technical-baseline.md): database selection and Managed Table schema requirements.
 - [Record Versions](../docs/admin-record-versions.md): database identity equivalence and maintenance generations.
 - [Account roles](../docs/admin-account-roles.md): default roles, administrator appointment and recovery.

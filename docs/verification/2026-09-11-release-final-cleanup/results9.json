@@ -1,0 +1,39 @@
+[
+  {
+    "log": "browser-target-compile9.log",
+    "command": [
+      "go",
+      "-C",
+      "admin",
+      "test",
+      "-c",
+      "-p",
+      "1",
+      "-tags=integration,browser",
+      "-o",
+      "/private/tmp/rcc-88-final-verification/account-browser9.test",
+      "./cmd/admin"
+    ],
+    "environment": {},
+    "started": "2026-09-10T15:41:42.844109+00:00",
+    "finished": "2026-09-10T15:41:47.856571+00:00",
+    "exit": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "log": "browser20-final-runner.log",
+    "command": [
+      "bash",
+      "scripts/browser-acceptance.sh"
+    ],
+    "environment": {
+      "RCC_E2E_SUITE": "all",
+      "RCC_E2E_ENGINES": "chromium,firefox,webkit",
+      "RCC_E2E_ARTIFACTS": "/private/tmp/rcc-88-final-verification/browser20-final"
+    },
+    "started": "2026-09-10T15:41:47.857392+00:00",
+    "finished": "2026-09-10T15:53:00.260269+00:00",
+    "exit": 1,
+    "sha256": "88143efd6373334088cf9a57181eb0bd11a684ef072fbba673b6c08f249d0d95"
+  }
+]

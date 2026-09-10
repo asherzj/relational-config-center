@@ -14,19 +14,19 @@ import (
 // The ordinal belongs to the request, while weights belong to MySQL. A join
 // therefore preserves each requested slot without assuming result row order.
 func (s *releaseOrderSession) ReadRecordBaselines(ctx context.Context, schema domain.TableSchema, ids []any) ([]domain.RecordBaseline, error) {
-	return s.readRecordBaselines(ctx, schema, ids, nil)
+	return s.readRecordBaselines(ctx, schema, ids, nil, nil)
 }
 
 // Only a verified original DELETE can supply an absent ENUM's comparison key.
 // Ordinary ADD continues to reject unsupported missing-ENUM identity synthesis.
-func (s *releaseOrderSession) ReadRollbackBaselines(ctx context.Context, schema domain.TableSchema, ids []any, source domain.ReleaseOrder) ([]domain.RecordBaseline, error) {
-	if source.VerifyPublication() != nil || source.Publication == nil || len(source.Items) != len(ids) {
+func (s *releaseOrderSession) ReadRollbackBaselines(ctx context.Context, schema domain.TableSchema, ids []any, source domain.ReleaseOrder, detailIDs []string) ([]domain.RecordBaseline, error) {
+	if source.VerifyPublication() != nil || len(detailIDs) != len(ids) {
 		return nil, application.ErrReleaseUnavailable
 	}
-	return s.readRecordBaselines(ctx, schema, ids, &source)
+	return s.readRecordBaselines(ctx, schema, ids, &source, detailIDs)
 }
 
-func (s *releaseOrderSession) readRecordBaselines(ctx context.Context, schema domain.TableSchema, ids []any, source *domain.ReleaseOrder) ([]domain.RecordBaseline, error) {
+func (s *releaseOrderSession) readRecordBaselines(ctx context.Context, schema domain.TableSchema, ids []any, source *domain.ReleaseOrder, detailIDs []string) ([]domain.RecordBaseline, error) {
 	if err := s.available(); err != nil {
 		return nil, err
 	}
@@ -63,7 +63,6 @@ func (s *releaseOrderSession) readRecordBaselines(ctx context.Context, schema do
 		return nil, application.ErrReleaseUnavailable
 	}
 	keys := [][]byte{}
-	readBytes := 0
 	defer rows.Close()
 	for rows.Next() {
 		var index int
@@ -84,10 +83,19 @@ func (s *releaseOrderSession) readRecordBaselines(ctx context.Context, schema do
 				return nil, &application.ReleaseItemError{Index: index, Cause: application.ErrReleaseSnapshotUnsupported}
 			}
 			// Reverse inputs unwind the original execution order.
-			sourceIndex := len(source.Items) - 1 - index
+			sourceIndex := -1
+			for i, item := range source.Items {
+				if item.DetailID == detailIDs[index] && item.TableName == schema.Name {
+					sourceIndex = i
+					break
+				}
+			}
+			if sourceIndex < 0 {
+				return nil, application.ErrReleaseUnavailable
+			}
 			saved := source.Items[sourceIndex]
-			command := source.Publication.Commands[sourceIndex]
-			if command.Operation != "DELETE" || saved.RecordTable != meta.TableName || len(saved.RecordKey) != 32 || !sameRollbackEnumDefinition(source.Frozen.Schema, meta) {
+			command := *source.Items[sourceIndex].Publication
+			if command.Operation != "DELETE" || saved.RecordTable != meta.TableName || len(saved.RecordKey) != 32 || !sameRollbackEnumDefinition(source.FrozenTables[schema.Name].Schema, meta) {
 				return nil, &application.ReleaseItemError{Index: index, Cause: application.ErrRecordVersionConflict}
 			}
 			key = saved.RecordKey
@@ -98,12 +106,6 @@ func (s *releaseOrderSession) readRecordBaselines(ctx context.Context, schema do
 			baseline.Row = domain.Row{}
 			for i, column := range schema.Columns {
 				value := jsonStringCell(column, values[i])
-				if value != nil {
-					readBytes += len(*value)
-					if readBytes > application.ReleaseResultBytes {
-						return nil, application.ErrReleaseResultLimit
-					}
-				}
 				if value != nil && !utf8.ValidString(string(*value)) {
 					return nil, &application.ReleaseItemError{Index: index, Cause: application.ErrReleaseSnapshotUnsupported}
 				}

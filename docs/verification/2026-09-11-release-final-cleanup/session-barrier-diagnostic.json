@@ -1,0 +1,740 @@
+[
+  {
+    "time": 1789056498835,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies/multitable_browser_a_webkit?mode=replace",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056498920,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies/multitable_browser_a_webkit?mode=replace",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056498976,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies/multitable_browser_a_webkit?mode=replace",
+    "event": "session-request",
+    "request": 0,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056498982,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies/multitable_browser_a_webkit?mode=replace",
+    "event": "session-response",
+    "request": 0,
+    "status": 200
+  },
+  {
+    "time": 1789056500438,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies/multitable_browser_a_webkit",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056500505,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies/multitable_browser_b_webkit?mode=replace",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056500533,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies/multitable_browser_b_webkit?mode=replace",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056500540,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies/multitable_browser_b_webkit?mode=replace",
+    "event": "session-request",
+    "request": 1,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056500544,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies/multitable_browser_b_webkit?mode=replace",
+    "event": "session-response",
+    "request": 1,
+    "status": 200
+  },
+  {
+    "time": 1789056501806,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies/multitable_browser_b_webkit",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056502432,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056502477,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056502503,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "event": "session-request",
+    "request": 2,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056502509,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "event": "session-response",
+    "request": 2,
+    "status": 200
+  },
+  {
+    "time": 1789056503565,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056503653,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/managed-data?table_name=&draft=d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056505145,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056505174,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "event": "console",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 409 (Conflict)"
+  },
+  {
+    "time": 1789056505205,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056506685,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056506711,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "event": "console",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 409 (Conflict)"
+  },
+  {
+    "time": 1789056507011,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056507049,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "event": "session-request",
+    "request": 3,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056507057,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "event": "session-response",
+    "request": 3,
+    "status": 200
+  },
+  {
+    "time": 1789056508176,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056508208,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "event": "session-request",
+    "request": 4,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056508214,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "event": "session-response",
+    "request": 4,
+    "status": 200
+  },
+  {
+    "time": 1789056509527,
+    "page": 2,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056509576,
+    "page": 2,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056509601,
+    "page": 2,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "event": "session-request",
+    "request": 5,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056509605,
+    "page": 2,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "event": "session-response",
+    "request": 5,
+    "status": 200
+  },
+  {
+    "time": 1789056510841,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056510874,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "event": "session-request",
+    "request": 6,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056510880,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "event": "session-response",
+    "request": 6,
+    "status": 200
+  },
+  {
+    "time": 1789056512927,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/d43ba5bc25ec98b697026c6f32c1fb84",
+    "last_check": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056515888,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/c02c676da0b160bf82033c29aa70407b",
+    "last_check": "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056515914,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/c02c676da0b160bf82033c29aa70407b",
+    "last_check": "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056515920,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/c02c676da0b160bf82033c29aa70407b",
+    "last_check": "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+    "event": "session-request",
+    "request": 7,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056515927,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/c02c676da0b160bf82033c29aa70407b",
+    "last_check": "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+    "event": "session-response",
+    "request": 7,
+    "status": 200
+  },
+  {
+    "time": 1789056517115,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/c02c676da0b160bf82033c29aa70407b",
+    "last_check": "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+    "event": "console",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 409 (Conflict)"
+  },
+  {
+    "time": 1789056518427,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/63080913d972aee77ca6be8eb6f763b7",
+    "last_check": "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056518470,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/c02c676da0b160bf82033c29aa70407b",
+    "last_check": "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056518495,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/c02c676da0b160bf82033c29aa70407b",
+    "last_check": "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056518501,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/c02c676da0b160bf82033c29aa70407b",
+    "last_check": "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+    "event": "session-request",
+    "request": 8,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056518507,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/c02c676da0b160bf82033c29aa70407b",
+    "last_check": "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+    "event": "session-response",
+    "request": 8,
+    "status": 200
+  },
+  {
+    "time": 1789056518590,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/63080913d972aee77ca6be8eb6f763b7",
+    "last_check": "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056518830,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/76936c555ff6f29acc2bcc654c1a575e",
+    "last_check": "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056518857,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/76936c555ff6f29acc2bcc654c1a575e",
+    "last_check": "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056518864,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/76936c555ff6f29acc2bcc654c1a575e",
+    "last_check": "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "event": "session-request",
+    "request": 9,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056518870,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/76936c555ff6f29acc2bcc654c1a575e",
+    "last_check": "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "event": "session-response",
+    "request": 9,
+    "status": 200
+  },
+  {
+    "time": 1789056520316,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/80e4d2edaaca3b76b8e12010ddf412b2",
+    "last_check": "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056520419,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/76936c555ff6f29acc2bcc654c1a575e",
+    "last_check": "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056520468,
+    "page": 1,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/80e4d2edaaca3b76b8e12010ddf412b2",
+    "last_check": "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056521649,
+    "page": 2,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/80e4d2edaaca3b76b8e12010ddf412b2",
+    "last_check": "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056521675,
+    "page": 2,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/80e4d2edaaca3b76b8e12010ddf412b2",
+    "last_check": "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056521681,
+    "page": 2,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/80e4d2edaaca3b76b8e12010ddf412b2",
+    "last_check": "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "event": "session-request",
+    "request": 10,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056521687,
+    "page": 2,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/80e4d2edaaca3b76b8e12010ddf412b2",
+    "last_check": "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "event": "session-response",
+    "request": 10,
+    "status": 200
+  },
+  {
+    "time": 1789056522832,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies/multitable_browser_large_webkit?mode=fields",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056522861,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies/multitable_browser_large_webkit?mode=fields",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056522868,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies/multitable_browser_large_webkit?mode=fields",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-request",
+    "request": 11,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056522875,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies/multitable_browser_large_webkit?mode=fields",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-response",
+    "request": 11,
+    "status": 200
+  },
+  {
+    "time": 1789056523889,
+    "page": 0,
+    "url": "http://127.0.0.1:62900/platform/table-policies",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056524113,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/managed-data?table_name=multitable_browser_large_webkit",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056524171,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/managed-data?table_name=multitable_browser_large_webkit",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056524199,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/managed-data?table_name=multitable_browser_large_webkit",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-request",
+    "request": 12,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056524205,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/managed-data?table_name=multitable_browser_large_webkit",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-response",
+    "request": 12,
+    "status": 200
+  },
+  {
+    "time": 1789056536444,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/managed-data?table_name=multitable_browser_large_webkit",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056536477,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/managed-data?table_name=multitable_browser_large_webkit",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-request",
+    "request": 13,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056536481,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/managed-data?table_name=multitable_browser_large_webkit",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-response",
+    "request": 13,
+    "status": 200
+  },
+  {
+    "time": 1789056536608,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056536636,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056536642,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-request",
+    "request": 14,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056536649,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-response",
+    "request": 14,
+    "status": 200
+  },
+  {
+    "time": 1789056536814,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056536842,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-request",
+    "request": 15,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056536846,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-response",
+    "request": 15,
+    "status": 200
+  },
+  {
+    "time": 1789056537117,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056537162,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-request",
+    "request": 16,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056537166,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-response",
+    "request": 16,
+    "status": 200
+  },
+  {
+    "time": 1789056537332,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056537363,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-request",
+    "request": 17,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056537367,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-response",
+    "request": 17,
+    "status": 200
+  },
+  {
+    "time": 1789056537454,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056537488,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-request",
+    "request": 18,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056537493,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "session-response",
+    "request": 18,
+    "status": 200
+  },
+  {
+    "time": 1789056538896,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders/fc51cb8c0292bc441e2beac0e8e18575",
+    "last_check": "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056543919,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/platform/query-policies",
+    "last_check": "真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056543947,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/platform/query-policies",
+    "last_check": "真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056543968,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/platform/query-policies",
+    "last_check": "真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿",
+    "event": "session-request",
+    "request": 19,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056543986,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/platform/query-policies",
+    "last_check": "真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿",
+    "event": "session-response",
+    "request": 19,
+    "status": 200
+  },
+  {
+    "time": 1789056544012,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056544042,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿",
+    "event": "navigation"
+  },
+  {
+    "time": 1789056544046,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿",
+    "event": "session-request",
+    "request": 20,
+    "request_url": "http://127.0.0.1:62900/api/v1/auth/session"
+  },
+  {
+    "time": 1789056544055,
+    "page": 3,
+    "url": "http://127.0.0.1:62900/configuration/release-orders",
+    "last_check": "真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿",
+    "event": "session-response",
+    "request": 20,
+    "status": 200
+  }
+]

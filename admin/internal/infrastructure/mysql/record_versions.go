@@ -70,11 +70,15 @@ type identityMetadata struct {
 }
 
 func recordIdentityMetadata(ctx context.Context, db *gorm.DB, table string) (identityMetadata, error) {
+	return columnIdentityMetadata(ctx, db, table, "id")
+}
+
+func columnIdentityMetadata(ctx context.Context, db *gorm.DB, table, column string) (identityMetadata, error) {
 	var meta identityMetadata
-	result := db.WithContext(ctx).Raw(`SELECT t.TABLE_NAME AS table_name,t.ENGINE AS engine,COALESCE(co.PAD_ATTRIBUTE,'NO PAD') AS pad_attribute,COALESCE(c.COLLATION_NAME,'') AS collation_name,COALESCE(c.CHARACTER_SET_NAME,'') AS charset_name,c.DATA_TYPE AS data_type,c.COLUMN_TYPE AS column_type,COALESCE(c.NUMERIC_PRECISION,0) AS numeric_precision,COALESCE(c.NUMERIC_SCALE,0) AS scale,COALESCE(c.DATETIME_PRECISION,0) AS temporal_precision,COALESCE(c.CHARACTER_MAXIMUM_LENGTH,0) AS capacity
- FROM information_schema.TABLES t JOIN information_schema.COLUMNS c ON c.TABLE_SCHEMA=t.TABLE_SCHEMA AND c.TABLE_NAME=t.TABLE_NAME AND c.COLUMN_NAME='id'
+	result := db.WithContext(ctx).Raw(`SELECT IF(@@lower_case_table_names=0,t.TABLE_NAME,LOWER(t.TABLE_NAME)) AS table_name,t.ENGINE AS engine,COALESCE(co.PAD_ATTRIBUTE,'NO PAD') AS pad_attribute,COALESCE(c.COLLATION_NAME,'') AS collation_name,COALESCE(c.CHARACTER_SET_NAME,'') AS charset_name,c.DATA_TYPE AS data_type,c.COLUMN_TYPE AS column_type,COALESCE(c.NUMERIC_PRECISION,0) AS numeric_precision,COALESCE(c.NUMERIC_SCALE,0) AS scale,COALESCE(c.DATETIME_PRECISION,0) AS temporal_precision,COALESCE(c.CHARACTER_MAXIMUM_LENGTH,0) AS capacity
+ FROM information_schema.TABLES t JOIN information_schema.COLUMNS c ON c.TABLE_SCHEMA=t.TABLE_SCHEMA AND c.TABLE_NAME=t.TABLE_NAME AND c.COLUMN_NAME=?
  LEFT JOIN information_schema.COLLATIONS co ON co.COLLATION_NAME=c.COLLATION_NAME
- WHERE t.TABLE_SCHEMA=DATABASE() AND t.TABLE_NAME=?`, table).Scan(&meta)
+ WHERE t.TABLE_SCHEMA=DATABASE() AND t.TABLE_NAME=?`, column, table).Scan(&meta)
 	if result.Error != nil {
 		return meta, result.Error
 	}
@@ -106,7 +110,7 @@ var identitySQLName = regexp.MustCompile(`^[a-zA-Z0-9_]+$`)
 func recordLookupExpression(meta identityMetadata) (string, error) {
 	var expression string
 	switch meta.DataType {
-	case "char", "varchar", "enum":
+	case "char", "varchar", "tinytext", "text", "mediumtext", "longtext", "enum":
 		if !identitySQLName.MatchString(meta.CharsetName) || !identitySQLName.MatchString(meta.CollationName) {
 			return "", application.ErrIncompatibleTable
 		}
