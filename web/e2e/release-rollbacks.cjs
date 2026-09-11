@@ -37,7 +37,7 @@ const output = process.env.RCC_E2E_OUTPUT;
   const button = (page, name) => page.getByRole('button', { name, exact: true });
   const heading = (page, state, reverse = false) => ({ waitFor: async () => {
     await page.getByRole('heading', { name: reverse ? '回滚：浏览器回滚验收变更' : '浏览器回滚验收变更', exact: true }).waitFor();
-    await page.getByText(`${table} · ${state}`, { exact: true }).waitFor();
+    await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: new RegExp(`^${state}$`) }).waitFor();
   } });
   const read = async (context, id) => readAllReleaseDetailPages(context,base,await api(context,'GET',`/api/v1/release-orders/${id}`));
   const query = context => api(context, 'POST', `/api/v1/tables/${table}/query`, {
@@ -157,7 +157,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     const quickTitle = '浏览器快速回滚验收';
     const quickHeading = async (page, state, reverse = false, title = quickTitle) => {
       await page.getByRole('heading', { name: reverse ? `回滚：${title}` : title, exact: true }).waitFor();
-      await page.getByText(`${table} · ${state}`, { exact: true }).waitFor();
+      await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: new RegExp(`^${state}$`) }).waitFor();
     };
     const quickDraft = await api(applicant, 'POST', '/api/v1/release-orders', {
       title: quickTitle, items:[{table_name:table,operation: 'MODIFY', id: '1', expected_record_version: '1', content: { name: `Quick ${engineName} published value` } }],
@@ -227,7 +227,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     await button(quickDialog, '确认整单快速回滚').dblclick();
     await quickDialog.getByText('Admin 连接或响应传输中断。',{exact:true}).waitFor();
     assert.equal(quickWrites.length, 1);
-    await publishPage.getByText(/ · 已回滚$/).waitFor();
+    await publishPage.getByLabel('发布单状态',{exact:true}).filter({hasText:/^已回滚$/}).waitFor();
     assert.equal(await button(publishPage, '完结发布单').count(), 0);
     assert.equal(await button(publishPage, '快速回滚').isEnabled(), true);
     assert.equal(await quickDialog.getByLabel('快速回滚原因（选填）', { exact: true }).isDisabled(), true);
@@ -273,7 +273,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     await actualResult.getByText(`值：Quick ${engineName} published value`,{exact:true}).waitFor();
     await button(publishPage,'恢复结果').click();
     await actualResult.getByText(`值：T8 ${engineName} browser published value`,{exact:true}).waitFor();
-    await button(publishPage,'申请差异').click();
+    await button(publishPage,'申请内容').click();
     await publishPage.getByText(`Quick ${engineName} published value`,{exact:true}).waitFor();
     check('the original detail switches preserved application, actual publication and actual rollback');
     await publishPage.setViewportSize({ width: 390, height: 844 });

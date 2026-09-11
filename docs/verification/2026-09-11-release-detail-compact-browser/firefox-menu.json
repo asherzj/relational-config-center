@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "engine": "firefox",
+  "browser": "153.0",
+  "initialFocus": "real Tab navigation",
+  "servedAssets": {
+    "script": "/assets/index-2_A9Khg5.js",
+    "styles": [
+      "/assets/index-D-AD8zfN.css"
+    ]
+  },
+  "checks": [
+    "keyboard More → Cancel draft → footer Close returns focus to More",
+    "immediate Enter reopens menu and focuses Cancel draft",
+    "Escape from reopened menu returns focus to More",
+    "next Enter → Cancel draft → Escape returns focus to More",
+    "own draft unchanged by keyboard checks, then cancelled during cleanup"
+  ]
+}

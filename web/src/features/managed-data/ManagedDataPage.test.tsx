@@ -49,7 +49,7 @@ function renderPage(queryRetry: boolean | number = false) {
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe("配置内容管理页面", () => {
+describe("统一变更入口页面", () => {
   it("没有已启用表规则时显示明确空状态且不调用 Managed Data API", async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
       const url = String(input);
@@ -93,8 +93,8 @@ describe("配置内容管理页面", () => {
 
     renderPage();
 
-    expect(await screen.findByRole("heading", { name: "配置内容管理" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "配置内容管理" })).toHaveClass("active");
+    expect(await screen.findByRole("heading", { name: "统一变更入口" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "统一变更入口" })).toHaveClass("active");
     const tableSelect = await screen.findByRole("combobox", { name: "Managed Table" });
     expect(within(tableSelect).getByRole("option", { name: "notification_templates" })).toBeVisible();
     expect(within(tableSelect).queryByRole("option", { name: "disabled_templates" })).not.toBeInTheDocument();

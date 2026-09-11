@@ -38,7 +38,7 @@ async function session(api) {
 
 async function releaseState(page, state) {
   await page.getByRole('heading', { name: 'notification_templates 配置变更', exact: true }).waitFor();
-  await page.getByText(`notification_templates · ${state}`, { exact: true }).waitFor();
+  await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: new RegExp(`^${state}$`) }).waitFor();
 }
 
 async function login(api, username, password) {
@@ -197,13 +197,13 @@ try {
 
   await page.goto(`${origin}/configuration/managed-data`);
   await page.reload();
-  await page.getByRole('heading', { name: '配置内容管理' }).waitFor();
+  await page.getByRole('heading', { name: '统一变更入口' }).waitFor();
   await context.close();
   context = await browserEngine.launchPersistentContext(profile, launchOptions);
   context.on('request', rememberRequest);
   page = await context.newPage();
   await page.goto(`${origin}/configuration/managed-data`);
-  await page.getByRole('heading', { name: '配置内容管理' }).waitFor();
+  await page.getByRole('heading', { name: '统一变更入口' }).waitFor();
   await page.getByLabel('Managed Table', { exact: true }).selectOption('notification_templates');
   await page.getByRole('button', { name: '新增记录', exact: true }).click();
   for (const [field, value] of Object.entries({ template_key: templateKey, channel: 'PUSH', body: 'browser initial configuration' })) {

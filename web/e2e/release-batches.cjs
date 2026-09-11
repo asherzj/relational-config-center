@@ -28,7 +28,7 @@ const output = process.env.RCC_E2E_OUTPUT;
   const button = (page, name) => page.getByRole('button', { name, exact: true });
   const heading = (page, state, title = `${table} 配置变更`) => ({ waitFor: async () => {
     await page.getByRole('heading', { name: title, exact: true }).waitFor();
-    await page.getByText(`${table} · ${state}`, { exact: true }).waitFor();
+    await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: new RegExp(`^${state}$`) }).waitFor();
   } });
   const read = async (context, id) => readAllReleaseDetailPages(context,base,await api(context,'GET',`/api/v1/release-orders/${id}`));
   const query = (context, conditions = [], pageNumber = 1) => api(context, 'POST', `/api/v1/tables/${table}/query`, {
@@ -116,7 +116,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     assert.equal(order.items.length, 1);
     assert.equal(order.items[0].operation, 'MODIFY');
 
-    await page.getByRole('link', { name: '添加明细', exact: true }).click();
+    await page.getByRole('link', { name: '添加变更', exact: true }).click();
     assert.equal(await page.getByLabel('Managed Table', { exact: true }).inputValue(), table);
     await page.getByRole('checkbox', { name: '选择记录 2', exact: true }).check();
     await page.getByRole('checkbox', { name: '选择记录 3', exact: true }).check();
@@ -169,7 +169,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     assert.equal(order.items[0].content.label, 'published mixed label');
     assert.equal(order.items[1].id, '2');
 
-    await page.getByRole('link', { name: '添加明细', exact: true }).click();
+    await page.getByRole('link', { name: '添加变更', exact: true }).click();
     await button(page, '新增记录').click();
     for (const [field, value] of Object.entries({ code: 'ui-added', label: 'added in mixed order' })) {
       await page.getByLabel(`包含 ${field}`, { exact: true }).check();

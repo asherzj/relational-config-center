@@ -233,7 +233,7 @@ function fixtureSQL() {
     assert.equal(executionCommands(currentOrder)[0].operation, operation);
     await page.reload();
     await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();
-    await page.getByText(`${table} · 已发布待完结`, { exact: true }).waitFor();
+    await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: /^已发布待完结$/ }).waitFor();
     // Finish each independent data fixture before a later case uses its identity.
     await api(publisher, 'POST', `/api/v1/release-orders/${currentOrder.id}/complete`, { expected_version: currentOrder.version });
     return { ...result, response: { ...result.response, id: executionCommands(currentOrder)[0].id }, stage: 'publication' };
