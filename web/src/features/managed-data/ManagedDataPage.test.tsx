@@ -9,6 +9,7 @@ import { AppRoutes } from "../../app";
 import { ToastProvider } from "../../components/ui/Toast";
 
 const enabledPolicy = {
+  version: "1",
   table_name: "notification_templates",
   query_policy_code: "notification_page_query_v1",
   mutation_policy_code: "notification_full_mutation_v1",

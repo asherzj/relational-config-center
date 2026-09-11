@@ -1,0 +1,58 @@
+{
+  "fixed_base": "e2564842e72e96b6ffb1e86708978b11dd8a651b",
+  "review_kind": "Spec backend round 1; working-tree delta",
+  "source_manifest": "/tmp/rcc-104-backend-review-source-v2.json",
+  "source_sha256": {
+    "admin/CONTEXT.md": "b4142dd6c317e1cbaa0b4f75282102d7323ab777bb4114c161bc5c796379a085",
+    "admin/cmd/admin/release_failure_retry_integration_test.go": "53c9533e161fb1a4f4bcf1657cfeb522dcc5ed98ad5fb6fb05b26b622ce9bc16",
+    "admin/cmd/admin/release_flow_browser_integration_test.go": "254875220f8d825f3140b072faad22be0ccbba0045c04cd832a934482107cc04",
+    "admin/cmd/admin/release_original_execution_integration_test.go": "38eda5caf9b0c746c6767209c9a083d3792a86ddceac30d338e267eb7d76f66a",
+    "admin/internal/application/release_flow.go": "ac0ae1fd1424e7877ec027300165567eae0d39eb9884fb828c1b2b360e1b8d6d",
+    "admin/internal/application/release_orders.go": "0eebc67967253d31de75a1acb11ecd6b4508219a7fdb46f73e4187a4a6ba1af1",
+    "admin/internal/domain/release_order.go": "422369ee9e6313d454d274739a4b718b9cc95f03010ae66caa9e5c483b8ae417",
+    "admin/internal/domain/release_read.go": "ffec41e468a04abe8f3f020119b0f63a9d4068d1ca5b9e92e2b067cd1adabd60",
+    "admin/internal/infrastructure/mysql/identity_guard_integration_test.go": "1547881af963bd87e4229012e2761d548733bbe755de8f71135e82bbea16348f",
+    "admin/internal/infrastructure/mysql/release_approval.go": "0badc416c4bbaeaf98ec7f3bea1132eccc0a52c9439286010f5beac6d52510a7",
+    "admin/internal/interfaces/http/release_orders.go": "e0b481992e691dfd8d97a5fdbc1f45ce8b0e4099c09281072bc01975e5b6f53f",
+    "docs/admin-release-approvals.md": "df3768880f439d01250a0297d5530232db25b2bfb61a4efcc9a5becd016ea594",
+    "docs/admin-release-drafts.md": "fe925d2198b9e19c799030e89de8e03bc75f431506aa6692b7a908deaa2ce042",
+    "docs/adr/0027-configure-release-workflows-with-stable-templates.md": "1cdbdb28a7223b0356db88ed95d429c2ef607b0a7739a0b234dcb8ae124d1088",
+    "docs/design-notes/publication-contract.md": "a4601dc7a19de2e7867c80203f3b27152f74c43ea02ad6f943196162b7c5e56c",
+    "admin/cmd/admin/release_emergency_integration_test.go": "188a4b9a8f720d52cf6fca6ef9242786c4c008fa0b56befe6989bedd5da22c3f"
+  },
+  "changes_after_v2": {
+    "admin/cmd/admin/release_flow_browser_integration_test.go": {
+      "v2": "5686affd559b97002234a6adbcaacde39a953e86bb4e54d40f5548959ed045ed",
+      "reviewed": "254875220f8d825f3140b072faad22be0ccbba0045c04cd832a934482107cc04"
+    }
+  },
+  "spec_sha256": {
+    "docs/verification/2026-09-11-release-instances/spec/issue-100.json": "7200ecaeed772a85559bb5aa1c07c9b4c57fadf8574d9fc5aa900cf77be384d3",
+    "/tmp/rcc-104-ready.json": "4dd934c187ff709df4cd4e321332b7aa6d44981167cee4c2d8cc3ee12b679e2c"
+  },
+  "evidence_sha256": {
+    "docs/verification/2026-09-11-emergency-release/backend/01-switch-red.log": "e24c22c73426d719dafb68e06ec1a58d24ba8735cf3cc59a9de177b4e39333e9",
+    "docs/verification/2026-09-11-emergency-release/backend/02-switch-green.log": "06603a84be4ec6ec4a1e02c46ccc44bff09e04503b2cbeb359de11c5ecf07516",
+    "docs/verification/2026-09-11-emergency-release/backend/03-submit-red.log": "3e50561c35520075efabed777c9b9459a412721c12b0870201a01cfdb1a1af0c",
+    "docs/verification/2026-09-11-emergency-release/backend/04-submit-green.log": "1400bfa294d8ff3cdac24ff91235a3e846338a78f15bed152cd2346bf6d48047",
+    "docs/verification/2026-09-11-emergency-release/backend/05-permission-red.log": "3e409f255bcf7180757d0b52e48e3e3f82f7baf6401ad726aa393acc306da032",
+    "docs/verification/2026-09-11-emergency-release/backend/06-permission-green.log": "0d0a1e9db77e191bc217be4f9e0028e604cf2dced7e5a31fbd48ca68972b203e",
+    "docs/verification/2026-09-11-emergency-release/backend/07-transaction-lifecycle.log": "ce870012f072463f945d72824da3a8fbca8f02b6b0f902480d10d2fa32406614",
+    "docs/verification/2026-09-11-emergency-release/backend/08-storage-recovery.log": "346741673ddc181a62a3203becd34fd2c9bc40e187ec35d7a388f8f2e6671d62",
+    "docs/verification/2026-09-11-emergency-release/backend/09-switch-submit-race.log": "508ca2cca0aa5f692515a8f1ee5d8e520295f4adc83627f6b68fa96a7d95aa41",
+    "docs/verification/2026-09-11-emergency-release/backend/10-pending-consumers-red.log": "caf91c1c3722e274cd1780e99771b5bb97cf856c2e5241be5116649ec4de8865",
+    "docs/verification/2026-09-11-emergency-release/backend/11-pending-consumers-green.log": "9b2c694b9238a37d35b86b048ba60c1cdb0c85e7ee7c0d75d2cb37cc42d1413b",
+    "docs/verification/2026-09-11-emergency-release/backend/12-http-regression.json": "481da84992886af3805728f73c47157f4c9569829d79c5e68bbf675d13880a03",
+    "docs/verification/2026-09-11-emergency-release/backend/12-http-regression.log": "1605aeaba7fdc399f5f0e26d4ad5b55956c51660517d9604541569a1a3b3244e",
+    "docs/verification/2026-09-11-emergency-release/backend/13-contract-compile.json": "c4f6dd96c0e749bfdc37c482454f403c8ab551c11c34df4d2081d5915446e062",
+    "docs/verification/2026-09-11-emergency-release/backend/13-contract-compile.log": "17b8c08a7e812bca2d72648542b5164aedd3cdd3eb985f1d58f1cbc051b6e44f",
+    "docs/verification/2026-09-11-emergency-release/backend/14-isolated-red.json": "74e8c3753a65974ef72c1b08430281f00ce043d9608b1e77587541189e1faa05",
+    "docs/verification/2026-09-11-emergency-release/backend/14-isolated-red.log": "15dea8dd12f9c896dd196f8aea94b1236d96b43cc689f3789b5d96bc4467cf0e",
+    "docs/verification/2026-09-11-emergency-release/backend/15-isolated-fixes.json": "aac5d7ec507d458fa4741e6c26b93245c639ff8fbec955ee913f5944c85552bc",
+    "docs/verification/2026-09-11-emergency-release/backend/15-isolated-fixes.log": "86a5bec3c06a62880dccbe18a5bce30c7492623fb6ac9dab7cdd4eaba920c45b",
+    "docs/verification/2026-09-11-emergency-release/backend/16-all-admin-compile.json": "c91e41050afa44d3adea65357148d6c0619bd6d22be8b78ef4005f5299596114",
+    "docs/verification/2026-09-11-emergency-release/backend/16-all-admin-compile.log": "c88bd76f6c0e763d1e1900d2437b2371d44d2190e52d63d8b62491cf591722b4",
+    "docs/verification/2026-09-11-emergency-release/backend/initial-exit-codes.json": "d7b002e44b26de0b4a1eaf32f497b920f431a7ee4f1166a2e3b7e27232f17aab"
+  },
+  "input_hash": "215e39799c0504f7e636c51a79dbad5f3081ef4c15db4eebaf393a59f4ebe269"
+}

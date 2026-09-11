@@ -55,7 +55,11 @@ func TestOriginalOrderRollbackPreservesApplicationAndBothExecutions(t *testing.T
 		t.Fatal("replay changed actual result", replay.Body)
 	}
 	publicationReplay := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "original-publish")
-	if publicationReplay.Code != 200 || !reflect.DeepEqual(rollbackOrderResponse(t, publicationReplay, 200), published) {
+	// Original business results stay fixed; qualification reflects current detail.
+	latest := readTableApprovalOrder(t, app, integrationAdminSession(t, app), path)
+	expectedReplay := published
+	expectedReplay.ApprovalContext = latest.ApprovalContext
+	if publicationReplay.Code != 200 || !reflect.DeepEqual(rollbackOrderResponse(t, publicationReplay, 200), expectedReplay) {
 		t.Fatal("original publication replay changed after rollback", publicationReplay.Body)
 	}
 	batchEdgeCounts(t, db, map[string]int{

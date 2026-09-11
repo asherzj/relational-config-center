@@ -1,0 +1,26 @@
+=== RUN   TestReleaseEmergencyBrowserSystemPath
+2026/09/11 15:06:58 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: ebde7baf1df64ea4bdb96337685f2ae5957c154e73c80be18ffe492186163354
+  Test ProcessID: fc641e74-0ddb-448f-9632-3fe239ffda4f
+2026/09/11 15:06:58 🐳 Creating container for image mysql:8.4
+2026/09/11 15:06:58 ✅ Container created: 8031844ba325
+2026/09/11 15:06:58 🐳 Starting container: 8031844ba325
+2026/09/11 15:06:58 ✅ Container started: 8031844ba325
+2026/09/11 15:06:58 ⏳ Waiting for container id 8031844ba325 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:07:05 🔔 Container is ready: 8031844ba325
+    release_flow_browser_integration_test.go:23: isolated browser target: MySQL localhost:47863/rcc_test, Admin http://127.0.0.1:57312 pid=33232, Vite http://127.0.0.1:57307 pid=33247; evidence /private/tmp/rcc-issue-104-emergency-release/docs/verification/2026-09-11-emergency-release/browser/03
+    release_flow_browser_integration_test.go:23: browser → Vite proxy → Admin → MySQL: [AC-012/023: explicit whole-order type switches rebuild persisted instances; failed response retains the selected STANDARD request and exact key/body for manual replay AC-015/016: UI rejects blank and 2,001-codepoint reasons; committed submit persists the exact reason, enters PENDING_PUBLICATION, records no approval, and changes no business row AC-023: same-account session recovery restores the unresolved reason; 390px has no overflow, no approval UI, visible long flow names, and keyboard-reachable PUBLISHER action AC-016/017/023: the current applicant/PUBLISHER executes both tables in another same-account profile, remains pending manual completion, and manual replay of the original submit never replaces the current SUCCEEDED detail AC-018: manual completion closes the order and releases both persisted targets for a later draft without changing the published values]
+2026/09/11 15:07:30 🐳 Stopping container: 8031844ba325
+2026/09/11 15:07:31 ✅ Container stopped: 8031844ba325
+2026/09/11 15:07:31 🐳 Terminating container: 8031844ba325
+2026/09/11 15:07:31 🚫 Container terminated: 8031844ba325
+--- PASS: TestReleaseEmergencyBrowserSystemPath (33.11s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	34.352s

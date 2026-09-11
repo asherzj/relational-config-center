@@ -43,6 +43,7 @@ type ReleaseEvent struct {
 }
 
 type ReleaseOrder struct {
+	EmergencyReason   string                              `json:"emergency_reason"`
 	ReleaseType       ReleaseType                         `json:"release_type"`
 	TableFlows        []ReleaseTableFlow                  `json:"table_flows"`
 	MissingFlowTables []string                            `json:"missing_flow_tables"`
@@ -143,6 +144,7 @@ func NewReleaseMutationSemantics(policy MutationPolicy) ReleaseMutationSemantics
 // ReleaseOrderSummary carries bounded catalog information; complete intent and
 // verified publication history are available through the order detail.
 type ReleaseOrderSummary struct {
+	EmergencyReason   string                 `json:"emergency_reason"`
 	ReleaseType       ReleaseType            `json:"release_type"`
 	TableFlows        []ReleaseTableFlow     `json:"table_flows"`
 	MissingFlowTables []string               `json:"missing_flow_tables"`
@@ -161,7 +163,7 @@ type ReleaseOrderSummary struct {
 }
 
 func (order ReleaseOrder) Summary() ReleaseOrderSummary {
-	result := ReleaseOrderSummary{ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext, TableNames: order.TableNames, Title: order.Title, ID: order.ID, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
+	result := ReleaseOrderSummary{EmergencyReason: order.EmergencyReason, ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext, TableNames: order.TableNames, Title: order.Title, ID: order.ID, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
 	for _, item := range order.Items {
 		result.OperationCounts[item.Operation]++
 	}

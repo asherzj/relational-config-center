@@ -1,0 +1,9 @@
+{
+  "browser_run": "03",
+  "changed_after_run": [
+    "web/src/features/release-orders/ReleaseOrdersPage.test.tsx",
+    "web/src/features/release-orders/ReleaseRequestReview.tsx"
+  ],
+  "replacement_check": "../web/42-final-conflict-regression.log",
+  "rationale": "Only definitive-conflict rebuilding changed; browser unknown-result original replay does not mount that path."
+}

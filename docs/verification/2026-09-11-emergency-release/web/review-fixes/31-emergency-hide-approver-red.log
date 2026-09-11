@@ -1,0 +1,31 @@
+^D[?25l
+ RUN  v4.1.11 /private/tmp/rcc-issue-104-emergency-release/web
+
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx (84 tests | 1 failed | 83 skipped) 613ms
+   × 应急草稿要求 Unicode 计数内的原因并提交到真实待发布状态 612ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/release-orders/ReleaseOrdersPage.test.tsx > 应急草稿要求 Unicode 计数内的原因并提交到真实待发布状态
+Error: expect(element).not.toBeInTheDocument()
+
+expected document not to contain element, found <dt>
+  最近审批人
+</dt> instead
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx:77:102
+     75|  expect(await screen.findByText("应急发布已提交，等待手动发布")).toBeVisible();
+     76|  expect(screen.getByText("应急发布 · 整单阶段")).toBeVisible();expect(screen.g…
+     77|  expect(screen.getAllByText("生产配置异常，需立即修正")).toHaveLength(2);expect(sc…
+       |                                                                                                      ^
+     78|  expect(writes).toHaveLength(1);expect(JSON.parse(String(writes[0]!.bo…
+     79| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 83 skipped (84)
+   Start at  14:59:26
+   Duration  2.48s (transform 656ms, setup 244ms, import 972ms, tests 613ms, environment 534ms)
+
+[?25h

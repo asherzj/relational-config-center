@@ -10,7 +10,7 @@ export function releaseFixture(value:unknown):unknown {
  const tables=[...new Set(items.map(item=>item.table_name))];
  const context="approval_context" in value?value.approval_context:{revision:"fixture-approval-1",tables:tables.map(table_name=>({table_name,mode:"ROLE",reason:"审批角色成员",can_approve:true})),approvable_tables:tables};
  const approvals="approvals" in value?value.approvals:tables.map(table_name=>({table_name,roles:[],state:"state" in value&&["APPROVED","SUCCEEDED","COMPLETED","ROLLED_BACK"].includes(String(value.state))?"APPROVED":"PENDING"}));
- return {release_type:"STANDARD",table_flows:[],missing_flow_tables:[],...value,approvals,approval_context:context,items,table_names:[...new Set(items.map(item=>item.table_name))],item_count:items.length,operation_counts,executions};
+ return {release_type:"STANDARD",emergency_reason:"",table_flows:[],missing_flow_tables:[],...value,approvals,approval_context:context,items,table_names:[...new Set(items.map(item=>item.table_name))],item_count:items.length,operation_counts,executions};
 }
 
 // In-memory HTTP fixture router: a normal GET serves only its header. Detail

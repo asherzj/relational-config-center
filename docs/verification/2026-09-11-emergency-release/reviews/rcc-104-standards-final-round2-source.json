@@ -1,0 +1,67 @@
+{
+  "worktree": "/private/tmp/rcc-issue-104-emergency-release",
+  "base": "e2564842e72e96b6ffb1e86708978b11dd8a651b",
+  "axis": "Standards final targeted repair round2",
+  "source_sha256": {
+    "web/src/features/release-orders/ReleaseRequestReview.tsx": "971dc41594fb2d81e344244a2599d6963c6f57303fa1a63521a8f6c447dc48d0",
+    "web/src/features/release-orders/ReleaseOrdersPage.test.tsx": "8c31878f241af037e60bc5149dafd23b0a18145ad0b46b56d17ecfc29ea2d805",
+    "web/DESIGN.md": "edc1781ea8eb1b8fc3ced947fda8fcc7fce03b79d84a6e37eed765954e0b6a92",
+    "web/src/features/release-orders/useReleaseWrite.ts": "3c78dfa3da44979b7b258b622b62318193fb0acc5cb343f7171220c5204e70ff",
+    "web/src/components/ui/Toast.tsx": "6d375f56de44ddbc269f82844a95d8e2d4582f023878828f73dce26f3614a463"
+  },
+  "changed_since_previous_standards_snapshot": [
+    "web/src/features/release-orders/ReleaseOrdersPage.test.tsx",
+    "web/src/features/release-orders/ReleaseRequestReview.tsx"
+  ],
+  "final_checks": {
+    "web/42-final-conflict-regression.json": {
+      "exit_code": 0,
+      "input_count": 462,
+      "different": []
+    },
+    "web/43-final-typecheck.json": {
+      "exit_code": 0,
+      "input_count": 462,
+      "different": []
+    },
+    "web/44-final-build.json": {
+      "exit_code": 0,
+      "input_count": 462,
+      "different": []
+    }
+  },
+  "browser03": {
+    "input_count": 429,
+    "different_from_current": [
+      "web/src/features/release-orders/ReleaseOrdersPage.test.tsx",
+      "web/src/features/release-orders/ReleaseRequestReview.tsx"
+    ],
+    "scope": "Observed 390px pending-publication detail and emergency-reason drawer screenshots; raw browser passed five recorded normal-path checks. Run predates the conflict-review-only repair; its unchanged paths are reusable, not new recovery evidence."
+  },
+  "evidence_sha256": {
+    "docs/verification/2026-09-11-emergency-release/browser/03/cleanup.json": "469e8fdfa2d95246615e23f932f385292a9e72e2af1cf0e30cc74d0620c5aa0a",
+    "docs/verification/2026-09-11-emergency-release/browser/03/emergency-pending-publication-mobile.png": "5f49f28f0ee9014b9d440779bcaf498b19c507946f33b707fc3d1e0887205ed8",
+    "docs/verification/2026-09-11-emergency-release/browser/03/emergency-reason-mobile.png": "1142a7a124b02484c12a22473fc0f02a51f1d41213fd6d8eb6fcdcf9b1d27a77",
+    "docs/verification/2026-09-11-emergency-release/browser/03/release-emergency-browser-evidence.json": "9a7cfbb951b8f667e57b3ab127087df5ee7db6437e5446baf623883dafe0a740",
+    "docs/verification/2026-09-11-emergency-release/browser/03/source-input.json": "24228c371a0c3c65065dbdfc9b9ca7390c11d26499ebb2030b8551fa043b2a71",
+    "docs/verification/2026-09-11-emergency-release/browser/03-run.json": "00224ce44d6db866c9016b74362fcb453e979dc9383023edfddb9c0b7fe91d24",
+    "docs/verification/2026-09-11-emergency-release/browser/03-run.log": "8549592c799d457660a13a73a2dc48bf9ac5117b9aab5ac2764f38ab23425bd2",
+    "docs/verification/2026-09-11-emergency-release/web/39-conflict-review-gate-red.json": "b50c0886fc87df4c74714f34992a72cd8db6eeb52075e239993af5d0f564a67c",
+    "docs/verification/2026-09-11-emergency-release/web/39-conflict-review-gate-red.log": "c3a2df5d3d60783375ca47455afcd454d8eeb3bd9d29860b648a84f7d8264276",
+    "docs/verification/2026-09-11-emergency-release/web/40-conflict-review-complete-red.json": "a721bf3481b227d9a55daaebf3cd7069bd404fec39c725b2196c3cd489d046a3",
+    "docs/verification/2026-09-11-emergency-release/web/40-conflict-review-complete-red.log": "0a1490b741aa08e23d0a2721461a668203ec2b4e01a516b5b6a702678fcbc41d",
+    "docs/verification/2026-09-11-emergency-release/web/41-conflict-review-gate-green.json": "a850fb5cde71432e95a829a138f82671a579dad6b289ae53c69317c3994b1f83",
+    "docs/verification/2026-09-11-emergency-release/web/41-conflict-review-gate-green.log": "fd575e12064ea246ac76aa56acade0888f10d6fb1aebffd053cced0f5a92059d",
+    "docs/verification/2026-09-11-emergency-release/web/42-final-conflict-regression.json": "7b47d4b0410e42beae07695359598bcf6483a6d36370866cf4f98fe9e88570bd",
+    "docs/verification/2026-09-11-emergency-release/web/42-final-conflict-regression.log": "7cfa3c8fcd8623e4ff73d95ebd17d42a328b5c81d769a1b7cdee365d9381f398",
+    "docs/verification/2026-09-11-emergency-release/web/43-final-typecheck.json": "c5757544ada25931a7b5033ec67010546af94bd638d8eac225534c36cc02416b",
+    "docs/verification/2026-09-11-emergency-release/web/43-final-typecheck.log": "ae88d773542cc4f04ffe6d83b5795de6c061989ca96811d0f74ad3e6e4119f5e",
+    "docs/verification/2026-09-11-emergency-release/web/44-final-build.json": "80069bd97d32acbfbd76f272f030935d928ddc8f60826572a07c0360f0e9a072",
+    "docs/verification/2026-09-11-emergency-release/web/44-final-build.log": "80113c2fab9067320012a24e57696301dd8322403e5237ebcfd7a9e14f5d2e6f"
+  },
+  "notes": [
+    "No tests executed, no production edits, no Spec review read.",
+    "Previous two-P2 report /tmp/rcc-104-standards-final.md retained.",
+    "Final combined evidence index is parent-owned and not part of this targeted artifact read."
+  ]
+}

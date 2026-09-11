@@ -65,7 +65,7 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 			summary := struct {
 				application.ReleaseOrderSummary
 				AllowedActions []string `json:"allowed_actions"`
-			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, ID: order.ID, State: order.State, ApplicantID: order.ApplicantID, TableNames: order.TableNames, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext})}
+			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{EmergencyReason: order.EmergencyReason, ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, ID: order.ID, State: order.State, ApplicantID: order.ApplicantID, TableNames: order.TableNames, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext})}
 			response = append(response, summary)
 		}
 		next := ""
@@ -178,7 +178,7 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 		respondReleaseWrite(c, orders, order, 200)
 	})
 	router.POST("/api/v1/release-orders/:id/submit", func(c *gin.Context) {
-		var input application.SubmitReleaseInput
+		var input application.SubmitReleaseOrderInput
 		if err := decodeRequest(c, &input); err != nil {
 			writeRequestDecodeError(c, err)
 			return
@@ -283,6 +283,8 @@ func writeReleaseError(c *gin.Context, err error) bool {
 	}
 	status, code, message := 503, "release_unavailable", "release order storage is unavailable"
 	switch {
+	case errors.Is(err, application.ErrReleaseEmergencyReason):
+		status, code, message = 422, "release_emergency_reason", err.Error()
 	case errors.Is(err, application.ErrReleaseFlowIncomplete):
 		status, code, message = 409, "release_flow_incomplete", "save valid flow instances for every table before submission"
 	case errors.Is(err, application.ErrReleaseApproverUnavailable):

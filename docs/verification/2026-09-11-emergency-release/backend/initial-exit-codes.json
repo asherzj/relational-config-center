@@ -1,0 +1,16 @@
+{
+  "source": "Completed PTY exec session exit codes retrieved explicitly; original logs retained byte-for-byte",
+  "runs": {
+    "01-switch-red.log": 1,
+    "02-switch-green.log": 0,
+    "03-submit-red.log": 1,
+    "04-submit-green.log": 0,
+    "05-permission-red.log": 1,
+    "06-permission-green.log": 0,
+    "07-transaction-lifecycle.log": 0,
+    "08-storage-recovery.log": 0,
+    "09-switch-submit-race.log": 0,
+    "10-pending-consumers-red.log": 1,
+    "11-pending-consumers-green.log": 0
+  }
+}

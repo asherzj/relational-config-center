@@ -1,0 +1,159 @@
+{
+  "scope": "38 unique top-level HTTP integration tests; subtests are not counted again. All use real MySQL.",
+  "test_count": 38,
+  "tests": {
+    "TestReleaseSubmitFreezesIntent": {
+      "outcome": "PASS",
+      "log": "17-submit-original-final.log"
+    },
+    "TestReleaseApprovalCurrentRolesAndHistory": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseWorkflowAtomicityAndCompetition": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseSubmitRevalidatesBaselineAndRules": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseCompletionRetainsKnownTargets": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseCompletionRolesConcurrencyAndReplay": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseCompletionPersistenceFailureIsAtomic": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestMultitableCopyCompetesForEveryTargetAndLinksBothOrders": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestMultitableReprepareTransfersChangedTargetsAtomically": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseEmergencyAC012SwitchReplacesWholeDraft": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseEmergencyAC015SubmitNeedsReasonAndDoesNotPublish": {
+      "outcome": "PASS",
+      "log": "15-isolated-fixes.log"
+    },
+    "TestReleaseEmergencyAC016PublisherPermissionIsCurrent": {
+      "outcome": "PASS",
+      "log": "15-isolated-fixes.log"
+    },
+    "TestReleaseEmergencyAC017AC018WholeOrderExecutionAndCompletion": {
+      "outcome": "PASS",
+      "log": "15-isolated-fixes.log"
+    },
+    "TestReleaseEmergencyAC023SwitchFailureAndOriginalResults": {
+      "outcome": "PASS",
+      "log": "17-submit-original-final.log"
+    },
+    "TestReleaseEmergencyAC012SwitchAndSubmitCompetition": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseEmergencyPendingConsumersAndDerivedDrafts": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestConfirmedReleaseFailureHistoryPreservesOriginalRetry": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseFailureHistoryUnavailableDoesNotLeaveBusinessWrites": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseFailureAuditPreservesConcurrentCancellation": {
+      "outcome": "PASS",
+      "log": "15-isolated-fixes.log"
+    },
+    "TestReleaseFlowCurrentAuthorizationAfterWaitingForMaintenance": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseFlowStorageFailuresKeepDraftAndOriginalResultAtomic": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseFlowAC009PersistsIndependentTablesBeforeFirstRead": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseFlowAC010MissingConfigurationRequiresExplicitSave": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseFlowAC013DerivedDraftUsesCurrentConfiguration": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseFlowAC014SeparatesInstancesFromSubmissionApprovals": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseFlowAC011DraftEditsPreserveAndReplaceOnlyParticipatingTables": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestOriginalOrderRollbackPreservesApplicationAndBothExecutions": {
+      "outcome": "PASS",
+      "log": "15-isolated-fixes.log"
+    },
+    "TestReleaseSubmitRequiresIndependentApprover": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestTableApprovalPartialProgressAndFinalApproval": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestTableApprovalSnapshotMembershipFallbackAndHistory": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestTableApprovalFallbackMatrixAndEmptySnapshot": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestTableApprovalScopeConcurrencyAndRejection": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestTableApprovalAccountAvailabilityAndDurableHistory": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestTableApprovalQualificationChangesSerializeWithDecisions": {
+      "outcome": "PASS",
+      "log": "12-http-regression.log"
+    },
+    "TestReleaseEmergencyReasonOnlyAcceptedBySubmit": {
+      "outcome": "PASS",
+      "log": "15-isolated-fixes.log"
+    }
+  },
+  "input_applicability": "12 passes remain valid for unchanged non-submit behavior; 15 retests dedicated submission/execute/complete and corrected fixtures; 17 binds original submit recovery and standard omission semantics to final submission DTO. Browser verification remains pending."
+}

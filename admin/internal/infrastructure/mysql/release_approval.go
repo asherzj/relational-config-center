@@ -13,6 +13,13 @@ import (
 
 func readApprovalEnvironment(ctx context.Context, tx *gorm.DB, order domain.ReleaseOrder) (domain.ReleaseApprovalEnvironment, error) {
 	result := domain.ReleaseApprovalEnvironment{Approvals: order.Approvals, Roles: []domain.ApprovalRole{}, Accounts: []domain.ApprovalAccount{}}
+	if order.ReleaseType == domain.ReleaseTypeEmergency {
+		if len(order.Approvals) != 0 {
+			return result, application.ErrReleaseUnavailable
+		}
+		result.Approvals = []domain.ReleaseTableApproval{}
+		return result, nil
+	}
 	if order.State == "DRAFT" {
 		result.Approvals = []domain.ReleaseTableApproval{}
 		for _, table := range order.TableNames {

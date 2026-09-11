@@ -16,6 +16,15 @@ import (
 // TestReleaseFlowBrowserSystemPath exercises per-table saved instances through
 // a real Chromium session, same-origin Vite proxy, Admin process, and MySQL.
 func TestReleaseFlowBrowserSystemPath(t *testing.T) {
+	runReleaseWorkflowBrowserSystemPath(t, "release-instances.cjs")
+}
+
+func TestReleaseEmergencyBrowserSystemPath(t *testing.T) {
+	runReleaseWorkflowBrowserSystemPath(t, "release-emergency.cjs")
+}
+
+func runReleaseWorkflowBrowserSystemPath(t *testing.T, script string) {
+	t.Helper()
 	_, driver := startCurrentIntegrationMySQL(t, "testdata/003-policy-fixture.sql")
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -83,9 +92,30 @@ func TestReleaseFlowBrowserSystemPath(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	browser := exec.Command("node", filepath.Join(web, "e2e/release-instances.cjs"))
+	// Bind browser evidence to the disposable database and local processes that
+	// this invocation actually created, without recording credentials.
+	target := map[string]any{
+		"test": t.Name(), "script": script, "mysql_image": "mysql:8.4",
+		"mysql_address": driver.Addr, "mysql_database": driver.DBName,
+		"admin_origin": admin.origin, "admin_pid": admin.cmd.Process.Pid,
+		"web_origin": origin, "vite_pid": proxy.Process.Pid, "test_pid": os.Getpid(),
+		"isolated": true, "started_at": time.Now().UTC().Format(time.RFC3339Nano),
+	}
+	targetFile, err := os.OpenFile(filepath.Join(outputDir, "runtime-target.json"), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.NewEncoder(targetFile).Encode(target); err != nil {
+		targetFile.Close()
+		t.Fatal(err)
+	}
+	if err := targetFile.Close(); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("isolated browser target: MySQL %s/%s, Admin %s pid=%d, Vite %s pid=%d; evidence %s", driver.Addr, driver.DBName, admin.origin, admin.cmd.Process.Pid, origin, proxy.Process.Pid, outputDir)
+	browser := exec.Command("node", filepath.Join(web, "e2e", script))
 	browser.Dir = web
-	browser.Env = append(os.Environ(), "RCC_WEB_URL="+origin, "RCC_E2E_OUTPUT="+outputDir)
+	browser.Env = append(os.Environ(), "RCC_WEB_URL="+origin, "RCC_E2E_OUTPUT="+outputDir, "RCC_E2E_ISOLATED=1")
 	result, err := browser.CombinedOutput()
 	if err != nil {
 		t.Fatalf("release flow browser path: %v %s", err, result)

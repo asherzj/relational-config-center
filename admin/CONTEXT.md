@@ -85,7 +85,7 @@ A complete field-by-field comparison of one proposed ADD, MODIFY, or DELETE agai
 _Avoid_: Release, revision, audit record
 
 **Release Type（发布方式）**:
-A predefined category of release workflow shared by one or more Release Templates. Standard database publication includes approval, while emergency publication omits approval; the category does not identify one particular template.
+A predefined category of release workflow shared by one or more Release Templates. Standard database publication includes approval, while emergency publication records the applicant’s required reason and awaits manual execution by a current publisher without approval; the category does not identify one particular template.
 _Avoid_: Release Template Code, deployment environment, rollback order
 
 **Release Template（发布流程模板）**:
@@ -161,7 +161,7 @@ The explicit end of a successful ordinary publication's protected recovery perio
 _Avoid_: Publication, cancellation, delivery confirmation
 
 **Reprepared Release Order（重新准备发布单）**:
-A new editable Release Order that replaces an approved but unpublished ordinary Release Order after its original applicant or an administrator reviews the current configuration. The replacement belongs to the person who performs the operation and must receive a fresh independent approval; cancelling the source, creating the replacement, transferring still-needed Active Targets and acquiring any additional targets, and linking both histories form one atomic change.
+A new editable Release Order that replaces an approved standard or pending-publication emergency Release Order after its original applicant or an administrator reviews the current configuration. The replacement belongs to the person who performs the operation and must be submitted again with a fresh independent approval for standard publication or a new reason for emergency publication; cancelling the source, creating the replacement, transferring still-needed Active Targets and acquiring any additional targets, and linking both histories form one atomic change.
 _Avoid_: Editing an approval, approval reuse, quick rollback
 
 **Active Target（在途目标）**:

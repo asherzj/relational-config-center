@@ -1,0 +1,87 @@
+{
+  "worktree": "/private/tmp/rcc-issue-104-emergency-release",
+  "base": "e2564842e72e96b6ffb1e86708978b11dd8a651b",
+  "axis": "Standards incremental only",
+  "reviewed_source_sha256": {
+    "web/DESIGN.md": "edc1781ea8eb1b8fc3ced947fda8fcc7fce03b79d84a6e37eed765954e0b6a92",
+    "web/src/api/error-messages.ts": "f2ef6bce00219eb8bb7c3dc205e2faa509899e9ff009b85576b13c4cbafea939",
+    "web/src/api/release-orders.test.ts": "168dff024e0a1e5b84b0cb0c774e880aff5a3fbb4538c35c4f368ef683d98196",
+    "web/src/api/release-orders.ts": "cfa4df7a6e3a0f36b05d69ee923c288c5c597b42ab1cd1ce04a5a1f3e1e10e5c",
+    "web/src/components/ui/LeaveProtection.tsx": "ee3a0e81afa81b5e2335287a09b17cf33ba045e6ff62ef6862ea773bc4c1e5fe",
+    "web/src/components/ui/Toast.tsx": "6d375f56de44ddbc269f82844a95d8e2d4582f023878828f73dce26f3614a463",
+    "web/src/features/managed-data/ManagedDataMutationPage.test.tsx": "51e3aa871adf0e7c59d3df9eac73aace5e7295494b80b3a874d831a00d199550",
+    "web/src/features/managed-data/ManagedDataPage.test.tsx": "157561f81376684a6f287550e6144c465c52319e4da3d914c9a2ac4f8cd27b33",
+    "web/src/features/release-orders/NewDraftDialog.tsx": "597885f9c65a7bf10666674dacb60155f4b03080f7ea72c7102c4139ea18ba5a",
+    "web/src/features/release-orders/ReleaseActionDialog.tsx": "6a11cf510c723bca5e49642c63d583f425ed3550ff7116b8e1270bace777abf9",
+    "web/src/features/release-orders/ReleaseDraftEditor.tsx": "3e8d28ca20f8b24995b9b6beb6fe0c94ae0fe6d1535123840223c79fc16cf0e9",
+    "web/src/features/release-orders/ReleaseFlows.tsx": "a7507e2156f25f6e626b4c3283d25960e4b92699ca6890e1c6d3378a46863598",
+    "web/src/features/release-orders/ReleaseHistory.tsx": "ae7abe4d52e52f7364afed980e73ac15571143b6d25510efbe2ab72292f4904a",
+    "web/src/features/release-orders/ReleaseOrdersPage.test.tsx": "ba77ffaa66ce1d562df6c811aaf7ed66da125071b57e8eb73209c834d8253244",
+    "web/src/features/release-orders/ReleaseOrdersPage.tsx": "b021712d01d7469c16694a937032115fd5c3ee1874c831acf1435d4a8ea117c9",
+    "web/src/features/release-orders/ReleaseProgress.tsx": "d8c2c5b23cc1b71e844b059450829bc8c6ed66a9f372bc7baf45b70f48222a69",
+    "web/src/features/release-orders/ReleaseRequestReview.tsx": "ff93d5a9e9440de70790b16a9549c9fa69d8fe8d20b8da35d4928b43cdbbb3d6",
+    "web/src/features/release-orders/useDraftDestination.tsx": "b0e53224e939c0eac6e254ea018fcf8e44fce0337f4a27008aedefe444a85ea0",
+    "web/src/features/release-orders/useReleaseWrite.ts": "3c78dfa3da44979b7b258b622b62318193fb0acc5cb343f7171220c5204e70ff",
+    "web/src/test/release-fixture.ts": "f82ccad0f86c968e4b017c27f4ce8fc23fb35545d030aa5d06c1b43f983cd951"
+  },
+  "changed_since_initial_review": {
+    "web/src/features/release-orders/NewDraftDialog.tsx": {
+      "previous": "ed27e8b66f042e5ab79c02d0dc87f82f4fdac8208aedd93148d70f6ccd5bb24c",
+      "current": "597885f9c65a7bf10666674dacb60155f4b03080f7ea72c7102c4139ea18ba5a"
+    },
+    "web/src/features/release-orders/ReleaseActionDialog.tsx": {
+      "previous": "6eefcb2307f4e3d87e4801eff199fad9315139a4267545e57e69f13f3ff10859",
+      "current": "6a11cf510c723bca5e49642c63d583f425ed3550ff7116b8e1270bace777abf9"
+    },
+    "web/src/features/release-orders/ReleaseOrdersPage.test.tsx": {
+      "previous": "9669c830d139816196305be219abbbae35bf1de7ff8820c25c40b9f7eb608bfa",
+      "current": "ba77ffaa66ce1d562df6c811aaf7ed66da125071b57e8eb73209c834d8253244"
+    },
+    "web/src/features/release-orders/ReleaseOrdersPage.tsx": {
+      "previous": "6d494a171acf071d721a295d888f817a57bf2e46b70a35c27a39428c9463727d",
+      "current": "b021712d01d7469c16694a937032115fd5c3ee1874c831acf1435d4a8ea117c9"
+    },
+    "web/src/features/release-orders/ReleaseRequestReview.tsx": {
+      "previous": "411f93b6fa88d15e9dd2c8494c899f71f09e0806267b4a71e3d584f0ab05b780",
+      "current": "ff93d5a9e9440de70790b16a9549c9fa69d8fe8d20b8da35d4928b43cdbbb3d6"
+    }
+  },
+  "evidence_read_sha256": {
+    "docs/verification/2026-09-11-emergency-release/browser/02/cleanup.json": "d232b44a1c64d5e7926482c4efa382317662a6eaba927eafd556f0923ebd5222",
+    "docs/verification/2026-09-11-emergency-release/browser/02/release-emergency-browser-evidence.json": "c52627deedfab8e1c61d4fa7eda6585806aea27d12fbd7668ea0dcbe43f835fc",
+    "docs/verification/2026-09-11-emergency-release/browser/02/source-input.json": "210b5fb91fbce62378ced3e97d39d6dc908aaa4f53017fbe82f33dd5de70d5c7",
+    "docs/verification/2026-09-11-emergency-release/browser/02-run.json": "29235c552acc54366792d55a723055bd8b00130bbd8fbf702e7098699440ce08",
+    "docs/verification/2026-09-11-emergency-release/browser/02-run.log": "25312dd4070af6ef7ab40bcbfa75c073bdc22ce9d3935d40e52d74c539cac5f7",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/24-release-emergency-syntax.log": "349fa6491d9a99d4421f70f32c10f60a565611fe8d822cbf247dc760cde7cb2a",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/25-submit-type-conflict-red.log": "2a853165c2e472489d638c35d8e9b1ffdcdf627de5f3f3ca728c3975617dbb3c",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/26-submit-type-conflict-green.log": "ae5044cee6988fd45f099e1ad02cfd8c0af976e927eb3fa15af5808b723e10db",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/27-emergency-copy-reprepare-copy-red.log": "83a0263339c6e9f3b696ee6785a96820a03912ce6b30891f86fe770b6de78a0c",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/28-emergency-copy-reprepare-copy-green.log": "9cd5a01af1b7fa611a36d1b8bacbc16bdea325a86d25d6286dbe78d0d2678e72",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/28b-emergency-copy-reprepare-copy-green.log": "d9bbd3d796a83354d58c157a6757d58ba6132119abbc2f1cd163ec1cf011fd94",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/29-emergency-success-feedback-red.log": "9eb05dcb1397d52cd5ee98d31c3cd9200aaf3d17705b5ed5c4aaaa56bdb226bd",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/30-emergency-success-feedback-green.log": "e82927b1f2a89fb8f76de5c32409146daf583329430c6d03a0a8148984ccb345",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/30b-emergency-success-feedback-green.log": "ee7a805a236ea9128f0f272eb1cbb041010b64fa2d892051b3dd6508a00a07d1",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/31-emergency-hide-approver-red.log": "fa52ccb930bd246d62cf1464154699cc3565509eae9bd3084835c41d2e4ec223",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/32-emergency-hide-approver-green.log": "4af10ccb4a92f24ed07d14383a33bc18accbc87cf855dac8ab2e76cd02e2c0f3",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/33-release-orders-p2-regression.log": "542b67cc4566485c47e59118e622d27079da6a86ecafae64bf188164f80be1aa",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/34-web-p2-typecheck.log": "3e63853bab7d25667d5f33ce2d95001910f2135daad879489be08b5abb9953a9",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/35-web-p2-build.log": "f917e3b05d47aee4d5179c9659a906e7e49430fdd6721b2eab64556b9bbb35ce",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/36-web-src-diff-check.log": "349fa6491d9a99d4421f70f32c10f60a565611fe8d822cbf247dc760cde7cb2a",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/37-web-src-sha256.txt": "f798829ce393ddb589821aa54c8752e8ac5b00a1d0fc12c769bb666512541ed6",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/README.md": "ad24e6764fc5f648ba0a2e47c708519a34897ad6bc4b9c200d815c83db8d708c",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/release-emergency-sha256-final.txt": "ebbe3a221bd03ba7596df14b77e5d1789f86386447238ae19ce28d1bbbc7199a",
+    "docs/verification/2026-09-11-emergency-release/web/review-fixes/release-emergency-sha256.txt": "9b11af7691df156c15beb7cd5fe72499c049634b58f2412cf6fef271e4d2f2ca"
+  },
+  "browser02_input_comparison": {
+    "count": 429,
+    "differences": [
+      "web/e2e/release-emergency.cjs"
+    ],
+    "note": "Product inputs still match; script changed to collect browser03 additional viewport evidence. Browser03 results/screenshots excluded from this review."
+  },
+  "notes": [
+    "No tests or database commands executed; no production edit; no Spec report read.",
+    "This preserves the reviewed ff93d5a9 snapshot and two remaining P2 before a further targeted repair.",
+    "Original backend P3 remains closed; unchanged backend implementation not re-reviewed."
+  ]
+}

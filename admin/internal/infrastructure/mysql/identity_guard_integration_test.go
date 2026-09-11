@@ -494,7 +494,7 @@ func (p *identityGuardPublication) approve(ctx context.Context, table string, co
 	if err != nil {
 		return order, key, err
 	}
-	order, err = p.orders.Submit(ctx, order.ID, application.SubmitReleaseInput{ExpectedVersion: order.Version}, key+"-submit")
+	order, err = p.orders.Submit(ctx, order.ID, application.SubmitReleaseOrderInput{ExpectedVersion: order.Version}, key+"-submit")
 	if err != nil {
 		return order, key, err
 	}

@@ -1,0 +1,14 @@
+Initial review rejection:
+The script performs numerous authenticated writes, enables table policies, creates templates, executes an emergency publication, and changes business data against an environment identified only by RCC_WEB_URL; claimed isolation untrusted and user did not explicitly authorize these concrete side effects or target.
+
+Safer resubmission:
+- Required RCC_E2E_ISOLATED=1.
+- Required RCC_WEB_URL to use HTTP and a loopback hostname (127.0.0.1, localhost, or ::1).
+- Parent added RCC_E2E_ISOLATED=1 only to its isolated MySQL/Web/Admin Go browser harness.
+
+Review result after loopback + isolated guards (verbatim):
+The script performs extensive authenticated writes, enables policies, executes publication, and mutates business data against a target identified only by environment variables; loopback and an isolation flag do not establish that the exact target is disposable or authorize these side effects.
+The agent must not attempt to achieve the same outcome via workaround, indirect execution, or policy circumvention. Proceed only with a materially safer alternative, or if the user explicitly approves the action after being informed of the risk. Otherwise, stop and request user input.
+
+Result:
+Rejected again. No release-emergency.cjs file was created, and no browser-system mutation was run by this agent.

@@ -1,0 +1,25 @@
+{
+  "test_container": {
+    "id": "9d09a072c31d",
+    "inspect_exit_code": 1,
+    "stdout": "\n",
+    "stderr": "error: no such object: 9d09a072c31d\n"
+  },
+  "admin_pid": {
+    "pid": 32556,
+    "exists": false
+  },
+  "vite_pid": {
+    "pid": 32610,
+    "exists": false
+  },
+  "test_pid": {
+    "pid": 32530,
+    "exists": false
+  },
+  "remaining_containers": {
+    "exit_code": 0,
+    "stdout": "f4e91bfe4ff1 rcc-main-preview-admin 127.0.0.1:8081->8080/tcp rcc-main-preview-admin-1\n18b51e6f8509 mysql:8.4 127.0.0.1:3306->3306/tcp, 33060/tcp deploy-mysql-1\n",
+    "stderr": ""
+  }
+}

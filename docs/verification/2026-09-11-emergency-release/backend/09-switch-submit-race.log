@@ -1,0 +1,60 @@
+=== RUN   TestReleaseEmergencyAC012SwitchAndSubmitCompetition
+2026/09/11 11:15:01 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: c099778b46e3194df759d5f95b00a367b920c792c76d57295e878049bf5dfd58
+  Test ProcessID: 721b04e7-9e79-42c7-bef9-5ad5cbf8970b
+2026/09/11 11:15:01 🐳 Creating container for image mysql:8.4
+2026/09/11 11:15:01 ✅ Container created: 57090ed1decb
+2026/09/11 11:15:01 🐳 Starting container: 57090ed1decb
+2026/09/11 11:15:01 ✅ Container started: 57090ed1decb
+2026/09/11 11:15:01 ⏳ Waiting for container id 57090ed1decb image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 11:15:08 🔔 Container is ready: 57090ed1decb
+{"request_id":"rcc-15472f837daf626aecd4e049a31018f0","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":9}
+{"request_id":"rcc-dc3fff3fab92f9faab2a0ccfa40aa92f","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":41}
+{"request_id":"rcc-bf9cc0a0e2992f8df11861db211c1ce0","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-2270b59bf1dcb3d17c2193300156c841","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":54}
+{"request_id":"rcc-49af1ead5441e45c1824744503422363","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-0d57f7c75cbe0ea711ba0b39f03c94a4","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-a08062d81ad6a581857dc3751a1c995d","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":2}
+{"request_id":"rcc-0c0564802603c9d7cfd8fd979cbb91f4","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-bb0ebbf5c01a15808ef14e6bdfe53df0","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":14}
+{"request_id":"rcc-6e79fc4beac9b7e96ffbefa1214ec5cd","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":12}
+{"request_id":"rcc-a35628de6c7d19a0b8b54d5a02dd5e3a","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":13}
+{"request_id":"rcc-e1f5e58f8c72516f536a9dbd9c138b2f","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":12}
+{"request_id":"rcc-665a6c5f8a58e7d737686a341ac02469","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":6}
+{"request_id":"rcc-75b2dbad7d0fde9d3edffaf433836d3c","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-56338ea6c0e6db3bf518a333744573ad","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":8}
+{"request_id":"rcc-c09b7d183a20a77de8a34275de4d5b98","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-93541bd9f8e7ea6102e9d6435cb377b2","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":7}
+{"request_id":"rcc-d2a121e135f328d58db548dda1760074","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":4}
+{"request_id":"rcc-97e8195ddf281684e1cd7fb78c7eff69","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":42}
+{"request_id":"rcc-ef43cd35727714f57b08c930491d351f","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":11}
+{"request_id":"rcc-69d4550db5e17f97e6bb4fb8162aa6cd","method":"GET","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":2}
+{"request_id":"rcc-ab4a3e0a9ccbbeaa3c0e9ac17f0558af","method":"PUT","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":13}
+{"request_id":"rcc-9d0c30b47ad5873eee4848a6a6519f6f","method":"GET","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":2}
+{"request_id":"rcc-371b0117390efb963d6021c9fe519b2a","method":"PUT","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":14}
+=== RUN   TestReleaseEmergencyAC012SwitchAndSubmitCompetition/switch_wins
+{"request_id":"rcc-bd7c34b34b1a4b3c4d508b8482432d0b","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":40}
+{"request_id":"rcc-36ecc91abbd4a9ad26b4f4dfc3a4fc18","method":"PUT","path":"/api/v1/release-orders/:id","status":200,"duration_ms":35}
+{"request_id":"rcc-2ec1f094d1a7670408051f15ccb2192d","method":"POST","path":"/api/v1/release-orders/:id/submit","status":409,"duration_ms":25}
+{"request_id":"rcc-a353c1b87344e3d37f832687a84934a7","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":3}
+=== RUN   TestReleaseEmergencyAC012SwitchAndSubmitCompetition/submit_wins
+{"request_id":"rcc-9af20824e7e0f45755bb71405cb53fa4","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":40}
+{"request_id":"rcc-5a1c422d1654e5a86f81f08a3123a827","method":"PUT","path":"/api/v1/release-orders/:id","status":409,"duration_ms":25}
+{"request_id":"rcc-ef33c6bce12a3162434cf4eadf2c7cd8","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":113}
+{"request_id":"rcc-e7c32c8a8540603a0e573c312df88792","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":10}
+2026/09/11 11:15:10 🐳 Stopping container: 57090ed1decb
+2026/09/11 11:15:11 ✅ Container stopped: 57090ed1decb
+2026/09/11 11:15:11 🐳 Terminating container: 57090ed1decb
+2026/09/11 11:15:11 🚫 Container terminated: 57090ed1decb
+--- PASS: TestReleaseEmergencyAC012SwitchAndSubmitCompetition (9.90s)
+    --- PASS: TestReleaseEmergencyAC012SwitchAndSubmitCompetition/switch_wins (0.09s)
+    --- PASS: TestReleaseEmergencyAC012SwitchAndSubmitCompetition/submit_wins (0.17s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	12.110s
