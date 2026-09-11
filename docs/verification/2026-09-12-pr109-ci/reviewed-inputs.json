@@ -1,0 +1,7 @@
+{
+  "docs/verification/2026-09-12-pr109-ci/README.md": "3bacd2f056bf633d2227b39e75b0d167928adc1acf049ef3ca92333b5fe34aeb",
+  "docs/verification/2026-09-12-pr109-ci/ac017-fixed.json": "a4f57ec846f0993aae62d6fddcd558b02077ed218a0249d483c918633610abc4",
+  "docs/verification/2026-09-12-pr109-ci/combined-query-form-fixed.json": "5f9af34b2d7cde4044c5bbfffe9a09cbd59bd7b8bcd441bb895fee08bf796b84",
+  "docs/verification/2026-09-12-pr109-ci/web-ci-initial.log": "e378ce3ac5ff94c06e4f85b1266f37a3919e6154ef62627e274390f5ae5f3e3c",
+  "web/src/features/managed-data/CombinedQueryForm.test.tsx": "a4d71a6a36404b93f22d518b338f5c0cdf68fad07f4a86308a101eacb6d9c5c8"
+}
