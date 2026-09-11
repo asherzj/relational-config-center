@@ -1,0 +1,4 @@
+case	selection	exit_status
+browser-accessibility.cjs@chromium	selected	0
+browser-accessibility.cjs@firefox	selected	0
+browser-accessibility.cjs@webkit	selected	1

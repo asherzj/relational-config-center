@@ -388,6 +388,9 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await page.unroute(`**${writePath}`);
     page.once('dialog', dialog => dialog.accept());
     await page.reload();
+    // reload() waits for document load, not React's session recovery. Let the
+    // restored workspace mount before repeatDraftSave starts another navigation.
+    await page.getByRole('combobox', { name: 'Managed Table', exact: true }).waitFor();
     await repeatDraftSave(page);
     await page.waitForURL('**/configuration/release-orders/*');
     const draftWrites = requests.slice(unknownRequestStart).filter((entry) => entry.method === 'POST' && entry.path === writePath);

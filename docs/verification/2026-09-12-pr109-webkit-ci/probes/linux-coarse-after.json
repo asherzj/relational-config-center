@@ -1,0 +1,1290 @@
+{
+  "errors": [],
+  "timeline": [
+    {
+      "at": 1789170035575,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170035591,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170035592,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170035695,
+      "type": "reload.start",
+      "iteration": 0
+    },
+    {
+      "at": 1789170035700,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170035713,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170035715,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170035767,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170035767,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170035768,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170035768,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170035818,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170035822,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170035822,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170035872,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170035872,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170035874,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170035921,
+      "type": "reload.start",
+      "iteration": 1
+    },
+    {
+      "at": 1789170035926,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170035933,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170035933,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170035989,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170035989,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036009,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170036009,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170036051,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036055,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036056,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170036106,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036113,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170036113,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170036145,
+      "type": "reload.start",
+      "iteration": 2
+    },
+    {
+      "at": 1789170036154,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036156,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036156,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170036216,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170036216,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036223,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170036224,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170036282,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036287,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036287,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170036331,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036339,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170036339,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170036375,
+      "type": "reload.start",
+      "iteration": 3
+    },
+    {
+      "at": 1789170036384,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036389,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036389,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170036447,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170036456,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036457,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170036457,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170036499,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036503,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036503,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170036563,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036569,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170036569,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170036603,
+      "type": "reload.start",
+      "iteration": 4
+    },
+    {
+      "at": 1789170036605,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036612,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036612,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170036654,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170036654,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036666,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170036666,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170036704,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036708,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036708,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170036761,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036766,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170036766,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170036797,
+      "type": "reload.start",
+      "iteration": 5
+    },
+    {
+      "at": 1789170036799,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036805,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036805,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170036850,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170036854,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170036855,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170036856,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036892,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036897,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036897,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170036954,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170036955,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170036955,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036989,
+      "type": "reload.start",
+      "iteration": 6
+    },
+    {
+      "at": 1789170036993,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036995,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170036995,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170037046,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170037049,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037065,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170037065,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170037107,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037110,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037111,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170037151,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037154,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170037154,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170037188,
+      "type": "reload.start",
+      "iteration": 7
+    },
+    {
+      "at": 1789170037191,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037198,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037199,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170037239,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170037243,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037258,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170037258,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170037299,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037300,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037300,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170037352,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037371,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170037371,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170037400,
+      "type": "reload.start",
+      "iteration": 8
+    },
+    {
+      "at": 1789170037404,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037410,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037412,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170037452,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170037452,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037456,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170037457,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170037495,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037499,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037499,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170037564,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037565,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170037565,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170037597,
+      "type": "reload.start",
+      "iteration": 9
+    },
+    {
+      "at": 1789170037602,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037606,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037606,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170037657,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170037659,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037663,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170037663,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170037712,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037715,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037717,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170037761,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170037762,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170037762,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037794,
+      "type": "reload.start",
+      "iteration": 10
+    },
+    {
+      "at": 1789170037799,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037807,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037807,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170037855,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170037859,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037877,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170037877,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170037911,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037912,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037912,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170037956,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170037960,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170037960,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170038008,
+      "type": "reload.start",
+      "iteration": 11
+    },
+    {
+      "at": 1789170038011,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038020,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038020,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170038061,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170038064,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038067,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170038067,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170038106,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038112,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038112,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170038162,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038171,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170038171,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170038206,
+      "type": "reload.start",
+      "iteration": 12
+    },
+    {
+      "at": 1789170038213,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038216,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038216,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170038256,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170038259,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038263,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170038263,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170038306,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038313,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038313,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170038354,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038359,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170038359,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170038386,
+      "type": "reload.start",
+      "iteration": 13
+    },
+    {
+      "at": 1789170038391,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038402,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038403,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170038444,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170038446,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038468,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170038468,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170038495,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038498,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038499,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170038546,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038563,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170038563,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170038594,
+      "type": "reload.start",
+      "iteration": 14
+    },
+    {
+      "at": 1789170038595,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038598,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038598,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170038645,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170038649,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038650,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170038650,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170038683,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038691,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038691,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170038742,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038747,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170038747,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170038779,
+      "type": "reload.start",
+      "iteration": 15
+    },
+    {
+      "at": 1789170038787,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038799,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038800,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170038845,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170038849,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038851,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170038852,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170038888,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038894,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038895,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170038957,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170038961,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170038961,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170038993,
+      "type": "reload.start",
+      "iteration": 16
+    },
+    {
+      "at": 1789170038995,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039000,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039000,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170039049,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170039054,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039071,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170039071,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170039107,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039111,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039111,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170039157,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039160,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170039160,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170039190,
+      "type": "reload.start",
+      "iteration": 17
+    },
+    {
+      "at": 1789170039192,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039204,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039205,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170039246,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170039249,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039253,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170039253,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170039294,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039304,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039304,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170039357,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039358,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170039358,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170039403,
+      "type": "reload.start",
+      "iteration": 18
+    },
+    {
+      "at": 1789170039408,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039414,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039414,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170039452,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170039452,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039456,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170039456,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170039491,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039496,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039496,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170039543,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039556,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170039556,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789170039578,
+      "type": "reload.start",
+      "iteration": 19
+    },
+    {
+      "at": 1789170039582,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039587,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039587,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170039648,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789170039650,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170039661,
+      "type": "session.start"
+    },
+    {
+      "at": 1789170039661,
+      "type": "session.respond"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+PAGEERROR /127.0.0.1:55244/api/v1/auth/session due to access control checks.
+{"errors":36}
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+36 !== 0
+
+    at /private/tmp/rcc-webkit-app-repro.cjs:36:62
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processImmediate (node:internal/timers:502:9) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 36,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
