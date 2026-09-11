@@ -35,8 +35,22 @@ type RoleEvent struct {
 	ActorKind   string
 	ActorID     string
 	AccountID   string
-	BeforeRoles AccountRoles
-	AfterRoles  AccountRoles
+	BeforeRoles HistoricalAccountRoles
+	AfterRoles  HistoricalAccountRoles
 	Version     uint64
 	CreatedAt   time.Time
+}
+
+// HistoricalAccountRoles only decodes immutable grants. It cannot authorize an
+// operation or be parsed as input for a new grant.
+type HistoricalAccountRoles uint8
+
+func (roles HistoricalAccountRoles) Names() []string {
+	names := make([]string, 0, 5)
+	for index, name := range []string{"VIEWER", "EDITOR", "APPROVER", "PUBLISHER", "ADMIN"} {
+		if roles&(1<<index) != 0 {
+			names = append(names, name)
+		}
+	}
+	return names
 }

@@ -644,7 +644,7 @@ input::placeholder, textarea::placeholder { color: var(--muted-foreground); opac
 
 .release-diff-before { background: var(--danger-soft); }
 .release-diff-after { background: var(--success-soft); }
-.release-recovery { display: block; min-width: 0; overflow-wrap: anywhere; }
+.release-recovery, .release-conflict-review { display: block; min-width: 0; overflow-wrap: anywhere; }
 
 .release-diff-scroll:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
 

@@ -48,7 +48,12 @@ const base=process.env.RCC_WEB_URL;
   await page.getByRole('button',{name:'编辑草稿',exact:true}).click();await page.getByLabel('name 申请值',{exact:true}).fill('retained first window');
   const other=await context.newPage();await other.goto(page.url());await other.getByRole('button',{name:'编辑草稿',exact:true}).click();await other.getByLabel('name 申请值',{exact:true}).fill('second window saved');const otherSaved=other.waitForResponse(response=>response.request().method()==='PUT'&&response.url().endsWith('/'+committed.id));await other.getByRole('button',{name:'保存草稿修改',exact:true}).click();assert.equal((await otherSaved).status(),200);await other.getByRole('heading',{name:'编辑多表草稿',exact:true}).waitFor({state:'hidden'});await other.getByText('second window saved',{exact:true}).waitFor();
   const staleSave=page.waitForResponse(response=>response.request().method()==='PUT'&&response.url().endsWith('/'+committed.id));await page.getByRole('button',{name:'保存草稿修改',exact:true}).click();const staleResult=await staleSave;assert.equal(staleResult.status(),409,await staleResult.text());await page.getByText('发布单已被其他窗口修改。你的输入已保留，请先查看最新发布单。',{exact:true}).waitFor();assert.equal(await page.getByLabel('name 申请值',{exact:true}).inputValue(),'retained first window');
-  await page.getByRole('button',{name:'查看最新发布单',exact:true}).click();await page.getByRole('button',{name:'基于最新发布单重建',exact:true}).click();await page.getByRole('button',{name:'保存草稿修改',exact:true}).click();await page.getByText('retained first window',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'查看最新发布单',exact:true}).click();await page.getByRole('button',{name:'基于最新发布单重建',exact:true}).click();
+  const rebuiltResponse=page.waitForResponse(response=>response.request().method()==='PUT'&&response.url().endsWith('/'+committed.id));
+  await page.getByRole('button',{name:'保存草稿修改',exact:true}).click();const rebuilt=await rebuiltResponse;assert.equal(rebuilt.status(),200);const rebuiltOrder=await rebuilt.json();
+  await page.getByRole('heading',{name:'编辑多表草稿',exact:true}).waitFor({state:'hidden'});
+  // Wait for the saved header version to render before opening another editor.
+  await page.getByText(`EDIT · 版本 ${rebuiltOrder.version}`,{exact:true}).waitFor();await page.getByText('retained first window',{exact:true}).waitFor();
   check('two real windows retain input on CAS conflict and require explicit reconstruction');
   await page.getByRole('button',{name:'编辑草稿',exact:true}).click();await page.getByLabel('name 申请值',{exact:true}).fill('recovered rejected intent');
   await page.route(`**/api/v1/release-orders/${committed.id}`,route=>route.request().method()==='PUT'?route.abort('failed'):route.continue());

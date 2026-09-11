@@ -1,6 +1,6 @@
 import {afterEach,expect,it,vi} from "vitest";
 import {loadReleaseForEdit,releaseOrders,type ReleaseHeader} from "./release-orders";
-const header:ReleaseHeader={id:"original",title:"多表草稿",table_names:["items"],applicant_id:"author",state:"DRAFT",version:"3",created_at:"now",updated_at:"now",allowed_actions:["edit"],item_count:101,operation_counts:{ADD:101},executions:[],history:[]};
+const header:ReleaseHeader={notification:{sequence:"0",unread:false,pending:false},id:"original",title:"多表草稿",table_names:["items"],applicant_id:"author",state:"DRAFT",version:"3",created_at:"now",updated_at:"now",allowed_actions:["edit"],item_count:101,operation_counts:{ADD:101},executions:[],history:[],approvals:[],approval_context:{revision:"test",tables:[],approvable_tables:[]}};
 const detail=(index:number)=>({detail_id:String(index),table_name:"items",operation:"ADD",id:null,expected_record_version:"",content:{label:`value ${index}`},before:null,fields:[]});
 afterEach(()=>vi.unstubAllGlobals());
 it("普通 get 只读取 header，显式编辑按固定整单版本收集每页",async()=>{
@@ -25,4 +25,17 @@ it.each(["conflict","mixed-version","mixed-total","wrong-order","wrong-offset","
   return Response.json({order_id:mode==="wrong-order"?"another":header.id,version:mode==="mixed-version"?"4":"3",item_count:mode==="mixed-total"?102:101,offset:mode==="wrong-offset"?99:100,next_offset:mode==="invalid-continuation"?101:null,items:mode==="missing-items"?[]:[detail(100)]});
  }));
  await expect(loadReleaseForEdit(header)).rejects.toMatchObject({code:"release_version_conflict"});expect(reads).toBe(2);
+});
+it("写响应保留原操作结果且不携带可用于已读确认的通知进度",async()=>{
+ const {notification:_,...result}=header;
+ vi.stubGlobal("fetch",vi.fn(async()=>Response.json({...result,item_count:0,items:[]})));
+ const current=await releaseOrders.write(`/api/v1/release-orders/${header.id}/approve`,"POST",JSON.stringify({expected_version:"2"}),"original-request");
+ expect(current.version).toBe("3");
+ expect(current).not.toHaveProperty("notification");
+});
+
+it("详情 GET 缺少通知快照时拒绝响应，不把不完整详情当作已见进度",async()=>{
+ const {notification:_,...result}=header;
+ vi.stubGlobal("fetch",vi.fn(async()=>Response.json(result)));
+ await expect(releaseOrders.get(header.id)).rejects.toMatchObject({code:"contract_mismatch"});
 });

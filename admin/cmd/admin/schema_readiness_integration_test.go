@@ -3,6 +3,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -25,12 +26,13 @@ func TestSchemaReadinessRejectsUnmanagedStartup(t *testing.T) {
 // existing readiness route, while its database identity cannot write any table.
 func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *testing.T) {
 	_, driver := startCurrentIntegrationMySQL(t)
+	currentVersion := currentTestSchemaVersion(t)
 	owner := *driver
 	owner.User = "root"
 	db := deliveryDB(t, &owner)
 	deliveryExec(t, db, `CREATE TABLE business_marker(id int PRIMARY KEY,note text)`)
 	deliveryExec(t, db, `INSERT INTO business_marker VALUES(1,'retained')`)
-	deliveryExec(t, db, `INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,roles,role_version,created_at) VALUES('readiness-account','readiness.account','readiness@example.test','Retained','fixture-hash',31,1,'2025-01-02')`)
+	deliveryExec(t, db, `INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,roles,role_version,created_at) VALUES('readiness-account','readiness.account','readiness@example.test','Retained','fixture-hash',27,1,'2025-01-02')`)
 	deliveryExec(t, db, `CREATE USER 'readiness_reader'@'%' IDENTIFIED BY 'rcc_password'`)
 	deliveryExec(t, db, `GRANT SELECT ON rcc_test.* TO 'readiness_reader'@'%'`)
 	reader := *driver
@@ -62,9 +64,9 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 	assertReadiness(200)
 	for _, fault := range []struct{ name, apply, restore string }{
 		{"unmanaged", `RENAME TABLE rcc_goose_db_version TO held_versions, rcc_schema_migration_attempts TO held_attempts`, `RENAME TABLE held_versions TO rcc_goose_db_version, held_attempts TO rcc_schema_migration_attempts`},
-		{"ahead", `UPDATE rcc_goose_db_version SET version_id=99 WHERE version_id=5`, `UPDATE rcc_goose_db_version SET version_id=5 WHERE version_id=99`},
+		{"ahead", fmt.Sprintf(`UPDATE rcc_goose_db_version SET version_id=99 WHERE version_id=%d`, currentVersion), fmt.Sprintf(`UPDATE rcc_goose_db_version SET version_id=%d WHERE version_id=99`, currentVersion)},
 		{"unknown", `UPDATE rcc_goose_db_version SET version_id=77 WHERE version_id=1`, `UPDATE rcc_goose_db_version SET version_id=1 WHERE version_id=77`},
-		{"release_digest", `UPDATE rcc_schema_migration_attempts SET release_digest=REPEAT('0',64) WHERE target_version=5`, ""},
+		{"release_digest", fmt.Sprintf(`UPDATE rcc_schema_migration_attempts SET release_digest=REPEAT('0',64) WHERE target_version=%d`, currentVersion), ""},
 		{"missing_column", `ALTER TABLE rcc_query_policies RENAME COLUMN description TO missing_description`, `ALTER TABLE rcc_query_policies RENAME COLUMN missing_description TO description`},
 		{"wrong_default", `ALTER TABLE rcc_accounts ALTER COLUMN enabled SET DEFAULT 0`, `ALTER TABLE rcc_accounts ALTER COLUMN enabled SET DEFAULT 1`},
 		{"missing_index", `ALTER TABLE rcc_query_policies DROP INDEX idx_query_policy_status_type`, `ALTER TABLE rcc_query_policies ADD KEY idx_query_policy_status_type(status,type_code)`},
@@ -73,8 +75,12 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 		{"field_policy_check", `ALTER TABLE rcc_table_field_policies ALTER CHECK chk_field_policy_flags NOT ENFORCED`, `ALTER TABLE rcc_table_field_policies ALTER CHECK chk_field_policy_flags ENFORCED`},
 		{"unenforced_check", `ALTER TABLE rcc_query_policies ALTER CHECK chk_query_policy_max_page_size NOT ENFORCED`, `ALTER TABLE rcc_query_policies ALTER CHECK chk_query_policy_max_page_size ENFORCED`},
 		{"wrong_engine", `ALTER TABLE rcc_auth_rate_limits ENGINE=MyISAM`, `ALTER TABLE rcc_auth_rate_limits ENGINE=InnoDB`},
-		{"empty_roles", `UPDATE rcc_accounts SET roles=0`, `UPDATE rcc_accounts SET roles=31`},
-		{"unknown_role", `UPDATE rcc_accounts SET roles=32`, `UPDATE rcc_accounts SET roles=31`},
+		{"empty_roles", `UPDATE rcc_accounts SET roles=0`, `UPDATE rcc_accounts SET roles=27`},
+		{"unknown_role", `UPDATE rcc_accounts SET roles=32`, `UPDATE rcc_accounts SET roles=27`},
+		{"retired_role_4", `UPDATE rcc_accounts SET roles=4`, `UPDATE rcc_accounts SET roles=27`},
+		{"retired_role_12", `UPDATE rcc_accounts SET roles=12`, `UPDATE rcc_accounts SET roles=27`},
+		{"retired_role_20", `UPDATE rcc_accounts SET roles=20`, `UPDATE rcc_accounts SET roles=27`},
+		{"retired_role_31", `UPDATE rcc_accounts SET roles=31`, `UPDATE rcc_accounts SET roles=27`},
 		{"zero_role_version", `UPDATE rcc_accounts SET role_version=0`, `UPDATE rcc_accounts SET role_version=1`},
 		{"journal_engine", `ALTER TABLE rcc_schema_migration_attempts ENGINE=MyISAM`, `ALTER TABLE rcc_schema_migration_attempts ENGINE=InnoDB`},
 		{"journal_column", `ALTER TABLE rcc_schema_migration_attempts RENAME COLUMN recovery_count TO missing_recovery_count`, `ALTER TABLE rcc_schema_migration_attempts RENAME COLUMN missing_recovery_count TO recovery_count`},
@@ -84,7 +90,7 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 		t.Run(fault.name, func(t *testing.T) {
 			var digest string
 			if fault.name == "release_digest" {
-				if err := db.QueryRow(`SELECT release_digest FROM rcc_schema_migration_attempts WHERE target_version=5`).Scan(&digest); err != nil {
+				if err := db.QueryRow(`SELECT release_digest FROM rcc_schema_migration_attempts WHERE target_version=?`, currentVersion).Scan(&digest); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -102,12 +108,12 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 			if fault.restore != "" {
 				deliveryExec(t, db, fault.restore)
 			} else {
-				deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET release_digest=? WHERE target_version=5`, digest)
+				deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET release_digest=? WHERE target_version=?`, digest, currentVersion)
 			}
 			assertReadiness(200)
 		})
 	}
-	deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET state='RUNNING',finished_at=NULL WHERE target_version=5`)
+	deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET state='RUNNING',finished_at=NULL WHERE target_version=?`, currentVersion)
 	assertReadiness(503)
 	requireSchemaStartupRejected(t, accountProcessCommand(t, binary, &reader))
 	if output, err := schemaMigrationCommand(migration, driver, "up").CombinedOutput(); err == nil {

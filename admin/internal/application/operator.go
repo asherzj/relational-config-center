@@ -22,7 +22,6 @@ type AccountRoles = domain.AccountRoles
 const (
 	RoleViewer    = domain.RoleViewer
 	RoleEditor    = domain.RoleEditor
-	RoleApprover  = domain.RoleApprover
 	RolePublisher = domain.RolePublisher
 	RoleAdmin     = domain.RoleAdmin
 )

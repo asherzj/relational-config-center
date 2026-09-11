@@ -1,3 +1,4 @@
+const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
 // Real Chromium -> production Web proxy -> Cookie-authenticated Admin -> isolated MySQL.
 // SQL is used only to arrange disposable fixtures and to verify browser actions.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
@@ -89,7 +90,7 @@ function fixtureSQL() {
   }
   async function publishRelease(draft) {
     let order = await releaseWrite(`/api/v1/release-orders/${draft.id}/submit`, { expected_version: draft.version }, 200);
-    order = await releaseWrite(`/api/v1/release-orders/${draft.id}/approve`, { expected_version: order.version, reason: 'Independent operation coverage review' }, 200, approvalContext);
+    order = await releaseWrite(`/api/v1/release-orders/${draft.id}/approve`, await fixtureApprovalInput(approvalContext, base, draft.id, { expected_version: order.version, reason: 'Independent operation coverage review' }), 200, approvalContext);
     const result = await releaseWrite(`/api/v1/release-orders/${draft.id}/execute`, { expected_version: order.version }, 200);
     await releaseWrite(`/api/v1/release-orders/${draft.id}/complete`, { expected_version: result.version }, 200);
     return result;
@@ -132,7 +133,8 @@ function fixtureSQL() {
     context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     account = await registerFixtureAccount(context, base);
     approvalContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
-    await registerFixtureAccount(approvalContext, base, { roles: ['APPROVER'] });
+    const reviewer = await registerFixtureAccount(approvalContext, base, { roles: ['VIEWER'] });
+    await createFixtureApprovalRole(context, base, `Operation review ${randomUUID()}`, [reviewer.accountID], ['stage3_active_items', 'stage3_denied_items']);
     browserVersion = browser.version();
 
     const draftCode = 'stage3_ui_mutation_v1';

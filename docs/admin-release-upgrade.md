@@ -4,14 +4,14 @@
 
 ## 维护窗口
 
-以下历史人工步骤仅适用于尚未纳入 Goose、已经完成本地账号迁移 007 的存量部署。已接管库保持停写，直接按[迁移手册](schema-migrations.md)执行 `schema-migrate up` 至 00005；未确认操作先显式 recover。更早的规则目录升级先按[迁移说明](../deploy/mysql/migrations/README.md)完成适用的 001–005、013 和当前 Policy 收缩，007 只执行一次。新数据库使用最终 `schema-migrate up`，不重放这些旧安装迁移。
+以下历史人工步骤仅适用于尚未纳入 Goose、已经完成本地账号迁移 007 的存量部署。已接管库保持停写，直接按[迁移手册](schema-migrations.md)执行 `schema-migrate up` 至当前 00009；未确认操作先显式 recover。更早的规则目录升级先按[迁移说明](../deploy/mysql/migrations/README.md)完成适用的 001–005、013 和当前 Policy 收缩，007 只执行一次。新数据库使用最终 `schema-migrate up`，不重放这些旧安装迁移。
 
 1. 备份完整业务表和全部控制表，记录当前二进制、数据库版本、账号数量和受管表规则。如果旧版本采用 FLOAT 主键身份算法，先在旧 Admin 仍可用时按[浮点身份维护门禁](admin-record-versions.md#t5-浮点身份修订的升级门禁)取消受影响的旧在途单。随后关闭业务入口，等待在途请求结束并停止全部旧 Admin/Web、脚本及外部写库者。不能让旧版本与新版本同时写入。
 2. 用部署维护连接依次执行 008、009、010、011、012、013、014、015、016、017。013 统一规则目录审计时间列；014 新增字段规则；015 切换原单执行存储，016 建立草稿引用与管控键，017 删除主单默认表及对应索引；旧发布单历史不自动转换，已有旧历史时先按本文 015 小节确认环境切换方案。这些迁移不重写业务配置、账号身份或登录会话，不把旧配置伪造为发布历史。尚无显式记录版本的存量行从 `0` 开始；已有记录版本、占用、请求结果及发布历史全部保留。
 3. 按部署实际 MySQL 登录身份配置目标表/Schema 的显式 TRIGGER 元数据权限及全局 PROCESS 权限。PROCESS 用于识别跨 Schema 的隐式级联，详见[发布能力边界](design-notes/publication-contract.md)。权限不足不能作为“没有触发器或级联”的证明。
 4. 如果本次切换涉及旧 FLOAT 主键身份，确认第 1 步已取消受影响的旧在途单且全部写入者已停止，再按浮点身份维护门禁提高整表维护基线。保留旧 key 和历史；012 的重跑不会自动完成身份代际切换。
-5. 完成所有适用的历史步骤：三类 Policy 审计列须完成 013、字段策略表须完成 014，旧 Table Policy 须通过当前 `policy-migrate` 的 preflight/backfill/contract。按[完整接管手册](schema-migrations.md#校验并接管现有库)运行 `schema-migrate baseline`，再用 `schema-migrate status` 确认 `state=current` 且没有未确认操作；失败时保持维护窗口，不直接启动。接管不替代第 3～4 步权限及身份维护。
-6. 启动新 Admin，检查 `/health/ready`。缺失或不兼容的账号、角色、记录版本及发布控制结构会阻止启动，并给出对应迁移指引。就绪不要求已有 ADMIN：首次通过 008 引入角色时，原先没有角色的存量账号初始化为 VIEWER；新注册账号默认 VIEWER。已有角色的升级和迁移重跑保留原授予。尚无 ADMIN 时使用维护命令明确选择首位管理员，再在管理台分配 EDITOR、APPROVER、PUBLISHER；具体命令见[角色初始化](admin-account-roles.md)。重复授予既有管理员不会重复推进角色版本或记录授予事件。
+5. 完成所有适用的历史步骤：三类 Policy 审计列须完成 013、字段策略表须完成 014，旧 Table Policy 须通过当前 `policy-migrate` 的 preflight/backfill/contract。按[完整接管手册](schema-migrations.md#校验并接管现有库)运行 `schema-migrate baseline` 登记固定 1～5，再显式 `schema-migrate up` 至当前 00009，最后用 `schema-migrate status` 确认 `state=current` 且没有未确认操作；失败时保持维护窗口，不直接启动。接管不替代第 3～4 步权限及身份维护。
+6. 启动新 Admin，检查 `/health/ready`。缺失或不兼容的账号、角色、记录版本及发布控制结构会阻止启动，并给出对应迁移指引。就绪不要求已有 ADMIN：首次通过 008 引入角色时，原先没有角色的存量账号初始化为 VIEWER；新注册账号默认 VIEWER。00009 只收缩旧 APPROVER 当前位，其他权限及会话保留，重复迁移不再推进版本。尚无 ADMIN 时使用维护命令明确选择首位管理员，再在管理台分配 EDITOR、PUBLISHER，并在角色管理中建立按表审批成员及表绑定；具体命令见[角色初始化](admin-account-roles.md)。重复授予既有管理员不会重复推进角色版本或记录授予事件。
 7. 切换 Web 和脚本，以独立账号验证查询、草稿、提交、审批、发布及回滚。确认旧 `POST /api/v1/tables/:table_name/rows` 以及 `PATCH`、`DELETE /api/v1/tables/:table_name/rows/:id` 均返回 `404 route_not_found`，再恢复入口。不要把旧请求静默转换成已发布或为其开放兼容开关。
 
 ## 中断与恢复
@@ -34,7 +34,7 @@ DRAFT、PENDING_APPROVAL、APPROVED、SUCCEEDED、COMPLETED、REJECTED、CANCELL
 
 ## 发布后的人工完结与快速回滚
 
-普通成功 `SUCCEEDED` 表示已发布待完结，所有已知、自增生成及删除身份继续占用；同表不重叠记录仍可发布。当前 PUBLISHER/ADMIN 可调用 `POST /api/v1/release-orders/:id/complete`，发送 `{"expected_version":"4"}` 及原有会话、CSRF、Idempotency-Key；无需意见。响应为 `COMPLETED`，只推进发布单版本、记录 COMPLETE 历史及释放占用，不改配置、Record Version、Table Version 或通知状态。Web 完结确认说明释放占用及关闭快速回滚；取消无写入，未知结果以原请求恢复。
+普通成功 `SUCCEEDED` 表示已发布待完结，所有已知、自增生成及删除身份继续占用；同表不重叠记录仍可发布。当前 PUBLISHER/ADMIN 可调用 `POST /api/v1/release-orders/:id/complete`，发送 `{"expected_version":"4"}` 及原有会话、CSRF、Idempotency-Key；无需意见。响应为 `COMPLETED`，只推进发布单版本、记录 COMPLETE 历史及释放占用，不改配置、Record Version、Table Version 或下游刷新通知状态；个人结果提醒与完结同事务保存。Web 完结确认说明释放占用及关闭快速回滚；取消无写入，未知结果以原请求恢复。
 
 未完结原单可由当前 PUBLISHER/ADMIN 预览后一次确认整单回滚，无新审批及必填原因。回滚成功原单 ROLLED_BACK，申请和审批保持，实际逆向结果归原单每项明细的 `rollback` 及成功执行摘要；不创建第二张单。已完结和已回滚原单不可再回滚。完整接口见[原单回滚](admin-release-rollbacks.md)。
 
@@ -48,7 +48,7 @@ DRAFT、PENDING_APPROVAL、APPROVED、SUCCEEDED、COMPLETED、REJECTED、CANCELL
 
 ## 字段交互管理升级
 
-未接管库完成适用历史步骤至 017 后在停写窗口显式运行 `schema-migrate baseline` 并确认 current，才部署配套 Admin/Web。已有 Goose 库使用 `schema-migrate up`，顺序应用至当前 00005；00003 是字段规则结构的发布版本。该迁移只新增表字段规则，不清理旧发布单、业务行或版本；Admin 使用只读完整结构及版本检查。详见[字段规则契约与升级说明](admin-field-policies.md)。
+未接管库完成适用历史步骤至 017 后在停写窗口显式运行 `schema-migrate baseline` 后再 `schema-migrate up` 并确认 current，才部署配套 Admin/Web。已有 Goose 库使用 `schema-migrate up`，顺序应用至当前 00009；00003 是字段规则结构的发布版本。该迁移只新增表字段规则，不清理旧发布单、业务行或版本；Admin 使用只读完整结构及版本检查。详见[字段规则契约与升级说明](admin-field-policies.md)。
 
 ## Goose 00004 / 00005：可恢复的整张表迁移
 

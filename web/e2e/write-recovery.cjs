@@ -1,3 +1,4 @@
+const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
 const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 const {repeatReleaseAction}=require('./release-original-action.cjs');
 // Real browser -> production Web proxy -> Admin -> unique disposable MySQL.
@@ -117,7 +118,9 @@ async function waitDatabase() {
     };
     const admin = await account(['ADMIN']);
     const applicant = await account(['EDITOR']);
-    const reviewer = await account(['APPROVER']);
+    const reviewer = await account(['VIEWER']);
+    const reviewerIdentity = await (await reviewer.request.get(`${base}/api/v1/auth/session`)).json();
+    await createFixtureApprovalRole(admin, base, `Recovery review ${randomUUID()}`, [reviewerIdentity.account.id], [table]);
     const publisher = await account(['PUBLISHER']);
     const api = async (actor, method, path, data, expected = 200) => {
       const response = await authenticatedRequest(actor, base, path, {
@@ -129,7 +132,7 @@ async function waitDatabase() {
     const read = async id => readAllReleaseDetailPages(publisher,base,await api(publisher,'GET',`/api/v1/release-orders/${id}`));
     const approve = async order => {
       const submitted = await api(applicant, 'POST', `/api/v1/release-orders/${order.id}/submit`, { expected_version: order.version });
-      return api(reviewer, 'POST', `/api/v1/release-orders/${order.id}/approve`, { expected_version: submitted.version, reason: 'Independent recovery acceptance' });
+      return api(reviewer, 'POST', `/api/v1/release-orders/${order.id}/approve`, await fixtureApprovalInput(reviewer, base, order.id, { expected_version: submitted.version, reason: 'Independent recovery acceptance' }));
     };
     const prepare = async (operation, name) => {
       const id = operation === 'ADD' ? undefined : seed(name);

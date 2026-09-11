@@ -17,8 +17,8 @@ func TestReleaseReprepareReplacesApprovedOrderWithEditableDraft(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	applicant := registerAccount(t, app, "reprepare.applicant", "reprepare.applicant@example.com", "correct horse battery staple")
 	reviewer := registerAccount(t, app, "reprepare.reviewer", "reprepare.reviewer@example.com", "correct horse battery staple")
-	grantReleaseRole(t, app, applicant, `["EDITOR","APPROVER"]`, "1", "reprepare-applicant-role")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "reprepare-reviewer-role")
+	grantReleaseRole(t, app, applicant, `["EDITOR"]`, "1", "reprepare-applicant-role")
+	assignTableApproval(t, app, "mutation_delete_parents", tableApprovalRole(t, app, "Reprepare reviewers", applicant, reviewer))
 
 	created := releaseActorRequest(t, app, applicant, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"reprepared"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"继承后仍可编辑的标题"}`, "reprepare-create")
 	if created.Code != 201 {
@@ -32,7 +32,7 @@ func TestReleaseReprepareReplacesApprovedOrderWithEditableDraft(t *testing.T) {
 	if submitted := releaseActorRequest(t, app, applicant, "POST", path+"/submit", `{"expected_version":"1"}`, "reprepare-submit"); submitted.Code != 200 {
 		t.Fatalf("submit: %d %s", submitted.Code, submitted.Body)
 	}
-	if approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"2","reason":"已独立核对"}`, "reprepare-approve"); approved.Code != 200 {
+	if approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "已独立核对"), "reprepare-approve"); approved.Code != 200 {
 		t.Fatalf("approve: %d %s", approved.Code, approved.Body)
 	}
 
@@ -87,7 +87,6 @@ func TestReleaseReprepareRequiresCurrentApplicantEditorOrAdmin(t *testing.T) {
 	reviewer := registerAccount(t, app, "reprepare.owner.reviewer", "reprepare.owner.reviewer@example.com", "correct horse battery staple")
 	outsider := registerAccount(t, app, "reprepare.outsider", "reprepare.outsider@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, applicant, `["EDITOR"]`, "1", "reprepare-owner-role")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "reprepare-owner-reviewer-role")
 	grantReleaseRole(t, app, outsider, `["EDITOR"]`, "1", "reprepare-outsider-role")
 
 	path := approvedOrderForReprepare(t, app, applicant, reviewer, "reprepare-owner")
@@ -127,7 +126,6 @@ func TestReleaseReprepareFailureKeepsApprovedOrderAndTarget(t *testing.T) {
 	applicant := registerAccount(t, app, "reprepare.atomic", "reprepare.atomic@example.com", "correct horse battery staple")
 	reviewer := registerAccount(t, app, "reprepare.atomic.reviewer", "reprepare.atomic.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, applicant, `["EDITOR"]`, "1", "reprepare-atomic-role")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "reprepare-atomic-reviewer-role")
 	path := approvedOrderForReprepare(t, app, applicant, reviewer, "reprepare-atomic")
 	approved := releaseActorReadAllDetails(t, app, applicant, "GET", path, "", "")
 
@@ -157,6 +155,7 @@ func TestReleaseReprepareFailureKeepsApprovedOrderAndTarget(t *testing.T) {
 
 func approvedOrderForReprepare(t *testing.T, app *adminApplication, applicant, reviewer *httptest.ResponseRecorder, key string) string {
 	t.Helper()
+	configurePublicationReviewer(t, app, reviewer, "mutation_delete_parents")
 	created := releaseActorRequest(t, app, applicant, "POST", "/api/v1/release-orders", `{"title":"待重新准备的批准单","items":[{"table_name":"mutation_delete_parents","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"`+key+`"}}]}`, key+"-create")
 	if created.Code != 201 {
 		t.Fatalf("create approved fixture: %d %s", created.Code, created.Body)
@@ -169,7 +168,7 @@ func approvedOrderForReprepare(t *testing.T, app *adminApplication, applicant, r
 	if submitted := releaseActorRequest(t, app, applicant, "POST", path+"/submit", `{"expected_version":"1"}`, key+"-submit"); submitted.Code != 200 {
 		t.Fatalf("submit approved fixture: %d %s", submitted.Code, submitted.Body)
 	}
-	if approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"2","reason":"独立审批"}`, key+"-approve"); approved.Code != 200 {
+	if approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "独立审批"), key+"-approve"); approved.Code != 200 {
 		t.Fatalf("approve fixture: %d %s", approved.Code, approved.Body)
 	}
 	return path

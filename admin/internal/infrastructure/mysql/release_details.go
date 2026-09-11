@@ -21,7 +21,7 @@ func encodeReleaseHeader(order domain.ReleaseOrder) ([]byte, error) {
 	if err = json.Unmarshal(encoded, &header); err != nil {
 		return nil, err
 	}
-	for _, key := range []string{"items", "executions"} {
+	for _, key := range []string{"items", "executions", "approval_context"} {
 		delete(header, key)
 	}
 	summary := order.Summary()

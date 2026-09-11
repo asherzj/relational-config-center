@@ -1,3 +1,4 @@
+const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
 const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // T3 real browser → same-origin Admin → one isolated MySQL database.
@@ -52,7 +53,8 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
   }
   check('管理员在设置页为同一后续多表发布链路配置管控键');
   const editor=await browser.newContext({viewport:{width:1440,height:1000}}),person=await registerFixtureAccount(editor,base,{roles:['EDITOR','PUBLISHER']});
-  const reviewer=await browser.newContext({viewport:{width:1440,height:1000}});await registerFixtureAccount(reviewer,base,{roles:['APPROVER']});
+  const reviewer=await browser.newContext({viewport:{width:1440,height:1000}}),reviewerPerson=await registerFixtureAccount(reviewer,base,{roles:['VIEWER']});
+  await createFixtureApprovalRole(admin,base,`Multi-table review ${randomUUID()}`,[reviewerPerson.accountID],[...tables,largeTable]);
   const page=await pageFor(editor),review=await pageFor(reviewer);
   const reviewPages=[];
   for(const surface of [page,review])surface.on('request',request=>{const url=new URL(request.url());if(url.pathname.endsWith('/details'))reviewPages.push({path:url.pathname,version:url.searchParams.get('expected_version'),offset:url.searchParams.get('offset'),limit:url.searchParams.get('limit')})});
@@ -111,10 +113,11 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
    let current=await api(editor,'POST','/api/v1/release-orders',{title:`lifecycle ${terminal}`,items:tables.map(table=>({table_name:table,operation:'ADD',content:{id:'501',label:terminal}}))},201);
    const target=`/api/v1/release-orders/${current.id}`;
    if(terminal!=='cancel')current=await api(editor,'POST',target+'/submit',{expected_version:current.version});
-   if(['approved-cancel','complete'].includes(terminal))current=await api(reviewer,'POST',target+'/approve',{expected_version:current.version,reason:'independent review'});
+   if(['approved-cancel','complete'].includes(terminal))current=await api(reviewer,'POST',target+'/approve',await fixtureApprovalInput(reviewer,base,current.id,{expected_version:current.version,reason:'independent review'}));
    if(terminal==='complete')current=await api(editor,'POST',target+'/execute',{expected_version:current.version});
    const action=terminal==='approved-cancel'?'cancel':terminal;
-   current=await api(action==='reject'?reviewer:admin,'POST',target+'/'+action,{expected_version:current.version,...(action==='complete'?{}:{reason:'end all table references'})});
+   const terminalInput={expected_version:current.version,...(action==='complete'?{}:{reason:'end all table references'})};
+   current=await api(action==='reject'?reviewer:admin,'POST',target+'/'+action,action==='reject'?await fixtureApprovalInput(reviewer,base,current.id,terminalInput):terminalInput);
    assert.equal(current.applicant_id,person.accountID);assert.equal(current.state,{cancel:'CANCELLED',reject:'REJECTED','approved-cancel':'CANCELLED',complete:'COMPLETED'}[terminal]);
    if(terminal==='complete')assert.equal(current.allowed_actions.includes('quick-rollback'),false);
   }
@@ -125,11 +128,11 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
   let copySource=await api(editor,'POST','/api/v1/release-orders',{title:'复制核对两表当前基线',items:tables.map((table,index)=>({table_name:table,operation:'MODIFY',id:copyRecord,expected_record_version:copyVersions[index],content:{label:`copy-intent-${index?'b':'a'}`}}))},201);
   const copySourcePath=`/api/v1/release-orders/${copySource.id}`;
   copySource=await api(editor,'POST',copySourcePath+'/submit',{expected_version:copySource.version});
-  copySource=await api(reviewer,'POST',copySourcePath+'/reject',{expected_version:copySource.version,reason:'核对最新两表配置后复制'});
+  copySource=await api(reviewer,'POST',copySourcePath+'/reject',await fixtureApprovalInput(reviewer,base,copySource.id,{expected_version:copySource.version,reason:'核对最新两表配置后复制'}));
   let baseline=await api(editor,'POST','/api/v1/release-orders',{title:'更新复制基线',items:tables.map((table,index)=>({table_name:table,operation:'MODIFY',id:copyRecord,expected_record_version:copyVersions[index],content:{label:`fresh-copy-${index?'b':'a'}`}}))},201);
   const baselinePath=`/api/v1/release-orders/${baseline.id}`;
   baseline=await api(editor,'POST',baselinePath+'/submit',{expected_version:baseline.version});
-  baseline=await api(reviewer,'POST',baselinePath+'/approve',{expected_version:baseline.version,reason:'独立确认新基线'});
+  baseline=await api(reviewer,'POST',baselinePath+'/approve',await fixtureApprovalInput(reviewer,base,baseline.id,{expected_version:baseline.version,reason:'独立确认新基线'}));
   baseline=await api(editor,'POST',baselinePath+'/execute',{expected_version:baseline.version});
   await api(editor,'POST',baselinePath+'/complete',{expected_version:baseline.version});
   let blocker=await api(admin,'POST','/api/v1/release-orders',{title:'占用第二张表',items:[{table_name:tables[1],operation:'MODIFY',id:copyRecord,expected_record_version:'1',content:{label:'later-table-blocker'}}]},201);
@@ -154,7 +157,7 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
   let reprepareSource=await api(editor,'POST','/api/v1/release-orders',{title:'浏览器多表重新准备',items:tables.map((table,index)=>({table_name:table,operation:'MODIFY',id:reprepareRecord,expected_record_version:'2',content:{label:`reprepare-${index?'b':'a'}`}}))},201);
   const reprepareSourcePath=`/api/v1/release-orders/${reprepareSource.id}`;
   reprepareSource=await api(editor,'POST',reprepareSourcePath+'/submit',{expected_version:reprepareSource.version});
-  reprepareSource=await api(reviewer,'POST',reprepareSourcePath+'/approve',{expected_version:reprepareSource.version,reason:'原审批只属于原单'});
+  reprepareSource=await api(reviewer,'POST',reprepareSourcePath+'/approve',await fixtureApprovalInput(reviewer,base,reprepareSource.id,{expected_version:reprepareSource.version,reason:'原审批只属于原单'}));
   await page.goto(`${base}/configuration/release-orders/${reprepareSource.id}`);await button(page,'重新准备').click();const reprepareDrawer=page.getByRole('dialog',{name:'重新准备',exact:true});await reprepareDrawer.getByRole('button',{name:'读取最新配置',exact:true}).click();
   await reprepareDrawer.getByText(`明细 2 · ${tables[1]} · MODIFY · 记录 ${reprepareRecord}`,{exact:true}).waitFor();await reprepareDrawer.getByRole('button',{name:'继续重新准备',exact:true}).click();await page.getByRole('alertdialog',{name:'取消旧单并创建新草稿？',exact:true}).getByRole('button',{name:'取消旧单并创建新草稿',exact:true}).click();
   await page.getByText('重新准备自',{exact:true}).waitFor({state:'attached'});await page.getByText('基本信息',{exact:true}).click();const repreparedFrom=page.getByLabel('基本信息',{exact:true});await repreparedFrom.getByText('重新准备自',{exact:true}).waitFor();const repreparedID=new URL(page.url()).pathname.split('/').at(-1);assert.notEqual(repreparedID,reprepareSource.id);

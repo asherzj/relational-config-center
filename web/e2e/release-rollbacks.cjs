@@ -1,3 +1,4 @@
+const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
 const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real Chrome → same-origin Admin process → isolated MySQL rollback acceptance.
@@ -62,7 +63,9 @@ const output = process.env.RCC_E2E_OUTPUT;
   try {
     if (output) await mkdir(output, { recursive: true });
     const applicant = await account(['EDITOR']);
-    const reviewer = await account(['APPROVER']);
+    const reviewer = await account(['VIEWER']);
+    const administrator = await account(['ADMIN']);
+    await createFixtureApprovalRole(administrator, base, `Rollback review ${randomUUID()}`, [(await identity(reviewer)).account.id], [table]);
     const publisher = await account(['PUBLISHER']);
     applicantPage = await applicant.newPage();
     reviewPage = await reviewer.newPage();
@@ -96,7 +99,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     const changed = await query(applicant);
     assert.equal(changed.rows[0].name, `T8 ${engineName} browser published value`);
     assert.equal(changed.record_versions[0], '1');
-    check('separate EDITOR, APPROVER and PUBLISHER accounts complete the forward publication');
+    check('separate EDITOR, VIEWER table-role member and PUBLISHER accounts complete the forward publication');
 
     const completionWrites = [];
     const completionRoute = `**/api/v1/release-orders/${forward.id}/complete`;
@@ -289,7 +292,7 @@ const output = process.env.RCC_E2E_OUTPUT;
       title: '浏览器完结与快速回滚竞争', items:[{table_name:table,operation: 'MODIFY', id: '1', expected_record_version: '3', content: { name: 'Completion wins the reviewed quick rollback' } }],
     }, 201);
     const submittedCompetition = await api(applicant, 'POST', `/api/v1/release-orders/${competingDraft.id}/submit`, { expected_version: competingDraft.version });
-    const approvedCompetition = await api(reviewer, 'POST', `/api/v1/release-orders/${competingDraft.id}/approve`, { expected_version: submittedCompetition.version, reason: 'Independent approval' });
+    const approvedCompetition = await api(reviewer, 'POST', `/api/v1/release-orders/${competingDraft.id}/approve`, await fixtureApprovalInput(reviewer, base, competingDraft.id, { expected_version: submittedCompetition.version, reason: 'Independent approval' }));
     const publishedCompetition = await api(publisher, 'POST', `/api/v1/release-orders/${competingDraft.id}/execute`, { expected_version: approvedCompetition.version });
     await publishPage.setViewportSize({ width: 1440, height: 1000 });
     await publishPage.goto(`${base}/configuration/release-orders/${competingDraft.id}`);
@@ -297,6 +300,9 @@ const output = process.env.RCC_E2E_OUTPUT;
     await publishPage.getByRole('region', { name: '整单恢复预览', exact: true }).waitFor();
     await publishPage.getByLabel('快速回滚原因（选填）', { exact: true }).fill('Retain reason when completion wins');
     const completedCompetition = await api(competingPublisher, 'POST', `/api/v1/release-orders/${competingDraft.id}/complete`, { expected_version: publishedCompetition.version });
+    // Eligibility revisions are viewer-specific; compare the full header as the
+    // same publisher before and after the rejected competing rollback.
+    const completedForPublisher = await read(publisher, competingDraft.id);
     const competingResponse = publishPage.waitForResponse(response => response.url().endsWith(`/${competingDraft.id}/quick-rollback`) && response.request().method() === 'POST');
     await button(publishPage, '确认整单快速回滚').click();
     assert.equal((await competingResponse).status(), 409);
@@ -306,7 +312,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     await button(publishPage, '查看最新状态与配置').click();
     await publishPage.getByText(/最新发布单版本：.*状态：COMPLETED/).waitFor();
     assert.equal(await button(publishPage, '确认按最新状态快速回滚').count(), 0);
-    assert.deepEqual(await read(publisher, competingDraft.id), completedCompetition);
+    assert.deepEqual(await read(publisher, competingDraft.id), completedForPublisher);
     const competitionRows = await query(applicant);
     assert.equal(competitionRows.rows[0].name, 'Completion wins the reviewed quick rollback');
     assert.equal(competitionRows.record_versions[0], '4');

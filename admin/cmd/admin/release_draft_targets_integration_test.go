@@ -432,12 +432,13 @@ func TestDraftAllTargetTypesReleaseOnEveryTerminalAction(t *testing.T) {
 			path := "/api/v1/release-orders/" + created.ID
 			batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_targets`: 3, `SELECT COUNT(*) FROM rcc_release_table_references`: 1})
 			if action != "cancel" {
-				rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"1"}`, "terminal-submit"), 200)
 				reviewer := publicationFixtureReviewer(t, app)
+				configurePublicationReviewer(t, app, reviewer, "terminal_keys")
+				rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"1"}`, "terminal-submit"), 200)
 				if action == "reject" {
-					rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", path+"/reject", `{"expected_version":"2","reason":"end proposal"}`, "terminal-reject"), 200)
+					rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", path+"/reject", confirmedApprovalBody(t, app, reviewer, path, "end proposal"), "terminal-reject"), 200)
 				} else {
-					rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"2","reason":"reviewed"}`, "terminal-approve"), 200)
+					rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "reviewed"), "terminal-approve"), 200)
 					rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "terminal-execute"), 200)
 					batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_targets`: 3, `SELECT COUNT(*) FROM rcc_release_table_references`: 1})
 					if action == "complete" {
@@ -490,6 +491,7 @@ func TestDraftSubmitRejectsChangedTargetIdentity(t *testing.T) {
 	}
 	batchEdgeOrder(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+blocker.ID+"/cancel", `{"expected_version":"1","reason":"end current owner"}`, "ddl-cancel-owner"), 200)
 	batchEdgeOrder(t, releaseRequest(t, app, "PUT", path, string(edit), "ddl-resave"), 200)
+	configurePublicationReviewer(t, app, publicationFixtureReviewer(t, app), "draft_ddl_keys")
 	batchEdgeOrder(t, releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"2"}`, "ddl-submit-refreshed"), 200)
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM rcc_release_targets`: 2, `SELECT COUNT(*) FROM rcc_release_table_references`: 1})
 }

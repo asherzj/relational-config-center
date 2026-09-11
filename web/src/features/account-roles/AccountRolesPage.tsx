@@ -15,7 +15,6 @@ import { useDraftProtection } from "../../components/ui/LeaveProtection";
 const roleDescriptions: Record<AccountRole,string> = {
  VIEWER:"查看当前部署的全部受管表和发布历史。",
  EDITOR:"编辑配置；发布单接入后可创建和提交草稿。",
- APPROVER:"发布单接入后可审批他人提交的变更。",
  PUBLISHER:"发布单接入后可手动执行已批准的变更。",
  ADMIN:"管理账号角色、规则目录及配置，仍不可审批自己的发布单。",
 };

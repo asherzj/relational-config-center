@@ -1,0 +1,70 @@
+{
+  "published_on": "2026-09-11",
+  "parent": {
+    "number": 92,
+    "id": 5414579356,
+    "url": "https://github.com/asherzj/relational-config-center/issues/92",
+    "title": "规格：按表审批角色、ADMIN 默认审批与通知中心"
+  },
+  "native_relationships_verified": true,
+  "tickets": {
+    "T1": {
+      "number": 93,
+      "id": 5414579574,
+      "url": "https://github.com/asherzj/relational-config-center/issues/93",
+      "title": "按表审批与通知 T1：管理员维护审批角色和成员",
+      "blockers": [
+        70
+      ]
+    },
+    "T2": {
+      "number": 94,
+      "id": 5414579775,
+      "url": "https://github.com/asherzj/relational-config-center/issues/94",
+      "title": "按表审批与通知 T2：表角色配置与多表审批",
+      "blockers": [
+        93,
+        84
+      ]
+    },
+    "T3": {
+      "number": 95,
+      "id": 5414580077,
+      "url": "https://github.com/asherzj/relational-config-center/issues/95",
+      "title": "按表审批与通知 T3：四类审批视图的通知中心",
+      "blockers": [
+        94
+      ]
+    },
+    "T4": {
+      "number": 96,
+      "id": 5414580247,
+      "url": "https://github.com/asherzj/relational-config-center/issues/96",
+      "title": "按表审批与通知 T4：待办、审批进展与个人未读",
+      "blockers": [
+        95
+      ]
+    },
+    "T5": {
+      "number": 97,
+      "id": 5414580403,
+      "url": "https://github.com/asherzj/relational-config-center/issues/97",
+      "title": "按表审批与通知 T5：发布全过程的结果提醒",
+      "blockers": [
+        96,
+        85,
+        86
+      ]
+    },
+    "T6": {
+      "number": 98,
+      "id": 5414580562,
+      "url": "https://github.com/asherzj/relational-config-center/issues/98",
+      "title": "按表审批与通知 T6：退出旧审批授权并验收交付",
+      "blockers": [
+        97,
+        88
+      ]
+    }
+  }
+}

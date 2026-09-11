@@ -1,3 +1,4 @@
+const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
 const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 // Real Chromium → same-origin Admin → isolated MySQL acceptance for #87.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
@@ -52,11 +53,12 @@ const output = process.env.RCC_E2E_OUTPUT;
   try {
     if (output) await mkdir(output, { recursive: true });
     const applicant = await account(['EDITOR']);
-    const reviewer = await account(['APPROVER']);
+    const reviewer = await account(['VIEWER']);
     const forwardPublisher = await account(['PUBLISHER']);
     const executor = await account(['PUBLISHER']);
     const unrelated = await account(['VIEWER']);
     const administrator = await account(['ADMIN']);
+    await createFixtureApprovalRole(administrator.context, base, `Rollback reason review ${randomUUID()}`, [reviewer.fixture.accountID], [table]);
 
     const baseline = await api(applicant.context, 'POST', `/api/v1/tables/${table}/query`, {
       conditions: [{ field: 'id', operator: 'exact', value: '1' }],
@@ -67,7 +69,7 @@ const output = process.env.RCC_E2E_OUTPUT;
       title: '浏览器回滚原因留痕', items:[{table_name:table,operation: 'MODIFY', id: '1', expected_record_version: baseline.record_versions[0], content: { name: 'Published before reason correction' } }],
     }, 201);
     const submitted = await api(applicant.context, 'POST', `/api/v1/release-orders/${draft.id}/submit`, { expected_version: draft.version });
-    const approved = await api(reviewer.context, 'POST', `/api/v1/release-orders/${draft.id}/approve`, { expected_version: submitted.version, reason: 'Independent review' });
+    const approved = await api(reviewer.context, 'POST', `/api/v1/release-orders/${draft.id}/approve`, await fixtureApprovalInput(reviewer.context, base, draft.id, { expected_version: submitted.version, reason: 'Independent review' }));
     const published = await api(forwardPublisher.context, 'POST', `/api/v1/release-orders/${draft.id}/execute`, { expected_version: approved.version });
     const preview = await api(executor.context, 'POST', `/api/v1/release-orders/${draft.id}/quick-rollback/preview`, { expected_version: published.version });
     const rolled = await api(executor.context, 'POST', `/api/v1/release-orders/${draft.id}/quick-rollback`, { expected_version: published.version, preview_digest: preview.preview_digest, reason: '' });

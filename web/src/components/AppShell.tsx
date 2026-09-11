@@ -1,6 +1,7 @@
 import { useAccountRole, roleLabels } from "../features/accounts/roles";
 import { useWorkspaceIdentity } from "../features/accounts/ProtectedWorkspace";
-import { ArrowLeftRight, ChevronRight, Database, FileSearch, Layers3, Menu, ShieldCheck, Table2, X } from "lucide-react";
+import { ArrowLeftRight, Bell, ChevronRight, Database, FileSearch, Layers3, Menu, ShieldCheck, Table2, X } from "lucide-react";
+import { PersonalNotifications } from "../features/notifications/PersonalNotifications";
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Button } from "./ui/Button";
@@ -15,7 +16,7 @@ export function AppShell() {
   const { pathname } = useLocation();
   const section = pathname.startsWith("/configuration")
     ? "配置管理"
-    : pathname.startsWith("/platform/account-roles") ? "平台人员管理" : "表配置管理";
+    : (pathname.startsWith("/platform/account-roles") || pathname.startsWith("/platform/approval-roles")) ? "平台人员管理" : "表配置管理";
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -40,6 +41,7 @@ export function AppShell() {
             <div id="configuration-navigation-title" className="nav-group-title">配置管理</div>
             <NavLink to="/configuration/managed-data" onClick={() => setMobileNavOpen(false)}><Table2 size={18} />统一变更入口</NavLink>
             <NavLink to="/configuration/release-orders" onClick={() => setMobileNavOpen(false)}><FileSearch size={18} />发布单</NavLink>
+            <NavLink to="/configuration/notifications" onClick={() => setMobileNavOpen(false)}><Bell size={18} />通知中心</NavLink>
           </section>
           <section className="nav-group" aria-labelledby="table-navigation-title">
             <div id="table-navigation-title" className="nav-group-title">表配置管理</div>
@@ -49,9 +51,11 @@ export function AppShell() {
           </section>
           {administrator && <section className="nav-group" aria-labelledby="people-navigation-title">
             <div id="people-navigation-title" className="nav-group-title">平台人员管理</div>
+            <NavLink to="/platform/approval-roles" onClick={() => setMobileNavOpen(false)}><ShieldCheck size={18} />角色管理</NavLink>
             <NavLink to="/platform/account-roles" onClick={() => setMobileNavOpen(false)}><ShieldCheck size={18} />账号角色</NavLink>
           </section>}
         </nav>
+        <PersonalNotifications onNavigate={() => setMobileNavOpen(false)} />
         <div className="sidebar-account">
           <Separator />
           <DropdownMenu>

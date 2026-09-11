@@ -20,20 +20,25 @@ import (
 // statements and their real results; the commit fault consumes MySQL's success
 // packet and closes the socket before the Admin driver receives that packet.
 type publicationWireProxy struct {
-	listener    net.Listener
-	upstream    string
-	mode        atomic.Int32 // 1 = metadata disconnect, 2 = metadata stall, 3 = committed ACK loss
-	ack         atomic.Uint32
-	connections sync.Map
+	listener     net.Listener
+	upstream     string
+	mode         atomic.Int32 // 1 = metadata disconnect, 2 = metadata stall, 3 = committed ACK loss
+	ack          atomic.Uint32
+	connections  sync.Map
+	commitMarker string
 }
 
-func newPublicationWireProxy(t *testing.T, upstream string) *publicationWireProxy {
+func newPublicationWireProxy(t *testing.T, upstream string, marker ...string) *publicationWireProxy {
 	t.Helper()
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	p := &publicationWireProxy{listener: listener, upstream: upstream}
+	commitMarker := "INSERT INTO RCC_REFRESH_NOTIFICATIONS"
+	if len(marker) > 0 {
+		commitMarker = marker[0]
+	}
+	p := &publicationWireProxy{listener: listener, upstream: upstream, commitMarker: commitMarker}
 	t.Cleanup(func() {
 		listener.Close()
 		p.connections.Range(func(k, v any) bool { k.(net.Conn).Close(); return true })
@@ -98,8 +103,11 @@ func (p *publicationWireProxy) connect(client net.Conn) {
 			return
 		}
 		if len(packet) > 5 && packet[3] == 0 && (packet[4] == 3 || packet[4] == 22) {
-			statement := strings.ToUpper(string(packet[5:]))
-			if strings.Contains(statement, "INSERT INTO RCC_REFRESH_NOTIFICATIONS") {
+			statement := strings.ToUpper(strings.ReplaceAll(string(packet[5:]), "`", ""))
+			if strings.TrimSpace(statement) == "START TRANSACTION" || strings.TrimSpace(statement) == "BEGIN" {
+				published.Store(false)
+			}
+			if strings.Contains(statement, p.commitMarker) {
 				published.Store(true)
 			}
 			if strings.Contains(statement, "INFORMATION_SCHEMA.INNODB_FOREIGN") {
@@ -117,6 +125,9 @@ func (p *publicationWireProxy) connect(client net.Conn) {
 			}
 			if strings.TrimSpace(statement) == "COMMIT" && published.Load() && p.mode.CompareAndSwap(3, 0) {
 				dropACK.Store(true)
+			}
+			if strings.TrimSpace(statement) == "COMMIT" || strings.TrimSpace(statement) == "ROLLBACK" {
+				published.Store(false)
 			}
 		}
 		if _, err = server.Write(packet); err != nil {

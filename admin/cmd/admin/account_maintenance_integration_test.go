@@ -301,7 +301,7 @@ func TestAccountMaintenanceIndependentConnectionAndAtomicFailures(t *testing.T) 
 		t.Fatal(err)
 	}
 	output, err = f.command("replacement password long enough", "reset-password", "--id", id, "--password-stdin").CombinedOutput()
-	if err == nil || !strings.Contains(string(output), "migration 007") {
+	if err == nil || !strings.Contains(string(output), "schema-migrate status") {
 		t.Fatal("missing schema lacks actionable diagnostic")
 	}
 	if _, err := f.db.Exec("RENAME TABLE unavailable_sessions TO rcc_login_sessions"); err != nil {

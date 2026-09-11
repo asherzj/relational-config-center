@@ -33,7 +33,7 @@ An existing base table governed by an enabled Table Policy, whose schema is main
 _Avoid_: View, system table, remote table, arbitrary table
 
 **Table Policy（表规则）**:
-A runtime-configured assignment of one predefined Query Policy and one predefined Mutation Policy to an existing base table by stable code, optionally defining a Concurrency Control Key for that table. Enabling the assignment makes that table a Managed Table; the Table Policy does not override either assigned Policy, duplicate database field metadata, or contain connection information.
+A runtime-configured assignment of one predefined Query Policy and one predefined Mutation Policy to an existing base table by stable code, together with the table's Approval Role assignment and optional Concurrency Control Key. Enabling the assignment makes that table a Managed Table; the Table Policy does not override either assigned Policy, duplicate database field metadata, or contain connection information.
 _Avoid_: Table configuration, database configuration, schema migration, 表策略
 
 **Concurrency Control Key（并发管控键）**:
@@ -101,8 +101,16 @@ The applicant-provided short description of a Release Order's intent, fixed when
 _Avoid_: Release Order ID, table name, record title
 
 **Release Approval（发布审批）**:
-The decision of an authorized person other than the applicant to approve or reject the frozen content of a submitted Release Order. It applies only to that submitted content, not to later edits or another order.
+The review of a submitted Release Order's frozen content through decisions made by authorized people other than the applicant for its involved Managed Tables. The order is approved only when every involved table is approved; any valid rejection rejects the whole order.
 _Avoid_: Login, publication, self-confirmation
+
+**Table Approval（表审批）**:
+An authorized person's approval or rejection covering one Managed Table's changes within a submitted Release Order, retaining the person, qualification source, names, opinion and time of the decision. Approval by one eligible person completes that table's requirement; one action covers all tables still pending for that person.
+_Avoid_: Approval of an individual record, publication, approval of another table
+
+**Approval Assignment Snapshot（审批分配快照）**:
+The role identities and names assigned to review each involved Managed Table when a Release Order is submitted, including an explicitly empty assignment. Membership and eligibility remain current, while later table reassignment does not replace the snapshot or invalidate decisions already completed lawfully.
+_Avoid_: Policy Snapshot, frozen membership, current table assignment
 
 **Record Version（记录并发版本）**:
 The monotonically advancing concurrency identity of one configuration record, used to reject changes based on an older record state, including after deletion and recreation of the same record identity.
@@ -137,8 +145,24 @@ A primary-key identity or Concurrency Control Key value reserved by a Release Or
 _Avoid_: Database transaction lock, Release Order Version, unique constraint
 
 **Account Role（账号角色）**:
-A global, composable grant governing the actions a Local Account may perform across this deployment's Managed Tables and Release Orders. Every role includes viewing; editing, approval and publication do not imply one another, and no role permits approval of one's own order.
-_Avoid_: Account Status, Table Policy, per-table permission
+A global, composable grant governing a Local Account's viewing, editing, publication or administration capabilities across this deployment. Table approval eligibility follows Approval Roles and the Default Approver rule, and no account role permits approval of one's own order.
+_Avoid_: Account Status, Table Policy, Approval Role, per-table permission
+
+**Approval Role（审批角色）**:
+A named, administrator-managed group of Local Accounts that may approve changes to Managed Tables assigned to that role; an account may belong to several such groups. An enabled account's membership in any enabled role in a table's applicable approval assignment establishes eligibility to review that table, subject to the prohibition on approving one's own order.
+_Avoid_: Account Role, department, publisher
+
+**Default Approver（默认审批人）**:
+An enabled administrator eligible to review a table when its Approval Assignment Snapshot has no enabled role with an enabled member other than the applicant. This eligibility ends for pending approvals when eligible role members become available, and never permits reviewing one's own order or automatic approval.
+_Avoid_: Automatic approval, universal approval authority, applicant confirmation
+
+**Notification Center（通知中心）**:
+The workspace for finding submitted Release Orders by their relationship to the current account or across the deployment, including pending approvals, the account's applications and the account's completed review actions. Visibility of an order does not itself grant approval authority.
+_Avoid_: Refresh Notification Record, downstream delivery, publication execution
+
+**Approval Notification（审批通知）**:
+A recipient-and-order indication of pending review or a relevant approval or release outcome, with unread awareness independent of whether review work remains pending. Acknowledging observed progress does not complete approval or consume later changes; losing pending responsibility preserves unread outcomes and completed review history.
+_Avoid_: Refresh Notification Record, Table Approval, publication result
 
 **Publication Command（发布变更记录）**:
 An immutable record of a configuration change actually committed by a publication, retaining the final configuration state or the fact of deletion and linking it to its originating Release Order and Release Execution.
@@ -151,7 +175,7 @@ _Avoid_: Published configuration, delivery receipt, cache version
 ## Related documents
 
 - [Multi-table draft targets and execution decision](../docs/adr/0025-multitable-drafts-reserve-targets-and-record-executions.md): the accepted model for multi-table orders, draft reservations, and original-order rollback.
-
+- [Table approval roles and default reviewers](../docs/adr/0026-authorize-approval-by-table-roles.md): the accepted approval responsibility and eligibility model.
 - [Admin technical baseline](../docs/admin-v1-technical-baseline.md): database selection and Managed Table schema requirements.
 - [Record Versions](../docs/admin-record-versions.md): database identity equivalence and maintenance generations.
 - [Account roles](../docs/admin-account-roles.md): default roles, administrator appointment and recovery.

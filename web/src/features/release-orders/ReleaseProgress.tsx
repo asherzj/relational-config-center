@@ -7,10 +7,10 @@ export function ReleaseProgress({order,people={}}:{order:ReleaseHeader;people?:R
  const cancelled=order.state==="CANCELLED",rejected=order.state==="REJECTED",rolledBack=order.state==="ROLLED_BACK";
  const terminated=cancelled||rejected||rolledBack;
  const rank={DRAFT:0,PENDING_APPROVAL:1,APPROVED:2,SUCCEEDED:3,COMPLETED:4,REJECTED:1,CANCELLED:0,ROLLED_BACK:3}[order.state];
- const approved=order.history.some(event=>event.action==="APPROVE")||rank>=2&&!cancelled;
+ const approved=order.approvals.length>0&&order.approvals.every(table=>table.state==="APPROVED");
  const submitted=order.history.some(event=>event.action==="SUBMIT")||rank>=1&&!cancelled;
  const latest=(...actions:string[])=>[...order.history].reverse().find(event=>actions.includes(event.action));
- const events=[latest("SUBMIT"),latest("APPROVE","REJECT"),latest("EXECUTE"),rolledBack?latest("ROLLED_BACK","QUICK_ROLLBACK"):cancelled?latest("CANCEL","REPREPARE"):rejected?latest("REJECT"):order.state==="COMPLETED"?latest("COMPLETE"):undefined];
+ const events=[latest("SUBMIT"),approved||rejected?latest("APPROVE","REJECT"):undefined,latest("EXECUTE"),rolledBack?latest("ROLLED_BACK","QUICK_ROLLBACK"):cancelled?latest("CANCEL","REPREPARE"):rejected?latest("REJECT"):order.state==="COMPLETED"?latest("COMPLETE"):undefined];
  const labels=["准备","审批","发布","完结"];
  const descriptions=[submitted?"已准备":cancelled?"已取消":"准备中",rejected?"已拒绝":approved?"已批准":cancelled?"已取消":rank===1?"待审批":"待提交",order.executions.some(execution=>execution.kind==="PUBLICATION")||rank>=3?"数据库已发布":terminated?"未发布":rank===2?"待执行":"待审批后发布",rolledBack?"已回滚":cancelled||rejected?"已终止":rank===4?"已完结":rank===3?"待人工完结":"待发布后完结"];
  const completed=[submitted,approved,Boolean(order.executions.some(execution=>execution.kind==="PUBLICATION"))||rank>=3,order.state==="COMPLETED"];

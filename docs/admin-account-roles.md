@@ -4,24 +4,23 @@
 
 ## 使用与权限
 
-新注册账号默认只有 VIEWER；首次通过 008 引入角色时，存量账号初始化为 VIEWER。已有角色的升级或迁移重跑保留原授予。不按注册顺序、用户名或邮箱授予管理员。账号启用状态与角色独立。每个角色都包含查看能力；角色覆盖当前部署的全部受管表，查询和写入仍须满足表规则。
+新注册账号默认只有 VIEWER；首次通过历史 008 引入角色时，存量账号初始化为 VIEWER。Goose 00009 退出旧 APPROVER，其他当前权限保留；重复升级不重复改变角色版本。不按注册顺序、用户名或邮箱授予管理员。账号启用状态与角色独立。每个角色都包含查看能力；角色覆盖当前部署的全部受管表，查询和写入仍须满足表规则。
 
 | 角色 | 能力 |
 |---|---|
 | VIEWER | 查看规则目录、受管表、配置及本部署全部发布历史 |
-| EDITOR | 创建发布草稿，编辑并提交本人普通草稿，复制已拒绝/取消的普通单据，申请回滚；尚未发布的本人单据可按状态取消 |
-| APPROVER | 批准或拒绝他人提交的发布单，必须填写意见 |
-| PUBLISHER | 手动执行已批准的发布单，包括获批的回滚单；审阅整单恢复预览、填写原因后免审批快速回滚，或明确完结已发布待完结的普通单；两者均不限定原发布人 |
-| ADMIN | 管理角色与规则目录，包含上述业务能力，可取消尚未发布的单据；同样不得审批自己的单据 |
+| EDITOR | 创建发布草稿，编辑并提交本人草稿，复制已拒绝/取消的单据，重新准备本人已批准单据；尚未发布的本人单据可按状态取消 |
+| PUBLISHER | 手动执行已批准的整张发布单；审阅原单整单恢复预览后免审批快速回滚（原因选填），或明确完结已发布待完结的原单；两者均不限定原发布人 |
+| ADMIN | 管理角色与规则目录，包含查看、编辑和发布能力，可取消尚未发布的单据；审批须有表角色成员资格或符合默认 ADMIN 规则，不能自审 |
 
-EDITOR、APPROVER、PUBLISHER 不互相隐含，可以组合分配。规则目录直接修改只允许 ADMIN，不进入发布审批；配置记录的旧 POST/PATCH/DELETE 写路由已删除。申请人持有 PUBLISHER 时可以执行他人已批准的本人单据，审批人也可以兼任发布人。`POST /api/v1/tables/:table_name/query` 是只读查询，但仍沿用 CSRF 与同源校验。`X-RCC-Roles` 等客户端身份头不授予权限。
+EDITOR、PUBLISHER 不互相隐含，可以组合分配。审批资格由提交快照中的审批角色和当前成员决定；没有独立合格成员时由当前 ADMIN 默认接手。规则目录直接修改只允许 ADMIN，不进入发布审批；配置记录的旧 POST/PATCH/DELETE 写路由已删除。申请人持有 PUBLISHER 时可以执行他人已批准的本人单据，审批人也可以兼任发布人。`POST /api/v1/tables/:table_name/query` 是只读查询，但仍沿用 CSRF 与同源校验。`X-RCC-Roles` 等客户端身份头不授予权限。
 
 每个业务请求从 MySQL 读取当前账号角色，原登录会话下一次请求立即按新授权执行；不承诺撤回已经认证的在途请求。Web 从当前身份显示角色，返回页面时复核；收到权限拒绝后刷新身份并保留尚未提交的输入，不自动重试写入。
 
 ## 初始化与恢复
 
 1. 存量部署按[发布单升级指南](admin-release-upgrade.md)先备份并处理旧 FLOAT 身份在途单，再停止全部旧 Admin 及其他写入者，按[迁移说明](../deploy/mysql/migrations/README.md)确认既有迁移状态。已有 007 本地账号结构的部署继续应用 008～012；不要重跑 007 的一次性 DDL。008 初始化角色，009～012 建立记录版本和完整发布控制结构。新安装直接使用 `schema-migrate up`。角色初始化不能代替后续迁移或[发布所需数据库权限](design-notes/publication-contract.md#写入能力边界)。
-2. 完成适用的 013、014 及当前 Policy 收缩，按[接管手册](schema-migrations.md#校验并接管现有库)显式执行 `schema-migrate baseline`，确认 `schema-migrate status` 为 `current` 且无未确认操作后再启动新版 Admin。Schema 就绪但没有 ADMIN 时，注册、登录和只读功能仍可用。
+2. 完成适用的 013、014 及当前 Policy 收缩，按[接管手册](schema-migrations.md#校验并接管现有库)显式执行 `schema-migrate baseline`，再运行 `schema-migrate up` 升级后续控制结构，确认 `schema-migrate status` 为 `current` 且无未确认操作后再启动新版 Admin。Schema 就绪但没有 ADMIN 时，注册、登录和只读功能仍可用。
 3. 在管理台注册明确指定的账号，然后由有数据库维护权限的人运行：
 
 ```bash
@@ -30,7 +29,7 @@ bin/admin/account-maintain lookup --username alice.one
 bin/admin/account-maintain grant-admin --id 550e8400-e29b-41d4-a716-446655440000
 ```
 
-命令复用既有 `MYSQL_*` 连接配置，也可以通过 `--username alice.one` 选择账号。授予 ADMIN 保留其他角色；重复执行不会推进版本或增加重复授权历史。停用账号必须先显式 `enable`，再 `grant-admin`。
+命令复用既有 `MYSQL_*` 连接配置，也可以通过 `--username alice.one` 选择账号。`grant-admin` 单独要求正式结构、版本与当前角色数据就绪，旧库须先完成 `schema-migrate up/recover`；其他维护命令不因此全局依赖 Admin 就绪。授予 ADMIN 保留其他当前角色；重复执行不会推进版本或增加重复授权历史。停用账号必须先显式 `enable`，再 `grant-admin`。
 
 4. 使用该账号进入“平台管理 → 账号角色”，检索账号、组合选择角色并保存。页面显示当前授权和历史。
 
@@ -53,7 +52,7 @@ HTTP 撤权和 `account-maintain disable` 共同保护最后一个启用 ADMIN�
 列表响应为 `{accounts:[...],next_cursor:"..."}`，历史为 `{events:[...],next_cursor:"..."}`；空游标表示没有下一页。完整页可能返回一个游标，其下一页为空。数字版本和历史 ID 均为 JSON 字符串。
 
 ```json
-{"roles":["EDITOR","APPROVER"],"expected_version":"1"}
+{"roles":["EDITOR","PUBLISHER"],"expected_version":"1"}
 ```
 
 角色不得为空、重复或包含未知值。请求标识为 8～64 个 ASCII 字母、数字、点、下划线或连字符，首位必须是字母/数字。建议 UUID。成功返回保存时的账号角色快照及新版本。
@@ -69,3 +68,13 @@ HTTP 撤权和 `account-maintain disable` 共同保护最后一个启用 ADMIN�
 历史保存操作者永久 Account ID、目标永久 ID、前后角色、时间和授权版本；显示名称变化不改变归属。维护命令以 `actor_kind=maintenance`、空 `actor_id` 明确区分数据库维护身份，不伪装成某个本地账号。历史及成功请求结果不自动清理，也无编辑、删除接口。它们只通过角色管理 API 可读，通用表发现和数据接口继续拒绝全部 `rcc_` 控制表。
 
 普通访问日志只记路由模板、状态和请求编号，不记录角色请求正文、配置内容、口令或 Cookie。数据库维护权属于部署维护边界；任意外部 SQL 不受 HTTP 权限保护。
+
+自定义审批角色与成员的维护见[审批角色管理](admin-approval-roles.md)，它与本页的全局权限分开管理。
+
+## 旧全局 APPROVER 正式退出
+
+Goose `00009_retire_global_approver.sql` 在停写维护窗口只修改当前账号：旧单独 APPROVER（4）变为 VIEWER（1），组合角色只去掉位 4；VIEWER=1、EDITOR=2、PUBLISHER=8、ADMIN=16 保持原编号。停用账号同样处理，不改变启用状态。仅实际收缩的账号 `role_version` 增加一次，`session_version` 和既有 Cookie 保留；旧角色编辑窗口须按版本冲突重新审阅。
+
+当前 HTTP 输入、身份、账号列表和 Web 选择器仅接受四种当前角色；4 永久保留给历史解释，不能再作为当前能力。含 APPROVER 的旧授权请求重推返回 `422 invalid_account_roles`，不转换正文、换键或再次授予；管理员可只读查询当前角色及历史核实旧结果。原请求不含旧角色时，合法原键仍返回保存时的完整结果，不重做授权，也不把历史结果当作当前账号权限。
+
+不可变授权事件仍显示当时的 APPROVER；原 before/after、result、digest、actor、时间和版本逐字保留。迁移由 Goose 版本与尝试账本归因，不伪造一次由人员发起的角色授权事件。既有审批角色、成员、表分配、合法决定、旧发布单 JSON、通知进度及业务数据不转换、不回填、不清理。成员资格及 ADMIN 位保持，因此去掉旧位不会制造新待办、推进通知序号或清除已读位置。

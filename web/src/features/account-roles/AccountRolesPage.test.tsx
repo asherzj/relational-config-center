@@ -16,8 +16,8 @@ it("管理员通过界面组合分配角色，并保留并发版本和请求标�
  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
   const path=String(input);
   if (path.startsWith("/api/v1/auth/")) return json({ ...testIdentity, account: { ...testIdentity.account, roles:["ADMIN"] } });
-  if (init?.method === "PUT") { writes.push(init); return json({...target,roles:["EDITOR","APPROVER"],version:"2"}); }
-  if (path.includes("/history")) return json({events:[],next_cursor:""});
+  if (init?.method === "PUT") { writes.push(init); return json({...target,roles:["EDITOR","PUBLISHER"],version:"2"}); }
+  if (path.includes("/history")) return json({events:[{id:"1",actor_kind:"maintenance",actor_id:"",account_id:id,before_roles:["APPROVER"],after_roles:["APPROVER","PUBLISHER"],version:"1",created_at:"2026-01-01T00:00:00Z"}],next_cursor:""});
   if (path.startsWith("/api/v1/account-roles")) return json({accounts:[target],next_cursor:""});
   return json({error:{code:"test_unexpected_request",message:path}},404);
  }));
@@ -27,10 +27,12 @@ it("管理员通过界面组合分配角色，并保留并发版本和请求标�
  await user.click(await screen.findByRole("button",{name:"管理 editor.user 的角色"}));
  await user.click(screen.getByRole("checkbox",{name:/查看者 VIEWER/}));
  await user.click(screen.getByRole("checkbox",{name:/编辑者 EDITOR/}));
- await user.click(screen.getByRole("checkbox",{name:/审批人 APPROVER/}));
+ expect(screen.queryByRole("checkbox",{name:/APPROVER/})).not.toBeInTheDocument();
+ expect(await screen.findByText("APPROVER → APPROVER、PUBLISHER")).toBeVisible();
+ await user.click(screen.getByRole("checkbox",{name:/发布者 PUBLISHER/}));
  await user.click(screen.getByRole("button",{name:"保存角色"}));
  await waitFor(()=>expect(writes).toHaveLength(1));
- expect(JSON.parse(String(writes[0].body))).toEqual({roles:["EDITOR","APPROVER"],expected_version:"1"});
+ expect(JSON.parse(String(writes[0].body))).toEqual({roles:["EDITOR","PUBLISHER"],expected_version:"1"});
  expect(new Headers(writes[0].headers).get("Idempotency-Key")).toMatch(/^[a-f0-9-]{36}$/);
  expect(await screen.findByText("角色已保存，后续请求立即生效。")).toBeVisible();
 });
@@ -130,7 +132,7 @@ it("并发冲突后的读取失败只重试读取，保留选择并使用新版�
   if(path.includes(id)){
    latestReads++;
    if(latestReads===1)throw new TypeError("connection lost while reading");
-   return json({accounts:[{...target,roles:["APPROVER"],version:"2"}],next_cursor:""});
+   return json({accounts:[{...target,roles:["PUBLISHER"],version:"2"}],next_cursor:""});
   }
   return json({accounts:[target],next_cursor:""});
  }));
@@ -148,7 +150,7 @@ it("并发冲突后的读取失败只重试读取，保留选择并使用新版�
  expect(writes).toHaveLength(1);
  await user.click(screen.getByRole("button",{name:"查看最新角色"}));
  await waitFor(()=>expect(screen.getByRole("button",{name:"保存角色"})).toBeEnabled());
- expect(screen.getByText("服务器当前角色：审批人（版本 2）")).toBeVisible();
+ expect(screen.getByText("服务器当前角色：发布者（版本 2）")).toBeVisible();
  await user.click(screen.getByRole("button",{name:"保存角色"}));
  await waitFor(()=>expect(writes).toHaveLength(2));
  expect(JSON.parse(String(writes[1].body))).toEqual({roles:["VIEWER","EDITOR"],expected_version:"2"});

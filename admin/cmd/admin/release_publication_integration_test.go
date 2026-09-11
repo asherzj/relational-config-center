@@ -22,21 +22,20 @@ func approvePublication(t *testing.T, app *adminApplication, reviewer *httptest.
 	if created.Code != 201 {
 		t.Fatalf("create: %d %s", created.Code, created.Body)
 	}
-	var order struct{ ID string }
+	var order domain.ReleaseOrder
 	if err := json.Unmarshal(created.Body.Bytes(), &order); err != nil {
 		t.Fatal(err)
 	}
 	path := "/api/v1/release-orders/" + order.ID
-	for _, step := range []struct{ action, body string }{{"submit", `{"expected_version":"1"}`}, {"approve", `{"expected_version":"2","reason":"checked intent"}`}} {
-		var response *httptest.ResponseRecorder
-		if step.action == "approve" {
-			response = releaseActorRequest(t, app, reviewer, "POST", path+"/"+step.action, step.body, key+"-"+step.action)
-		} else {
-			response = releaseRequest(t, app, "POST", path+"/"+step.action, step.body, key+"-"+step.action)
-		}
-		if response.Code != 200 {
-			t.Fatalf("%s: %d %s", step.action, response.Code, response.Body)
-		}
+	configurePublicationReviewer(t, app, reviewer, order.TableNames...)
+	submitted := releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"1"}`, key+"-submit")
+	if submitted.Code != 200 {
+		t.Fatalf("submit: %d %s", submitted.Code, submitted.Body)
+	}
+	body := confirmedApprovalBody(t, app, reviewer, path, "checked intent")
+	approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", body, key+"-approve")
+	if approved.Code != 200 {
+		t.Fatalf("approve: %d %s", approved.Code, approved.Body)
 	}
 	return path
 }
@@ -46,7 +45,7 @@ func TestReleasePublicationAddsFinalRow(t *testing.T) {
 	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	reviewer := registerAccount(t, app, "publication.reviewer", "publication.reviewer@example.com", "correct horse battery staple")
-	grantReleaseRole(t, app, reviewer, `["APPROVER","PUBLISHER"]`, "1", "publication-roles")
+	grantReleaseRole(t, app, reviewer, `["PUBLISHER"]`, "1", "publication-roles")
 	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"published","label":"","metadata":"null"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "publication-add")
 	response := releaseActorRequest(t, app, reviewer, "POST", path+"/execute", `{"expected_version":"3"}`, "publication-execute")
 	if response.Code != 200 {
@@ -101,7 +100,6 @@ func TestPublicationRejectsUntrackedCascade(t *testing.T) {
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowDelete: true})
 	reviewer := registerAccount(t, app, "cascade.reviewer", "cascade.reviewer@example.com", "correct horse battery staple")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "cascade-roles")
 	path := approvePublication(t, app, reviewer, `{"items":[{"content":{},"expected_record_version":"0","id":"1","operation":"DELETE","table_name":"mutation_delete_parents"}],"title":"集成测试发布单"}`, "cascade")
 	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "cascade-execute")
 	assertIntegrationErrorCode(t, response, 422, "publication_unsupported")
@@ -130,7 +128,6 @@ func TestPublicationSupportsTargetRowTrigger(t *testing.T) {
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	reviewer := registerAccount(t, app, "trigger.reviewer", "trigger.reviewer@example.com", "correct horse battery staple")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "trigger-roles")
 	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"triggered","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "trigger")
 	response := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "trigger-execute")
 	if response.Code != 200 {
@@ -167,9 +164,9 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 	deliveryExec(t, owner, `INSERT INTO z_atomic_second VALUES(1,'before')`)
 	enableMutationPolicy(t, app, "z_atomic_second", mutationPolicyFixture{AllowModify: true})
 	reviewer := registerAccount(t, app, "atomic.reviewer", "atomic.reviewer@example.com", "correct horse battery staple")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "atomic-roles")
 	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"committed"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"},{"content":{"code":"new-atomic"},"operation":"ADD","table_name":"mutation_delete_parents"},{"content":{"label":"after"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"z_atomic_second"}],"title":"集成测试发布单"}`, "atomic")
-	for _, failure := range []struct{ table, event, condition string }{{"rcc_record_versions", "INSERT", "TRUE"}, {"rcc_publication_commands", "INSERT", "TRUE"}, {"rcc_table_publications", "UPDATE", "NEW.table_version>0 AND NEW.table_name='z_atomic_second'"}, {"rcc_refresh_notifications", "INSERT", "NEW.table_name='z_atomic_second'"}, {"rcc_release_targets", "INSERT", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='SUCCEEDED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
+	beforeNotice := readApprovalProgress(t, app, reviewer, path)
+	for _, failure := range []struct{ table, event, condition string }{{"rcc_record_versions", "INSERT", "TRUE"}, {"rcc_publication_commands", "INSERT", "TRUE"}, {"rcc_table_publications", "UPDATE", "NEW.table_version>0 AND NEW.table_name='z_atomic_second'"}, {"rcc_refresh_notifications", "INSERT", "NEW.table_name='z_atomic_second'"}, {"rcc_release_targets", "INSERT", "TRUE"}, {"rcc_release_details", "UPDATE", "NEW.publication IS NOT NULL"}, {"rcc_release_executions", "INSERT", "TRUE"}, {"rcc_approval_notifications", "UPDATE", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='SUCCEEDED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
 		t.Run(failure.table, func(t *testing.T) {
 			statement := fmt.Sprintf("CREATE TRIGGER fail_publication BEFORE %s ON %s FOR EACH ROW BEGIN IF %s THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='injected persistence failure'; END IF; END", failure.event, failure.table, failure.condition)
 			if _, err := owner.Exec(statement); err != nil {
@@ -201,6 +198,9 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
+			if readApprovalProgress(t, app, reviewer, path) != beforeNotice {
+				t.Fatal("failed publication changed personal result notification")
+			}
 			if targets != 2 || commands != 0 || notifications != 0 || requests != 0 || versions != 0 {
 				t.Fatalf("partial state: targets %d commands %d notifications %d requests %d table versions %d", targets, commands, notifications, requests, versions)
 			}
@@ -210,6 +210,7 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 	if response.Code != 200 {
 		t.Fatalf("same key retry: %d %s", response.Code, response.Body)
 	}
+	assertReleaseNotificationAdvance(t, app, reviewer, path, beforeNotice)
 	batchEdgeCounts(t, owner, map[string]int{`SELECT COUNT(*) FROM rcc_refresh_notifications`: 2, `SELECT COUNT(*) FROM rcc_table_publications WHERE table_version=1`: 2, `SELECT COUNT(*) FROM z_atomic_second WHERE label='after'`: 1})
 }
 
@@ -314,10 +315,22 @@ func TestPublicationPublisherHistoryAndApprovalSurvivesRevocation(t *testing.T) 
 	enableMutationPolicy(t, app, "mutation_auto_fill_items", mutationPolicyFixture{AllowAdd: true, CreateOperatorField: &creator, CreateTimeField: &stamp})
 	reviewer := registerAccount(t, app, "history.reviewer", "history.reviewer@example.com", "correct horse battery staple")
 	publisher := registerAccount(t, app, "history.publisher", "history.publisher@example.com", "correct horse battery staple")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "history-reviewer-role")
 	grantReleaseRole(t, app, publisher, `["PUBLISHER"]`, "1", "history-publisher-role")
 	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"history","quantity":"1","status":"active"},"operation":"ADD","table_name":"mutation_auto_fill_items"}],"title":"集成测试发布单"}`, "history")
-	grantReleaseRole(t, app, reviewer, `["VIEWER"]`, "2", "history-reviewer-revoked")
+	approved := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
+	if len(approved.Approvals) != 1 || len(approved.Approvals[0].Roles) != 1 {
+		t.Fatal("missing fixture approval role")
+	}
+	rolePath := "/api/v1/approval-roles/" + approved.Approvals[0].Roles[0].ID
+	roleResponse := releaseRequest(t, app, "GET", rolePath, "", "")
+	if roleResponse.Code != 200 {
+		t.Fatal(roleResponse.Body)
+	}
+	role := decodeApprovalRole(t, roleResponse)
+	revocation, _ := json.Marshal(map[string]any{"name": role.Name, "description": role.Description, "enabled": true, "expected_version": role.Version, "member_ids": []string{}})
+	if revoked := releaseRequest(t, app, "PUT", rolePath, string(revocation), "history-reviewer-revoked"); revoked.Code != 200 {
+		t.Fatal(revoked.Body)
+	}
 	denied := releaseActorRequest(t, app, reviewer, "POST", path+"/execute", `{"expected_version":"3"}`, "revoked-execute")
 	assertIntegrationErrorCode(t, denied, 403, "permission_denied")
 	response := releaseActorRequest(t, app, publisher, "POST", path+"/execute", `{"expected_version":"3"}`, "history-execute")
