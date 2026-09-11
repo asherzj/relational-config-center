@@ -1,0 +1,42 @@
+=== RUN   TestReleaseEmergencyPendingConsumersAndDerivedDrafts
+2026/09/11 11:15:42 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 5c113d721578b5061aa8c851bd97d16baf435e86658dc7f320124cefaf41205f
+  Test ProcessID: ed46e1d7-0c79-47a5-b852-373bc4256d50
+2026/09/11 11:15:42 🐳 Creating container for image mysql:8.4
+2026/09/11 11:15:43 ✅ Container created: 43c97e2a1eab
+2026/09/11 11:15:43 🐳 Starting container: 43c97e2a1eab
+2026/09/11 11:15:43 ✅ Container started: 43c97e2a1eab
+2026/09/11 11:15:43 ⏳ Waiting for container id 43c97e2a1eab image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 11:15:49 🔔 Container is ready: 43c97e2a1eab
+{"request_id":"rcc-59c73481dde155311d243957dfbd24a7","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":9}
+{"request_id":"rcc-c9d8aa60a0e25b408b368a3d8382a063","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":52}
+{"request_id":"rcc-23ed794a1a7692f6ce36c50b6ec67e1a","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-78c88574db2d1e8aa444a5e94699d5cd","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":53}
+{"request_id":"rcc-e414e6b8921ce8c9434ccfcd08c07127","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-e063744a3614d9007b89be504746a683","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":5}
+{"request_id":"rcc-7fcde3ea78f7c5acd0a1763eae531fb7","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-d9aa4d0506ecb4a02405b72a6cc491e8","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-05b620162cd546bb45e633f612d92354","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":16}
+{"request_id":"rcc-bbb67e98b4eb738b2c3ffcdd936e7ba1","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":13}
+{"request_id":"rcc-58e79c672bd2ea5b46b901a5f8fc4337","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":15}
+{"request_id":"rcc-667b05028bd11f32eb5f14ba4f05124e","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":14}
+{"request_id":"rcc-0275c2d9149a29c65d0904d20c572502","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":7}
+{"request_id":"rcc-102d6206f966713b9cccbf1f3fbdf4ca","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":38}
+{"request_id":"rcc-586644354f52e068160a992beeec46f6","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":99}
+{"request_id":"rcc-bbfc76bcd50dff281c7d2d4a258fc480","method":"GET","path":"/api/v1/release-orders","status":200,"duration_ms":7}
+    release_emergency_integration_test.go:399: pending consumers lost actions/type {"next_cursor":"","orders":[{"emergency_reason":"紧急修正","release_type":"EMERGENCY","table_flows":[{"instance_id":"e6c45e81c8f7f2b9529113e1a2383f37","table_name":"policy_alpha","release_type":"EMERGENCY","template_code":"default_emergency_v1","template_name":"默认应急发布","template_version":"1","association_version":"1","instantiated_at":"2026-09-11T03:15:50.932319Z","node_list":[{"code":"publication","type":"PUBLICATION","name":"应急发布","required_role":"PUBLISHER","state":"ACTIVE"},{"code":"completion","type":"COMPLETION","name":"完结","required_role":"PUBLISHER","state":"PENDING"}]},{"instance_id":"949282943e7d7d421f344b415ba8aea6","table_name":"policy_beta","release_type":"EMERGENCY","template_code":"default_emergency_v1","template_name":"默认应急发布","template_version":"1","association_version":"1","instantiated_at":"2026-09-11T03:15:50.932319Z","node_list":[{"code":"publication","type":"PUBLICATION","name":"应急发布","required_role":"PUBLISHER","state":"ACTIVE"},{"code":"completion","type":"COMPLETION","name":"完结","required_role":"PUBLISHER","state":"PENDING"}]}],"missing_flow_tables":[],"approvals":[],"approval_context":{"revision":"de710bdbdb3929b5d42514d631f3115ffc41e2aabec2dafbba90466961c5fc41","tables":[],"approvable_tables":[]},"table_names":["policy_alpha","policy_beta"],"title":"各表保存流程","id":"8d1955539174eacdf94ac104c3670472","applicant_id":"b6399962-1f01-4379-a2d3-de777bcf91c2","state":"PENDING_PUBLICATION","version":"2","created_at":"2026-09-11T03:15:50.932319Z","updated_at":"2026-09-11T03:15:51.030163Z","item_count":2,"operation_counts":{"ADD":2},"allowed_actions":["execute"]}]}
+2026/09/11 11:15:51 🐳 Stopping container: 43c97e2a1eab
+2026/09/11 11:15:52 ✅ Container stopped: 43c97e2a1eab
+2026/09/11 11:15:52 🐳 Terminating container: 43c97e2a1eab
+2026/09/11 11:15:52 🚫 Container terminated: 43c97e2a1eab
+--- FAIL: TestReleaseEmergencyPendingConsumersAndDerivedDrafts (9.21s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	9.934s
+FAIL

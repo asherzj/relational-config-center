@@ -1,0 +1,14 @@
+{
+  "changed_since_original_06": [
+    "admin/cmd/admin/account_browser_integration_test.go"
+  ],
+  "final_source": {
+    "admin/cmd/admin/account_browser_integration_test.go": "769258acbf5d0344bdc09e1a9936632e46b71774a4b20f95862b637f8850a8db"
+  },
+  "all_07_source_inputs_still_match": true,
+  "original_sql_matches": {
+    "web/e2e/fixtures/release-rollbacks.sql": true,
+    "web/e2e/fixtures/field-display.sql": true
+  },
+  "production_and_web_script_changes": []
+}

@@ -1,0 +1,23 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-tags=integration,browser",
+    "./admin/...",
+    "-run",
+    "^$",
+    "-count=1"
+  ],
+  "cwd": "/private/tmp/rcc-template-notification-integration",
+  "started_unix": 1789112448.024462,
+  "duration_seconds": 10.352098226547241,
+  "exit_code": 0,
+  "environment": {
+    "TESTCONTAINERS_RYUK_DISABLED": "true",
+    "DOCKER_HOST": "unix:///Users/asher/.colima/default/docker.sock",
+    "GOCACHE": "/private/tmp/rcc-go-cache"
+  },
+  "source_input": "03-admin-compile-input.json",
+  "source_changed_during_run": [],
+  "expected_unique_tests": []
+}

@@ -1,0 +1,5 @@
+{
+  "exit_code": 0,
+  "stdout": "{\"id\":\"8031844ba3257ee765b4dc135e51ba45e1dc1469a39a485634dec0cd70c6f71d\",\"image\":\"mysql:8.4\",\"name\":\"/stupefied_moore\",\"created\":\"2026-09-11T07:06:58.527991095Z\",\"ports\":{\"3306/tcp\":[{\"HostIp\":\"0.0.0.0\",\"HostPort\":\"47863\"},{\"HostIp\":\"::\",\"HostPort\":\"47863\"}],\"33060/tcp\":[{\"HostIp\":\"0.0.0.0\",\"HostPort\":\"47864\"},{\"HostIp\":\"::\",\"HostPort\":\"47864\"}]}}\n",
+  "stderr": ""
+}

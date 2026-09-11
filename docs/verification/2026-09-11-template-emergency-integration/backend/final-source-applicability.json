@@ -1,0 +1,10 @@
+{
+  "changed_after_matrix": [
+    "admin/cmd/admin/release_history_delivery_integration_test.go"
+  ],
+  "final_inputs": "06-history-verified-append-green-input.json",
+  "all_final_inputs_match": true,
+  "changed_file_sha256": {
+    "admin/cmd/admin/release_history_delivery_integration_test.go": "4e36a698fb90fc6b0f57df5c4fa43ca4e7792f973ad58bb50262548381767973"
+  }
+}

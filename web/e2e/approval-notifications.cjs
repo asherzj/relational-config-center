@@ -40,8 +40,11 @@ const button = (page, name) => page.getByRole('button', { name, exact: true });
     await api(admin.context, base, 'POST', '/api/v1/mutation-policies', { code: mutation, name: '个人审批通知验收', description: '', type_code: 'single_table_mutation', allow_add: true, allow_modify: true, allow_delete: true }, 201);
     await api(admin.context, base, 'POST', `/api/v1/mutation-policies/${mutation}/activate`, {});
     for (const table of tables) {
-      await api(admin.context, base, 'POST', '/api/v1/table-policies', { table_name: table, query_policy_code: 'notification_page_query_v1', mutation_policy_code: mutation }, 201);
-      await api(admin.context, base, 'POST', `/api/v1/table-policies/${table}/enable`, {});
+      const policy = await api(admin.context, base, 'POST', '/api/v1/table-policies', { table_name: table, query_policy_code: 'notification_page_query_v1', mutation_policy_code: mutation }, 201);
+      await api(admin.context, base, 'POST', `/api/v1/table-policies/${table}/enable`, { expected_version: policy.version });
+      const associations = (await api(admin.context, base, 'GET', `/api/v1/table-policies/${table}/release-templates`)).associations;
+      const standard = associations.find(association => association.type === 'STANDARD');
+      await api(admin.context, base, 'PUT', `/api/v1/table-policies/${table}/release-templates/STANDARD`, { template_code: 'default_standard_v1', enabled: true, expected_version: standard?.version ?? '0' });
     }
     const firstRole = await createRole(admin.context, base, '同单聚合的商品审批长名称', [reviewer.identity.accountID]);
     const duplicateRole = await createRole(admin.context, base, '同一人员的第二个审批角色', [reviewer.identity.accountID]);

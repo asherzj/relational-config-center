@@ -1,0 +1,9 @@
+{
+  "admin/internal/application/release_flow.go": "ac0ae1fd1424e7877ec027300165567eae0d39eb9884fb828c1b2b360e1b8d6d",
+  "admin/internal/application/release_orders.go": "a1ed83f20b92870c70aaa2e0ea9fb09230bbcda1e82111c798c032f6eb6019fd",
+  "admin/internal/domain/release_order.go": "422369ee9e6313d454d274739a4b718b9cc95f03010ae66caa9e5c483b8ae417",
+  "admin/internal/domain/release_read.go": "ffec41e468a04abe8f3f020119b0f63a9d4068d1ca5b9e92e2b067cd1adabd60",
+  "admin/internal/infrastructure/mysql/release_approval.go": "0badc416c4bbaeaf98ec7f3bea1132eccc0a52c9439286010f5beac6d52510a7",
+  "admin/internal/interfaces/http/release_orders.go": "777ecfffd60505439a2463852578de97372ca0fec690cee9f58eceaf5fee8b99",
+  "admin/cmd/admin/release_emergency_integration_test.go": "e9259797cda1998cc5ec1d82f2b177ebde9c5e7742e54b02a0720545921f47c8"
+}

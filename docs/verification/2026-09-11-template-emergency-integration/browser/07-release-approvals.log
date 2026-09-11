@@ -1,0 +1,47 @@
+=== RUN   TestAccountBrowserSystemPath
+2026/09/11 16:03:42 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: daaae959f5ec8302771e0925c3ee70ac8ccbd7060ba6ea074cee4b042c6e71d9
+  Test ProcessID: b71fb8f0-3892-4bf9-a84f-47d70abd1585
+2026/09/11 16:03:42 🐳 Creating container for image mysql:8.4
+2026/09/11 16:03:42 ✅ Container created: 88894c069f9c
+2026/09/11 16:03:42 🐳 Starting container: 88894c069f9c
+2026/09/11 16:03:42 ✅ Container started: 88894c069f9c
+2026/09/11 16:03:42 ⏳ Waiting for container id 88894c069f9c image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 16:03:50 🔔 Container is ready: 88894c069f9c
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T08:04:19.632Z","creator":"2e231b93-13d7-4d69-ba01-2a994f6320d1","enabled":true,"modifier":"2e231b93-13d7-4d69-ba01-2a994f6320d1","table_name":"stage1_rollback_chromium_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T08:04:19.632Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T08:04:19.641Z","creator":"2e231b93-13d7-4d69-ba01-2a994f6320d1","enabled":true,"modifier":"2e231b93-13d7-4d69-ba01-2a994f6320d1","table_name":"stage1_rollback_chromium_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T08:04:19.641Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T08:04:19.649Z","creator":"2e231b93-13d7-4d69-ba01-2a994f6320d1","enabled":true,"modifier":"2e231b93-13d7-4d69-ba01-2a994f6320d1","table_name":"stage1_rollback_firefox_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T08:04:19.649Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T08:04:19.658Z","creator":"2e231b93-13d7-4d69-ba01-2a994f6320d1","enabled":true,"modifier":"2e231b93-13d7-4d69-ba01-2a994f6320d1","table_name":"stage1_rollback_firefox_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T08:04:19.658Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T08:04:19.668Z","creator":"2e231b93-13d7-4d69-ba01-2a994f6320d1","enabled":true,"modifier":"2e231b93-13d7-4d69-ba01-2a994f6320d1","table_name":"stage1_rollback_webkit_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T08:04:19.668Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T08:04:19.676Z","creator":"2e231b93-13d7-4d69-ba01-2a994f6320d1","enabled":true,"modifier":"2e231b93-13d7-4d69-ba01-2a994f6320d1","table_name":"stage1_rollback_webkit_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T08:04:19.676Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T08:04:19.685Z","creator":"2e231b93-13d7-4d69-ba01-2a994f6320d1","enabled":true,"modifier":"2e231b93-13d7-4d69-ba01-2a994f6320d1","table_name":"field_display_browser_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T08:04:19.685Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T08:04:19.693Z","creator":"2e231b93-13d7-4d69-ba01-2a994f6320d1","enabled":true,"modifier":"2e231b93-13d7-4d69-ba01-2a994f6320d1","table_name":"field_display_browser_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T08:04:19.693Z","version":"1"}
+    account_browser_integration_test.go:129: late browser fixture readiness: status=200 missing emergency associations= response={"status":"ready"}
+=== RUN   TestAccountBrowserSystemPath/release-approvals.cjs
+    account_browser_integration_test.go:149: release-approvals.cjs: PASS people lookup failure falls back to permanent IDs with diagnostics and an independent retry
+        PASS EDITOR submits and sees frozen read-only differences with no self-approval action
+        PASS Approval-role member rejects with a required reason; applicant explicitly reads and confirms a new draft without inherited approval
+        PASS Approval-role member recovers a committed lost approval response after refresh using original key and state version
+        PASS partial MODIFY hides omitted fields by default, restores their distinct state in full view and retains requested changes and generated fields
+        PASS detail presents saved table flows and whole-order phase, long title/value/IDs, copy feedback and keyboard folding on desktop and 390px
+        PASS pre-dispatch unknown reprepare keeps APPROVED and preserves original request while current-state actions follow present roles across close and reload
+        PASS applicant reviews current configuration and recovers one atomic replacement across pre-dispatch and post-commit loss with the same body and key
+        PASS applicant cancels an approved order; history survives refresh and actual business data remains unchanged on narrow viewport
+        {"checks":["people lookup failure falls back to permanent IDs with diagnostics and an independent retry","EDITOR submits and sees frozen read-only differences with no self-approval action","Approval-role member rejects with a required reason; applicant explicitly reads and confirms a new draft without inherited approval","Approval-role member recovers a committed lost approval response after refresh using original key and state version","partial MODIFY hides omitted fields by default, restores their distinct state in full view and retains requested changes and generated fields","detail presents saved table flows and whole-order phase, long title/value/IDs, copy feedback and keyboard folding on desktop and 390px","pre-dispatch unknown reprepare keeps APPROVED and preserves original request while current-state actions follow present roles across close and reload","applicant reviews current configuration and recovers one atomic replacement across pre-dispatch and post-commit loss with the same body and key","applicant cancels an approved order; history survives refresh and actual business data remains unchanged on narrow viewport"]}
+=== NAME  TestAccountBrowserSystemPath
+    account_browser_integration_test.go:165: browser → Vite same-origin proxy → Admin → MySQL: record version conflict preserves input, explicit latest read and baseline rebuild, registration defaults VIEWER, maintenance ADMIN bootstrap, UI combination grant, 390px role catalog and drawer, role history with permanent actor, original member session refresh, refresh, reopen, dirty navigation protection, same-account Change Set recovery after session loss, hidden drawer keyboard isolation, draft submit independent approval and publisher execution, unknown execute result reload and original-key recovery, final row defaults and permanent actor fields, refresh notification remains NOT_CONNECTED, no direct record write request, HTTP Cookie, storage/URL secrecy, logout rejection; creator/modifier match current Account ID
+2026/09/11 16:04:46 🐳 Stopping container: 88894c069f9c
+2026/09/11 16:04:47 ✅ Container stopped: 88894c069f9c
+2026/09/11 16:04:47 🐳 Terminating container: 88894c069f9c
+2026/09/11 16:04:47 🚫 Container terminated: 88894c069f9c
+--- PASS: TestAccountBrowserSystemPath (65.15s)
+    --- PASS: TestAccountBrowserSystemPath/release-approvals.cjs (26.52s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	66.232s

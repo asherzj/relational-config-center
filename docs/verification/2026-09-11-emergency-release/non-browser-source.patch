@@ -1,0 +1,1200 @@
+diff --git a/admin/CONTEXT.md b/admin/CONTEXT.md
+index 7f90aa4..3a360e1 100644
+--- a/admin/CONTEXT.md
++++ b/admin/CONTEXT.md
+@@ -85,7 +85,7 @@ A complete field-by-field comparison of one proposed ADD, MODIFY, or DELETE agai
+ _Avoid_: Release, revision, audit record
+ 
+ **Release Type（发布方式）**:
+-A predefined category of release workflow shared by one or more Release Templates. Standard database publication includes approval, while emergency publication omits approval; the category does not identify one particular template.
++A predefined category of release workflow shared by one or more Release Templates. Standard database publication includes approval, while emergency publication records the applicant’s required reason and awaits manual execution by a current publisher without approval; the category does not identify one particular template.
+ _Avoid_: Release Template Code, deployment environment, rollback order
+ 
+ **Release Template（发布流程模板）**:
+@@ -161,7 +161,7 @@ The explicit end of a successful ordinary publication's protected recovery perio
+ _Avoid_: Publication, cancellation, delivery confirmation
+ 
+ **Reprepared Release Order（重新准备发布单）**:
+-A new editable Release Order that replaces an approved but unpublished ordinary Release Order after its original applicant or an administrator reviews the current configuration. The replacement belongs to the person who performs the operation and must receive a fresh independent approval; cancelling the source, creating the replacement, transferring still-needed Active Targets and acquiring any additional targets, and linking both histories form one atomic change.
++A new editable Release Order that replaces an approved standard or pending-publication emergency Release Order after its original applicant or an administrator reviews the current configuration. The replacement belongs to the person who performs the operation and must be submitted again with a fresh independent approval for standard publication or a new reason for emergency publication; cancelling the source, creating the replacement, transferring still-needed Active Targets and acquiring any additional targets, and linking both histories form one atomic change.
+ _Avoid_: Editing an approval, approval reuse, quick rollback
+ 
+ **Active Target（在途目标）**:
+diff --git a/admin/cmd/admin/release_failure_retry_integration_test.go b/admin/cmd/admin/release_failure_retry_integration_test.go
+index 7921cc5..7db81e4 100644
+--- a/admin/cmd/admin/release_failure_retry_integration_test.go
++++ b/admin/cmd/admin/release_failure_retry_integration_test.go
+@@ -7,6 +7,8 @@ import (
+ 	"encoding/json"
+ 	"net/http/httptest"
+ 	"reflect"
++	"strings"
++	"sync"
+ 	"testing"
+ 	"time"
+ 
+@@ -112,27 +114,63 @@ func TestReleaseFailureAuditPreservesConcurrentCancellation(t *testing.T) {
+ 	}
+ 	defer external.Rollback()
+ 	// An external writer holds the destination unique key. The publication must
+-	// reach this real row lock before cancellation queues on the main record.
++	// reach this real row lock before cancellation queues on authorization.
+ 	if _, err := external.ExecContext(ctx, `INSERT INTO mutation_add_items(id,code,label) VALUES(90,'audit-race','external')`); err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	session := integrationAdminSession(t, app)
+ 	cookies, csrf := session.Result().Cookies(), sessionCSRF(t, session)
++	cancellingAdmin := registerAccount(t, app, "audit.canceller", "audit.canceller@example.com", "correct horse battery staple")
++	grantReleaseRole(t, app, cancellingAdmin, `["ADMIN"]`, "1", "audit-canceller-role")
++	cancelCookies, cancelCSRF := cancellingAdmin.Result().Cookies(), sessionCSRF(t, cancellingAdmin)
++
++	// Admit the authenticated cancellation up to its HTTP body, then keep the
++	// body on the transport boundary. When released it queues its business
++	// transaction directly, without racing a second session-touch transaction.
++	cancellationBody := &gatedReleaseRequestBody{Reader: strings.NewReader(`{"expected_version":"3","reason":"concurrent cancellation"}`), entered: make(chan struct{}), release: make(chan struct{})}
++	var releaseOnce sync.Once
++	releaseCancellationBody := func() { releaseOnce.Do(func() { close(cancellationBody.release) }) }
++	t.Cleanup(releaseCancellationBody)
++	cancelRequest := httptest.NewRequest("POST", path+"/cancel", cancellationBody)
++	cancelRequest.Header.Set("Origin", "http://127.0.0.1:5173")
++	cancelRequest.Header.Set("Content-Type", "application/json")
++	cancelRequest.Header.Set("X-CSRF-Token", cancelCSRF)
++	cancelRequest.Header.Set("Idempotency-Key", "audit-race-cancel")
++	cancelRequest.RemoteAddr = "192.0.2.1:1234"
++	for _, cookie := range cancelCookies {
++		if cookie.MaxAge >= 0 {
++			cancelRequest.AddCookie(cookie)
++		}
++	}
++	cancelledResponses := make(chan *httptest.ResponseRecorder, 1)
++	go func() {
++		response := httptest.NewRecorder()
++		app.Handler().ServeHTTP(response, cancelRequest)
++		cancelledResponses <- response
++	}()
++	select {
++	case <-cancellationBody.entered:
++	case early := <-cancelledResponses:
++		t.Fatalf("cancellation did not reach body: %d %s", early.Code, early.Body)
++	case <-ctx.Done():
++		t.Fatal("cancellation did not authenticate before publication")
++	}
+ 	failedResponses := make(chan *httptest.ResponseRecorder, 1)
+ 	go func() {
+ 		failedResponses <- accountRequestFrom(app, "POST", path+"/execute", `{"expected_version":"3"}`, cookies, csrf, "192.0.2.1:1234", map[string]string{"Idempotency-Key": "audit-race-execute"})
+ 	}()
+-	waitForLock := func(table string) {
++	waitForLock := func(table string, blockerID int64) int64 {
+ 		t.Helper()
+ 		deadline := time.Now().Add(3 * time.Second)
+ 		for {
+-			var waiting int
+-			if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks requested ON requested.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID WHERE requested.OBJECT_SCHEMA=DATABASE() AND requested.OBJECT_NAME=?`, table).Scan(&waiting); err != nil {
++			var waiting, requesterID int64
++			if err := db.QueryRowContext(ctx, `SELECT COUNT(*),COALESCE(MAX(waiter.PROCESSLIST_ID),0) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks requested ON requested.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID JOIN performance_schema.data_locks blocking ON blocking.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID JOIN performance_schema.threads waiter ON waiter.THREAD_ID=requested.THREAD_ID JOIN performance_schema.threads blocker ON blocker.THREAD_ID=blocking.THREAD_ID WHERE requested.OBJECT_SCHEMA=DATABASE() AND requested.OBJECT_NAME=? AND (?=0 OR blocker.PROCESSLIST_ID=?)`, table, blockerID, blockerID).Scan(&waiting, &requesterID); err != nil {
+ 				t.Fatal(err)
+ 			}
+-			if waiting > 0 {
+-				return
++			if waiting > 0 && requesterID != blockerID {
++				return requesterID
+ 			}
++
+ 			select {
+ 			case early := <-failedResponses:
+ 				t.Fatalf("publication escaped expected %s lock: %d %s", table, early.Code, early.Body)
+@@ -144,12 +182,10 @@ func TestReleaseFailureAuditPreservesConcurrentCancellation(t *testing.T) {
+ 			time.Sleep(10 * time.Millisecond)
+ 		}
+ 	}
+-	waitForLock("mutation_add_items")
+-	cancelledResponses := make(chan *httptest.ResponseRecorder, 1)
+-	go func() {
+-		cancelledResponses <- accountRequestFrom(app, "POST", path+"/cancel", `{"expected_version":"3","reason":"concurrent cancellation"}`, cookies, csrf, "192.0.2.1:1234", map[string]string{"Idempotency-Key": "audit-race-cancel"})
+-	}()
+-	waitForLock("rcc_release_orders")
++	publicationConnection := waitForLock("mutation_add_items", 0)
++	releaseCancellationBody()
++	cancellationConnection := waitForLock("rcc_auth_control_lock", publicationConnection)
++	t.Logf("cancellation connection %d waits for publication connection %d authorization lock", cancellationConnection, publicationConnection)
+ 	if err := external.Commit(); err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -166,7 +202,7 @@ func TestReleaseFailureAuditPreservesConcurrentCancellation(t *testing.T) {
+ 	}
+ 	assertIntegrationErrorCode(t, failed, 409, "duplicate_key")
+ 	cancelledOrder := batchEdgeOrder(t, cancelled, 200)
+-	current := batchEdgeOrder(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
++	current := batchEdgeOrder(t, releaseActorReadAllDetails(t, app, cancellingAdmin, "GET", path, "", ""), 200)
+ 	if current.State != "CANCELLED" || current.Version != "4" {
+ 		t.Fatal("audit overwrote concurrent main state", current)
+ 	}
+@@ -179,3 +215,18 @@ func TestReleaseFailureAuditPreservesConcurrentCancellation(t *testing.T) {
+ 	}
+ 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM mutation_add_items WHERE id=10`: 0, `SELECT COUNT(*) FROM rcc_release_executions`: 0, `SELECT COUNT(*) FROM rcc_publication_commands`: 0, `SELECT COUNT(*) FROM rcc_refresh_notifications`: 0, `SELECT COUNT(*) FROM rcc_record_versions`: 0, `SELECT COUNT(*) FROM rcc_release_targets`: 0})
+ }
++
++// Test-only HTTP reader: it gates incoming bytes after real authentication,
++// without replacing an application collaborator or a database operation.
++type gatedReleaseRequestBody struct {
++	*strings.Reader
++	entered chan struct{}
++	release chan struct{}
++	once    sync.Once
++}
++
++func (body *gatedReleaseRequestBody) Read(buffer []byte) (int, error) {
++	body.once.Do(func() { close(body.entered) })
++	<-body.release
++	return body.Reader.Read(buffer)
++}
+diff --git a/admin/cmd/admin/release_flow_browser_integration_test.go b/admin/cmd/admin/release_flow_browser_integration_test.go
+index 00f47d8..b114940 100644
+--- a/admin/cmd/admin/release_flow_browser_integration_test.go
++++ b/admin/cmd/admin/release_flow_browser_integration_test.go
+@@ -16,6 +16,15 @@ import (
+ // TestReleaseFlowBrowserSystemPath exercises per-table saved instances through
+ // a real Chromium session, same-origin Vite proxy, Admin process, and MySQL.
+ func TestReleaseFlowBrowserSystemPath(t *testing.T) {
++	runReleaseWorkflowBrowserSystemPath(t, "release-instances.cjs")
++}
++
++func TestReleaseEmergencyBrowserSystemPath(t *testing.T) {
++	runReleaseWorkflowBrowserSystemPath(t, "release-emergency.cjs")
++}
++
++func runReleaseWorkflowBrowserSystemPath(t *testing.T, script string) {
++	t.Helper()
+ 	_, driver := startCurrentIntegrationMySQL(t, "testdata/003-policy-fixture.sql")
+ 	listener, err := net.Listen("tcp", "127.0.0.1:0")
+ 	if err != nil {
+@@ -83,9 +92,9 @@ func TestReleaseFlowBrowserSystemPath(t *testing.T) {
+ 			t.Fatal(err)
+ 		}
+ 	}
+-	browser := exec.Command("node", filepath.Join(web, "e2e/release-instances.cjs"))
++	browser := exec.Command("node", filepath.Join(web, "e2e", script))
+ 	browser.Dir = web
+-	browser.Env = append(os.Environ(), "RCC_WEB_URL="+origin, "RCC_E2E_OUTPUT="+outputDir)
++	browser.Env = append(os.Environ(), "RCC_WEB_URL="+origin, "RCC_E2E_OUTPUT="+outputDir, "RCC_E2E_ISOLATED=1")
+ 	result, err := browser.CombinedOutput()
+ 	if err != nil {
+ 		t.Fatalf("release flow browser path: %v %s", err, result)
+diff --git a/admin/cmd/admin/release_original_execution_integration_test.go b/admin/cmd/admin/release_original_execution_integration_test.go
+index 6cdbdec..17a6fd4 100644
+--- a/admin/cmd/admin/release_original_execution_integration_test.go
++++ b/admin/cmd/admin/release_original_execution_integration_test.go
+@@ -55,7 +55,11 @@ func TestOriginalOrderRollbackPreservesApplicationAndBothExecutions(t *testing.T
+ 		t.Fatal("replay changed actual result", replay.Body)
+ 	}
+ 	publicationReplay := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "original-publish")
+-	if publicationReplay.Code != 200 || !reflect.DeepEqual(rollbackOrderResponse(t, publicationReplay, 200), published) {
++	// Original business results stay fixed; qualification reflects current detail.
++	latest := readTableApprovalOrder(t, app, integrationAdminSession(t, app), path)
++	expectedReplay := published
++	expectedReplay.ApprovalContext = latest.ApprovalContext
++	if publicationReplay.Code != 200 || !reflect.DeepEqual(rollbackOrderResponse(t, publicationReplay, 200), expectedReplay) {
+ 		t.Fatal("original publication replay changed after rollback", publicationReplay.Body)
+ 	}
+ 	batchEdgeCounts(t, db, map[string]int{
+diff --git a/admin/internal/application/release_flow.go b/admin/internal/application/release_flow.go
+index 89086c1..709834d 100644
+--- a/admin/internal/application/release_flow.go
++++ b/admin/internal/application/release_flow.go
+@@ -80,7 +80,7 @@ func advanceReleaseFlows(order *ReleaseOrder) {
+ 			case "PUBLICATION":
+ 				if event, found := events["EXECUTE"]; found {
+ 					node.State, node.ActorID, node.At = "COMPLETED", event.ActorID, event.At
+-				} else if order.State == "APPROVED" {
++				} else if order.State == "APPROVED" || order.State == "PENDING_PUBLICATION" {
+ 					node.State = "ACTIVE"
+ 				}
+ 			case "COMPLETION":
+diff --git a/admin/internal/application/release_orders.go b/admin/internal/application/release_orders.go
+index cc35d76..719f5f8 100644
+--- a/admin/internal/application/release_orders.go
++++ b/admin/internal/application/release_orders.go
+@@ -19,6 +19,7 @@ import (
+ )
+ 
+ var (
++	ErrReleaseEmergencyReason     = errors.New("emergency reason must contain 1 to 2000 characters")
+ 	ErrReleaseFlowIncomplete      = errors.New("save valid flow instances for every table before submission")
+ 	ErrReleaseTitle               = errors.New("release title must contain 1 to 100 characters")
+ 	ErrReleaseCrossTable          = errors.New("release item belongs to another table")
+@@ -64,10 +65,11 @@ type DraftItemInput struct {
+ }
+ 
+ type DraftInput struct {
+-	Changes         *DraftChanges    `json:"changes,omitempty"`
+-	Title           string           `json:"title"`
+-	Items           []DraftItemInput `json:"items"`
+-	ExpectedVersion string           `json:"expected_version"`
++	ReleaseType     domain.ReleaseType `json:"release_type,omitempty"`
++	Changes         *DraftChanges      `json:"changes,omitempty"`
++	Title           string             `json:"title"`
++	Items           []DraftItemInput   `json:"items"`
++	ExpectedVersion string             `json:"expected_version"`
+ }
+ 
+ // ReleaseOrderSession exposes only control-data writes and consistent baseline
+@@ -163,7 +165,13 @@ func (r *ReleaseOrders) Create(ctx context.Context, input DraftInput, key string
+ 		stamp := now.UTC().Format(time.RFC3339Nano)
+ 		result = ReleaseOrder{Title: input.Title, ID: hex.EncodeToString(idBytes), ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "CREATE", ActorID: actor, At: stamp, Version: "1"}}}
+ 		result.TableNames = releaseTableNames(result.Items)
+-		result.ReleaseType = domain.ReleaseTypeStandard
++		result.ReleaseType = input.ReleaseType
++		if result.ReleaseType == "" {
++			result.ReleaseType = domain.ReleaseTypeStandard
++		}
++		if result.ReleaseType != domain.ReleaseTypeStandard && result.ReleaseType != domain.ReleaseTypeEmergency {
++			return ErrReleaseInvalid
++		}
+ 		if err = saveDraftFlows(ctx, s, &result); err != nil {
+ 			return err
+ 		}
+@@ -297,8 +305,18 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
+ 	return ErrPermissionDenied
+ }
+ func releaseOrderActionState(order ReleaseOrder, action string) bool {
+-	if action == "execute" && (!order.HasCompleteApproval() || !order.HasCompleteFlows()) {
+-		return false
++	if action == "execute" {
++		if !order.HasCompleteFlows() {
++			return false
++		}
++		switch order.ReleaseType {
++		case domain.ReleaseTypeStandard:
++			return order.State == "APPROVED" && order.HasCompleteApproval()
++		case domain.ReleaseTypeEmergency:
++			return order.State == "PENDING_PUBLICATION" && len(order.Approvals) == 0 && strings.TrimSpace(order.EmergencyReason) != ""
++		default:
++			return false
++		}
+ 	}
+ 	return releaseActionState(order.State, action)
+ }
+@@ -306,13 +324,13 @@ func releaseOrderActionState(order ReleaseOrder, action string) bool {
+ func releaseActionState(state, action string) bool {
+ 	switch action {
+ 	case "reprepare":
+-		return state == "APPROVED"
++		return state == "APPROVED" || state == "PENDING_PUBLICATION"
+ 	case "complete", "quick-rollback":
+ 		return state == "SUCCEEDED"
+ 	case "edit-rollback-reason":
+ 		return state == "ROLLED_BACK"
+ 	case "execute":
+-		return state == "APPROVED"
++		return state == "APPROVED" || state == "PENDING_PUBLICATION"
+ 	case "copy":
+ 		return state == "REJECTED" || state == "CANCELLED"
+ 	case "edit", "submit":
+@@ -320,7 +338,7 @@ func releaseActionState(state, action string) bool {
+ 	case "approve", "reject":
+ 		return state == "PENDING_APPROVAL"
+ 	case "cancel":
+-		return state == "DRAFT" || state == "PENDING_APPROVAL" || state == "APPROVED"
++		return state == "DRAFT" || state == "PENDING_APPROVAL" || state == "APPROVED" || state == "PENDING_PUBLICATION"
+ 	}
+ 	return false
+ }
+@@ -596,6 +614,14 @@ func (r *ReleaseOrders) Update(ctx context.Context, id string, input DraftInput,
+ 		if err := validateReleaseTitle(input.Title); err != nil {
+ 			return err
+ 		}
++		if input.ReleaseType != "" && input.ReleaseType != order.ReleaseType {
++			if input.ReleaseType != domain.ReleaseTypeStandard && input.ReleaseType != domain.ReleaseTypeEmergency {
++				return ErrReleaseInvalid
++			}
++			order.ReleaseType = input.ReleaseType
++			order.TableFlows = nil
++			order.MissingFlowTables = nil
++		}
+ 		if input.Changes != nil {
+ 			if input.Items != nil {
+ 				return ErrReleaseInvalid
+@@ -630,12 +656,17 @@ type SubmitReleaseInput struct {
+ 	ExpectedVersion string `json:"expected_version"`
+ }
+ 
+-func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitReleaseInput, key string) (ReleaseOrder, error) {
++type SubmitReleaseOrderInput struct {
++	ExpectedVersion string `json:"expected_version"`
++	EmergencyReason string `json:"emergency_reason,omitempty"`
++}
++
++func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitReleaseOrderInput, key string) (ReleaseOrder, error) {
+ 	return r.changeOrder(ctx, id, input.ExpectedVersion, "submit", key, input, func(s ReleaseOrderSession, order *ReleaseOrder) error {
+ 		if len(order.Items) == 0 {
+ 			return ErrReleaseItemLimit
+ 		}
+-		if order.ReleaseType != domain.ReleaseTypeStandard || !order.HasCompleteFlows() {
++		if !order.HasCompleteFlows() {
+ 			return ErrReleaseFlowIncomplete
+ 		}
+ 		tables, err := r.resolveReleaseTables(ctx, s, order.Items, false)
+@@ -670,6 +701,19 @@ func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitRelea
+ 		if err := s.ReserveReleaseTargets(ctx, order.ID, targets); err != nil {
+ 			return err
+ 		}
++		if order.ReleaseType == domain.ReleaseTypeEmergency {
++			if !utf8.ValidString(input.EmergencyReason) || strings.TrimSpace(input.EmergencyReason) == "" || utf8.RuneCountInString(input.EmergencyReason) > 2000 {
++				return ErrReleaseEmergencyReason
++			}
++			order.EmergencyReason = input.EmergencyReason
++			order.Approvals = []domain.ReleaseTableApproval{}
++			order.ApprovalContext = domain.ReleaseApprovalContext{Tables: []domain.ReleaseApprovalTableStatus{}, ApprovableTables: []string{}}
++			order.State = "PENDING_PUBLICATION"
++			return nil
++		}
++		if input.EmergencyReason != "" {
++			return ErrReleaseInvalid
++		}
+ 		if err := freezeReleaseApprovals(ctx, s, order); err != nil {
+ 			return err
+ 		}
+@@ -789,6 +833,9 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
+ 		order.Version = strconv.FormatUint(next+1, 10)
+ 		order.UpdatedAt = now.UTC().Format(time.RFC3339Nano)
+ 		reason := ""
++		if submit, ok := input.(SubmitReleaseOrderInput); ok && action == "submit" {
++			reason = submit.EmergencyReason
++		}
+ 		if cancel, ok := input.(CancelReleaseInput); ok {
+ 			reason = cancel.Reason
+ 		}
+@@ -826,7 +873,7 @@ func (r *ReleaseOrders) List(ctx context.Context, filter ReleaseFilter) ([]domai
+ 		return nil, ErrReleaseInvalid
+ 	}
+ 	switch filter.State {
+-	case "", "DRAFT", "PENDING_APPROVAL", "APPROVED", "SUCCEEDED", "COMPLETED", "REJECTED", "CANCELLED", "ROLLED_BACK":
++	case "", "DRAFT", "PENDING_PUBLICATION", "PENDING_APPROVAL", "APPROVED", "SUCCEEDED", "COMPLETED", "REJECTED", "CANCELLED", "ROLLED_BACK":
+ 	default:
+ 		return nil, ErrReleaseInvalid
+ 	}
+@@ -835,7 +882,7 @@ func (r *ReleaseOrders) List(ctx context.Context, filter ReleaseFilter) ([]domai
+ 		return nil, err
+ 	}
+ 	for i := range orders {
+-		order := ReleaseOrder{ID: orders[i].ID, Version: orders[i].Version, State: orders[i].State, ApplicantID: orders[i].ApplicantID, TableNames: orders[i].TableNames, Approvals: orders[i].Approvals}
++		order := ReleaseOrder{ReleaseType: orders[i].ReleaseType, ID: orders[i].ID, Version: orders[i].Version, State: orders[i].State, ApplicantID: orders[i].ApplicantID, TableNames: orders[i].TableNames, Approvals: orders[i].Approvals}
+ 		if err := r.reviewApprovals(ctx, &order); err != nil {
+ 			return nil, err
+ 		}
+diff --git a/admin/internal/domain/release_order.go b/admin/internal/domain/release_order.go
+index 6bf621d..d2d92ab 100644
+--- a/admin/internal/domain/release_order.go
++++ b/admin/internal/domain/release_order.go
+@@ -43,6 +43,7 @@ type ReleaseEvent struct {
+ }
+ 
+ type ReleaseOrder struct {
++	EmergencyReason   string                              `json:"emergency_reason"`
+ 	ReleaseType       ReleaseType                         `json:"release_type"`
+ 	TableFlows        []ReleaseTableFlow                  `json:"table_flows"`
+ 	MissingFlowTables []string                            `json:"missing_flow_tables"`
+@@ -143,6 +144,7 @@ func NewReleaseMutationSemantics(policy MutationPolicy) ReleaseMutationSemantics
+ // ReleaseOrderSummary carries bounded catalog information; complete intent and
+ // verified publication history are available through the order detail.
+ type ReleaseOrderSummary struct {
++	EmergencyReason   string                 `json:"emergency_reason"`
+ 	ReleaseType       ReleaseType            `json:"release_type"`
+ 	TableFlows        []ReleaseTableFlow     `json:"table_flows"`
+ 	MissingFlowTables []string               `json:"missing_flow_tables"`
+@@ -161,7 +163,7 @@ type ReleaseOrderSummary struct {
+ }
+ 
+ func (order ReleaseOrder) Summary() ReleaseOrderSummary {
+-	result := ReleaseOrderSummary{ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext, TableNames: order.TableNames, Title: order.Title, ID: order.ID, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
++	result := ReleaseOrderSummary{EmergencyReason: order.EmergencyReason, ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext, TableNames: order.TableNames, Title: order.Title, ID: order.ID, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
+ 	for _, item := range order.Items {
+ 		result.OperationCounts[item.Operation]++
+ 	}
+diff --git a/admin/internal/domain/release_read.go b/admin/internal/domain/release_read.go
+index af4d492..f4764bb 100644
+--- a/admin/internal/domain/release_read.go
++++ b/admin/internal/domain/release_read.go
+@@ -12,7 +12,7 @@ type ReleaseHeader struct {
+ }
+ 
+ func (header ReleaseHeader) Workflow() ReleaseOrder {
+-	return ReleaseOrder{ReleaseType: header.ReleaseType, TableFlows: header.TableFlows, MissingFlowTables: header.MissingFlowTables, Approvals: header.Approvals, ApprovalContext: header.ApprovalContext, ID: header.ID, Title: header.Title, TableNames: header.TableNames, ApplicantID: header.ApplicantID, State: header.State, Version: header.Version, CreatedAt: header.CreatedAt, UpdatedAt: header.UpdatedAt, CopiedFromID: header.CopiedFromID, FrozenDigest: header.FrozenDigest, FrozenTables: header.FrozenTables, History: header.History, Executions: header.Executions}
++	return ReleaseOrder{EmergencyReason: header.EmergencyReason, ReleaseType: header.ReleaseType, TableFlows: header.TableFlows, MissingFlowTables: header.MissingFlowTables, Approvals: header.Approvals, ApprovalContext: header.ApprovalContext, ID: header.ID, Title: header.Title, TableNames: header.TableNames, ApplicantID: header.ApplicantID, State: header.State, Version: header.Version, CreatedAt: header.CreatedAt, UpdatedAt: header.UpdatedAt, CopiedFromID: header.CopiedFromID, FrozenDigest: header.FrozenDigest, FrozenTables: header.FrozenTables, History: header.History, Executions: header.Executions}
+ }
+ 
+ // Offset and NextOffset are zero-based original detail positions. Results stay
+diff --git a/admin/internal/infrastructure/mysql/identity_guard_integration_test.go b/admin/internal/infrastructure/mysql/identity_guard_integration_test.go
+index 34e90f4..3d1a085 100644
+--- a/admin/internal/infrastructure/mysql/identity_guard_integration_test.go
++++ b/admin/internal/infrastructure/mysql/identity_guard_integration_test.go
+@@ -494,7 +494,7 @@ func (p *identityGuardPublication) approve(ctx context.Context, table string, co
+ 	if err != nil {
+ 		return order, key, err
+ 	}
+-	order, err = p.orders.Submit(ctx, order.ID, application.SubmitReleaseInput{ExpectedVersion: order.Version}, key+"-submit")
++	order, err = p.orders.Submit(ctx, order.ID, application.SubmitReleaseOrderInput{ExpectedVersion: order.Version}, key+"-submit")
+ 	if err != nil {
+ 		return order, key, err
+ 	}
+diff --git a/admin/internal/infrastructure/mysql/release_approval.go b/admin/internal/infrastructure/mysql/release_approval.go
+index 8c978d5..535b84c 100644
+--- a/admin/internal/infrastructure/mysql/release_approval.go
++++ b/admin/internal/infrastructure/mysql/release_approval.go
+@@ -13,6 +13,13 @@ import (
+ 
+ func readApprovalEnvironment(ctx context.Context, tx *gorm.DB, order domain.ReleaseOrder) (domain.ReleaseApprovalEnvironment, error) {
+ 	result := domain.ReleaseApprovalEnvironment{Approvals: order.Approvals, Roles: []domain.ApprovalRole{}, Accounts: []domain.ApprovalAccount{}}
++	if order.ReleaseType == domain.ReleaseTypeEmergency {
++		if len(order.Approvals) != 0 {
++			return result, application.ErrReleaseUnavailable
++		}
++		result.Approvals = []domain.ReleaseTableApproval{}
++		return result, nil
++	}
+ 	if order.State == "DRAFT" {
+ 		result.Approvals = []domain.ReleaseTableApproval{}
+ 		for _, table := range order.TableNames {
+diff --git a/admin/internal/interfaces/http/release_orders.go b/admin/internal/interfaces/http/release_orders.go
+index 92493c8..a269fd6 100644
+--- a/admin/internal/interfaces/http/release_orders.go
++++ b/admin/internal/interfaces/http/release_orders.go
+@@ -65,7 +65,7 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
+ 			summary := struct {
+ 				application.ReleaseOrderSummary
+ 				AllowedActions []string `json:"allowed_actions"`
+-			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, ID: order.ID, State: order.State, ApplicantID: order.ApplicantID, TableNames: order.TableNames, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext})}
++			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{EmergencyReason: order.EmergencyReason, ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, ID: order.ID, State: order.State, ApplicantID: order.ApplicantID, TableNames: order.TableNames, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext})}
+ 			response = append(response, summary)
+ 		}
+ 		next := ""
+@@ -178,7 +178,7 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
+ 		respondReleaseWrite(c, orders, order, 200)
+ 	})
+ 	router.POST("/api/v1/release-orders/:id/submit", func(c *gin.Context) {
+-		var input application.SubmitReleaseInput
++		var input application.SubmitReleaseOrderInput
+ 		if err := decodeRequest(c, &input); err != nil {
+ 			writeRequestDecodeError(c, err)
+ 			return
+@@ -283,6 +283,8 @@ func writeReleaseError(c *gin.Context, err error) bool {
+ 	}
+ 	status, code, message := 503, "release_unavailable", "release order storage is unavailable"
+ 	switch {
++	case errors.Is(err, application.ErrReleaseEmergencyReason):
++		status, code, message = 422, "release_emergency_reason", err.Error()
+ 	case errors.Is(err, application.ErrReleaseFlowIncomplete):
+ 		status, code, message = 409, "release_flow_incomplete", "save valid flow instances for every table before submission"
+ 	case errors.Is(err, application.ErrReleaseApproverUnavailable):
+diff --git a/docs/admin-release-approvals.md b/docs/admin-release-approvals.md
+index 305569e..cbd2931 100644
+--- a/docs/admin-release-approvals.md
++++ b/docs/admin-release-approvals.md
+@@ -1,6 +1,6 @@
+ # 发布单提交、审批与在途目标
+ 
+-编辑者保存同一数据源多表合计 0～1,000 项变更为草稿；提交至少 1 项，由每张表的合格独立人员审批，全部表通过后由发布者手动执行。保存、提交和审批都不修改业务配置，只有执行成功后数据才生效。普通发布成功保持待完结并保护目标；未完结期间可在原单预览后一次确认回滚；完结后不可回滚。旧记录直写路由已删除，规则目录仍由 ADMIN 直接管理。
++编辑者保存同一数据源多表合计 0～1,000 项变更为草稿；提交至少 1 项；常规由每张表的合格独立人员审批，全部表通过后由发布者手动执行。应急提交填写原因后进入真实待发布，由当前发布者手动执行。保存、提交和审批都不修改业务配置，只有执行成功后数据才生效。普通发布成功保持待完结并保护目标；未完结期间可在原单预览后一次确认回滚；完结后不可回滚。旧记录直写路由已删除，规则目录仍由 ADMIN 直接管理。
+ 
+ 草稿组织和容量限制见[发布草稿](admin-release-drafts.md)，最终结果及数据库权限见[发布结果契约](design-notes/publication-contract.md)，原单恢复规则见[原单回滚](admin-release-rollbacks.md)。提交与审批的交付证据见 [T4 #51](https://github.com/asherzj/relational-config-center/issues/51)。
+ 
+@@ -14,23 +14,25 @@
+ | 流程完整但缺少独立审批人 | `422 release_approver_unavailable` | 查看问题表及当前审批安排，补充合格人员后提交 |
+ | 流程配置或审批目录无法可靠读取 | `503 release_unavailable` | 保留内容与原请求，恢复依赖后按原操作处理；不改用默认流程或默认授权 |
+ 
+-缺少流程时，`allowed_actions` 不提供 `submit`，直接提交也由服务器拒绝；空草稿继续返回既有明细数量错误。上述失败不会把草稿推进到待审批，也不会修改业务配置。当前发布接口同时要求完整流程与真实逐表批准事实，沿用现有发布权限、数据基线、规则及结构校验。
++缺少流程时，`allowed_actions` 不提供 `submit`，直接提交也由服务器拒绝；空草稿继续返回既有明细数量错误。上述失败不会把草稿推进到待审批，也不会修改业务配置。常规发布接口同时要求完整流程与真实逐表批准事实，沿用现有发布权限、数据基线、规则及结构校验。
+ 
+ 逐表节点的状态随真实业务写入持久保存，详情直接展示这些事实：`PENDING` 为待开始，`ACTIVE` 为进行中，`COMPLETED` 为已完成，`REJECTED` 为实际拒绝，`STOPPED` 为整单终止后未完成的节点。某表批准后只完成该表审批节点，其他表可继续待审；整单发布成功完成各表发布节点并等待人工完结，人工完结后完成完结节点。取消、拒绝或快速回滚保留已经完成的节点，未完成节点终止；没有实际操作的节点不填造人员或时间。
+ 
++应急提交同样要求各表已有完整保存实例，原因 `emergency_reason` 必须为 1～2,000 个 Unicode 字符且不全为空白，错误为 `422 release_emergency_reason`。成功将原文和 SUBMIT 历史与冻结内容保存，进入 `PENDING_PUBLICATION`；不产生审批责任、批准人或批准事件，也不写业务数据。`approvals`、`approval_context.tables` 和 `approvable_tables` 均为空数组。应急发布节点为 ACTIVE、无完成人员，直到真实执行成功。当前 PUBLISHER/ADMIN 可执行，包括具备该权限的申请人；保存的节点不替代当前角色检查，撤权后的原请求重放仍会拒绝。
++
+ ## HTTP 操作
+ 
+ 所有请求沿用当前登录会话、同源与 CSRF 检查。写操作要求 `Idempotency-Key`，版本为十进制 JSON 字符串。
+ 
+ | 操作 | 请求体 | 当前授权与状态 |
+ |---|---|---|
+-| `POST /api/v1/release-orders/:id/submit` | `expected_version` | 本单申请人且当前 EDITOR/ADMIN，DRAFT；各表已保存常规流程完整 |
++| `POST /api/v1/release-orders/:id/submit` | `expected_version`，应急另需 `emergency_reason` | 本单申请人且当前 EDITOR/ADMIN，DRAFT；各表已保存所选方式流程完整 |
+ | `POST /api/v1/release-orders/:id/approve` | `expected_version`, 必填 `reason`, `confirmed_tables`, `expected_approval_revision` | 当前仍有待审批表资格的非申请人，PENDING_APPROVAL |
+ | `POST /api/v1/release-orders/:id/reject` | 同批准 | 同批准；释放目标 |
+-| `POST /api/v1/release-orders/:id/cancel` | `expected_version`, 必填 `reason` | 当前仍有编辑权限的申请人或 ADMIN，DRAFT/PENDING_APPROVAL/APPROVED；释放目标 |
++| `POST /api/v1/release-orders/:id/cancel` | `expected_version`, 必填 `reason` | 当前仍有编辑权限的申请人或 ADMIN，DRAFT/PENDING_APPROVAL/APPROVED/PENDING_PUBLICATION；释放目标 |
+ | `POST /api/v1/release-orders/:id/copy` | `expected_version`, `confirmed: true`, `items` | 当前 EDITOR/ADMIN，普通源单 REJECTED/CANCELLED；返回新 DRAFT（201） |
+-| `POST /api/v1/release-orders/:id/reprepare` | `expected_version`, `confirmed: true`, `items` | 原申请人且当前 EDITOR，或当前 ADMIN；普通源单 APPROVED；返回新 DRAFT（201） |
+-| `POST /api/v1/release-orders/:id/execute` | `expected_version` | 当前 PUBLISHER/ADMIN，APPROVED；整单成功进入 SUCCEEDED 待完结并保留真实目标 |
++| `POST /api/v1/release-orders/:id/reprepare` | `expected_version`, `confirmed: true`, `items` | 原申请人且当前 EDITOR，或当前 ADMIN；正向源单 APPROVED/PENDING_PUBLICATION；返回新 DRAFT（201） |
++| `POST /api/v1/release-orders/:id/execute` | `expected_version` | 当前 PUBLISHER/ADMIN，常规 APPROVED 或应急 PENDING_PUBLICATION；整单成功进入 SUCCEEDED 待完结并保留真实目标 |
+ | `POST /api/v1/release-orders/:id/complete` | `expected_version`，无必填意见 | 当前 PUBLISHER/ADMIN，SUCCEEDED 普通单；COMPLETED 并释放目标，配置和原发布结果不变 |
+ | `POST /api/v1/release-orders/:id/quick-rollback` | `expected_version`, `preview_digest`，可选 `reason` | 当前 PUBLISHER/ADMIN，SUCCEEDED；预览后一次确认，原单进入 ROLLED_BACK 并释放目标 |
+ | `POST /api/v1/release-orders/:id/rollback-reason` | `reason`，可为空 | ROLLED_BACK；本次实际回滚人或当前 ADMIN，可事后补填/修改并留痕 |
+@@ -39,9 +41,9 @@
+ 
+ 状态动作在锁定订单后检查调用者看到的版本，旧版本为 `409 release_version_conflict`，当前版本上的非法动作是 `422 release_state_invalid`。目标冲突是 `409 release_target_conflict`。同一账号/动作/键的成功请求先找回原业务结果，再对新动作做状态 CAS；同键不同请求摘要为 `409 idempotency_conflict`。成功重放可以返回旧状态的原业务结果，当前 `allowed_actions` 和 `approval_context` 来自最新单据；Web 重新查询当前详情，不将重放结果作为当前详情缓存。
+ 
+-复制前用已有只读 `/release-orders/preview` 读取原申请与当前记录的差异。复制 `items` 的操作、id 和申请内容必须与原单一致，但每个已知目标要明确携带刚核对的 `expected_record_version`。记录在预览与复制之间变化就拒绝。复制保持源单终态和原内容，在源单追加指向新草稿的 `COPY` 关联历史；新草稿保存永久申请人、自身 `COPY` 历史和指向源单的 `copied_from_id`，须重新核对、提交和审批。不再创建反向草稿。
++复制前用已有只读 `/release-orders/preview` 读取原申请与当前记录的差异。复制 `items` 的操作、id 和申请内容必须与原单一致，但每个已知目标要明确携带刚核对的 `expected_record_version`。记录在预览与复制之间变化就拒绝。复制保持源单终态和原内容，在源单追加指向新草稿的 `COPY` 关联历史；新草稿保存永久申请人、自身 `COPY` 历史和指向源单的 `copied_from_id`，须重新核对并按所选方式提交：常规重新审批，应急填写新原因。不再创建反向草稿。
+ 
+-重新准备同样先用 `/release-orders/preview` 核对最新配置，并逐项提交原操作、原 id、原申请内容和新读取的 `expected_record_version`；`confirmed` 必须为 `true`。确认成功后，源单改为 CANCELLED 并释放其全部在途目标，同时创建继承原标题且可编辑的新 DRAFT，并为新草稿重新取得完整目标。新单申请人是实际操作者，源单与新单各保存一条 `REPREPARE` 关联历史，`copied_from_id` 指向源单；新单须重新提交并由另一人审批，旧批准不能复用。上述源单取消、目标释放、新单与双方历史、成功幂等结果在一个 MySQL 事务内提交；任何明确失败都保留原 APPROVED、旧审批和目标占用。
++重新准备同样先用 `/release-orders/preview` 核对最新配置，并逐项提交原操作、原 id、原申请内容和新读取的 `expected_record_version`；`confirmed` 必须为 `true`。确认成功后，源单改为 CANCELLED 并释放其全部在途目标，同时创建继承原标题且可编辑的新 DRAFT，并为新草稿重新取得完整目标。新单申请人是实际操作者，源单与新单各保存一条 `REPREPARE` 关联历史，`copied_from_id` 指向源单；新单保留发布方式，按当前关联重新实例化；常规重新提交并由另一人审批，应急重新填写原因提交，旧批准与旧应急原因不复用。上述源单取消、目标释放、新单与双方历史、成功幂等结果在一个 MySQL 事务内提交；任何明确失败都保留源单原状态、审批事实和目标占用。
+ 
+ ## 冻结与真实数据库身份
+ 
+@@ -69,17 +71,17 @@
+ 
+ ## 升级与恢复
+ 
+-尚未接管且已有 007 本地账号结构的部署，在停写维护窗口完成适用历史迁移 008～017 及 Policy 收缩后，显式运行 `schema-migrate baseline` 并确认 current。015 建立原单明细/执行，016 增加管控键和表引用，017 删除主单默认表；这些步骤不转换旧发布单业务数据。已经纳入 Goose 的库使用 `schema-migrate up` 至当前构建包含的最新版本；新库同样只使用嵌入式 `up` 初始化。历史接管边界保持 00005，常规流程实例使用现有主单文档，不新增 Schema 迁移。未确认操作按手册显式 `recover`，不能混用历史人工链和 Goose。Ready 只读核对完整版本前缀及每张控制表的完整定义。具体命令和历史边界见[迁移说明](../deploy/mysql/migrations/README.md)及[接管手册](schema-migrations.md)。
++尚未接管且已有 007 本地账号结构的部署，在停写维护窗口完成适用历史迁移 008～017 及 Policy 收缩后，显式运行 `schema-migrate baseline` 并确认 current。015 建立原单明细/执行，016 增加管控键和表引用，017 删除主单默认表；这些步骤不转换旧发布单业务数据。已经纳入 Goose 的库使用 `schema-migrate up` 至当前构建包含的最新版本；新库同样只使用嵌入式 `up` 初始化。历史接管边界保持 00005，常规与应急流程实例使用现有主单文档，不新增 Schema 迁移。未确认操作按手册显式 `recover`，不能混用历史人工链和 Goose。Ready 只读核对完整版本前缀及每张控制表的完整定义。具体命令和历史边界见[迁移说明](../deploy/mysql/migrations/README.md)及[接管手册](schema-migrations.md)。
+ 
+ Web 将草稿和发布动作（含提交、批准、拒绝、取消、复制、重新准备、执行、完结、快速回滚）的原请求内容、键及账号在发送前通过单一 IndexedDB 事务持久保存。事务完成前不发送，同账号窗口同步存储状态而不自动重推；存储失败保留输入并只阻止发布写入。未知结果保持原键和完整正文；重新准备未知时同一账号恢复同一请求，只在服务端返回明确失败后才重新核对并生成新键。仅持有 VIEWER 全局权限的表角色成员也能恢复自己的审批请求，账号切换不会重放别人的请求。明确状态/记录/目标冲突后仍保留原意，读取最新状态与差异、显式确认后才生成新请求。普通草稿提交基线陈旧时须先明确更新草稿基线；回滚恢复基线不能更新。
+ 
+-详情区分草稿、待审批、已批准、已发布待完结、已完结、已拒绝、已取消和已回滚，显示当前允许动作、冻结差异、永久身份、历史意见及关联单。执行结果保存实际发布人、最终行和新版本；普通执行成功时单据为 SUCCEEDED 并保留全部目标占用，人工完结变为 COMPLETED 后释放占用。回滚成功原单标记 ROLLED_BACK，保存第二次成功执行并释放占用。
++详情区分草稿、待审批、已批准、应急待发布、已发布待完结、已完结、已拒绝、已取消和已回滚，显示当前允许动作、冻结差异、永久身份、历史意见及关联单。执行结果保存实际发布人、最终行和新版本；普通执行成功时单据为 SUCCEEDED 并保留全部目标占用，人工完结变为 COMPLETED 后释放占用。回滚成功原单标记 ROLLED_BACK，保存第二次成功执行并释放占用。
+ 
+-执行前内容、规则、表结构或记录版本冲突会拒绝整单，单据保持 APPROVED 并保留目标。业务数据、记录/表版本、Command、单据状态及历史、普通发布的实际自增目标占用或反向发布的目标释放、通知和成功请求结果在同一事务提交；回滚执行与原单状态、逐项恢复结果及成功执行摘要共同提交。执行结果未知时，刷新或同账号恢复登录后继续使用原键和原内容，不能根据一次查询未找到或 401/403 换键重做。只有确认成功才显示已发布；通知状态为 NOT_CONNECTED，表示分发尚未接入。
++执行前内容、规则、表结构或记录版本冲突会拒绝整单，单据保持常规 APPROVED 或应急 PENDING_PUBLICATION 并保留目标。业务数据、记录/表版本、Command、单据状态及历史、普通发布的实际自增目标占用或反向发布的目标释放、通知和成功请求结果在同一事务提交；回滚执行与原单状态、逐项恢复结果及成功执行摘要共同提交。执行结果未知时，刷新或同账号恢复登录后继续使用原键和原内容，不能根据一次查询未找到或 401/403 换键重做。只有确认成功才显示已发布；通知状态为 NOT_CONNECTED，表示分发尚未接入。
+ 
+ ## 详情审阅与原操作重推
+ 
+-常规发布单详情分别展示整单阶段和已保存逐表流程。准备完成取真实 SUBMIT；各表节点使用自身实例的名称、状态、人员和时间，来源模板及版本可展开核对。部分表批准时整单仍待审批，普通发布成功仍为 SUCCEEDED 待人工完结。回滚结果继续按原单真实执行展示，当前不新增回滚模板实例；已有快速回滚在同一事务停止尚未完成的正向节点，`ROLLED_BACK` 页面暂保留旧总览。#105 负责接入原单回滚模板及其节点进度，#106 负责移除临时总览。历史默认倒序最近 5 条，可展开全部，姓名解析失败保持永久身份兜底。
++正向常规与应急发布单详情分别展示整单阶段和已保存逐表流程。准备完成取真实 SUBMIT；各表节点使用自身实例的名称、状态、人员和时间，来源模板及版本可展开核对。部分表批准时整单仍待审批，普通发布成功仍为 SUCCEEDED 待人工完结。回滚结果继续按原单真实执行展示，当前不新增回滚模板实例；已有快速回滚在同一事务停止尚未完成的正向节点，`ROLLED_BACK` 页面暂保留旧总览。#105 负责接入原单回滚模板及其节点进度，#106 负责移除临时总览。历史默认倒序最近 5 条，可展开全部，姓名解析失败保持永久身份兜底。
+ 
+ 申请差异每页 20 项，初次仅展开首项，定位展开选中项。默认仅看变更过滤 MODIFY 中未提交（申请未写入）及状态和值均确定相同的字段，自动填写和数据库生成说明仍可见；完整视图分别表达 SQL NULL、JSON null、空字符串、未提交、不存在和发布时生成。申请筛选不承诺触发器执行后的实际值，最终结果仍取数据库发布结果。ADD/DELETE 保留完整字段。所有操作仍针对整单。成功初次默认可信实际发布结果，可切换申请差异；已回滚原单可分页读取原明细 `rollback` 的真实恢复结果，不从申请内容生成实际值。
+ 
+@@ -105,6 +107,6 @@ Web 将草稿和发布动作（含提交、批准、拒绝、取消、复制、
+ 
+ 角色维护、表分配、账号启停／授权和发布单写操作共用授权控制锁。创建、复制与重新准备也在取得该锁后重读当前操作者并复核编辑权限，成功原请求重推同样不能绕过当前授权。发布单按授权锁 → 原请求身份 → 主单 → 明细取得锁，并在锁内重新读取操作者与审批资格；操作者读取使用当前锁定读，避免提前建立业务规则的旧快照。当前实现串行化这些写事务，延续单部署的取舍；高频会话访问也使用该锁，未来调整锁粒度须保持资格竞争和业务冻结保护。逐表决定、真实历史、状态和幂等结果一起提交；审批分配不进入冻结的业务执行规则摘要。
+ 
+-表审批历史记录操作者、数据库时间、意见、表范围、`ROLE` 或 `ADMIN` 来源和当时角色名称。已完成审批不再次按实时成员资格重算；发布仍要求所有实际涉及表都有批准事实，并继续校验原有数据、业务规则和结构。
++表审批历史记录操作者、数据库时间、意见、表范围、`ROLE` 或 `ADMIN` 来源和当时角色名称。已完成审批不再次按实时成员资格重算；常规发布仍要求所有实际涉及表都有批准事实，并继续校验原有数据、业务规则和结构。
+ 
+ `release_approver_unavailable` 的 422 在原请求去重后返回，表示该提交没有成功，草稿和版本保留。即使此前结果未知，同键重试获得这个明确拒绝也会结束该原提交的恢复状态；页面保留当前审批安排并显示问题表，补充合格人员后可重新提交。审批确认窗口中的原表范围和意见仍只在显式审阅后更新。
+diff --git a/docs/admin-release-drafts.md b/docs/admin-release-drafts.md
+index a1415da..bb78bf4 100644
+--- a/docs/admin-release-drafts.md
++++ b/docs/admin-release-drafts.md
+@@ -1,12 +1,13 @@
+ # 发布草稿
+ 
+-T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供草稿创建、编辑、查询和取消。T5 已把数据页 Change Set 唯一确认改为“确认并保存草稿”，不会写业务记录或推进记录版本；#83 起保存草稿明细即原子占用目标。提交、独立审批后由 PUBLISHER [正式执行](design-notes/publication-contract.md)；旧记录写路由已删除，分发仍未接入。#84 将同一路径扩展为同一数据源多表合计 0～1,000 项草稿（提交至少 1 项） ADD/MODIFY/DELETE；单项是集合长度为 1 的情况。
++T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供草稿创建、编辑、查询和取消。T5 已把数据页 Change Set 唯一确认改为“确认并保存草稿”，不会写业务记录或推进记录版本；#83 起保存草稿明细即原子占用目标。常规提交经独立审批、应急提交记录原因后，由 PUBLISHER [正式执行](design-notes/publication-contract.md)；旧记录写路由已删除，分发仍未接入。#84 将同一路径扩展为同一数据源多表合计 0～1,000 项草稿（提交至少 1 项） ADD/MODIFY/DELETE；单项是集合长度为 1 的情况。
+ 
+ ## 已保存的逐表流程
+ 
+-当前正向草稿使用 `STANDARD` 常规发布。保存草稿时，每张参与表按其有效常规关联取得自己的流程实例；不同表可使用不同模板或共享模板。实例名称、来源与节点在展示前已经保存，之后修改或停用模板、切换表关联不会替换旧实例。空草稿没有参与表和流程，仍可保存但不可提交。
++正向草稿整单选择 `STANDARD` 常规或 `EMERGENCY` 应急发布。创建省略 `release_type` 时默认常规；更新省略时保留当前方式。保存草稿时，每张参与表按所选方式的有效关联取得自己的流程实例；不同表可使用不同模板或共享模板。实例名称、来源与节点在展示前已经保存，之后修改或停用模板、切换表关联不会替换旧实例。空草稿没有参与表和流程，仍可保存但不可提交。
+ 
+ - 编辑标题、同表明细或调整顺序时保留已有实例。
++- 草稿明确切换 `release_type` 时，所有参与表按当前关联整体重新实例化；方式、实例、内容、版本和原请求结果同事务保存。失败保留原已保存内容，过时版本拒绝，提交后不可切换。重复提交相同方式不刷新实例。
+ - 加入新表时仅为该表实例化；移除某表最后一条明细并保存后，该表退出当前流程，再次加入时取得新的实例。
+ - 复制或重新准备产生的新草稿按当时配置重新实例化，不继承源单的实例身份、节点进度或审批决定；源单身份、历史和目标流转仍遵循既有契约。
+ 
+@@ -20,11 +21,12 @@ T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供
+ 
+ ### 流程响应字段
+ 
+-创建、修改等发布单写响应、主单详情和列表摘要新增下列只读字段；明细分页仍保持现有格式。草稿请求不接受客户端提供的实例、节点状态或模板选择，本阶段也不接受切换发布方式。
++创建、修改等发布单写响应、主单详情和列表摘要提供下列流程字段；明细分页仍保持现有格式。草稿请求不接受客户端提供的实例、节点状态或模板选择，可通过草稿的 `release_type` 明确选择整单方式。
+ 
+ | 字段 | 含义 |
+ | --- | --- |
+-| `release_type` | 当前为 `STANDARD` |
++| `release_type` | 整单 `STANDARD` 或 `EMERGENCY` |
++| `emergency_reason` | 应急提交保存的原因；未提交或常规单为空字符串 |
+ | `table_flows` | 本单已保存的逐表流程数组；按参与表分别展示 |
+ | `missing_flow_tables` | 当前缺少已保存流程的表名数组；以显式保存结果为准 |
+ | `table_flows[].instance_id`、`table_name`、`release_type` | 实例身份、所属表及发布方式 |
+@@ -54,6 +56,7 @@ T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供
+ ```json
+ {
+   "title": "更新通知模板文案",
++  "release_type": "STANDARD",
+   "items": [{
+     "table_name": "notification_templates",
+     "operation": "MODIFY",
+@@ -151,6 +154,7 @@ Web 在请求发送前将原键、路径和完整申请内容在一个 IndexedDB
+ ```json
+ {
+   "title": "更新通知模板文案",
++  "release_type": "STANDARD",
+   "expected_version": "4",
+   "changes": {
+     "upserts": [{"table_name": "notification_templates", "detail_id": "0123456789abcdef0123456789abcdef", "operation": "MODIFY", "id": "7", "expected_record_version": "3", "content": {"body": "新文案"}}],
+diff --git a/docs/adr/0027-configure-release-workflows-with-stable-templates.md b/docs/adr/0027-configure-release-workflows-with-stable-templates.md
+index 6052d9b..04fd5cd 100644
+--- a/docs/adr/0027-configure-release-workflows-with-stable-templates.md
++++ b/docs/adr/0027-configure-release-workflows-with-stable-templates.md
+@@ -18,4 +18,6 @@ status: accepted
+ 
+ 常规多表草稿在显式保存时，为新参与或尚缺流程的表持久化独立实例。每份实例保留来源模板、关联版本和完整有序节点；同表普通编辑保留已有实例，移除最后一条明细时移除该表当前实例，再次加入按当前配置生成。复制和重新准备为新单重新实例化。选择在展示前保存，是为了让用户已审阅的流程不随共享模板编辑、停用或关联切换而变化；详情读取及提交都不补建或替换实例。明确缺少常规配置的草稿可以保存，提交要求逐表实例完整；管理员修复配置后，由用户再次保存仅补齐缺失实例。
+ 
+-流程节点与审批分配具有不同的固定时点：前者随草稿保存，后者仍按 ADR-0026 在提交时固定表角色身份，成员资格实时校验。节点进度随真实表决定和整单发布、完结、拒绝、取消或快速回滚事实保存，不因当前人员配置或前端展示重新推断完成。实例位于现有发布单主单文档中，与内容、版本、占用、历史和原请求结果同事务保存；模板及关联通过同一草稿事务的一致读取获取，本阶段不新增配置表或 Schema 迁移。快速回滚只停止尚未完成的正向节点，不据此新增回滚实例或审批。当前正向接口只创建常规流程；应急提交与原单回滚模板分别由后续接入，不能用缺配置兜底替代。
++流程节点与审批分配具有不同的固定时点：前者随草稿保存，后者仍按 ADR-0026 在提交时固定表角色身份，成员资格实时校验。节点进度随真实表决定和整单发布、完结、拒绝、取消或快速回滚事实保存，不因当前人员配置或前端展示重新推断完成。实例位于现有发布单主单文档中，与内容、版本、占用、历史和原请求结果同事务保存；模板及关联通过同一草稿事务的一致读取获取，本阶段不新增配置表或 Schema 迁移。快速回滚只停止尚未完成的正向节点，不据此新增回滚实例或审批。正向接口现已接受常规与应急；原单回滚模板仍由 #105 接入，不能用缺配置兜底替代。
++
++正向草稿明确改选发布方式时，才将所有参与表的节点实例与草稿变更整体重新保存；相同方式的普通编辑仍保留已有实例。应急提交保存必填原因并进入真实待发布 `PENDING_PUBLICATION`，不冻结审批责任或制造批准事实。发布资格按发布方式分别验证：常规需要各表真实批准，应急需要有效已保存流程及提交原因；两者均要求当前 PUBLISHER，申请人有该权限可自行执行。执行复用整单一次事务，成功保留占用并等待人工完结，完结释放占用且不再允许回滚。新的待发布状态也适用取消和重新准备；新草稿重新实例化、重新提交，不继承已提交原因。
+diff --git a/docs/design-notes/publication-contract.md b/docs/design-notes/publication-contract.md
+index 30a39ea..813d34e 100644
+--- a/docs/design-notes/publication-contract.md
++++ b/docs/design-notes/publication-contract.md
+@@ -1,6 +1,6 @@
+ # Admin 发布结果契约（#82 原单执行）
+ 
+-已批准单通过 `POST /api/v1/release-orders/:id/execute` 执行，正文为 `{"expected_version":"3"}`，带原 `Idempotency-Key`。当前永久账号必须具有 PUBLISHER（ADMIN 含该能力）；合法审批不因审批人后来撤权失效。业务行、记录版本、Command、表进度、普通发布单 SUCCEEDED/EXECUTE 历史、全部真实目标持续占用、通知、成功请求结果在同一事务中提交。原单回滚成功为 ROLLED_BACK 并释放目标；原单由人工 complete 后同样释放目标并关闭回滚窗口，详见[人工完结](../admin-release-upgrade.md#发布后的人工完结与快速回滚)。执行前重新核实冻结语义和基线；明确失败保持 APPROVED、版本和占用。COMMIT 错误一律报告提交结果未知；原键重试在当前鉴权后、状态版本检查前重放持久结果。
++常规已批准单（APPROVED）或应急待发布单（PENDING_PUBLICATION）通过 `POST /api/v1/release-orders/:id/execute` 执行，正文为 `{"expected_version":"3"}`，带原 `Idempotency-Key`。当前永久账号必须具有 PUBLISHER（ADMIN 含该能力）；合法审批不因审批人后来撤权失效。业务行、记录版本、Command、表进度、普通发布单 SUCCEEDED/EXECUTE 历史、全部真实目标持续占用、通知、成功请求结果在同一事务中提交。原单回滚成功为 ROLLED_BACK 并释放目标；原单由人工 complete 后同样释放目标并关闭回滚窗口，详见[人工完结](../admin-release-upgrade.md#发布后的人工完结与快速回滚)。执行前重新核实冻结语义和基线；明确失败保持常规 APPROVED 或应急 PENDING_PUBLICATION、版本和占用。COMMIT 错误一律报告提交结果未知；原键重试在当前鉴权后、状态版本检查前重放持久结果。
+ 
+ 省略主键仅支持 AUTO_INCREMENT。非自增主键即使有 DEFAULT，也需在申请中显式提供 id；否则在准备前返回 publication_unsupported，不能用上次连接的 LAST_INSERT_ID 猜测实际记录。
+ 
+diff --git a/web/src/api/error-messages.ts b/web/src/api/error-messages.ts
+index 8867bef..8afbfb9 100644
+--- a/web/src/api/error-messages.ts
++++ b/web/src/api/error-messages.ts
+@@ -7,6 +7,7 @@ const errorMessages: Record<string, string> = {
+   table_approval_conflict: "表审批角色已变化，请读取最新分配后重新确认。",
+   release_approval_conflict: "审批资格或确认表范围已变化，原意见保留，请重新审阅最新范围。",
+   release_flow_incomplete: "常规流程尚未补齐，请管理员修复配置后再次保存草稿，再提交审批。",
++  release_emergency_reason: "应急原因必填且不能超过 2,000 个字符。",
+   release_approver_unavailable: "有表缺少独立审批人，请查看各表审批安排并补充合格人员后重新提交。",
+   approval_role_not_saved: "本次尝试未保存，输入已保留。可修正后重新保存；若之前仍有待确认请求，请继续使用原请求重试。",
+   invalid_approval_role: "请检查角色名称、成员、版本和请求信息。",
+diff --git a/web/src/api/release-orders.test.ts b/web/src/api/release-orders.test.ts
+index 6230746..5d77dc6 100644
+--- a/web/src/api/release-orders.test.ts
++++ b/web/src/api/release-orders.test.ts
+@@ -1,6 +1,6 @@
+ import {afterEach,expect,it,vi} from "vitest";
+ import {loadReleaseForEdit,releaseOrders,type ReleaseHeader} from "./release-orders";
+-const header:ReleaseHeader={id:"original",title:"多表草稿",table_names:["items"],release_type:"STANDARD",table_flows:[],missing_flow_tables:[],applicant_id:"author",state:"DRAFT",version:"3",created_at:"now",updated_at:"now",allowed_actions:["edit"],item_count:101,operation_counts:{ADD:101},executions:[],history:[],approvals:[],approval_context:{revision:"test",tables:[],approvable_tables:[]}};
++const header:ReleaseHeader={id:"original",title:"多表草稿",table_names:["items"],release_type:"STANDARD",emergency_reason:"",table_flows:[],missing_flow_tables:[],applicant_id:"author",state:"DRAFT",version:"3",created_at:"now",updated_at:"now",allowed_actions:["edit"],item_count:101,operation_counts:{ADD:101},executions:[],history:[],approvals:[],approval_context:{revision:"test",tables:[],approvable_tables:[]}};
+ const detail=(index:number)=>({detail_id:String(index),table_name:"items",operation:"ADD",id:null,expected_record_version:"",content:{label:`value ${index}`},before:null,fields:[]});
+ afterEach(()=>vi.unstubAllGlobals());
+ it("详情保留服务端已经保存的逐表流程身份、模板版本和真实节点事实",async()=>{
+diff --git a/web/src/api/release-orders.ts b/web/src/api/release-orders.ts
+index 7a740ae..eb1d09c 100644
+--- a/web/src/api/release-orders.ts
++++ b/web/src/api/release-orders.ts
+@@ -4,10 +4,12 @@ import {ApiError,request} from "./client";
+ 
+ const version=z.string().regex(/^(0|[1-9][0-9]*)$/);
+ const content=z.record(z.string(),z.string().nullable());
++export const releaseTypeSchema=z.enum(["STANDARD","EMERGENCY"]);
++export type ReleaseType=z.infer<typeof releaseTypeSchema>;
+ export const draftItemSchema=z.object({detail_id:z.string().optional(),table_name:z.string().min(1),operation:z.enum(["ADD","MODIFY","DELETE"]),id:z.string().nullable().optional(),expected_record_version:z.string().optional(),content});
+ export type DraftItem=z.infer<typeof draftItemSchema>;
+ export type DraftContentInput={items:DraftItem[]};
+-export type DraftInput=DraftContentInput&{title:string;expected_version?:string};
++export type DraftInput=DraftContentInput&{title:string;expected_version?:string;release_type?:ReleaseType};
+ export const defaultReleaseTitle=(table:string)=>Array.from(`${table} 配置变更`).slice(0,100).join("");
+ export const releaseTitleError=(title:string)=>{
+  if(!title.trim())return "发布单标题必填。";
+@@ -27,9 +29,9 @@ const tableApprovalSchema=z.object({table_name:z.string(),roles:z.array(approval
+ const approvalContextSchema=z.object({revision:z.string(),tables:z.array(z.object({table_name:z.string(),mode:z.enum(["ROLE","ADMIN","UNAVAILABLE","COMPLETED"]),reason:z.string(),can_approve:z.boolean()})),approvable_tables:z.array(z.string())});
+ export type ApprovalContext=z.infer<typeof approvalContextSchema>;
+ const releaseFlowNodeSchema=z.object({code:z.string(),type:z.enum(["APPROVAL","PUBLICATION","COMPLETION"]),name:z.string(),required_role:z.enum(["TABLE_APPROVER","PUBLISHER"]),state:z.enum(["PENDING","ACTIVE","COMPLETED","REJECTED","STOPPED"]),actor_id:z.string().optional(),at:z.string().optional()});
+-const tableReleaseFlowSchema=z.object({instance_id:z.string(),table_name:z.string(),release_type:z.literal("STANDARD"),template_code:z.string(),template_name:z.string(),template_version:version,association_version:version,instantiated_at:z.string(),node_list:z.array(releaseFlowNodeSchema)});
++const tableReleaseFlowSchema=z.object({instance_id:z.string(),table_name:z.string(),release_type:releaseTypeSchema,template_code:z.string(),template_name:z.string(),template_version:version,association_version:version,instantiated_at:z.string(),node_list:z.array(releaseFlowNodeSchema)});
+ export type TableReleaseFlow=z.infer<typeof tableReleaseFlowSchema>;
+-export const releaseSummarySchema=z.object({id:z.string(),title:z.string(),table_names:z.array(z.string()),release_type:z.literal("STANDARD"),table_flows:z.array(tableReleaseFlowSchema),missing_flow_tables:z.array(z.string()),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","APPROVED","SUCCEEDED","COMPLETED","REJECTED","CANCELLED","ROLLED_BACK"]),version,created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),approvals:z.array(tableApprovalSchema),approval_context:approvalContextSchema,item_count:z.number().int().min(0).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
++export const releaseSummarySchema=z.object({id:z.string(),title:z.string(),table_names:z.array(z.string()),release_type:releaseTypeSchema,emergency_reason:z.string(),table_flows:z.array(tableReleaseFlowSchema),missing_flow_tables:z.array(z.string()),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","PENDING_PUBLICATION","APPROVED","SUCCEEDED","COMPLETED","REJECTED","CANCELLED","ROLLED_BACK"]),version,created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),approvals:z.array(tableApprovalSchema),approval_context:approvalContextSchema,item_count:z.number().int().min(0).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
+ export const releaseHeaderSchema=releaseSummarySchema.extend({copied_from_id:z.string().optional(),frozen_digest:z.string().optional(),executions:z.array(executionSchema),history:z.array(z.object({action:z.string(),actor_id:z.string(),at:z.string(),version,reason:z.string(),related_order_id:z.string().optional(),execution_id:z.string().optional(),table_names:z.array(z.string()).optional(),approval_sources:z.array(approvalSourceSchema.extend({table_name:z.string()})).optional()}))});
+ export const releaseItemSchema=draftItemSchema.extend({detail_id:z.string(),id:z.string().nullable(),expected_record_version:z.string(),before:content.nullable(),fields:z.array(releaseFieldSchema),publication:publicationCommandSchema.optional(),rollback:publicationCommandSchema.optional()});
+ export const releaseOrderSchema=releaseHeaderSchema.extend({items:z.array(releaseItemSchema)});
+@@ -60,21 +62,21 @@ export const releaseOrders={
+  write:(path:string,method:string,body:string,key:string)=>request(path,{method,body,headers:{"Idempotency-Key":key},schema:releaseOrderSchema}),
+ };
+ export function draftFromOrder(order:ReleaseOrder):DraftInput{
+- return {title:order.title,expected_version:order.version,items:order.items.map(item=>({detail_id:item.detail_id,table_name:item.table_name,operation:item.operation,...(item.operation!=="ADD"?{id:item.id}:{}),expected_record_version:item.expected_record_version,content:{...item.content}}))};
++ return {title:order.title,expected_version:order.version,release_type:order.release_type,items:order.items.map(item=>({detail_id:item.detail_id,table_name:item.table_name,operation:item.operation,...(item.operation!=="ADD"?{id:item.id}:{}),expected_record_version:item.expected_record_version,content:{...item.content}}))};
+ }
+ 
+ // Transport envelopes are serialized here once and retained unchanged for retries.
+ export type ReleaseRequestEnvelope={path:string;method:"POST"|"PUT";body:string};
+ const draftChangesSchema=z.object({upserts:z.array(draftItemSchema).optional(),delete_detail_ids:z.array(z.string()).optional(),detail_order:z.array(z.string()).optional()});
+ export type DraftChanges=z.infer<typeof draftChangesSchema>;
+-const incrementalDraftSchema=z.object({title:z.string(),expected_version:z.string(),changes:draftChangesSchema});
++const incrementalDraftSchema=z.object({title:z.string(),expected_version:z.string(),release_type:releaseTypeSchema.optional(),changes:draftChangesSchema});
+ export type IncrementalDraftInput=z.infer<typeof incrementalDraftSchema>;
+-const draftInputSchema=z.object({title:z.string(),items:z.array(draftItemSchema),expected_version:z.string().optional()});
++const draftInputSchema=z.object({title:z.string(),items:z.array(draftItemSchema),expected_version:z.string().optional(),release_type:releaseTypeSchema.optional()});
+ const approvalInputSchema=z.object({expected_version:z.string(),reason:z.string(),confirmed_tables:z.array(z.string()),expected_approval_revision:z.string()});
+ const cancelInputSchema=z.object({expected_version:z.string(),reason:z.string()});
+ const quickRollbackInputSchema=z.object({expected_version:version,preview_digest:z.string().regex(/^[a-f0-9]{64}$/),reason:z.string()});
+ const rollbackReasonInputSchema=z.object({reason:z.string()});
+-const submitInputSchema=z.object({expected_version:z.string()});
++const submitInputSchema=z.object({expected_version:z.string(),emergency_reason:z.string().optional()});
+ const copyInputSchema=z.object({expected_version:z.string(),confirmed:z.literal(true),items:z.array(draftItemSchema)});
+ export type ReleaseStateAction="submit"|"approve"|"reject"|"cancel"|"execute"|"complete";
+ export const releaseActionLabels={"quick-rollback":"快速回滚","edit-rollback-reason":"修改回滚原因","edit-details":"保存草稿修改",complete:"完结发布单",execute:"执行发布",submit:"提交审批",approve:"批准发布单",reject:"拒绝发布单",cancel:"取消发布单",copy:"复制新草稿",reprepare:"重新准备"};
+@@ -85,7 +87,7 @@ export const releaseActionRequiresReason=(action:ReleaseStateAction)=>action!=="
+ export const releaseRequests={
+  quickRollback:(id:string,expectedVersion:string,previewDigest:string,reason:string):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/quick-rollback`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,preview_digest:previewDigest,reason})}),
+  rollbackReason:(id:string,reason:string):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/rollback-reason`,method:"POST",body:JSON.stringify({reason})}),
+- action:(action:ReleaseStateAction,id:string,expectedVersion:string,reason="",approval?:ApprovalContext):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/${action}`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,...(releaseActionRequiresReason(action)?{reason}:{}),...((action==="approve"||action==="reject")?{confirmed_tables:approval?.approvable_tables??[],expected_approval_revision:approval?.revision??""}:{})})}),
++ action:(action:ReleaseStateAction,id:string,expectedVersion:string,reason="",approval?:ApprovalContext):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/${action}`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,...(action==="submit"&&reason?{emergency_reason:reason}:releaseActionRequiresReason(action)?{reason}:{}),...((action==="approve"||action==="reject")?{confirmed_tables:approval?.approvable_tables??[],expected_approval_revision:approval?.revision??""}:{})})}),
+  copy:(id:string,expectedVersion:string,items:DraftItem[]):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/copy`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,confirmed:true,items})}),
+  reprepare:(id:string,expectedVersion:string,items:DraftItem[]):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/reprepare`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,confirmed:true,items})}),
+  create:(input:DraftInput):ReleaseRequestEnvelope=>({path:"/api/v1/release-orders",method:"POST",body:JSON.stringify(input)}),
+@@ -120,7 +122,7 @@ export function incrementalDraft(baseline:ReleaseOrder,edited:ReleaseOrder):Incr
+  const changes:DraftChanges={upserts:next.filter(item=>JSON.stringify(item)!==JSON.stringify(old.get(item.detail_id))),delete_detail_ids:previous.filter(item=>!ids.has(item.detail_id)).map(item=>item.detail_id!)};
+  const expectedOrder=previous.filter(item=>ids.has(item.detail_id)).map(item=>item.detail_id);
+  if(JSON.stringify(expectedOrder)!==JSON.stringify(next.map(item=>item.detail_id)))changes.detail_order=next.map(item=>item.detail_id!);
+- return {title:edited.title,expected_version:baseline.version,changes};
++ return {title:edited.title,expected_version:baseline.version,...(edited.release_type!==baseline.release_type?{release_type:edited.release_type}:{}),changes};
+ }
+ export function rebaseDraftInput(baseline:ReleaseOrder,edited:ReleaseOrder,latest:ReleaseOrder):ReleaseOrder {
+  const changes=incrementalDraft(baseline,edited).changes,local=new Map(edited.items.map(item=>[item.detail_id,item]));
+@@ -130,7 +132,7 @@ export function rebaseDraftInput(baseline:ReleaseOrder,edited:ReleaseOrder,lates
+  // be rejected on save instead of silently dropping the user's input.
+  for(const item of edited.items)if(changed.has(item.detail_id)&&!items.some(current=>current.detail_id===item.detail_id))items.push(item);
+  if(changes.detail_order){const rank=new Map(changes.detail_order.map((id,index)=>[id,index]));items=[...items].sort((a,b)=>(rank.get(a.detail_id!)??Infinity)-(rank.get(b.detail_id!)??Infinity))}
+- return {...latest,title:edited.title===baseline.title?latest.title:edited.title,items};
++ return {...latest,title:edited.title===baseline.title?latest.title:edited.title,release_type:edited.release_type===baseline.release_type?latest.release_type:edited.release_type,items};
+ }
+ 
+ // Only an explicit editing/copy action assembles all application details. Every
+diff --git a/web/src/features/managed-data/ManagedDataMutationPage.test.tsx b/web/src/features/managed-data/ManagedDataMutationPage.test.tsx
+index bf2b202..3585d67 100644
+--- a/web/src/features/managed-data/ManagedDataMutationPage.test.tsx
++++ b/web/src/features/managed-data/ManagedDataMutationPage.test.tsx
+@@ -560,7 +560,7 @@ it("明确勾选两行后加入本人跨表已有草稿，保留原明细和各
+ 
+ it("已有草稿去向只列出当前可编辑的草稿",async()=>{
+  const editableID="11111111222222223333333344444444",readonlyID="55555555666666667777777788888888";
+- const summary=(id:string,extra:object={})=>({id,release_type:"STANDARD",table_flows:[],missing_flow_tables:[],title:"消息模板草稿",table_names:["notification_templates"],applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",allowed_actions:["edit"],item_count:1,operation_counts:{MODIFY:1},approvals:[],approval_context:{revision:"draft",tables:[],approvable_tables:[]},...extra});
++ const summary=(id:string,extra:object={})=>({id,release_type:"STANDARD",emergency_reason:"",table_flows:[],missing_flow_tables:[],title:"消息模板草稿",table_names:["notification_templates"],applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",allowed_actions:["edit"],item_count:1,operation_counts:{MODIFY:1},approvals:[],approval_context:{revision:"draft",tables:[],approvable_tables:[]},...extra});
+  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+   if(String(input).startsWith("/api/v1/release-orders?"))return json({orders:[summary(editableID),summary(readonlyID,{allowed_actions:["submit","cancel"]})],next_cursor:""});
+   return readFetch(input,init,{...mutationPolicy,allow_modify:true});
+diff --git a/web/src/features/managed-data/ManagedDataPage.test.tsx b/web/src/features/managed-data/ManagedDataPage.test.tsx
+index b8f0f8e..0e1e670 100644
+--- a/web/src/features/managed-data/ManagedDataPage.test.tsx
++++ b/web/src/features/managed-data/ManagedDataPage.test.tsx
+@@ -9,6 +9,7 @@ import { AppRoutes } from "../../app";
+ import { ToastProvider } from "../../components/ui/Toast";
+ 
+ const enabledPolicy = {
++  version: "1",
+   table_name: "notification_templates",
+   query_policy_code: "notification_page_query_v1",
+   mutation_policy_code: "notification_full_mutation_v1",
+diff --git a/web/src/features/release-orders/NewDraftDialog.tsx b/web/src/features/release-orders/NewDraftDialog.tsx
+index 3175217..c3b6658 100644
+--- a/web/src/features/release-orders/NewDraftDialog.tsx
++++ b/web/src/features/release-orders/NewDraftDialog.tsx
+@@ -1,10 +1,11 @@
+ import {useState} from "react";
+ import {useNavigate} from "react-router-dom";
+-import {decodeReleaseRequest,releaseRequests,releaseTitleError} from "../../api/release-orders";
++import {decodeReleaseRequest,releaseRequests,releaseTitleError,type ReleaseType} from "../../api/release-orders";
+ import {Button} from "../../components/ui/Button";
+ import {Drawer} from "../../components/ui/Drawer";
+ import {ErrorState} from "../../components/ui/Feedback";
+ import {Input} from "../../components/shadcn/input";
++import {NativeSelect} from "../../components/shadcn/native-select";
+ import {useDraftProtection} from "../../components/ui/LeaveProtection";
+ import {useAccountRole} from "../accounts/roles";
+ import {useReleaseWrite} from "./useReleaseWrite";
+@@ -16,8 +17,9 @@ export function NewDraftDialog({onClose}:{onClose:()=>void}) {
+  const [original]=useState(write.storedRequest);
+  const [initial]=useState(()=>{if(!original)return;try{return decodeReleaseRequest(original)}catch{return}});
+  const [title,setTitle]=useState(initial&&"title" in initial.input?initial.input.title:"");
++ const [releaseType,setReleaseType]=useState<ReleaseType>(initial&&"release_type" in initial.input&&initial.input.release_type?initial.input.release_type:"STANDARD");
+  const titleError=releaseTitleError(title);
+- const navigate=useNavigate(),protection=useDraftProtection(Boolean(title),write.pending);
+- return <Drawer open eyebrow="发布单" title={original?"保存发布草稿":"新建发布草稿"} onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>取消</Button><Button variant="primary" disabled={!allowed||(!original&&Boolean(titleError))||write.pending||write.blocked} onClick={async()=>{const saved=original?await write.retry():await write.send({...releaseRequests.create({title,items:[]}),label:"新建发布草稿"});if(saved)protection.afterSave(()=>{onClose();navigate(`/configuration/release-orders/${saved.id}`)})}}>{write.pending?"正在保存…":original?"确认并保存草稿":"创建空草稿"}</Button></>}>
+- {original?<><p>原申请与请求标识已保留。保存会提交这份原申请，主单状态由正常读取更新。</p><PendingIntent item={original}/></>:<><p>先保存标题，再逐步添加明细。空草稿不占用目标；保存明细时开始占用。</p><div className="grid gap-4 mt-5"><label htmlFor="new-draft-title">发布单标题<Input id="new-draft-title" value={title} required aria-invalid={Boolean(titleError)} aria-describedby={`new-draft-title-count${titleError?" new-draft-title-error":""}`} disabled={!allowed||write.pending||write.unresolved} onChange={event=>setTitle(event.target.value)}/></label><span id="new-draft-title-count" className="text-xs text-muted-foreground">{Array.from(title).length} / 100 字符</span>{titleError&&<small id="new-draft-title-error" className="field-error">{titleError}</small>}</div></>} {Boolean(write.error)&&<ErrorState error={write.error}/>}</Drawer>;
++ const navigate=useNavigate(),protection=useDraftProtection(Boolean(title)||releaseType!=="STANDARD",write.pending);
++ return <Drawer open eyebrow="发布单" title={original?"保存发布草稿":"新建发布草稿"} onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>取消</Button><Button variant="primary" disabled={!allowed||(!original&&Boolean(titleError))||write.pending||write.blocked} onClick={async()=>{const saved=original?await write.retry():await write.send({...releaseRequests.create({title,items:[],...(releaseType==="EMERGENCY"?{release_type:releaseType}:{})}),label:"新建发布草稿"});if(saved)protection.afterSave(()=>{onClose();navigate(`/configuration/release-orders/${saved.id}`)})}}>{write.pending?"正在保存…":original?"确认并保存草稿":"创建空草稿"}</Button></>}>
++ {original?<><p>原申请与请求标识已保留。保存会提交这份原申请，主单状态由正常读取更新。</p><PendingIntent item={original}/></>:<><p>先保存标题和发布方式，再逐步添加明细。空草稿不占用目标；保存明细时开始占用。</p><div className="grid gap-4 mt-5"><label htmlFor="new-draft-title">发布单标题<Input id="new-draft-title" value={title} required aria-invalid={Boolean(titleError)} aria-describedby={`new-draft-title-count${titleError?" new-draft-title-error":""}`} disabled={!allowed||write.pending||write.unresolved} onChange={event=>setTitle(event.target.value)}/></label><span id="new-draft-title-count" className="text-xs text-muted-foreground">{Array.from(title).length} / 100 字符</span>{titleError&&<small id="new-draft-title-error" className="field-error">{titleError}</small>}<label htmlFor="new-draft-release-type">发布方式<NativeSelect id="new-draft-release-type" aria-label="发布方式" value={releaseType} disabled={!allowed||write.pending||write.unresolved} onChange={event=>setReleaseType(event.target.value as ReleaseType)}><option value="STANDARD">常规发布</option><option value="EMERGENCY">应急发布</option></NativeSelect></label><p className="text-xs text-muted-foreground">常规提交后进入审批；应急提交原因后进入待发布，仍需发布人员手动执行。</p></div></>} {Boolean(write.error)&&<ErrorState error={write.error}/>}</Drawer>;
+ }
+diff --git a/web/src/features/release-orders/ReleaseActionDialog.tsx b/web/src/features/release-orders/ReleaseActionDialog.tsx
+index 48628d4..aaac585 100644
+--- a/web/src/features/release-orders/ReleaseActionDialog.tsx
++++ b/web/src/features/release-orders/ReleaseActionDialog.tsx
+@@ -5,6 +5,7 @@ import {Drawer} from "../../components/ui/Drawer";
+ import {Button} from "../../components/ui/Button";
+ import {ConfirmDialog} from "../../components/ui/ConfirmDialog";
+ import {Input} from "../../components/shadcn/input";
++import {Textarea} from "../../components/shadcn/textarea";
+ import {ErrorState,LoadingState} from "../../components/ui/Feedback";
+ import {useDraftProtection} from "../../components/ui/LeaveProtection";
+ import {useAccountRole} from "../accounts/roles";
+@@ -19,20 +20,24 @@ export function ReleaseActionDialog({order,action,onClose}:{order:ReleaseHeader;
+  const [reason,setReason]=useState<string>(()=>pendingRequestReason(write.storedRequest));
+  const [confirmedOrder]=useState(order);
+  const approval=action==="approve"||action==="reject";
++ const emergencySubmit=action==="submit"&&order.release_type==="EMERGENCY";
++ const reasonLength=Array.from(reason).length;
++ const reasonError=emergencySubmit?(!reason.trim()?"应急原因必填。":reasonLength>2000?"应急原因不能超过 2,000 个字符。":undefined):undefined;
+  const globalAllowed=useAccountRole(releaseActionRole(action));
+  const allowed=approval?(canReviewRelease(order,action)||write.unresolved):globalAllowed&&(order.allowed_actions.includes(action)||Boolean(write.storedRequest));
+  let original:ReturnType<typeof decodeReleaseRequest>|undefined;
+  try{original=write.storedRequest?decodeReleaseRequest(write.storedRequest):undefined}catch{/* Preserve an unreadable original envelope without deriving another request. */}
+  const scope=original&&(original.action==="approve"||original.action==="reject")?{approvable_tables:original.input.confirmed_tables}:confirmedOrder.approval_context;
+  const protection=useDraftProtection(Boolean(reason)||write.unresolved,write.pending);
+- const labels={complete:["完结发布单","确认完结"],execute:["执行发布","确认发布到数据库"],submit:["提交审批","确认提交审批"],approve:["批准发布单","确认批准"],reject:["拒绝发布单","确认拒绝"],cancel:order.state==="DRAFT"?["取消草稿","确认取消草稿"]:["取消发布单","确认取消发布单"]};
++ const labels={complete:["完结发布单","确认完结"],execute:["执行发布","确认发布到数据库"],submit:emergencySubmit?["提交应急发布","确认提交待发布"]:["提交审批","确认提交审批"],approve:["批准发布单","确认批准"],reject:["拒绝发布单","确认拒绝"],cancel:order.state==="DRAFT"?["取消草稿","确认取消草稿"]:["取消发布单","确认取消发布单"]};
+  const reasonLabel=action==="cancel"?"取消原因":"审批意见";
+- return <Drawer open eyebrow="发布单" title={labels[action][0]!} onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>关闭</Button><Button variant={action==="cancel"||action==="reject"?"danger":"primary"} disabled={write.blocked||Boolean(write.storedRequest?.rejection)||!allowed||write.pending||(releaseActionRequiresReason(action)&&(!reason.trim())&&!write.unresolved)} onClick={async()=>{
++ return <Drawer open eyebrow="发布单" title={labels[action][0]!} onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>关闭</Button><Button variant={action==="cancel"||action==="reject"?"danger":"primary"} disabled={write.blocked||Boolean(write.storedRequest?.rejection)||!allowed||write.pending||(!write.unresolved&&(releaseActionRequiresReason(action)&&!reason.trim()||Boolean(reasonError)))} onClick={async()=>{
+   const result=write.unresolved?await write.retry():await write.send({...releaseRequests.action(action,order.id,confirmedOrder.version,reason,confirmedOrder.approval_context),label:`${labels[action][0]} ${order.id}`});if(result)protection.afterSave(()=>{onClose();});
+  }}>{write.pending?"正在处理…":labels[action][1]}</Button></>}>
+- {action==="complete"?<p>完结将释放全部目标记录的占用，并关闭快速回滚。配置内容保持不变，完结后不能再回滚此单。分发尚未接入。</p>:action==="execute"?<p>发布将在一个事务中提交全部配置、版本和历史。成功仅表示数据库生效，分发尚未接入。</p>:action==="submit"?<p>请核对以下差异。提交后内容将被冻结，已知记录会被此单占用，等待其他审批人确认。</p>:<label>{reasonLabel}<Input aria-label={reasonLabel} value={reason} maxLength={2000} disabled={write.pending||write.unresolved} onChange={event=>setReason(event.target.value)}/></label>}
++ {action==="complete"?<p>完结将释放全部目标记录的占用，并关闭快速回滚。配置内容保持不变，完结后不能再回滚此单。分发尚未接入。</p>:action==="execute"?<p>发布将在一个事务中提交全部配置、版本和历史。成功仅表示数据库生效，分发尚未接入。</p>:action==="submit"?<p>{emergencySubmit?"请填写应急原因并核对差异。提交后内容将被冻结并进入待发布，仍需当前发布人员手动执行；提交本身不会写入业务数据。":"请核对以下差异。提交后内容将被冻结，已知记录会被此单占用，等待其他审批人确认。"}</p>:<label>{reasonLabel}<Input aria-label={reasonLabel} value={reason} maxLength={2000} disabled={write.pending||write.unresolved} onChange={event=>setReason(event.target.value)}/></label>}
++ {emergencySubmit&&<div className="grid gap-2 my-5"><label htmlFor="release-emergency-reason">应急原因</label><Textarea id="release-emergency-reason" aria-label="应急原因" value={reason} required aria-invalid={Boolean(reasonError)} aria-describedby={`release-emergency-reason-count${reasonError?" release-emergency-reason-error":""}`} disabled={write.pending||write.unresolved} onChange={event=>setReason(event.target.value)}/><span id="release-emergency-reason-count" className="text-xs text-muted-foreground">{reasonLength.toLocaleString("en-US")} / 2,000 字符</span>{reasonError&&<small id="release-emergency-reason-error" className="field-error">{reasonError}</small>}</div>}
+  {approval?<ApprovalScope context={scope} rejection={action==="reject"}/>:<p>全部 {confirmedOrder.item_count.toLocaleString("en-US")} 项将一起{action==="execute"?"发布":action==="submit"?"提交":"处理"}，预览分页不改变操作范围。</p>}
+- {action==="submit"&&<ReleaseApprovals order={order}/>}
++ {action==="submit"&&order.release_type==="STANDARD"&&<ReleaseApprovals order={order}/>}
+  {approval&&!allowed&&<p role="alert">当前已无可审批范围。原意见保留，请重新审阅当前资格。</p>}
+  {write.storedRequest&&<PendingIntent item={write.storedRequest}/>}<PagedReleaseDetails order={confirmedOrder}/>
+  {Boolean(write.error)&&<ErrorState error={write.error}/>} {write.storedRequest?.rejection&&<p role="alert">审批或进度已变化，原意见与确认范围已保留。请关闭窗口，在“申请冲突审阅”中查看最新内容并明确确认。</p>} {write.unresolved&&<p role="alert">原请求与意见已保留；再次点击同一操作将提交原请求。</p>}
+diff --git a/web/src/features/release-orders/ReleaseDraftEditor.tsx b/web/src/features/release-orders/ReleaseDraftEditor.tsx
+index d0d9a49..4eb744e 100644
+--- a/web/src/features/release-orders/ReleaseDraftEditor.tsx
++++ b/web/src/features/release-orders/ReleaseDraftEditor.tsx
+@@ -1,7 +1,7 @@
+ import {useState} from "react";
+ import {useQuery} from "@tanstack/react-query";
+ import {ApiError} from "../../api/client";
+-import {loadReleaseForEdit,type ReleaseHeader,draftFromOrder,releaseDetailTables,incrementalDraft,rebaseDraftInput,releaseOrders,releaseRequests,releaseTitleError,type ReleaseOrder} from "../../api/release-orders";
++import {loadReleaseForEdit,type ReleaseHeader,draftFromOrder,releaseDetailTables,incrementalDraft,rebaseDraftInput,releaseOrders,releaseRequests,releaseTitleError,decodeReleaseRequest,type ReleaseOrder,type ReleaseType} from "../../api/release-orders";
+ import {useToast} from "../../components/ui/Toast";
+ import {Drawer} from "../../components/ui/Drawer";
+ import {Button} from "../../components/ui/Button";
+@@ -26,13 +26,15 @@ export function ReleaseDraftEditor({order,onClose}:{order:ReleaseHeader;onClose:
+ }
+ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;current:ReleaseHeader;onClose:()=>void}){
+  const {showToast}=useToast();
++ const write=useReleaseWrite(`edit:${order.id}`);
++ const retainedType=(()=>{try{const intent=write.storedRequest?decodeReleaseRequest(write.storedRequest):undefined;return intent&&(intent.action==="edit"||intent.action==="edit-details")?intent.input.release_type:undefined}catch{return undefined}})();
+  const [baseline,setBaseline]=useState(order);
+  const [title,setTitle]=useState(order.title);
++ const [releaseType,setReleaseType]=useState<ReleaseType>(retainedType??order.release_type);
+  const [items,setItems]=useState(order.items);
+  const [selected,setSelected]=useState(0);
+  const [latest,setLatest]=useState<ReleaseOrder>();const [readError,setReadError]=useState<unknown>();const [reading,setReading]=useState(false);
+  const [recordLatest,setRecordLatest]=useState<Awaited<ReturnType<typeof releaseOrders.preview>>>();
+- const write=useReleaseWrite(`edit:${order.id}`);
+  const [originalKey]=useState(write.storedRequest?.key);
+  const hasRole=useAccountRole("EDITOR");
+  const allowed=hasRole&&current.allowed_actions.includes("edit")&&current.state==="DRAFT";
+@@ -47,7 +49,7 @@ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;cu
+   const supplied=Object.hasOwn(item.content,field.name),value=item.content[field.name];
+   return [field.name,{state:supplied?(value===null?"sql_null":"value"):"omitted",value:value??""}];
+  }));
+- const currentInput=()=>({...draftFromOrder({...baseline,items}),title});
++ const currentInput=()=>({...draftFromOrder({...baseline,items,release_type:releaseType}),title});
+  const updateField=(name:string,value:FieldInput)=>{
+   setItems(current=>current.map((entry,index)=>{
+    if(index!==selected)return entry;
+@@ -56,7 +58,7 @@ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;cu
+   }));setRecordLatest(undefined);
+  };
+  const save=async()=>{
+-  const saved=originalKey&&write.unresolved&&originalKey===write.storedRequest?.key?await write.retry():await write.send({...releaseRequests.edit(order.id,incrementalDraft(baseline,{...baseline,title,items})),label:`修改 ${order.id}`});
++  const saved=originalKey&&write.unresolved&&originalKey===write.storedRequest?.key?await write.retry():await write.send({...releaseRequests.edit(order.id,incrementalDraft(baseline,{...baseline,title,items,release_type:releaseType})),label:`修改 ${order.id}`});
+   if(saved){showToast("草稿已保存");protection.afterSave(onClose)}
+  };
+  const inspect=async()=>{
+@@ -72,6 +74,7 @@ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;cu
+  <p>保存草稿即占用目标，直到移除最后一条引用或发布单结束。只提交本次明细变更，全部分页共用整单版本。</p>
+  {baseline.missing_flow_tables.length>0&&<p className="mt-3 text-warning">缺失常规流程：{baseline.missing_flow_tables.join("、")}。管理员修复配置后，可直接保存，无需修改内容；保存仅补齐缺失流程，已有实例保持不变。</p>}
+  <div className="grid gap-2 my-5"><label htmlFor="release-order-title">发布单标题</label><Input id="release-order-title" value={title} required aria-invalid={Boolean(titleError)} aria-describedby={`release-order-title-count${titleError?" release-order-title-error":""}`} disabled={write.blocked||!allowed||write.pending||write.unresolved} onChange={event=>setTitle(event.target.value)}/><span id="release-order-title-count" className="text-xs text-muted-foreground">{Array.from(title).length} / 100 字符</span>{titleError&&<small id="release-order-title-error" className="field-error">{titleError}</small>}</div>
++ <div className="grid gap-2 my-5"><label htmlFor="release-order-type">发布方式</label><NativeSelect id="release-order-type" aria-label="发布方式" value={releaseType} disabled={write.blocked||!allowed||write.pending||write.unresolved} onChange={event=>setReleaseType(event.target.value as ReleaseType)}><option value="STANDARD">常规发布</option><option value="EMERGENCY">应急发布</option></NativeSelect><p className="text-xs text-muted-foreground">切换发布方式会为全部参与表重新保存对应流程实例。</p></div>
+  <fieldset disabled={write.pending||write.unresolved}><ReleaseItemPager count={items.length} page={page} onPage={page=>setSelected(page*releasePageSize)} onLocate={setSelected} label="编辑明细"/></fieldset>
+  <div className="flex flex-wrap items-end gap-3 my-5"><label>编辑明细<NativeSelect aria-label="编辑明细" value={selected} disabled={write.pending||write.unresolved} onChange={event=>setSelected(Number(event.target.value))}>{items.slice(page*releasePageSize,(page+1)*releasePageSize).map((entry,offset)=>{const index=page*releasePageSize+offset;return <option key={index} value={index}>明细 {index+1} · {entry.table_name} · {entry.operation} · {entry.id??"待生成 id"}</option>})}</NativeSelect></label><Button disabled={write.blocked||!allowed||items.length===0||write.pending||write.unresolved} onClick={()=>{setItems(current=>current.filter((_,index)=>index!==selected));setSelected(Math.max(0,selected-1));setRecordLatest(undefined)}}>移除此明细</Button><p>共 {items.length} 项。保存只提交本次修改、删除和排序。</p></div>
+  <div className="flex gap-2"><Button disabled={!allowed||write.pending||write.unresolved||selected===0} onClick={()=>{setItems(current=>{const next=[...current];[next[selected-1],next[selected]]=[next[selected]!,next[selected-1]!];return next});setSelected(selected-1)}}>上移明细</Button><Button disabled={!allowed||write.pending||write.unresolved||selected>=items.length-1} onClick={()=>{setItems(current=>{const next=[...current];[next[selected],next[selected+1]]=[next[selected+1]!,next[selected]!];return next});setSelected(selected+1)}}>下移明细</Button></div>
+@@ -84,7 +87,7 @@ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;cu
+  {Boolean(write.error)&&<ErrorState error={write.error}/>}
+  {write.error instanceof ApiError&&write.error.itemIndex!==undefined&&write.error.itemIndex<items.length&&<Button onClick={()=>setSelected((write.error as ApiError).itemIndex!)}>定位错误明细</Button>}
+  {write.unresolved&&<p role="alert">原请求与全部输入已保留；再次保存将提交原请求。</p>}
+- {conflict&&<section className="inline-alert"><p>{write.error instanceof ApiError&&write.error.code==="release_target_conflict"?"目标被另一张发布单占用。修改后的输入已保留，请核对当前草稿再重建保存。":"发布单已被其他窗口修改。你的输入已保留，请先查看最新发布单。"}</p><Button disabled={reading} onClick={()=>void inspect()}>查看最新发布单</Button>{latest&&<><p>最新发布单版本：{latest.version}，状态：{latest.state}</p><CurrentFieldDisplayProvider tableNames={releaseDetailTables(latest)}><ReleaseDiff order={latest}/></CurrentFieldDisplayProvider><Button disabled={!latest.allowed_actions.includes("edit")||latest.state!=="DRAFT"} onClick={()=>{const rebuilt=rebaseDraftInput(baseline,{...baseline,title,items},latest);setItems(rebuilt.items);setSelected(current=>Math.min(current,Math.max(0,rebuilt.items.length-1)));setTitle(rebuilt.title);setBaseline(latest);setLatest(undefined);write.confirmRebuild();write.clearError()}}>基于最新发布单重建</Button></>}</section>}
++ {conflict&&<section className="inline-alert"><p>{write.error instanceof ApiError&&write.error.code==="release_target_conflict"?"目标被另一张发布单占用。修改后的输入已保留，请核对当前草稿再重建保存。":"发布单已被其他窗口修改。你的输入已保留，请先查看最新发布单。"}</p><Button disabled={reading} onClick={()=>void inspect()}>查看最新发布单</Button>{latest&&<><p>最新发布单版本：{latest.version}，状态：{latest.state}</p><CurrentFieldDisplayProvider tableNames={releaseDetailTables(latest)}><ReleaseDiff order={latest}/></CurrentFieldDisplayProvider><Button disabled={!latest.allowed_actions.includes("edit")||latest.state!=="DRAFT"} onClick={()=>{const rebuilt=rebaseDraftInput(baseline,{...baseline,title,items,release_type:releaseType},latest);setItems(rebuilt.items);setSelected(current=>Math.min(current,Math.max(0,rebuilt.items.length-1)));setTitle(rebuilt.title);setReleaseType(rebuilt.release_type);setBaseline(latest);setLatest(undefined);write.confirmRebuild();write.clearError()}}>基于最新发布单重建</Button></>}</section>}
+ 
+  {(recordConflict||item?.operation==="ADD")&&<section className="inline-alert"><p>{recordConflict?"配置记录基线已变化，输入保留。请核对最新配置后明确重建。":"更换新增 id 或记录基线变化时，先查看该目标的最新基线。"}</p><Button disabled={reading||write.pending||write.unresolved} onClick={()=>void inspectRecord()}>查看最新配置</Button>{recordLatest&&<><p>已读取服务器最新记录基线；此预览没有保存或执行任何变更。</p><CurrentFieldDisplayProvider tableNames={releaseDetailTables(recordLatest)}><ReleaseDiff order={{...baseline,items:recordLatest.items}}/></CurrentFieldDisplayProvider><Button disabled={write.pending||write.unresolved} onClick={()=>{
+   setItems(recordLatest.items);setRecordLatest(undefined);write.confirmRebuild();write.clearError();
+diff --git a/web/src/features/release-orders/ReleaseFlows.tsx b/web/src/features/release-orders/ReleaseFlows.tsx
+index 75ed771..773d1db 100644
+--- a/web/src/features/release-orders/ReleaseFlows.tsx
++++ b/web/src/features/release-orders/ReleaseFlows.tsx
+@@ -2,14 +2,14 @@ import type {ReleaseHeader} from "../../api/release-orders";
+ import {ReleasePerson} from "./ReleasePerson";
+ import {ReleaseTime} from "./ReleaseTime";
+ 
+-const phases={DRAFT:"准备中",PENDING_APPROVAL:"待审批",APPROVED:"待执行发布",SUCCEEDED:"数据库已发布，待人工完结",COMPLETED:"已完结",REJECTED:"已拒绝，整单终止",CANCELLED:"已取消",ROLLED_BACK:"已回滚"};
++const phases={DRAFT:"准备中",PENDING_APPROVAL:"待审批",PENDING_PUBLICATION:"待手动发布",APPROVED:"待执行发布",SUCCEEDED:"数据库已发布，待人工完结",COMPLETED:"已完结",REJECTED:"已拒绝，整单终止",CANCELLED:"已取消",ROLLED_BACK:"已回滚"};
+ const nodeStates={PENDING:"待开始",ACTIVE:"进行中",COMPLETED:"已完成",REJECTED:"已拒绝",STOPPED:"已终止"};
+ const nodeTypes={APPROVAL:"审批",PUBLICATION:"发布",COMPLETION:"完结"};
+ 
+ export function ReleasePhase({order,people={}}:{order:ReleaseHeader;people?:Record<string,string>}){
+  const submitted=order.history.find(event=>event.action==="SUBMIT");
+  return <section className="release-panel min-w-0" aria-label="发布阶段">
+-  <p className="text-xs text-muted-foreground">常规发布 · 整单阶段</p>
++  <p className="text-xs text-muted-foreground">{order.release_type==="EMERGENCY"?"应急发布":"常规发布"} · 整单阶段</p>
+   <h2 className="mt-2 text-lg font-semibold">{phases[order.state]}</h2>
+   {submitted&&<div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs"><span>准备完成于提交</span><ReleasePerson id={submitted.actor_id} name={people[submitted.actor_id]}/><ReleaseTime value={submitted.at}/></div>}
+  </section>;
+@@ -18,7 +18,7 @@ export function ReleasePhase({order,people={}}:{order:ReleaseHeader;people?:Reco
+ export function ReleaseFlows({order,people={}}:{order:ReleaseHeader;people?:Record<string,string>}){
+  return <section className="release-panel min-w-0" aria-label="逐表发布流程">
+   <h2 className="text-lg font-semibold">逐表发布流程</h2>
+-  <p className="mt-2 text-muted-foreground">各表使用保存时的流程。全部表审批通过后，整单统一发布。</p>
++  <p className="mt-2 text-muted-foreground">{order.release_type==="EMERGENCY"?"各表使用保存时的应急流程。提交原因后，由当前发布人员手动统一发布整单。":"各表使用保存时的流程。全部表审批通过后，整单统一发布。"}</p>
+   {order.table_flows.length===0&&order.missing_flow_tables.length===0&&<p className="mt-4">添加明细并保存草稿后显示各表流程。</p>}
+   <div className="divide-y">{order.table_flows.map(flow=><section key={flow.instance_id} aria-label={`${flow.table_name} 发布流程`} className="min-w-0 py-5 last:pb-0">
+    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2"><h3 className="font-semibold font-mono break-all">{flow.table_name}</h3><p className="break-all">{flow.template_name}</p></div>
+diff --git a/web/src/features/release-orders/ReleaseHistory.tsx b/web/src/features/release-orders/ReleaseHistory.tsx
+index 2ada477..a5badb2 100644
+--- a/web/src/features/release-orders/ReleaseHistory.tsx
++++ b/web/src/features/release-orders/ReleaseHistory.tsx
+@@ -9,5 +9,5 @@ const actionLabels:Record<string,string>={CREATE:"创建了草稿",EDIT:"修改
+ export function ReleaseHistory({order,people}:{order:ReleaseHeader;people:Record<string,string>}){
+  const [all,setAll]=useState(false);
+  const history=[...order.history].reverse();
+- return <section className="release-panel" aria-label="操作历史"><div className="flex flex-wrap justify-between items-center gap-3 mb-4"><h2 className="text-lg font-semibold">操作历史</h2>{history.length>5&&<Button variant="ghost" onClick={()=>setAll(!all)}>{all?"收起为最近 5 条":`查看全部 ${history.length} 条记录`}</Button>}</div><ol className="grid gap-4">{history.slice(0,all?undefined:5).map((event,index)=><li key={`${event.at}:${event.action}:${index}`} className="border-b pb-4 last:border-0 last:pb-0 break-all"><div className="flex flex-wrap items-center gap-x-6 gap-y-2"><div><p className="font-medium">{actionLabels[event.action]??event.action}</p><p className="text-xs text-muted-foreground">{event.action} · 版本 {event.version}</p></div><span className="text-xs text-muted-foreground"><ReleaseTime value={event.at}/></span></div><div className="my-2"><ReleasePerson id={event.actor_id} name={people[event.actor_id]}/></div>{event.table_names&&event.table_names.length>0&&<p className="mt-2">处理表范围：{event.table_names.join("、")}</p>}{event.approval_sources&&<ul className="my-2 text-xs text-muted-foreground">{event.approval_sources.map(source=><li key={source.table_name}>{source.table_name} · {source.source==="ADMIN"?"默认 ADMIN":source.roles.map(role=>`${role.name}（${role.id}）`).join("、")}</li>)}</ul>}{event.reason&&<p className="whitespace-pre-wrap">{event.reason}</p>}{event.related_order_id&&<p className="mt-2">关联发布单：<Link className="underline underline-offset-4 font-mono" to={`/configuration/release-orders/${event.related_order_id}`}>{event.related_order_id}</Link></p>}</li>)}</ol></section>;
++ return <section className="release-panel" aria-label="操作历史"><div className="flex flex-wrap justify-between items-center gap-3 mb-4"><h2 className="text-lg font-semibold">操作历史</h2>{history.length>5&&<Button variant="ghost" onClick={()=>setAll(!all)}>{all?"收起为最近 5 条":`查看全部 ${history.length} 条记录`}</Button>}</div><ol className="grid gap-4">{history.slice(0,all?undefined:5).map((event,index)=><li key={`${event.at}:${event.action}:${index}`} className="border-b pb-4 last:border-0 last:pb-0 break-all"><div className="flex flex-wrap items-center gap-x-6 gap-y-2"><div><p className="font-medium">{event.action==="SUBMIT"&&order.release_type==="EMERGENCY"?"提交了应急发布":actionLabels[event.action]??event.action}</p><p className="text-xs text-muted-foreground">{event.action} · 版本 {event.version}</p></div><span className="text-xs text-muted-foreground"><ReleaseTime value={event.at}/></span></div><div className="my-2"><ReleasePerson id={event.actor_id} name={people[event.actor_id]}/></div>{event.table_names&&event.table_names.length>0&&<p className="mt-2">处理表范围：{event.table_names.join("、")}</p>}{event.approval_sources&&<ul className="my-2 text-xs text-muted-foreground">{event.approval_sources.map(source=><li key={source.table_name}>{source.table_name} · {source.source==="ADMIN"?"默认 ADMIN":source.roles.map(role=>`${role.name}（${role.id}）`).join("、")}</li>)}</ul>}{event.reason&&<p className="whitespace-pre-wrap">{event.reason}</p>}{event.related_order_id&&<p className="mt-2">关联发布单：<Link className="underline underline-offset-4 font-mono" to={`/configuration/release-orders/${event.related_order_id}`}>{event.related_order_id}</Link></p>}</li>)}</ol></section>;
+ }
+diff --git a/web/src/features/release-orders/ReleaseOrdersPage.test.tsx b/web/src/features/release-orders/ReleaseOrdersPage.test.tsx
+index e5ac5ec..bb6df2a 100644
+--- a/web/src/features/release-orders/ReleaseOrdersPage.test.tsx
++++ b/web/src/features/release-orders/ReleaseOrdersPage.test.tsx
+@@ -36,6 +36,87 @@ async function repeatOriginal(user:ReturnType<typeof userEvent.setup>,action:str
+  await user.click(await originalButton(confirm));
+ }
+ afterEach(()=>{vi.unstubAllGlobals();sessionStorage.clear();fieldPolicyResponse=()=>json(defaultFieldPolicies("items",[{name:"id",type:"uint64",nullable:false},{name:"label",type:"string",nullable:true}]))});
++it("草稿明确切换为应急方式时整单保存新方式并展示新的持久流程",async()=>{
++ const standardFlow={instance_id:"flow-standard",table_name:"items",release_type:"STANDARD",template_code:"standard_v1",template_name:"常规审批流程",template_version:"1",association_version:"1",instantiated_at:order.created_at,node_list:[{code:"review",type:"APPROVAL",name:"表负责人审批",required_role:"TABLE_APPROVER",state:"PENDING"},{code:"publish",type:"PUBLICATION",name:"正式发布",required_role:"PUBLISHER",state:"PENDING"},{code:"finish",type:"COMPLETION",name:"人工完结",required_role:"PUBLISHER",state:"PENDING"}]};
++ const emergencyFlow={instance_id:"flow-emergency",table_name:"items",release_type:"EMERGENCY",template_code:"emergency_v2",template_name:"应急发布流程",template_version:"2",association_version:"3",instantiated_at:"2026-09-11T04:00:00Z",node_list:[{code:"publish_now",type:"PUBLICATION",name:"手动应急发布",required_role:"PUBLISHER",state:"PENDING"},{code:"finish",type:"COMPLETION",name:"人工确认完结",required_role:"PUBLISHER",state:"PENDING"}]};
++ let current={...order,release_type:"STANDARD",table_flows:[standardFlow],allowed_actions:["edit","submit","cancel"]};const writes:RequestInit[]=[];
++ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
++  if(init?.method==="PUT"){writes.push(init);current={...current,release_type:"EMERGENCY",version:"2",table_flows:[emergencyFlow]};return json(current)}
++  return String(input).endsWith("/people")?json({people:{}}):json(current);
++ })));
++ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
++ expect(await screen.findByText("常规发布 · 整单阶段")).toBeVisible();
++ await user.click(screen.getByRole("button",{name:"编辑草稿"}));
++ await user.selectOptions(await screen.findByLabelText("发布方式"),"EMERGENCY");
++ expect(screen.getByText("切换发布方式会为全部参与表重新保存对应流程实例。")).toBeVisible();
++ await user.click(screen.getByRole("button",{name:"保存草稿修改"}));
++ expect(await screen.findByText("应急发布 · 整单阶段")).toBeVisible();
++ expect(screen.getByText("手动应急发布")).toBeVisible();
++ expect(writes).toHaveLength(1);
++ expect(JSON.parse(String(writes[0]!.body))).toEqual({title:order.title,expected_version:"1",release_type:"EMERGENCY",changes:{upserts:[],delete_detail_ids:[]}});
++});
++it("应急草稿要求 Unicode 计数内的原因并提交到真实待发布状态",async()=>{
++ const flow={instance_id:"flow-emergency",table_name:"items",release_type:"EMERGENCY",template_code:"emergency_v2",template_name:"应急发布流程",template_version:"2",association_version:"3",instantiated_at:order.created_at,node_list:[{code:"publish_now",type:"PUBLICATION",name:"手动应急发布",required_role:"PUBLISHER",state:"PENDING"},{code:"finish",type:"COMPLETION",name:"人工确认完结",required_role:"PUBLISHER",state:"PENDING"}]};
++ let current={...order,release_type:"EMERGENCY",emergency_reason:"",table_flows:[flow],allowed_actions:["edit","submit","cancel"],approvals:[],approval_context:{revision:"emergency-context",tables:[],approvable_tables:[]}};const writes:RequestInit[]=[];
++ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
++  if(String(input).endsWith("/submit")){writes.push(init!);current={...current,state:"PENDING_PUBLICATION",version:"2",emergency_reason:"生产配置异常，需立即修正",allowed_actions:["execute","cancel","reprepare"],history:[...current.history,{action:"SUBMIT",actor_id:testAdminIdentity.account.id,version:"2",at:"2026-09-11T05:00:00Z",reason:"生产配置异常，需立即修正"}]};return json(current)}
++  return String(input).endsWith("/people")?json({people:{}}):json(current);
++ })));
++ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
++ expect(screen.queryByRole("region",{name:"提交审批安排"})).not.toBeInTheDocument();
++ await user.click(await screen.findByRole("button",{name:"提交应急发布"}));
++ const reason=screen.getByLabelText("应急原因"),confirm=screen.getByRole("button",{name:"确认提交待发布"});
++ expect(confirm).toBeDisabled();
++ await user.type(reason,"   ");expect(confirm).toBeDisabled();
++ fireEvent.change(reason,{target:{value:"🚨".repeat(2001)}});
++ expect(screen.getByText("应急原因不能超过 2,000 个字符。")).toBeVisible();expect(confirm).toBeDisabled();expect(writes).toHaveLength(0);
++ await user.clear(reason);await user.type(reason,"生产配置异常，需立即修正");await user.click(confirm);
++ await waitFor(()=>expect(screen.queryByRole("dialog",{name:"提交应急发布"})).not.toBeInTheDocument());
++ expect(screen.getByText("应急发布 · 整单阶段")).toBeVisible();expect(screen.getByRole("heading",{name:"待手动发布"})).toBeVisible();
++ expect(screen.getAllByText("生产配置异常，需立即修正")).toHaveLength(2);expect(screen.queryByText("尚无批准记录")).toBeInTheDocument();
++ expect(writes).toHaveLength(1);expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"1",emergency_reason:"生产配置异常，需立即修正"});
++});
++it("新建空草稿可明确选择应急方式",async()=>{
++ const created={...order,id:repreparedID,title:"生产故障应急修正",release_type:"EMERGENCY",items:[],allowed_actions:["edit","cancel"]};const writes:RequestInit[]=[];
++ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
++  const path=String(input);
++  if(path==="/api/v1/release-orders"&&init?.method==="POST"){writes.push(init);return json(created,201)}
++  if(path.startsWith("/api/v1/release-orders?"))return json({orders:[],next_cursor:""});
++  if(path.endsWith("/people"))return json({people:{}});
++  return json(created);
++ })));
++ const user=userEvent.setup();mount();
++ await user.click(await screen.findByRole("button",{name:"新建草稿"}));
++ await user.type(screen.getByLabelText("发布单标题"),"生产故障应急修正");
++ await user.selectOptions(screen.getByLabelText("发布方式"),"EMERGENCY");
++ await user.click(screen.getByRole("button",{name:"创建空草稿"}));
++ expect(await screen.findByRole("heading",{name:"生产故障应急修正"})).toBeVisible();
++ expect(writes).toHaveLength(1);expect(JSON.parse(String(writes[0]!.body))).toEqual({title:"生产故障应急修正",items:[],release_type:"EMERGENCY"});
++});
++it("应急提交丢响应后保留原原因和幂等键并手动重推原包",async()=>{
++ const flow={instance_id:"flow-emergency-retry",table_name:"items",release_type:"EMERGENCY",template_code:"emergency_retry",template_name:"应急原包恢复流程",template_version:"1",association_version:"1",instantiated_at:order.created_at,node_list:[{code:"publish",type:"PUBLICATION",name:"当前发布人手动发布",required_role:"PUBLISHER",state:"ACTIVE"},{code:"finish",type:"COMPLETION",name:"发布后人工完结",required_role:"PUBLISHER",state:"PENDING"}]};
++ const reason="响应中断仍保留的应急原因";
++ let current={...order,release_type:"EMERGENCY",emergency_reason:"",table_flows:[flow],allowed_actions:["edit","submit","cancel"],approvals:[],approval_context:{revision:"emergency-retry",tables:[],approvable_tables:[]}};const writes:{body:unknown;key:string|null}[]=[];let attempts=0;
++ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
++  const path=String(input);
++  if(path.endsWith("/submit")){
++   writes.push({body:init?.body,key:new Headers(init?.headers).get("Idempotency-Key")});attempts++;
++   current={...current,state:"PENDING_PUBLICATION",version:"2",emergency_reason:reason,allowed_actions:["execute","cancel","reprepare"],history:[...current.history,{action:"SUBMIT",actor_id:testAdminIdentity.account.id,version:"2",at:"2026-09-11T06:00:00Z",reason}]};
++   if(attempts===1)throw new TypeError("lost submit response");return json(current);
++  }
++  return path.endsWith("/people")?json({people:{}}):json(current);
++ })));
++ const user=userEvent.setup();let page=mount(`/configuration/release-orders/${id}`);
++ await user.click(await screen.findByRole("button",{name:"提交应急发布"}));await user.type(screen.getByLabelText("应急原因"),reason);await user.click(screen.getByRole("button",{name:"确认提交待发布"}));
++ expect(await screen.findByText("Admin 连接或响应传输中断。")).toBeVisible();await waitFor(()=>expect(writes).toHaveLength(1));
++ page.unmount();page=mount(`/configuration/release-orders/${id}`);
++ expect(await screen.findByRole("heading",{name:"待手动发布"})).toBeVisible();expect(screen.getByRole("button",{name:"执行发布"})).toBeEnabled();
++ await user.click(await screen.findByRole("button",{name:"提交应急发布"}));
++ expect(screen.getByLabelText("应急原因")).toHaveValue(reason);expect(screen.getByLabelText("应急原因")).toBeDisabled();
++ await user.click(screen.getByRole("button",{name:"确认提交待发布"}));
++ await waitFor(()=>expect(screen.queryByRole("dialog",{name:"提交应急发布"})).not.toBeInTheDocument());
++ expect(writes).toHaveLength(2);expect(writes[1]).toEqual(writes[0]);expect(screen.getByRole("heading",{name:"待手动发布"})).toBeVisible();
++});
+ it("多表详情按各自已保存实例展示节点和来源，重读不改用当前模板",async()=>{
+  const first={instance_id:"flow-items-1",table_name:"items",release_type:"STANDARD",template_code:"finance_v1",template_name:"资金配置核对",template_version:"7",association_version:"3",instantiated_at:"2026-09-11T01:00:00Z",node_list:[{code:"review_funds",type:"APPROVAL",name:"资金负责人确认",required_role:"TABLE_APPROVER",state:"PENDING"},{code:"publish_funds",type:"PUBLICATION",name:"整单资金生效",required_role:"PUBLISHER",state:"PENDING"},{code:"finish_funds",type:"COMPLETION",name:"资金结果确认",required_role:"PUBLISHER",state:"PENDING"}]};
+  const second={...first,instance_id:"flow-channels-1",table_name:"channels",template_code:"channels_v3",template_name:"渠道配置复核",template_version:"2",node_list:first.node_list.map((node,index)=>({...node,code:`channel-${index}`,name:["渠道负责人复核","整单渠道发布","渠道结果核实"][index]}))};
+diff --git a/web/src/features/release-orders/ReleaseOrdersPage.tsx b/web/src/features/release-orders/ReleaseOrdersPage.tsx
+index 313b432..79ea493 100644
+--- a/web/src/features/release-orders/ReleaseOrdersPage.tsx
++++ b/web/src/features/release-orders/ReleaseOrdersPage.tsx
+@@ -30,7 +30,7 @@ import {NewDraftDialog} from "./NewDraftDialog";
+ import {ReleasePerson} from "./ReleasePerson";
+ import {CurrentFieldDisplayProvider} from "../field-display/CurrentFieldDisplay";
+ 
+-export const releaseStateLabels={DRAFT:"草稿",PENDING_APPROVAL:"待审批",APPROVED:"已批准",SUCCEEDED:"已发布待完结",COMPLETED:"已完结",REJECTED:"已拒绝",CANCELLED:"已取消",ROLLED_BACK:"已回滚"};
++export const releaseStateLabels={DRAFT:"草稿",PENDING_APPROVAL:"待审批",PENDING_PUBLICATION:"待发布",APPROVED:"已批准",SUCCEEDED:"已发布待完结",COMPLETED:"已完结",REJECTED:"已拒绝",CANCELLED:"已取消",ROLLED_BACK:"已回滚"};
+ export function ReleaseOrdersPage(){
+  const {id}=useParams();
+  return <main className="workspace"><ReleaseConflictReview/><div className="page-heading"><div><h1>发布单</h1></div></div>{id?<ReleaseDetail key={id} id={id}/>:<ReleaseList/>}</main>;
+@@ -83,14 +83,14 @@ function ReleaseDetail({id}:{id:string}){
+  {order.missing_flow_tables.length>0&&<section aria-label="流程配置未完成" className="release-panel min-w-0"><h2 className="text-lg font-semibold text-warning">流程配置未完成，暂不能提交审批</h2><p className="mt-2">以下表尚未保存常规流程。请管理员检查常规模板与表关联；配置修复后，再保存草稿补齐缺失流程。已有表流程保持不变。</p><ul className="my-3 grid gap-1 break-all font-mono">{order.missing_flow_tables.map(table=><li key={table}>{table}</li>)}</ul>{canEdit&&(order.allowed_actions.includes("edit")||retained("edit"))&&<Button disabled={requestPending} onClick={()=>setEditing(true)}>保存草稿以补齐流程</Button>}</section>}
+  <div className="release-detail-overview">
+   <section className="release-panel min-w-0" aria-label="基本信息"><h2 className="text-xl font-semibold break-all">{order.title}</h2><p className="mt-2 mb-6 text-muted-foreground break-all">{releaseTables(order).join("、")||"暂无明细表"} · {releaseStateLabels[order.state]}</p>
+-   <dl className="release-info"><div><dt>发布单号</dt><dd className="font-mono break-all">{order.id}<Button variant="ghost" className="ml-1" onClick={async()=>{try{await navigator.clipboard.writeText(order.id);setCopyError(false);showToast("已复制发布单号")}catch{setCopyError(true)}}}>复制发布单号</Button>{copyError&&<p role="alert">复制失败，请选择单号手动复制。</p>}</dd></div><div><dt>申请人</dt><dd><ReleasePerson id={order.applicant_id} name={names[order.applicant_id]}/></dd></div><div><dt>创建时间</dt><dd><ReleaseTime value={order.created_at}/></dd></div><div><dt>最近审批人</dt><dd>{approver?<ReleasePerson id={approver.actor_id} name={names[approver.actor_id]}/>:"尚无批准记录"}</dd></div><div><dt>发布单版本</dt><dd>{order.version}</dd></div>{publication&&<div><dt>发布人</dt><dd><ReleasePerson id={publication.actor_id} name={names[publication.actor_id]}/></dd></div>}</dl>
++   <dl className="release-info"><div><dt>发布单号</dt><dd className="font-mono break-all">{order.id}<Button variant="ghost" className="ml-1" onClick={async()=>{try{await navigator.clipboard.writeText(order.id);setCopyError(false);showToast("已复制发布单号")}catch{setCopyError(true)}}}>复制发布单号</Button>{copyError&&<p role="alert">复制失败，请选择单号手动复制。</p>}</dd></div><div><dt>发布方式</dt><dd>{order.release_type==="EMERGENCY"?"应急发布":"常规发布"}</dd></div><div><dt>申请人</dt><dd><ReleasePerson id={order.applicant_id} name={names[order.applicant_id]}/></dd></div><div><dt>创建时间</dt><dd><ReleaseTime value={order.created_at}/></dd></div><div><dt>最近审批人</dt><dd>{approver?<ReleasePerson id={approver.actor_id} name={names[approver.actor_id]}/>:"尚无批准记录"}</dd></div><div><dt>发布单版本</dt><dd>{order.version}</dd></div>{order.emergency_reason&&<div><dt>应急原因</dt><dd className="whitespace-pre-wrap break-all">{order.emergency_reason}</dd></div>}{publication&&<div><dt>发布人</dt><dd><ReleasePerson id={publication.actor_id} name={names[publication.actor_id]}/></dd></div>}</dl>
+   </section>
+-  <section className="release-panel min-w-0" aria-label="发布操作"><h2 className="text-lg font-semibold mb-4">发布操作</h2><p className="font-medium">{releaseStateLabels[order.state]}</p><p className="my-3 text-muted-foreground">本单共 {order.item_count.toLocaleString("en-US")} 项变更。审批按本人可审批表确认，发布与取消针对整单；分页与筛选仅用于审阅。</p>{requestPending&&<p role="status" className="mb-3">此单请求正在处理，请稍后再执行其他操作。</p>}<div className="release-action-list">{canEdit&&(order.allowed_actions.includes("edit")||retained("edit"))&&<><Button disabled={requestPending} onClick={()=>setEditing(true)}>编辑草稿</Button>{requestPending?<Button disabled>添加明细</Button>:<Link className="button" to={`/configuration/managed-data?table_name=${encodeURIComponent(releaseTables(order)[0]??"")}&draft=${order.id}`}>添加明细</Link>}</>}{canEdit&&(order.allowed_actions.includes("submit")||retained("submit"))&&<Button variant="primary" disabled={requestPending||order.item_count===0} onClick={()=>setAction("submit")}>提交审批</Button>}{(canReviewRelease(order,"approve")||retained("approve"))&&<Button variant="primary" disabled={requestPending} onClick={()=>setAction("approve")}>批准发布单</Button>}{(canReviewRelease(order,"reject")||retained("reject"))&&<Button disabled={requestPending} onClick={()=>setAction("reject")}>拒绝发布单</Button>}{canEdit&&(order.allowed_actions.includes("cancel")||retained("cancel"))&&<Button disabled={requestPending} onClick={()=>setAction("cancel")}>{order.state==="DRAFT"?"取消草稿":"取消发布单"}</Button>}{canPublish&&(order.allowed_actions.includes("execute")||retained("execute"))&&<Button variant="primary" disabled={requestPending} onClick={()=>setAction("execute")}>执行发布</Button>}{canPublish&&(order.allowed_actions.includes("quick-rollback")||retained("quick-rollback"))&&<Button variant="danger" disabled={requestPending} onClick={()=>setQuickRollback(true)}>快速回滚</Button>}{canPublish&&(order.allowed_actions.includes("complete")||retained("complete"))&&<Button variant="primary" disabled={requestPending} onClick={()=>setAction("complete")}>完结发布单</Button>}{canEdit&&(order.allowed_actions.includes("reprepare")||retained("reprepare"))&&<Button disabled={requestPending} onClick={()=>setReprepare(true)}>重新准备</Button>}{canEdit&&(order.allowed_actions.includes("copy")||retained("copy"))&&<Button disabled={requestPending} onClick={()=>setCopy(true)}>复制新草稿</Button>}</div>{order.allowed_actions.length===0&&<p className="text-muted-foreground">当前状态和权限下没有可执行操作。</p>}</section>
++  <section className="release-panel min-w-0" aria-label="发布操作"><h2 className="text-lg font-semibold mb-4">发布操作</h2><p className="font-medium">{releaseStateLabels[order.state]}</p><p className="my-3 text-muted-foreground">本单共 {order.item_count.toLocaleString("en-US")} 项变更。{order.release_type==="EMERGENCY"?"应急提交后仍由当前发布人员手动执行，发布与取消针对整单。":"审批按本人可审批表确认，发布与取消针对整单；分页与筛选仅用于审阅。"}</p>{requestPending&&<p role="status" className="mb-3">此单请求正在处理，请稍后再执行其他操作。</p>}<div className="release-action-list">{canEdit&&(order.allowed_actions.includes("edit")||retained("edit"))&&<><Button disabled={requestPending} onClick={()=>setEditing(true)}>编辑草稿</Button>{requestPending?<Button disabled>添加明细</Button>:<Link className="button" to={`/configuration/managed-data?table_name=${encodeURIComponent(releaseTables(order)[0]??"")}&draft=${order.id}`}>添加明细</Link>}</>}{canEdit&&(order.allowed_actions.includes("submit")||retained("submit"))&&<Button variant="primary" disabled={requestPending||order.item_count===0} onClick={()=>setAction("submit")}>{order.release_type==="EMERGENCY"?"提交应急发布":"提交审批"}</Button>}{(canReviewRelease(order,"approve")||retained("approve"))&&<Button variant="primary" disabled={requestPending} onClick={()=>setAction("approve")}>批准发布单</Button>}{(canReviewRelease(order,"reject")||retained("reject"))&&<Button disabled={requestPending} onClick={()=>setAction("reject")}>拒绝发布单</Button>}{canEdit&&(order.allowed_actions.includes("cancel")||retained("cancel"))&&<Button disabled={requestPending} onClick={()=>setAction("cancel")}>{order.state==="DRAFT"?"取消草稿":"取消发布单"}</Button>}{canPublish&&(order.allowed_actions.includes("execute")||retained("execute"))&&<Button variant="primary" disabled={requestPending} onClick={()=>setAction("execute")}>执行发布</Button>}{canPublish&&(order.allowed_actions.includes("quick-rollback")||retained("quick-rollback"))&&<Button variant="danger" disabled={requestPending} onClick={()=>setQuickRollback(true)}>快速回滚</Button>}{canPublish&&(order.allowed_actions.includes("complete")||retained("complete"))&&<Button variant="primary" disabled={requestPending} onClick={()=>setAction("complete")}>完结发布单</Button>}{canEdit&&(order.allowed_actions.includes("reprepare")||retained("reprepare"))&&<Button disabled={requestPending} onClick={()=>setReprepare(true)}>重新准备</Button>}{canEdit&&(order.allowed_actions.includes("copy")||retained("copy"))&&<Button disabled={requestPending} onClick={()=>setCopy(true)}>复制新草稿</Button>}</div>{order.allowed_actions.length===0&&<p className="text-muted-foreground">当前状态和权限下没有可执行操作。</p>}</section>
+  </div>
+  {peopleFailure&&<section className="inline-alert mb-4 min-w-0 flex-wrap" role="alert"><div><strong>人员姓名读取失败，当前仅显示永久账号 ID。</strong><span>{peopleFailure.message}</span><span>错误代码：{peopleCode}</span>{peopleFailure.requestId&&<span>请求编号：{peopleFailure.requestId}</span>}</div><Button variant="secondary" disabled={people.isFetching} onClick={()=>void people.refetch()}>{people.isFetching?"正在读取人员姓名…":"重新读取人员姓名"}</Button></section>}
+  {order.frozen_digest&&<p className="mb-4">提交内容已冻结，审批和发布以这份差异为准。</p>}{order.copied_from_id&&<p className="mb-4">{order.history[0]?.action==="REPREPARE"?"重新准备自":"复制自"} <Link to={`/configuration/release-orders/${order.copied_from_id}`}>{order.copied_from_id}</Link></p>}
+ 
+- <ReleaseFlows order={order} people={names}/><ReleaseApprovals order={order} people={names}/><ReleaseReview order={order} people={names}/>{order.state==="ROLLED_BACK"&&<RollbackReason order={order} people={names}/>}<ReleaseHistory order={order} people={names}/>
++ <ReleaseFlows order={order} people={names}/>{order.release_type==="STANDARD"&&<ReleaseApprovals order={order} people={names}/>}<ReleaseReview order={order} people={names}/>{order.state==="ROLLED_BACK"&&<RollbackReason order={order} people={names}/>}<ReleaseHistory order={order} people={names}/>
+  {editing&&<ReleaseDraftEditor order={order} onClose={()=>setEditing(false)}/>}
+  {action&&<ReleaseActionDialog order={order} action={action} onClose={()=>setAction(undefined)}/>}
+  {quickRollback&&<QuickRollbackDialog order={order} onClose={()=>setQuickRollback(false)}/>}
+diff --git a/web/src/features/release-orders/ReleaseProgress.tsx b/web/src/features/release-orders/ReleaseProgress.tsx
+index 6be8418..c6a1a7c 100644
+--- a/web/src/features/release-orders/ReleaseProgress.tsx
++++ b/web/src/features/release-orders/ReleaseProgress.tsx
+@@ -8,13 +8,13 @@ import type {ReleaseHeader} from "../../api/release-orders";
+ export function ReleaseProgress({order,people={}}:{order:ReleaseHeader;people?:Record<string,string>}){
+  const cancelled=order.state==="CANCELLED",rejected=order.state==="REJECTED",rolledBack=order.state==="ROLLED_BACK";
+  const terminated=cancelled||rejected||rolledBack;
+- const rank={DRAFT:0,PENDING_APPROVAL:1,APPROVED:2,SUCCEEDED:3,COMPLETED:4,REJECTED:1,CANCELLED:0,ROLLED_BACK:3}[order.state];
++ const rank={DRAFT:0,PENDING_APPROVAL:1,PENDING_PUBLICATION:2,APPROVED:2,SUCCEEDED:3,COMPLETED:4,REJECTED:1,CANCELLED:0,ROLLED_BACK:3}[order.state];
+  const approved=order.approvals.length>0&&order.approvals.every(table=>table.state==="APPROVED");
+  const submitted=order.history.some(event=>event.action==="SUBMIT")||rank>=1&&!cancelled;
+  const latest=(...actions:string[])=>[...order.history].reverse().find(event=>actions.includes(event.action));
+  const events=[latest("SUBMIT"),approved||rejected?latest("APPROVE","REJECT"):undefined,latest("EXECUTE"),rolledBack?latest("ROLLED_BACK","QUICK_ROLLBACK"):cancelled?latest("CANCEL","REPREPARE"):rejected?latest("REJECT"):order.state==="COMPLETED"?latest("COMPLETE"):undefined];
+  const labels=["准备","审批","发布","完结"];
+- const descriptions=[submitted?"已准备":cancelled?"已取消":"准备中",rejected?"已拒绝":approved?"已批准":cancelled?"已取消":rank===1?"待审批":"待提交",order.executions.some(execution=>execution.kind==="PUBLICATION")||rank>=3?"数据库已发布":terminated?"未发布":rank===2?"待执行":"待审批后发布",rolledBack?"已回滚":cancelled||rejected?"已终止":rank===4?"已完结":rank===3?"待人工完结":"待发布后完结"];
+- const completed=[submitted,approved,Boolean(order.executions.some(execution=>execution.kind==="PUBLICATION"))||rank>=3,order.state==="COMPLETED"];
++ const descriptions=[submitted?"已准备":cancelled?"已取消":"准备中",order.release_type==="EMERGENCY"?(submitted?"无需审批":"待提交原因"):rejected?"已拒绝":approved?"已批准":cancelled?"已取消":rank===1?"待审批":"待提交",order.executions.some(execution=>execution.kind==="PUBLICATION")||rank>=3?"数据库已发布":terminated?"未发布":rank===2?"待执行":"待审批后发布",rolledBack?"已回滚":cancelled||rejected?"已终止":rank===4?"已完结":rank===3?"待人工完结":"待发布后完结"];
++ const completed=[submitted,order.release_type==="EMERGENCY"?false:approved,Boolean(order.executions.some(execution=>execution.kind==="PUBLICATION"))||rank>=3,order.state==="COMPLETED"];
+  return <ol aria-label="发布阶段" className="release-progress release-panel">{labels.map((label,index)=><li key={label} aria-current={!terminated&&rank===index?"step":undefined} className={completed[index]?"is-complete":!terminated&&rank===index?"is-current":""}><span className="release-step-icon" aria-hidden="true">{completed[index]?<Check size={18}/>:terminated?<Minus size={18}/>:index+1}</span><div className="min-w-0"><strong>{label}</strong><p>{descriptions[index]}</p>{events[index]&&<div className="mt-3 text-xs"><ReleasePerson id={events[index]!.actor_id} name={people[events[index]!.actor_id]}/><p><ReleaseTime value={events[index]!.at}/></p></div>}</div></li>)}</ol>;
+ }
+diff --git a/web/src/features/release-orders/ReleaseRequestReview.tsx b/web/src/features/release-orders/ReleaseRequestReview.tsx
+index 866a487..5898ed7 100644
+--- a/web/src/features/release-orders/ReleaseRequestReview.tsx
++++ b/web/src/features/release-orders/ReleaseRequestReview.tsx
+@@ -51,7 +51,7 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
+     if(latest?.allowed_actions.includes("submit")){
+       const snapshot=await releaseOrders.preview(draftFromOrder(latest));setPreview(snapshot);
+       const changed=snapshot.items.some((entry,index)=>entry.expected_record_version!==latest.items[index]!.expected_record_version);
+-      setNeedsDraftUpdate(changed);if(!changed)setRebuilt(releaseRequests.action("submit",intent.id,latest.version));
++      setNeedsDraftUpdate(changed);if(!changed)setRebuilt(releaseRequests.action("submit",intent.id,latest.version,intent.input.emergency_reason??""));
+     }
+    }else if(intent.action==="edit-details"){
+     if(latest?.allowed_actions.includes("edit")){
+@@ -92,14 +92,14 @@ export function PendingIntent({item}:{item:PendingReleaseRequest}){
+  if(intent.action==="edit-rollback-reason")return <details className="my-2"><summary>查看原申请内容</summary><p>原发布单号：{intent.id}</p><p>回滚原因：{intent.input.reason}</p></details>;
+  if(intent.action==="complete")return <details className="my-2"><summary>查看原申请内容</summary><p>完结发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>释放全部目标记录的占用，并关闭快速回滚；配置内容保持不变。</p></details>;
+  if(intent.action==="execute")return <details className="my-2"><summary>查看原申请内容</summary><p>发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
+- if(intent.action==="submit")return <details className="my-2"><summary>查看原申请内容</summary><p>提交单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
++ if(intent.action==="submit")return <details className="my-2"><summary>查看原申请内容</summary><p>提交单号：{intent.id}，发布单版本：{intent.input.expected_version}</p>{intent.input.emergency_reason&&<p className="whitespace-pre-wrap">应急原因：{intent.input.emergency_reason}</p>}</details>;
+  if(intent.action==="approve"||intent.action==="reject")return <details className="my-2"><summary>查看原申请内容</summary><p>审批意见：{intent.input.reason}</p><p className="break-all">原确认表范围：{intent.input.confirmed_tables.join("、")}</p><p>原发布单版本：{intent.input.expected_version}</p></details>;
+  if(intent.action==="cancel")return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="cancel"?"取消原因":"审批意见"}：{intent.input.reason}</p></details>;
+- if(intent.action==="edit-details")return <details className="my-2"><summary>查看原申请内容</summary><p>整单版本 {intent.input.expected_version}</p><p>删除明细：{intent.input.changes.delete_detail_ids?.join("、")||"无"}</p><p>明细顺序：{intent.input.changes.detail_order?.join("、")||"保持"}</p>{intent.input.changes.upserts?.map((entry,index)=>{
++ if(intent.action==="edit-details")return <details className="my-2"><summary>查看原申请内容</summary><p>整单版本 {intent.input.expected_version}</p>{intent.input.release_type&&<p>切换发布方式：{intent.input.release_type==="EMERGENCY"?"应急发布":"常规发布"}</p>}<p>删除明细：{intent.input.changes.delete_detail_ids?.join("、")||"无"}</p><p>明细顺序：{intent.input.changes.detail_order?.join("、")||"保持"}</p>{intent.input.changes.upserts?.map((entry,index)=>{
+   const position=entry.detail_id?intent.input.changes.detail_order?.indexOf(entry.detail_id):undefined;
+   return <PendingDetail key={entry.detail_id??index} entry={entry} position={position!==undefined&&position>=0?position+1:undefined}/>;
+  })}</details>;
+- return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="copy"?`复制原单 ${intent.id}`:intent.action==="reprepare"?`重新准备原单 ${intent.id}`:intent.input.title}</p>{intent.input.items.map((entry,index)=><PendingDetail key={index} entry={entry} position={index+1}/>)}</details>;
++ return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="copy"?`复制原单 ${intent.id}`:intent.action==="reprepare"?`重新准备原单 ${intent.id}`:intent.input.title}</p>{"release_type" in intent.input&&intent.input.release_type&&<p>发布方式：{intent.input.release_type==="EMERGENCY"?"应急发布":"常规发布"}</p>}{intent.input.items.map((entry,index)=><PendingDetail key={index} entry={entry} position={index+1}/>)}</details>;
+ }
+ function PendingDetail({entry,position}:{entry:DraftItem;position?:number}){
+  return <div><strong>{position?`明细 ${position}`:"变更明细"} · {entry.table_name} · {entry.operation} · 记录 {entry.id??entry.content.id??"待生成 id"}</strong>{entry.detail_id&&<p className="break-all text-xs">明细标识：{entry.detail_id}</p>}<dl>{Object.entries(entry.content).map(([field,value])=><div key={field} className="break-all"><dt>{field}</dt><dd className="whitespace-pre-wrap">{value===null?"SQL NULL":value===""?"空字符串（\"\"）":<>值：{value}</>}</dd></div>)}</dl></div>;
+@@ -108,5 +108,5 @@ function PendingDetail({entry,position}:{entry:DraftItem;position?:number}){
+ 
+ export function pendingRequestReason(item:PendingReleaseRequest|undefined):string {
+  if(!item)return "";
+- try{const {input}=decodeReleaseRequest(item);return "reason" in input?input.reason:""}catch{return ""}
++ try{const {input}=decodeReleaseRequest(item);return "reason" in input?input.reason:"emergency_reason" in input?input.emergency_reason??"":""}catch{return ""}
+ }
+diff --git a/web/src/features/release-orders/useDraftDestination.tsx b/web/src/features/release-orders/useDraftDestination.tsx
+index 3f7b06d..9754950 100644
+--- a/web/src/features/release-orders/useDraftDestination.tsx
++++ b/web/src/features/release-orders/useDraftDestination.tsx
+@@ -1,7 +1,7 @@
+ import {useEffect,useState} from "react";
+ import {useQuery} from "@tanstack/react-query";
+ import {ApiError,shouldRetryQuery} from "../../api/client";
+-import {decodeReleaseRequest,draftItemSchema,defaultReleaseTitle,releaseOrders,releaseRequests,releaseTitleError,type ReleaseRequestEnvelope,type DraftContentInput} from "../../api/release-orders";
++import {decodeReleaseRequest,draftItemSchema,defaultReleaseTitle,releaseOrders,releaseRequests,releaseTitleError,type ReleaseRequestEnvelope,type DraftContentInput,type ReleaseType} from "../../api/release-orders";
+ import {useWorkspaceIdentity} from "../accounts/ProtectedWorkspace";
+ import {Button} from "../../components/ui/Button";
+ import {NativeSelect} from "../../components/shadcn/native-select";
+@@ -13,6 +13,7 @@ export function useDraftDestination(table:string,initialID=""){
+  const accountID=useWorkspaceIdentity()!.account.id;
+  const [selected,setSelected]=useState(initialID),[open,setOpen]=useState(Boolean(initialID)),[after,setAfter]=useState("");
+  const [title,setTitle]=useState(()=>defaultReleaseTitle(table));
++ const [releaseType,setReleaseType]=useState<ReleaseType>("STANDARD");
+  const titleError=releaseTitleError(title);
+  const [error,setError]=useState<unknown>();
+  useEffect(()=>setTitle(defaultReleaseTitle(table)),[table]);
+@@ -22,7 +23,7 @@ export function useDraftDestination(table:string,initialID=""){
+   try{
+    if(!selected){
+     if(titleError)throw new ApiError("release_title_invalid",titleError,422);
+-    return releaseRequests.create({...input,title});
++    return releaseRequests.create({...input,title,...(releaseType==="EMERGENCY"?{release_type:releaseType}:{})});
+    }
+    const order=await releaseOrders.get(selected);
+    if(order.applicant_id!==accountID||!order.allowed_actions.includes("edit")||order.state!=="DRAFT")throw new ApiError("release_destination_invalid","所选草稿已不可编辑，或不属于本人。请重新选择。",422);
+@@ -42,6 +43,8 @@ export function useDraftDestination(table:string,initialID=""){
+      {!open&&<Button disabled={disabled} onClick={()=>setOpen(true)}>选择已有草稿</Button>}
+     </div>
+     {titleError&&<small id="new-release-title-error" className="field-error">{titleError}</small>}
++    <Label htmlFor="new-release-type">发布方式</Label>
++    <NativeSelect id="new-release-type" aria-label="发布方式" disabled={disabled} value={releaseType} onChange={event=>setReleaseType(event.target.value as ReleaseType)}><option value="STANDARD">常规发布</option><option value="EMERGENCY">应急发布</option></NativeSelect>
+    </div>}
+    {open&&<div className="draft-destination-picker">
+     <Label htmlFor="release-draft-destination">保存到草稿</Label>
+@@ -66,7 +69,7 @@ export function useDraftDestination(table:string,initialID=""){
+  const matchesInput=(request:ReleaseRequestEnvelope,input:DraftContentInput)=>{
+   try{
+    const intent=decodeReleaseRequest(request);
+-   if(!selected&&intent.action==="create")return intent.input.title===title&&JSON.stringify(intent.input.items)===JSON.stringify(input.items.map(item=>draftItemSchema.parse(item)));
++   if(!selected&&intent.action==="create")return intent.input.title===title&&(intent.input.release_type??"STANDARD")===releaseType&&JSON.stringify(intent.input.items)===JSON.stringify(input.items.map(item=>draftItemSchema.parse(item)));
+    if(selected&&intent.action==="edit-details"&&intent.id===selected){
+     const changes=intent.input.changes;
+     return !changes.delete_detail_ids&&!changes.detail_order&&JSON.stringify(changes.upserts)===JSON.stringify(input.items.map(item=>draftItemSchema.parse(item)));
+diff --git a/web/src/test/release-fixture.ts b/web/src/test/release-fixture.ts
+index 79ffb56..120f7e2 100644
+--- a/web/src/test/release-fixture.ts
++++ b/web/src/test/release-fixture.ts
+@@ -10,7 +10,7 @@ export function releaseFixture(value:unknown):unknown {
+  const tables=[...new Set(items.map(item=>item.table_name))];
+  const context="approval_context" in value?value.approval_context:{revision:"fixture-approval-1",tables:tables.map(table_name=>({table_name,mode:"ROLE",reason:"审批角色成员",can_approve:true})),approvable_tables:tables};
+  const approvals="approvals" in value?value.approvals:tables.map(table_name=>({table_name,roles:[],state:"state" in value&&["APPROVED","SUCCEEDED","COMPLETED","ROLLED_BACK"].includes(String(value.state))?"APPROVED":"PENDING"}));
+- return {release_type:"STANDARD",table_flows:[],missing_flow_tables:[],...value,approvals,approval_context:context,items,table_names:[...new Set(items.map(item=>item.table_name))],item_count:items.length,operation_counts,executions};
++ return {release_type:"STANDARD",emergency_reason:"",table_flows:[],missing_flow_tables:[],...value,approvals,approval_context:context,items,table_names:[...new Set(items.map(item=>item.table_name))],item_count:items.length,operation_counts,executions};
+ }
+ 
+ // In-memory HTTP fixture router: a normal GET serves only its header. Detail

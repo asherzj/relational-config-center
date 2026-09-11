@@ -62,7 +62,7 @@ const standard = (code, name, prefix) => ({code, name, description:'实例隔离
   await page.goto(origin+'/configuration/release-orders');await button(page,'新建草稿').click();await page.getByLabel('发布单标题',{exact:true}).fill('两张表保留各自流程与审批事实');await button(page,'创建空草稿').click();await page.getByRole('heading',{name:'两张表保留各自流程与审批事实',exact:true}).waitFor();
   const id=new URL(page.url()).pathname.split('/').at(-1), path=`/api/v1/release-orders/${id}`;
   for(const table of tables){
-   await page.getByRole('link',{name:'添加明细',exact:true}).click();await page.getByLabel('Managed Table',{exact:true}).selectOption(table);await button(page,'新增记录').click();
+   await page.getByRole('link',{name:'添加变更',exact:true}).click();await page.getByLabel('Managed Table',{exact:true}).selectOption(table);await button(page,'新增记录').click();
    for(const field of ['id','value']){await page.getByLabel(`包含 ${field}`,{exact:true}).check();await page.getByLabel(`${field} 值`,{exact:true}).fill(field==='id'?'11':`${table} saved value`);}
    await button(page,'查看 Change Set').click();assert.equal(await page.getByLabel('保存到草稿',{exact:true}).inputValue(),id);await button(page,'确认并保存草稿').click();await page.getByRole('heading',{name:'两张表保留各自流程与审批事实',exact:true}).waitFor();
   }

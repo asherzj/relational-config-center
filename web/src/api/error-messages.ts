@@ -7,6 +7,7 @@ const errorMessages: Record<string, string> = {
   table_approval_conflict: "表审批角色已变化，请读取最新分配后重新确认。",
   release_approval_conflict: "审批资格或确认表范围已变化，原意见保留，请重新审阅最新范围。",
   release_flow_incomplete: "常规流程尚未补齐，请管理员修复配置后再次保存草稿，再提交审批。",
+  release_emergency_reason: "应急原因必填且不能超过 2,000 个字符。",
   release_approver_unavailable: "有表缺少独立审批人，请查看各表审批安排并补充合格人员后重新提交。",
   approval_role_not_saved: "本次尝试未保存，输入已保留。可修正后重新保存；若之前仍有待确认请求，请继续使用原请求重试。",
   invalid_approval_role: "请检查角色名称、成员、版本和请求信息。",

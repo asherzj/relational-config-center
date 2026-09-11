@@ -1,0 +1,34 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-tags=integration,browser",
+    "./cmd/admin",
+    "-run",
+    "^TestNotificationCenterBrowserSystemPath$",
+    "-count=1",
+    "-v",
+    "-timeout=8m"
+  ],
+  "cwd": "/private/tmp/rcc-template-notification-integration/admin",
+  "output": "/private/tmp/rcc-template-notification-integration/docs/verification/2026-09-11-template-emergency-integration/browser/03-notification-center",
+  "started_unix": 1789113480.51124,
+  "duration_seconds": 31.17875099182129,
+  "exit_code": 0,
+  "source_changed": [],
+  "created_containers": [
+    "fcfb6a429df1"
+  ],
+  "terminated_containers": [
+    "fcfb6a429df1"
+  ],
+  "cleanup_inspection": [
+    {
+      "id": "fcfb6a429df1",
+      "inspect_exit": 1,
+      "stdout": "\n",
+      "stderr": "error: no such object: fcfb6a429df1\n"
+    }
+  ],
+  "browser": "chromium / installed Chrome channel (default)"
+}

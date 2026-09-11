@@ -1,0 +1,34 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-tags=integration,browser",
+    "./cmd/admin",
+    "-run",
+    "^TestReleaseEmergencyBrowserSystemPath$",
+    "-count=1",
+    "-v",
+    "-timeout=8m"
+  ],
+  "cwd": "/private/tmp/rcc-template-notification-integration/admin",
+  "output": "/private/tmp/rcc-template-notification-integration/docs/verification/2026-09-11-template-emergency-integration/browser/02-emergency",
+  "started_unix": 1789113442.40767,
+  "duration_seconds": 38.055402994155884,
+  "exit_code": 0,
+  "source_changed": [],
+  "created_containers": [
+    "ec9937f9072f"
+  ],
+  "terminated_containers": [
+    "ec9937f9072f"
+  ],
+  "cleanup_inspection": [
+    {
+      "id": "ec9937f9072f",
+      "inspect_exit": 1,
+      "stdout": "\n",
+      "stderr": "error: no such object: ec9937f9072f\n"
+    }
+  ],
+  "browser": "chromium / installed Chrome channel (default)"
+}

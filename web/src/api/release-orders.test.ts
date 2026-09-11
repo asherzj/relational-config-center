@@ -1,6 +1,6 @@
 import {afterEach,expect,it,vi} from "vitest";
 import {loadReleaseForEdit,releaseOrders,type ReleaseHeader} from "./release-orders";
-const header:ReleaseHeader={notification:{sequence:"0",unread:false,pending:false},id:"original",title:"多表草稿",table_names:["items"],release_type:"STANDARD",table_flows:[],missing_flow_tables:[],applicant_id:"author",state:"DRAFT",version:"3",created_at:"now",updated_at:"now",allowed_actions:["edit"],item_count:101,operation_counts:{ADD:101},executions:[],history:[],approvals:[],approval_context:{revision:"test",tables:[],approvable_tables:[]}};
+const header:ReleaseHeader={notification:{sequence:"0",unread:false,pending:false},id:"original",title:"多表草稿",table_names:["items"],release_type:"STANDARD",emergency_reason:"",table_flows:[],missing_flow_tables:[],applicant_id:"author",state:"DRAFT",version:"3",created_at:"now",updated_at:"now",allowed_actions:["edit"],item_count:101,operation_counts:{ADD:101},executions:[],history:[],approvals:[],approval_context:{revision:"test",tables:[],approvable_tables:[]}};
 const detail=(index:number)=>({detail_id:String(index),table_name:"items",operation:"ADD",id:null,expected_record_version:"",content:{label:`value ${index}`},before:null,fields:[]});
 afterEach(()=>vi.unstubAllGlobals());
 it("详情保留服务端已经保存的逐表流程身份、模板版本和真实节点事实",async()=>{

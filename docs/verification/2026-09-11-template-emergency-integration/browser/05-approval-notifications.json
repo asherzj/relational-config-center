@@ -1,0 +1,34 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-tags=integration,browser",
+    "./cmd/admin",
+    "-run",
+    "^TestApprovalNotificationsBrowserSystemPath$",
+    "-count=1",
+    "-v",
+    "-timeout=8m"
+  ],
+  "cwd": "/private/tmp/rcc-template-notification-integration/admin",
+  "output": "/private/tmp/rcc-template-notification-integration/docs/verification/2026-09-11-template-emergency-integration/browser/05-approval-notifications",
+  "started_unix": 1789113556.090971,
+  "duration_seconds": 23.35651397705078,
+  "exit_code": 0,
+  "source_changed": [],
+  "created_containers": [
+    "c4fcc25698fa"
+  ],
+  "terminated_containers": [
+    "c4fcc25698fa"
+  ],
+  "cleanup_inspection": [
+    {
+      "id": "c4fcc25698fa",
+      "inspect_exit": 1,
+      "stdout": "\n",
+      "stderr": "error: no such object: c4fcc25698fa\n"
+    }
+  ],
+  "browser": "chromium / installed Chrome channel (default)"
+}

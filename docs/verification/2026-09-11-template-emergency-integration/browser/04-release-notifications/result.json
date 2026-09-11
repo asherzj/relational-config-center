@@ -1,0 +1,286 @@
+{
+  "checks": [
+    "发布真实提交后丢响应，原 UI 原键原正文重推一次；申请人和撤权审批者各聚合一项，兼任发布的审批者不提醒自己，桌面与 390px 键盘跳转核对实际结果并 ACK",
+    "独立发布者完结并重推，申请人及两位历史审批者收到完结结果；不改配置、不重复执行或下游刷新记录，已处理视图与已读返回正确",
+    "原单快速回滚丢响应后原操作重推，真实两表只恢复一次；申请人与撤权审批者收到原单结果，键盘切换持久化发布和恢复值，真实回滚操作者无自身提醒",
+    "管理员重新准备真实提交后丢响应，原键原正文重推只生成一个替代草稿；取消仅提醒原申请人，新草稿未提交零待办零提醒，手机可读旧单关联"
+  ],
+  "engine": "chromium",
+  "acknowledgements": [
+    {
+      "account": "applicant",
+      "order_id": "ea88b4ac510aa91e8f8ce9c4d08d06f3",
+      "state": "APPROVED",
+      "sequence": "2"
+    },
+    {
+      "account": "applicant",
+      "order_id": "ea88b4ac510aa91e8f8ce9c4d08d06f3",
+      "state": "SUCCEEDED",
+      "sequence": "3"
+    },
+    {
+      "account": "former-reviewer",
+      "order_id": "ea88b4ac510aa91e8f8ce9c4d08d06f3",
+      "state": "SUCCEEDED",
+      "sequence": "2"
+    },
+    {
+      "account": "applicant",
+      "order_id": "ea88b4ac510aa91e8f8ce9c4d08d06f3",
+      "state": "COMPLETED",
+      "sequence": "4"
+    },
+    {
+      "account": "former-reviewer",
+      "order_id": "ea88b4ac510aa91e8f8ce9c4d08d06f3",
+      "state": "COMPLETED",
+      "sequence": "3"
+    },
+    {
+      "account": "reviewer-publisher",
+      "order_id": "ea88b4ac510aa91e8f8ce9c4d08d06f3",
+      "state": "COMPLETED",
+      "sequence": "2"
+    },
+    {
+      "account": "applicant",
+      "order_id": "653695529633a39450fe3641ca056c28",
+      "state": "APPROVED",
+      "sequence": "2"
+    },
+    {
+      "account": "applicant",
+      "order_id": "653695529633a39450fe3641ca056c28",
+      "state": "SUCCEEDED",
+      "sequence": "3"
+    },
+    {
+      "account": "former-reviewer",
+      "order_id": "653695529633a39450fe3641ca056c28",
+      "state": "SUCCEEDED",
+      "sequence": "2"
+    },
+    {
+      "account": "reviewer-publisher",
+      "order_id": "653695529633a39450fe3641ca056c28",
+      "state": "SUCCEEDED",
+      "sequence": "2"
+    },
+    {
+      "account": "applicant",
+      "order_id": "653695529633a39450fe3641ca056c28",
+      "state": "ROLLED_BACK",
+      "sequence": "4"
+    },
+    {
+      "account": "former-reviewer",
+      "order_id": "653695529633a39450fe3641ca056c28",
+      "state": "ROLLED_BACK",
+      "sequence": "3"
+    },
+    {
+      "account": "applicant",
+      "order_id": "e8e866d8fc6d03cb28cd1d766e53a229",
+      "state": "APPROVED",
+      "sequence": "2"
+    },
+    {
+      "account": "applicant",
+      "order_id": "e8e866d8fc6d03cb28cd1d766e53a229",
+      "state": "CANCELLED",
+      "sequence": "3"
+    }
+  ],
+  "replays": [
+    {
+      "action": "执行发布",
+      "source_order_id": "ea88b4ac510aa91e8f8ce9c4d08d06f3",
+      "result_order_id": "ea88b4ac510aa91e8f8ce9c4d08d06f3",
+      "requests": [
+        {
+          "body": "{\"expected_version\":\"4\"}",
+          "key": "634438bf-c86c-4b11-b8b5-9a09334c3f03"
+        },
+        {
+          "body": "{\"expected_version\":\"4\"}",
+          "key": "634438bf-c86c-4b11-b8b5-9a09334c3f03"
+        }
+      ],
+      "notifications": {
+        "admin": {
+          "sequence": "0",
+          "unread": false,
+          "pending": false
+        },
+        "applicant": {
+          "sequence": "3",
+          "unread": true,
+          "pending": false
+        },
+        "former-reviewer": {
+          "sequence": "2",
+          "unread": true,
+          "pending": false
+        },
+        "reviewer-publisher": {
+          "sequence": "1",
+          "unread": false,
+          "pending": false
+        },
+        "publisher": {
+          "sequence": "0",
+          "unread": false,
+          "pending": false
+        },
+        "unrelated-viewer": {
+          "sequence": "0",
+          "unread": false,
+          "pending": false
+        }
+      }
+    },
+    {
+      "action": "完结发布单",
+      "source_order_id": "ea88b4ac510aa91e8f8ce9c4d08d06f3",
+      "result_order_id": "ea88b4ac510aa91e8f8ce9c4d08d06f3",
+      "requests": [
+        {
+          "body": "{\"expected_version\":\"5\"}",
+          "key": "184b4a28-287e-40e8-8bc1-644e41398f4c"
+        },
+        {
+          "body": "{\"expected_version\":\"5\"}",
+          "key": "184b4a28-287e-40e8-8bc1-644e41398f4c"
+        }
+      ],
+      "notifications": {
+        "admin": {
+          "sequence": "0",
+          "unread": false,
+          "pending": false
+        },
+        "applicant": {
+          "sequence": "4",
+          "unread": true,
+          "pending": false
+        },
+        "former-reviewer": {
+          "sequence": "3",
+          "unread": true,
+          "pending": false
+        },
+        "reviewer-publisher": {
+          "sequence": "2",
+          "unread": true,
+          "pending": false
+        },
+        "publisher": {
+          "sequence": "0",
+          "unread": false,
+          "pending": false
+        },
+        "unrelated-viewer": {
+          "sequence": "0",
+          "unread": false,
+          "pending": false
+        }
+      }
+    },
+    {
+      "action": "快速回滚",
+      "source_order_id": "653695529633a39450fe3641ca056c28",
+      "result_order_id": "653695529633a39450fe3641ca056c28",
+      "requests": [
+        {
+          "body": "{\"expected_version\":\"5\",\"preview_digest\":\"95f03b545a7bedef4345bb3a8d48a1e3ef6ee943f9b6739d7c63a4f48d23c6a0\",\"reason\":\"恢复两表已核对的原值\"}",
+          "key": "6e6c4ad8-0a1b-4d82-8e05-53954d2843e1"
+        },
+        {
+          "body": "{\"expected_version\":\"5\",\"preview_digest\":\"95f03b545a7bedef4345bb3a8d48a1e3ef6ee943f9b6739d7c63a4f48d23c6a0\",\"reason\":\"恢复两表已核对的原值\"}",
+          "key": "6e6c4ad8-0a1b-4d82-8e05-53954d2843e1"
+        }
+      ],
+      "notifications": {
+        "admin": {
+          "sequence": "0",
+          "unread": false,
+          "pending": false
+        },
+        "applicant": {
+          "sequence": "4",
+          "unread": true,
+          "pending": false
+        },
+        "former-reviewer": {
+          "sequence": "3",
+          "unread": true,
+          "pending": false
+        },
+        "reviewer-publisher": {
+          "sequence": "2",
+          "unread": false,
+          "pending": false
+        },
+        "publisher": {
+          "sequence": "0",
+          "unread": false,
+          "pending": false
+        },
+        "unrelated-viewer": {
+          "sequence": "0",
+          "unread": false,
+          "pending": false
+        }
+      }
+    },
+    {
+      "action": "重新准备",
+      "source_order_id": "e8e866d8fc6d03cb28cd1d766e53a229",
+      "result_order_id": "28b5e64526dab42fca6274f6f4326ed0",
+      "requests": [
+        {
+          "body": "{\"expected_version\":\"4\",\"confirmed\":true,\"items\":[{\"detail_id\":\"3ff1201cb6a086cf9cdcf8854b656c05\",\"table_name\":\"multitable_browser_a\",\"operation\":\"MODIFY\",\"id\":\"3\",\"expected_record_version\":\"0\",\"content\":{\"label\":\"notification-reprepare-a\"}},{\"detail_id\":\"a1928ee934b826aba7417ab51206c1ff\",\"table_name\":\"multitable_browser_b\",\"operation\":\"MODIFY\",\"id\":\"3\",\"expected_record_version\":\"0\",\"content\":{\"label\":\"notification-reprepare-b\"}}]}",
+          "key": "d7b42afb-0e97-4e5e-b3cf-4567cbe6e9e2"
+        },
+        {
+          "body": "{\"expected_version\":\"4\",\"confirmed\":true,\"items\":[{\"detail_id\":\"3ff1201cb6a086cf9cdcf8854b656c05\",\"table_name\":\"multitable_browser_a\",\"operation\":\"MODIFY\",\"id\":\"3\",\"expected_record_version\":\"0\",\"content\":{\"label\":\"notification-reprepare-a\"}},{\"detail_id\":\"a1928ee934b826aba7417ab51206c1ff\",\"table_name\":\"multitable_browser_b\",\"operation\":\"MODIFY\",\"id\":\"3\",\"expected_record_version\":\"0\",\"content\":{\"label\":\"notification-reprepare-b\"}}]}",
+          "key": "d7b42afb-0e97-4e5e-b3cf-4567cbe6e9e2"
+        }
+      ],
+      "notifications": {
+        "admin": {
+          "sequence": "0",
+          "unread": false,
+          "pending": false
+        },
+        "applicant": {
+          "sequence": "3",
+          "unread": true,
+          "pending": false
+        },
+        "former-reviewer": {
+          "sequence": "1",
+          "unread": false,
+          "pending": false
+        },
+        "reviewer-publisher": {
+          "sequence": "1",
+          "unread": false,
+          "pending": false
+        },
+        "publisher": {
+          "sequence": "0",
+          "unread": false,
+          "pending": false
+        },
+        "unrelated-viewer": {
+          "sequence": "0",
+          "unread": false,
+          "pending": false
+        }
+      }
+    }
+  ],
+  "errors": []
+}

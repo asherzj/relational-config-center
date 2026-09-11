@@ -1,7 +1,7 @@
 import {useEffect,useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {ApiError,shouldRetryQuery} from "../../api/client";
-import {decodeReleaseRequest,draftItemSchema,defaultReleaseTitle,releaseOrders,releaseRequests,releaseTitleError,type ReleaseRequestEnvelope,type DraftContentInput} from "../../api/release-orders";
+import {decodeReleaseRequest,draftItemSchema,defaultReleaseTitle,releaseOrders,releaseRequests,releaseTitleError,type ReleaseRequestEnvelope,type DraftContentInput,type ReleaseType} from "../../api/release-orders";
 import {useWorkspaceIdentity} from "../accounts/ProtectedWorkspace";
 import {Button} from "../../components/ui/Button";
 import {NativeSelect} from "../../components/shadcn/native-select";
@@ -13,6 +13,7 @@ export function useDraftDestination(table:string,initialID=""){
  const accountID=useWorkspaceIdentity()!.account.id;
  const [selected,setSelected]=useState(initialID),[open,setOpen]=useState(Boolean(initialID)),[after,setAfter]=useState("");
  const [title,setTitle]=useState(()=>defaultReleaseTitle(table));
+ const [releaseType,setReleaseType]=useState<ReleaseType>("STANDARD");
  const titleError=releaseTitleError(title);
  const [error,setError]=useState<unknown>();
  useEffect(()=>setTitle(defaultReleaseTitle(table)),[table]);
@@ -22,7 +23,7 @@ export function useDraftDestination(table:string,initialID=""){
   try{
    if(!selected){
     if(titleError)throw new ApiError("release_title_invalid",titleError,422);
-    return releaseRequests.create({...input,title});
+    return releaseRequests.create({...input,title,...(releaseType==="EMERGENCY"?{release_type:releaseType}:{})});
    }
    const order=await releaseOrders.get(selected);
    if(order.applicant_id!==accountID||!order.allowed_actions.includes("edit")||order.state!=="DRAFT")throw new ApiError("release_destination_invalid","所选草稿已不可编辑，或不属于本人。请重新选择。",422);
@@ -42,6 +43,8 @@ export function useDraftDestination(table:string,initialID=""){
      {!open&&<Button disabled={disabled} onClick={()=>setOpen(true)}>选择已有草稿</Button>}
     </div>
     {titleError&&<small id="new-release-title-error" className="field-error">{titleError}</small>}
+    <Label htmlFor="new-release-type">发布方式</Label>
+    <NativeSelect id="new-release-type" aria-label="发布方式" disabled={disabled} value={releaseType} onChange={event=>setReleaseType(event.target.value as ReleaseType)}><option value="STANDARD">常规发布</option><option value="EMERGENCY">应急发布</option></NativeSelect>
    </div>}
    {open&&<div className="draft-destination-picker">
     <Label htmlFor="release-draft-destination">保存到草稿</Label>
@@ -66,7 +69,7 @@ export function useDraftDestination(table:string,initialID=""){
  const matchesInput=(request:ReleaseRequestEnvelope,input:DraftContentInput)=>{
   try{
    const intent=decodeReleaseRequest(request);
-   if(!selected&&intent.action==="create")return intent.input.title===title&&JSON.stringify(intent.input.items)===JSON.stringify(input.items.map(item=>draftItemSchema.parse(item)));
+   if(!selected&&intent.action==="create")return intent.input.title===title&&(intent.input.release_type??"STANDARD")===releaseType&&JSON.stringify(intent.input.items)===JSON.stringify(input.items.map(item=>draftItemSchema.parse(item)));
    if(selected&&intent.action==="edit-details"&&intent.id===selected){
     const changes=intent.input.changes;
     return !changes.delete_detail_ids&&!changes.detail_order&&JSON.stringify(changes.upserts)===JSON.stringify(input.items.map(item=>draftItemSchema.parse(item)));

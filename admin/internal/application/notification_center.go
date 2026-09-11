@@ -20,7 +20,7 @@ func validateReleaseFilter(filter ReleaseFilter) error {
 		return ErrReleaseInvalid
 	}
 	switch filter.State {
-	case "", "DRAFT", "PENDING_APPROVAL", "APPROVED", "SUCCEEDED", "COMPLETED", "REJECTED", "CANCELLED", "ROLLED_BACK":
+	case "", "DRAFT", "PENDING_PUBLICATION", "PENDING_APPROVAL", "APPROVED", "SUCCEEDED", "COMPLETED", "REJECTED", "CANCELLED", "ROLLED_BACK":
 		return nil
 	default:
 		return ErrReleaseInvalid
@@ -68,7 +68,7 @@ func (r *ReleaseOrders) NotificationOrders(ctx context.Context, view string, fil
 				return err
 			}
 			for _, summary := range orders {
-				order := domain.ReleaseOrder{ReleaseType: summary.ReleaseType, TableFlows: summary.TableFlows, MissingFlowTables: summary.MissingFlowTables, ID: summary.ID, Version: summary.Version, State: summary.State, ApplicantID: summary.ApplicantID, TableNames: summary.TableNames, Approvals: summary.Approvals}
+				order := domain.ReleaseOrder{EmergencyReason: summary.EmergencyReason, ReleaseType: summary.ReleaseType, TableFlows: summary.TableFlows, MissingFlowTables: summary.MissingFlowTables, ID: summary.ID, Version: summary.Version, State: summary.State, ApplicantID: summary.ApplicantID, TableNames: summary.TableNames, Approvals: summary.Approvals}
 				environment, err := reader.ReadApprovalEnvironment(ctx, order)
 				if err != nil {
 					return err

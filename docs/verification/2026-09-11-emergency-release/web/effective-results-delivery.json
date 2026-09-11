@@ -1,0 +1,38 @@
+{
+  "scope": "433 unique effective Web tests after final review fixes; not one all-green full-suite invocation",
+  "previous_checkpoint": "effective-results-reviewed.json",
+  "previous_effective_unique": 429,
+  "review_regression": {
+    "log": "42-final-conflict-regression.log",
+    "metadata": "42-final-conflict-regression.json",
+    "passed": 108,
+    "failed": 0,
+    "release_page": 88,
+    "release_api": 9,
+    "managed_data_page": 11,
+    "added_unique": 4
+  },
+  "shared_consumer_regression": {
+    "log": "38-managed-data-review-regression.log",
+    "metadata": "38-managed-data-review-regression.json",
+    "passed": 11,
+    "failed": 0,
+    "already_counted": true
+  },
+  "effective_unique_passed": 433,
+  "effective_failed": 0,
+  "typecheck": "43-final-typecheck.log",
+  "build": "44-final-build.log",
+  "input_applicability": "Final production change is ReleaseRequestReview only; complete release page/API and shared ManagedDataPage passed in 42. Browser 03 exercises the unchanged unknown-result replay route, not the definitive-conflict rebuild route. Other effective scopes remain unchanged.",
+  "original_failures_preserved": [
+    "helper/19-web-full-suite.log",
+    "helper/20-unrelated-managed-data-isolated.log",
+    "review-fixes/25-submit-type-conflict-red.log",
+    "review-fixes/27-emergency-copy-reprepare-copy-red.log",
+    "review-fixes/28-emergency-copy-reprepare-copy-green.log",
+    "review-fixes/29-emergency-success-feedback-red.log",
+    "review-fixes/31-emergency-hide-approver-red.log",
+    "39-conflict-review-gate-red.log",
+    "40-conflict-review-complete-red.log"
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "container_counts": 6,
+  "runtime_pid_checks": [
+    {
+      "path": "docs/verification/2026-09-11-template-emergency-integration/browser/01-instances/runtime-target.json",
+      "field": "admin_pid",
+      "pid": 48733,
+      "exit": 1,
+      "stdout": ""
+    },
+    {
+      "path": "docs/verification/2026-09-11-template-emergency-integration/browser/01-instances/runtime-target.json",
+      "field": "vite_pid",
+      "pid": 48742,
+      "exit": 1,
+      "stdout": ""
+    },
+    {
+      "path": "docs/verification/2026-09-11-template-emergency-integration/browser/01-instances/runtime-target.json",
+      "field": "test_pid",
+      "pid": 48655,
+      "exit": 1,
+      "stdout": ""
+    },
+    {
+      "path": "docs/verification/2026-09-11-template-emergency-integration/browser/02-emergency/runtime-target.json",
+      "field": "admin_pid",
+      "pid": 48971,
+      "exit": 1,
+      "stdout": ""
+    },
+    {
+      "path": "docs/verification/2026-09-11-template-emergency-integration/browser/02-emergency/runtime-target.json",
+      "field": "vite_pid",
+      "pid": 49002,
+      "exit": 1,
+      "stdout": ""
+    },
+    {
+      "path": "docs/verification/2026-09-11-template-emergency-integration/browser/02-emergency/runtime-target.json",
+      "field": "test_pid",
+      "pid": 48928,
+      "exit": 1,
+      "stdout": ""
+    }
+  ],
+  "other_harnesses": "No PID metadata emitted; registered process teardowns and terminated Testcontainers are the available evidence."
+}

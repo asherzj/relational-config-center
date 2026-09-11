@@ -1,0 +1,34 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-tags=integration,browser",
+    "./cmd/admin",
+    "-run",
+    "^TestAccountBrowserSystemPath$/^fixture-diagnosis-only$",
+    "-count=1",
+    "-v",
+    "-timeout=8m"
+  ],
+  "cwd": "/private/tmp/rcc-template-notification-integration/admin",
+  "output": "/private/tmp/rcc-template-notification-integration/docs/verification/2026-09-11-template-emergency-integration/browser/06a-fixture-diagnosis",
+  "started_unix": 1789113729.256059,
+  "duration_seconds": 44.190420150756836,
+  "exit_code": 1,
+  "source_changed": [],
+  "created_containers": [
+    "3afee6be7e60"
+  ],
+  "terminated_containers": [
+    "3afee6be7e60"
+  ],
+  "cleanup_inspection": [
+    {
+      "id": "3afee6be7e60",
+      "inspect_exit": 1,
+      "stdout": "\n",
+      "stderr": "error: no such object: 3afee6be7e60\n"
+    }
+  ],
+  "browser": "chromium / installed Chrome channel (default)"
+}

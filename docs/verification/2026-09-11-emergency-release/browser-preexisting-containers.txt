@@ -1,0 +1,6 @@
+Read-only docker ps before the authorized browser run:
+f4e91bfe4ff1 rcc-main-preview-admin 127.0.0.1:8081->8080/tcp rcc-main-preview-admin-1
+18b51e6f8509 mysql:8.4 127.0.0.1:3306->3306/tcp, 33060/tcp deploy-mysql-1
+
+These pre-existing preview containers are outside this test's target and cleanup scope.
+The browser harness must create a new Testcontainers MySQL container on a different mapped port.

@@ -80,7 +80,7 @@ func advanceReleaseFlows(order *ReleaseOrder) {
 			case "PUBLICATION":
 				if event, found := events["EXECUTE"]; found {
 					node.State, node.ActorID, node.At = "COMPLETED", event.ActorID, event.At
-				} else if order.State == "APPROVED" {
+				} else if order.State == "APPROVED" || order.State == "PENDING_PUBLICATION" {
 					node.State = "ACTIVE"
 				}
 			case "COMPLETION":

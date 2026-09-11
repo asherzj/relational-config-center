@@ -94,7 +94,7 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 	if len(evidence.AccountID) != 36 || creator != evidence.AccountID || modifier != evidence.AccountID || body != "browser system configuration" {
 		t.Fatal("real database Operator/content did not match browser account")
 	}
-	prepareManagementBrowserPolicies(t, admin, maintenance, fixtureEnvironment)
+	setupCookies, setupCSRF := prepareManagementBrowserPolicies(t, admin, maintenance, fixtureEnvironment)
 	// These history fixtures reference the mutation policy created above.
 	for _, fixture := range []string{"release-rollbacks.sql", "field-display.sql"} {
 		contents, err := os.ReadFile(filepath.Join(web, "e2e/fixtures", fixture))
@@ -106,6 +106,29 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 				deliveryExec(t, db, statement)
 			}
 		}
+	}
+	// Keep the historical SQL/data unchanged, but explicitly opt these isolated
+	// publication targets into both flows through the current catalog contract.
+	for _, table := range []string{"stage1_rollback_chromium_items", "stage1_rollback_firefox_items", "stage1_rollback_webkit_items", "field_display_browser_items"} {
+		for _, flow := range []struct{ kind, code string }{{"EMERGENCY", "default_emergency_v1"}, {"STANDARD", "default_standard_v1"}} {
+			body := fmt.Sprintf(`{"template_code":%q,"enabled":true,"expected_version":"0"}`, flow.code)
+			status, _, result := admin.requestWithKey(t, http.MethodPut, "/api/v1/table-policies/"+table+"/release-templates/"+flow.kind, body, setupCookies, setupCSRF, "browser-history-flow-"+table+"-"+flow.kind)
+			if status != http.StatusOK {
+				t.Fatalf("prepare history fixture %s %s association: %d %s", table, flow.kind, status, result)
+			}
+			t.Logf("history fixture association: %s", result)
+		}
+	}
+	// Late SQL fixtures must preserve the same readiness contract as fixtures
+	// created through the public catalog API, including required associations.
+	missingEmergency := baselineRows(t, db, `SELECT p.table_name,p.enabled,a.id AS association_id
+FROM rcc_table_policies p LEFT JOIN rcc_table_release_templates a
+ON a.table_policy_id=p.id AND a.release_type='EMERGENCY'
+WHERE p.enabled=1 AND (a.id IS NULL OR a.enabled<>1) ORDER BY p.table_name`)
+	status, _, readiness := admin.request(t, http.MethodGet, "/health/ready", "", nil, "")
+	t.Logf("late browser fixture readiness: status=%d missing emergency associations=%s response=%s", status, missingEmergency, readiness)
+	if status != http.StatusOK {
+		t.Fatal("late browser fixtures invalidated schema readiness")
 	}
 	for _, script := range []string{"unsaved-changes.cjs", "rule-clarity.cjs", "release-drafts.cjs", "release-approvals.cjs", "release-batches.cjs", "release-rollbacks.cjs", "draft-targets.cjs", "release-multitable.cjs", "release-rollback-reason.cjs", "field-policies.cjs", "field-inputs.cjs", "combined-query.cjs", "field-recovery.cjs", "field-display.cjs"} {
 		t.Run(script, func(t *testing.T) {
@@ -142,7 +165,7 @@ func TestAccountBrowserSystemPath(t *testing.T) {
 	t.Logf("browser → Vite same-origin proxy → Admin → MySQL: %s; creator/modifier match current Account ID", strings.Join(evidence.Checks, ", "))
 }
 
-func prepareManagementBrowserPolicies(t *testing.T, admin *accountProcess, maintenance string, environment []string) {
+func prepareManagementBrowserPolicies(t *testing.T, admin *accountProcess, maintenance string, environment []string) ([]*http.Cookie, string) {
 	t.Helper()
 	cookies, csrf, identity := processCredentials(t, admin, "/api/v1/auth/register", `{"username":"browser.setup","email":"browser.setup@example.invalid","password":"browser setup password long enough"}`)
 
@@ -181,4 +204,5 @@ func prepareManagementBrowserPolicies(t *testing.T, admin *accountProcess, maint
 	if status != http.StatusOK {
 		t.Fatalf("prepare standard publication flow: %d %s", status, body)
 	}
+	return cookies, csrf
 }

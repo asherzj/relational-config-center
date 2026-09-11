@@ -1,6 +1,6 @@
 # Admin 发布结果契约（#82 原单执行）
 
-已批准单通过 `POST /api/v1/release-orders/:id/execute` 执行，正文为 `{"expected_version":"3"}`，带原 `Idempotency-Key`。当前永久账号必须具有 PUBLISHER（ADMIN 含该能力）；合法审批不因审批人后来撤权失效。业务行、记录版本、Command、表进度、普通发布单 SUCCEEDED/EXECUTE 历史、全部真实目标持续占用、通知、成功请求结果在同一事务中提交。原单回滚成功为 ROLLED_BACK 并释放目标；原单由人工 complete 后同样释放目标并关闭回滚窗口，详见[人工完结](../admin-release-upgrade.md#发布后的人工完结与快速回滚)。执行前重新核实冻结语义和基线；明确失败保持 APPROVED、版本和占用。COMMIT 错误一律报告提交结果未知；原键重试在当前鉴权后、状态版本检查前重放持久结果。
+常规已批准单（APPROVED）或应急待发布单（PENDING_PUBLICATION）通过 `POST /api/v1/release-orders/:id/execute` 执行，正文为 `{"expected_version":"3"}`，带原 `Idempotency-Key`。当前永久账号必须具有 PUBLISHER（ADMIN 含该能力）；合法审批不因审批人后来撤权失效。业务行、记录版本、Command、表进度、普通发布单 SUCCEEDED/EXECUTE 历史、全部真实目标持续占用、通知、成功请求结果在同一事务中提交。原单回滚成功为 ROLLED_BACK 并释放目标；原单由人工 complete 后同样释放目标并关闭回滚窗口，详见[人工完结](../admin-release-upgrade.md#发布后的人工完结与快速回滚)。执行前重新核实冻结语义和基线；明确失败保持常规 APPROVED 或应急 PENDING_PUBLICATION、版本和占用。COMMIT 错误一律报告提交结果未知；原键重试在当前鉴权后、状态版本检查前重放持久结果。
 
 省略主键仅支持 AUTO_INCREMENT。非自增主键即使有 DEFAULT，也需在申请中显式提供 id；否则在准备前返回 publication_unsupported，不能用上次连接的 LAST_INSERT_ID 猜测实际记录。
 

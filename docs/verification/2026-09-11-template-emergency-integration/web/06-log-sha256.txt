@@ -1,0 +1,7 @@
+0f07ba1483dcacde42e6e84317c4b7f09772f33a8e80c7544eb1521e936b20a9  docs/verification/2026-09-11-template-emergency-integration/web/00-pre-resolution-conflicts.log
+009bcbb51de81600ceeae2f42fd1f927a44de9d1ba5eae637483bac9f2ed4141  docs/verification/2026-09-11-template-emergency-integration/web/01-affected-tests-first.log
+c30e282fc794188b91228ed4f613330cd406384b4bd55d4bdf28bd986456fca7  docs/verification/2026-09-11-template-emergency-integration/web/02-affected-tests-green.log
+982c4c073b47f111886231b1608de66a7915c5d36095dd851ee0a1f8729d2268  docs/verification/2026-09-11-template-emergency-integration/web/02-typecheck-first.log
+997598be08527669e2b3a782d3bc71efbfadc6f578c9e84c0589a8fca2a18f4c  docs/verification/2026-09-11-template-emergency-integration/web/03-build.log
+7dd6e21094e33173dadc759b57fc9f54df3e04ff3a314705cb0b9f55f7fbaa00  docs/verification/2026-09-11-template-emergency-integration/web/04-e2e-syntax.log
+15bfb524f81b64166909288629a2033d531d917ffa10ffad85bef9414d9f82d4  docs/verification/2026-09-11-template-emergency-integration/web/07-e2e-syntax-after-fixture-adapters.log

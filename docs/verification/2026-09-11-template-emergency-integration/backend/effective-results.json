@@ -1,0 +1,229 @@
+{
+  "scope": "52 unique real HTTP/MySQL top-level tests; do not double count subtests or isolated reruns",
+  "test_count": 52,
+  "tests": {
+    "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestNotificationCenterSubmittedViewsExcludeUnsubmittedDrafts": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestNotificationCenterCurrentEligibilityAndDurableHandledHistory": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestNotificationCenterFiltersBeforePaginationAndProtectsIdentity": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestNotificationCenterRejectsIncompatibleHistoryAndDirectoryFailure": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseSubmitFreezesIntent": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseApprovalCurrentRolesAndHistory": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseWorkflowAtomicityAndCompetition": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseSubmitRevalidatesBaselineAndRules": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseCompletionRetainsKnownTargets": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseCompletionRolesConcurrencyAndReplay": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseCompletionPersistenceFailureIsAtomic": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestMultitableCopyCompetesForEveryTargetAndLinksBothOrders": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestMultitableReprepareTransfersChangedTargetsAtomically": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseEmergencyAC012SwitchReplacesWholeDraft": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseEmergencyAC015SubmitNeedsReasonAndDoesNotPublish": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseEmergencyAC016PublisherPermissionIsCurrent": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseEmergencyAC017AC018WholeOrderExecutionAndCompletion": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseEmergencyAC023SwitchFailureAndOriginalResults": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseEmergencyAC012SwitchAndSubmitCompetition": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseEmergencyPendingConsumersAndDerivedDrafts": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseEmergencyReasonOnlyAcceptedBySubmit": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestConfirmedReleaseFailureHistoryPreservesOriginalRetry": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseFailureHistoryUnavailableDoesNotLeaveBusinessWrites": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseFailureAuditPreservesConcurrentCancellation": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseFlowCurrentAuthorizationAfterWaitingForMaintenance": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseFlowStorageFailuresKeepDraftAndOriginalResultAtomic": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseFlowAC009PersistsIndependentTablesBeforeFirstRead": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseFlowAC010MissingConfigurationRequiresExplicitSave": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseFlowAC013DerivedDraftUsesCurrentConfiguration": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseFlowAC014SeparatesInstancesFromSubmissionApprovals": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseFlowAC011DraftEditsPreserveAndReplaceOnlyParticipatingTables": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges": {
+      "outcome": "PASS",
+      "log": "06-history-verified-append-green.log"
+    },
+    "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseNotificationsPersistenceFailuresPreserveAllFacts": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseNotificationsLostResponsesRecoverOriginalFacts": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseNotificationsCommitUnknownRecoversEveryLifecycle": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseNotificationsTerminalCompetitionHasOneResult": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseNotificationsDisabledParticipantsRetainOutcomes": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseNotificationsPublicationUsesActualParticipants": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseNotificationsTerminalResultsPreserveOwnUnread": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseNotificationsReprepareCancelsSourceAtomically": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestOriginalOrderRollbackPreservesApplicationAndBothExecutions": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestReleaseSubmitRequiresIndependentApprover": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestTableApprovalPartialProgressAndFinalApproval": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestTableApprovalSnapshotMembershipFallbackAndHistory": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestTableApprovalFallbackMatrixAndEmptySnapshot": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestTableApprovalScopeConcurrencyAndRejection": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestTableApprovalAccountAvailabilityAndDurableHistory": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    },
+    "TestTableApprovalQualificationChangesSerializeWithDecisions": {
+      "outcome": "PASS",
+      "log": "01-http-matrix.log"
+    }
+  },
+  "original_batch": {
+    "log": "01-http-matrix.log",
+    "exit_code": 1,
+    "passed": 51,
+    "failed": 1
+  },
+  "replacements": [
+    {
+      "test": "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges",
+      "original_reproduction": "04-history-isolated-red.log",
+      "sql_diagnostic": "05-history-sql-delta-red.log",
+      "final": "06-history-verified-append-green.log"
+    }
+  ],
+  "source_applicability": "Production unchanged across all runs. The only fixture edit is local to the failing history test; its final version passed in 06, leaving the other 51 results applicable. Four contract packages passed in 02; all integration/browser tests compiled in 03 before the local fixture correction, and the corrected fixture compiled and ran in 06."
+}

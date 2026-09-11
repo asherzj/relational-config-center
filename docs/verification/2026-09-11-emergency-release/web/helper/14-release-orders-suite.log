@@ -1,0 +1,35 @@
+^D[?25l
+ RUN  v4.1.11 /private/tmp/rcc-issue-104-emergency-release/web
+
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx (81 tests | 1 failed) 21575ms
+   × 仅有审批角色的人填写意见批准冻结单据 124ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/release-orders/ReleaseOrdersPage.test.tsx > 仅有审批角色的人填写意见批准冻结单据
+Error: expect(element).toBeDisabled()
+
+Received element is not disabled:
+  <button
+  class="inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 button"
+  data-size="default"
+  data-slot="button"
+  data-variant="default"
+/>
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx:705:51
+    703|  expect((await screen.findAllByText("当前申请人")).length).toBeGreaterThan(…
+    704|  await user.click(await screen.findByRole("button",{name:"批准发布单"}));
+    705|  expect(screen.getByRole("button",{name:"确认批准"})).toBeDisabled();
+       |                                                   ^
+    706|  await user.type(screen.getByLabelText("审批意见"),"已核对变更范围");
+    707|  await user.click(screen.getByRole("button",{name:"确认批准"}));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 89 passed (90)
+   Start at  11:24:06
+   Duration  23.33s (transform 649ms, setup 466ms, import 912ms, tests 21.60s, environment 1.02s)
+
+[?25h

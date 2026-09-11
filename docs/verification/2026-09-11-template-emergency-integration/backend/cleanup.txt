@@ -1,0 +1,7 @@
+Read-only docker ps after the 52-case matrix and isolated history checks completed:
+f4e91bfe4ff1 rcc-main-preview-admin 127.0.0.1:8081->8080/tcp rcc-main-preview-admin-1
+18b51e6f8509 mysql:8.4 127.0.0.1:3306->3306/tcp, 33060/tcp deploy-mysql-1
+
+Only the two pre-existing preview containers remain. Test cleanup logs record normal
+termination of every container created by these checks. These pre-existing containers
+were not used, stopped, or modified by this verification task.

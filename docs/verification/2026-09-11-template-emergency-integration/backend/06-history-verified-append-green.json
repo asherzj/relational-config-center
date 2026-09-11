@@ -1,0 +1,25 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-tags=integration",
+    "./admin/cmd/admin",
+    "-run",
+    "^TestReleaseHistorySurvivesExecutableRestartAndExternalChanges$",
+    "-count=1",
+    "-v",
+    "-timeout=3m"
+  ],
+  "cwd": "/private/tmp/rcc-template-notification-integration",
+  "started_unix": 1789113173.282374,
+  "duration_seconds": 20.03268814086914,
+  "exit_code": 0,
+  "environment": {
+    "TESTCONTAINERS_RYUK_DISABLED": "true",
+    "DOCKER_HOST": "unix:///Users/asher/.colima/default/docker.sock",
+    "GOCACHE": "/private/tmp/rcc-go-cache"
+  },
+  "source_input": "06-history-verified-append-green-input.json",
+  "source_changed_during_run": [],
+  "expected_unique_tests": []
+}

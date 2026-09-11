@@ -35,7 +35,7 @@ import {NewDraftDialog} from "./NewDraftDialog";
 import {ReleasePerson} from "./ReleasePerson";
 import {CurrentFieldDisplayProvider} from "../field-display/CurrentFieldDisplay";
 
-export const releaseStateLabels={DRAFT:"草稿",PENDING_APPROVAL:"待审批",APPROVED:"已批准",SUCCEEDED:"已发布待完结",COMPLETED:"已完结",REJECTED:"已拒绝",CANCELLED:"已取消",ROLLED_BACK:"已回滚"};
+export const releaseStateLabels={DRAFT:"草稿",PENDING_APPROVAL:"待审批",PENDING_PUBLICATION:"待发布",APPROVED:"已批准",SUCCEEDED:"已发布待完结",COMPLETED:"已完结",REJECTED:"已拒绝",CANCELLED:"已取消",ROLLED_BACK:"已回滚"};
 export function ReleaseOrdersPage(){
  const {id}=useParams();
  return <main className="workspace"><ReleaseConflictReview/>{id?<ReleaseDetail key={id} id={id}/>:<><div className="page-heading"><div><h1>发布单</h1></div></div><ReleaseList/></>}</main>;
@@ -105,7 +105,7 @@ export function ReleaseDetail({id,listPath="/configuration/release-orders",listL
    </div>
    <div className="flex max-w-full flex-wrap items-center gap-2 sm:pt-6" role="group" aria-label="发布操作">
     {available("edit",canEdit)&&<Button disabled={requestPending} onClick={()=>setEditing(true)}>编辑草稿</Button>}
-    {available("submit",canEdit)&&<Button variant={actionVariant("submit")} disabled={requestPending||order.item_count===0} onClick={()=>setAction("submit")}>提交审批</Button>}
+    {available("submit",canEdit)&&<Button variant={actionVariant("submit")} disabled={requestPending||order.item_count===0} onClick={()=>setAction("submit")}>{order.release_type==="EMERGENCY"?"提交应急发布":"提交审批"}</Button>}
     {available("approve",canApprove)&&<Button variant={actionVariant("approve")} disabled={requestPending} onClick={()=>setAction("approve")}>批准发布单</Button>}
     {available("reject",canReject)&&<Button disabled={requestPending} className="text-destructive" onClick={()=>setAction("reject")}>拒绝发布单</Button>}
     {available("execute",canPublish)&&<Button variant={actionVariant("execute")} disabled={requestPending} onClick={()=>setAction("execute")}>执行发布</Button>}
@@ -125,22 +125,24 @@ export function ReleaseDetail({id,listPath="/configuration/release-orders",listL
    <summary className="flex w-fit cursor-pointer list-none items-center gap-1 rounded-sm text-xs text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">基本信息<ChevronDown className="size-3.5 transition-transform group-open:rotate-180" aria-hidden="true"/></summary>
    <dl className="mt-3 grid min-w-0 gap-x-6 gap-y-4 text-sm sm:grid-cols-2 [&_dt]:mb-1 [&_dt]:text-xs [&_dt]:text-muted-foreground">
     <div className="min-w-0"><dt>发布单号</dt><dd className="flex min-w-0 flex-wrap items-center gap-1"><span className="break-all font-mono">{order.id}</span><Button variant="ghost" className="icon-button size-7" aria-label="复制发布单号" icon={<Copy aria-hidden="true"/>} onClick={async()=>{try{await navigator.clipboard.writeText(order.id);setCopyError(false);showToast("已复制发布单号")}catch{setCopyError(true)}}}/></dd>{copyError&&<p role="alert">复制失败，请选择单号手动复制。</p>}</div>
+    <div><dt>发布方式</dt><dd>{order.release_type==="EMERGENCY"?"应急发布":"常规发布"}</dd></div>
     <div><dt>发布单版本</dt><dd>{order.version}</dd></div>
     <div className="min-w-0"><dt>涉及表</dt><dd className="break-all">{releaseTables(order).join("、")||"暂无明细表"}</dd></div>
     {order.copied_from_id&&<div className="min-w-0"><dt>{order.history[0]?.action==="REPREPARE"?"重新准备自":"复制自"}</dt><dd><Link className="break-all font-mono underline underline-offset-4" to={`/configuration/release-orders/${order.copied_from_id}`}>{order.copied_from_id}</Link></dd></div>}
-    <div className="min-w-0"><dt>审批人</dt><dd>{approver?<ReleasePerson id={approver.actor_id} name={names[approver.actor_id]}/>:"尚无批准记录"}</dd></div>
+    {order.release_type==="STANDARD"&&<div className="min-w-0"><dt>审批人</dt><dd>{approver?<ReleasePerson id={approver.actor_id} name={names[approver.actor_id]}/>:"尚无批准记录"}</dd></div>}
+    {order.emergency_reason&&<div className="min-w-0 sm:col-span-2"><dt>应急原因</dt><dd className="whitespace-pre-wrap break-all">{order.emergency_reason}</dd></div>}
     {publication&&<div className="min-w-0"><dt>发布人</dt><dd><ReleasePerson id={publication.actor_id} name={names[publication.actor_id]}/></dd></div>}
    </dl>
   </details>
   {requestPending&&<p role="status" className="mt-3 text-sm">此单请求正在处理，请稍后再执行其他操作。</p>}
   {order.allowed_actions.length===0&&!requests.some(item=>releaseRequestOrder(item)===id)&&<p className="mt-3 text-xs text-muted-foreground">当前状态和权限下没有可执行操作。</p>}
  </header>
- {order.missing_flow_tables.length>0&&<section aria-label="流程配置未完成" className="release-panel min-w-0"><h2 className="text-lg font-semibold text-warning">流程配置未完成，暂不能提交审批</h2><p className="mt-2">以下表尚未保存常规流程。请管理员检查常规模板与表关联；配置修复后，再保存草稿补齐缺失流程。已有表流程保持不变。</p><ul className="my-3 grid gap-1 break-all font-mono">{order.missing_flow_tables.map(table=><li key={table}>{table}</li>)}</ul>{canEdit&&(order.allowed_actions.includes("edit")||retained("edit"))&&<Button disabled={requestPending} onClick={()=>setEditing(true)}>保存草稿以补齐流程</Button>}</section>}
+ {order.missing_flow_tables.length>0&&<section aria-label="流程配置未完成" className="release-panel min-w-0"><h2 className="text-lg font-semibold text-warning">流程配置未完成，暂不能提交</h2><p className="mt-2">以下表尚未保存当前发布方式的流程。请管理员检查对应模板与表关联；配置修复后，再保存草稿补齐缺失流程。已有表流程保持不变。</p><ul className="my-3 grid gap-1 break-all font-mono">{order.missing_flow_tables.map(table=><li key={table}>{table}</li>)}</ul>{canEdit&&(order.allowed_actions.includes("edit")||retained("edit"))&&<Button disabled={requestPending} onClick={()=>setEditing(true)}>保存草稿以补齐流程</Button>}</section>}
  {order.state==="ROLLED_BACK"?<ReleaseProgress order={order} people={names}/>:<ReleasePhase order={order} people={names}/>}
  {peopleFailure&&<section className="inline-alert mb-4 min-w-0 flex-wrap" role="alert"><div><strong>人员姓名读取失败，当前仅显示永久账号 ID。</strong><span>{peopleFailure.message}</span><span>错误代码：{peopleCode}</span>{peopleFailure.requestId&&<span>请求编号：{peopleFailure.requestId}</span>}</div><Button variant="secondary" disabled={people.isFetching} onClick={()=>void people.refetch()}>{people.isFetching?"正在读取人员姓名…":"重新读取人员姓名"}</Button></section>}
- {order.frozen_digest&&<p className="text-sm text-muted-foreground">提交内容已冻结，审批和发布以这份差异为准。</p>}
+ {order.frozen_digest&&<p className="text-sm text-muted-foreground">提交内容已冻结，后续发布以这份差异为准。</p>}
 
- <ReleaseFlows order={order} people={names}/><ReleaseApprovals order={order} people={names}/><ReleaseReview order={order} people={names} toolbarAction={available("edit",canEdit)&&(requestPending?<Button disabled icon={<Plus aria-hidden="true"/>}>添加变更</Button>:<PrimitiveButton asChild variant="outline"><Link to={`/configuration/managed-data?table_name=${encodeURIComponent(releaseTables(order)[0]??"")}&draft=${order.id}`}><Plus aria-hidden="true"/>添加变更</Link></PrimitiveButton>)}/>{order.state==="ROLLED_BACK"&&<RollbackReason order={order} people={names}/>}<ReleaseHistory order={order} people={names}/>
+ <ReleaseFlows order={order} people={names}/>{order.release_type==="STANDARD"&&<ReleaseApprovals order={order} people={names}/>}<ReleaseReview order={order} people={names} toolbarAction={available("edit",canEdit)&&(requestPending?<Button disabled icon={<Plus aria-hidden="true"/>}>添加变更</Button>:<PrimitiveButton asChild variant="outline"><Link to={`/configuration/managed-data?table_name=${encodeURIComponent(releaseTables(order)[0]??"")}&draft=${order.id}`}><Plus aria-hidden="true"/>添加变更</Link></PrimitiveButton>)}/>{order.state==="ROLLED_BACK"&&<RollbackReason order={order} people={names}/>}<ReleaseHistory order={order} people={names}/>
  {editing&&<ReleaseDraftEditor order={order} onClose={()=>setEditing(false)}/>}
  {action&&<ReleaseActionDialog order={order} action={action} onClose={()=>setAction(undefined)}/>}
  {quickRollback&&<QuickRollbackDialog order={order} onClose={()=>setQuickRollback(false)}/>}
