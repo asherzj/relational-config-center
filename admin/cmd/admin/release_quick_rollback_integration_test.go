@@ -74,7 +74,17 @@ func TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult(t *testing.
 	if reverse.State != "ROLLED_BACK" || reverse.ID != original.ID || len(reverse.Executions) < 2 || reverse.Executions[1].ActorID != accountID(t, publisher) || reverse.ApplicantID != original.ApplicantID || singleExecutionTableVersion(reverse.Executions[1]) != "2" {
 		t.Fatal("missing original rollback result", reverse)
 	}
+	if len(original.TableFlows) != 1 || original.TableFlows[0].Nodes[2].State != "ACTIVE" || len(reverse.TableFlows) != 1 {
+		t.Fatal("rollback fixture lacks a saved unfinished forward flow")
+	}
+	beforeFlow, afterFlow := original.TableFlows[0], reverse.TableFlows[0]
+	if afterFlow.InstanceID != beforeFlow.InstanceID || !reflect.DeepEqual(afterFlow.Nodes[:2], beforeFlow.Nodes[:2]) || afterFlow.Nodes[2].State != "STOPPED" || afterFlow.Nodes[2].ActorID != "" || afterFlow.Nodes[2].At != "" {
+		t.Fatalf("rollback must preserve completed facts and stop unfinished forward completion: %+v", afterFlow)
+	}
 	current := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
+	if !reflect.DeepEqual(current.TableFlows, reverse.TableFlows) {
+		t.Fatal("stopped forward nodes were not persisted")
+	}
 	if !reflect.DeepEqual(applicationItems(current), applicationItems(original)) || !reflect.DeepEqual(executionCommands(current, "PUBLICATION"), executionCommands(original, "PUBLICATION")) || len(current.History) != len(original.History)+1 {
 		t.Fatal("original application overwritten")
 	}

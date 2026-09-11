@@ -175,4 +175,10 @@ func prepareManagementBrowserPolicies(t *testing.T, admin *accountProcess, maint
 			t.Fatalf("prepare management acceptance %s: status=%d want=%d", request.path, status, request.want)
 		}
 	}
+	// Publication fixtures explicitly opt into a standard flow; new table rules
+	// otherwise receive only the mandatory emergency association.
+	status, _, body := admin.requestWithKey(t, http.MethodPut, "/api/v1/table-policies/stage1_acceptance_items/release-templates/STANDARD", `{"template_code":"default_standard_v1","enabled":true,"expected_version":"0"}`, cookies, csrf, "browser-setup-standard-flow")
+	if status != http.StatusOK {
+		t.Fatalf("prepare standard publication flow: %d %s", status, body)
+	}
 }

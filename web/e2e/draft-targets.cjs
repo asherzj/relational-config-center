@@ -23,6 +23,7 @@ const base=process.env.RCC_WEB_URL,table='draft_browser_items'+suffix,longField=
   await api(admin,'POST',`/api/v1/mutation-policies/${mutation}/activate`,{});
   await api(admin,'POST','/api/v1/table-policies',{table_name:table,query_policy_code:'notification_page_query_v1',mutation_policy_code:mutation},201);
   await api(admin,'POST',`/api/v1/table-policies/${table}/enable`,{expected_version:'1'});
+  await api(admin,'PUT',`/api/v1/table-policies/${table}/release-templates/STANDARD`,{template_code:'default_standard_v1',enabled:true,expected_version:'0'});
   const settings=await admin.newPage();settings.setDefaultTimeout(12000);settings.on("dialog",dialog=>dialog.accept());settings.on('pageerror',error=>errors.push(error.message));
   await settings.goto(`${base}/platform/table-policies/${table}?mode=replace`);
   let fieldReads=0;await settings.route('**/concurrency-key-fields?*',async route=>{if(++fieldReads===1)await route.abort();else await route.continue()});
@@ -37,7 +38,7 @@ const base=process.env.RCC_WEB_URL,table='draft_browser_items'+suffix,longField=
   const editor=await browser.newContext({viewport:{width:1440,height:1000}});const person=await registerFixtureAccount(editor,base,{roles:['EDITOR']});
   const page=await editor.newPage();page.setDefaultTimeout(12000);page.on('pageerror',error=>errors.push(error.message));
   await page.goto(`${base}/configuration/release-orders`);await button(page,'新建草稿').click();assert.equal(await page.getByLabel('起始表（可选）',{exact:true}).count(),0);await page.getByLabel('发布单标题',{exact:true}).fill('   ');assert.equal(await page.getByLabel('发布单标题',{exact:true}).getAttribute('aria-invalid'),'true');assert.equal(await button(page,'创建空草稿').isDisabled(),true);await page.getByLabel('发布单标题',{exact:true}).fill('T2 分页草稿');await button(page,'创建空草稿').click();await page.getByRole('heading',{name:'T2 分页草稿',exact:true}).waitFor();
-  const id=new URL(page.url()).pathname.split('/').at(-1);let draft=await read(editor,`/api/v1/release-orders/${id}`);assert.deepEqual(draft.items,[]);assert.equal(await button(page,'提交审批').isDisabled(),true);
+  const id=new URL(page.url()).pathname.split('/').at(-1);let draft=await read(editor,`/api/v1/release-orders/${id}`);assert.deepEqual(draft.items,[]);assert.equal(await button(page,'提交审批').count(),0);
   draft=await api(editor,'PUT',`/api/v1/release-orders/${id}`,{title:draft.title,expected_version:draft.version,changes:{upserts:Array.from({length:25},(_,index)=>({table_name:table,operation:'MODIFY',id:String(index+1),expected_record_version:'0',content:{label:`proposal-${index+1}`}}))}});
   check('编辑者创建空草稿，增量添加25项后使用同一整单版本');
   const blocker=await api(admin,'POST','/api/v1/release-orders',{title:'T2 冲突负责人',items:[{table_name:table,operation:'ADD',content:{id:'500',code:'occupied',label:'owner'}}]},201);

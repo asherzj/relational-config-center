@@ -3,6 +3,8 @@ import {ReleaseTime} from "./ReleaseTime";
 import {Check,Minus} from "lucide-react";
 import type {ReleaseHeader} from "../../api/release-orders";
 
+// Temporary rollback-only presentation until #106. Forward releases display
+// persisted per-table instances; this must never serve missing configuration.
 export function ReleaseProgress({order,people={}}:{order:ReleaseHeader;people?:Record<string,string>}){
  const cancelled=order.state==="CANCELLED",rejected=order.state==="REJECTED",rolledBack=order.state==="ROLLED_BACK";
  const terminated=cancelled||rejected||rolledBack;

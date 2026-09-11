@@ -1,0 +1,54 @@
+{
+  "docs/verification/2026-09-11-release-instances/backend/12-current-authorization-red.log": {
+    "sha256": "0315e0c056efcf6cce10b6d0b51ccf6eaf68b898010621f7d1b92d092ca94533",
+    "bytes": 16757
+  },
+  "docs/verification/2026-09-11-release-instances/backend/13-current-authorization-green.log": {
+    "sha256": "0669cf55bfeacd168c08be7d44b03ce91ed5d44f44a07306c36b947e1f9b5385",
+    "bytes": 7143
+  },
+  "docs/verification/2026-09-11-release-instances/backend/15-final-http.jsonl": {
+    "sha256": "eb0feb7b52b18783ba5c56e3a1ce6b479ed3a730fd92533ef32f16945f0e5b70",
+    "bytes": 400086
+  },
+  "docs/verification/2026-09-11-release-instances/backend/17-process-and-boundaries-recheck.log": {
+    "sha256": "28a5d1be7b3330cc8c95f4ef5411cd66709823bacbc23fc915abc1ea1b8e0fc1",
+    "bytes": 73
+  },
+  "docs/verification/2026-09-11-release-instances/backend/18-regression-recheck.jsonl": {
+    "sha256": "88467371409fc9cf70aa08296906a820a7904e5086ed10cd989b50f90918cea8",
+    "bytes": 37767
+  },
+  "docs/verification/2026-09-11-release-instances/web/16-save-feedback-red.log": {
+    "sha256": "073093cda65f75ae87e979ed3927f246b4082288da6f7025bdad7c0a1d5c23b2",
+    "bytes": 16173
+  },
+  "docs/verification/2026-09-11-release-instances/web/17-save-feedback-green.log": {
+    "sha256": "f6d8e18c863e99a1e08a185806b89672aa90afae436d688dfcd30f0b10049ede",
+    "bytes": 453
+  },
+  "docs/verification/2026-09-11-release-instances/web/18-feedback-affected-regression.log": {
+    "sha256": "7f33466ae96a257951a802c46c1f667f2032ff24a168707fba95bc805297f922",
+    "bytes": 243
+  },
+  "docs/verification/2026-09-11-release-instances/web/19-final-typecheck.log": {
+    "sha256": "2015a0d00fa44b874702f1c17af198fe7a44daae1f4ccf23a3952c6d4fbbdd4a",
+    "bytes": 114
+  },
+  "docs/verification/2026-09-11-release-instances/web/20-final-build.log": {
+    "sha256": "4b5c58733830ec95a338f16b4325c61a2d8ff5766a0a73a176c10725102f47a9",
+    "bytes": 723
+  },
+  "docs/verification/2026-09-11-release-instances/web/web-change-snapshot.patch": {
+    "sha256": "2cdbc4933fc7715931d8cd507940e4525eb1295edc3294c1c7b55005bf0482d8",
+    "bytes": 66011
+  },
+  "docs/verification/2026-09-11-release-instances/browser/19-system-path.log": {
+    "sha256": "f40f74c7336bd974d216da0dd79b6925c81a91f04810c251a9c3d477371b4c4b",
+    "bytes": 2049
+  },
+  "docs/verification/2026-09-11-release-instances/browser/20-final-system-path.log": {
+    "sha256": "8c9cf8dbb9fd1c742e105ffd11e051ed490aee04770627b9af516dea76b4bc53",
+    "bytes": 2094
+  }
+}

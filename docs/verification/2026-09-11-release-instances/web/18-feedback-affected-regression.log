@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-103-release-instances/web
+
+
+ Test Files  2 passed (2)
+      Tests  101 passed (101)
+   Start at  10:00:20
+   Duration  24.15s (transform 1.12s, setup 608ms, import 1.85s, tests 32.00s, environment 1.35s)
+

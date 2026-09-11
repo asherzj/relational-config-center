@@ -1,0 +1,17 @@
+ok  	github.com/asherzj/relational-config-center/admin/internal/domain	0.502s
+ok  	github.com/asherzj/relational-config-center/admin/internal/application	1.020s
+ok  	github.com/asherzj/relational-config-center/admin/internal/interfaces/http	1.188s
+--- FAIL: TestAdminExternalProcessServesHealthAndEnforcesAuthDefault (0.00s)
+    process_runtime_test.go:64: reserve process address: listen tcp 127.0.0.1:0: bind: operation not permitted
+--- FAIL: TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully (0.00s)
+    --- FAIL: TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully/interrupt (0.00s)
+        process_runtime_test.go:80: reserve process address: listen tcp 127.0.0.1:0: bind: operation not permitted
+    --- FAIL: TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully/terminated (0.00s)
+        process_runtime_test.go:80: reserve process address: listen tcp 127.0.0.1:0: bind: operation not permitted
+--- FAIL: TestAdminExternalProcessForcesShutdownAtConfiguredBoundAndStillClosesApplication (0.00s)
+    process_runtime_test.go:102: reserve process address: listen tcp 127.0.0.1:0: bind: operation not permitted
+--- FAIL: TestAdminExternalProcessWaitsForIncompleteRequestHeadersOnShutdown (0.00s)
+    process_runtime_test.go:118: reserve process address: listen tcp 127.0.0.1:0: bind: operation not permitted
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	5.524s
+FAIL

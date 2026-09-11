@@ -1,0 +1,21 @@
+{
+  "baseline": "f7b3f7bbdb42665b67a590b1b182a86f5ecf3d32",
+  "node": "v24.19.0",
+  "pnpm": "10.28.2",
+  "files": {
+    "web/DESIGN.md": "f7c59fb6b362bc6723de47750bfa5ce89c11db47a3ba80c9ff0e1a90b84ae2af",
+    "web/e2e/release-approvals.cjs": "7002a64fb9c67c07d055943701daefe347c5ba7ea31d361bf386a8db54bb193d",
+    "web/e2e/release-instances.cjs": "44265f66cd019f45fed197d3d0f2be48c3797a43723eb4a58401471e249fd2b2",
+    "web/src/api/error-messages.ts": "467835c306ea2ee9bf823f289d255576d602080c431b01bb92ef9309ea0010ec",
+    "web/src/api/release-orders.test.ts": "b9d63766e9966e7659a990c9b4af9788007657692bedcd33c16ff5f9eae8d365",
+    "web/src/api/release-orders.ts": "e10c5cb8091b4bc9388aa2415031aad652a781562c913b7dbe294dfb14e332aa",
+    "web/src/features/managed-data/ManagedDataMutationPage.test.tsx": "d7dd5a253a99b2b0144590664c04f55fb0499e6f56f7bc973e3a72a0efded386",
+    "web/src/features/release-orders/ReleaseDraftEditor.tsx": "c3e8a60206ba54d020184e8e79cd4a13400b75a72b50c4e078f7e044b706e2fa",
+    "web/src/features/release-orders/ReleaseFlows.tsx": "2c58346559217fa25f6e0c028d9869298e8c42657daabaffdacc7fe30c791634",
+    "web/src/features/release-orders/ReleaseOrdersPage.test.tsx": "f95b275d724af7ec2df9acb14925283b2358dad7fc7ecf2d4dcdd3ff02d34a54",
+    "web/src/features/release-orders/ReleaseOrdersPage.tsx": "708754a0f7e2ec851cba9d65d776e9988f53ed3880e3f96e98ee7ec672fe280b",
+    "web/src/features/release-orders/ReleaseProgress.tsx": "ace4273f3739e75c855331b1aafe438ae3db24b9b5934755f17bf0be5df5bb6f",
+    "web/src/test/UnsavedChanges.test.tsx": "389560f5542873479aa3f072f109981a36ccb9cc37c08b68ccebe79499834749",
+    "web/src/test/release-fixture.ts": "50fd9313a48e89c71c6fb4486af62586e54988a7671427d6e18943dcfbb66bdd"
+  }
+}

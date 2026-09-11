@@ -19,6 +19,7 @@ import {useAccountRole} from "../accounts/roles";
 import {useToast} from "../../components/ui/Toast";
 import {ReleaseTime} from "./ReleaseTime";
 import {ReleaseProgress} from "./ReleaseProgress";
+import {ReleaseFlows,ReleasePhase} from "./ReleaseFlows";
 import {ReleaseApprovals} from "./ReleaseApprovals";
 import {ReleaseHistory} from "./ReleaseHistory";
 import {RollbackReason} from "./RollbackReason";
@@ -78,7 +79,8 @@ function ReleaseDetail({id}:{id:string}){
  const approver=[...order.history].reverse().find(event=>event.action==="APPROVE");
  return <CurrentFieldDisplayProvider tableNames={releaseTables(order)}><div className="release-detail min-w-0"><nav aria-label="发布单位置" className="text-xs text-muted-foreground">配置管理 / 发布单 / <span aria-current="page">详情</span></nav><div><Link className="underline underline-offset-4" to="/configuration/release-orders">返回发布单列表</Link></div>
  {query.isError&&<ErrorState error={query.error} onRetry={()=>void query.refetch()}/>}
- <ReleaseProgress order={order} people={names}/>
+ {order.state==="ROLLED_BACK"?<ReleaseProgress order={order} people={names}/>:<ReleasePhase order={order} people={names}/>}
+ {order.missing_flow_tables.length>0&&<section aria-label="流程配置未完成" className="release-panel min-w-0"><h2 className="text-lg font-semibold text-warning">流程配置未完成，暂不能提交审批</h2><p className="mt-2">以下表尚未保存常规流程。请管理员检查常规模板与表关联；配置修复后，再保存草稿补齐缺失流程。已有表流程保持不变。</p><ul className="my-3 grid gap-1 break-all font-mono">{order.missing_flow_tables.map(table=><li key={table}>{table}</li>)}</ul>{canEdit&&(order.allowed_actions.includes("edit")||retained("edit"))&&<Button disabled={requestPending} onClick={()=>setEditing(true)}>保存草稿以补齐流程</Button>}</section>}
  <div className="release-detail-overview">
   <section className="release-panel min-w-0" aria-label="基本信息"><h2 className="text-xl font-semibold break-all">{order.title}</h2><p className="mt-2 mb-6 text-muted-foreground break-all">{releaseTables(order).join("、")||"暂无明细表"} · {releaseStateLabels[order.state]}</p>
    <dl className="release-info"><div><dt>发布单号</dt><dd className="font-mono break-all">{order.id}<Button variant="ghost" className="ml-1" onClick={async()=>{try{await navigator.clipboard.writeText(order.id);setCopyError(false);showToast("已复制发布单号")}catch{setCopyError(true)}}}>复制发布单号</Button>{copyError&&<p role="alert">复制失败，请选择单号手动复制。</p>}</dd></div><div><dt>申请人</dt><dd><ReleasePerson id={order.applicant_id} name={names[order.applicant_id]}/></dd></div><div><dt>创建时间</dt><dd><ReleaseTime value={order.created_at}/></dd></div><div><dt>最近审批人</dt><dd>{approver?<ReleasePerson id={approver.actor_id} name={names[approver.actor_id]}/>:"尚无批准记录"}</dd></div><div><dt>发布单版本</dt><dd>{order.version}</dd></div>{publication&&<div><dt>发布人</dt><dd><ReleasePerson id={publication.actor_id} name={names[publication.actor_id]}/></dd></div>}</dl>
@@ -88,7 +90,7 @@ function ReleaseDetail({id}:{id:string}){
  {peopleFailure&&<section className="inline-alert mb-4 min-w-0 flex-wrap" role="alert"><div><strong>人员姓名读取失败，当前仅显示永久账号 ID。</strong><span>{peopleFailure.message}</span><span>错误代码：{peopleCode}</span>{peopleFailure.requestId&&<span>请求编号：{peopleFailure.requestId}</span>}</div><Button variant="secondary" disabled={people.isFetching} onClick={()=>void people.refetch()}>{people.isFetching?"正在读取人员姓名…":"重新读取人员姓名"}</Button></section>}
  {order.frozen_digest&&<p className="mb-4">提交内容已冻结，审批和发布以这份差异为准。</p>}{order.copied_from_id&&<p className="mb-4">{order.history[0]?.action==="REPREPARE"?"重新准备自":"复制自"} <Link to={`/configuration/release-orders/${order.copied_from_id}`}>{order.copied_from_id}</Link></p>}
 
- <ReleaseApprovals order={order} people={names}/><ReleaseReview order={order} people={names}/>{order.state==="ROLLED_BACK"&&<RollbackReason order={order} people={names}/>}<ReleaseHistory order={order} people={names}/>
+ <ReleaseFlows order={order} people={names}/><ReleaseApprovals order={order} people={names}/><ReleaseReview order={order} people={names}/>{order.state==="ROLLED_BACK"&&<RollbackReason order={order} people={names}/>}<ReleaseHistory order={order} people={names}/>
  {editing&&<ReleaseDraftEditor order={order} onClose={()=>setEditing(false)}/>}
  {action&&<ReleaseActionDialog order={order} action={action} onClose={()=>setAction(undefined)}/>}
  {quickRollback&&<QuickRollbackDialog order={order} onClose={()=>setQuickRollback(false)}/>}

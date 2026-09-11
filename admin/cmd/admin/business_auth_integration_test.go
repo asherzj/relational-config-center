@@ -500,6 +500,7 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
 	}
 	t.Cleanup(func() { _ = owner.Close() })
 	assignRelationalMutationPolicy(t, app, "inflight_mutation_v1", true, true, true, true)
+	bindFlowTemplate(t, app, "mutation_snapshot_items", "default_standard_v1", true)
 	session := registerAccount(t, app, "inflight.user", "inflight@example.com", "correct horse battery staple")
 	grantTestAdministrator(t, app, session)
 	actor := accountID(t, session)

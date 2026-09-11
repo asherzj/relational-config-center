@@ -267,9 +267,11 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
 		contenderResponses <- accountRequestFrom(app, "POST", "/api/v1/release-orders", contenderBody, applicantCookies, applicantCSRF, "192.0.2.1:1234", map[string]string{"Idempotency-Key": "reprepare-multi-contender"})
 	}()
 	deadline = time.Now().Add(3 * time.Second)
+	// Release writes serialize current authorization before reading targets. The
+	// contender must wait there until the transfer transaction publishes its new owner.
 	for {
 		var waiting int
-		if err := ownerDB.QueryRowContext(ctx, `SELECT COUNT(*) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks requested ON requested.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID JOIN performance_schema.data_locks blocking ON blocking.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID WHERE requested.OBJECT_SCHEMA=DATABASE() AND requested.OBJECT_NAME='rcc_release_targets' AND requested.INDEX_NAME='PRIMARY' AND blocking.OBJECT_SCHEMA=requested.OBJECT_SCHEMA AND blocking.OBJECT_NAME=requested.OBJECT_NAME`).Scan(&waiting); err != nil {
+		if err := ownerDB.QueryRowContext(ctx, `SELECT COUNT(*) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks requested ON requested.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID JOIN performance_schema.data_locks blocking ON blocking.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID WHERE requested.OBJECT_SCHEMA=DATABASE() AND requested.OBJECT_NAME='rcc_auth_control_lock' AND requested.INDEX_NAME='PRIMARY' AND blocking.OBJECT_SCHEMA=requested.OBJECT_SCHEMA AND blocking.OBJECT_NAME=requested.OBJECT_NAME`).Scan(&waiting); err != nil {
 			t.Fatal(err)
 		}
 		if waiting > 0 {
@@ -281,7 +283,7 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
 		default:
 		}
 		if time.Now().After(deadline) {
-			t.Fatal("contender did not reach the retained release-target lock")
+			t.Fatal("contender did not reach the release authorization lock")
 		}
 		time.Sleep(10 * time.Millisecond)
 	}

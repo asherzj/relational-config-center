@@ -1,0 +1,90 @@
+=== RUN   TestAccountBrowserSystemPath
+2026/09/11 10:11:00 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 7529aef8d3d2109d6b02fec8b181d0dd8f3a0abfb3f3c9e9931092b3b2ecc826
+  Test ProcessID: 3ce0182b-ed80-4ed2-beda-48a7353f06a1
+2026/09/11 10:11:00 🐳 Creating container for image mysql:8.4
+2026/09/11 10:11:00 ✅ Container created: 13b6f052e726
+2026/09/11 10:11:00 🐳 Starting container: 13b6f052e726
+2026/09/11 10:11:00 ✅ Container started: 13b6f052e726
+2026/09/11 10:11:00 ⏳ Waiting for container id 13b6f052e726 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 10:11:06 🔔 Container is ready: 13b6f052e726
+=== RUN   TestAccountBrowserSystemPath/release-approvals.cjs
+    account_browser_integration_test.go:126: release-approvals.cjs: PASS people lookup failure falls back to permanent IDs with diagnostics and an independent retry
+        PASS EDITOR submits and sees frozen read-only differences with no self-approval action
+        PASS Approval-role member rejects with a required reason; applicant explicitly reads and confirms a new draft without inherited approval
+        PASS Approval-role member recovers a committed lost approval response after refresh using original key and state version
+        PASS partial MODIFY hides omitted fields by default, restores their distinct state in full view and retains requested changes and generated fields
+        PASS detail presents four actual stages, long title/value/IDs, copy feedback and keyboard folding on desktop and 390px
+        PASS pre-dispatch unknown reprepare keeps APPROVED and preserves original request while current-state actions follow present roles across close and reload
+        PASS applicant reviews current configuration and recovers one atomic replacement across pre-dispatch and post-commit loss with the same body and key
+        PASS applicant cancels an approved order; history survives refresh and actual business data remains unchanged on narrow viewport
+        {"checks":["people lookup failure falls back to permanent IDs with diagnostics and an independent retry","EDITOR submits and sees frozen read-only differences with no self-approval action","Approval-role member rejects with a required reason; applicant explicitly reads and confirms a new draft without inherited approval","Approval-role member recovers a committed lost approval response after refresh using original key and state version","partial MODIFY hides omitted fields by default, restores their distinct state in full view and retains requested changes and generated fields","detail presents four actual stages, long title/value/IDs, copy feedback and keyboard folding on desktop and 390px","pre-dispatch unknown reprepare keeps APPROVED and preserves original request while current-state actions follow present roles across close and reload","applicant reviews current configuration and recovers one atomic replacement across pre-dispatch and post-commit loss with the same body and key","applicant cancels an approved order; history survives refresh and actual business data remains unchanged on narrow viewport"]}
+=== RUN   TestAccountBrowserSystemPath/release-batches.cjs
+    account_browser_integration_test.go:126: release-batches.cjs: PASS data-page MODIFY creates a draft; detail link preselects its table and destination; two explicit row selections append DELETEs without touching data
+        PASS detail editor removes a selected later item and edits a retained item; a new ADD appends to the same mixed draft
+        PASS independent VIEWER table-role member approves all mixed items; EDITOR/PUBLISHER recovers a genuinely committed lost execute response after refresh with the original key and no duplicate rows/history
+        PASS 1000-item detail shows the complete count and paging reaches the actual final item on desktop and 390px mobile
+        PASS UI submission, independent approval and execution publish all 1000 items; all actual IDs match real queried rows and result paging reaches item 1000 on desktop/mobile
+        {"checks":["data-page MODIFY creates a draft; detail link preselects its table and destination; two explicit row selections append DELETEs without touching data","detail editor removes a selected later item and edits a retained item; a new ADD appends to the same mixed draft","independent VIEWER table-role member approves all mixed items; EDITOR/PUBLISHER recovers a genuinely committed lost execute response after refresh with the original key and no duplicate rows/history","1000-item detail shows the complete count and paging reaches the actual final item on desktop and 390px mobile","UI submission, independent approval and execution publish all 1000 items; all actual IDs match real queried rows and result paging reaches item 1000 on desktop/mobile"]}
+=== RUN   TestAccountBrowserSystemPath/release-rollbacks.cjs
+    account_browser_integration_test.go:126: release-rollbacks.cjs: PASS separate EDITOR, VIEWER table-role member and PUBLISHER accounts complete the forward publication
+        PASS completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration
+        PASS completion permanently closes both rollback entry points
+        PASS quick rollback is publisher-only, reviews actual current and restoration values, has no mandatory reason and cancels without writes on desktop and 390px
+        PASS the original detail switches preserved application, actual publication and actual rollback
+        PASS quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish the original order
+        PASS a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends
+        {"checks":["separate EDITOR, VIEWER table-role member and PUBLISHER accounts complete the forward publication","completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration","completion permanently closes both rollback entry points","quick rollback is publisher-only, reviews actual current and restoration values, has no mandatory reason and cancels without writes on desktop and 390px","the original detail switches preserved application, actual publication and actual rollback","quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish the original order","a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends"]}
+=== RUN   TestAccountBrowserSystemPath/draft-targets.cjs
+    account_browser_integration_test.go:124: authenticated management acceptance draft-targets.cjs: exit status 1 PASS 管理员按真实字段配置组合及单字段键；自增、生成和自动字段不可选
+        locator.isDisabled: Timeout 12000ms exceeded.
+        Call log:
+        [2m  - waiting for getByRole('button', { name: '提交审批', exact: true })[22m
+        
+            at /private/tmp/rcc-issue-103-release-instances/web/e2e/draft-targets.cjs:41:191 {
+          log: [
+            "  - waiting for getByRole('button', { name: '提交审批', exact: true })"
+          ],
+          name: 'TimeoutError'
+        }
+=== RUN   TestAccountBrowserSystemPath/release-multitable.cjs
+    account_browser_integration_test.go:126: release-multitable.cjs: PASS 管理员在设置页为同一后续多表发布链路配置管控键
+        PASS 无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序
+        PASS 同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final
+        PASS 独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果
+        PASS 同一原单贯通管理员管控键、真实分页多表草稿、独立审批发布、原单恢复和实际执行人原因补填
+        PASS 两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚
+        PASS 复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联
+        PASS 重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批
+        PASS 真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿
+        PASS 持久化失败前零业务发送且保留输入，日志读取失败不阻断账号或无关只读页面
+        {"checks":["管理员在设置页为同一后续多表发布链路配置管控键","无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序","同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final","独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果","同一原单贯通管理员管控键、真实分页多表草稿、独立审批发布、原单恢复和实际执行人原因补填","两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚","复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联","重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批","真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿","持久化失败前零业务发送且保留输入，日志读取失败不阻断账号或无关只读页面"],"original_order_journey":{"order_id":"62a2a083d29c8b228df8b9055378b89c","publication_execution":"62a2a083d29c8b228df8b9055378b89c:PUBLICATION","rollback_execution":"62a2a083d29c8b228df8b9055378b89c:ROLLBACK","reason_actor":"86e280ad-058d-4216-8207-628e60c5cef4","configured_keys":{"multitable_browser_a":["label"],"multitable_browser_b":["label"]},"review_pages":[{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"1","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"1","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"2","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"2","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"3","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"4","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"4","offset":"0","limit":"100"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"5","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"5","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"5","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"6","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"6","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"6","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"6","offset":"20","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"7","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"7","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"7","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"8","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"8","offset":"20","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"9","offset":"20","limit":"20"},{"path":"/api/v1/release-orders/62a2a083d29c8b228df8b9055378b89c/details","version":"9","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/f7f65e634b116ff2360c46021c8567b4/details","version":"3","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/f7f65e634b116ff2360c46021c8567b4/details","version":"3","offset":"0","limit":"100"},{"path":"/api/v1/release-orders/f7f65e634b116ff2360c46021c8567b4/details","version":"3","offset":"0","limit":"100"},{"path":"/api/v1/release-orders/2a042ced4765d1d04aad901d521d2c3e/details","version":"1","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/f7f65e634b116ff2360c46021c8567b4/details","version":"4","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/2a042ced4765d1d04aad901d521d2c3e/details","version":"1","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/8636bb1a91c27306e931ae1a38999cbe/details","version":"3","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/8636bb1a91c27306e931ae1a38999cbe/details","version":"3","offset":"0","limit":"100"},{"path":"/api/v1/release-orders/7c7c86f87036c78eac69f93922f5ff87/details","version":"1","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/8636bb1a91c27306e931ae1a38999cbe/details","version":"4","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/7c7c86f87036c78eac69f93922f5ff87/details","version":"1","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/7c7c86f87036c78eac69f93922f5ff87/details","version":"1","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/7c7c86f87036c78eac69f93922f5ff87/details","version":"2","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/7c7c86f87036c78eac69f93922f5ff87/details","version":"2","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/7c7c86f87036c78eac69f93922f5ff87/details","version":"2","offset":"0","limit":"20"},{"path":"/api/v1/release-orders/7c7c86f87036c78eac69f93922f5ff87/details","version":"3","offset":"0","limit":"20"}]},"session_checks":[{"account_id":"86e280ad-058d-4216-8207-628e60c5cef4","roles":["EDITOR","PUBLISHER"],"username":"e2e.3098829ba006a479885b","workspace_ready":true},{"account_id":"86e280ad-058d-4216-8207-628e60c5cef4","roles":["VIEWER"],"username":"e2e.3098829ba006a479885b","workspace_ready":true},{"account_id":"cacbcef1-63ac-44dc-b40b-5f4ab781b92d","roles":["VIEWER"],"username":"e2e.8542759039bd0ab9bc8f","workspace_ready":true},{"account_id":"86e280ad-058d-4216-8207-628e60c5cef4","roles":["EDITOR","PUBLISHER"],"username":"e2e.3098829ba006a479885b","workspace_ready":true}],"large_request":{"bytes":9437321,"sha256":"6098606ac814f10f3d22bd183bb731c053f66e16b29418200766bbc76e798606","same_key":true,"same_order":true,"account_isolation":true},"storage_unavailable":{"calls":1,"injected":true}}
+=== RUN   TestAccountBrowserSystemPath/field-display.cjs
+    account_browser_integration_test.go:126: field-display.cjs: PASS a hidden configured field remains in persisted actual before/final and duplicate labels retain both raw values
+        PASS reopening history reads new names and option labels without changing persisted before/final
+        PASS request review ignores list visibility while showing current labels and immutable requested values
+        PASS metadata failure keeps raw request history, diagnostics and an independent retry
+        {"checks":["a hidden configured field remains in persisted actual before/final and duplicate labels retain both raw values","reopening history reads new names and option labels without changing persisted before/final","request review ignores list visibility while showing current labels and immutable requested values","metadata failure keeps raw request history, diagnostics and an independent retry"],"errors":[],"order_id":"b20c4b6bcfbb8120ad24a6f4d66e8845"}
+=== NAME  TestAccountBrowserSystemPath
+    account_browser_integration_test.go:142: browser → Vite same-origin proxy → Admin → MySQL: record version conflict preserves input, explicit latest read and baseline rebuild, registration defaults VIEWER, maintenance ADMIN bootstrap, UI combination grant, 390px role catalog and drawer, role history with permanent actor, original member session refresh, refresh, reopen, dirty navigation protection, same-account Change Set recovery after session loss, hidden drawer keyboard isolation, draft submit independent approval and publisher execution, unknown execute result reload and original-key recovery, final row defaults and permanent actor fields, refresh notification remains NOT_CONNECTED, no direct record write request, HTTP Cookie, storage/URL secrecy, logout rejection; creator/modifier match current Account ID
+2026/09/11 10:13:48 🐳 Stopping container: 13b6f052e726
+2026/09/11 10:13:49 ✅ Container stopped: 13b6f052e726
+2026/09/11 10:13:49 🐳 Terminating container: 13b6f052e726
+2026/09/11 10:13:49 🚫 Container terminated: 13b6f052e726
+--- FAIL: TestAccountBrowserSystemPath (168.87s)
+    --- PASS: TestAccountBrowserSystemPath/release-approvals.cjs (25.00s)
+    --- PASS: TestAccountBrowserSystemPath/release-batches.cjs (24.84s)
+    --- PASS: TestAccountBrowserSystemPath/release-rollbacks.cjs (16.45s)
+    --- FAIL: TestAccountBrowserSystemPath/draft-targets.cjs (19.22s)
+    --- PASS: TestAccountBrowserSystemPath/release-multitable.cjs (44.37s)
+    --- PASS: TestAccountBrowserSystemPath/field-display.cjs (3.00s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	169.977s
+FAIL

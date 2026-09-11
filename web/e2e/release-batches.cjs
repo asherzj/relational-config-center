@@ -95,6 +95,7 @@ const output = process.env.RCC_E2E_OUTPUT;
       table_name: table, query_policy_code: 'batch_browser_query_v1', mutation_policy_code: 'batch_browser_mutation_v1',
     }, 201);
     await api(applicant, 'POST', `/api/v1/table-policies/${table}/enable`,{expected_version:'1'});
+    await api(applicant, 'PUT', `/api/v1/table-policies/${table}/release-templates/STANDARD`, {template_code:'default_standard_v1',enabled:true,expected_version:'0'});
     const reviewerFixture = await registerFixtureAccount(reviewer, base, { roles: ['VIEWER'] });
     await createFixtureApprovalRole(applicant, base, `Batch review ${randomUUID()}`, [reviewerFixture.accountID], [table]);
     await setFixtureRoles(applicant, base, (await identity(applicant)).account.id, ['EDITOR', 'PUBLISHER']);

@@ -2,6 +2,7 @@ import {useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {ApiError} from "../../api/client";
 import {loadReleaseForEdit,type ReleaseHeader,draftFromOrder,releaseDetailTables,incrementalDraft,rebaseDraftInput,releaseOrders,releaseRequests,releaseTitleError,type ReleaseOrder} from "../../api/release-orders";
+import {useToast} from "../../components/ui/Toast";
 import {Drawer} from "../../components/ui/Drawer";
 import {Button} from "../../components/ui/Button";
 import {Input} from "../../components/shadcn/input";
@@ -24,6 +25,7 @@ export function ReleaseDraftEditor({order,onClose}:{order:ReleaseHeader;onClose:
  return <LoadedReleaseDraftEditor order={input.data} current={order} onClose={onClose}/>;
 }
 function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;current:ReleaseHeader;onClose:()=>void}){
+ const {showToast}=useToast();
  const [baseline,setBaseline]=useState(order);
  const [title,setTitle]=useState(order.title);
  const [items,setItems]=useState(order.items);
@@ -55,7 +57,7 @@ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;cu
  };
  const save=async()=>{
   const saved=originalKey&&write.unresolved&&originalKey===write.storedRequest?.key?await write.retry():await write.send({...releaseRequests.edit(order.id,incrementalDraft(baseline,{...baseline,title,items})),label:`修改 ${order.id}`});
-  if(saved){protection.afterSave(onClose)}
+  if(saved){showToast("草稿已保存");protection.afterSave(onClose)}
  };
  const inspect=async()=>{
   if(reading)return;setReading(true);setReadError(undefined);
@@ -68,6 +70,7 @@ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;cu
  return <Drawer open eyebrow="发布草稿" title="编辑多表草稿" onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>关闭</Button><Button variant="primary" disabled={write.blocked||(!allowed&&!canRepeat)||Boolean(titleError)||write.pending||reading||conflict||recordConflict} onClick={()=>void save()}>{write.pending?"正在保存…":"保存草稿修改"}</Button></>}>
  {!allowed&&<p role="alert">当前身份或发布单状态不允许编辑，已输入内容保留。</p>}
  <p>保存草稿即占用目标，直到移除最后一条引用或发布单结束。只提交本次明细变更，全部分页共用整单版本。</p>
+ {baseline.missing_flow_tables.length>0&&<p className="mt-3 text-warning">缺失常规流程：{baseline.missing_flow_tables.join("、")}。管理员修复配置后，可直接保存，无需修改内容；保存仅补齐缺失流程，已有实例保持不变。</p>}
  <div className="grid gap-2 my-5"><label htmlFor="release-order-title">发布单标题</label><Input id="release-order-title" value={title} required aria-invalid={Boolean(titleError)} aria-describedby={`release-order-title-count${titleError?" release-order-title-error":""}`} disabled={write.blocked||!allowed||write.pending||write.unresolved} onChange={event=>setTitle(event.target.value)}/><span id="release-order-title-count" className="text-xs text-muted-foreground">{Array.from(title).length} / 100 字符</span>{titleError&&<small id="release-order-title-error" className="field-error">{titleError}</small>}</div>
  <fieldset disabled={write.pending||write.unresolved}><ReleaseItemPager count={items.length} page={page} onPage={page=>setSelected(page*releasePageSize)} onLocate={setSelected} label="编辑明细"/></fieldset>
  <div className="flex flex-wrap items-end gap-3 my-5"><label>编辑明细<NativeSelect aria-label="编辑明细" value={selected} disabled={write.pending||write.unresolved} onChange={event=>setSelected(Number(event.target.value))}>{items.slice(page*releasePageSize,(page+1)*releasePageSize).map((entry,offset)=>{const index=page*releasePageSize+offset;return <option key={index} value={index}>明细 {index+1} · {entry.table_name} · {entry.operation} · {entry.id??"待生成 id"}</option>})}</NativeSelect></label><Button disabled={write.blocked||!allowed||items.length===0||write.pending||write.unresolved} onClick={()=>{setItems(current=>current.filter((_,index)=>index!==selected));setSelected(Math.max(0,selected-1));setRecordLatest(undefined)}}>移除此明细</Button><p>共 {items.length} 项。保存只提交本次修改、删除和排序。</p></div>

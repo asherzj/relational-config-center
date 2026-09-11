@@ -1025,4 +1025,7 @@ func assertDirectMutationRowCount(t *testing.T, ctx context.Context, database *s
 func enableMutationPolicy(t *testing.T, app *adminApplication, tableName string, mutation mutationPolicyFixture) {
 	t.Helper()
 	enablePolicyAssignment(t, app, tableName, queryPolicyFixture{}, mutation)
+	// Publication fixtures explicitly opt new tables into the standard workflow.
+	// Runtime table creation continues to establish only the emergency association.
+	bindFlowTemplate(t, app, tableName, "default_standard_v1", true)
 }

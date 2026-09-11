@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-103-release-instances/web
+> vitest run src/features/release-orders/ReleaseOrdersPage.test.tsx -t '多表详情按各自'
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-103-release-instances/web
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 75 skipped (76)
+   Start at  08:53:32
+   Duration  1.96s (transform 540ms, setup 219ms, import 833ms, tests 300ms, environment 505ms)
+

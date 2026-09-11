@@ -137,6 +137,7 @@ func (r *ReleaseOrders) QuickRollback(ctx context.Context, id string, input Quic
 			return err
 		}
 		original.History[len(original.History)-1].ExecutionID = publication.ExecutionID
+		advanceReleaseFlows(&original)
 		if err = s.SaveReleaseOrder(ctx, original, false); err != nil {
 			return err
 		}

@@ -1,0 +1,30 @@
+{
+  "issue_flow_tests": "TestReleaseFlow.*",
+  "regressions": [
+    "TestReleaseSubmitRequiresIndependentApprover",
+    "TestTableApprovalPartialProgressAndFinalApproval",
+    "TestTableApprovalSnapshotMembershipFallbackAndHistory",
+    "TestTableApprovalScopeConcurrencyAndRejection",
+    "TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit",
+    "TestTableApprovalQualificationChangesSerializeWithDecisions",
+    "TestDraftIncrementalEditsReplaceTargetsAtomically",
+    "TestDraftTargetReplacementRollsBackOnPersistenceFailure",
+    "TestDraftSubmitRejectsChangedTargetIdentity",
+    "TestMultitableDerivedDraftRequiresExactDetailIdentity",
+    "TestMultitableCopyCompetesForEveryTargetAndLinksBothOrders",
+    "TestMultitableReprepareTransfersChangedTargetsAtomically",
+    "TestReleaseHeaderAndDetailPagesRequireOneWholeOrderVersion",
+    "TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder",
+    "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults",
+    "TestConfirmedReleaseFailureHistoryPreservesOriginalRetry",
+    "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish",
+    "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges"
+  ],
+  "regex": "^(TestReleaseFlow.*|TestReleaseSubmitRequiresIndependentApprover|TestTableApprovalPartialProgressAndFinalApproval|TestTableApprovalSnapshotMembershipFallbackAndHistory|TestTableApprovalScopeConcurrencyAndRejection|TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit|TestTableApprovalQualificationChangesSerializeWithDecisions|TestDraftIncrementalEditsReplaceTargetsAtomically|TestDraftTargetReplacementRollsBackOnPersistenceFailure|TestDraftSubmitRejectsChangedTargetIdentity|TestMultitableDerivedDraftRequiresExactDetailIdentity|TestMultitableCopyCompetesForEveryTargetAndLinksBothOrders|TestMultitableReprepareTransfersChangedTargetsAtomically|TestReleaseHeaderAndDetailPagesRequireOneWholeOrderVersion|TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder|TestMultitablePublicationPreservesGlobalOrderAndOriginalResults|TestConfirmedReleaseFailureHistoryPreservesOriginalRetry|TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish|TestReleaseHistorySurvivesExecutableRestartAndExternalChanges)$",
+  "environment": {
+    "TESTCONTAINERS_RYUK_DISABLED": "true",
+    "DOCKER_HOST": "unix:///Users/asher/.colima/default/docker.sock",
+    "GOCACHE": "/private/tmp/rcc-go-cache"
+  },
+  "command": "go test -json -tags=integration ./admin/cmd/admin -run <regex> -count=1 -timeout=15m"
+}

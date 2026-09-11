@@ -1,0 +1,40 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-103-release-instances/web
+> vitest run src/features/release-orders/ReleaseOrdersPage.test.tsx -t '缺失流程阻止提交'
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-103-release-instances/web
+
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx (77 tests | 1 failed | 76 skipped) 444ms
+   × 缺失流程阻止提交，配置修复后无需改动内容也可明确保存补齐 443ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/release-orders/ReleaseOrdersPage.test.tsx > 缺失流程阻止提交，配置修复后无需改动内容也可明确保存补齐
+Error: expect(element).toBeEnabled()
+
+Received element is not enabled:
+  <button
+  class="inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 button"
+  data-size="default"
+  data-slot="button"
+  data-variant="default"
+  disabled=""
+/>
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx:69:62
+     67|  await user.click(await originalButton("保存草稿修改"));
+     68|  expect(await screen.findByText("恢复后的表审批")).toBeVisible();expect(scree…
+     69|  expect(screen.getByRole("button",{name:"提交审批",exact:true})).toBeEnabl…
+       |                                                              ^
+     70|  expect(writes).toHaveLength(1);expect(JSON.parse(String(writes[0]!.bo…
+     71|  expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBeTr…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 76 skipped (77)
+   Start at  08:54:38
+   Duration  2.28s (transform 565ms, setup 251ms, import 883ms, tests 444ms, environment 585ms)
+
+ ELIFECYCLE  Command failed with exit code 1.

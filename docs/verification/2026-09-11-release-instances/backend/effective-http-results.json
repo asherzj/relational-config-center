@@ -1,0 +1,282 @@
+{
+  "raw_runs": {
+    "15-final-http": {
+      "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish": {
+        "status": "fail",
+        "elapsed_seconds": 9.78
+      },
+      "TestMultitableDerivedDraftRequiresExactDetailIdentity": {
+        "status": "pass",
+        "elapsed_seconds": 8.45
+      },
+      "TestMultitableCopyCompetesForEveryTargetAndLinksBothOrders": {
+        "status": "pass",
+        "elapsed_seconds": 8.69
+      },
+      "TestMultitableReprepareTransfersChangedTargetsAtomically": {
+        "status": "fail",
+        "elapsed_seconds": 13.73
+      },
+      "TestDraftIncrementalEditsReplaceTargetsAtomically": {
+        "status": "pass",
+        "elapsed_seconds": 8.73
+      },
+      "TestDraftTargetReplacementRollsBackOnPersistenceFailure": {
+        "status": "pass",
+        "elapsed_seconds": 8.83
+      },
+      "TestDraftSubmitRejectsChangedTargetIdentity": {
+        "status": "pass",
+        "elapsed_seconds": 9.03
+      },
+      "TestConfirmedReleaseFailureHistoryPreservesOriginalRetry": {
+        "status": "pass",
+        "elapsed_seconds": 8.71
+      },
+      "TestReleaseFlowCurrentAuthorizationAfterWaitingForMaintenance": {
+        "status": "pass",
+        "elapsed_seconds": 11.75
+      },
+      "TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots": {
+        "status": "pass",
+        "elapsed_seconds": 9.9
+      },
+      "TestReleaseFlowStorageFailuresKeepDraftAndOriginalResultAtomic": {
+        "status": "pass",
+        "elapsed_seconds": 8.76
+      },
+      "TestReleaseFlowAC009PersistsIndependentTablesBeforeFirstRead": {
+        "status": "pass",
+        "elapsed_seconds": 8.82
+      },
+      "TestReleaseFlowAC010MissingConfigurationRequiresExplicitSave": {
+        "status": "pass",
+        "elapsed_seconds": 8.74
+      },
+      "TestReleaseFlowAC013DerivedDraftUsesCurrentConfiguration": {
+        "status": "pass",
+        "elapsed_seconds": 8.76
+      },
+      "TestReleaseFlowAC014SeparatesInstancesFromSubmissionApprovals": {
+        "status": "pass",
+        "elapsed_seconds": 9.79
+      },
+      "TestReleaseFlowAC011DraftEditsPreserveAndReplaceOnlyParticipatingTables": {
+        "status": "pass",
+        "elapsed_seconds": 8.79
+      },
+      "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges": {
+        "status": "pass",
+        "elapsed_seconds": 16.7
+      },
+      "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults": {
+        "status": "pass",
+        "elapsed_seconds": 9.72
+      },
+      "TestReleaseHeaderAndDetailPagesRequireOneWholeOrderVersion": {
+        "status": "pass",
+        "elapsed_seconds": 7.57
+      },
+      "TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder": {
+        "status": "pass",
+        "elapsed_seconds": 10.01
+      },
+      "TestReleaseSubmitRequiresIndependentApprover": {
+        "status": "pass",
+        "elapsed_seconds": 8.91
+      },
+      "TestTableApprovalPartialProgressAndFinalApproval": {
+        "status": "pass",
+        "elapsed_seconds": 8.6
+      },
+      "TestTableApprovalSnapshotMembershipFallbackAndHistory": {
+        "status": "pass",
+        "elapsed_seconds": 8.57
+      },
+      "TestTableApprovalScopeConcurrencyAndRejection": {
+        "status": "pass",
+        "elapsed_seconds": 8.64
+      },
+      "TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit": {
+        "status": "pass",
+        "elapsed_seconds": 7.74
+      },
+      "TestTableApprovalQualificationChangesSerializeWithDecisions": {
+        "status": "pass",
+        "elapsed_seconds": 12.69
+      }
+    },
+    "18-regression-recheck": {
+      "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish": {
+        "status": "pass",
+        "elapsed_seconds": 9.08
+      },
+      "TestMultitableReprepareTransfersChangedTargetsAtomically": {
+        "status": "pass",
+        "elapsed_seconds": 9.74
+      }
+    },
+    "20-rollback-flow-green": {
+      "TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult": {
+        "status": "pass",
+        "elapsed_seconds": 9.64
+      },
+      "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks": {
+        "status": "pass",
+        "elapsed_seconds": 9.6
+      },
+      "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets": {
+        "status": "pass",
+        "elapsed_seconds": 10.54
+      }
+    }
+  },
+  "effective_unique_top_level_tests": 29,
+  "effective_results": {
+    "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish": {
+      "status": "pass",
+      "elapsed_seconds": 9.08,
+      "run": "18-regression-recheck"
+    },
+    "TestMultitableDerivedDraftRequiresExactDetailIdentity": {
+      "status": "pass",
+      "elapsed_seconds": 8.45,
+      "run": "15-final-http"
+    },
+    "TestMultitableCopyCompetesForEveryTargetAndLinksBothOrders": {
+      "status": "pass",
+      "elapsed_seconds": 8.69,
+      "run": "15-final-http"
+    },
+    "TestMultitableReprepareTransfersChangedTargetsAtomically": {
+      "status": "pass",
+      "elapsed_seconds": 9.74,
+      "run": "18-regression-recheck"
+    },
+    "TestDraftIncrementalEditsReplaceTargetsAtomically": {
+      "status": "pass",
+      "elapsed_seconds": 8.73,
+      "run": "15-final-http"
+    },
+    "TestDraftTargetReplacementRollsBackOnPersistenceFailure": {
+      "status": "pass",
+      "elapsed_seconds": 8.83,
+      "run": "15-final-http"
+    },
+    "TestDraftSubmitRejectsChangedTargetIdentity": {
+      "status": "pass",
+      "elapsed_seconds": 9.03,
+      "run": "15-final-http"
+    },
+    "TestConfirmedReleaseFailureHistoryPreservesOriginalRetry": {
+      "status": "pass",
+      "elapsed_seconds": 8.71,
+      "run": "15-final-http"
+    },
+    "TestReleaseFlowCurrentAuthorizationAfterWaitingForMaintenance": {
+      "status": "pass",
+      "elapsed_seconds": 11.75,
+      "run": "15-final-http"
+    },
+    "TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots": {
+      "status": "pass",
+      "elapsed_seconds": 9.9,
+      "run": "15-final-http"
+    },
+    "TestReleaseFlowStorageFailuresKeepDraftAndOriginalResultAtomic": {
+      "status": "pass",
+      "elapsed_seconds": 8.76,
+      "run": "15-final-http"
+    },
+    "TestReleaseFlowAC009PersistsIndependentTablesBeforeFirstRead": {
+      "status": "pass",
+      "elapsed_seconds": 8.82,
+      "run": "15-final-http"
+    },
+    "TestReleaseFlowAC010MissingConfigurationRequiresExplicitSave": {
+      "status": "pass",
+      "elapsed_seconds": 8.74,
+      "run": "15-final-http"
+    },
+    "TestReleaseFlowAC013DerivedDraftUsesCurrentConfiguration": {
+      "status": "pass",
+      "elapsed_seconds": 8.76,
+      "run": "15-final-http"
+    },
+    "TestReleaseFlowAC014SeparatesInstancesFromSubmissionApprovals": {
+      "status": "pass",
+      "elapsed_seconds": 9.79,
+      "run": "15-final-http"
+    },
+    "TestReleaseFlowAC011DraftEditsPreserveAndReplaceOnlyParticipatingTables": {
+      "status": "pass",
+      "elapsed_seconds": 8.79,
+      "run": "15-final-http"
+    },
+    "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges": {
+      "status": "pass",
+      "elapsed_seconds": 16.7,
+      "run": "15-final-http"
+    },
+    "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults": {
+      "status": "pass",
+      "elapsed_seconds": 9.72,
+      "run": "15-final-http"
+    },
+    "TestReleaseHeaderAndDetailPagesRequireOneWholeOrderVersion": {
+      "status": "pass",
+      "elapsed_seconds": 7.57,
+      "run": "15-final-http"
+    },
+    "TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder": {
+      "status": "pass",
+      "elapsed_seconds": 10.01,
+      "run": "15-final-http"
+    },
+    "TestReleaseSubmitRequiresIndependentApprover": {
+      "status": "pass",
+      "elapsed_seconds": 8.91,
+      "run": "15-final-http"
+    },
+    "TestTableApprovalPartialProgressAndFinalApproval": {
+      "status": "pass",
+      "elapsed_seconds": 8.6,
+      "run": "15-final-http"
+    },
+    "TestTableApprovalSnapshotMembershipFallbackAndHistory": {
+      "status": "pass",
+      "elapsed_seconds": 8.57,
+      "run": "15-final-http"
+    },
+    "TestTableApprovalScopeConcurrencyAndRejection": {
+      "status": "pass",
+      "elapsed_seconds": 8.64,
+      "run": "15-final-http"
+    },
+    "TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit": {
+      "status": "pass",
+      "elapsed_seconds": 7.74,
+      "run": "15-final-http"
+    },
+    "TestTableApprovalQualificationChangesSerializeWithDecisions": {
+      "status": "pass",
+      "elapsed_seconds": 12.69,
+      "run": "15-final-http"
+    },
+    "TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult": {
+      "status": "pass",
+      "elapsed_seconds": 9.64,
+      "run": "20-rollback-flow-green"
+    },
+    "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks": {
+      "status": "pass",
+      "elapsed_seconds": 9.6,
+      "run": "20-rollback-flow-green"
+    },
+    "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets": {
+      "status": "pass",
+      "elapsed_seconds": 10.54,
+      "run": "20-rollback-flow-green"
+    }
+  }
+}

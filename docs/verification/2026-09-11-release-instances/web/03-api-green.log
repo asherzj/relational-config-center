@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-103-release-instances/web
+> vitest run src/api/release-orders.test.ts -t '详情保留服务端'
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-103-release-instances/web
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 8 skipped (9)
+   Start at  08:51:25
+   Duration  917ms (transform 61ms, setup 253ms, import 6ms, tests 8ms, environment 542ms)
+

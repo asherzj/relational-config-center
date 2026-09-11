@@ -37,6 +37,7 @@ const button = (page, name) => page.getByRole('button', { name, exact: true });
     for (const table of tables) {
       await api(admin.context, base, 'POST', '/api/v1/table-policies', { table_name: table, query_policy_code: 'notification_page_query_v1', mutation_policy_code: mutation }, 201);
       await api(admin.context, base, 'POST', `/api/v1/table-policies/${table}/enable`, { expected_version: "1" });
+      await api(admin.context, base, 'PUT', `/api/v1/table-policies/${table}/release-templates/STANDARD`, {template_code:'default_standard_v1',enabled:true,expected_version:'0'});
     }
     const opsRole = await createRole(admin.context, base, '商品运营审批角色 · 长名称验证多人分工', [ops.identity.accountID]);
     const priceRole = await createRole(admin.context, base, '财务价格审批', [finance.identity.accountID]);

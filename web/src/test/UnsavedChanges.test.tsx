@@ -13,7 +13,7 @@ import { testAdminIdentity, withAdminSession } from "./account-session";
 const audit = { creator: "fixture", modifier: "fixture", created_at: "2026-09-07T00:00:00Z", updated_at: "2026-09-07T00:00:00Z" };
 const query = { ...audit, code: "query_v1", name: "查询基线", description: "说明", type_code: "page_query", default_order_field: "id", default_order_direction: "DESC", default_page_size: 20, max_page_size: 200, status: "DRAFT" };
 const mutation = { ...audit, code: "mutation_v1", name: "变更基线", description: "说明", type_code: "single_table_mutation", allow_add: true, allow_modify: true, allow_delete: true, create_operator_field: null, create_time_field: null, modify_operator_field: null, modify_time_field: null, status: "DRAFT" };
-const assignment = { ...audit, table_name: "items", query_policy_code: "query_v1", mutation_policy_code: "mutation_v1", enabled: true };
+const assignment = { ...audit, version: "1", table_name: "items", query_policy_code: "query_v1", mutation_policy_code: "mutation_v1", enabled: true };
 const columns = [{ name: "id", type: "uint64", nullable: false }, { name: "name", type: "string", nullable: false }, { name: "note", type: "string", nullable: true }] as const;
 const row = { id: "1", name: "original", note: null };
 const savedDraft={id:"12345678123456781234567812345678",title:"items 配置变更",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{table_name:"items",operation:"MODIFY",id:"1",expected_record_version:"0",content:{name:"originalchanged"},before:row,fields:[]}]};

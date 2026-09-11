@@ -100,8 +100,16 @@ _Avoid_: Release Node Definition, Release Order instance, per-node configuration
 One named step within a Release Template, using a predefined workflow capability and its allowed authority parameters. Its code is unique within that template, and its position follows the sequence allowed by the template's Release Type.
 _Avoid_: Release Execution, workflow progress, arbitrary script, database row change
 
+**Release Table Flow（逐表流程实例）**:
+The workflow acknowledged for one involved Managed Table when a Release Order draft is saved, retaining its selected Release Type and ordered node definitions. Later template changes or table reassignment do not replace that saved workflow.
+_Avoid_: Release Template, Approval Assignment Snapshot, whole-order template
+
+**Release Node Instance（发布节点实例）**:
+One step in a Release Table Flow, retaining the acknowledged definition and the progress recorded through actual table decisions or whole-order publication and completion. Any attributed person and time belong to the action that produced that progress.
+_Avoid_: Release Node Definition, current approval eligibility, inferred completion
+
 **Release Order（发布单）**:
-The authoritative record of an ordered collection of proposed changes across Managed Tables in one Managed Data Source and its progression through approval, publication, completion, cancellation, or rollback. It associates the frozen application with its applicant, change details, execution results, and operation history.
+The authoritative record of an ordered collection of proposed changes across Managed Tables in one Managed Data Source and its progression through approval, publication, completion, cancellation, or rollback. It associates the frozen application with its applicant, per-table flows, change details, execution results, and operation history.
 _Avoid_: Change Set, deployment, notification task
 
 **Release Change Detail（发布单变更明细）**:
@@ -126,7 +134,7 @@ _Avoid_: Approval of an individual record, publication, approval of another tabl
 
 **Approval Assignment Snapshot（审批分配快照）**:
 The role identities and names assigned to review each involved Managed Table when a Release Order is submitted, including an explicitly empty assignment. Membership and eligibility remain current, while later table reassignment does not replace the snapshot or invalidate decisions already completed lawfully.
-_Avoid_: Policy Snapshot, frozen membership, current table assignment
+_Avoid_: Policy Snapshot, Release Table Flow, frozen membership, current table assignment
 
 **Record Version（记录并发版本）**:
 The monotonically advancing concurrency identity of one configuration record, used to reject changes based on an older record state, including after deletion and recreation of the same record identity.
