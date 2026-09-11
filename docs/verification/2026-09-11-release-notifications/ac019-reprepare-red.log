@@ -1,0 +1,53 @@
+=== RUN   TestReleaseNotificationsReprepareCancelsSourceAtomically
+2026/09/11 07:47:52 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: bd003d1a2e9552f7c951ff69b7f6b471109f800424c02b19bb783e340ff77f74
+  Test ProcessID: 8d396cbd-6e52-4006-9efa-d689a302e227
+2026/09/11 07:47:52 🐳 Creating container for image mysql:8.4
+2026/09/11 07:47:52 ✅ Container created: d4f94e445492
+2026/09/11 07:47:52 🐳 Starting container: d4f94e445492
+2026/09/11 07:47:52 ✅ Container started: d4f94e445492
+2026/09/11 07:47:52 ⏳ Waiting for container id d4f94e445492 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:48:00 🔔 Container is ready: d4f94e445492
+{"request_id":"rcc-b28b0d51c01f62437ab1a350a3bd7268","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-3e7ab9faddb230265171bf334727887b","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":47}
+{"request_id":"rcc-25a8b448eb267402a6ccd6c8532509b9","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":4}
+{"request_id":"rcc-98030487c1cd3bc6ebacc472bf92baae","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":47}
+{"request_id":"rcc-5da04bab377d22ee312fab828bf6eb95","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-897c1b862a1e9c597c4486727e137bc6","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-e8c03e6935f12984329e3afcef40162d","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-3a34b5b84d2bb9a0f81355d394138ed9","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":47}
+{"request_id":"rcc-db00ce6bf393d4947fd2ba1b3dba9296","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-f9a6f6d39e389364d326afe6b8b81814","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":55}
+{"request_id":"rcc-3dee4de84ad30a3db36ce97451fc423e","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":9}
+{"request_id":"rcc-f15d7fd3fafc0e5282691c1c2be9da39","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":9}
+{"request_id":"rcc-52c53e123f84dc8a4cf9dfc3019f5ebc","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":11}
+{"request_id":"rcc-61b0c13c6ca1d10a70dcf27359409f91","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":14}
+{"request_id":"rcc-92a65de793ba6c56c2f63e057dfd8605","method":"GET","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":3}
+{"request_id":"rcc-a2d032955fa4528498839fee0bccbef3","method":"PUT","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":16}
+{"request_id":"rcc-c07e5addc59ec70c50238ab96beb2f08","method":"GET","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":3}
+{"request_id":"rcc-1d8669e8798682ff1f17c7e484d68df1","method":"PUT","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":16}
+{"request_id":"rcc-4cdcde45c320baab6b46fccc2430e251","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":48}
+{"request_id":"rcc-5996bbe77712babc609a1eee0fc39ba3","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":114}
+{"request_id":"rcc-f5dfc649196e8bffbd3f8e60bd20124d","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":7}
+{"request_id":"rcc-327dc05d1b22feace68f981fec33f25c","method":"POST","path":"/api/v1/release-orders/:id/approve","status":200,"duration_ms":31}
+{"request_id":"rcc-4c7beb20c5d7b8490938917406609372","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":7}
+{"request_id":"rcc-ee4f9fea63852acc98fe46905f7d9628","method":"GET","path":"/api/v1/release-orders/:id/details","status":200,"duration_ms":4}
+{"request_id":"rcc-2219b4a87a6f9a1a588a8892b82de30b","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":7}
+{"request_id":"rcc-c16bf3e3d963835b64b54f10542d1619","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":9}
+{"request_id":"rcc-3adf1efd83c535c0371c20bb9095863e","method":"POST","path":"/api/v1/release-orders/:id/reprepare","status":201,"duration_ms":52}
+    release_notifications_integration_test.go:173: expected HTTP 503, got 201: {"approvals":[{"table_name":"mutation_add_items","roles":[{"id":"86b70e91-307f-485a-88e1-02b7ad97bed6","name":"生命周期审批"}],"state":"PENDING"},{"table_name":"mutation_supplied_id_items","roles":[{"id":"86b70e91-307f-485a-88e1-02b7ad97bed6","name":"生命周期审批"}],"state":"PENDING"}],"approval_context":{"revision":"740729ce39711b44012e9f935857a197fc92745248d6d8e7797543ca52741075","tables":[{"table_name":"mutation_add_items","mode":"ROLE","reason":"由提交时审批角色的当前合格成员处理","can_approve":false},{"table_name":"mutation_supplied_id_items","mode":"ROLE","reason":"由提交时审批角色的当前合格成员处理","can_approve":false}],"approvable_tables":[]},"table_names":["mutation_add_items","mutation_supplied_id_items"],"title":"多表生命周期 reprepare-notice","executions":[],"copied_from_id":"fcf6476d2ace98d4726c6f58e556be1b","id":"ec975e8b679080391611c74d77bd8eb0","applicant_id":"2ae4007b-6218-42f9-b516-fdfda25973b9","state":"DRAFT","version":"1","items":[{"table_name":"mutation_add_items","detail_id":"300be94de0bca81b471997e4a6fe71ab","operation":"ADD","id":null,"expected_record_version":"","content":{"code":"reprepare-notice","label":"actual"},"before":null,"fields":[{"nullable":false,"editable":true,"name":"id","type":"uint64","before_state":"absent","before":null,"proposed_state":"omitted","proposed":null},{"nullable":false,"editable":true,"name":"code","type":"string","before_state":"absent","before":null,"proposed_state":"value","proposed":"reprepare-notice"},{"nullable":false,"editable":true,"name":"label","type":"string","before_state":"absent","before":null,"proposed_state":"value","proposed":"actual"},{"nullable":false,"editable":true,"name":"defaulted_value","type":"string","before_state":"absent","before":null,"proposed_state":"omitted","proposed":null},{"nullable":true,"editable":true,"name":"nullable_value","type":"string","before_state":"absent","before":null,"proposed_state":"omitted","proposed":null},{"nullable":false,"editable":true,"name":"lifecycle","type":"string","before_state":"absent","before":null,"proposed_state":"omitted","proposed":null},{"nullable":true,"editable":true,"name":"quantity","type":"int64","before_state":"absent","before":null,"proposed_state":"omitted","proposed":null},{"nullable":true,"editable":true,"name":"metadata","type":"json","before_state":"absent","before":null,"proposed_state":"omitted","proposed":null},{"nullable":true,"editable":false,"name":"generated_value","type":"string","before_state":"absent","before":null,"proposed_state":"generated","proposed":null}]},{"table_name":"mutation_supplied_id_items","detail_id":"ef966e8b0baf01c7a216abce97c8a64c","operation":"ADD","id":"reprepare-notice","expected_record_version":"0","content":{"id":"reprepare-notice","label":"actual"},"before":null,"fields":[{"nullable":false,"editable":true,"name":"id","type":"string","before_state":"absent","before":null,"proposed_state":"value","proposed":"reprepare-notice"},{"nullable":false,"editable":true,"name":"label","type":"string","before_state":"absent","before":null,"proposed_state":"value","proposed":"actual"}]}],"history":[{"related_order_id":"fcf6476d2ace98d4726c6f58e556be1b","action":"REPREPARE","actor_id":"2ae4007b-6218-42f9-b516-fdfda25973b9","at":"2026-09-10T23:48:01.902809Z","version":"1","reason":""}],"created_at":"2026-09-10T23:48:01.902809Z","updated_at":"2026-09-10T23:48:01.902809Z","item_count":2,"operation_counts":{"ADD":2},"allowed_actions":["edit","submit","cancel"]}
+2026/09/11 07:48:01 🐳 Stopping container: d4f94e445492
+2026/09/11 07:48:02 ✅ Container stopped: d4f94e445492
+2026/09/11 07:48:02 🐳 Terminating container: d4f94e445492
+2026/09/11 07:48:02 🚫 Container terminated: d4f94e445492
+--- FAIL: TestReleaseNotificationsReprepareCancelsSourceAtomically (9.92s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	10.368s
+FAIL

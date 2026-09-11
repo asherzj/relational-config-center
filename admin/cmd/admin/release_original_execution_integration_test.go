@@ -18,6 +18,11 @@ func TestOriginalOrderRollbackPreservesApplicationAndBothExecutions(t *testing.T
 	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"code":"original-add","label":"added"},"operation":"ADD","table_name":"mutation_add_items"},{"content":{"label":"published"},"expected_record_version":"0","id":"10","operation":"MODIFY","table_name":"mutation_add_items"},{"content":{},"expected_record_version":"0","id":"20","operation":"DELETE","table_name":"mutation_add_items"}],"title":"原单混合恢复"}`, "original-execution")
 	publicationResponse := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "original-publish")
 	published := rollbackOrderResponse(t, publicationResponse, 200)
+	var originalRequest string
+	if err := db.QueryRow(`SELECT result FROM rcc_release_requests WHERE operation=? AND request_key=?`, "execute:"+published.ID, "original-publish").Scan(&originalRequest); err != nil {
+		t.Fatal(err)
+	}
+
 	actor := registerAccount(t, app, "original.publisher", "original.publisher@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, actor, `["PUBLISHER"]`, "1", "original-publisher")
 	preview := readQuickPreview(t, app, actor, path, "4")
@@ -55,8 +60,20 @@ func TestOriginalOrderRollbackPreservesApplicationAndBothExecutions(t *testing.T
 		t.Fatal("replay changed actual result", replay.Body)
 	}
 	publicationReplay := releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "original-publish")
-	if publicationReplay.Code != 200 || !reflect.DeepEqual(rollbackOrderResponse(t, publicationReplay, 200), published) {
+	// Business result is immutable; the response deliberately carries the
+	// current approval qualification after rollback, not an obsolete revision.
+	latest := readTableApprovalOrder(t, app, integrationAdminSession(t, app), path)
+	expectedReplay := published
+	expectedReplay.ApprovalContext = latest.ApprovalContext
+	if publicationReplay.Code != 200 || !reflect.DeepEqual(rollbackOrderResponse(t, publicationReplay, 200), expectedReplay) {
 		t.Fatal("original publication replay changed after rollback", publicationReplay.Body)
+	}
+	var replayedRequest string
+	if err := db.QueryRow(`SELECT result FROM rcc_release_requests WHERE operation=? AND request_key=?`, "execute:"+published.ID, "original-publish").Scan(&replayedRequest); err != nil {
+		t.Fatal(err)
+	}
+	if replayedRequest != originalRequest {
+		t.Fatal("replay rewrote durable original publication result")
 	}
 	batchEdgeCounts(t, db, map[string]int{
 		`SELECT COUNT(*) FROM rcc_release_orders`:                                                         1,

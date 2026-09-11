@@ -441,9 +441,9 @@ func TestReleaseTemplateSchemaMigrationUpgradesVersionFive(t *testing.T) {
 	if err := db.QueryRow(`SELECT COUNT(*),SUM(release_type='EMERGENCY' AND enabled=1) FROM rcc_release_templates`).Scan(&templates, &emergency); err != nil || templates != 2 || emergency != 1 {
 		t.Fatalf("release template defaults: templates=%d emergency=%d err=%v", templates, emergency, err)
 	}
-	var versionEight int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=8 AND is_applied=1`).Scan(&versionEight); err != nil || versionEight != 1 {
-		t.Fatalf("candidate release template migration missing: %d %v", versionEight, err)
+	var templateVersion int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=9 AND is_applied=1`).Scan(&templateVersion); err != nil || templateVersion != 1 {
+		t.Fatalf("candidate release template migration missing: %d %v", templateVersion, err)
 	}
 	rootConfig := *driver
 	rootConfig.User = "root"

@@ -1,0 +1,7 @@
+
+> @relational-config-center/web@0.0.0 typecheck /private/tmp/rcc-issue-96-approval-notifications/web
+> tsc --noEmit
+
+src/features/release-orders/ReleaseRequestReview.tsx(49,101): error TS2741: Property 'notification' is missing in type '{ id: string; title: string; table_names: string[]; applicant_id: string; state: "APPROVED" | "CANCELLED" | "COMPLETED" | "DRAFT" | "PENDING_APPROVAL" | "REJECTED" | "ROLLED_BACK" | "SUCCEEDED"; ... 12 more ...; items: { ...; }[]; }' but required in type '{ notification: { sequence: string; unread: boolean; pending: boolean; }; id: string; title: string; table_names: string[]; applicant_id: string; state: "APPROVED" | "CANCELLED" | "COMPLETED" | ... 4 more ... | "SUCCEEDED"; ... 11 more ...; history: { ...; }[]; }'.
+src/features/release-orders/ReleaseRequestReview.tsx(77,197): error TS2741: Property 'notification' is missing in type '{ id: string; title: string; table_names: string[]; applicant_id: string; state: "APPROVED" | "CANCELLED" | "COMPLETED" | "DRAFT" | "PENDING_APPROVAL" | "REJECTED" | "ROLLED_BACK" | "SUCCEEDED"; ... 12 more ...; items: { ...; }[]; }' but required in type '{ notification: { sequence: string; unread: boolean; pending: boolean; }; id: string; title: string; table_names: string[]; applicant_id: string; state: "APPROVED" | "CANCELLED" | "COMPLETED" | ... 4 more ... | "SUCCEEDED"; ... 11 more ...; history: { ...; }[]; }'.
+ ELIFECYCLE  Command failed with exit code 1.

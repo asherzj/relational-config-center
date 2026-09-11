@@ -1,0 +1,33 @@
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-96-approval-notifications/web
+
+ ❯ src/features/notifications/ApprovalNotifications.test.tsx (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/notifications/ApprovalNotifications.test.tsx [ src/features/notifications/ApprovalNotifications.test.tsx ]
+Error: Failed to resolve import "fake-indexeddb" from "src/test/setup.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /private/tmp/rcc-issue-96-approval-notifications/web/src/test/setup.ts:3:27
+  1  |  import "@testing-library/jest-dom/vitest";
+  2  |  import { afterEach, beforeEach } from "vitest";
+  3  |  import { IDBFactory } from "fake-indexeddb";
+     |                              ^
+  4  |  import { hydrateReleaseRequests } from "../features/release-orders/release-journal";
+  5  |  beforeEach(async () => {
+ ❯ TransformPluginContext._formatLog ../../../../Users/asher/Projects/relational-config-center/web/node_modules/.pnpm/vite@8.2.2_@types+node@26.3.0_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:31147:39
+ ❯ TransformPluginContext.error ../../../../Users/asher/Projects/relational-config-center/web/node_modules/.pnpm/vite@8.2.2_@types+node@26.3.0_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:31144:14
+ ❯ normalizeUrl ../../../../Users/asher/Projects/relational-config-center/web/node_modules/.pnpm/vite@8.2.2_@types+node@26.3.0_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:28083:18
+ ❯ ../../../../Users/asher/Projects/relational-config-center/web/node_modules/.pnpm/vite@8.2.2_@types+node@26.3.0_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:28153:30
+ ❯ TransformPluginContext.transform ../../../../Users/asher/Projects/relational-config-center/web/node_modules/.pnpm/vite@8.2.2_@types+node@26.3.0_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:28119:4
+ ❯ EnvironmentPluginContainer.transform ../../../../Users/asher/Projects/relational-config-center/web/node_modules/.pnpm/vite@8.2.2_@types+node@26.3.0_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:30932:14
+ ❯ loadAndTransform ../../../../Users/asher/Projects/relational-config-center/web/node_modules/.pnpm/vite@8.2.2_@types+node@26.3.0_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:20671:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  06:26:18
+   Duration  724ms (transform 0ms, setup 0ms, import 0ms, tests 0ms, environment 565ms)
+

@@ -1,0 +1,92 @@
+{
+  "node_modules": "untracked symlink; excluded from commit",
+  "packages": [
+    {
+      "package": "vite",
+      "initial_browser": {
+        "version": "8.2.2",
+        "package_manifest_sha256": "4e41dd20c7a12e7e70915b235c0bf5b5158ec6709c1390804128af0867d6d6d9"
+      },
+      "verified_web": {
+        "version": "8.2.2",
+        "package_manifest_sha256": "4e41dd20c7a12e7e70915b235c0bf5b5158ec6709c1390804128af0867d6d6d9"
+      }
+    },
+    {
+      "package": "react",
+      "initial_browser": {
+        "version": "19.2.8",
+        "package_manifest_sha256": "e40c3ed9b633c9ecf188e09a4be309780a1ea0a9c068278a30ff6a27e7b2dbb6"
+      },
+      "verified_web": {
+        "version": "19.2.8",
+        "package_manifest_sha256": "e40c3ed9b633c9ecf188e09a4be309780a1ea0a9c068278a30ff6a27e7b2dbb6"
+      }
+    },
+    {
+      "package": "react-dom",
+      "initial_browser": {
+        "version": "19.2.8",
+        "package_manifest_sha256": "7c82f0967114d4b5d38b1f07e543af87c9919e8d3243f9604004819319cb2200"
+      },
+      "verified_web": {
+        "version": "19.2.8",
+        "package_manifest_sha256": "7c82f0967114d4b5d38b1f07e543af87c9919e8d3243f9604004819319cb2200"
+      }
+    },
+    {
+      "package": "@tanstack/react-query",
+      "initial_browser": {
+        "version": "5.102.3",
+        "package_manifest_sha256": "4fe07909d446310a4fc7677ad22c457c3194e8a299ab16522d2cc130149f5e22"
+      },
+      "verified_web": {
+        "version": "5.102.3",
+        "package_manifest_sha256": "4fe07909d446310a4fc7677ad22c457c3194e8a299ab16522d2cc130149f5e22"
+      }
+    },
+    {
+      "package": "playwright",
+      "initial_browser": {
+        "version": "1.62.1",
+        "package_manifest_sha256": "ca170ec143a88ed3043ac953eb3b2377b2b97304104f4e1e23316684ce2c35af"
+      },
+      "verified_web": {
+        "version": "1.62.1",
+        "package_manifest_sha256": "ca170ec143a88ed3043ac953eb3b2377b2b97304104f4e1e23316684ce2c35af"
+      }
+    },
+    {
+      "package": "typescript",
+      "initial_browser": {
+        "version": "7.0.2",
+        "package_manifest_sha256": "3722b30210616a13a3213ded11575ba6b2dbab10c32a5ef67afca8513e27017e"
+      },
+      "verified_web": {
+        "version": "7.0.2",
+        "package_manifest_sha256": "3722b30210616a13a3213ded11575ba6b2dbab10c32a5ef67afca8513e27017e"
+      }
+    },
+    {
+      "package": "vitest",
+      "initial_browser": {
+        "version": "4.1.11",
+        "package_manifest_sha256": "a28126d97bcaf567da5bed69443b7f3bcd9a7a8c38c8b66e554686b6bb2c10e0"
+      },
+      "verified_web": {
+        "version": "4.1.11",
+        "package_manifest_sha256": "a28126d97bcaf567da5bed69443b7f3bcd9a7a8c38c8b66e554686b6bb2c10e0"
+      }
+    },
+    {
+      "package": "fake-indexeddb",
+      "initial_browser": {
+        "missing": true
+      },
+      "verified_web": {
+        "version": "6.2.5",
+        "package_manifest_sha256": "399966a1e2ed0a9ea31436530f51f5d9c5bea0834e7e502352b9a2ec096e747c"
+      }
+    }
+  ]
+}

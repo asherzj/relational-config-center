@@ -1,0 +1,15 @@
+[
+  "go",
+  "-C",
+  "admin",
+  "test",
+  "-p",
+  "1",
+  "-tags=integration",
+  "./cmd/admin",
+  "-run",
+  "^(TestPublicationAtomicPersistenceFailures|TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets|TestReleaseCompletionPersistenceFailureIsAtomic|TestConfirmedReleaseFailureHistoryPreservesOriginalRetry|TestReleaseFailureHistoryUnavailableDoesNotLeaveBusinessWrites|TestReleaseFailureAuditPreservesConcurrentCancellation|TestPublicationCommitUnknownSurvivesExecutableRestart|TestQuickRollbackCompetesWithCompletionAndOtherRollbacks|TestReleaseCompletionRolesConcurrencyAndReplay|TestReleaseCompletionReleasesWithoutRepublishing|TestQuickRollbackPreviewShowsWholeRestorationWithoutWriting|TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole|TestMultitableReprepareTransfersChangedTargetsAtomically|TestMultitablePublicationPreservesGlobalOrderAndOriginalResults|TestOriginalOrderRollbackPreservesApplicationAndBothExecutions|TestApprovalNotificationsApprovalProgressAndTerminalResults|TestApprovalNotificationsFailuresRollbackBusinessAndReadProgress|TestApprovalNotificationsOwnActionsPreserveEarlierResultsAndTruthfulPending|TestQuickRollbackConstraintFailureRollsBackEarlierItems|TestReleaseNotificationsDisabledParticipantsRetainOutcomes)$",
+  "-count=1",
+  "-timeout=8m",
+  "-v"
+]

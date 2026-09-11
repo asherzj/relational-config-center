@@ -1,0 +1,10 @@
+{
+  "viewport": 1440,
+  "documentWidth": 1440,
+  "tables": [
+    {
+      "width": 1150,
+      "scrollWidth": 1150
+    }
+  ]
+}

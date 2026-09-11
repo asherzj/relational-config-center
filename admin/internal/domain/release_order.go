@@ -75,6 +75,9 @@ type RecordBaseline struct {
 type ReleaseFilter struct {
 	TableName, ApplicantID, State, ID, After string
 	Limit                                    int
+	SubmittedOnly                            bool
+	UnreadOnly                               bool
+	ReviewedBy                               string
 }
 
 // Execution metadata retains NULL separately from text. Sections have a fixed,
@@ -143,6 +146,7 @@ func NewReleaseMutationSemantics(policy MutationPolicy) ReleaseMutationSemantics
 // ReleaseOrderSummary carries bounded catalog information; complete intent and
 // verified publication history are available through the order detail.
 type ReleaseOrderSummary struct {
+	Notification      ApprovalNotification   `json:"notification"`
 	ReleaseType       ReleaseType            `json:"release_type"`
 	TableFlows        []ReleaseTableFlow     `json:"table_flows"`
 	MissingFlowTables []string               `json:"missing_flow_tables"`

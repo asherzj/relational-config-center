@@ -3,7 +3,7 @@ import { ReleasePerson } from "./ReleasePerson";
 import { ReleaseTime } from "./ReleaseTime";
 
 const modeLabels = { ROLE: "角色成员审批", ADMIN: "默认 ADMIN 审批", UNAVAILABLE: "暂无独立审批人", COMPLETED: "已完成审批" };
-export function ReleaseApprovals({ order, people = {} }: { order: ReleaseHeader; people?: Record<string, string> }) {
+export function ReleaseApprovals({ order, people = {} }: { order: Pick<ReleaseHeader, "state" | "approvals" | "approval_context">; people?: Record<string, string> }) {
   const draft = order.state === "DRAFT";
   const passed = order.approvals.filter(approval => approval.state === "APPROVED").length;
   return <section className="release-panel min-w-0" aria-label={draft ? "提交审批安排" : "逐表审批进度"}>

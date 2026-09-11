@@ -1,3 +1,5 @@
+import {ReleaseNotificationRead} from "../notifications/ReleaseNotificationRead";
+import {useWorkspaceReady} from "../accounts/ProtectedWorkspace";
 import {useReleaseJournal} from "./useReleaseJournal";
 import {ApiError,shouldRetryQuery} from "../../api/client";
 import {presentError} from "../../api/error-messages";
@@ -53,14 +55,15 @@ function ReleaseList(){
  <footer className="catalog-footer"><Button disabled={!filters.after} onClick={()=>setFilters({...filters,after:""})}>回到首页</Button><Button disabled={!list.data.next_cursor} onClick={()=>setFilters({...filters,after:list.data.next_cursor})}>下一页</Button></footer>
  </>}</>;
 }
-function ReleaseDetail({id}:{id:string}){
+export function ReleaseDetail({id,listPath="/configuration/release-orders",listLabel="发布单"}:{id:string;listPath?:string;listLabel?:string}){
+ const ready=useWorkspaceReady();
  const {showToast}=useToast();
  const [copyError,setCopyError]=useState(false);
  const {requests,accountID}=useReleaseJournal();
  const requestPending=requests.some(item=>releaseRequestSending(accountID,item.key)&&releaseRequestOrder(item)===id);
  const retained=(action:string)=>requests.some(item=>item.scope===`${action}:${id}`);
- const query=useQuery({queryKey:["release-order",id],queryFn:()=>releaseOrders.get(id),retry:shouldRetryQuery});
- const people=useQuery({queryKey:["release-order-people",id],queryFn:()=>releaseOrders.people(id),enabled:query.isSuccess,retry:shouldRetryQuery});
+ const query=useQuery({queryKey:["release-order",id],queryFn:()=>releaseOrders.get(id),enabled:ready,retry:shouldRetryQuery});
+ const people=useQuery({queryKey:["release-order-people",id],queryFn:()=>releaseOrders.people(id),enabled:ready&&query.isSuccess,retry:shouldRetryQuery});
  const [action,setAction]=useState<ReleaseStateAction>();
  const [copy,setCopy]=useState(false);
  const [quickRollback,setQuickRollback]=useState(false);
@@ -69,16 +72,18 @@ function ReleaseDetail({id}:{id:string}){
  const canEdit=useAccountRole("EDITOR");
  const canPublish=useAccountRole("PUBLISHER");
 
- if(query.isPending)return <LoadingState/>;
- if(!query.data)return <ErrorState error={query.error} onRetry={()=>void query.refetch()}/>;
+ const navigation=<><nav aria-label="发布单位置" className="text-xs text-muted-foreground">配置管理 / {listLabel} / <span aria-current="page">详情</span></nav><div><Link className="underline underline-offset-4" to={listPath}>返回{listLabel}列表</Link></div></>;
+ if(query.isPending)return <div className="release-detail min-w-0">{navigation}<LoadingState/></div>;
+ if(!query.data)return <div className="release-detail min-w-0">{navigation}<ErrorState error={query.error} onRetry={()=>void query.refetch()}/></div>;
  const order=query.data;
  const peopleFailure=people.isError?presentError(people.error):undefined;
  const peopleCode=people.error instanceof ApiError?people.error.code:"unknown_error";
  const names=people.isError?{}:people.data?.people??{};
  const publication=order.executions.find(execution=>execution.kind==="PUBLICATION");
  const approver=[...order.history].reverse().find(event=>event.action==="APPROVE");
- return <CurrentFieldDisplayProvider tableNames={releaseTables(order)}><div className="release-detail min-w-0"><nav aria-label="发布单位置" className="text-xs text-muted-foreground">配置管理 / 发布单 / <span aria-current="page">详情</span></nav><div><Link className="underline underline-offset-4" to="/configuration/release-orders">返回发布单列表</Link></div>
+ return <CurrentFieldDisplayProvider tableNames={releaseTables(order)}><div className="release-detail min-w-0">{navigation}
  {query.isError&&<ErrorState error={query.error} onRetry={()=>void query.refetch()}/>}
+ <ReleaseNotificationRead key={`${order.id}:${order.notification.sequence}`} order={order} canAcknowledge={query.isFetchedAfterMount&&query.isSuccess&&!query.isFetching} onRefresh={()=>void query.refetch()}/>
  {order.state==="ROLLED_BACK"?<ReleaseProgress order={order} people={names}/>:<ReleasePhase order={order} people={names}/>}
  {order.missing_flow_tables.length>0&&<section aria-label="流程配置未完成" className="release-panel min-w-0"><h2 className="text-lg font-semibold text-warning">流程配置未完成，暂不能提交审批</h2><p className="mt-2">以下表尚未保存常规流程。请管理员检查常规模板与表关联；配置修复后，再保存草稿补齐缺失流程。已有表流程保持不变。</p><ul className="my-3 grid gap-1 break-all font-mono">{order.missing_flow_tables.map(table=><li key={table}>{table}</li>)}</ul>{canEdit&&(order.allowed_actions.includes("edit")||retained("edit"))&&<Button disabled={requestPending} onClick={()=>setEditing(true)}>保存草稿以补齐流程</Button>}</section>}
  <div className="release-detail-overview">

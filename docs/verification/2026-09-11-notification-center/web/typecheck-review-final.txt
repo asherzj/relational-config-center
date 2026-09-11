@@ -1,0 +1,4 @@
+
+> @relational-config-center/web@0.0.0 typecheck /private/tmp/rcc-issue-95-notification-center/web
+> tsc --noEmit
+

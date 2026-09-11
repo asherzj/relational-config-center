@@ -14,12 +14,12 @@ import (
 
 var (
 	ErrReleaseResetTarget = errors.New("release reset target does not match connected database")
-	ErrReleaseResetSchema = errors.New("release reset requires the supported schema without triggers or foreign keys")
+	ErrReleaseResetSchema = errors.New("release reset requires the supported schema without unverified triggers or foreign keys")
 )
 
 // The order is explicit; every historical request result is removed, including
 // old workflow snapshots that do not have an order_id column.
-var releaseResetTables = []string{"rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_release_details", "rcc_release_executions", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_release_orders"}
+var releaseResetTables = []string{approvalNotificationTable, "rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_release_details", "rcc_release_executions", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_release_orders"}
 
 type ReleaseResetFingerprint struct {
 	Rows   uint64 `json:"rows"`
@@ -188,7 +188,14 @@ func releaseResetSideEffects(tx *gorm.DB, table string) error {
 	if err := tx.Raw(`SELECT COUNT(*) FROM information_schema.INNODB_FOREIGN WHERE FOR_NAME=CONCAT(DATABASE(),'/',?) OR REF_NAME=CONCAT(DATABASE(),'/',?)`, table, table).Row().Scan(&foreignKeys); err != nil {
 		return fmt.Errorf("release reset metadata unavailable: %w", err)
 	}
-	if triggers != 0 || foreignKeys != 0 {
+	// The complete release manifest has already verified the notification table's
+	// one exact, non-cascading outbound reference to accounts. Deleting its child
+	// rows cannot affect accounts. Every additional inbound/outbound FK still fails.
+	expectedForeignKeys := 0
+	if table == approvalNotificationTable {
+		expectedForeignKeys = 1
+	}
+	if triggers != 0 || foreignKeys != expectedForeignKeys {
 		return ErrReleaseResetSchema
 	}
 	return nil

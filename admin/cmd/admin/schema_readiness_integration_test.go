@@ -71,6 +71,7 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 		{"wrong_default", `ALTER TABLE rcc_accounts ALTER COLUMN enabled SET DEFAULT 0`, `ALTER TABLE rcc_accounts ALTER COLUMN enabled SET DEFAULT 1`},
 		{"missing_index", `ALTER TABLE rcc_query_policies DROP INDEX idx_query_policy_status_type`, `ALTER TABLE rcc_query_policies ADD KEY idx_query_policy_status_type(status,type_code)`},
 		{"missing_field_policy", `RENAME TABLE rcc_table_field_policies TO held_field_policies`, `RENAME TABLE held_field_policies TO rcc_table_field_policies`},
+		{"missing_approval_notifications", `RENAME TABLE rcc_approval_notifications TO held_approval_notifications`, `RENAME TABLE held_approval_notifications TO rcc_approval_notifications`},
 		{"missing_release_templates", `RENAME TABLE rcc_release_templates TO held_release_templates`, `RENAME TABLE held_release_templates TO rcc_release_templates`},
 		{"release_template_unique_key", `ALTER TABLE rcc_release_templates DROP INDEX uk_release_template_code`, `ALTER TABLE rcc_release_templates DROP INDEX uk_release_template_id_type, DROP INDEX idx_release_template_type_enabled, ADD UNIQUE KEY uk_release_template_code(code), ADD UNIQUE KEY uk_release_template_id_type(id,release_type), ADD KEY idx_release_template_type_enabled(release_type,enabled)`},
 		{"release_template_check", `ALTER TABLE rcc_release_templates ALTER CHECK chk_release_template_monitors NOT ENFORCED`, `ALTER TABLE rcc_release_templates ALTER CHECK chk_release_template_monitors ENFORCED`},

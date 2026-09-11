@@ -321,6 +321,8 @@ func TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets
 	conflictBody := `{"items":[{"content":{"label":"next"},"expected_record_version":"1","id":"10","operation":"MODIFY","table_name":"mutation_add_items"},{"content":{"label":"next"},"expected_record_version":"1","id":"20","operation":"MODIFY","table_name":"mutation_add_items"}],"title":"目标仍保护"}`
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", conflictBody, "quick-fault-conflict"), 409, "release_target_conflict")
 
+	reviewer := publicationFixtureReviewer(t, app)
+	beforeNotice := readApprovalProgress(t, app, reviewer, path)
 	for _, failure := range []struct{ table, event, condition string }{
 		{"rcc_record_versions", "UPDATE", "NEW.lock_version>1"},
 		{"rcc_publication_commands", "INSERT", "TRUE"},
@@ -328,6 +330,7 @@ func TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets
 		{"rcc_refresh_notifications", "INSERT", "TRUE"},
 		{"rcc_release_details", "UPDATE", "NEW.rollback IS NOT NULL"},
 		{"rcc_release_executions", "INSERT", "NEW.kind='ROLLBACK'"},
+		{"rcc_approval_notifications", "UPDATE", "TRUE"},
 		{"rcc_release_orders", "UPDATE", "NEW.state='ROLLED_BACK'"},
 		{"rcc_release_targets", "DELETE", "TRUE"},
 		{"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"},
@@ -344,6 +347,9 @@ func TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets
 			current := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
 			assertReleaseFailureOnly(t, original, current, "QUICK_ROLLBACK_FAILED")
 			original = current
+			if readApprovalProgress(t, app, reviewer, path) != beforeNotice {
+				t.Fatal("failed rollback changed personal result notification")
+			}
 			for _, id := range []string{"10", "20"} {
 				row, version := recordVersionRow(t, app, "mutation_add_items", id)
 				if *row["label"] != "published" || version != "1" {

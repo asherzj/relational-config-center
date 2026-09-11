@@ -73,10 +73,13 @@ func (a *Adapter) SetAccountEnabled(ctx context.Context, id string, enabled bool
 		}
 		// Keep identifiable old sessions until normal expiry cleanup so disabled
 		// clients can destroy drafts. Advancing the version prevents revival.
-		return tx.Table(accountTable).Where("id = ?", id).Updates(map[string]any{
+		if err := tx.Table(accountTable).Where("id = ?", id).Updates(map[string]any{
 			"enabled":         enabled,
 			"session_version": gorm.Expr("session_version + 1"),
-		}).Error
+		}).Error; err != nil {
+			return err
+		}
+		return reconcilePendingApprovalNotifications(ctx, tx, "")
 	})
 }
 

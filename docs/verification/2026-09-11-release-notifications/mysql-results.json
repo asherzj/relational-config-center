@@ -1,0 +1,149 @@
+{
+  "unique_cases": 27,
+  "all_final_pass": true,
+  "original_runs_preserved": [
+    "ac019-final.log",
+    "ac020-faults-http.log",
+    "ac020-commit-concurrency.log",
+    "affected-regression.log",
+    "regression-repaired.log",
+    "cancellation-notice-verified.log"
+  ],
+  "results": [
+    {
+      "test": "TestApprovalNotificationsApprovalProgressAndTerminalResults",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestApprovalNotificationsFailuresRollbackBusinessAndReadProgress",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestApprovalNotificationsOwnActionsPreserveEarlierResultsAndTruthfulPending",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestConfirmedReleaseFailureHistoryPreservesOriginalRetry",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestMultitableReprepareTransfersChangedTargetsAtomically",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestOriginalOrderRollbackPreservesApplicationAndBothExecutions",
+      "status": "PASS",
+      "evidence": "regression-repaired.log"
+    },
+    {
+      "test": "TestPublicationAtomicPersistenceFailures",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestPublicationCommitUnknownSurvivesExecutableRestart",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestQuickRollbackConstraintFailureRollsBackEarlierItems",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestQuickRollbackPreviewShowsWholeRestorationWithoutWriting",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestReleaseCompletionPersistenceFailureIsAtomic",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestReleaseCompletionReleasesWithoutRepublishing",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestReleaseCompletionRolesConcurrencyAndReplay",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestReleaseFailureAuditPreservesConcurrentCancellation",
+      "status": "PASS",
+      "evidence": "cancellation-notice-verified.log"
+    },
+    {
+      "test": "TestReleaseFailureHistoryUnavailableDoesNotLeaveBusinessWrites",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestReleaseNotificationsCommitUnknownRecoversEveryLifecycle",
+      "status": "PASS",
+      "evidence": "regression-repaired.log"
+    },
+    {
+      "test": "TestReleaseNotificationsDisabledParticipantsRetainOutcomes",
+      "status": "PASS",
+      "evidence": "affected-regression.log"
+    },
+    {
+      "test": "TestReleaseNotificationsLostResponsesRecoverOriginalFacts",
+      "status": "PASS",
+      "evidence": "regression-repaired.log"
+    },
+    {
+      "test": "TestReleaseNotificationsPersistenceFailuresPreserveAllFacts",
+      "status": "PASS",
+      "evidence": "ac020-faults-http.log"
+    },
+    {
+      "test": "TestReleaseNotificationsPublicationUsesActualParticipants",
+      "status": "PASS",
+      "evidence": "ac019-final.log"
+    },
+    {
+      "test": "TestReleaseNotificationsReprepareCancelsSourceAtomically",
+      "status": "PASS",
+      "evidence": "ac020-faults-http.log"
+    },
+    {
+      "test": "TestReleaseNotificationsTerminalCompetitionHasOneResult",
+      "status": "PASS",
+      "evidence": "ac020-commit-concurrency.log"
+    },
+    {
+      "test": "TestReleaseNotificationsTerminalResultsPreserveOwnUnread",
+      "status": "PASS",
+      "evidence": "ac019-final.log"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-95-notification-center/web
+> vitest run src/features/notifications/NotificationsPage.test.tsx --maxWorkers=2
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-95-notification-center/web
+
+ ❯ src/features/notifications/NotificationsPage.test.tsx (4 tests | 1 failed) 1262ms
+   × 四类视图和筛选写入 URL，分页沿用筛选且一张多表申请只显示一行 543ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/notifications/NotificationsPage.test.tsx > 四类视图和筛选写入 URL，分页沿用筛选且一张多表申请只显示一行
+AssertionError: expected null to be 'cursor+next/=' // Object.is equality
+
+- Expected:
+"cursor+next/="
+
++ Received:
+null
+
+ ❯ src/features/notifications/NotificationsPage.test.tsx:108:51
+    106|   await user.click(screen.getByRole("button", { name: "刷新列表", exact: t…
+    107|   await waitFor(() => expect(reads.length).toBeGreaterThan(beforeRefre…
+    108|   expect(reads.at(-1)?.searchParams.get("after")).toBe("cursor+next/="…
+       |                                                   ^
+    109|   expect(screen.getByLabelText("当前地址")).toHaveTextContent("after=curso…
+    110|   await user.click(screen.getByRole("link", { name: "待我审批", exact: tru…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  05:34:24
+   Duration  2.88s (transform 476ms, setup 230ms, import 769ms, tests 1.26s, environment 513ms)
+
+ ELIFECYCLE  Command failed with exit code 1.

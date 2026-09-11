@@ -1,0 +1,8 @@
+{
+  "checks": [
+    "正式导航默认待我审批；多角色、多表一单一行，首屏20项并展示真实22项未读和待审批"
+  ],
+  "errors": [],
+  "message": "Expected values to be strictly equal:\n\n2 !== 1\n",
+  "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n2 !== 1\n\n    at /private/tmp/rcc-issue-96-approval-notifications/web/e2e/notification-center.cjs:95:12"
+}

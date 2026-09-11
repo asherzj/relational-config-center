@@ -1,0 +1,6 @@
+=== RUN   TestApprovalNotificationsSubmitAggregatesCurrentRecipients
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestApprovalNotificationsSubmitAggregatesCurrentRecipients (0.00s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	1.164s
+FAIL

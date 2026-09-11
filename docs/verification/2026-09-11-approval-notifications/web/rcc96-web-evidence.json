@@ -1,0 +1,139 @@
+{
+  "scope": "issue #96 Web, no commit/push by subagent",
+  "worktree": "/private/tmp/rcc-issue-96-approval-notifications",
+  "logs": [
+    "/private/tmp/rcc96-web-action-refresh-green.log",
+    "/private/tmp/rcc96-web-action-refresh-red.log",
+    "/private/tmp/rcc96-web-background-ack-red.log",
+    "/private/tmp/rcc96-web-build.log",
+    "/private/tmp/rcc96-web-client-stream-escalated.log",
+    "/private/tmp/rcc96-web-counts-green.log",
+    "/private/tmp/rcc96-web-counts-red-2.log",
+    "/private/tmp/rcc96-web-counts-red.log",
+    "/private/tmp/rcc96-web-final-build-2.log",
+    "/private/tmp/rcc96-web-final-build-3.log",
+    "/private/tmp/rcc96-web-final-build-4.log",
+    "/private/tmp/rcc96-web-final-build.log",
+    "/private/tmp/rcc96-web-final-contract-refresh.log",
+    "/private/tmp/rcc96-web-final-notifications-2.log",
+    "/private/tmp/rcc96-web-final-notifications-3.log",
+    "/private/tmp/rcc96-web-final-notifications.log",
+    "/private/tmp/rcc96-web-full-suite.log",
+    "/private/tmp/rcc96-web-late-ack-red.log",
+    "/private/tmp/rcc96-web-managed-regression-green.log",
+    "/private/tmp/rcc96-web-no-auto-retry-green.log",
+    "/private/tmp/rcc96-web-no-auto-retry-red-2.log",
+    "/private/tmp/rcc96-web-no-auto-retry-red.log",
+    "/private/tmp/rcc96-web-read-green-2.log",
+    "/private/tmp/rcc96-web-read-green.log",
+    "/private/tmp/rcc96-web-read-red.log",
+    "/private/tmp/rcc96-web-refresh-green.log",
+    "/private/tmp/rcc96-web-refresh-red.log",
+    "/private/tmp/rcc96-web-regression-1.log",
+    "/private/tmp/rcc96-web-regression-2.log",
+    "/private/tmp/rcc96-web-typecheck-1.log",
+    "/private/tmp/rcc96-web-typecheck-2.log",
+    "/private/tmp/rcc96-web-write-contract-green.log",
+    "/private/tmp/rcc96-web-write-contract-red.log",
+    "/private/tmp/rcc96-web-write-typecheck-1.log"
+  ],
+  "passing_web_evidence": {
+    "focused_notifications_and_public_contract": "/private/tmp/rcc96-web-final-notifications-3.log (3 files, 23 tests; includes later added same-session delayed ack cache refresh)",
+    "write_contract_affected_regression": "/private/tmp/rcc96-web-write-contract-green.log (6 files, 149 tests; later focused tests supersede changed notification/API tests)",
+    "session_and_http_client": "/private/tmp/rcc96-web-regression-2.log (those files pass; separate managed fixture failure corrected)",
+    "managed_fixture_correction": "/private/tmp/rcc96-web-managed-regression-green.log (30 tests)",
+    "build_and_typecheck": "/private/tmp/rcc96-web-final-build-4.log",
+    "full_web_suite": "39 files / 420 tests: full-suite.log records 419 passing and one TCP bind EPERM; client-stream-escalated.log reruns that test successfully with required local TCP permission. No production/test behavior changed between these runs.",
+    "final_effective_test_count": 421
+  },
+  "known_failure_explanations": {
+    "counts-red": "initial personal notification entry absent; first run dependency path missing fake-indexeddb then corrected and red-2 proves expected absence",
+    "refresh-red": "30-second foreground refresh absent",
+    "read-red": "detail acknowledgement absent",
+    "no-auto-retry-red-2": "fetching header remounted acknowledgement component, removed failure and retried same sequence",
+    "action-refresh-red": "successful business action did not immediately refresh counts",
+    "write-contract-red": "write response has no notification snapshot while GET detail requires it; split write schema",
+    "background-ack-red": "background-loaded detail prematurely acknowledged; gate by visibility",
+    "regression-2": "one direct draft summary fixture omitted new notification field, corrected without weakening production contract",
+    "browser-center-final": "Test waited for approved row disappearance while still on detail (already absent); then counted old cached list before refresh. Reordered wait for surviving row first, then approved row absence. Failure screenshot already showed correct one-row result.",
+    "late-ack-red": "After returning from detail, a delayed successful ack skipped shared cache invalidation because its component had unmounted. Now invalidation survives unmount only when the request generation is still current; local setState remains mounted-only.",
+    "browser-center-final-2": "Failure baseline was captured before the post-navigation successful GET removed a read marker. Wait for successful list refresh and the already-read row marker removal before snapshot, then inject 503; retained full tbody equality assertion."
+  },
+  "browser_initial": "/private/tmp/rcc96-browser-initial.txt (7 acceptance paths passed; superseded by final rerun after compact error/strict write schema changes)",
+  "browser_center_initial_failure": "/private/tmp/rcc96-browser-center-regression.txt (write-response contract mismatch; corrected in Web schema)",
+  "visual_review_completed": [
+    "/private/tmp/rcc96-browser-initial/notifications-desktop.png",
+    "/private/tmp/rcc96-browser-initial/notifications-390.png",
+    "/private/tmp/rcc96-browser-initial/notifications-390-navigation.png",
+    "/private/tmp/rcc96-browser-initial/notification-read-failure.png",
+    "/private/tmp/rcc96-browser-notifications-final/notification-read-failure.png",
+    "/private/tmp/rcc96-browser-notifications-final/notifications-390-navigation.png",
+    "/private/tmp/rcc96-browser-notifications-final/notifications-390.png",
+    "/private/tmp/rcc96-browser-notifications-final/notifications-desktop.png",
+    "/private/tmp/rcc96-browser-center-final-3/read-failure-mobile.png"
+  ],
+  "visual_adjustment": "Final desktop, 390px list/navigation, and acknowledgement error screenshots actually viewed. Compact inline-alert preserves readable context and adjacent retry; no page horizontal overflow; table/entry remain accessible. Center failure mobile screenshot also viewed.",
+  "browser_runs": [
+    {
+      "log": "/private/tmp/rcc96-browser-center-final-2.txt",
+      "artifacts": "/private/tmp/rcc96-browser-center-final-2"
+    },
+    {
+      "log": "/private/tmp/rcc96-browser-center-final-3.txt",
+      "artifacts": "/private/tmp/rcc96-browser-center-final-3"
+    },
+    {
+      "log": "/private/tmp/rcc96-browser-center-final.txt",
+      "artifacts": "/private/tmp/rcc96-browser-center-final"
+    },
+    {
+      "log": "/private/tmp/rcc96-browser-center-regression.txt",
+      "artifacts": "/private/tmp/rcc96-browser-center-regression"
+    },
+    {
+      "log": "/private/tmp/rcc96-browser-initial.txt",
+      "artifacts": "/private/tmp/rcc96-browser-initial"
+    },
+    {
+      "log": "/private/tmp/rcc96-browser-notifications-final.txt",
+      "artifacts": "/private/tmp/rcc96-browser-notifications-final"
+    }
+  ],
+  "final_browser_groups": {
+    "notification_center": {
+      "log": "/private/tmp/rcc96-browser-center-final-3.txt",
+      "checks": 5,
+      "result": "PASS"
+    },
+    "approval_notifications": {
+      "log": "/private/tmp/rcc96-browser-notifications-final.txt",
+      "checks": 7,
+      "result": "PASS"
+    }
+  },
+  "resources": "Both final browser fixtures stopped and removed their own MySQL container; no DB/browser running or reserved by Web agent.",
+  "shared_fixture_audit": "Generic account-session helpers provide explicit zero-count fixtures only for unrelated pages. Dedicated approval notification tests use their own HTTP session wrapper and own all counts/failure paths. releaseFixture defaults only test aggregates; dedicated GET-missing-notification API test bypasses it and proves strict production rejection. Full WorkspaceAccess and client tests passed, including 401 hidden subtree and cross-account responses.",
+  "web_source_sha256": {
+    "web/DESIGN.md": "18f0ea1972be9b923840ac0340db92dc602a04eb8c0f657c8c732fea857a8f74",
+    "web/e2e/approval-notifications.cjs": "91bf6086ee325da4565b34834c162b7e31f554be55925f9c25f336adb5488772",
+    "web/e2e/notification-center.cjs": "b098d09137c285543e7513500476d75f98fcc0b019167ad9858d0998274b5ca7",
+    "web/src/api/approval-notifications.ts": "d7b42a871009f48b7532251b6d7056874b3fc229b467600978411409f38ba677",
+    "web/src/api/release-orders.test.ts": "e7f962e27e019f79d7a2afd6f873f6de29cca5e7eca8d856d2b612e36a7f79ab",
+    "web/src/api/release-orders.ts": "703b1c03d99a2b247335070ced5e9e50d71887f00c3c3c9e60257cfed0af1ce1",
+    "web/src/components/AppShell.tsx": "7c560019165aafb8ebc5afa89a55e18fb839fe06eeccb6a2117768163a8eccec",
+    "web/src/features/accounts/ProtectedWorkspace.tsx": "c05d2b7da18394e0a46e4f7306145fefe631daed6188ce52975da3449ceed0d0",
+    "web/src/features/managed-data/ManagedDataMutationPage.test.tsx": "8d2d159aa7e3ffcd0edb1703579ae5e368b91df0305dd03b032084006bf0a772",
+    "web/src/features/notifications/ApprovalNotifications.test.tsx": "36ba3603e1e79c284fc226d7653caae58e43b5695a771465cabeae3492c86e96",
+    "web/src/features/notifications/NotificationsPage.test.tsx": "e1078136298d82ad42e273e3e351cdd7a7b0909faa581e3b807f59981d960c7a",
+    "web/src/features/notifications/NotificationsPage.tsx": "4748029c4ca5b1eaada9237388e0c2707f5d8f2e510ed429da26dadd6d9471ff",
+    "web/src/features/notifications/PersonalNotifications.tsx": "93a1356fb4d270433ca58e659aba91799b6365d3751862666029dbbbe05eec5d",
+    "web/src/features/notifications/ReleaseNotificationRead.tsx": "0ad492d65d92e3111ab565a4e3e22456c6d4bf9929f7a0ec51ffdfd467302f58",
+    "web/src/features/notifications/useNotificationRefresh.ts": "ad12c9657b60fe7819f5166dc864b9e5569af7474e5fcd72d12a70fb23022e2a",
+    "web/src/features/release-orders/ReleaseApprovals.tsx": "9af7236a5a05f2acdd23fc482a433ae0feb4410bce1bb92dc5ded6ccb3b3c16b",
+    "web/src/features/release-orders/ReleaseOrdersPage.tsx": "d901445c23ef822380ff422d000a8916285f09961221323e3c2582f253ad6331",
+    "web/src/features/release-orders/useReleaseWrite.ts": "f6dac8189d76a66394178715ae9abf87085885eca87b96c18cf12001d7821db5",
+    "web/src/test/account-session.ts": "0154a48d98e9fe42d6d1fef5dbe82705d47ce7663275a3f98c9b872c74356505",
+    "web/src/test/release-fixture.ts": "efb23c6c0304b3cfbd2b4732f9547514cfde8f628ffb42bd82c9fa519ea28f5a"
+  },
+  "archive_root": "/private/tmp/rcc-issue-96-approval-notifications/docs/verification/2026-09-11-approval-notifications"
+}

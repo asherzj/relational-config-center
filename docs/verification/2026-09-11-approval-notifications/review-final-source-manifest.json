@@ -1,0 +1,210 @@
+{
+  "base": "836c95da4100d06a102dc6cd0266035cafe18ceb",
+  "scope": "Final changed-source snapshot: initial independent 50-file reviews, actual auth-lock wait fixture correction, and separately reviewed local concurrent-request test refactor/import grouping. No production changes after complete browser/Go/Web/regression checks.",
+  "files": [
+    {
+      "path": "admin/CONTEXT.md",
+      "sha256": "b3435fbf5c05560cff7bec52d17eaf6ef3caeaca429c0835e51b4c756ef49644"
+    },
+    {
+      "path": "admin/cmd/account-maintain/main.go",
+      "sha256": "a799bd3f300be4d1ed162cd513732b1dcbe3a9e895299e5a432686ed2af10c77"
+    },
+    {
+      "path": "admin/cmd/admin/account_maintenance_integration_test.go",
+      "sha256": "b6b93302f13d86fc719f16a625b6ff7e816a959282a5215a9013206c900c16a7"
+    },
+    {
+      "path": "admin/cmd/admin/approval_notifications_integration_test.go",
+      "sha256": "8757121c9fb921be45ce4a1b223f048cf398e82f399923ac0e47a4e9b078c2c9"
+    },
+    {
+      "path": "admin/cmd/admin/approval_notifications_schema_integration_test.go",
+      "sha256": "b7099b39494ff71e7451abcbb4f5208ce5d274aac2a1387db9f7f7471192ec24"
+    },
+    {
+      "path": "admin/cmd/admin/notification_center_browser_integration_test.go",
+      "sha256": "dec68e8049978d6f17141d697764ec26a92473343158f1ebfebd1ce54bb4d2df"
+    },
+    {
+      "path": "admin/cmd/admin/release_copy_reprepare_multitable_integration_test.go",
+      "sha256": "96a3445f0adb5fb113cbd1253020c5d8492e66c4efbe20fa689ca4b3e76c93bf"
+    },
+    {
+      "path": "admin/cmd/admin/release_reset_integration_test.go",
+      "sha256": "b4a423230bbdbbbb06a53278f3e1b69533b88c5309b97ce42cd0991b140125fe"
+    },
+    {
+      "path": "admin/cmd/admin/table_approval_schema_integration_test.go",
+      "sha256": "ff36aa51953b713c23d75bb98f8617cf4862586920800dea4f3e56833d9bbf35"
+    },
+    {
+      "path": "admin/internal/application/approval_notifications.go",
+      "sha256": "a427527b111a65dd85851fa5a2d44e18eda81b5421d5f4b1d17b32af1e1a9362"
+    },
+    {
+      "path": "admin/internal/application/notification_center.go",
+      "sha256": "ffc9e1434d5093beaddfc4a097fa38edcdc60c21264c2f570eaf4b99c90dcd03"
+    },
+    {
+      "path": "admin/internal/application/release_approval.go",
+      "sha256": "1820e60ae3f031e2177ac0c3c13a05c8fc3b0aa79ae97341dfa0b9e041083a98"
+    },
+    {
+      "path": "admin/internal/application/release_orders.go",
+      "sha256": "25924a9f7bfd14f290023b5bdaff52f7b3fea8924ff557f1c6d6793d44f7bd28"
+    },
+    {
+      "path": "admin/internal/domain/approval_notification.go",
+      "sha256": "4c2905f18277b4d6504af71f4a489645eaa4a566e84c2a56f90d5ea2ebb530d3"
+    },
+    {
+      "path": "admin/internal/domain/release_order.go",
+      "sha256": "a65ffedde2e87c6cdb298dfdb005731e063b9e57e1c91856e50144029e644a71"
+    },
+    {
+      "path": "admin/internal/infrastructure/mysql/account_maintenance.go",
+      "sha256": "1e4731b075bea7fa513ac7d249c3547e370ada125d2b4db2e9e3a70c19345494"
+    },
+    {
+      "path": "admin/internal/infrastructure/mysql/account_roles.go",
+      "sha256": "aed2715143e802a628c0f0917572435f8ec1e282bf39718426526bb2c6851627"
+    },
+    {
+      "path": "admin/internal/infrastructure/mysql/approval_notifications.go",
+      "sha256": "9c8a6011a49c35b2fd0c86c09b254dce7c2b066c6fa7a63c32548d0fbc8c9585"
+    },
+    {
+      "path": "admin/internal/infrastructure/mysql/approval_roles.go",
+      "sha256": "5ad108c959e3138360a01f941429554fade99f459ae56d3bf3e5e9b33bf97e06"
+    },
+    {
+      "path": "admin/internal/infrastructure/mysql/migrations/00008_approval_notifications.sql",
+      "sha256": "223c2a53b56212d150d6bdb335cee36956db26de16f2a09d3c3ef1e6222729bd"
+    },
+    {
+      "path": "admin/internal/infrastructure/mysql/migrations/00008_schema.json",
+      "sha256": "79a5d895a411c02c98d3a7a8fc238fbde6dcd149a2f7368dc1e1876ed677f252"
+    },
+    {
+      "path": "admin/internal/infrastructure/mysql/notification_center.go",
+      "sha256": "86ef9a5852ed0352ec9d7f6e19b46d7ee170f351a837700a2139b8ac1cf52929"
+    },
+    {
+      "path": "admin/internal/infrastructure/mysql/release_approval.go",
+      "sha256": "a1cc54ddde088a26cdcc7b6f4bce7e608898dc01e321de0b7f3b6d6104c63912"
+    },
+    {
+      "path": "admin/internal/infrastructure/mysql/release_reset.go",
+      "sha256": "acffb213bd085aabf13e383c6e2e6fd4492c9ed5a4fbe31e0a010b39aa0d0836"
+    },
+    {
+      "path": "admin/internal/interfaces/http/dependencies_test.go",
+      "sha256": "30c1e410c1b03de5d4aacf52700775b0301cfbc9c984710715bd18a0119af6a6"
+    },
+    {
+      "path": "admin/internal/interfaces/http/release_contract_test.go",
+      "sha256": "2ee2dbdc5835ad2cd9c9b7703ee5ebb7ef882812e51d5669638c83148577b4f4"
+    },
+    {
+      "path": "admin/internal/interfaces/http/release_orders.go",
+      "sha256": "3191cb9d6d58d17450248ed3bbb30da66e266ef04e6234b9141041e3f9423f38"
+    },
+    {
+      "path": "admin/internal/interfaces/http/security.go",
+      "sha256": "dfccb40364cbb1330cc12d9432d13279321193102ccf72d918330614fa5a649e"
+    },
+    {
+      "path": "docs/admin-notification-center.md",
+      "sha256": "082da8831494169be02e8f317e129d7dfc6b72aae4f6c8755d3762f46e0d425d"
+    },
+    {
+      "path": "docs/admin-release-reset.md",
+      "sha256": "8e5742fa9788a2879cc2e227956db4c50b3f7bc235099a035ad479cddd1b58be"
+    },
+    {
+      "path": "docs/schema-migrations.md",
+      "sha256": "a6c22f13daf997e6d2c27a8f2f329fcbd49bd7519b6e449e40cb0d59f85a69ef"
+    },
+    {
+      "path": "web/DESIGN.md",
+      "sha256": "18f0ea1972be9b923840ac0340db92dc602a04eb8c0f657c8c732fea857a8f74"
+    },
+    {
+      "path": "web/e2e/approval-notifications.cjs",
+      "sha256": "91bf6086ee325da4565b34834c162b7e31f554be55925f9c25f336adb5488772"
+    },
+    {
+      "path": "web/e2e/notification-center.cjs",
+      "sha256": "b098d09137c285543e7513500476d75f98fcc0b019167ad9858d0998274b5ca7"
+    },
+    {
+      "path": "web/src/api/approval-notifications.ts",
+      "sha256": "d7b42a871009f48b7532251b6d7056874b3fc229b467600978411409f38ba677"
+    },
+    {
+      "path": "web/src/api/release-orders.test.ts",
+      "sha256": "e7f962e27e019f79d7a2afd6f873f6de29cca5e7eca8d856d2b612e36a7f79ab"
+    },
+    {
+      "path": "web/src/api/release-orders.ts",
+      "sha256": "703b1c03d99a2b247335070ced5e9e50d71887f00c3c3c9e60257cfed0af1ce1"
+    },
+    {
+      "path": "web/src/components/AppShell.tsx",
+      "sha256": "7c560019165aafb8ebc5afa89a55e18fb839fe06eeccb6a2117768163a8eccec"
+    },
+    {
+      "path": "web/src/features/accounts/ProtectedWorkspace.tsx",
+      "sha256": "c05d2b7da18394e0a46e4f7306145fefe631daed6188ce52975da3449ceed0d0"
+    },
+    {
+      "path": "web/src/features/managed-data/ManagedDataMutationPage.test.tsx",
+      "sha256": "8d2d159aa7e3ffcd0edb1703579ae5e368b91df0305dd03b032084006bf0a772"
+    },
+    {
+      "path": "web/src/features/notifications/ApprovalNotifications.test.tsx",
+      "sha256": "36ba3603e1e79c284fc226d7653caae58e43b5695a771465cabeae3492c86e96"
+    },
+    {
+      "path": "web/src/features/notifications/NotificationsPage.test.tsx",
+      "sha256": "e1078136298d82ad42e273e3e351cdd7a7b0909faa581e3b807f59981d960c7a"
+    },
+    {
+      "path": "web/src/features/notifications/NotificationsPage.tsx",
+      "sha256": "4748029c4ca5b1eaada9237388e0c2707f5d8f2e510ed429da26dadd6d9471ff"
+    },
+    {
+      "path": "web/src/features/notifications/PersonalNotifications.tsx",
+      "sha256": "93a1356fb4d270433ca58e659aba91799b6365d3751862666029dbbbe05eec5d"
+    },
+    {
+      "path": "web/src/features/notifications/ReleaseNotificationRead.tsx",
+      "sha256": "0ad492d65d92e3111ab565a4e3e22456c6d4bf9929f7a0ec51ffdfd467302f58"
+    },
+    {
+      "path": "web/src/features/notifications/useNotificationRefresh.ts",
+      "sha256": "ad12c9657b60fe7819f5166dc864b9e5569af7474e5fcd72d12a70fb23022e2a"
+    },
+    {
+      "path": "web/src/features/release-orders/ReleaseApprovals.tsx",
+      "sha256": "9af7236a5a05f2acdd23fc482a433ae0feb4410bce1bb92dc5ded6ccb3b3c16b"
+    },
+    {
+      "path": "web/src/features/release-orders/ReleaseOrdersPage.tsx",
+      "sha256": "d901445c23ef822380ff422d000a8916285f09961221323e3c2582f253ad6331"
+    },
+    {
+      "path": "web/src/features/release-orders/useReleaseWrite.ts",
+      "sha256": "f6dac8189d76a66394178715ae9abf87085885eca87b96c18cf12001d7821db5"
+    },
+    {
+      "path": "web/src/test/account-session.ts",
+      "sha256": "0154a48d98e9fe42d6d1fef5dbe82705d47ce7663275a3f98c9b872c74356505"
+    },
+    {
+      "path": "web/src/test/release-fixture.ts",
+      "sha256": "efb23c6c0304b3cfbd2b4732f9547514cfde8f628ffb42bd82c9fa519ea28f5a"
+    }
+  ]
+}

@@ -181,7 +181,18 @@ func (s *releaseOrderSession) CompleteReleaseRequest(ctx context.Context, actor,
 	return nil
 }
 func (a *Adapter) ListReleaseOrders(ctx context.Context, filter domain.ReleaseFilter) ([]domain.ReleaseOrderSummary, error) {
-	query := a.gorm.WithContext(ctx).Table("rcc_release_orders").Select("document").Order("id ASC").Limit(filter.Limit)
+	return listReleaseOrders(ctx, a.gorm, filter)
+}
+func listReleaseOrders(ctx context.Context, database *gorm.DB, filter domain.ReleaseFilter) ([]domain.ReleaseOrderSummary, error) {
+	query := database.WithContext(ctx).Table("rcc_release_orders").Select("document").Order("id ASC").Limit(filter.Limit)
+	if filter.SubmittedOnly {
+		query = query.Where(`JSON_CONTAINS(document, '{"action":"SUBMIT"}', '$.history')`)
+	}
+	if filter.ReviewedBy != "" {
+		approve, _ := json.Marshal(map[string]string{"action": "APPROVE", "actor_id": filter.ReviewedBy})
+		reject, _ := json.Marshal(map[string]string{"action": "REJECT", "actor_id": filter.ReviewedBy})
+		query = query.Where(`(JSON_CONTAINS(document, ?, '$.history') OR JSON_CONTAINS(document, ?, '$.history'))`, string(approve), string(reject))
+	}
 	for field, value := range map[string]string{"applicant_id": filter.ApplicantID, "state": filter.State, "id": filter.ID} {
 		if value != "" {
 			query = query.Where(field+" = ?", value)

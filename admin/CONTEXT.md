@@ -185,7 +185,7 @@ The workspace for finding submitted Release Orders by their relationship to the 
 _Avoid_: Refresh Notification Record, downstream delivery, publication execution
 
 **Approval Notification（审批通知）**:
-A personal indication that a Release Order requires the recipient's review or that a relevant approval or release outcome has changed. Reading the notification acknowledges awareness of that progress, not completion of an approval action.
+A recipient-and-order indication of pending review or a relevant approval or release outcome, with unread awareness independent of whether review work remains pending. Acknowledging observed progress does not complete approval or consume later changes; losing pending responsibility preserves unread outcomes and completed review history.
 _Avoid_: Refresh Notification Record, Table Approval, publication result
 
 **Publication Command（发布变更记录）**:

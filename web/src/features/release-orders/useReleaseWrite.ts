@@ -36,6 +36,7 @@ export function useReleaseWrite(scope:string){
    const order=await sendReleaseRequest(accountID,intent);
    // A replay acknowledges the original write; mounted details must read current state.
    void client.invalidateQueries({queryKey:["release-orders"]});
+   void client.invalidateQueries({queryKey:["approval-notifications"]});
    if(order.executions.length)void client.invalidateQueries({queryKey:["managed-data"]});
    void client.invalidateQueries({queryKey:["release-order",order.id]});
    void client.invalidateQueries({queryKey:["release-order-people",order.id]});
@@ -69,6 +70,7 @@ export function useReleaseWrite(scope:string){
    setError(cause);
    // A timeout or error cannot identify current state. Only normal reads do.
    void client.invalidateQueries({queryKey:["release-orders"]});
+   void client.invalidateQueries({queryKey:["approval-notifications"]});
    if(scopeID)void client.invalidateQueries({queryKey:["release-order",scopeID]});
  }finally{finishReleaseRequest(accountID,intent.key);busy.current=false;setPending(false)}
  };

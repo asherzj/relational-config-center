@@ -95,19 +95,6 @@ func approvalContext(environment domain.ReleaseApprovalEnvironment, order domain
 	result.Revision = hex.EncodeToString(digest)
 	return result, sources
 }
-func (r *ReleaseOrders) reviewApprovals(ctx context.Context, order *domain.ReleaseOrder) error {
-	actor, err := requireRole(ctx, RoleViewer)
-	if err != nil {
-		return err
-	}
-	environment, err := r.store.ReadApprovalEnvironment(ctx, *order)
-	if err != nil {
-		return err
-	}
-	order.Approvals = environment.Approvals
-	order.ApprovalContext, _ = approvalContext(environment, *order, actor)
-	return nil
-}
 func freezeReleaseApprovals(ctx context.Context, s ReleaseOrderSession, order *domain.ReleaseOrder) error {
 	environment, err := s.ReadApprovalEnvironment(ctx, *order)
 	if err != nil {
@@ -219,4 +206,17 @@ func applyReleaseDecision(ctx context.Context, s ReleaseOrderSession, order *dom
 		order.State = "APPROVED"
 	}
 	return nil
+}
+
+// ApprovalRecipients uses exactly the same live eligibility as review and decisions.
+// The caller supplies one transaction's frozen assignment and current directory.
+func ApprovalRecipients(environment domain.ReleaseApprovalEnvironment, order domain.ReleaseOrder) []string {
+	recipients := []string{}
+	for _, account := range environment.Accounts {
+		view, _ := approvalContext(environment, order, account.ID)
+		if len(view.ApprovableTables) > 0 {
+			recipients = append(recipients, account.ID)
+		}
+	}
+	return recipients
 }

@@ -1,0 +1,26 @@
+=== RUN   TestGenerateIntegratedTemplateManifests
+2026/09/11 11:30:36 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: ebf7ca49858f3a6718bdcc739f498f22c43eda87529b56f3a66e433fa13dc3b6
+  Test ProcessID: d151dae9-1b22-4fbf-98b0-564c8c69c5ef
+2026/09/11 11:30:36 🐳 Creating container for image mysql:8.4
+2026/09/11 11:30:36 ✅ Container created: 57bd0fc203d5
+2026/09/11 11:30:36 🐳 Starting container: 57bd0fc203d5
+2026/09/11 11:30:36 ✅ Container started: 57bd0fc203d5
+2026/09/11 11:30:36 ⏳ Waiting for container id 57bd0fc203d5 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 11:30:42 🔔 Container is ready: 57bd0fc203d5
+    template_notification_manifest_generator_integration_test.go:61: captured actual MySQL cumulative manifest 9: 28 control tables
+    template_notification_manifest_generator_integration_test.go:61: captured actual MySQL cumulative manifest 10: 29 control tables
+2026/09/11 11:30:45 🐳 Stopping container: 57bd0fc203d5
+2026/09/11 11:30:46 ✅ Container stopped: 57bd0fc203d5
+2026/09/11 11:30:46 🐳 Terminating container: 57bd0fc203d5
+2026/09/11 11:30:46 🚫 Container terminated: 57bd0fc203d5
+--- PASS: TestGenerateIntegratedTemplateManifests (9.98s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	10.895s

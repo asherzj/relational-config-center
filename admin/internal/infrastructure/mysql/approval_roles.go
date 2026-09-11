@@ -229,6 +229,9 @@ func (a *Adapter) approvalRoleTransaction(ctx context.Context, operation string,
 			if err != nil {
 				return err
 			}
+			if err := reconcilePendingApprovalNotifications(ctx, tx, change.ActorID); err != nil {
+				return err
+			}
 			if err := saveApprovalRoleRequest(tx, change.ActorID, change.RequestKey, digest, role); err != nil {
 				return err
 			}

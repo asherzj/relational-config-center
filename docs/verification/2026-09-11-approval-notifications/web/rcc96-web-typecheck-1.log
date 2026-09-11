@@ -1,0 +1,6 @@
+
+> @relational-config-center/web@0.0.0 typecheck /private/tmp/rcc-issue-96-approval-notifications/web
+> tsc --noEmit
+
+src/api/release-orders.test.ts(3,7): error TS2741: Property 'notification' is missing in type '{ id: string; title: string; table_names: string[]; applicant_id: string; state: "DRAFT"; version: string; created_at: string; updated_at: string; allowed_actions: string[]; item_count: number; operation_counts: { ADD: number; }; executions: never[]; history: never[]; approvals: never[]; approval_context: { ...; }; }' but required in type '{ notification: { sequence: string; unread: boolean; pending: boolean; }; id: string; title: string; table_names: string[]; applicant_id: string; state: "APPROVED" | "CANCELLED" | "COMPLETED" | ... 4 more ... | "SUCCEEDED"; ... 11 more ...; history: { ...; }[]; }'.
+ ELIFECYCLE  Command failed with exit code 1.

@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-95-notification-center/web
+> vitest run src/features/notifications/NotificationsPage.test.tsx --maxWorkers=2
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-95-notification-center/web
+
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  05:33:51
+   Duration  2.95s (transform 485ms, setup 243ms, import 785ms, tests 1.27s, environment 548ms)
+

@@ -1,0 +1,36 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-95-notification-center/web
+> vitest run src/features/notifications/NotificationsPage.test.tsx -t '刷新失败' --maxWorkers=2
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-95-notification-center/web
+
+ ❯ src/features/notifications/NotificationsPage.test.tsx (4 tests | 1 failed | 3 skipped) 305ms
+   × 刷新失败保留已知列表并说明读取失败，重试成功后恢复结果 304ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/notifications/NotificationsPage.test.tsx > 刷新失败保留已知列表并说明读取失败，重试成功后恢复结果
+Error: expect(element).toHaveTextContent()
+
+Expected element to have text content:
+  审批列表读取失败，请重试。
+Received:
+  发布单存储暂时不可用，请保留原请求并稍后确认结果。请求编号：notification-list-failure重试
+ ❯ src/features/notifications/NotificationsPage.test.tsx:128:37
+    126|   await user.click(screen.getByRole("button", { name: "刷新列表" }));
+    127|   expect(await screen.findByRole("alert")).toHaveTextContent("notifica…
+    128|   expect(screen.getByRole("alert")).toHaveTextContent("审批列表读取失败，请重试。");
+       |                                     ^
+    129|   expect(screen.getByRole("alert")).toHaveTextContent("release_unavail…
+    130|   expect(screen.getByRole("alert")).not.toHaveTextContent("请保留原请求");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 skipped (4)
+   Start at  06:03:11
+   Duration  2.19s (transform 526ms, setup 276ms, import 856ms, tests 305ms, environment 632ms)
+
+ ELIFECYCLE  Command failed with exit code 1.

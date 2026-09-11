@@ -69,6 +69,9 @@ func (a *Adapter) ChangeAccountRoles(ctx context.Context, change domain.RoleChan
 		before := account.Roles
 		account.Roles = change.Roles
 		account.RoleVersion++
+		if err := reconcilePendingApprovalNotifications(ctx, tx, change.ActorID); err != nil {
+			return err
+		}
 		return saveRoleEvent(tx, "account", change.ActorID, before, account, change.RequestKey, digest, time.Now())
 	})
 	return account, err
@@ -100,6 +103,9 @@ func (a *Adapter) GrantAccountAdmin(ctx context.Context, id string, now time.Tim
 			return err
 		}
 		result := domain.RoleAccount{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Enabled: account.Enabled, Roles: account.Roles | domain.RoleAdmin, RoleVersion: account.RoleVersion + 1}
+		if err := reconcilePendingApprovalNotifications(ctx, tx, ""); err != nil {
+			return err
+		}
 		return saveRoleEvent(tx, "maintenance", "", account.Roles, result, hex.EncodeToString(key), roleChangeDigest(domain.RoleChange{AccountID: id, Roles: result.Roles, ExpectedVersion: account.RoleVersion}), now)
 	})
 }

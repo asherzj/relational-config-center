@@ -10,6 +10,27 @@ import (
 )
 
 func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseOrders) {
+	router.POST("/api/v1/release-orders/:id/notification-read", func(c *gin.Context) {
+		var input struct {
+			Sequence string `json:"sequence"`
+		}
+		if err := decodeRequest(c, &input); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		result, err := orders.AcknowledgeNotification(c.Request.Context(), c.Param("id"), input.Sequence)
+		if writeReleaseError(c, err) {
+			return
+		}
+		c.JSON(200, result)
+	})
+	router.GET("/api/v1/approval-notifications", func(c *gin.Context) {
+		counts, err := orders.NotificationCounts(c.Request.Context())
+		if writeReleaseError(c, err) {
+			return
+		}
+		c.JSON(200, counts)
+	})
 	router.POST("/api/v1/release-orders/:id/reprepare", func(c *gin.Context) {
 		var input application.CopyReleaseInput
 		if err := decodeRequest(c, &input); err != nil {
@@ -56,7 +77,22 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 				return
 			}
 		}
-		list, err := orders.List(c.Request.Context(), application.ReleaseFilter{TableName: c.Query("table_name"), ApplicantID: c.Query("applicant_id"), State: c.Query("state"), ID: c.Query("id"), After: c.Query("after"), Limit: limit})
+		if raw, ok := c.GetQuery("unread"); ok && (raw != "true" && raw != "false" || !c.Request.URL.Query().Has("view")) {
+			writeReleaseError(c, application.ErrReleaseInvalid)
+			return
+		}
+		filter := application.ReleaseFilter{UnreadOnly: c.Query("unread") == "true", TableName: c.Query("table_name"), ApplicantID: c.Query("applicant_id"), State: c.Query("state"), ID: c.Query("id"), After: c.Query("after"), Limit: limit}
+		var list []application.ReleaseOrderSummary
+		var err error
+		next := ""
+		if c.Request.URL.Query().Has("view") {
+			list, next, err = orders.NotificationOrders(c.Request.Context(), c.Query("view"), filter)
+		} else {
+			list, err = orders.List(c.Request.Context(), filter)
+			if len(list) == limit && len(list) > 0 {
+				next = list[len(list)-1].ID
+			}
+		}
 		if writeReleaseError(c, err) {
 			return
 		}
@@ -67,10 +103,6 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 				AllowedActions []string `json:"allowed_actions"`
 			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, ID: order.ID, State: order.State, ApplicantID: order.ApplicantID, TableNames: order.TableNames, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext})}
 			response = append(response, summary)
-		}
-		next := ""
-		if len(list) == limit {
-			next = list[len(list)-1].ID
 		}
 		c.JSON(200, gin.H{"orders": response, "next_cursor": next})
 	})

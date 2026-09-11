@@ -202,7 +202,7 @@ func sessionAuthentication(options RouterOptions) gin.HandlerFunc {
 		required := application.RoleViewer
 		if change && c.FullPath() != "/api/v1/tables/:table_name/query" {
 			required = application.RoleAdmin
-			if c.FullPath() == "/api/v1/release-orders/:id/rollback-reason" {
+			if c.FullPath() == "/api/v1/release-orders/:id/rollback-reason" || c.FullPath() == "/api/v1/release-orders/:id/notification-read" {
 				required = application.RoleViewer
 			}
 			if c.FullPath() == "/api/v1/release-orders/:id/copy" || c.FullPath() == "/api/v1/release-orders/:id/reprepare" || c.FullPath() == "/api/v1/release-orders/:id/submit" || c.FullPath() == "/api/v1/release-orders/preview" || c.FullPath() == "/api/v1/release-orders" || c.FullPath() == "/api/v1/release-orders/:id" || c.FullPath() == "/api/v1/release-orders/:id/cancel" {

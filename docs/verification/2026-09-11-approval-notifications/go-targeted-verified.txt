@@ -1,0 +1,6 @@
+ok  	github.com/asherzj/relational-config-center/admin/internal/application	0.630s
+ok  	github.com/asherzj/relational-config-center/admin/internal/domain	0.300s
+ok  	github.com/asherzj/relational-config-center/admin/internal/interfaces/http	0.372s
+ok  	github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql	0.468s
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	20.698s
+?   	github.com/asherzj/relational-config-center/admin/cmd/account-maintain	[no test files]

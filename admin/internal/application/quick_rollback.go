@@ -145,6 +145,9 @@ func (r *ReleaseOrders) QuickRollback(ctx context.Context, id string, input Quic
 		if err = s.ReleaseTargets(ctx, original.ID); err != nil {
 			return err
 		}
+		if err = s.RecordApprovalNotifications(ctx, original, actor, releaseResultRecipients(original)); err != nil {
+			return err
+		}
 		return s.CompleteReleaseRequest(ctx, actor, operation, key, result)
 	})
 	return result, r.recordExecutionFailure(ctx, releaseExecutionAttempt{OrderID: id, ActorID: actor, Operation: "quick-rollback", Key: key, ExpectedVersion: input.ExpectedVersion, Input: input}, err)

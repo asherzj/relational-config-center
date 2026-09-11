@@ -1,0 +1,11 @@
+{
+  "checks": [
+    "正式导航默认待我审批；多角色、多表一单一行，首屏20项并展示真实22项未读和待审批",
+    "第二页键盘进入正式详情并真实批准两表，返回保留视图/筛选/游标且已处理单退出待办",
+    "四视图归属与真实处理一致；ADMIN可查看全单仍无角色审批权，未提交取消草稿不混入",
+    "390px长标题/多表无页面溢出，固定详情入口与列表返回可键盘操作"
+  ],
+  "errors": [],
+  "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '09 通知中心长标题：商品配置与价格配置由同一人员按两张表完整审阅，详情返回保留筛选和当前分页位置\\n' +\n- '未读09 通知中心长标题：商品配置与价格配置由同一人员按两张表完整审阅，详情返回保留筛选和当前分页位置\\n' +\n    '\\n' +\n    '07ba235d454b21a7c769a8694b38ba7a\\n' +\n    '\\n' +\n    'multitable_browser_a、multitable_browser_b\\n' +\n    '\\n' +\n",
+  "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '09 通知中心长标题：商品配置与价格配置由同一人员按两张表完整审阅，详情返回保留筛选和当前分页位置\\n' +\n- '未读09 通知中心长标题：商品配置与价格配置由同一人员按两张表完整审阅，详情返回保留筛选和当前分页位置\\n' +\n    '\\n' +\n    '07ba235d454b21a7c769a8694b38ba7a\\n' +\n    '\\n' +\n    'multitable_browser_a、multitable_browser_b\\n' +\n    '\\n' +\n\n    at /private/tmp/rcc-issue-96-approval-notifications/web/e2e/notification-center.cjs:141:12"
+}

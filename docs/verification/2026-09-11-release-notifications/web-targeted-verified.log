@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-97-release-notifications/web
+
+
+ Test Files  5 passed (5)
+      Tests  99 passed (99)
+   Start at  07:58:04
+   Duration  24.79s (transform 2.27s, setup 2.88s, import 3.53s, tests 25.91s, environment 5.09s)
+

@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"net/http/httptest"
 	"reflect"
+	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -19,6 +21,8 @@ func TestConfirmedReleaseFailureHistoryPreservesOriginalRetry(t *testing.T) {
 	app, db := batchEdgeApplication(t, `INSERT INTO mutation_add_items(id,code,label) VALUES(90,'occupied','external')`)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"code":"first","id":"10","label":"first"},"operation":"ADD","table_name":"mutation_add_items"},{"content":{"code":"occupied","id":"20","label":"second"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"失败后原请求重推"}`, "failure-retry")
+	reviewer := publicationFixtureReviewer(t, app)
+	beforeNotice := readApprovalProgress(t, app, reviewer, path)
 	body, key := `{"expected_version":"3"}`, "failure-original-request"
 	failed := releaseRequest(t, app, "POST", path+"/execute", body, key)
 	assertIntegrationErrorCode(t, failed, 409, "duplicate_key")
@@ -37,14 +41,18 @@ func TestConfirmedReleaseFailureHistoryPreservesOriginalRetry(t *testing.T) {
 	}
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM mutation_add_items WHERE id IN (10,20)`: 0, `SELECT COUNT(*) FROM rcc_release_executions`: 0, `SELECT COUNT(*) FROM rcc_publication_commands`: 0, `SELECT COUNT(*) FROM rcc_refresh_notifications`: 0, `SELECT COUNT(*) FROM rcc_record_versions`: 0})
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"4"}`, key), 409, "idempotency_conflict")
+	if readApprovalProgress(t, app, reviewer, path) != beforeNotice {
+		t.Fatal("constraint failure notified a success")
+	}
 	deliveryExec(t, db, `DELETE FROM mutation_add_items WHERE id=90`)
 	success := releaseRequest(t, app, "POST", path+"/execute", body, key)
 	published := batchEdgeOrder(t, success, 200)
 	if published.Version != "4" || len(published.Executions) != 1 || len(published.History) != 5 {
 		t.Fatal("original retry failed to commit once", success.Body)
 	}
+	afterNotice := assertReleaseNotificationAdvance(t, app, reviewer, path, beforeNotice)
 	replay := releaseRequest(t, app, "POST", path+"/execute", body, key)
-	if replay.Code != 200 || replay.Body.String() != success.Body.String() {
+	if replay.Code != 200 || replay.Body.String() != success.Body.String() || readApprovalProgress(t, app, reviewer, path) != afterNotice {
 		t.Fatal("original retry result changed", replay.Body)
 	}
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"4"}`, key), 409, "idempotency_conflict")
@@ -112,27 +120,66 @@ func TestReleaseFailureAuditPreservesConcurrentCancellation(t *testing.T) {
 	}
 	defer external.Rollback()
 	// An external writer holds the destination unique key. The publication must
-	// reach this real row lock before cancellation queues on the main record.
+	// reach this real row lock before cancellation queues on authorization.
 	if _, err := external.ExecContext(ctx, `INSERT INTO mutation_add_items(id,code,label) VALUES(90,'audit-race','external')`); err != nil {
 		t.Fatal(err)
 	}
 	session := integrationAdminSession(t, app)
 	cookies, csrf := session.Result().Cookies(), sessionCSRF(t, session)
+	reviewer := publicationFixtureReviewer(t, app)
+	reviewerBefore := readApprovalProgress(t, app, reviewer, path)
+	applicantBefore := readApprovalProgress(t, app, session, path)
+	cancellingAdmin := registerAccount(t, app, "audit.canceller", "audit.canceller@example.com", "correct horse battery staple")
+	grantReleaseRole(t, app, cancellingAdmin, `["ADMIN"]`, "1", "audit-canceller-role")
+	cancelCookies, cancelCSRF := cancellingAdmin.Result().Cookies(), sessionCSRF(t, cancellingAdmin)
+
+	// Admit the authenticated cancellation up to its HTTP body, then keep the
+	// body on the transport boundary. When released it queues its business
+	// transaction directly, without racing a second session-touch transaction.
+	cancellationBody := &gatedReleaseRequestBody{Reader: strings.NewReader(`{"expected_version":"3","reason":"concurrent cancellation"}`), entered: make(chan struct{}), release: make(chan struct{})}
+	var releaseOnce sync.Once
+	releaseCancellationBody := func() { releaseOnce.Do(func() { close(cancellationBody.release) }) }
+	t.Cleanup(releaseCancellationBody)
+	cancelRequest := httptest.NewRequest("POST", path+"/cancel", cancellationBody)
+	cancelRequest.Header.Set("Origin", "http://127.0.0.1:5173")
+	cancelRequest.Header.Set("Content-Type", "application/json")
+	cancelRequest.Header.Set("X-CSRF-Token", cancelCSRF)
+	cancelRequest.Header.Set("Idempotency-Key", "audit-race-cancel")
+	cancelRequest.RemoteAddr = "192.0.2.1:1234"
+	for _, cookie := range cancelCookies {
+		if cookie.MaxAge >= 0 {
+			cancelRequest.AddCookie(cookie)
+		}
+	}
+	cancelledResponses := make(chan *httptest.ResponseRecorder, 1)
+	go func() {
+		response := httptest.NewRecorder()
+		app.Handler().ServeHTTP(response, cancelRequest)
+		cancelledResponses <- response
+	}()
+	select {
+	case <-cancellationBody.entered:
+	case early := <-cancelledResponses:
+		t.Fatalf("cancellation did not reach body: %d %s", early.Code, early.Body)
+	case <-ctx.Done():
+		t.Fatal("cancellation did not authenticate before publication")
+	}
 	failedResponses := make(chan *httptest.ResponseRecorder, 1)
 	go func() {
 		failedResponses <- accountRequestFrom(app, "POST", path+"/execute", `{"expected_version":"3"}`, cookies, csrf, "192.0.2.1:1234", map[string]string{"Idempotency-Key": "audit-race-execute"})
 	}()
-	waitForLock := func(table string) {
+	waitForLock := func(table string, blockerID int64) int64 {
 		t.Helper()
 		deadline := time.Now().Add(3 * time.Second)
 		for {
-			var waiting int
-			if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks requested ON requested.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID WHERE requested.OBJECT_SCHEMA=DATABASE() AND requested.OBJECT_NAME=?`, table).Scan(&waiting); err != nil {
+			var waiting, requesterID int64
+			if err := db.QueryRowContext(ctx, `SELECT COUNT(*),COALESCE(MAX(waiter.PROCESSLIST_ID),0) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks requested ON requested.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID JOIN performance_schema.data_locks blocking ON blocking.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID JOIN performance_schema.threads waiter ON waiter.THREAD_ID=requested.THREAD_ID JOIN performance_schema.threads blocker ON blocker.THREAD_ID=blocking.THREAD_ID WHERE requested.OBJECT_SCHEMA=DATABASE() AND requested.OBJECT_NAME=? AND (?=0 OR blocker.PROCESSLIST_ID=?)`, table, blockerID, blockerID).Scan(&waiting, &requesterID); err != nil {
 				t.Fatal(err)
 			}
-			if waiting > 0 {
-				return
+			if waiting > 0 && requesterID != blockerID {
+				return requesterID
 			}
+
 			select {
 			case early := <-failedResponses:
 				t.Fatalf("publication escaped expected %s lock: %d %s", table, early.Code, early.Body)
@@ -144,12 +191,10 @@ func TestReleaseFailureAuditPreservesConcurrentCancellation(t *testing.T) {
 			time.Sleep(10 * time.Millisecond)
 		}
 	}
-	waitForLock("mutation_add_items")
-	cancelledResponses := make(chan *httptest.ResponseRecorder, 1)
-	go func() {
-		cancelledResponses <- accountRequestFrom(app, "POST", path+"/cancel", `{"expected_version":"3","reason":"concurrent cancellation"}`, cookies, csrf, "192.0.2.1:1234", map[string]string{"Idempotency-Key": "audit-race-cancel"})
-	}()
-	waitForLock("rcc_release_orders")
+	publicationConnection := waitForLock("mutation_add_items", 0)
+	releaseCancellationBody()
+	cancellationConnection := waitForLock("rcc_auth_control_lock", publicationConnection)
+	t.Logf("cancellation connection %d waits for publication connection %d authorization lock", cancellationConnection, publicationConnection)
 	if err := external.Commit(); err != nil {
 		t.Fatal(err)
 	}
@@ -166,16 +211,35 @@ func TestReleaseFailureAuditPreservesConcurrentCancellation(t *testing.T) {
 	}
 	assertIntegrationErrorCode(t, failed, 409, "duplicate_key")
 	cancelledOrder := batchEdgeOrder(t, cancelled, 200)
-	current := batchEdgeOrder(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
+	current := batchEdgeOrder(t, releaseActorReadAllDetails(t, app, cancellingAdmin, "GET", path, "", ""), 200)
 	if current.State != "CANCELLED" || current.Version != "4" {
 		t.Fatal("audit overwrote concurrent main state", current)
 	}
 	if len(current.History) != 5 || current.History[4].Action != "EXECUTE_FAILED" || current.History[4].Version != "3" {
 		t.Fatal("failure audit did not follow cancellation", current.History)
 	}
+	assertReleaseNotificationAdvance(t, app, session, path, applicantBefore)
+	if readApprovalProgress(t, app, reviewer, path) != reviewerBefore {
+		t.Fatal("failed publication notified reviewer as successful")
+	}
 	current.History = current.History[:4]
 	if !reflect.DeepEqual(current, cancelledOrder) {
 		t.Fatal("audit overwrote concurrent cancellation facts")
 	}
 	batchEdgeCounts(t, db, map[string]int{`SELECT COUNT(*) FROM mutation_add_items WHERE id=10`: 0, `SELECT COUNT(*) FROM rcc_release_executions`: 0, `SELECT COUNT(*) FROM rcc_publication_commands`: 0, `SELECT COUNT(*) FROM rcc_refresh_notifications`: 0, `SELECT COUNT(*) FROM rcc_record_versions`: 0, `SELECT COUNT(*) FROM rcc_release_targets`: 0})
+}
+
+// Test-only HTTP reader: it gates incoming bytes after real authentication,
+// without replacing an application collaborator or a database operation.
+type gatedReleaseRequestBody struct {
+	*strings.Reader
+	entered chan struct{}
+	release chan struct{}
+	once    sync.Once
+}
+
+func (body *gatedReleaseRequestBody) Read(buffer []byte) (int, error) {
+	body.once.Do(func() { close(body.entered) })
+	<-body.release
+	return body.Reader.Read(buffer)
 }

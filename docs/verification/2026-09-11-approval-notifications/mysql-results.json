@@ -1,0 +1,223 @@
+{
+  "unique_test_count": 31,
+  "note": "Per-test valid evidence. Mixed original batches remain failed as recorded; no whole-run relabeling.",
+  "tests": [
+    {
+      "test": "TestApprovalNotificationsSubmitAggregatesCurrentRecipients",
+      "log": "core-schema-reset.txt",
+      "status": "PASS",
+      "line": 41,
+      "result": "--- PASS: TestApprovalNotificationsSubmitAggregatesCurrentRecipients (9.66s)"
+    },
+    {
+      "test": "TestApprovalNotificationsApprovalProgressAndTerminalResults",
+      "log": "core-schema-reset.txt",
+      "status": "PASS",
+      "line": 89,
+      "result": "--- PASS: TestApprovalNotificationsApprovalProgressAndTerminalResults (9.71s)"
+    },
+    {
+      "test": "TestApprovalNotificationsQualificationChangesAcrossEveryEntry",
+      "log": "core-schema-reset.txt",
+      "status": "PASS",
+      "line": 140,
+      "result": "--- PASS: TestApprovalNotificationsQualificationChangesAcrossEveryEntry (10.75s)"
+    },
+    {
+      "test": "TestApprovalNotificationsObservedDetailBoundsLateAcknowledgement",
+      "log": "core-schema-reset.txt",
+      "status": "PASS",
+      "line": 185,
+      "result": "--- PASS: TestApprovalNotificationsObservedDetailBoundsLateAcknowledgement (8.66s)"
+    },
+    {
+      "test": "TestApprovalNotificationsFailuresRollbackBusinessAndReadProgress",
+      "log": "core-schema-reset.txt",
+      "status": "PASS",
+      "line": 266,
+      "result": "--- PASS: TestApprovalNotificationsFailuresRollbackBusinessAndReadProgress (10.70s)"
+    },
+    {
+      "test": "TestApprovalNotificationsQualificationFailureRollsBackEveryEntry",
+      "log": "core-schema-reset.txt",
+      "status": "PASS",
+      "line": 308,
+      "result": "--- PASS: TestApprovalNotificationsQualificationFailureRollsBackEveryEntry (11.52s)"
+    },
+    {
+      "test": "TestApprovalNotificationsLostHTTPResponsesRecoverOriginalFacts",
+      "log": "core-schema-reset.txt",
+      "status": "PASS",
+      "line": 374,
+      "result": "--- PASS: TestApprovalNotificationsLostHTTPResponsesRecoverOriginalFacts (11.69s)"
+    },
+    {
+      "test": "TestApprovalNotificationsConcurrentLateReadPreservesNewEvents",
+      "log": "concurrent-receipt-refactor.txt",
+      "status": "PASS",
+      "line": 45,
+      "result": "--- PASS: TestApprovalNotificationsConcurrentLateReadPreservesNewEvents (9.13s)"
+    },
+    {
+      "test": "TestApprovalNotificationsOwnActionsPreserveEarlierResultsAndTruthfulPending",
+      "log": "core-schema-reset.txt",
+      "status": "PASS",
+      "line": 460,
+      "result": "--- PASS: TestApprovalNotificationsOwnActionsPreserveEarlierResultsAndTruthfulPending (10.21s)"
+    },
+    {
+      "test": "TestApprovalNotificationsSchemaUpgradeReadinessAndProtection",
+      "log": "schema-final-reset-preserved.txt",
+      "status": "PASS",
+      "line": 43,
+      "result": "--- PASS: TestApprovalNotificationsSchemaUpgradeReadinessAndProtection (15.17s)"
+    },
+    {
+      "test": "TestReleaseResetPreservesRecordsAndContinuesPublication",
+      "log": "schema-final-reset-preserved.txt",
+      "status": "PASS",
+      "line": 90,
+      "result": "--- PASS: TestReleaseResetPreservesRecordsAndContinuesPublication (10.71s)"
+    },
+    {
+      "test": "TestReleaseResetRefusesUnverifiedTargetsAndSchema",
+      "log": "schema-reset-faults-verified.txt",
+      "status": "PASS",
+      "line": 51,
+      "result": "--- PASS: TestReleaseResetRefusesUnverifiedTargetsAndSchema (9.68s)"
+    },
+    {
+      "test": "TestReleaseResetInterruptedTransactionRollsBackAndRetries",
+      "log": "core-schema-reset.txt",
+      "status": "PASS",
+      "line": 576,
+      "result": "--- PASS: TestReleaseResetInterruptedTransactionRollsBackAndRetries (8.86s)"
+    },
+    {
+      "test": "TestNotificationCenterSubmittedViewsExcludeUnsubmittedDrafts",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 145,
+      "result": "--- PASS: TestNotificationCenterSubmittedViewsExcludeUnsubmittedDrafts (8.77s)"
+    },
+    {
+      "test": "TestNotificationCenterCurrentEligibilityAndDurableHandledHistory",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 212,
+      "result": "--- PASS: TestNotificationCenterCurrentEligibilityAndDurableHandledHistory (9.71s)"
+    },
+    {
+      "test": "TestNotificationCenterFiltersBeforePaginationAndProtectsIdentity",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 296,
+      "result": "--- PASS: TestNotificationCenterFiltersBeforePaginationAndProtectsIdentity (10.83s)"
+    },
+    {
+      "test": "TestNotificationCenterRejectsIncompatibleHistoryAndDirectoryFailure",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 327,
+      "result": "--- PASS: TestNotificationCenterRejectsIncompatibleHistoryAndDirectoryFailure (9.78s)"
+    },
+    {
+      "test": "TestReleaseDraftCurrentAuthorizationAndListing",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 448,
+      "result": "--- PASS: TestReleaseDraftCurrentAuthorizationAndListing (9.71s)"
+    },
+    {
+      "test": "TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 366,
+      "result": "--- PASS: TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin (10.85s)"
+    },
+    {
+      "test": "TestTableApprovalQualificationChangesSerializeWithDecisions",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 713,
+      "result": "--- PASS: TestTableApprovalQualificationChangesSerializeWithDecisions (12.50s)"
+    },
+    {
+      "test": "TestTableApprovalScopeConcurrencyAndRejection",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 647,
+      "result": "--- PASS: TestTableApprovalScopeConcurrencyAndRejection (11.74s)"
+    },
+    {
+      "test": "TestTableApprovalSnapshotMembershipFallbackAndHistory",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 585,
+      "result": "--- PASS: TestTableApprovalSnapshotMembershipFallbackAndHistory (8.86s)"
+    },
+    {
+      "test": "TestRoleChangeRaceAndAuditFailureDoNotLeavePartialGrants",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 73,
+      "result": "--- PASS: TestRoleChangeRaceAndAuditFailureDoNotLeavePartialGrants (10.38s)"
+    },
+    {
+      "test": "TestRoleChangesAndAccountMaintenanceAreConcurrentSafe",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 52,
+      "result": "--- PASS: TestRoleChangesAndAccountMaintenanceAreConcurrentSafe (9.66s)"
+    },
+    {
+      "test": "TestApprovalRoleRetriesKeepOriginalResultAndRejectChangedIntent",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 93,
+      "result": "--- PASS: TestApprovalRoleRetriesKeepOriginalResultAndRejectChangedIntent (9.79s)"
+    },
+    {
+      "test": "TestAccountMaintenanceIndependentConnectionAndAtomicFailures",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 32,
+      "result": "--- PASS: TestAccountMaintenanceIndependentConnectionAndAtomicFailures (9.73s)"
+    },
+    {
+      "test": "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 489,
+      "result": "--- PASS: TestMultitablePublicationPreservesGlobalOrderAndOriginalResults (10.57s)"
+    },
+    {
+      "test": "TestMultitableReprepareTransfersChangedTargetsAtomically",
+      "log": "reprepare-lock-regression.txt",
+      "status": "PASS",
+      "line": 62,
+      "result": "--- PASS: TestMultitableReprepareTransfersChangedTargetsAtomically (10.67s)"
+    },
+    {
+      "test": "TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 536,
+      "result": "--- PASS: TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult (10.06s)"
+    },
+    {
+      "test": "TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 740,
+      "result": "--- PASS: TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts (17.75s)"
+    },
+    {
+      "test": "TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade",
+      "log": "affected-regression.txt",
+      "status": "PASS",
+      "line": 105,
+      "result": "--- PASS: TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade (16.86s)"
+    }
+  ]
+}

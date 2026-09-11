@@ -1,0 +1,197 @@
+{
+  "axis": "Standards; bounded merge increment only",
+  "worktree": "/private/tmp/rcc-template-notification-integration",
+  "ours": "e2564842e72e96b6ffb1e86708978b11dd8a651b",
+  "theirs": "7334e1103f612b4735992ef63bf1a0b7643b40ae",
+  "head": "e2564842e72e96b6ffb1e86708978b11dd8a651b",
+  "merge_head": "7334e1103f612b4735992ef63bf1a0b7643b40ae",
+  "ours_commits": [],
+  "original_conflict_paths": [
+    "admin/cmd/admin/release_copy_reprepare_multitable_integration_test.go",
+    "admin/cmd/admin/table_approval_schema_integration_test.go",
+    "admin/internal/domain/release_order.go",
+    "admin/internal/infrastructure/mysql/migrations/00008_schema.json",
+    "docs/schema-migrations.md",
+    "web/DESIGN.md",
+    "web/src/api/release-orders.test.ts",
+    "web/src/api/release-orders.ts",
+    "web/src/components/AppShell.tsx",
+    "web/src/features/managed-data/ManagedDataMutationPage.test.tsx",
+    "web/src/features/release-orders/ReleaseOrdersPage.tsx",
+    "web/src/test/release-fixture.ts"
+  ],
+  "reviewed_source_sha256": {
+    "AGENTS.md": "6ae41a2ec8d8c6dc43f4ca4c1408fd0ece92aaf9e3017ff47ef2489fa50fd852",
+    "CONTEXT-MAP.md": "cf69b1890306fc93d956e2073d453ea54272b22510fd162c036857497345c67c",
+    "admin/CONTEXT.md": "6295703d27f58183dd22afacbb3f0e467f18be5493912240eca0791320d36ddb",
+    "admin/cmd/admin/release_copy_reprepare_multitable_integration_test.go": "2977a966826a845e11c750001c05899688655d2380784df49d41322ecfe68826",
+    "admin/cmd/admin/schema_migration_integration_test.go": "7f79767737ee1364fe1c71045612d382c817257f9c0253b15cc5ccfaf7b1ba32",
+    "admin/cmd/admin/schema_readiness_integration_test.go": "ef8ac9b2001c7705670b3a54a9719852544860812580a75e98f2fa146c9cf14d",
+    "admin/cmd/admin/table_approval_schema_integration_test.go": "51bc2356c3844a99fbdc9b76290f91acd6d8babf6cf016d924d5cb1a3bed5490",
+    "admin/cmd/admin/table_release_schema_integration_test.go": "b4787decd69cd11fe0550a41fe5a9a744e3d7848123f64a7dedc17256ddd3419",
+    "admin/internal/application/notification_center.go": "87699b7a285c42b4705a7d730fe94f667165c9450df5adc84fd6c3ccb85add16",
+    "admin/internal/application/quick_rollback.go": "759ef03d0ce3ef89a49ffa01325a91590490a778665591cc12d76a23cbd5245b",
+    "admin/internal/application/release_orders.go": "6f3e7bd71fe17637d90e4f53bc7e7088db5ef881654c40e2565fa393de7f1580",
+    "admin/internal/domain/release_order.go": "c67eb9aefc0a65da6d5009af204f5c160daba3255d33246d3a4e08d1d48aa05e",
+    "admin/internal/domain/release_read.go": "0a35f9141d26dcfa7fd5cc2979b62624b70a6b8564379e762ae7ab4d207e70e5",
+    "admin/internal/infrastructure/mysql/migrations/00008_schema.json": "79a5d895a411c02c98d3a7a8fc238fbde6dcd149a2f7368dc1e1876ed677f252",
+    "admin/internal/infrastructure/mysql/migrations/00009_release_templates.sql": "93baf3f8dc7b37cfa10ebbad260db49e24da8b386ff6efe64a702c9ce1366223",
+    "admin/internal/infrastructure/mysql/migrations/00009_schema.json": "8a8a3a8c53a24828e30579bdce35929fb56094043b51358d0bd85833fb97b778",
+    "admin/internal/infrastructure/mysql/migrations/00010_schema.json": "1238bd8d96105282700f92c933db6640e84b53181b465f0b9025e2ba3492d608",
+    "admin/internal/infrastructure/mysql/migrations/00010_table_release_templates.sql": "4fc1bf17d62efb25f62146dbc3cd0559b65dd077541dee1744f17c915b99e137",
+    "admin/internal/interfaces/http/release_orders.go": "e794d3750836ef9a87422cfb16b9faf3f0e4bc96e8f1ac7d47f01cd51e268812",
+    "docs/adr/0013-use-per-request-strategies-and-deep-execution-ports.md": "809159e1c31964c06f4f9b0e036309e0721ab6908e38fac8763f2866c8abb5f7",
+    "docs/adr/0024-adopt-goose-at-a-verified-control-schema-baseline.md": "85760999db657a73a78b7e003509bd01e4eb7591cd130335e1659aabb48bc409",
+    "docs/adr/0027-configure-release-workflows-with-stable-templates.md": "b46d0b0340834b90e57ce8706703fa8ea9a3d640106a48e0874451dae4e737e9",
+    "docs/agents/design.md": "433e00355212a714460056db4fcbf6571b5c5e2c77f74ed7d6b1b8f7920fb3a2",
+    "docs/agents/domain.md": "90b7264b693c6c3da26e8bc38da39f484a0fb838ec1aa1feefc7aa417d47c0d5",
+    "docs/agents/issue-tracker.md": "afaecc9491e6e0a4220cbcd0b91ef8e6e175ae107acacdc6cf97323cea1f7a4e",
+    "docs/architecture.md": "7c1ef6c7af250fe4e947982c79df40818d2f5aaaea9a507f26e6c3079b03f401",
+    "docs/schema-migrations.md": "7808a6204ba75f7588e01f733f01557a6c3f44443d897ae440c97d93e944e2a8",
+    "web/DESIGN.md": "a557809fc2fd85e7460f1d153390ba2e612448d40c816e3e300e26d2dbfcae81",
+    "web/src/api/release-orders.test.ts": "bc10c565861a60059b6b0bc83a0b12ca094d68a578b2dda6d01561d37c8a6dd7",
+    "web/src/api/release-orders.ts": "4f6c3e527c6e2fbc36b907da0b840dbbed7356fdcccb75526074e3dc05572e88",
+    "web/src/components/AppShell.tsx": "75f581f5fed210667da28276a76fa07bc0526397541eac741d11499af71df0b2",
+    "web/src/features/managed-data/ManagedDataMutationPage.test.tsx": "14a1355bcf6e5d63ac105b9d36620c748ac65b1277d7abf0f192af2413851751",
+    "web/src/features/notifications/ApprovalNotifications.test.tsx": "6c9f219a6a90ce3f5933665444258c64512472ffcbdc3c3b70a6b23644d01cb7",
+    "web/src/features/notifications/NotificationsPage.test.tsx": "0306d3d4b2bcfebbc0b7155ebefaecfcb7e3aa6409b7e8a35f26f5ae125c9f8a",
+    "web/src/features/notifications/ReleaseNotificationRead.tsx": "0ad492d65d92e3111ab565a4e3e22456c6d4bf9929f7a0ec51ffdfd467302f58",
+    "web/src/features/release-orders/ReleaseOrdersPage.tsx": "eae492a57eecf2228bb17854ed7ac94b4c9bafa2c10e717ee88479d9ef07351d",
+    "web/src/features/release-orders/useReleaseWrite.ts": "f6dac8189d76a66394178715ae9abf87085885eca87b96c18cf12001d7821db5",
+    "web/src/styles.css": "e507465a0c0ef6c024a5a308a4ee47ba243542bb5be6b990c8834bc772a734e3",
+    "web/src/test/release-fixture.ts": "3c52ffad698e0e8baab8bd0991695758fff32edd7bf42f12c5a7f3eca30af84c"
+  },
+  "deleted_rename_sources": [
+    "admin/internal/infrastructure/mysql/migrations/00008_release_templates.sql",
+    "admin/internal/infrastructure/mysql/migrations/00009_table_release_templates.sql"
+  ],
+  "combined_diff_sha256": "a6c3c1b2b66e2fec07410cfe7d93efc95d31609c92d756d51f3b1584aa696c57",
+  "unstaged_diff_sha256": "a6c3c1b2b66e2fec07410cfe7d93efc95d31609c92d756d51f3b1584aa696c57",
+  "published_1_to_8": {
+    "admin/internal/infrastructure/mysql/migrations/00001_control_baseline.sql": {
+      "sha256": "df9794a5f3836aab8452d090e8b88c69be619154bc20aca10e55d2f9252a8730",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00001_schema.json": {
+      "sha256": "5c36a92035b9382ec3e43de18090f2008e5256c7e238b7a88f976bf23bd85cb4",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00002_policy_audit_timestamps.sql": {
+      "sha256": "3a5516b279c2ffbd795998d5641f74e6f07c7810bf4a6b615c0e7ba3490d2476",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00002_schema.json": {
+      "sha256": "5472c8a95d62e301b5639b00442d96628194e6103b14b8b687fb55c3c0f53ae8",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00003_schema.json": {
+      "sha256": "f0382433976866f5a842703835635da87f42a0b8bde3d31caf0cad07085cc082",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00003_table_field_policies.sql": {
+      "sha256": "a9a5c7808ac262ab170a506d88ae5ecb05e7278ddd009cff687005ed770645c2",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00004_release_details_and_targets.sql": {
+      "sha256": "3b19f19aa1ff2a6d3a47f4e83fce595e43b7096a59cce1b4bb1d7ee14b31f53e",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00004_schema.json": {
+      "sha256": "a5c3f0cc404ef2906e368367d9d2e100b5662524a7815ad73fe086f7122bff35",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00005_release_execution_ownership.sql": {
+      "sha256": "eff792fa684428ce89b12184798042ab22258e956688d3037c8409c8074ec02a",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00005_schema.json": {
+      "sha256": "a80e24458f579d72abdcfa917417a3e5a8e0199e61545ef8f8e4dad90dd12a1f",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00006_approval_roles.sql": {
+      "sha256": "c0fe587dbe2a4ae910058bf021439f0583a80dd7f46fd04de4d1bc516412d230",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00006_schema.json": {
+      "sha256": "f2083662b3191bed12e2a613413011218c55e72df30d821ad0f7c8b753c1faa7",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00007_schema.json": {
+      "sha256": "b2f169647d6369ed29f0388a5dca1506d42f3281b4a4368e5e34cf77d954505a",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00007_table_approvals.sql": {
+      "sha256": "43ccf0aade2b9c2d0b0aef5613a6dab0191c391272edcdb248ffceb250abb395",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00008_approval_notifications.sql": {
+      "sha256": "223c2a53b56212d150d6bdb335cee36956db26de16f2a09d3c3ef1e6222729bd",
+      "matches_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00008_schema.json": {
+      "sha256": "79a5d895a411c02c98d3a7a8fc238fbde6dcd149a2f7368dc1e1876ed677f252",
+      "matches_theirs": true
+    }
+  },
+  "evidence_input_comparison": {
+    "schema/03-notification-readiness-green-inputs.json": {
+      "count": 244,
+      "changed": []
+    },
+    "backend/01-contracts-and-process-inputs.json": {
+      "count": 244,
+      "changed": []
+    },
+    "backend/02-http-integration-inputs.json": {
+      "count": 244,
+      "changed": []
+    },
+    "web/01-affected-inputs.json": {
+      "count": 167,
+      "changed": [
+        "web/src/features/notifications/ApprovalNotifications.test.tsx",
+        "web/src/features/notifications/NotificationsPage.test.tsx"
+      ]
+    },
+    "web/02-notification-fixtures-recheck-inputs.json": {
+      "count": 167,
+      "changed": []
+    }
+  },
+  "evidence_sha256": {
+    "docs/verification/2026-09-11-template-notification-integration/README.md": "a835d6d8085248fc07b8c23d99254ddb85bbe73387d3d6904bf23c3ffca01dc1",
+    "docs/verification/2026-09-11-template-notification-integration/backend/01-contracts-and-process-inputs.json": "293a713c11f9a07f996f5350fd503631e1dd4b680a4acc4a68b912d0bcf864fc",
+    "docs/verification/2026-09-11-template-notification-integration/backend/01-contracts-and-process.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "docs/verification/2026-09-11-template-notification-integration/backend/01-contracts-and-process.log": "566e14d904f746f5b94567803604f07c960d4d14363597f7710575c51b69acc1",
+    "docs/verification/2026-09-11-template-notification-integration/backend/02-http-integration-command.json": "c1d3928d129d7793b7077a306c7c3a66ddf10fc9f6e06549cc87ce38a9f4c49a",
+    "docs/verification/2026-09-11-template-notification-integration/backend/02-http-integration-inputs.json": "293a713c11f9a07f996f5350fd503631e1dd4b680a4acc4a68b912d0bcf864fc",
+    "docs/verification/2026-09-11-template-notification-integration/backend/02-http-integration.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "docs/verification/2026-09-11-template-notification-integration/backend/02-http-integration.jsonl": "853d235f958620ffe5579195924873b81150fc44e61ce4225f12f5a651cd43ae",
+    "docs/verification/2026-09-11-template-notification-integration/backend/02-http-results.json": "4507949a3ca2a86940473871afb7b1b5dd263281b0bbf3720724a96527fdf79c",
+    "docs/verification/2026-09-11-template-notification-integration/schema/01-notification-readiness-red-inputs.json": "9e58d2c87b0038de8c6c10d288e3f40ae93d0f4fbc58c9f18a4cb682ddfac48f",
+    "docs/verification/2026-09-11-template-notification-integration/schema/01-notification-readiness-red.exit": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "docs/verification/2026-09-11-template-notification-integration/schema/01-notification-readiness-red.log": "29d98d3ce240cff5baa195f4e085403e6217cadc9e050241bd80b86b8eb169df",
+    "docs/verification/2026-09-11-template-notification-integration/schema/02-generate-manifests.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "docs/verification/2026-09-11-template-notification-integration/schema/02-generate-manifests.log": "3d1656d29374ddbd9aeec8a34b2e363c3a1369bc52f311f78cbcc3a63aaf67fe",
+    "docs/verification/2026-09-11-template-notification-integration/schema/03-notification-readiness-green-inputs.json": "293a713c11f9a07f996f5350fd503631e1dd4b680a4acc4a68b912d0bcf864fc",
+    "docs/verification/2026-09-11-template-notification-integration/schema/03-notification-readiness-green.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "docs/verification/2026-09-11-template-notification-integration/schema/03-notification-readiness-green.log": "7b0480bec7339456d27abd226074ee51e51e8189bf7e6e01a55db652717f5b24",
+    "docs/verification/2026-09-11-template-notification-integration/schema/manifest-generator.go.txt": "e08ef52665b37b92b01d4a5997506fe602068df9611d73eeccd38b772558fb63",
+    "docs/verification/2026-09-11-template-notification-integration/schema/published-1-through-8-sha256.json": "039864f11c9ae15af6c63ca3819693ec11f81c367454293b58e69df2878a0857",
+    "docs/verification/2026-09-11-template-notification-integration/web/01-affected-inputs.json": "c1a6d2c7dc673abc20011e710676287b8208eb86e045116062660d2cc09d19ff",
+    "docs/verification/2026-09-11-template-notification-integration/web/01-affected.exit": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "docs/verification/2026-09-11-template-notification-integration/web/01-affected.log": "915cf179bb4ecd310075caf7812235715921b316fd4f8d9f6019aa1945402537",
+    "docs/verification/2026-09-11-template-notification-integration/web/02-notification-fixtures-recheck-inputs.json": "e952ccfa43329b9bc694d537bd9fcf8e215231ed7cff6ea6b388a705772c07d1",
+    "docs/verification/2026-09-11-template-notification-integration/web/02-notification-fixtures-recheck.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "docs/verification/2026-09-11-template-notification-integration/web/02-notification-fixtures-recheck.log": "a349325c365d596468b6b52b7c06a5d9c385bf50a9f9579ee94789fb4cfd607f",
+    "docs/verification/2026-09-11-template-notification-integration/web/03-typecheck.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "docs/verification/2026-09-11-template-notification-integration/web/03-typecheck.log": "982c4c073b47f111886231b1608de66a7915c5d36095dd851ee0a1f8729d2268",
+    "docs/verification/2026-09-11-template-notification-integration/web/04-build.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "docs/verification/2026-09-11-template-notification-integration/web/04-build.log": "3d71ac0b12da2a1c31522d24021762cc8f70b87a1bbd041480dbafe998e04511"
+  },
+  "notes": [
+    "No production edits or tests executed. No Spec report read.",
+    "Only conflict resolution, root semantic projection fixes, candidate migration renumbering/cumulative manifests, and narrow fixtures inspected; parent-equivalent implementations reused.",
+    "This intermediate merge excludes #98 formal 9 and #104; later candidate renumbering to 10/11 and cumulative MySQL validation remains required."
+  ]
+}
