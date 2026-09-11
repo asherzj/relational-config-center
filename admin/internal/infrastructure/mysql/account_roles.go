@@ -128,7 +128,7 @@ func saveRoleEvent(tx *gorm.DB, kind, actor string, before domain.AccountRoles, 
 	if err != nil {
 		return err
 	}
-	return tx.Table(roleHistoryTable).Create(&storedRoleEvent{RoleEvent: domain.RoleEvent{ActorKind: kind, ActorID: actor, AccountID: result.ID, BeforeRoles: before, AfterRoles: result.Roles, Version: result.RoleVersion, CreatedAt: now.UTC().Truncate(time.Microsecond)}, RequestKey: key, RequestDigest: digest, Result: data}).Error
+	return tx.Table(roleHistoryTable).Create(&storedRoleEvent{RoleEvent: domain.RoleEvent{ActorKind: kind, ActorID: actor, AccountID: result.ID, BeforeRoles: domain.HistoricalAccountRoles(before), AfterRoles: domain.HistoricalAccountRoles(result.Roles), Version: result.RoleVersion, CreatedAt: now.UTC().Truncate(time.Microsecond)}, RequestKey: key, RequestDigest: digest, Result: data}).Error
 }
 func (a *Adapter) RoleHistory(ctx context.Context, id string, before uint64, limit int) ([]domain.RoleEvent, error) {
 	events := make([]domain.RoleEvent, 0)

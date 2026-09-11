@@ -32,9 +32,9 @@ func preTemplateDataSnapshot(t *testing.T, db *sql.DB) string {
 	t.Helper()
 	snapshot := baselineDataSnapshot(t, db, "rcc_release_templates", "rcc_table_release_templates", "rcc_table_policies") +
 		baselineRows(t, db, `SELECT id,table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier,created_at,updated_at,concurrency_key FROM rcc_table_policies ORDER BY id`)
-	// Role migrations add empty tables to historical version 5. Remove only
+	// Approval migrations add empty tables to historical version 5. Remove only
 	// their headers: any unexpected seeded rows still fail the data comparison.
-	for _, table := range []string{"rcc_approval_roles", "rcc_approval_role_members", "rcc_approval_role_requests", "rcc_approval_role_references", "rcc_table_approval_assignments", "rcc_table_approval_requests"} {
+	for _, table := range []string{"rcc_approval_roles", "rcc_approval_role_members", "rcc_approval_role_requests", "rcc_approval_role_references", "rcc_table_approval_assignments", "rcc_table_approval_requests", "rcc_approval_notifications"} {
 		snapshot = strings.Replace(snapshot, table+":\n", "", 1)
 	}
 	return snapshot
@@ -121,9 +121,25 @@ func TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory(t *testing.T
 	}
 	requireSchemaMigrationState(t, binary, driver, "pending", "status")
 	beforeUpgrade := preTemplateDataSnapshot(t, db)
-	requireSchemaMigrationState(t, binary, driver, "current", "up")
+	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 8), driver, "current", "up")
 	if got := preTemplateDataSnapshot(t, db); got != beforeUpgrade {
-		t.Fatal("explicit upgrade changed historical control or business data")
+		t.Fatal("approval and notification increments changed historical control or business data")
+	}
+	beforeCutover := cutoverPreservedSnapshot(t, db)
+	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 9), driver, "current", "up")
+	if cutoverPreservedSnapshot(t, db) != beforeCutover {
+		t.Fatal("role cutover changed historical facts outside current grants")
+	}
+	// These three role/version pairs are fixed by the frozen public-workflow
+	// fixture: 17/2 stays unchanged, 12/2 becomes 8/3, and 31/4 becomes 27/5.
+	var mapped int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_accounts WHERE (roles=17 AND role_version=2) OR (roles=8 AND role_version=3) OR (roles=27 AND role_version=5)`).Scan(&mapped); err != nil || mapped != 3 {
+		t.Fatalf("frozen account grants were not contracted exactly once: %d %v", mapped, err)
+	}
+	beforeTemplates := preTemplateDataSnapshot(t, db)
+	requireSchemaMigrationState(t, binary, driver, "current", "up")
+	if preTemplateDataSnapshot(t, db) != beforeTemplates {
+		t.Fatal("template increments changed contracted accounts or historical business data")
 	}
 	expectedVersions := []string{"0"}
 	for version := int64(1); version <= currentTestSchemaVersion(t); version++ {

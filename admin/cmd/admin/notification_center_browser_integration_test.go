@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	mysqldriver "github.com/go-sql-driver/mysql"
 )
 
 func TestNotificationCenterBrowserSystemPath(t *testing.T) {
@@ -20,6 +22,10 @@ func TestApprovalNotificationsBrowserSystemPath(t *testing.T) {
 }
 func runNotificationBrowserSystemPath(t *testing.T, script string) {
 	_, driver := startCurrentIntegrationMySQL(t, localManagedTableFixture, "testdata/016-multitable-browser.sql")
+	runNotificationBrowserWithMySQL(t, driver, script)
+}
+
+func runNotificationBrowserWithMySQL(t *testing.T, driver *mysqldriver.Config, script string) {
 	maintenance := filepath.Join(t.TempDir(), "account-maintain")
 	build := exec.Command("go", "build", "-o", maintenance, "../account-maintain")
 	if output, err := build.CombinedOutput(); err != nil {

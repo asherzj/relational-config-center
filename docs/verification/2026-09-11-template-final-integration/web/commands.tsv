@@ -1,0 +1,10 @@
+artifact	command	exit_code
+01-typecheck.log	pnpm typecheck	0
+02-affected-tests.log	pnpm exec vitest run src/api/release-orders.test.ts src/features/release-orders/ReleaseOrdersPage.test.tsx src/features/release-orders/ReleaseDiff.test.tsx src/features/release-orders/ReleasePerson.test.tsx src/features/release-orders/release-journal.test.ts src/features/notifications/ApprovalNotifications.test.tsx src/features/notifications/NotificationsPage.test.tsx src/test/UnsavedChanges.test.tsx	1
+03-affected-tests-green.log	pnpm exec vitest run src/api/release-orders.test.ts src/features/release-orders/ReleaseOrdersPage.test.tsx src/features/release-orders/ReleaseDiff.test.tsx src/features/release-orders/ReleasePerson.test.tsx src/features/release-orders/release-journal.test.ts src/features/notifications/ApprovalNotifications.test.tsx src/features/notifications/NotificationsPage.test.tsx src/test/UnsavedChanges.test.tsx	1
+04-approval-person-fold-green.log	pnpm exec vitest run src/features/release-orders/ReleaseOrdersPage.test.tsx -t '仅有审批角色的人填写意见批准冻结单据'	0
+05-affected-tests-green.log	pnpm exec vitest run src/api/release-orders.test.ts src/features/release-orders/ReleaseOrdersPage.test.tsx src/features/release-orders/ReleaseDiff.test.tsx src/features/release-orders/ReleasePerson.test.tsx src/features/release-orders/release-journal.test.ts src/features/notifications/ApprovalNotifications.test.tsx src/features/notifications/NotificationsPage.test.tsx src/test/UnsavedChanges.test.tsx	0
+06-e2e-syntax.log	bash -n scripts/browser-acceptance.sh; node --check each top-level web/e2e/*.cjs and *.mjs	0
+07-build.log	pnpm build	0
+08-source-sha256.txt	shasum -a 256 web/DESIGN.md web/e2e/release-approvals.cjs web/src/features/release-orders/ReleaseOrdersPage.test.tsx web/src/features/release-orders/ReleaseOrdersPage.tsx scripts/browser-acceptance.sh	0
+09-diff-check.log	git diff --check -- web scripts/browser-acceptance.sh	0

@@ -402,8 +402,8 @@ func TestRecordVersionSnapshotAndIndependentResources(t *testing.T) {
 	if *row["label"] != "after" || v != "2" {
 		t.Fatal("fresh query missed committed pair")
 	}
-	// Actual publication locks progress per table. Two different records of
-	// that table serialize, while another table can finish independently.
+	// Publication requests share authorization serialization; each table still
+	// owns its business values, record versions and publication progress.
 	reviewer := publicationFixtureReviewer(t, app)
 	firstPath := approvePublication(t, app, reviewer, `{"items":[{"content":{"label":"held"},"expected_record_version":"2","id":"1","operation":"MODIFY","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "resource-first")
 	secondPath := approvePublication(t, app, reviewer, `{"items":[{"content":{"label":"ordered"},"expected_record_version":"1","id":"2","operation":"MODIFY","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "resource-second")
@@ -420,41 +420,64 @@ func TestRecordVersionSnapshotAndIndependentResources(t *testing.T) {
 	}
 	session := integrationAdminSession(t, app)
 	cookies, csrf := session.Result().Cookies(), sessionCSRF(t, session)
-	completed := make(chan *httptest.ResponseRecorder, 2)
+	completed := make(chan *httptest.ResponseRecorder, 3)
 	for i, path := range []string{firstPath, secondPath} {
 		go func(i int, path string) {
 			completed <- accountRequestFrom(app, "POST", path+"/execute", `{"expected_version":"3"}`, cookies, csrf, "192.0.2.1:1234", map[string]string{"Idempotency-Key": fmt.Sprintf("resource-execute-%d", i)})
 		}(i, path)
 	}
-	deadline := time.Now().Add(3 * time.Second)
-	for {
-		var waiting int
-		err := owner.QueryRow(`SELECT COUNT(*) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID WHERE l.OBJECT_SCHEMA=DATABASE() AND l.OBJECT_NAME='rcc_table_publications'`).Scan(&waiting)
-		if err != nil {
-			t.Fatal(err)
+	waitForLock := func(table string, blockerID int64, count int) int64 {
+		t.Helper()
+		deadline := time.Now().Add(3 * time.Second)
+		for {
+			waiting, requesterID := integrationLockWaiters(t, owner, table, blockerID)
+			if waiting == count && requesterID != blockerID {
+				return requesterID
+			}
+			if time.Now().After(deadline) {
+				t.Fatalf("wanted %d real waiters on %s, got %d", count, table, waiting)
+			}
+			time.Sleep(10 * time.Millisecond)
 		}
-		if waiting >= 2 {
-			break
-		}
-		if time.Now().After(deadline) {
-			t.Fatal("real publications did not reach per-table lock")
-		}
-		time.Sleep(10 * time.Millisecond)
 	}
-	independent := releaseRequest(t, app, "POST", otherPath+"/execute", `{"expected_version":"3"}`, "resource-independent")
-	publishedFixtureCommand(t, independent)
+	publicationConnection := waitForLock("rcc_table_publications", 0, 1)
+	go func() {
+		completed <- accountRequestFrom(app, "POST", otherPath+"/execute", `{"expected_version":"3"}`, cookies, csrf, "192.0.2.1:1234", map[string]string{"Idempotency-Key": "resource-independent"})
+	}()
+	waitForLock("rcc_auth_control_lock", publicationConnection, 2)
+	t.Logf("two distinct publication connections await authorization held by table-lock waiter %d", publicationConnection)
 	select {
 	case response := <-completed:
-		t.Fatalf("same-table publication passed held progress lock: %d", response.Code)
+		t.Fatalf("publication passed held authorization/progress lock: %d", response.Code)
 	default:
 	}
 	if err := holder.Commit(); err != nil {
 		t.Fatal(err)
 	}
-	for range 2 {
-		publishedFixtureCommand(t, <-completed)
+	for range 3 {
+		select {
+		case response := <-completed:
+			publishedFixtureCommand(t, response)
+		case <-time.After(10 * time.Second):
+			t.Fatal("serialized publication did not finish")
+		}
 	}
-
+	for _, expected := range []struct{ table, id, label, version string }{
+		{"mutation_add_items", "1", "held", "3"},
+		{"mutation_add_items", "2", "ordered", "2"},
+		{"mutation_supplied_id_items", "other", "independent", "1"},
+	} {
+		row, version := recordVersionRow(t, app, expected.table, expected.id)
+		if row["label"] == nil || *row["label"] != expected.label || version != expected.version {
+			t.Fatalf("independent resource result %s/%s: row=%v version=%s", expected.table, expected.id, row, version)
+		}
+	}
+	for table, expected := range map[string]int{"mutation_add_items": 5, "mutation_supplied_id_items": 1} {
+		var version int
+		if err := owner.QueryRow(`SELECT table_version FROM rcc_table_publications WHERE table_name=?`, table).Scan(&version); err != nil || version != expected {
+			t.Fatalf("independent table progress %s=%d, want %d: %v", table, version, expected, err)
+		}
+	}
 }
 
 func TestRecordVersionRejectsNonTransactionalBusinessWrite(t *testing.T) {

@@ -153,7 +153,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await page.keyboard.press('Tab');
     assert.equal(await ruleDrawer.getByRole('button', { name: '关闭', exact: true }).evaluate((node) => node === document.activeElement), true);
     await page.getByRole('textbox', { name: '显示名称', exact: true }).fill(`Stage 5 ${engineName} draft`);
-    const inertProbe = await page.getByRole('link', { name: '配置内容管理', exact: true }).evaluate((background) => {
+    const inertProbe = await page.getByRole('link', { name: '统一变更入口', exact: true }).evaluate((background) => {
       const inertAncestor = background.closest('[inert]');
       background.focus(); // Programmatic probe for native inert; not a Tab path.
       return {
@@ -331,15 +331,16 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     assert.equal(sql(`SELECT COUNT(*) FROM ${table} WHERE name=${literal(`stage5_${engineName}_invalid`)};`), '0');
     await page.reload();
     await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();
-    await button('取消发布单').click();
+    await button('更多操作').click();
+    await page.getByRole('menuitem', { name: '取消发布单', exact: true }).click();
     await page.getByRole('textbox', { name: '取消原因', exact: true }).fill('Correct the rejected value without changing the frozen intent');
     await button('确认取消发布单').click();
-    await page.getByText(`${table} · 已取消`, { exact: true }).waitFor();
+    await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: /^已取消$/ }).waitFor();
     await button('复制新草稿').click();
     await button('读取最新配置').click();
     await button('确认最新基线并复制').click();
     await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();
-    await page.getByText(`${table} · 草稿`, { exact: true }).waitFor();
+    await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: /^草稿$/ }).waitFor();
     await button('编辑草稿').click();
     const copiedNote = page.getByRole('textbox', { name: 'note 申请值', exact: true });
     assert.equal(await copiedNote.getAttribute('readonly'), '');

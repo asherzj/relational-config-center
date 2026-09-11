@@ -442,7 +442,7 @@ func TestReleaseTemplateSchemaMigrationUpgradesVersionFive(t *testing.T) {
 		t.Fatalf("release template defaults: templates=%d emergency=%d err=%v", templates, emergency, err)
 	}
 	var templateVersion int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=9 AND is_applied=1`).Scan(&templateVersion); err != nil || templateVersion != 1 {
+	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=10 AND is_applied=1`).Scan(&templateVersion); err != nil || templateVersion != 1 {
 		t.Fatalf("candidate release template migration missing: %d %v", templateVersion, err)
 	}
 	rootConfig := *driver

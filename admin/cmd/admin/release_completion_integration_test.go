@@ -106,13 +106,13 @@ func TestReleaseCompletionProtectsActualAndDeletedIDs(t *testing.T) {
 // #59 AC-003/006/016: current roles, observed versions and original request keys
 // remain authoritative even when another publisher competes or access changes.
 func TestReleaseCompletionRolesConcurrencyAndReplay(t *testing.T) {
-	app, _ := batchEdgeApplication(t)
+	app, db := batchEdgeApplication(t)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"code":"race","label":"published"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "completion-race")
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/complete", `{"expected_version":"3"}`, "completion-unpublished"), 422, "release_state_invalid")
 	rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "completion-race-execute"), 200)
 	actor := registerAccount(t, app, "completion.roles", "completion.roles@example.com", "correct horse battery staple")
-	for index, roles := range []string{`["VIEWER"]`, `["EDITOR"]`, `["APPROVER"]`} {
+	for index, roles := range []string{`["VIEWER"]`, `["EDITOR"]`} {
 		if index > 0 {
 			grantReleaseRole(t, app, actor, roles, fmt.Sprint(index), fmt.Sprintf("completion-role-%d", index))
 		}
@@ -122,7 +122,11 @@ func TestReleaseCompletionRolesConcurrencyAndReplay(t *testing.T) {
 			t.Fatal("forbidden completion action advertised")
 		}
 	}
-	grantReleaseRole(t, app, actor, `["PUBLISHER"]`, "3", "completion-role-publisher")
+	var roles, roleVersion int
+	if err := db.QueryRow(`SELECT roles,role_version FROM rcc_accounts WHERE id=?`, accountID(t, actor)).Scan(&roles, &roleVersion); err != nil || roles != 2 || roleVersion != 2 {
+		t.Fatalf("current EDITOR matrix grant: roles=%d version=%d error=%v", roles, roleVersion, err)
+	}
+	grantReleaseRole(t, app, actor, `["PUBLISHER"]`, "2", "completion-role-publisher")
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/complete", `{"expected_version":"3"}`, "completion-stale"), 409, "release_version_conflict")
 	cookies, csrf := actor.Result().Cookies(), sessionCSRF(t, actor)
 	type outcome struct {
@@ -160,7 +164,7 @@ func TestReleaseCompletionRolesConcurrencyAndReplay(t *testing.T) {
 	if current.Version != "5" || len(current.History) != 5 {
 		t.Fatal("duplicate completion history")
 	}
-	grantReleaseRole(t, app, actor, `["VIEWER"]`, "4", "completion-role-revoke")
+	grantReleaseRole(t, app, actor, `["VIEWER"]`, "3", "completion-role-revoke")
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/complete", `{"expected_version":"4"}`, winner.key), 403, "permission_denied")
 }
 

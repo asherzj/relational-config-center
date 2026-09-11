@@ -98,11 +98,17 @@ func TestExplicitIdentityKeepsEngineStableUntilInsertTransactionEnds(t *testing.
 	t.Cleanup(release)
 	var insertDriverError error
 	if err := adapter.gorm.Callback().Create().After("gorm:create").Register("test:observe_identity_insert", func(tx *gorm.DB) {
+		if tx.Statement.Table != "guard_mdl_ids" {
+			return
+		}
 		insertDriverError = tx.Error
 	}); err != nil {
 		t.Fatal(err)
 	}
 	if err := adapter.gorm.Callback().Create().Before("gorm:create").Register("test:hold_identity_insert", func(tx *gorm.DB) {
+		if tx.Statement.Table != "guard_mdl_ids" {
+			return
+		}
 		close(beforeInsert)
 		select {
 		case <-resumeInsert:
@@ -217,6 +223,9 @@ func TestExplicitIdentityReadPermissionFailureAfterInsertRollsBack(t *testing.T)
 	var insertedRows int
 	var readDenied bool
 	if err := adapter.gorm.Callback().Create().After("gorm:create").Register("test:revoke_identity_read", func(tx *gorm.DB) {
+		if tx.Statement.Table != "guard_permission_ids" {
+			return
+		}
 		if tx.Error != nil {
 			callbackErr = tx.Error
 			return

@@ -76,6 +76,11 @@ func run(args []string, input *os.File, output, diagnostics io.Writer) int {
 	selector := application.AccountSelector{ID: *id, Username: *username}
 	var account application.LocalAccountSummary
 	if action == "grant-admin" {
+		// This command must not become a second legacy-grant migration entry.
+		if err := adapter.Ready(ctx); err != nil {
+			fmt.Fprintln(diagnostics, "schema_not_ready: complete schema-migrate up/recover before grant-admin")
+			return 1
+		}
 		account, err = maintenance.GrantAdmin(ctx, selector)
 	} else if action == "reset-password" {
 		account, err = maintenance.ResetPassword(ctx, selector, fieldInput)

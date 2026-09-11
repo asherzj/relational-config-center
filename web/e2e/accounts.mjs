@@ -39,7 +39,7 @@ async function session(api) {
 
 async function releaseState(page, state) {
   await page.getByRole('heading', { name: 'notification_templates 配置变更', exact: true }).waitFor();
-  await page.getByText(`notification_templates · ${state}`, { exact: true }).waitFor();
+  await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: new RegExp(`^${state}$`) }).waitFor();
 }
 
 async function login(api, username, password) {
@@ -177,11 +177,10 @@ try {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.getByRole('checkbox', { name: /查看者 VIEWER/ }).uncheck();
   await page.getByRole('checkbox', { name: /编辑者 EDITOR/ }).check();
-  await page.getByRole('checkbox', { name: /审批人 APPROVER/ }).check();
   await page.getByRole('button', { name: '保存角色', exact: true }).click();
   await page.getByText('角色已保存，后续请求立即生效。').waitFor();
   const memberIdentity = await session(member);
-  assert.deepEqual(memberIdentity.account.roles, ['EDITOR', 'APPROVER']);
+  assert.deepEqual(memberIdentity.account.roles, ['EDITOR']);
   await page.getByRole('button', { name: `管理 ${memberUsername} 的角色` }).click();
   await page.getByRole('heading', { name: '角色变更历史' }).waitFor();
   await page.getByText(`操作者：${identity.account.id}`, { exact: true }).waitFor();
@@ -191,7 +190,7 @@ try {
   const adminIdentity = await login(adminAPI, adminUsername, 'browser password long enough');
   assert.ok(adminIdentity.account.roles.includes('ADMIN'));
   // Both actors review the other's application through this explicit table
-  // role. The legacy APPROVER checkbox above still verifies stored role edits.
+  // role. Global role edits do not grant table approval eligibility.
   await createFixtureApprovalRole({ request: adminAPI }, origin, `Account review ${runSuffix}`,
     [identity.account.id, memberIdentity.account.id], ['notification_templates']);
   reviewerBrowser = await browserEngine.launch(launchOptions);
@@ -203,13 +202,13 @@ try {
 
   await page.goto(`${origin}/configuration/managed-data`);
   await page.reload();
-  await page.getByRole('heading', { name: '配置内容管理' }).waitFor();
+  await page.getByRole('heading', { name: '统一变更入口' }).waitFor();
   await context.close();
   context = await browserEngine.launchPersistentContext(profile, launchOptions);
   context.on('request', rememberRequest);
   page = await context.newPage();
   await page.goto(`${origin}/configuration/managed-data`);
-  await page.getByRole('heading', { name: '配置内容管理' }).waitFor();
+  await page.getByRole('heading', { name: '统一变更入口' }).waitFor();
   await page.getByLabel('Managed Table', { exact: true }).selectOption('notification_templates');
   await page.getByRole('button', { name: '新增记录', exact: true }).click();
   for (const [field, value] of Object.entries({ template_key: templateKey, channel: 'PUSH', body: 'browser initial configuration' })) {

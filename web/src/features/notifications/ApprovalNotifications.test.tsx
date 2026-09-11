@@ -101,6 +101,8 @@ it("详情只确认成功展示的通知进度，已读失败不阻断阅读且�
   }));
   const user = userEvent.setup(); mount(`/configuration/notifications/${header.id}?view=all&unread=true`);
   expect(await screen.findByRole("heading", { name: header.title })).toBeVisible();
+  expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  expect(screen.getByRole("link", { name: "返回通知中心列表" })).toBeVisible();
   expect(await screen.findByText("标记已读失败，未读提醒已保留；详情仍可继续查看。")).toBeVisible();
   expect(screen.getByRole("alert")).toHaveTextContent("read-failure");
   expect(acknowledgements).toHaveLength(1);
@@ -192,9 +194,9 @@ it("从详情完成审批动作后立即读取真实待审批数，不等待下�
     return Response.json(current());
   });
   const user = userEvent.setup(); mount(`/configuration/notifications/${header.id}`);
-  await screen.findByRole("button", { name: "取消发布单" });
+  await user.click(await screen.findByRole("button", { name: "更多操作" }));
   expect(screen.getByLabelText("个人待审批数")).toHaveTextContent("待审批 1");
-  await user.click(screen.getByRole("button", { name: "取消发布单" }));
+  await user.click(screen.getByRole("menuitem", { name: "取消发布单" }));
   await user.type(screen.getByRole("textbox", { name: "取消原因" }), "取消当前申请");
   await user.click(screen.getByRole("button", { name: "确认取消发布单" }));
   await waitFor(() => expect(screen.getByLabelText("个人待审批数")).toHaveTextContent("待审批 0"));

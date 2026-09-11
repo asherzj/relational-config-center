@@ -32,7 +32,7 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 	db := deliveryDB(t, &owner)
 	deliveryExec(t, db, `CREATE TABLE business_marker(id int PRIMARY KEY,note text)`)
 	deliveryExec(t, db, `INSERT INTO business_marker VALUES(1,'retained')`)
-	deliveryExec(t, db, `INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,roles,role_version,created_at) VALUES('readiness-account','readiness.account','readiness@example.test','Retained','fixture-hash',31,1,'2025-01-02')`)
+	deliveryExec(t, db, `INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,roles,role_version,created_at) VALUES('readiness-account','readiness.account','readiness@example.test','Retained','fixture-hash',27,1,'2025-01-02')`)
 	deliveryExec(t, db, `CREATE USER 'readiness_reader'@'%' IDENTIFIED BY 'rcc_password'`)
 	deliveryExec(t, db, `GRANT SELECT ON rcc_test.* TO 'readiness_reader'@'%'`)
 	reader := *driver
@@ -80,8 +80,12 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 		{"field_policy_check", `ALTER TABLE rcc_table_field_policies ALTER CHECK chk_field_policy_flags NOT ENFORCED`, `ALTER TABLE rcc_table_field_policies ALTER CHECK chk_field_policy_flags ENFORCED`},
 		{"unenforced_check", `ALTER TABLE rcc_query_policies ALTER CHECK chk_query_policy_max_page_size NOT ENFORCED`, `ALTER TABLE rcc_query_policies ALTER CHECK chk_query_policy_max_page_size ENFORCED`},
 		{"wrong_engine", `ALTER TABLE rcc_auth_rate_limits ENGINE=MyISAM`, `ALTER TABLE rcc_auth_rate_limits ENGINE=InnoDB`},
-		{"empty_roles", `UPDATE rcc_accounts SET roles=0`, `UPDATE rcc_accounts SET roles=31`},
-		{"unknown_role", `UPDATE rcc_accounts SET roles=32`, `UPDATE rcc_accounts SET roles=31`},
+		{"empty_roles", `UPDATE rcc_accounts SET roles=0`, `UPDATE rcc_accounts SET roles=27`},
+		{"unknown_role", `UPDATE rcc_accounts SET roles=32`, `UPDATE rcc_accounts SET roles=27`},
+		{"retired_role_4", `UPDATE rcc_accounts SET roles=4`, `UPDATE rcc_accounts SET roles=27`},
+		{"retired_role_12", `UPDATE rcc_accounts SET roles=12`, `UPDATE rcc_accounts SET roles=27`},
+		{"retired_role_20", `UPDATE rcc_accounts SET roles=20`, `UPDATE rcc_accounts SET roles=27`},
+		{"retired_role_31", `UPDATE rcc_accounts SET roles=31`, `UPDATE rcc_accounts SET roles=27`},
 		{"zero_role_version", `UPDATE rcc_accounts SET role_version=0`, `UPDATE rcc_accounts SET role_version=1`},
 		{"journal_engine", `ALTER TABLE rcc_schema_migration_attempts ENGINE=MyISAM`, `ALTER TABLE rcc_schema_migration_attempts ENGINE=InnoDB`},
 		{"journal_column", `ALTER TABLE rcc_schema_migration_attempts RENAME COLUMN recovery_count TO missing_recovery_count`, `ALTER TABLE rcc_schema_migration_attempts RENAME COLUMN missing_recovery_count TO recovery_count`},
@@ -124,7 +128,7 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 			if fault.name == "release_template_unique_key" {
 				deliveryExec(t, db, `ALTER TABLE rcc_release_templates DROP INDEX restore_template_identity`)
 			}
-			// Candidate 9 stores ASCII-column CHECK literals as ASCII after its
+			// Candidate 11 stores ASCII-column CHECK literals as ASCII after its
 			// identity-index ALTER. Restore the same current-release definition.
 			if fault.name == "release_template_unique_key" || fault.name == "release_template_check" {
 				deliveryExec(t, db, `ALTER TABLE rcc_release_templates DROP CHECK chk_emergency_template_enabled, DROP CHECK chk_release_template_type, ADD CONSTRAINT chk_emergency_template_enabled CHECK (release_type <> _ascii'EMERGENCY' OR enabled=1), ADD CONSTRAINT chk_release_template_type CHECK (release_type IN (_ascii'STANDARD',_ascii'EMERGENCY'))`)
@@ -173,22 +177,19 @@ func TestSchemaReadinessRejectsKnownOldRelease(t *testing.T) {
 	p := accountProcessCommand(t, binary, driver)
 	p.ready(t)
 
-	// Restore the known old test state while this process is still running.
-	db := deliveryDB(t, driver)
-	deliveryExec(t, db, `DROP TABLE rcc_table_field_policies,rcc_release_details,rcc_release_executions,rcc_release_table_references,rcc_release_templates`)
-	deliveryExec(t, db, `ALTER TABLE rcc_table_policies DROP COLUMN concurrency_key`)
-	deliveryExec(t, db, "DROP TABLE rcc_publication_commands")
-	deliveryExec(t, db, "CREATE TABLE `rcc_publication_commands` (\n  `table_name` varbinary(256) NOT NULL,\n  `sequence` bigint unsigned NOT NULL,\n  `order_id` varbinary(32) NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`table_name`,`sequence`),\n  KEY `publication_order` (`order_id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci")
-	deliveryExec(t, db, "DROP TABLE rcc_refresh_notifications")
-	deliveryExec(t, db, "CREATE TABLE `rcc_refresh_notifications` (\n  `order_id` varbinary(32) NOT NULL,\n  `table_name` varbinary(256) NOT NULL,\n  `table_version` bigint unsigned NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`order_id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci")
-	deliveryExec(t, db, "DROP TABLE rcc_release_orders")
-	deliveryExec(t, db, "CREATE TABLE `rcc_release_orders` (\n  `id` varbinary(32) NOT NULL,\n  `table_name` varbinary(256) NOT NULL,\n  `applicant_id` varbinary(36) NOT NULL,\n  `state` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `version` bigint unsigned NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`id`),\n  KEY `release_table` (`table_name`,`id`),\n  KEY `release_applicant` (`applicant_id`,`id`),\n  KEY `release_state` (`state`,`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci")
-
-	for _, table := range []string{"rcc_query_policies", "rcc_mutation_policies", "rcc_table_policies"} {
-		deliveryExec(t, db, "ALTER TABLE "+table+" RENAME COLUMN created_at TO gmt_created, RENAME COLUMN updated_at TO gmt_modified")
+	// This empty database belongs exclusively to the Testcontainer created at
+	// the start of this test. Reinstall the real published v1 while Admin stays
+	// alive, rather than manufacturing old ledger rows or old table definitions.
+	if driver.DBName != "rcc_test" {
+		t.Fatal("refusing to rebuild a database outside this test fixture")
 	}
-	deliveryExec(t, db, `DELETE FROM rcc_goose_db_version WHERE version_id>1`)
-	deliveryExec(t, db, `DELETE FROM rcc_schema_migration_attempts WHERE target_version>1`)
+	owner := *driver
+	owner.User, owner.DBName = "root", ""
+	db := deliveryDB(t, &owner)
+	t.Log("reinstalling empty Testcontainers database rcc_test through formal v1 schema-migrate")
+	deliveryExec(t, db, `DROP DATABASE rcc_test`)
+	deliveryExec(t, db, `CREATE DATABASE rcc_test CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci`)
+	requireSchemaMigrationState(t, buildPreviousSchemaMigrationRelease(t), driver, "current", "up")
 	status, _, body := p.request(t, "GET", "/health/ready", "", nil, "")
 	if status != 503 {
 		t.Fatalf("running process accepted old release: %d %s", status, body)

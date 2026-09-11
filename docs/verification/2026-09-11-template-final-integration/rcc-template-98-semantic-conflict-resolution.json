@@ -1,0 +1,242 @@
+{
+  "ours": "aec58942f01143c1a579aaf2a885141bf5a263c9",
+  "base": "7334e1103f612b4735992ef63bf1a0b7643b40ae",
+  "theirs": "eb55e841e80345cfef7733b8c560d6037256cd2c",
+  "rationale": "Published #98 squashes dependency history; verified #97 content is present in both branches. Each conflicted file merged from this actual shared content, with remaining conflicts kept visible.",
+  "files": [
+    {
+      "path": "admin/CONTEXT.md",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "admin/cmd/admin/account_delivery_integration_test.go",
+      "status": "manual conflicts",
+      "conflicts": 2
+    },
+    {
+      "path": "admin/cmd/admin/application.go",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "admin/cmd/admin/approval_notifications_schema_integration_test.go",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "admin/cmd/admin/business_auth_integration_test.go",
+      "status": "manual conflicts",
+      "conflicts": 2
+    },
+    {
+      "path": "admin/cmd/admin/notification_center_browser_integration_test.go",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "admin/cmd/admin/release_history_delivery_integration_test.go",
+      "status": "manual conflicts",
+      "conflicts": 1
+    },
+    {
+      "path": "admin/cmd/admin/schema_baseline_integration_test.go",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "admin/cmd/admin/schema_readiness_integration_test.go",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "admin/cmd/admin/table_approval_integrity_integration_test.go",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "admin/cmd/admin/table_approval_schema_integration_test.go",
+      "status": "manual conflicts",
+      "conflicts": 2
+    },
+    {
+      "path": "admin/internal/application/notification_center.go",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "admin/internal/application/release_orders.go",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "admin/internal/domain/release_order.go",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "admin/internal/domain/release_read.go",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "admin/internal/infrastructure/mysql/migrations/00009_schema.json",
+      "status": "manual missing at semantic base"
+    },
+    {
+      "path": "admin/internal/interfaces/http/release_orders.go",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "admin/internal/interfaces/http/security.go",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "docs/admin-account-roles.md",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "docs/admin-approval-roles.md",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "docs/admin-notification-center.md",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "docs/admin-release-approvals.md",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "docs/adr/0026-authorize-approval-by-table-roles.md",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "docs/schema-migrations.md",
+      "status": "manual conflicts",
+      "conflicts": 1
+    },
+    {
+      "path": "scripts/browser-acceptance.sh",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/DESIGN.md",
+      "status": "manual conflicts",
+      "conflicts": 2
+    },
+    {
+      "path": "web/e2e/accounts.mjs",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/e2e/approval-roles.cjs",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/e2e/field-display.cjs",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/e2e/release-approvals.cjs",
+      "status": "manual conflicts",
+      "conflicts": 1
+    },
+    {
+      "path": "web/e2e/release-batches.cjs",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/e2e/release-notifications.cjs",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/e2e/release-rollbacks.cjs",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/e2e/table-approvals.cjs",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/src/api/error-messages.ts",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/src/api/release-orders.test.ts",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/src/api/release-orders.ts",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/src/components/AppShell.tsx",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/src/features/account-roles/AccountRolesPage.tsx",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/src/features/managed-data/ManagedDataMutationPage.test.tsx",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/src/features/notifications/ApprovalNotifications.test.tsx",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/src/features/notifications/NotificationsPage.test.tsx",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/src/features/notifications/NotificationsPage.tsx",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/src/features/release-orders/ReleaseOrdersPage.test.tsx",
+      "status": "manual conflicts",
+      "conflicts": 1
+    },
+    {
+      "path": "web/src/features/release-orders/ReleaseOrdersPage.tsx",
+      "status": "manual conflicts",
+      "conflicts": 2
+    },
+    {
+      "path": "web/src/features/table-policies/TablePoliciesPage.tsx",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    },
+    {
+      "path": "web/src/test/release-fixture.ts",
+      "status": "clean semantic merge",
+      "conflicts": 0
+    }
+  ]
+}

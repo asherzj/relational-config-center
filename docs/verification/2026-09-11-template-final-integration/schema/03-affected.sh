@@ -1,0 +1,3 @@
+#!/bin/sh
+cd /private/tmp/rcc-template-notification-integration/admin
+TESTCONTAINERS_RYUK_DISABLED=true DOCKER_HOST=unix:///Users/asher/.colima/default/docker.sock GOCACHE=/private/tmp/rcc-go-cache go test -tags=integration ./cmd/admin -run '^(TestAccountUpgradeFromLegacyMatchesFreshSchema|TestLegacyApprover.*|TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory|TestSchemaReadinessRejectsKnownOldRelease|TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly|TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts|TestTemplateApprovalSchema.*)$' -count=1 -v -timeout=15m

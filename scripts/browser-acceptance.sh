@@ -35,6 +35,22 @@ case ${RCC_E2E_SUITE:-all} in
   *) printf 'unknown browser suite: %s\n' "$RCC_E2E_SUITE" >&2; exit 2 ;;
 esac
 
+# Optional exact script@engine selection for repairing a failed final matrix.
+# No selection keeps every invocation in the requested suite unchanged.
+selected_cases=()
+matched_cases=","
+if [[ -n ${RCC_E2E_CASES:-} ]]; then
+  case $RCC_E2E_CASES in *$'\n'*|*$'\r'*) printf 'browser case selection must be a single line\n' >&2; exit 2 ;; esac
+  case $RCC_E2E_CASES in ,*|*,|*,,*) printf 'invalid browser case selection\n' >&2; exit 2 ;; esac
+  IFS=, read -r -a selected_cases <<< "$RCC_E2E_CASES"
+  for selected_case in "${selected_cases[@]}"; do
+    if [[ ! $selected_case =~ ^[a-z-]+\.(cjs|mjs)@(chromium|firefox|webkit)$ ]] || [[ ! -f "$repo_root/web/e2e/${selected_case%@*}" ]]; then
+      printf 'unknown browser case: %s\n' "$selected_case" >&2; exit 2
+    fi
+  done
+fi
+printf 'case\tselection\texit_status\n' > "$artifact_root/case-results.tsv"
+
 runtime_dir=$(mktemp -d "${TMPDIR:-/tmp}/rcc-browser-runtime.XXXXXX")
 
 random_secret() {
@@ -430,6 +446,14 @@ run_browser_suite() {
   local suite_timeout=${4:-180}
   local browser_engine=${5:-${RCC_E2E_ENGINE:-chromium}}
   local status
+  local case_id="${script##*/}@$browser_engine"
+  if [[ -n ${RCC_E2E_CASES:-} ]]; then
+    if [[ ",$RCC_E2E_CASES," != *",$case_id,"* ]]; then
+      printf '%s\tnot-selected\t\n' "$case_id" >> "$artifact_root/case-results.tsv"
+      return 0
+    fi
+    matched_cases+="$case_id,"
+  fi
   mkdir -p "$output"
   printf 'Running %s...\n' "$name"
   if RCC_PLAYWRIGHT_MODULE="$repo_root/web/node_modules/playwright" \
@@ -439,6 +463,7 @@ run_browser_suite() {
     run_timeout "${RCC_E2E_TIMEOUT_SECONDS:-$suite_timeout}" node "$script" \
       > "$output/runner.log" 2>&1; then status=0; else status=$?; fi
   cat "$output/runner.log"
+  printf '%s\tselected\t%s\n' "$case_id" "$status" >> "$artifact_root/case-results.tsv"
   if [[ $status != 0 && ! -f "$output/result.json" ]]; then
     node -e '
       const fs = require("node:fs");
@@ -525,6 +550,15 @@ if [[ ${RCC_E2E_SUITE:-all} == approval-contract-regression ]]; then
     run_browser_suite "rollback reason history ($browser_engine)" "$repo_root/web/e2e/release-rollback-reason.cjs" "$artifact_root/release-workflow/rollback-reason-$browser_engine" 240 "$browser_engine"
   done
   run_browser_suite field-display "$repo_root/web/e2e/field-display.cjs" "$artifact_root/field-interactions/field-display" 420 chromium
+fi
+
+if [[ -n ${RCC_E2E_CASES:-} ]]; then
+  for selected_case in "${selected_cases[@]}"; do
+    if [[ $matched_cases != *",$selected_case,"* ]]; then
+      printf 'browser case is not part of the requested suite/engine matrix: %s\n' "$selected_case" >&2
+      exit 2
+    fi
+  done
 fi
 
 expected='5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED'

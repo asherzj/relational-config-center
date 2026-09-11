@@ -97,7 +97,13 @@ func checkControlSchema(ctx context.Context, db schemaQuerier, version int64, re
 		// The published account schema predates SQL CHECK constraints for these
 		// values. Preserve the existing read-only account readiness invariant.
 		var invalidRoles int
-		if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM rcc_accounts WHERE roles < 1 OR roles > 31 OR role_version < 1`).Scan(&invalidRoles); err != nil || invalidRoles != 0 {
+		invalid := "roles < 1 OR roles > 31 OR role_version < 1"
+		// Only an unfinished v9 may retain old grants while explicitly recovering.
+		// Historical baseline/v6-v8 validation must still accept their valid data.
+		if version >= 9 && !(version == 9 && recovering) {
+			invalid += " OR roles & 4 <> 0"
+		}
+		if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM rcc_accounts WHERE `+invalid).Scan(&invalidRoles); err != nil || invalidRoles != 0 {
 			return errors.New("schema_mismatch: account roles and role versions must remain valid")
 		}
 	}

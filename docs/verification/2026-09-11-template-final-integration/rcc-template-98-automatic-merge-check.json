@@ -1,0 +1,14 @@
+[
+  {
+    "path": "admin/cmd/admin/release_quick_rollback_integration_test.go",
+    "clean_semantic_result_matches_current": true
+  },
+  {
+    "path": "admin/cmd/admin/schema_readiness_integration_test.go",
+    "clean_semantic_result_matches_current": true
+  },
+  {
+    "path": "admin/internal/infrastructure/mysql/schema_migration_validation.go",
+    "clean_semantic_result_matches_current": true
+  }
+]

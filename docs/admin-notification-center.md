@@ -27,7 +27,7 @@
 
 #95 交付四视图；#96 接通个人待办、未读、确认已读及前台刷新；#97 接入发布、完结、原单回滚及重新准备取消的结果提醒。列表读取不创建通知事实；当前结构由 Goose 00008 提供，不修改已发布迁移，不新增初始化或旧数据清理路径。
 
-领域与审批规则见 [Admin 词汇表](../admin/CONTEXT.md)、[表审批决策](adr/0026-authorize-approval-by-table-roles.md)及[发布审批契约](admin-release-approvals.md)。桌面、390px 和键盘验收见 [#95 证据](verification/2026-09-11-notification-center/README.md)。
+领域与审批规则见 [Admin 词汇表](../admin/CONTEXT.md)、[表审批决策](adr/0026-authorize-approval-by-table-roles.md)及[发布审批契约](admin-release-approvals.md)。桌面、390px 和键盘验收见 [功能验收报告](verification/approval-roles-notifications.md)。
 
 ## 个人提醒与已读
 

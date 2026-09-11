@@ -1,0 +1,364 @@
+{
+  "axis": "Standards bounded #98/main merge",
+  "worktree": "/private/tmp/rcc-template-notification-integration",
+  "ours": "aec58942f01143c1a579aaf2a885141bf5a263c9",
+  "theirs": "eb55e841e80345cfef7733b8c560d6037256cd2c",
+  "semantic_shared_content": "7334e1103f612b4735992ef63bf1a0b7643b40ae",
+  "HEAD": "aec58942f01143c1a579aaf2a885141bf5a263c9",
+  "MERGE_HEAD": "eb55e841e80345cfef7733b8c560d6037256cd2c",
+  "manual_hunks_and_normative_input_sha256": {
+    "AGENTS.md": "6ae41a2ec8d8c6dc43f4ca4c1408fd0ece92aaf9e3017ff47ef2489fa50fd852",
+    "admin/cmd/admin/account_delivery_integration_test.go": "34243850e9fd286151547718985c60c91e00df5295360afd3f54984ecdd9345a",
+    "admin/cmd/admin/business_auth_integration_test.go": "6ce15a438b4131594fbef9d364fd39cf98af644a51cf46a6d63591d9a824c98d",
+    "admin/cmd/admin/release_history_delivery_integration_test.go": "145018e2ab5c6fe725559752f4361c16d4bcf24fa1eb1f46eb3645201c07245b",
+    "admin/cmd/admin/table_approval_schema_integration_test.go": "12fcad3656ed8bea89a91ed1a7bc38d29c44d3044e2968746cb7204a01317b95",
+    "admin/internal/infrastructure/mysql/migrations/00009_schema.json": "79a5d895a411c02c98d3a7a8fc238fbde6dcd149a2f7368dc1e1876ed677f252",
+    "admin/internal/infrastructure/mysql/migrations/00010_release_templates.sql": "93baf3f8dc7b37cfa10ebbad260db49e24da8b386ff6efe64a702c9ce1366223",
+    "admin/internal/infrastructure/mysql/migrations/00010_schema.json": "8a8a3a8c53a24828e30579bdce35929fb56094043b51358d0bd85833fb97b778",
+    "admin/internal/infrastructure/mysql/migrations/00011_schema.json": "1238bd8d96105282700f92c933db6640e84b53181b465f0b9025e2ba3492d608",
+    "admin/internal/infrastructure/mysql/migrations/00011_table_release_templates.sql": "4fc1bf17d62efb25f62146dbc3cd0559b65dd077541dee1744f17c915b99e137",
+    "docs/agents/design.md": "433e00355212a714460056db4fcbf6571b5c5e2c77f74ed7d6b1b8f7920fb3a2",
+    "docs/architecture.md": "7c1ef6c7af250fe4e947982c79df40818d2f5aaaea9a507f26e6c3079b03f401",
+    "docs/design-notes/release-detail-compact.md": "36acc67eb42dcb6eb3ee9f2dd174a53f43aab0033c6cae11777a7b580b40f865",
+    "docs/schema-migrations.md": "4ef6a458c632464aa31c9cbdcab34a871a4c1dfa0ebb3b2c5802d64fdd490372",
+    "web/DESIGN.md": "7e2c1732b3ba308c231feda6549f8664484148d962c4ddd07e7644bb2e950990",
+    "web/e2e/release-approvals.cjs": "4b57efffbd12cf1f35a5a8dddcd0879d5bfb89584975ff7e8ffd3cb982e00a76",
+    "web/src/features/release-orders/ReleaseOrdersPage.test.tsx": "d3fc2ec56299f570289c1e7a157b059677fe5745ffdcbb12b63966d2881f379a",
+    "web/src/features/release-orders/ReleaseOrdersPage.tsx": "09eb45fdc5940a1e6afe99f3dccdb467d888681a8b2203b7d6d0c535ee67a4bd",
+    "web/src/styles.css": "087419f8b7a061a857ff9b866483c6c3c5ef7b2a36ecc58f309ce0447eb02476"
+  },
+  "independently_recomputed_clean_semantic_merges": [
+    {
+      "path": "admin/CONTEXT.md",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "6295703d27f58183dd22afacbb3f0e467f18be5493912240eca0791320d36ddb"
+    },
+    {
+      "path": "admin/cmd/admin/application.go",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "d6d97c469708688106611d7d552845ce0306db8a35dc08068f0d286d693aad24"
+    },
+    {
+      "path": "admin/cmd/admin/approval_notifications_schema_integration_test.go",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "2489e765c20a884ac15d861d874be266cfc66892b4fda0392372d24c41b11730"
+    },
+    {
+      "path": "admin/cmd/admin/notification_center_browser_integration_test.go",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "21be907cf05e9680ef5f39314e2f628778de5c6b5195f9adb07de6d8adcd077a"
+    },
+    {
+      "path": "admin/cmd/admin/schema_baseline_integration_test.go",
+      "clean": true,
+      "matches_current": false,
+      "current_sha256": "a2d5495b1d51cd1b91a2d5b11ed800f569e2e5d16475432a54f33d0ba48f382d"
+    },
+    {
+      "path": "admin/cmd/admin/schema_readiness_integration_test.go",
+      "clean": true,
+      "matches_current": false,
+      "current_sha256": "6b8423edac546e8384c73572cbcfb04313021d98f78c67927b5412020a883ab4"
+    },
+    {
+      "path": "admin/cmd/admin/table_approval_integrity_integration_test.go",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "5dae3df1ee590847c35ac0b001b235ff58db8082030221d65a013149a1a71416"
+    },
+    {
+      "path": "admin/internal/application/notification_center.go",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "87699b7a285c42b4705a7d730fe94f667165c9450df5adc84fd6c3ccb85add16"
+    },
+    {
+      "path": "admin/internal/application/release_orders.go",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "6f3e7bd71fe17637d90e4f53bc7e7088db5ef881654c40e2565fa393de7f1580"
+    },
+    {
+      "path": "admin/internal/domain/release_order.go",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "c67eb9aefc0a65da6d5009af204f5c160daba3255d33246d3a4e08d1d48aa05e"
+    },
+    {
+      "path": "admin/internal/domain/release_read.go",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "0a35f9141d26dcfa7fd5cc2979b62624b70a6b8564379e762ae7ab4d207e70e5"
+    },
+    {
+      "path": "admin/internal/interfaces/http/release_orders.go",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "e794d3750836ef9a87422cfb16b9faf3f0e4bc96e8f1ac7d47f01cd51e268812"
+    },
+    {
+      "path": "admin/internal/interfaces/http/security.go",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "bbb8eaffc45e84f2792d1646d98783a8ae1bfd723e645881643802461b26bfb7"
+    },
+    {
+      "path": "docs/admin-account-roles.md",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "08bf0f8da257c58fcd8d10e6467d743e4ae4c486e338b9c7a3171aa59799a18f"
+    },
+    {
+      "path": "docs/admin-approval-roles.md",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "38c6f2bb36693f05fd0c753765780c08c144da83a3622a66b6b6699d8e7e4bf2"
+    },
+    {
+      "path": "docs/admin-notification-center.md",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "bb28d4151820533e07d970e7060d66daae80357cb41cb3019ab5b38a674fc05c"
+    },
+    {
+      "path": "docs/admin-release-approvals.md",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "45e70f891963a771dd7ff9f71813b1ef072b886f6dfc51f80000cfedd5721e64"
+    },
+    {
+      "path": "docs/adr/0026-authorize-approval-by-table-roles.md",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "b77ebb5286090c25431d5be1332c400c4ab8e482a0a09f8f8168e03ebbf1efcc"
+    },
+    {
+      "path": "scripts/browser-acceptance.sh",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "f498aef428459f0bb9c5563faab5c3edaecdbfce13a1b2cab5d051dbc94159d5"
+    },
+    {
+      "path": "web/e2e/accounts.mjs",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "e988be29e6846fe5701b283227ad4c346dabaf9d0af073085e6db0c4c40ad5ae"
+    },
+    {
+      "path": "web/e2e/approval-roles.cjs",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "1bf6532757bb7329302d9b04afe4fef533d2f118f00190fdf56572bfe8995e56"
+    },
+    {
+      "path": "web/e2e/field-display.cjs",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "c003bd681122d2296cc82f662ccaf9e6a7b72cb277db7f27810487dfcbb93cff"
+    },
+    {
+      "path": "web/e2e/release-batches.cjs",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "50061edc14780e50b9ead3d7aac608c506decd20696397bc5579db678aaca659"
+    },
+    {
+      "path": "web/e2e/release-notifications.cjs",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "71520c51caded1f6104080e9786a23a7883e679c96fa420597d7d7326b78845e"
+    },
+    {
+      "path": "web/e2e/release-rollbacks.cjs",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "65f991bed7e64bf94c6f2299573f352d4faf552f3b4b26200a288318d6158cb8"
+    },
+    {
+      "path": "web/e2e/table-approvals.cjs",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "f010ab123a947723d7bf278e25ef888929ea814db967c38ba4ae8b21067c5b9a"
+    },
+    {
+      "path": "web/src/api/error-messages.ts",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "467835c306ea2ee9bf823f289d255576d602080c431b01bb92ef9309ea0010ec"
+    },
+    {
+      "path": "web/src/api/release-orders.test.ts",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "bc10c565861a60059b6b0bc83a0b12ca094d68a578b2dda6d01561d37c8a6dd7"
+    },
+    {
+      "path": "web/src/api/release-orders.ts",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "4f6c3e527c6e2fbc36b907da0b840dbbed7356fdcccb75526074e3dc05572e88"
+    },
+    {
+      "path": "web/src/components/AppShell.tsx",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "04552acf9c607f1102d1ea1c86341ff65c50bf700cbad3d88fc275aa4f2de496"
+    },
+    {
+      "path": "web/src/features/account-roles/AccountRolesPage.tsx",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "86be5b0e57668106df422061e52f355c70a04c41c26f9d908966e943a5607220"
+    },
+    {
+      "path": "web/src/features/managed-data/ManagedDataMutationPage.test.tsx",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "eb12a3a85f20ea36ef1723db0e0e5eed9e6495cbc361e9d9ed850056f318ca80"
+    },
+    {
+      "path": "web/src/features/notifications/ApprovalNotifications.test.tsx",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "3f40faee5cd35be6ef8ded1897ce10a6ecaa6bcaa936e59c900965017be78980"
+    },
+    {
+      "path": "web/src/features/notifications/NotificationsPage.test.tsx",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "0306d3d4b2bcfebbc0b7155ebefaecfcb7e3aa6409b7e8a35f26f5ae125c9f8a"
+    },
+    {
+      "path": "web/src/features/notifications/NotificationsPage.tsx",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "018969917d08992f5b46b5d1e7c5e1d8c392686eb241ddff1443dd048ea4dcf6"
+    },
+    {
+      "path": "web/src/features/table-policies/TablePoliciesPage.tsx",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "f778f0b551eab6249dd1441a6706795bc96d74092fb80a1c482b1de31e8f32f1"
+    },
+    {
+      "path": "web/src/test/release-fixture.ts",
+      "clean": true,
+      "matches_current": true,
+      "current_sha256": "3c52ffad698e0e8baab8bd0991695758fff32edd7bf42f12c5a7f3eca30af84c"
+    }
+  ],
+  "formal_1_to_9": {
+    "admin/internal/infrastructure/mysql/migrations/00001_control_baseline.sql": {
+      "sha256": "df9794a5f3836aab8452d090e8b88c69be619154bc20aca10e55d2f9252a8730",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00001_schema.json": {
+      "sha256": "5c36a92035b9382ec3e43de18090f2008e5256c7e238b7a88f976bf23bd85cb4",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00002_policy_audit_timestamps.sql": {
+      "sha256": "3a5516b279c2ffbd795998d5641f74e6f07c7810bf4a6b615c0e7ba3490d2476",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00002_schema.json": {
+      "sha256": "5472c8a95d62e301b5639b00442d96628194e6103b14b8b687fb55c3c0f53ae8",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00003_schema.json": {
+      "sha256": "f0382433976866f5a842703835635da87f42a0b8bde3d31caf0cad07085cc082",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00003_table_field_policies.sql": {
+      "sha256": "a9a5c7808ac262ab170a506d88ae5ecb05e7278ddd009cff687005ed770645c2",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00004_release_details_and_targets.sql": {
+      "sha256": "3b19f19aa1ff2a6d3a47f4e83fce595e43b7096a59cce1b4bb1d7ee14b31f53e",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00004_schema.json": {
+      "sha256": "a5c3f0cc404ef2906e368367d9d2e100b5662524a7815ad73fe086f7122bff35",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00005_release_execution_ownership.sql": {
+      "sha256": "eff792fa684428ce89b12184798042ab22258e956688d3037c8409c8074ec02a",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00005_schema.json": {
+      "sha256": "a80e24458f579d72abdcfa917417a3e5a8e0199e61545ef8f8e4dad90dd12a1f",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00006_approval_roles.sql": {
+      "sha256": "c0fe587dbe2a4ae910058bf021439f0583a80dd7f46fd04de4d1bc516412d230",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00006_schema.json": {
+      "sha256": "f2083662b3191bed12e2a613413011218c55e72df30d821ad0f7c8b753c1faa7",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00007_schema.json": {
+      "sha256": "b2f169647d6369ed29f0388a5dca1506d42f3281b4a4368e5e34cf77d954505a",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00007_table_approvals.sql": {
+      "sha256": "43ccf0aade2b9c2d0b0aef5613a6dab0191c391272edcdb248ffceb250abb395",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00008_approval_notifications.sql": {
+      "sha256": "223c2a53b56212d150d6bdb335cee36956db26de16f2a09d3c3ef1e6222729bd",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00008_schema.json": {
+      "sha256": "79a5d895a411c02c98d3a7a8fc238fbde6dcd149a2f7368dc1e1876ed677f252",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00009_retire_global_approver.sql": {
+      "sha256": "aefd688ad4c9a2530d98be99172f5b95c743bec90407ac3670af03cacc8de826",
+      "matches_published_theirs": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00009_schema.json": {
+      "sha256": "79a5d895a411c02c98d3a7a8fc238fbde6dcd149a2f7368dc1e1876ed677f252",
+      "matches_published_theirs": true
+    }
+  },
+  "evidence_read_sha256": {
+    "docs/verification/2026-09-11-template-final-integration/README.md": "28143661816cddcfa1b2e67022cde5272940ded56def080bace7a41dab620c66",
+    "docs/verification/2026-09-11-template-final-integration/backend/01-contracts-command.json": "c7cb1191985460e5339a401bddea7d3abb2986b5029bba37fdddeb401fa849c2",
+    "docs/verification/2026-09-11-template-final-integration/backend/01-contracts.log": "24e4d5bbdb06964fc4d353b343313e61bc606e486f69cebd1882eadd8be650b1",
+    "docs/verification/2026-09-11-template-final-integration/rcc-template-98-automatic-merge-check.json": "d5f435065d8cb4c3cc41411c85684cb49557d86b5224690bddd267954af6bb04",
+    "docs/verification/2026-09-11-template-final-integration/rcc-template-98-semantic-conflict-resolution.json": "c4e6d4d30f6185c1119b0bfe35a247020c01771a9ed853631b48546377bf08d6",
+    "docs/verification/2026-09-11-template-final-integration/schema/01-generate.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "docs/verification/2026-09-11-template-final-integration/schema/01-generate.log": "7b2985be8562dac0cfe382baa60c4aeb39f8b0f463d0b5dc4cb79c533e4ed691",
+    "docs/verification/2026-09-11-template-final-integration/schema/formal-1-through-9-sha256.json": "0de4564c0c2dc389f019ad5e214f5a45e84d4336cd14cecce412492a2747f91f",
+    "docs/verification/2026-09-11-template-final-integration/schema/manifest-generator.go.txt": "eceba6aede432a44a24da83d0667915bc9ad894493b4a16ff47b27aa3f067df9",
+    "docs/verification/2026-09-11-template-final-integration/web/00-path-error.log": "cb25c1ecbb6237eb56c92e670b495639d136ec55d6e095bf5bc2738eee5b7669",
+    "docs/verification/2026-09-11-template-final-integration/web/01-typecheck.log": "85e6282e2d9bd4aa94581705274794f0366aab31a2634a0eb78691e889892675",
+    "docs/verification/2026-09-11-template-final-integration/web/02-affected-tests.log": "30789ee54cf08b3f57a81b3290006a45231868e274b0ba6de90589789b2a0f68",
+    "docs/verification/2026-09-11-template-final-integration/web/03-affected-tests-green.log": "e91f146aa51c6814c87ae9c97ab1b39b80e26f500e4c0c79feac84c225eb5908",
+    "docs/verification/2026-09-11-template-final-integration/web/04-approval-person-fold-green.log": "a2aa69047f2d5d8337a8a99aaad695b6ddab1326fceded45619636a78ff05041",
+    "docs/verification/2026-09-11-template-final-integration/web/05-affected-tests-green.log": "da9d0079d219bfa0a8ed6825e4ba29e127e5ccd2716848884a7fc7b66570a4a6",
+    "docs/verification/2026-09-11-template-final-integration/web/06-e2e-syntax.log": "b34d9bf5ad1dfab6738de5201591a9b02051da333d25528a2d425472d75df880",
+    "docs/verification/2026-09-11-template-final-integration/web/07-build.log": "364eca04b50b5038e1c8c4e2d7906790feda3f1eb7ea374ae06ef701ff26570f",
+    "docs/verification/2026-09-11-template-final-integration/web/08-source-sha256.txt": "f0804d95e58a9c6336a7ae9e0bd744c8833c586f26ab5395d21cee301555e4cf",
+    "docs/verification/2026-09-11-template-final-integration/web/09-diff-check.log": "349fa6491d9a99d4421f70f32c10f60a565611fe8d822cbf247dc760cde7cb2a",
+    "docs/verification/2026-09-11-template-final-integration/web/README.md": "733be9a629c7d40875dafcb447b9ed4f8b0db9bdad500113ee528500e4ab85f7",
+    "docs/verification/2026-09-11-template-final-integration/web/commands.tsv": "ef3a281272eac03d618dcb482dadc8037948544decbb97316495906a35b9e71d"
+  },
+  "in_progress_test_snapshots": {
+    "admin/cmd/admin/account_delivery_integration_test.go": "34243850e9fd286151547718985c60c91e00df5295360afd3f54984ecdd9345a",
+    "admin/cmd/admin/schema_baseline_integration_test.go": "a2d5495b1d51cd1b91a2d5b11ed800f569e2e5d16475432a54f33d0ba48f382d",
+    "admin/cmd/admin/schema_readiness_integration_test.go": "6b8423edac546e8384c73572cbcfb04313021d98f78c67927b5412020a883ab4",
+    "admin/cmd/admin/table_approval_schema_integration_test.go": "12fcad3656ed8bea89a91ed1a7bc38d29c44d3044e2968746cb7204a01317b95"
+  },
+  "notes": [
+    "No tests/DB commands executed; no source edits; no Spec report read.",
+    "Formal #98 source inherited unchanged was not re-reviewed; clean semantic equality independently recomputed from actual files.",
+    "Schema helper currently changes test fixtures: baseline/readiness differ intentionally from clean semantic result; final test hashes/effective DB evidence remain pending.",
+    "Two documentation residues raised during this round were fixed and reread before final report; raw historical evidence remains unchanged.",
+    "#104 is not merged into this snapshot."
+  ]
+}

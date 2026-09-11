@@ -176,6 +176,26 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	if len(states) != 7 {
 		t.Fatalf("missing historical state: %v", states)
 	}
+	savedFacts := map[string]string{}
+	for _, table := range []string{"rcc_release_orders", "rcc_release_details", "rcc_release_executions", "rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_record_versions", "rcc_table_publications"} {
+		savedFacts[table] = baselineRows(t, f.databaseOwner, "SELECT * FROM "+table)
+	}
+	assertSavedFacts := func() {
+		t.Helper()
+		for table, original := range savedFacts {
+			if baselineRows(t, f.databaseOwner, "SELECT * FROM "+table) != original {
+				t.Fatalf("immutable stored facts changed in %s", table)
+			}
+		}
+	}
+	for id, order := range orders {
+		if order.State == "PENDING_APPROVAL" {
+			qualified := readOrderDetails(reviewer, id).ApprovalContext
+			if len(qualified.Tables) != 1 || qualified.Tables[0].Mode != "ROLE" || !qualified.Tables[0].CanApprove || !reflect.DeepEqual(qualified.ApprovableTables, []string{"history_items"}) {
+				t.Fatalf("independent member did not hold current qualification: %+v", qualified)
+			}
+		}
+	}
 	for i, a := range []actor{editor, reviewer, publisher} {
 		data := request(a, "PATCH", "/api/v1/auth/profile", fmt.Sprintf(`{"display_name":"改名用户%d"}`, i), "", 200)
 		if !strings.Contains(string(data), a.id) {
@@ -200,6 +220,9 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	request(admin, "POST", "/api/v1/table-policies/history_items/disable", `{"expected_version":"`+currentPolicy.Version+`"}`, "history-table-disable", 200)
 	deliveryExec(t, f.databaseOwner, `UPDATE rcc_mutation_policies SET name='维护后规则名称' WHERE code=?`, mutationCode)
 	deliveryExec(t, f.databaseOwner, `DROP TABLE history_items`)
+	// Explicit account maintenance may legitimately reconcile pending recipients.
+	// Subsequent migrations, restarts and reads must preserve every resulting column.
+	savedNotifications := baselineRows(t, f.databaseOwner, "SELECT * FROM rcc_approval_notifications")
 	// Rerun the documented restartable 008–012 migrations on populated controls.
 	applyRoleMigration(t, f.databaseOwner)
 	ownerSettings := settings.Clone()
@@ -215,27 +238,36 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	process.stop(t)
 	process = accountProcessCommand(t, binary, settings)
 	process.ready(t)
+	assertSavedFacts()
 	for id, before := range orders {
 		after := readOrderDetails(viewer, id)
-		// ApprovalContext is the current reader's live qualification, not saved
-		// history. Disabled role members change fallback eligibility, while every
-		// authored field, frozen approval/decision, event and execution stays exact.
-		if after.ApprovalContext.Revision == "" || after.ApprovalContext.Revision == before.ApprovalContext.Revision || len(after.ApprovalContext.ApprovableTables) != 0 {
-			t.Fatalf("history viewer received stale or privileged approval context: %s", id)
+		context := after.ApprovalContext
+		if len(context.Revision) != 64 || context.Revision == before.ApprovalContext.Revision || len(context.ApprovableTables) != 0 {
+			t.Fatalf("viewer qualification was not recomputed independently of saved history: %+v", context)
 		}
-		for _, table := range after.ApprovalContext.Tables {
-			if table.CanApprove {
-				t.Fatalf("history viewer can approve table %s: %s", table.TableName, id)
+		if before.State == "CANCELLED" {
+			if len(context.Tables) != 0 {
+				t.Fatal("cancelled draft fabricated submitted responsibility", context)
+			}
+		} else {
+			mode := "COMPLETED"
+			if before.State == "PENDING_APPROVAL" || before.State == "DRAFT" {
+				mode = "ADMIN"
+			}
+			if len(context.Tables) != 1 || context.Tables[0].TableName != "history_items" || context.Tables[0].Mode != mode || context.Tables[0].CanApprove {
+				t.Fatalf("current %s qualification: %+v", before.State, context)
 			}
 		}
-		if before.State == "DRAFT" || before.State == "PENDING_APPROVAL" {
-			if len(after.ApprovalContext.Tables) != 1 || after.ApprovalContext.Tables[0].TableName != "history_items" || after.ApprovalContext.Tables[0].Mode != "ADMIN" {
-				t.Fatalf("disabled reviewer did not update live fallback: %s", id)
+		if before.State == "PENDING_APPROVAL" {
+			fallback := readOrderDetails(admin, id).ApprovalContext
+			if len(fallback.Tables) != 1 || fallback.Tables[0].Mode != "ADMIN" || !fallback.Tables[0].CanApprove || !reflect.DeepEqual(fallback.ApprovableTables, []string{"history_items"}) || fallback.Revision == context.Revision {
+				t.Fatalf("disabled member did not yield independent ADMIN fallback: %+v", fallback)
 			}
 		}
-		expectedHistory := before
-		expectedHistory.ApprovalContext = after.ApprovalContext
-		if !reflect.DeepEqual(expectedHistory, after) {
+		// Only live eligibility differs; every saved business field remains compared.
+		expected := before
+		expected.ApprovalContext = context
+		if !reflect.DeepEqual(expected, after) {
 			t.Fatalf("history changed after account/schema/migration/restart: %s", id)
 		}
 		remove := request(admin, "DELETE", "/api/v1/release-orders/"+id, "", "", 400)
@@ -261,6 +293,10 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	// Authorization still applies to replay: the surviving viewer reads history,
 	// and cannot assume the disabled publisher's old successful request identity.
 	request(viewer, "POST", "/api/v1/release-orders/"+forward.ID+"/execute", `{"expected_version":"3"}`, forward.ID+"-execute", 403)
+	assertSavedFacts()
+	if baselineRows(t, f.databaseOwner, "SELECT * FROM rcc_approval_notifications") != savedNotifications {
+		t.Fatal("migration, restart or read/rejected write changed notification progress")
+	}
 	process.stop(t)
 	for _, secret := range []string{"history password long enough", editor.cookies[0].Value, reviewer.csrf, "发布后新值"} {
 		if strings.Contains(process.output.String(), secret) {

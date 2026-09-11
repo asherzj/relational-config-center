@@ -30,7 +30,7 @@ const stateLabels = { APPROVED: '已批准', SUCCEEDED: '已发布待完结', CO
   const notifications = async id => Object.fromEntries(await Promise.all(people.map(async who => [who.name, (await read(who, id)).notification])));
   const state = async (page, order, expected) => {
     await page.getByRole('heading', { name: order.title, exact: true }).waitFor();
-    await page.getByText(`${tables.join('、')} · ${stateLabels[expected]}`, { exact: true }).waitFor();
+    await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: new RegExp(`^${stateLabels[expected]}$`) }).waitFor();
   };
   const screenshot = async (page, name) => {
     await page.evaluate(() => window.scrollTo(0, 0));
@@ -103,10 +103,17 @@ const stateLabels = { APPROVED: '已批准', SUCCEEDED: '已发布待完结', CO
     assert.equal(new URL(who.page.url()).searchParams.get('id'), order.id);
     await who.page.getByText('没有符合筛选条件的发布单。', { exact: true }).waitFor();
   };
+  const revealResultActor = async (result, actorID) => {
+    const person = result.getByRole('button', { name: /^(查看|收起).+的账号信息$/ });
+    await person.waitFor();
+    if (await person.getAttribute('aria-expanded') === 'false') await person.click();
+    assert.equal(await person.getAttribute('aria-expanded'), 'true');
+    await result.getByRole('group', { name: /的账号信息$/ }).getByText(actorID, { exact: true }).waitFor();
+  };
   const publishedResult = (labels, actorID) => async page => {
     const result = page.getByRole('region', { name: '发布结果', exact: true });
     await result.getByRole('heading', { name: '数据库发布结果', exact: true }).waitFor();
-    await result.getByText(actorID, { exact: true }).waitFor();
+    await revealResultActor(result, actorID);
     for (const label of labels) await result.getByText(`值：${label}`, { exact: true }).waitFor();
     assert.equal(await result.getByText(/分发尚未接入/).count(), 2, 'refresh notifications do not imply consumer delivery');
   };
@@ -263,7 +270,7 @@ const stateLabels = { APPROVED: '已批准', SUCCEEDED: '已发布待完结', CO
       const switcher = button(page, '恢复结果'); await switcher.focus(); await page.keyboard.press('Enter');
       const result = page.getByRole('region', { name: '发布结果', exact: true });
       await result.getByRole('heading', { name: '数据库恢复结果', exact: true }).waitFor();
-      await result.getByText(reviewerPublisher.identity.accountID, { exact: true }).waitFor();
+      await revealResultActor(result, reviewerPublisher.identity.accountID);
       assert.equal(await result.getByText('值：before-2', { exact: true }).count(), 2);
       assert.equal(await result.getByText(/分发尚未接入/).count(), 2);
       if (page.viewportSize().width === 390) {

@@ -94,13 +94,24 @@ func TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts(t *testi
 	requireSchemaMigrationState(t, current, &fresh, "current", "up")
 	assertBaselinePhysicalSchemaEqual(t, db, deliveryDB(t, &fresh))
 
-	// Keep the published 6→7 recovery evidence fixed at 7, then explicitly
-	// upgrade for current Admin while preserving all historical role facts.
+	// The table approval migration remains pinned to 7; current processes require later increments.
+	preservedBeforeCutover := cutoverPreservedSnapshot(t, db)
+	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 9), driver, "current", "up")
+	if strings.Replace(cutoverPreservedSnapshot(t, db), "rcc_approval_notifications:\n", "", 1) != preservedBeforeCutover {
+		t.Fatal("current cutover changed facts outside current account roles")
+	}
+	var currentRoles, currentRoleVersion int
+	if err := db.QueryRow(`SELECT roles,role_version FROM rcc_accounts WHERE username='schema.owner'`).Scan(&currentRoles, &currentRoleVersion); err != nil || currentRoles != 27 || currentRoleVersion != 4 {
+		t.Fatalf("current cutover role mapping: roles=%d version=%d error=%v", currentRoles, currentRoleVersion, err)
+	}
+	// Preserve the published cutover independently, then verify only the new
+	// template configuration and policy version fields are added by 10/11.
 	beforeTemplates := preTemplateDataSnapshot(t, db)
 	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), driver, "current", "up")
 	if preTemplateDataSnapshot(t, db) != beforeTemplates {
-		t.Fatal("current template upgrade changed published table approval facts")
+		t.Fatal("template upgrade changed cutover account or approval facts")
 	}
+	currentData := baselineDataSnapshot(t, db)
 	process := accountProcessCommand(t, binary, driver)
 	process.ready(t)
 	for _, table := range newTables {
@@ -115,8 +126,8 @@ func TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts(t *testi
 		}
 	}
 	process.stop(t)
-	if preTemplateDataSnapshot(t, db) != beforeTemplates {
-		t.Fatal("readiness changed retained table approval or business facts")
+	if baselineDataSnapshot(t, db) != currentData || baselineRows(t, db, `SELECT * FROM rcc_goose_db_version WHERE version_id<=6 ORDER BY id`) != ledger || baselineRows(t, db, `SELECT * FROM rcc_schema_migration_attempts WHERE target_version<=6 ORDER BY id`) != attempts {
+		t.Fatal("readiness checks changed current data or published migration history")
 	}
 
 	app, err := newApplication(ctx, integrationConfig(driver))

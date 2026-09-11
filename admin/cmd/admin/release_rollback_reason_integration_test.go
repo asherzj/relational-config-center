@@ -47,6 +47,22 @@ func TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator(t *testing.T) {
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, rollbackExecutor, "POST", path+"/rollback-reason", fmt.Sprintf(`{"reason":%q}`, strings.Repeat("界", 667)), "reason-too-long"), 422, "release_invalid")
 
 	before := rollbackReasonFacts(t, db, rolled.ID)
+	originalRequests := baselineRows(t, db, `SELECT * FROM rcc_release_requests WHERE operation NOT LIKE 'rollback-reason:%'`)
+	immutableTables := map[string]string{}
+	for _, table := range []string{"mutation_add_items", "rcc_release_details", "rcc_release_executions", "rcc_release_targets", "rcc_release_table_references", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_record_versions", "rcc_table_publications"} {
+		immutableTables[table] = baselineRows(t, db, "SELECT * FROM "+table)
+	}
+	assertStoredFacts := func() {
+		t.Helper()
+		if baselineRows(t, db, `SELECT * FROM rcc_release_requests WHERE operation NOT LIKE 'rollback-reason:%'`) != originalRequests {
+			t.Fatal("reason correction rewrote original request actor, digest or saved result")
+		}
+		for table, original := range immutableTables {
+			if baselineRows(t, db, "SELECT * FROM "+table) != original {
+				t.Fatalf("reason correction rewrote stored %s facts", table)
+			}
+		}
+	}
 	firstBody := `{"reason":"数据库约束冲突，恢复上一版"}`
 	firstResponse := releaseActorRequest(t, app, rollbackExecutor, "POST", path+"/rollback-reason", firstBody, "reason-first")
 	first := rollbackOrderResponse(t, firstResponse, 200)
@@ -74,9 +90,21 @@ func TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator(t *testing.T) {
 	rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/rollback-reason", `{"reason":""}`, "reason-admin-clear"), 200)
 
 	current := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
-	if !reflect.DeepEqual(withoutRollbackReasons(current), rolled) {
+	for _, order := range []domain.ReleaseOrder{rolled, current} {
+		context := order.ApprovalContext
+		if len(context.Revision) != 64 || len(context.ApprovableTables) != 0 || len(context.Tables) != 1 || context.Tables[0].TableName != "mutation_add_items" || context.Tables[0].Mode != "COMPLETED" || context.Tables[0].CanApprove {
+			t.Fatalf("completed rollback advertised live approval authority: %+v", context)
+		}
+	}
+	if current.ApprovalContext.Revision == rolled.ApprovalContext.Revision {
+		t.Fatal("current approval context did not distinguish changed actor/qualification")
+	}
+	expected := rolled
+	expected.ApprovalContext = current.ApprovalContext
+	if !reflect.DeepEqual(withoutRollbackReasons(current), expected) {
 		t.Fatal("reason history rewrote immutable order or execution facts")
 	}
+	assertStoredFacts()
 	revisions := []domain.ReleaseEvent{}
 	for _, event := range current.History {
 		if event.Action == "ROLLBACK_REASON" {
@@ -119,6 +147,7 @@ func TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator(t *testing.T) {
 	if facts := rollbackReasonFacts(t, db, rolled.ID); facts.requests != after.requests+1 || facts.business != before.business || facts.detail != before.detail || facts.execution != before.execution || facts.versions != before.versions || facts.commands != before.commands || facts.notifications != before.notifications || facts.targets != before.targets {
 		t.Fatal("manual retry changed anything besides audited reason state", facts)
 	}
+	assertStoredFacts()
 }
 
 func withoutRollbackReasons(order domain.ReleaseOrder) domain.ReleaseOrder {

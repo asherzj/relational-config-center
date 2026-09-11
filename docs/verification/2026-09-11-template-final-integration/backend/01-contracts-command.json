@@ -1,0 +1,12 @@
+{
+  "command": [
+    "go",
+    "test",
+    "./internal/domain",
+    "./internal/application",
+    "./internal/infrastructure/mysql",
+    "./internal/interfaces/http"
+  ],
+  "cwd": "/private/tmp/rcc-template-notification-integration/admin",
+  "GOCACHE": "/private/tmp/rcc-go-cache"
+}

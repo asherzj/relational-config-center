@@ -11,7 +11,7 @@ import (
 // The formal eighth increment adds personal notifications without changing
 // published SQL, the baseline boundary, or existing control/business facts.
 func TestApprovalNotificationsSchemaUpgradeReadinessAndProtection(t *testing.T) {
-	previous, current := buildSchemaMigrationReleaseAt(t, 7), buildSchemaMigrationCommand(t)
+	previous, current := buildSchemaMigrationReleaseAt(t, 7), buildSchemaMigrationReleaseAt(t, 8)
 	ctx, driver := startIntegrationMySQL(t)
 	requireSchemaMigrationState(t, previous, driver, "current", "up")
 	owner := *driver
@@ -59,6 +59,8 @@ func TestApprovalNotificationsSchemaUpgradeReadinessAndProtection(t *testing.T) 
 	fresh.DBName = "approval_notifications_fresh"
 	requireSchemaMigrationState(t, current, &fresh, "current", "up")
 	assertBaselinePhysicalSchemaEqual(t, db, deliveryDB(t, &fresh))
+	// Keep the 7→8 historical facts proof separate from the subsequent cutover.
+	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), driver, "current", "up")
 	process := accountProcessCommand(t, binary, driver)
 	process.ready(t)
 	for _, fault := range []struct{ apply, restore string }{

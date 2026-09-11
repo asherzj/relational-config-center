@@ -1,0 +1,1146 @@
+{
+  "02-matrix": {
+    "exit": 1,
+    "top_level_passes": 35,
+    "top_level_failures": 7,
+    "all_pass_records": 82,
+    "results": [
+      {
+        "test": "TestAccountUpgradeFromLegacyMatchesFreshSchema",
+        "status": "PASS",
+        "duration": "19.15s",
+        "log": "02-matrix.log",
+        "line": 22,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestApprovalNotificationsSchemaUpgradeReadinessAndProtection",
+        "status": "PASS",
+        "duration": "18.62s",
+        "log": "02-matrix.log",
+        "line": 55,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade",
+        "status": "PASS",
+        "duration": "17.90s",
+        "log": "02-matrix.log",
+        "line": 67,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverFormalCutover",
+        "status": "FAIL",
+        "duration": "15.33s",
+        "log": "02-matrix.log",
+        "line": 80,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverCurrentInputRejectsRetiredGrants",
+        "status": "PASS",
+        "duration": "10.86s",
+        "log": "02-matrix.log",
+        "line": 99,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverCutoverRecovery",
+        "status": "FAIL",
+        "duration": "16.54s",
+        "log": "02-matrix.log",
+        "line": 120,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverCutoverRecovery/statement_rollback",
+        "status": "FAIL",
+        "duration": "3.85s",
+        "log": "02-matrix.log",
+        "line": 121,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverCutoverRecovery/data_committed_before_goose",
+        "status": "FAIL",
+        "duration": "1.60s",
+        "log": "02-matrix.log",
+        "line": 122,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverCutoverRecovery/goose_committed_before_confirmation",
+        "status": "FAIL",
+        "duration": "1.71s",
+        "log": "02-matrix.log",
+        "line": 123,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverInvalidDataAndMaintenanceBoundary",
+        "status": "FAIL",
+        "duration": "14.31s",
+        "log": "02-matrix.log",
+        "line": 137,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval",
+        "status": "FAIL",
+        "duration": "16.88s",
+        "log": "02-matrix.log",
+        "line": 169,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory",
+        "status": "FAIL",
+        "duration": "11.64s",
+        "log": "02-matrix.log",
+        "line": 182,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites",
+        "status": "PASS",
+        "duration": "11.11s",
+        "log": "02-matrix.log",
+        "line": 208,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/missing_table",
+        "status": "PASS",
+        "duration": "0.85s",
+        "log": "02-matrix.log",
+        "line": 209,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/missing_column",
+        "status": "PASS",
+        "duration": "0.12s",
+        "log": "02-matrix.log",
+        "line": 210,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/extra_column",
+        "status": "PASS",
+        "duration": "0.09s",
+        "log": "02-matrix.log",
+        "line": 211,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/type",
+        "status": "PASS",
+        "duration": "0.11s",
+        "log": "02-matrix.log",
+        "line": 212,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/default",
+        "status": "PASS",
+        "duration": "0.09s",
+        "log": "02-matrix.log",
+        "line": 213,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/default_containing_table_option_text",
+        "status": "PASS",
+        "duration": "0.09s",
+        "log": "02-matrix.log",
+        "line": 214,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/index",
+        "status": "PASS",
+        "duration": "0.11s",
+        "log": "02-matrix.log",
+        "line": 215,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/check",
+        "status": "PASS",
+        "duration": "0.10s",
+        "log": "02-matrix.log",
+        "line": 216,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/foreign_key",
+        "status": "PASS",
+        "duration": "0.09s",
+        "log": "02-matrix.log",
+        "line": 217,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/engine",
+        "status": "PASS",
+        "duration": "0.08s",
+        "log": "02-matrix.log",
+        "line": 218,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/empty_roles",
+        "status": "PASS",
+        "duration": "0.10s",
+        "log": "02-matrix.log",
+        "line": 219,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/unknown_role",
+        "status": "PASS",
+        "duration": "0.10s",
+        "log": "02-matrix.log",
+        "line": 220,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/zero_role_version",
+        "status": "PASS",
+        "duration": "0.11s",
+        "log": "02-matrix.log",
+        "line": 221,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/required_metadata",
+        "status": "PASS",
+        "duration": "0.10s",
+        "log": "02-matrix.log",
+        "line": 222,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRecoversUnconfirmedRegistration",
+        "status": "PASS",
+        "duration": "14.55s",
+        "log": "02-matrix.log",
+        "line": 234,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineReleaseUpgradesT1AndRecoversPartialAuditRename",
+        "status": "PASS",
+        "duration": "11.72s",
+        "log": "02-matrix.log",
+        "line": 246,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRecoversBeforeAttemptWasRecorded",
+        "status": "PASS",
+        "duration": "10.43s",
+        "log": "02-matrix.log",
+        "line": 258,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix",
+        "status": "PASS",
+        "duration": "9.99s",
+        "log": "02-matrix.log",
+        "line": 270,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineProcessInterruptionRetainsUnconfirmedState",
+        "status": "PASS",
+        "duration": "12.59s",
+        "log": "02-matrix.log",
+        "line": 282,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineUsesTransactionalVersionLedger",
+        "status": "PASS",
+        "duration": "8.75s",
+        "log": "02-matrix.log",
+        "line": 294,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineRefusesToRecreateLostConfirmedHistory",
+        "status": "PASS",
+        "duration": "9.33s",
+        "log": "02-matrix.log",
+        "line": 306,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestBaselineGooseInstallationMatchesFrozenAdoptionStructure",
+        "status": "PASS",
+        "duration": "10.87s",
+        "log": "02-matrix.log",
+        "line": 318,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaMigrationAddsFieldPoliciesWithoutChangingPublishedState",
+        "status": "PASS",
+        "duration": "17.72s",
+        "log": "02-matrix.log",
+        "line": 330,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaMigrationInitializesEmptyDatabase",
+        "status": "PASS",
+        "duration": "10.32s",
+        "log": "02-matrix.log",
+        "line": 342,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaMigrationConcurrentInitialization",
+        "status": "PASS",
+        "duration": "10.11s",
+        "log": "02-matrix.log",
+        "line": 354,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaMigrationWaitsForMaintenanceLockWithDeadline",
+        "status": "PASS",
+        "duration": "10.57s",
+        "log": "02-matrix.log",
+        "line": 366,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaMigrationPartialDDLRequiresExplicitRecovery",
+        "status": "PASS",
+        "duration": "12.40s",
+        "log": "02-matrix.log",
+        "line": 378,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaMigrationUpgradesToNextRelease",
+        "status": "PASS",
+        "duration": "14.27s",
+        "log": "02-matrix.log",
+        "line": 390,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestReleaseTemplateSchemaMigrationUpgradesVersionFive",
+        "status": "PASS",
+        "duration": "14.25s",
+        "log": "02-matrix.log",
+        "line": 402,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery",
+        "status": "PASS",
+        "duration": "12.31s",
+        "log": "02-matrix.log",
+        "line": 414,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaMigrationRecoversInterruptedBootstrap",
+        "status": "PASS",
+        "duration": "10.31s",
+        "log": "02-matrix.log",
+        "line": 426,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaMigrationProcessInterruptionRequiresSameReleaseRecovery",
+        "status": "PASS",
+        "duration": "20.15s",
+        "log": "02-matrix.log",
+        "line": 438,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaMigrationRejectsIncompleteVersionHistory",
+        "status": "PASS",
+        "duration": "10.89s",
+        "log": "02-matrix.log",
+        "line": 450,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaMigrationRecoversMissingZeroVersion",
+        "status": "PASS",
+        "duration": "10.49s",
+        "log": "02-matrix.log",
+        "line": 462,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaMigrationConnectionDeadlineAndSafeDiagnostics",
+        "status": "PASS",
+        "duration": "2.24s",
+        "log": "02-matrix.log",
+        "line": 464,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaMigrationLeavesUnmanagedDatabaseUntouched",
+        "status": "PASS",
+        "duration": "9.31s",
+        "log": "02-matrix.log",
+        "line": 476,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessRejectsUnmanagedStartup",
+        "status": "PASS",
+        "duration": "11.78s",
+        "log": "02-matrix.log",
+        "line": 488,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly",
+        "status": "PASS",
+        "duration": "19.05s",
+        "log": "02-matrix.log",
+        "line": 528,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged",
+        "status": "PASS",
+        "duration": "0.15s",
+        "log": "02-matrix.log",
+        "line": 529,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead",
+        "status": "PASS",
+        "duration": "0.15s",
+        "log": "02-matrix.log",
+        "line": 530,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown",
+        "status": "PASS",
+        "duration": "0.14s",
+        "log": "02-matrix.log",
+        "line": 531,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest",
+        "status": "PASS",
+        "duration": "0.16s",
+        "log": "02-matrix.log",
+        "line": 532,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column",
+        "status": "PASS",
+        "duration": "0.22s",
+        "log": "02-matrix.log",
+        "line": 533,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default",
+        "status": "PASS",
+        "duration": "0.18s",
+        "log": "02-matrix.log",
+        "line": 534,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index",
+        "status": "PASS",
+        "duration": "0.21s",
+        "log": "02-matrix.log",
+        "line": 535,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy",
+        "status": "PASS",
+        "duration": "0.25s",
+        "log": "02-matrix.log",
+        "line": 536,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_approval_notifications",
+        "status": "PASS",
+        "duration": "0.17s",
+        "log": "02-matrix.log",
+        "line": 537,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_release_templates",
+        "status": "PASS",
+        "duration": "0.24s",
+        "log": "02-matrix.log",
+        "line": 538,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key",
+        "status": "PASS",
+        "duration": "0.29s",
+        "log": "02-matrix.log",
+        "line": 539,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_check",
+        "status": "PASS",
+        "duration": "0.29s",
+        "log": "02-matrix.log",
+        "line": 540,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_default_emergency_template",
+        "status": "PASS",
+        "duration": "0.27s",
+        "log": "02-matrix.log",
+        "line": 541,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_unique_key",
+        "status": "PASS",
+        "duration": "0.27s",
+        "log": "02-matrix.log",
+        "line": 542,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_check",
+        "status": "PASS",
+        "duration": "0.26s",
+        "log": "02-matrix.log",
+        "line": 543,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unenforced_check",
+        "status": "PASS",
+        "duration": "0.22s",
+        "log": "02-matrix.log",
+        "line": 544,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_engine",
+        "status": "PASS",
+        "duration": "0.20s",
+        "log": "02-matrix.log",
+        "line": 545,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/empty_roles",
+        "status": "PASS",
+        "duration": "0.27s",
+        "log": "02-matrix.log",
+        "line": 546,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown_role",
+        "status": "PASS",
+        "duration": "0.25s",
+        "log": "02-matrix.log",
+        "line": 547,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_4",
+        "status": "PASS",
+        "duration": "0.30s",
+        "log": "02-matrix.log",
+        "line": 548,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_12",
+        "status": "PASS",
+        "duration": "0.39s",
+        "log": "02-matrix.log",
+        "line": 549,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_20",
+        "status": "PASS",
+        "duration": "0.28s",
+        "log": "02-matrix.log",
+        "line": 550,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_31",
+        "status": "PASS",
+        "duration": "0.40s",
+        "log": "02-matrix.log",
+        "line": 551,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/zero_role_version",
+        "status": "PASS",
+        "duration": "0.33s",
+        "log": "02-matrix.log",
+        "line": 552,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_engine",
+        "status": "PASS",
+        "duration": "0.21s",
+        "log": "02-matrix.log",
+        "line": 553,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_column",
+        "status": "PASS",
+        "duration": "0.20s",
+        "log": "02-matrix.log",
+        "line": 554,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/older_unconfirmed_attempt",
+        "status": "PASS",
+        "duration": "0.20s",
+        "log": "02-matrix.log",
+        "line": 555,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_required_metadata",
+        "status": "PASS",
+        "duration": "0.36s",
+        "log": "02-matrix.log",
+        "line": 556,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessRejectsKnownOldRelease",
+        "status": "FAIL",
+        "duration": "14.20s",
+        "log": "02-matrix.log",
+        "line": 569,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts",
+        "status": "PASS",
+        "duration": "14.70s",
+        "log": "02-matrix.log",
+        "line": 583,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts",
+        "status": "PASS",
+        "duration": "19.80s",
+        "log": "02-matrix.log",
+        "line": 606,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections",
+        "status": "PASS",
+        "duration": "13.05s",
+        "log": "02-matrix.log",
+        "line": 618,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly",
+        "status": "PASS",
+        "duration": "13.70s",
+        "log": "02-matrix.log",
+        "line": 633,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_role",
+        "status": "PASS",
+        "duration": "0.09s",
+        "log": "02-matrix.log",
+        "line": 634,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_node_type",
+        "status": "PASS",
+        "duration": "0.09s",
+        "log": "02-matrix.log",
+        "line": 635,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/duplicate_node_code",
+        "status": "PASS",
+        "duration": "0.09s",
+        "log": "02-matrix.log",
+        "line": 636,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults",
+        "status": "PASS",
+        "duration": "14.04s",
+        "log": "02-matrix.log",
+        "line": 650,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults/disabled",
+        "status": "PASS",
+        "duration": "3.17s",
+        "log": "02-matrix.log",
+        "line": 651,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults/deleted",
+        "status": "PASS",
+        "duration": "1.78s",
+        "log": "02-matrix.log",
+        "line": 652,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestTableReleaseSchemaRecoveryKeepsExistingSelections",
+        "status": "PASS",
+        "duration": "12.36s",
+        "log": "02-matrix.log",
+        "line": 664,
+        "inputs": "02-matrix-inputs.json"
+      },
+      {
+        "test": "TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness",
+        "status": "FAIL",
+        "duration": "12.65s",
+        "log": "02-matrix.log",
+        "line": 677,
+        "inputs": "02-matrix-inputs.json"
+      }
+    ]
+  },
+  "03-affected": {
+    "exit": 0,
+    "top_level_passes": 12,
+    "top_level_failures": 0,
+    "all_pass_records": 49,
+    "results": [
+      {
+        "test": "TestAccountUpgradeFromLegacyMatchesFreshSchema",
+        "status": "PASS",
+        "duration": "19.16s",
+        "log": "03-affected.log",
+        "line": 22,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverFormalCutover",
+        "status": "PASS",
+        "duration": "16.78s",
+        "log": "03-affected.log",
+        "line": 34,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverCurrentInputRejectsRetiredGrants",
+        "status": "PASS",
+        "duration": "11.80s",
+        "log": "03-affected.log",
+        "line": 53,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverCutoverRecovery",
+        "status": "PASS",
+        "duration": "24.12s",
+        "log": "03-affected.log",
+        "line": 68,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverCutoverRecovery/statement_rollback",
+        "status": "PASS",
+        "duration": "5.57s",
+        "log": "03-affected.log",
+        "line": 69,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverCutoverRecovery/data_committed_before_goose",
+        "status": "PASS",
+        "duration": "3.96s",
+        "log": "03-affected.log",
+        "line": 70,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverCutoverRecovery/goose_committed_before_confirmation",
+        "status": "PASS",
+        "duration": "4.10s",
+        "log": "03-affected.log",
+        "line": 71,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverInvalidDataAndMaintenanceBoundary",
+        "status": "PASS",
+        "duration": "17.31s",
+        "log": "03-affected.log",
+        "line": 83,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval",
+        "status": "PASS",
+        "duration": "15.79s",
+        "log": "03-affected.log",
+        "line": 121,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory",
+        "status": "PASS",
+        "duration": "16.04s",
+        "log": "03-affected.log",
+        "line": 135,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly",
+        "status": "PASS",
+        "duration": "19.66s",
+        "log": "03-affected.log",
+        "line": 175,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged",
+        "status": "PASS",
+        "duration": "0.16s",
+        "log": "03-affected.log",
+        "line": 176,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead",
+        "status": "PASS",
+        "duration": "0.15s",
+        "log": "03-affected.log",
+        "line": 177,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown",
+        "status": "PASS",
+        "duration": "0.16s",
+        "log": "03-affected.log",
+        "line": 178,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest",
+        "status": "PASS",
+        "duration": "0.18s",
+        "log": "03-affected.log",
+        "line": 179,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column",
+        "status": "PASS",
+        "duration": "0.23s",
+        "log": "03-affected.log",
+        "line": 180,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default",
+        "status": "PASS",
+        "duration": "0.18s",
+        "log": "03-affected.log",
+        "line": 181,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index",
+        "status": "PASS",
+        "duration": "0.21s",
+        "log": "03-affected.log",
+        "line": 182,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy",
+        "status": "PASS",
+        "duration": "0.25s",
+        "log": "03-affected.log",
+        "line": 183,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_approval_notifications",
+        "status": "PASS",
+        "duration": "0.18s",
+        "log": "03-affected.log",
+        "line": 184,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_release_templates",
+        "status": "PASS",
+        "duration": "0.26s",
+        "log": "03-affected.log",
+        "line": 185,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key",
+        "status": "PASS",
+        "duration": "0.28s",
+        "log": "03-affected.log",
+        "line": 186,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_check",
+        "status": "PASS",
+        "duration": "0.28s",
+        "log": "03-affected.log",
+        "line": 187,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_default_emergency_template",
+        "status": "PASS",
+        "duration": "0.25s",
+        "log": "03-affected.log",
+        "line": 188,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_unique_key",
+        "status": "PASS",
+        "duration": "0.25s",
+        "log": "03-affected.log",
+        "line": 189,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_check",
+        "status": "PASS",
+        "duration": "0.27s",
+        "log": "03-affected.log",
+        "line": 190,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unenforced_check",
+        "status": "PASS",
+        "duration": "0.23s",
+        "log": "03-affected.log",
+        "line": 191,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_engine",
+        "status": "PASS",
+        "duration": "0.20s",
+        "log": "03-affected.log",
+        "line": 192,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/empty_roles",
+        "status": "PASS",
+        "duration": "0.26s",
+        "log": "03-affected.log",
+        "line": 193,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown_role",
+        "status": "PASS",
+        "duration": "0.26s",
+        "log": "03-affected.log",
+        "line": 194,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_4",
+        "status": "PASS",
+        "duration": "0.25s",
+        "log": "03-affected.log",
+        "line": 195,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_12",
+        "status": "PASS",
+        "duration": "0.25s",
+        "log": "03-affected.log",
+        "line": 196,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_20",
+        "status": "PASS",
+        "duration": "0.25s",
+        "log": "03-affected.log",
+        "line": 197,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_31",
+        "status": "PASS",
+        "duration": "0.25s",
+        "log": "03-affected.log",
+        "line": 198,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/zero_role_version",
+        "status": "PASS",
+        "duration": "0.26s",
+        "log": "03-affected.log",
+        "line": 199,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_engine",
+        "status": "PASS",
+        "duration": "0.17s",
+        "log": "03-affected.log",
+        "line": 200,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_column",
+        "status": "PASS",
+        "duration": "0.17s",
+        "log": "03-affected.log",
+        "line": 201,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/older_unconfirmed_attempt",
+        "status": "PASS",
+        "duration": "0.16s",
+        "log": "03-affected.log",
+        "line": 202,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_required_metadata",
+        "status": "PASS",
+        "duration": "0.26s",
+        "log": "03-affected.log",
+        "line": 203,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestSchemaReadinessRejectsKnownOldRelease",
+        "status": "PASS",
+        "duration": "18.57s",
+        "log": "03-affected.log",
+        "line": 216,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts",
+        "status": "PASS",
+        "duration": "20.76s",
+        "log": "03-affected.log",
+        "line": 239,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness",
+        "status": "PASS",
+        "duration": "18.69s",
+        "log": "03-affected.log",
+        "line": 257,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness/rcc_approval_roles",
+        "status": "PASS",
+        "duration": "0.10s",
+        "log": "03-affected.log",
+        "line": 258,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness/rcc_approval_role_members",
+        "status": "PASS",
+        "duration": "0.10s",
+        "log": "03-affected.log",
+        "line": 259,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness/rcc_approval_role_requests",
+        "status": "PASS",
+        "duration": "0.10s",
+        "log": "03-affected.log",
+        "line": 260,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness/rcc_approval_role_references",
+        "status": "PASS",
+        "duration": "0.09s",
+        "log": "03-affected.log",
+        "line": 261,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness/rcc_table_approval_assignments",
+        "status": "PASS",
+        "duration": "0.15s",
+        "log": "03-affected.log",
+        "line": 262,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness/rcc_table_approval_requests",
+        "status": "PASS",
+        "duration": "0.16s",
+        "log": "03-affected.log",
+        "line": 263,
+        "inputs": "03-affected-inputs.json"
+      },
+      {
+        "test": "TestTemplateApprovalSchemaRecoversCatalogSeedFromFormalNine",
+        "status": "PASS",
+        "duration": "14.24s",
+        "log": "03-affected.log",
+        "line": 275,
+        "inputs": "03-affected-inputs.json"
+      }
+    ]
+  }
+}

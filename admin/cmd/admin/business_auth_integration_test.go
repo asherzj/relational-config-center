@@ -521,52 +521,33 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
 	go func() {
 		finished <- releaseActorRequest(t, app, session, "POST", path+"/execute", `{"expected_version":"3"}`, "inflight-execute")
 	}()
-	deadline := time.Now().Add(10 * time.Second)
-	for {
-		var waiting int
-		err := owner.QueryRowContext(t.Context(), `SELECT COUNT(*) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID WHERE l.OBJECT_SCHEMA=DATABASE() AND l.OBJECT_NAME='rcc_release_orders'`).Scan(&waiting)
-		if err != nil {
-			t.Fatal(err)
+	waitForLock := func(table string, blockerID int64) int64 {
+		t.Helper()
+		deadline := time.Now().Add(3 * time.Second)
+		for {
+			waiting, requesterID := integrationLockWaiters(t, owner, table, blockerID)
+			if waiting > 0 && requesterID != blockerID {
+				return requesterID
+			}
+			select {
+			case response := <-finished:
+				t.Fatalf("publication escaped %s lock: %d %s", table, response.Code, response.Body)
+			default:
+			}
+			if time.Now().After(deadline) {
+				t.Fatalf("request did not reach real %s lock", table)
+			}
+			time.Sleep(10 * time.Millisecond)
 		}
-		if waiting > 0 {
-			break
-		}
-		select {
-		case response := <-finished:
-			t.Fatalf("publication did not wait for database lock: %d %s", response.Code, response.Body)
-		default:
-		}
-		if time.Now().After(deadline) {
-			t.Fatal("publication did not enter its authenticated transaction")
-		}
-		time.Sleep(10 * time.Millisecond)
 	}
-	// Revocation serializes behind the authenticated publication's authorization
-	// lock. Observe that real wait before allowing its business transaction to finish.
-	revocationFinished := make(chan *httptest.ResponseRecorder, 1)
+	publicationConnection := waitForLock("rcc_release_orders", 0)
+	revocations := make(chan *httptest.ResponseRecorder, 1)
 	go func() {
-		revocationFinished <- accountRequest(app, "POST", "/api/v1/auth/logout-all", "", session.Result().Cookies(), csrf)
+		revocations <- accountRequest(app, "POST", "/api/v1/auth/logout-all", "", session.Result().Cookies(), csrf)
 	}()
-	deadline = time.Now().Add(3 * time.Second)
-	for {
-		var waiting int
-		err := owner.QueryRowContext(t.Context(), `SELECT COUNT(*) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID WHERE l.OBJECT_SCHEMA=DATABASE() AND l.OBJECT_NAME='rcc_auth_control_lock'`).Scan(&waiting)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if waiting > 0 {
-			break
-		}
-		select {
-		case response := <-revocationFinished:
-			t.Fatalf("revocation did not wait for authorization lock: %d %s", response.Code, response.Body)
-		default:
-		}
-		if time.Now().After(deadline) {
-			t.Fatal("revocation did not enter its authorization transaction")
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
+	// Revocation shares authorization serialization with the already admitted write.
+	revocationConnection := waitForLock("rcc_auth_control_lock", publicationConnection)
+	t.Logf("revocation connection %d waits for publication connection %d", revocationConnection, publicationConnection)
 	if err := lock.Commit(); err != nil {
 		t.Fatal(err)
 	}
@@ -586,12 +567,12 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
 		t.Fatal("inflight publication did not finish")
 	}
 	select {
-	case revoked := <-revocationFinished:
+	case revoked := <-revocations:
 		if revoked.Code != 204 {
 			t.Fatalf("revoke: %d %s", revoked.Code, revoked.Body)
 		}
-	case <-time.After(5 * time.Second):
-		t.Fatal("revocation did not finish after publication")
+	case <-time.After(10 * time.Second):
+		t.Fatal("serialized revocation did not finish")
 	}
 	rejected := releaseActorRequest(t, app, session, "POST", path+"/execute", `{"expected_version":"3"}`, "after-revoke-execute")
 	if rejected.Code != 401 {
@@ -602,6 +583,18 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
 	if result.Code != 200 || !strings.Contains(result.Body.String(), actor) || !strings.Contains(result.Body.String(), "already authenticated") {
 		t.Fatalf("revocation changed attribution/outcome: %d %s", result.Code, result.Body)
 	}
+}
+
+// integrationLockWaiters reads actual distinct SQL connections, without imposing
+// any scenario's barrier or completion order.
+func integrationLockWaiters(t *testing.T, db *sql.DB, table string, blockerID int64) (int, int64) {
+	t.Helper()
+	var waiting int
+	var requesterID int64
+	if err := db.QueryRowContext(t.Context(), `SELECT COUNT(DISTINCT waiter.PROCESSLIST_ID),COALESCE(MAX(waiter.PROCESSLIST_ID),0) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks requested ON requested.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID JOIN performance_schema.data_locks blocking ON blocking.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID JOIN performance_schema.threads waiter ON waiter.THREAD_ID=requested.THREAD_ID JOIN performance_schema.threads blocker ON blocker.THREAD_ID=blocking.THREAD_ID WHERE requested.OBJECT_SCHEMA=DATABASE() AND requested.OBJECT_NAME=? AND (?=0 OR blocker.PROCESSLIST_ID=?)`, table, blockerID, blockerID).Scan(&waiting, &requesterID); err != nil {
+		t.Fatal(err)
+	}
+	return waiting, requesterID
 }
 
 func TestAccountControlTablesCannotBeDiscoveredOrManaged(t *testing.T) {

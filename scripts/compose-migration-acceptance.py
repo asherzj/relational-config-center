@@ -111,7 +111,7 @@ def main():
     try:
         run(['build'], timeout=900)
         verify_success('fresh_volume')
-        sql("CREATE TABLE business_marker(id int PRIMARY KEY,note text); INSERT INTO business_marker VALUES(17,'preserved through deployment'); INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,roles,role_version,session_version,created_at) VALUES('compose-account','compose.account','compose@example.test','Retained','fixture-hash',31,4,7,'2025-01-02');")
+        sql("CREATE TABLE business_marker(id int PRIMARY KEY,note text); INSERT INTO business_marker VALUES(17,'preserved through deployment'); INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,roles,role_version,session_version,created_at) VALUES('compose-account','compose.account','compose@example.test','Retained','fixture-hash',27,4,7,'2025-01-02');")
         before = preserved()
         recreate_containers()
         verify_success('adopted_volume_repeat')

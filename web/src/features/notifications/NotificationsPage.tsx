@@ -41,8 +41,7 @@ export function NotificationsPage() {
   const [params] = useSearchParams();
   const returnPath = `${listPath}?${new URLSearchParams(notificationFilters(params))}`;
   return <main className="workspace min-w-0">
-    <div className="page-heading"><div><h1>通知中心</h1></div></div>
-    {id ? <><ReleaseConflictReview /><ReleaseDetail key={id} id={id} listPath={returnPath} listLabel="通知中心" /></> : <NotificationList />}
+    {id ? <><ReleaseConflictReview /><ReleaseDetail key={id} id={id} listPath={returnPath} listLabel="通知中心" /></> : <><div className="page-heading"><div><h1>通知中心</h1></div></div><NotificationList /></>}
   </main>;
 }
 

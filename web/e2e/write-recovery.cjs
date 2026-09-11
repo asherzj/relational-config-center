@@ -37,7 +37,7 @@ async function waitDatabase() {
   const button = name => page.getByRole('button', { name, exact: true });
   const waitRelease = async (state, title = `${table} recovery change`) => {
     await page.getByRole('heading', { name: title, exact: true }).waitFor();
-    await page.getByText(`${table} · ${state}`, { exact: true }).waitFor();
+    await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: new RegExp(`^${state}$`) }).waitFor();
   };
   const uncertain = () => page.getByRole('alert', { name: '提交结果尚未确认', exact: true });
   const check = (name, details) => { passed.push(name); evidence.push({ case: name, ...details }); console.log('PASS', name, JSON.stringify(details)); writeFileSync(`${output}/progress.json`, JSON.stringify({ passed, evidence }, null, 2)); };
@@ -60,7 +60,7 @@ async function waitDatabase() {
   }
   async function managed() {
     await open('/platform/query-policies');
-    await page.getByRole('link', { name: '配置内容管理', exact: true }).click();
+    await page.getByRole('link', { name: '统一变更入口', exact: true }).click();
     await page.getByRole('combobox', { name: 'Managed Table', exact: true }).selectOption(table);
     await button('新增记录').waitFor({ state: 'visible' });
   }
@@ -289,7 +289,8 @@ async function waitDatabase() {
     // An approved intention is immutable after a constraint failure. Correct a
     // copied draft and obtain new approval; do not edit the frozen original.
     context = applicant; await open(`/configuration/release-orders/${invalidOrder.id}`);
-    await button('取消发布单').click();
+    await button('更多操作').click();
+    await page.getByRole('menuitem', { name: '取消发布单', exact: true }).click();
     await page.getByRole('textbox', { name: '取消原因', exact: true }).fill('Correct the rejected ENUM value in a new proposal');
     await button('确认取消发布单').click();
     await waitRelease('已取消', `${table} 配置变更`);

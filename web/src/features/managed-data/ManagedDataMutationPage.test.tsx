@@ -673,7 +673,7 @@ it("AC-012 freezes configured query/editor input through same-account recovery a
   await user.click(screen.getByRole("button",{name:"取消"}));
   await user.click(screen.getByRole("link",{name:"查询规则定义"}));
   await screen.findByRole("heading",{name:"查询规则定义"});
-  await user.click(screen.getByRole("link",{name:"配置内容管理"}));
+  await user.click(screen.getByRole("link",{name:"统一变更入口"}));
   expect((await screen.findByRole("textbox",{name:"筛选 最新模板 值"})).tagName).toBe("TEXTAREA");
 });
 
@@ -700,7 +700,7 @@ it("重新进入时等待本次字段配置读取再冻结，并且后续实时�
  await screen.findByRole("textbox",{name:"筛选 旧模板 值"});
  await user.click(screen.getByRole("link",{name:"查询规则定义"}));
  await screen.findByRole("heading",{name:"查询规则定义"});
- await user.click(screen.getByRole("link",{name:"配置内容管理"}));
+ await user.click(screen.getByRole("link",{name:"统一变更入口"}));
  await waitFor(()=>expect(metadataReads).toBe(2));
  expect(screen.queryByRole("textbox",{name:"筛选 旧模板 值"})).not.toBeInTheDocument();
  expect(screen.getByText("正在读取字段查询配置…")).toBeVisible();

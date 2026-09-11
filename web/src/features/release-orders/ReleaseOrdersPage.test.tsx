@@ -28,10 +28,15 @@ function mount(path="/configuration/release-orders"){
 async function originalButton(name:string){
  const button=await screen.findByRole("button",{name});await waitFor(()=>expect(button).toBeEnabled());return button;
 }
+async function cancelMenuItem(user:ReturnType<typeof userEvent.setup>,name="取消草稿"){
+ await user.click(await originalButton("更多操作"));
+ return screen.findByRole("menuitem",{name});
+}
 async function repeatOriginal(user:ReturnType<typeof userEvent.setup>,action:string,confirm:string){
- await waitFor(()=>expect(screen.queryByRole("button",{name:action})??screen.queryByRole("link",{name:`查看详情：${order.title}`})).toBeInTheDocument());
- if(!screen.queryByRole("button",{name:action}))await user.click(await screen.findByRole("link",{name:`查看详情：${order.title}`}));
- await user.click(await originalButton(action));
+ const trigger=action.startsWith("取消")?"更多操作":action;
+ await waitFor(()=>expect(screen.queryByRole("button",{name:trigger})??screen.queryByRole("link",{name:`查看详情：${order.title}`})).toBeInTheDocument());
+ if(!screen.queryByRole("button",{name:trigger}))await user.click(await screen.findByRole("link",{name:`查看详情：${order.title}`}));
+ await user.click(action.startsWith("取消")?await cancelMenuItem(user,action):await originalButton(action));
  if(action==="重新准备")await user.click(await originalButton("继续重新准备"));
  await user.click(await originalButton(confirm));
 }
@@ -85,6 +90,39 @@ it("补齐流程保存已确认时，后续详情读取失败仍明确反馈保�
  expect(await screen.findByText(/flow-read-after-save/)).toBeVisible();
  expect(screen.queryByRole("dialog",{name:"编辑多表草稿"})).not.toBeInTheDocument();
 });
+it("草稿用唯一业务标题与紧凑信息，添加变更位于审阅工具栏且保留当前草稿路由",async()=>{
+ const draft={...order,title:"channel_configs 配置变更",copied_from_id:rollbackID,allowed_actions:["edit","submit","cancel"]};
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{[order.applicant_id]:"申请人阿青"}}):json(draft))));
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+ expect(await screen.findByRole("heading",{level:1,name:draft.title})).toBeVisible();expect(screen.getAllByRole("heading",{level:1})).toHaveLength(1);
+ const header=within(screen.getByLabelText("发布单页头"));
+ expect(header.getByLabelText("发布单状态")).toHaveTextContent("草稿");expect(header.getByText("变更数量").parentElement).toHaveTextContent("1 项");
+ expect(screen.getAllByRole("link",{name:"返回发布单列表"})).toHaveLength(1);expect(screen.queryByRole("navigation",{name:"发布单位置"})).not.toBeInTheDocument();
+ expect(header.getByRole("button",{name:"编辑草稿"})).toHaveAttribute("data-variant","outline");expect(header.getByRole("button",{name:"提交审批"})).toHaveAttribute("data-variant","default");
+ const info=screen.getByLabelText("基本信息");expect(info).not.toHaveAttribute("open");expect(within(info).getByText(id)).not.toBeVisible();
+ await user.click(within(info).getByText("基本信息"));expect(within(info).getByText(id)).toBeVisible();expect(within(info).getByRole("button",{name:"复制发布单号"}).parentElement).toContainElement(within(info).getByText(id));expect(within(info).getByRole("link",{name:rollbackID})).toHaveAttribute("href",`/configuration/release-orders/${rollbackID}`);
+ const review=within(screen.getByRole("region",{name:"发布单审阅"}));expect(review.getByRole("heading",{name:"变更内容"})).toBeVisible();
+ expect(review.getByRole("link",{name:"添加变更"})).toHaveAttribute("href",`/configuration/managed-data?table_name=items&draft=${id}`);expect(review.getByRole("link",{name:"添加变更"})).toHaveAttribute("data-variant","outline");
+ expect(review.queryByRole("group",{name:"审阅内容切换"})).not.toBeInTheDocument();expect(review.queryByRole("button",{name:/申请差异|申请内容/})).not.toBeInTheDocument();
+ expect(screen.queryByRole("button",{name:"取消草稿"})).not.toBeInTheDocument();const cancel=await cancelMenuItem(user);expect(cancel).toHaveAttribute("data-variant","destructive");
+ await user.click(cancel);expect(await screen.findByRole("button",{name:"确认取消草稿"})).toHaveAttribute("data-variant","destructive");expect(screen.getByRole("dialog",{name:"取消草稿"})).toBeVisible();
+ await user.click(within(screen.getByRole("dialog",{name:"取消草稿"})).getAllByRole("button",{name:"关闭"}).at(-1)!);
+ await waitFor(()=>expect(header.getByRole("button",{name:"更多操作"})).toHaveFocus());
+ await user.keyboard("{Enter}");
+ await waitFor(()=>expect(screen.getByRole("menuitem",{name:"取消草稿"})).toHaveFocus());
+ await user.keyboard("{Escape}");
+ await waitFor(()=>expect(header.getByRole("button",{name:"更多操作"})).toHaveFocus());
+});
+
+it("VIEWER 具备服务器表审批资格时页头保持批准与拒绝权限，隐藏草稿和更多操作入口",async()=>{
+ const current={...order,applicant_id:"another-person",state:"PENDING_APPROVAL",allowed_actions:["edit","submit","cancel","approve","reject"],approvals:[{table_name:"items",roles:[{id:"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",name:"负责审批人员"}],state:"PENDING"}],approval_context:{revision:"header-reviewer",tables:[{table_name:"items",mode:"ROLE",reason:"当前账号是该表角色成员",can_approve:true}],approvable_tables:["items"]}};
+ const identity={...testAdminIdentity,account:{...testAdminIdentity.account,roles:["VIEWER"]}};
+ vi.stubGlobal("fetch",vi.fn(async input=>String(input).startsWith("/api/v1/auth/")?json(identity):String(input).endsWith("/people")?json({people:{}}):json(current)));
+ mount(`/configuration/release-orders/${id}`);
+ expect(await screen.findByRole("button",{name:"批准发布单"})).toHaveAttribute("data-variant","default");expect(screen.getByRole("button",{name:"拒绝发布单"})).toHaveAttribute("data-variant","outline");
+ expect(screen.queryByRole("button",{name:/编辑草稿|提交审批|更多操作/})).not.toBeInTheDocument();expect(screen.queryByRole("link",{name:"添加变更"})).not.toBeInTheDocument();
+});
+
 it("原申请人或管理员核对最新配置后原子化重新准备已批准普通单",async()=>{
  const approved={...order,applicant_id:"original-applicant",state:"APPROVED",version:"3",allowed_actions:["execute","reprepare"],frozen_digest:"a".repeat(64)};
  const freshItems=approved.items.map(item=>({...item,expected_record_version:"2",before:{id:"1",label:"latest database value"},fields:item.fields.map(field=>field.name==="label"?{...field,before:"latest database value"}:field)}));
@@ -112,7 +150,7 @@ it("原申请人或管理员核对最新配置后原子化重新准备已批准�
  await user.click(cancel);expect(confirmation).not.toBeInTheDocument();expect(writes).toHaveLength(0);
  await user.click(screen.getByRole("button",{name:"继续重新准备"}));
  await user.click(screen.getByRole("button",{name:"取消旧单并创建新草稿"}));
- expect(await screen.findByText("重新准备自",{exact:false})).toBeVisible();
+ await screen.findByText("重新准备自",{exact:false});await user.click(screen.getByText("基本信息",{selector:"summary"}));expect(screen.getByText("重新准备自",{exact:false})).toBeVisible();
  expect(screen.getByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
  await waitFor(()=>expect(writes).toHaveLength(1));
  expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"3",confirmed:true,items:[{detail_id:"1".repeat(32),table_name:"items",operation:"MODIFY",id:"1",expected_record_version:"2",content:{label:"proposal"}}]});
@@ -146,18 +184,22 @@ it("重新准备响应丢失后跨刷新保留原正文与幂等键并恢复同�
  expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
  await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
 });
-it("详情同时展示标题、相关人员当前姓名、首字头像和永久 ID",async()=>{
+it("详情展示当前姓名和首字头像，按需展开完整永久账号 ID",async()=>{
  const reviewerID="11111111-2222-4333-8444-555555555555";
  const current={...order,history:[...order.history,{action:"APPROVE",actor_id:reviewerID,version:"2",at:"2026-09-08T08:00:00Z",reason:"已核对"}]};
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{[order.applicant_id]:"申请人阿青",[reviewerID]:"审批人小白"}}):json(current))));
- mount(`/configuration/release-orders/${id}`);
+ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
  expect((await screen.findAllByText("申请人阿青")).length).toBeGreaterThan(0);
- expect(screen.getAllByText("审批人小白")[0]).toBeVisible();
+ expect(screen.getAllByText("审批人小白").some(element=>element.closest("details")===null)).toBe(true);
  expect(screen.getAllByText("申").length).toBeGreaterThan(0);
- expect(screen.getAllByText("审")[0]).toBeVisible();
- expect(screen.getAllByText(order.applicant_id).length).toBeGreaterThan(0);
- expect(screen.getAllByText(reviewerID)[0]).toBeVisible();
+ expect(screen.getAllByText("审").length).toBeGreaterThan(0);
+ expect(screen.queryByText(order.applicant_id)).not.toBeInTheDocument();
+ expect(screen.queryByText(reviewerID)).not.toBeInTheDocument();
+ await user.click(screen.getAllByRole("button",{name:"查看申请人阿青的账号信息"})[0]!);
+ expect(screen.getByText(order.applicant_id)).toBeVisible();
+ await user.click(within(screen.getByRole("region",{name:"操作历史"})).getByRole("button",{name:"查看审批人小白的账号信息"}));
+ expect(screen.getByText(reviewerID)).toBeVisible();
 });
 it("人员姓名重读失败时清除缓存姓名、显示错误标识并允许独立重试",async()=>{
  let peopleReads=0;
@@ -174,7 +216,8 @@ it("人员姓名重读失败时清除缓存姓名、显示错误标识并允许�
  expect(screen.getByText("错误代码：release_unavailable")).toBeVisible();
  expect(screen.getByText("请求编号：people-req-2")).toBeVisible();
  expect(screen.queryAllByText("缓存申请人")).toHaveLength(0);
- expect(screen.getAllByText(order.applicant_id).length).toBeGreaterThan(0);
+ await user.click(screen.getAllByRole("button",{name:`查看账号 ${order.applicant_id.slice(0,8)}的账号信息`})[0]!);
+ expect(screen.getByText(order.applicant_id)).toBeVisible();
  await user.click(screen.getByRole("button",{name:"重新读取人员姓名"}));
  expect((await screen.findAllByText("重试后的申请人")).length).toBeGreaterThan(0);
  expect(screen.queryByText("人员姓名读取失败，当前仅显示永久账号 ID。")).not.toBeInTheDocument();
@@ -193,7 +236,7 @@ it("发布者明确确认完结，取消无写入且不要求意见",async()=>{
  await user.click(screen.getAllByRole("button",{name:/^关闭$/}).at(-1)!);expect(writes).toHaveLength(0);
  await user.click(screen.getByRole("button",{name:"完结发布单"}));
  await user.click(screen.getByRole("button",{name:"确认完结"}));
- expect(await screen.findByText("items · 已完结")).toBeVisible();
+ expect(await screen.findByText("已完结",{selector:'[aria-label="发布单状态"]'})).toBeVisible();
  expect(writes).toHaveLength(1);expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"4"});
  expect(screen.queryByRole("button",{name:"申请回滚"})).not.toBeInTheDocument();
 });
@@ -201,7 +244,7 @@ it("发布者明确确认完结，取消无写入且不要求意见",async()=>{
 it("已完结原单没有回滚入口",async()=>{
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json({...order,state:"COMPLETED",allowed_actions:[]}))));
  mount(`/configuration/release-orders/${id}`);
- expect(await screen.findByText("items · 已完结")).toBeVisible();
+ expect(await screen.findByText("已完结",{selector:'[aria-label="发布单状态"]'})).toBeVisible();
  expect(screen.queryByRole("button",{name:"快速回滚"})).not.toBeInTheDocument();
  expect(screen.queryByRole("button",{name:"申请回滚"})).not.toBeInTheDocument();
 });
@@ -237,7 +280,7 @@ it("回滚执行人在原单补填和修正可选原因并看到每次真实留�
  expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBeTruthy();
  expect(await within(reasonPanel).findByText("数据库约束冲突",{exact:true})).toBeVisible();
  expect(screen.getByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
- expect(screen.getByText("items · 已回滚",{exact:true})).toBeVisible();
+ expect(screen.getByText("已回滚",{selector:'[aria-label="发布单状态"]'})).toBeVisible();
  expect(screen.getAllByText("版本 5",{exact:false}).length).toBeGreaterThan(0);
 
  await user.click(within(reasonPanel).getByRole("button",{name:"修改回滚原因"}));
@@ -337,7 +380,7 @@ it("从列表的查看详情入口打开持久草稿，并取消后保留历史"
  const user=userEvent.setup();mount();
  await user.click(await screen.findByRole("link",{name:"查看详情：更新渠道展示名称"}));
  expect(await screen.findByText("proposal")).toBeVisible();
- await user.click(screen.getByRole("button",{name:"取消草稿"}));
+ await user.click(await cancelMenuItem(user));
  await user.type(screen.getByLabelText("取消原因"),"调整计划");
  await user.click(screen.getByRole("button",{name:"确认取消草稿"}));
  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
@@ -569,7 +612,7 @@ it("原业务结果重放成功后重新读取已挂载详情的当前版本",as
  await user.click(await screen.findByRole("button",{name:"编辑草稿"}));
  await user.click(screen.getByRole("button",{name:"保存草稿修改"}));
  await user.click(await originalButton("保存草稿修改"));
- await waitFor(()=>expect(within(screen.getByRole("region",{name:"基本信息"})).getByText("发布单版本").parentElement).toHaveTextContent("发布单版本3"));
+ await waitFor(()=>expect(within(screen.getByLabelText("基本信息")).getByText("发布单版本").parentElement).toHaveTextContent("发布单版本3"));
  expect(await screen.findByText("latest committed")).toBeVisible();
 });
 
@@ -594,7 +637,7 @@ it("取消请求刷新恢复冲突后，明确显示真实取消动作并保留�
   return json({orders:[current],next_cursor:""});
  })));
  const user=userEvent.setup();let page=mount(`/configuration/release-orders/${id}`);
- await user.click(await screen.findByRole("button",{name:"取消草稿"}));
+ await user.click(await cancelMenuItem(user));
  await user.type(screen.getByLabelText("取消原因"),"retained cancellation");
  await user.click(screen.getByRole("button",{name:"确认取消草稿"}));
  await originalButton("确认取消草稿");page.unmount();page=mount();
@@ -625,7 +668,8 @@ it("仅有审批角色的人填写意见批准冻结单据",async()=>{
  await user.type(screen.getByLabelText("审批意见"),"已核对变更范围");
  await user.click(screen.getByRole("button",{name:"确认批准"}));
  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
- expect((await screen.findAllByText("首次审批人"))[0]).toBeVisible();expect(peopleReads).toBe(2);
+ const info=screen.getByLabelText("基本信息");await user.click(within(info).getByText("基本信息"));
+ expect(within(info).getByRole("button",{name:"查看首次审批人的账号信息"})).toBeVisible();expect(peopleReads).toBe(2);
  expect(writes).toHaveLength(1);expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"2",reason:"已核对变更范围",confirmed_tables:["items"],expected_approval_revision:"fixture-approval-1"});
 });
 
@@ -669,8 +713,8 @@ it("仅 PUBLISHER 执行原审批，丢响应后跨刷新使用原键确认并�
  expect(writes[0]!.body).toBe('{"expected_version":"3"}');expect(writes[1]!.body).toBe(writes[0]!.body);
  expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();
- expect((await screen.findAllByText("发布人小程")).length).toBeGreaterThan(0);expect(screen.getAllByText(identity.account.id).length).toBeGreaterThan(0);
- expect(await screen.findByText("items · 已发布待完结")).toBeVisible();
+ expect((await screen.findAllByText("发布人小程")).length).toBeGreaterThan(0);await user.click(screen.getAllByRole("button",{name:"查看发布人小程的账号信息"})[0]!);expect(screen.getByText(identity.account.id)).toBeVisible();
+ expect(await screen.findByText("已发布待完结",{selector:'[aria-label="发布单状态"]'})).toBeVisible();
  expect(screen.getByText("值：actual database value")).toBeVisible();expect(screen.getByText("SQL NULL")).toBeVisible();expect(screen.getByText("JSON：null")).toBeVisible();
  expect(screen.getByText(`items · 表发布版本 7 · 刷新通知 ${id}:PUBLICATION · 分发尚未接入`)).toBeVisible();await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
 });
@@ -743,7 +787,7 @@ it("完结丢响应后保留原请求并通过原完结操作安全重推",async
  const confirm=screen.getByRole("button",{name:"确认完结"});fireEvent.click(confirm);fireEvent.click(confirm);
  await originalButton("确认完结");expect(writes).toHaveLength(1);
  page.unmount();page=mount(`/configuration/release-orders/${id}`);
- await screen.findByText("items · 已完结");expect(screen.queryByRole("button",{name:"申请回滚"})).not.toBeInTheDocument();
+ await screen.findByText("已完结",{selector:'[aria-label="发布单状态"]'});expect(screen.queryByRole("button",{name:"申请回滚"})).not.toBeInTheDocument();
  await repeatOriginal(user,"完结发布单","确认完结");
  await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
  expect(writes).toHaveLength(2);
@@ -772,7 +816,7 @@ it("快速回滚先读取整单恢复预览，取消无写入且无需必填原�
  expect(screen.getByRole("button",{name:"确认整单快速回滚"})).toBeEnabled();
  await user.click(screen.getByRole("button",{name:"取消快速回滚"}));
  expect(writes).toHaveLength(0);expect(screen.queryByLabelText("快速回滚原因（选填）")).not.toBeInTheDocument();
- expect(screen.getByText("items · 已发布待完结")).toBeVisible();
+ expect(screen.getByText("已发布待完结",{selector:'[aria-label="发布单状态"]'})).toBeVisible();
 });
 
 it("快速回滚未知结果保留原摘要原因与标识，正常读取当前终态并跨刷新重推",async()=>{
@@ -855,7 +899,7 @@ it("快速回滚预览失败时保留原因，主动重读成功后仍拒绝超�
  expect(screen.getByRole("button",{name:"确认整单快速回滚"})).toBeEnabled();expect(writes).toBe(0);
 });
 
-it.each(["VIEWER","EDITOR","APPROVER"])("当前 %s 即使详情旧权限含快速回滚也不提供入口",async role=>{
+it.each(["VIEWER","EDITOR"])("当前 %s 即使详情旧权限含快速回滚也不提供入口",async role=>{
  const published={...order,state:"SUCCEEDED",version:"4",allowed_actions:["complete","quick-rollback"]};let previewReads=0;
  vi.stubGlobal("fetch",vi.fn(async input=>{
   if(String(input).startsWith("/api/v1/auth/"))return json({...testAdminIdentity,account:{...testAdminIdentity.account,roles:[role]}});
@@ -889,9 +933,9 @@ it("重新准备发送前响应未知时，关闭和刷新保留原正文和键�
  await user.click(screen.getByRole("button",{name:"取消"}));
  await user.click(screen.getAllByRole("button",{name:"关闭"}).at(-1)!);
  const discard=await screen.findByRole("button",{name:"放弃修改并离开"});await user.click(discard);
- expect(screen.getByRole("button",{name:"取消发布单"})).toBeEnabled();expect(screen.getByRole("button",{name:"执行发布"})).toBeEnabled();
+ expect(await cancelMenuItem(user,"取消发布单")).not.toHaveAttribute("data-disabled");await user.keyboard("{Escape}");expect(screen.getByRole("button",{name:"执行发布"})).toBeEnabled();
  page.unmount();page=mount(`/configuration/release-orders/${id}`);
- expect(await originalButton("执行发布")).toBeEnabled();expect(screen.getByRole("button",{name:"取消发布单"})).toBeEnabled();
+ expect(await originalButton("执行发布")).toBeEnabled();expect(await cancelMenuItem(user,"取消发布单")).not.toHaveAttribute("data-disabled");await user.keyboard("{Escape}");
  await repeatOriginal(user,"重新准备","取消旧单并创建新草稿");await screen.findByText(/复制自/);
  await waitFor(()=>expect(writes).toHaveLength(2));expect(writes[1]!.body).toBe(writes[0]!.body);expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
 });
@@ -903,8 +947,8 @@ it("已回滚详情默认实际原发布结果并可读取可信恢复结果或�
  const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
  expect(await screen.findByText("值：actual original generated")).toBeVisible();expect(screen.queryByText("proposal")).not.toBeInTheDocument();
  await user.click(screen.getByRole("button",{name:"恢复结果"}));expect(await screen.findByText("值：actual restored generated")).toBeVisible();expect(screen.queryByText("值：actual original generated")).not.toBeInTheDocument();
- await user.click(screen.getByRole("button",{name:"申请差异"}));expect(await screen.findByText("proposal")).toBeVisible();
- await user.click(screen.getByRole("button",{name:"原发布结果"}));expect(await screen.findByText("值：actual original generated")).toBeVisible();
+ await user.click(screen.getByRole("button",{name:"申请内容"}));expect(await screen.findByText("proposal")).toBeVisible();
+ await user.click(screen.getByRole("button",{name:"实际发布结果"}));expect(await screen.findByText("值：actual original generated")).toBeVisible();
 });
 
 it("字段名称和选项标签重读后实时更新，但申请 before 与持久化 final 原值不变",async()=>{
@@ -934,7 +978,7 @@ it("字段名称和选项标签重读后实时更新，但申请 before 与持�
  expect(screen.queryByText("新渠道")).not.toBeInTheDocument();
  expect(screen.getByLabelText("真实值：new")).toBeVisible();
  expect(screen.getByRole("region",{name:/明细 1 items 实际结果/})).toHaveClass("release-diff-scroll");
- await user.click(screen.getByRole("button",{name:"申请差异"}));
+ await user.click(screen.getByRole("button",{name:"申请内容"}));
  expect(await screen.findByText("原渠道")).toBeVisible();
  expect(screen.getByText("目标渠道")).toBeVisible();
  expect(screen.getByLabelText("真实值：old")).toBeVisible();
@@ -1003,7 +1047,7 @@ it("详情真实阶段与最近五条历史可展开，并复制真实单号",as
  expect(within(progress).getByText("已拒绝，整单终止")).toBeVisible();expect(within(progress).queryByText("已完结")).not.toBeInTheDocument();
  const history=screen.getByRole("region",{name:"操作历史"});expect(within(history).getAllByRole("listitem")).toHaveLength(5);expect(within(history).queryByText("审阅记录 3")).not.toBeInTheDocument();expect(within(history).getAllByRole("listitem")[0]).toHaveTextContent("审阅记录 8");
  await user.click(within(history).getByRole("button",{name:"查看全部 8 条记录"}));expect(within(history).getAllByRole("listitem")).toHaveLength(8);
- await user.click(screen.getByRole("button",{name:"复制发布单号"}));expect(copy).toHaveBeenCalledWith(id);expect(await screen.findByText("已复制发布单号")).toBeVisible();
+ await user.click(screen.getByText("基本信息",{selector:"summary"}));await user.click(screen.getByRole("button",{name:"复制发布单号"}));expect(copy).toHaveBeenCalledWith(id);expect(await screen.findByText("已复制发布单号")).toBeVisible();
 });
 
 it.each([
@@ -1086,7 +1130,7 @@ it.each(["DRAFT","PENDING_APPROVAL"] as const)("冷账号在%s读取持久编辑
  await repeatOriginal(user,"编辑草稿","保存草稿修改");
  await waitFor(()=>expect(writes).toHaveLength(1));expect(writes[0]!.body).toBe(body);expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBe("cold-original-key");
  await waitFor(()=>expect(pendingReleaseRequests(account.id)).toHaveLength(0));
- if(state==="PENDING_APPROVAL")expect(await screen.findByText("items · 待审批")).toBeVisible();
+ if(state==="PENDING_APPROVAL")expect(await screen.findByText("待审批",{selector:'[aria-label="发布单状态"]'})).toBeVisible();
 });
 
 it("另一窗口留下同范围原请求时锁定当前输入，恢复后保留本窗口未保存内容",async()=>{
@@ -1120,7 +1164,7 @@ it("多表审阅按所属表读取一次当前标签，申请与两次实际结�
  expect(within(actual).getByLabelText("真实值：proposal")).toBeVisible();
  await user.click(screen.getByRole("button",{name:"恢复结果"}));
  expect(within(screen.getByRole("region",{name:/明细 2 other 实际结果/})).getByText("other旧值")).toBeVisible();
- await user.click(screen.getByRole("button",{name:"申请差异"}));
+ await user.click(screen.getByRole("button",{name:"申请内容"}));
  const second=screen.getByRole("region",{name:"明细 2"});
  await user.click(within(second).getByText(/明细 2 · other/));
  expect(within(second).getByText("other字段")).toBeVisible();expect(within(second).getByText("other新值")).toBeVisible();
@@ -1163,7 +1207,7 @@ it.each(["saved","unavailable"] as const)("发布异常只报错，原动作手�
  expect(screen.queryByRole("button",{name:/恢复原发布请求|使用原请求重试|确认执行结果/})).not.toBeInTheDocument();
  expect(screen.getByRole("button",{name:"确认发布到数据库"})).toBeEnabled();
  await new Promise(resolve=>setTimeout(resolve,50));expect(writes).toHaveLength(1);
- await user.click(screen.getByRole("button",{name:"确认发布到数据库"}));await screen.findByText("items · 已发布待完结");
+ await user.click(screen.getByRole("button",{name:"确认发布到数据库"}));await screen.findByText("已发布待完结",{selector:'[aria-label="发布单状态"]'});
  expect(writes).toHaveLength(2);expect(writes[1]!.body).toBe(writes[0]!.body);expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));page.unmount();
 });
 
@@ -1176,7 +1220,7 @@ it("HTTP成功后的IndexedDB清理失败仍读取真实主单且不会变成业
  })));
  try{
   const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);await user.click(await screen.findByRole("button",{name:"执行发布"}));await user.click(screen.getByRole("button",{name:"确认发布到数据库"}));
-  await screen.findByText("items · 已发布待完结");expect(screen.queryByText(/本次执行未提交/)).not.toBeInTheDocument();expect(writes).toHaveLength(1);
+  await screen.findByText("已发布待完结",{selector:'[aria-label="发布单状态"]'});expect(screen.queryByText(/本次执行未提交/)).not.toBeInTheDocument();expect(writes).toHaveLength(1);
   expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(1);await waitFor(()=>expect(screen.getByRole("button",{name:"完结发布单"})).toBeEnabled());
   remove.mockRestore();await user.click(screen.getByRole("button",{name:"执行发布"}));await user.click(screen.getByRole("button",{name:"确认发布到数据库"}));
   await waitFor(()=>expect(writes).toHaveLength(2));expect(writes[1]!.body).toBe(writes[0]!.body);expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
@@ -1281,7 +1325,7 @@ it("审批资格改变而单据版本不变时保留原范围，明确审阅后�
  expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).not.toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
 });
 
-it.each(["ADMIN","APPROVER"])("%s 没有服务端表资格时旧动作也不能提供新审批", async role=>{
+it.each(["ADMIN","VIEWER"])("%s 没有服务端表资格时旧动作也不能提供新审批", async role=>{
  const pending={...order,applicant_id:"another-person",state:"PENDING_APPROVAL",allowed_actions:["approve","reject"],approvals:[{table_name:"items",roles:[],state:"PENDING"}],approval_context:{revision:"no-eligibility",tables:[{table_name:"items",mode:"ROLE",reason:"由其他角色成员审批",can_approve:false}],approvable_tables:[]}};
  vi.stubGlobal("fetch",vi.fn(async input=>String(input).startsWith("/api/v1/auth/")?json({...testAdminIdentity,account:{...testAdminIdentity.account,roles:[role]}}):String(input).endsWith("/people")?json({people:{}}):json(pending)));
  mount(`/configuration/release-orders/${id}`);
@@ -1321,5 +1365,6 @@ it.each([false,true])("无人审批明确拒绝后解除原提交并在窗口显
  if(previousUnknown){expect(writes[1]!.body).toBe(writes[0]!.body);expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"))}
  await user.click(within(dialog).getAllByRole("button",{name:"关闭"}).at(-1)!);
  expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
- expect(screen.getByRole("button",{name:"取消草稿"})).toBeEnabled();
+ await user.click(screen.getByRole("button",{name:"更多操作"}));
+ expect(screen.getByRole("menuitem",{name:"取消草稿"})).toBeEnabled();
 });

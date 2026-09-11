@@ -1,0 +1,92 @@
+{
+  "admin/internal/infrastructure/mysql/migrations/00001_control_baseline.sql": {
+    "published_sha256": "df9794a5f3836aab8452d090e8b88c69be619154bc20aca10e55d2f9252a8730",
+    "current_sha256": "df9794a5f3836aab8452d090e8b88c69be619154bc20aca10e55d2f9252a8730",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00001_schema.json": {
+    "published_sha256": "5c36a92035b9382ec3e43de18090f2008e5256c7e238b7a88f976bf23bd85cb4",
+    "current_sha256": "5c36a92035b9382ec3e43de18090f2008e5256c7e238b7a88f976bf23bd85cb4",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00002_policy_audit_timestamps.sql": {
+    "published_sha256": "3a5516b279c2ffbd795998d5641f74e6f07c7810bf4a6b615c0e7ba3490d2476",
+    "current_sha256": "3a5516b279c2ffbd795998d5641f74e6f07c7810bf4a6b615c0e7ba3490d2476",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00002_schema.json": {
+    "published_sha256": "5472c8a95d62e301b5639b00442d96628194e6103b14b8b687fb55c3c0f53ae8",
+    "current_sha256": "5472c8a95d62e301b5639b00442d96628194e6103b14b8b687fb55c3c0f53ae8",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00003_schema.json": {
+    "published_sha256": "f0382433976866f5a842703835635da87f42a0b8bde3d31caf0cad07085cc082",
+    "current_sha256": "f0382433976866f5a842703835635da87f42a0b8bde3d31caf0cad07085cc082",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00003_table_field_policies.sql": {
+    "published_sha256": "a9a5c7808ac262ab170a506d88ae5ecb05e7278ddd009cff687005ed770645c2",
+    "current_sha256": "a9a5c7808ac262ab170a506d88ae5ecb05e7278ddd009cff687005ed770645c2",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00004_release_details_and_targets.sql": {
+    "published_sha256": "3b19f19aa1ff2a6d3a47f4e83fce595e43b7096a59cce1b4bb1d7ee14b31f53e",
+    "current_sha256": "3b19f19aa1ff2a6d3a47f4e83fce595e43b7096a59cce1b4bb1d7ee14b31f53e",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00004_schema.json": {
+    "published_sha256": "a5c3f0cc404ef2906e368367d9d2e100b5662524a7815ad73fe086f7122bff35",
+    "current_sha256": "a5c3f0cc404ef2906e368367d9d2e100b5662524a7815ad73fe086f7122bff35",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00005_release_execution_ownership.sql": {
+    "published_sha256": "eff792fa684428ce89b12184798042ab22258e956688d3037c8409c8074ec02a",
+    "current_sha256": "eff792fa684428ce89b12184798042ab22258e956688d3037c8409c8074ec02a",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00005_schema.json": {
+    "published_sha256": "a80e24458f579d72abdcfa917417a3e5a8e0199e61545ef8f8e4dad90dd12a1f",
+    "current_sha256": "a80e24458f579d72abdcfa917417a3e5a8e0199e61545ef8f8e4dad90dd12a1f",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00006_approval_roles.sql": {
+    "published_sha256": "c0fe587dbe2a4ae910058bf021439f0583a80dd7f46fd04de4d1bc516412d230",
+    "current_sha256": "c0fe587dbe2a4ae910058bf021439f0583a80dd7f46fd04de4d1bc516412d230",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00006_schema.json": {
+    "published_sha256": "f2083662b3191bed12e2a613413011218c55e72df30d821ad0f7c8b753c1faa7",
+    "current_sha256": "f2083662b3191bed12e2a613413011218c55e72df30d821ad0f7c8b753c1faa7",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00007_schema.json": {
+    "published_sha256": "b2f169647d6369ed29f0388a5dca1506d42f3281b4a4368e5e34cf77d954505a",
+    "current_sha256": "b2f169647d6369ed29f0388a5dca1506d42f3281b4a4368e5e34cf77d954505a",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00007_table_approvals.sql": {
+    "published_sha256": "43ccf0aade2b9c2d0b0aef5613a6dab0191c391272edcdb248ffceb250abb395",
+    "current_sha256": "43ccf0aade2b9c2d0b0aef5613a6dab0191c391272edcdb248ffceb250abb395",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00008_approval_notifications.sql": {
+    "published_sha256": "223c2a53b56212d150d6bdb335cee36956db26de16f2a09d3c3ef1e6222729bd",
+    "current_sha256": "223c2a53b56212d150d6bdb335cee36956db26de16f2a09d3c3ef1e6222729bd",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00008_schema.json": {
+    "published_sha256": "79a5d895a411c02c98d3a7a8fc238fbde6dcd149a2f7368dc1e1876ed677f252",
+    "current_sha256": "79a5d895a411c02c98d3a7a8fc238fbde6dcd149a2f7368dc1e1876ed677f252",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00009_retire_global_approver.sql": {
+    "published_sha256": "aefd688ad4c9a2530d98be99172f5b95c743bec90407ac3670af03cacc8de826",
+    "current_sha256": "aefd688ad4c9a2530d98be99172f5b95c743bec90407ac3670af03cacc8de826",
+    "equal": true
+  },
+  "admin/internal/infrastructure/mysql/migrations/00009_schema.json": {
+    "published_sha256": "79a5d895a411c02c98d3a7a8fc238fbde6dcd149a2f7368dc1e1876ed677f252",
+    "current_sha256": "79a5d895a411c02c98d3a7a8fc238fbde6dcd149a2f7368dc1e1876ed677f252",
+    "equal": true
+  }
+}

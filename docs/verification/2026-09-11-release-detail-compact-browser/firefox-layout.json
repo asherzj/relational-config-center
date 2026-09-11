@@ -1,0 +1,62 @@
+{
+  "ok": true,
+  "engine": "firefox",
+  "browser": "153.0",
+  "checks": [
+    {
+      "name": "desktop name uses natural width and stays on one line",
+      "evidence": {
+        "lines": 1,
+        "width": 134.75,
+        "height": 20,
+        "lineHeight": "20px"
+      }
+    },
+    {
+      "name": "keyboard More → Cancel draft → footer Close returns focus to More",
+      "evidence": {}
+    },
+    {
+      "name": "Escape from cancel dialog also returns focus to More",
+      "evidence": {}
+    },
+    {
+      "name": "real SUBMIT event preserves the fixture actor and event timestamp",
+      "evidence": {
+        "state": "PENDING_APPROVAL",
+        "actor": "4b71a02b-acb1-45bd-aa53-77a4f810173d",
+        "at": "2026-09-10T20:17:23.306662Z"
+      }
+    },
+    {
+      "name": "390px detail header and progress are visible without horizontal overflow",
+      "evidence": {
+        "header": {
+          "left": 16,
+          "right": 374,
+          "top": 90,
+          "bottom": 316
+        },
+        "progress": {
+          "left": 16,
+          "right": 374,
+          "top": 332,
+          "bottom": 551,
+          "clientWidth": 356,
+          "scrollWidth": 356,
+          "columns": "160px 160px"
+        },
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "name": "mobile navigation label and order remain correct",
+      "evidence": {}
+    },
+    {
+      "name": "engine-owned draft cancelled after checks",
+      "evidence": {}
+    }
+  ]
+}

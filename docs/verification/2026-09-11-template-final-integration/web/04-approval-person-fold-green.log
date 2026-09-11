@@ -1,0 +1,10 @@
+^D[?25l
+ RUN  v4.1.11 /private/tmp/rcc-template-notification-integration/web
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 77 skipped (78)
+   Start at  15:22:33
+   Duration  2.47s (transform 643ms, setup 258ms, import 1.00s, tests 538ms, environment 567ms)
+
+[?25h

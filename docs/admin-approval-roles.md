@@ -2,7 +2,7 @@
 
 管理员在“平台人员管理 → 角色管理”创建审批角色、维护名称和说明、选择本地账号、启停角色或删除从未引用的角色。角色的永久 UUID 不随改名改变；一个账号可以属于多个角色，角色可以有多个成员。选择器显示用户名、显示名称、账号 ID 和启用状态，支持检索与分页；停用账号可以保留在成员关系中。
 
-角色维护见 [#93](https://github.com/asherzj/relational-config-center/issues/93)，表分配和多表审批见 [#94](https://github.com/asherzj/relational-config-center/issues/94)。角色成员关系不额外授予编辑、发布或管理权限。实际审批仅来自对应表的冻结角色与当前成员，或独立 ADMIN 默认资格；旧全局 APPROVER 已不授予审批权，存储值迁移及当前账号只读兼容的删除由 #98 完成。
+角色维护见 [#93](https://github.com/asherzj/relational-config-center/issues/93)，表分配和多表审批见 [#94](https://github.com/asherzj/relational-config-center/issues/94)。角色成员关系不额外授予编辑、发布或管理权限。实际审批仅来自对应表的冻结角色与当前成员，或独立 ADMIN 默认资格；旧全局 APPROVER 已退出当前授权，Goose 00009 完成账号存储收缩；它仅由不可变授权历史的独立解释器读取。
 
 ## HTTP 契约
 

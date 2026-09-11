@@ -52,9 +52,9 @@ func TestTableApprovalFallbackMatrixAndEmptySnapshot(t *testing.T) {
 			}
 		})
 	}
-	// A legacy APPROVER value alone cannot act even though it can still read.
+	// A viewer without table membership cannot act even though it can read.
 	legacy := registerAccount(t, app, "fallback.legacy", "fallback.legacy@example.com", "correct horse battery staple")
-	grantReleaseRole(t, app, legacy, `["APPROVER"]`, "1", "fallback-legacy-value")
+	grantReleaseRole(t, app, legacy, `["VIEWER"]`, "1", "fallback-viewer-value")
 	assignTableApproval(t, app, "mutation_add_items")
 	path := createTableApprovalDraft(t, app, editor, "legacy-no-authority")
 	rollbackOrderResponse(t, releaseActorRequest(t, app, editor, "POST", path+"/submit", `{"expected_version":"1"}`, "legacy-submit"), 200)

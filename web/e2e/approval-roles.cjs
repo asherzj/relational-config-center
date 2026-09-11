@@ -1,13 +1,13 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
-const { chromium } = require('playwright');
-const { browserOptions, registerFixtureAccount, authenticatedRequest, setFixtureRoles } = require('./local-account.cjs');
+const playwright = require('playwright');
+const { selectedBrowser, browserOptions, registerFixtureAccount, authenticatedRequest, setFixtureRoles } = require('./local-account.cjs');
 const origin = process.env.RCC_WEB_URL;
 const output = process.env.RCC_E2E_OUTPUT || '/tmp/rcc-approval-role-browser';
 (async () => {
   fs.mkdirSync(output, { recursive: true });
-  const browser = await chromium.launch(browserOptions());
+  const browser = await selectedBrowser(playwright).launch(browserOptions());
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   const checks=[], errors=[]; let page;
   const stableScreenshot=async(name)=>{

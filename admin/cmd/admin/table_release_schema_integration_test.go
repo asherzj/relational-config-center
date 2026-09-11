@@ -109,7 +109,7 @@ func TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly(t
 }
 
 func TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults(t *testing.T) {
-	previous, current := buildSchemaMigrationReleaseAt(t, 9), buildSchemaMigrationCommand(t)
+	previous, current := buildSchemaMigrationReleaseAt(t, 10), buildSchemaMigrationCommand(t)
 	_, driver := startIntegrationMySQL(t)
 	owner := *driver
 	owner.User = "root"
@@ -142,7 +142,7 @@ func TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults(t *te
 }
 
 func TestTableReleaseSchemaRecoveryKeepsExistingSelections(t *testing.T) {
-	previous, current := buildSchemaMigrationReleaseAt(t, 9), buildSchemaMigrationCommand(t)
+	previous, current := buildSchemaMigrationReleaseAt(t, 10), buildSchemaMigrationCommand(t)
 	_, driver := startIntegrationMySQL(t)
 	requireSchemaMigrationState(t, previous, driver, "current", "up")
 	owner := *driver

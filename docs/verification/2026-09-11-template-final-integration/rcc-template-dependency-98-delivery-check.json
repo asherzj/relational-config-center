@@ -1,0 +1,25 @@
+{
+  "source-final.json": {
+    "count": 608,
+    "mismatches": []
+  },
+  "delivery-manifest.json": {
+    "count": 768,
+    "mismatches": []
+  },
+  "mysql": {
+    "unique_exact_raw_PASS": 382,
+    "mismatches": []
+  },
+  "published_diff_from_verified": {
+    "source_changes": [
+      "docs/admin-notification-center.md"
+    ],
+    "reason": "Documentation link points at published concise report; production/test source unchanged"
+  },
+  "merged_tree_equal_published": true,
+  "local_verified_sha": "404104692179ef0a7eb4b43c0946a1a7e02b479e",
+  "published_sha": "b3304bc91afc638237341a4d628677def17f2bcb",
+  "merged_sha": "eb55e841e80345cfef7733b8c560d6037256cd2c",
+  "formal_migrations": "1..9; template candidates must move to10/11"
+}
