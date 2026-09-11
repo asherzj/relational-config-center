@@ -174,12 +174,17 @@ func TestReleaseCompletionPersistenceFailureIsAtomic(t *testing.T) {
 	conflictBody := `{"items":[{"content":{"label":"next"},"expected_record_version":"1","id":"100","operation":"MODIFY","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", conflictBody, "completion-atomic-conflict"), 409, "release_target_conflict")
 
-	for _, failure := range []struct{ table, event, condition string }{{"rcc_release_targets", "DELETE", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='COMPLETED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
+	reviewer := publicationFixtureReviewer(t, app)
+	beforeNotice := readApprovalProgress(t, app, reviewer, path)
+	for _, failure := range []struct{ table, event, condition string }{{"rcc_approval_notifications", "UPDATE", "TRUE"}, {"rcc_release_targets", "DELETE", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='COMPLETED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
 		t.Run(failure.table, func(t *testing.T) {
 			deliveryExec(t, db, fmt.Sprintf("CREATE TRIGGER fail_completion BEFORE %s ON %s FOR EACH ROW BEGIN IF %s THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='completion storage boundary'; END IF; END", failure.event, failure.table, failure.condition))
 			assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/complete", `{"expected_version":"4"}`, "completion-atomic-complete"), 503, "release_unavailable")
 			deliveryExec(t, db, `DROP TRIGGER fail_completion`)
 			current := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
+			if readApprovalProgress(t, app, reviewer, path) != beforeNotice {
+				t.Fatal("failed completion changed personal result notification")
+			}
 			if !reflect.DeepEqual(original, current) {
 				t.Fatal("failed completion changed order")
 			}
@@ -191,6 +196,7 @@ func TestReleaseCompletionPersistenceFailureIsAtomic(t *testing.T) {
 		})
 	}
 	completePublicationFixture(t, app, path, "completion-atomic-complete")
+	assertReleaseNotificationAdvance(t, app, reviewer, path, beforeNotice)
 	rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", conflictBody, "completion-atomic-conflict"), 201)
 }
 

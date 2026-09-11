@@ -1,0 +1,4 @@
+# github.com/asherzj/relational-config-center/admin/cmd/admin [github.com/asherzj/relational-config-center/admin/cmd/admin.test]
+cmd/admin/release_notifications_integration_test.go:45:117: result.Executions[0].Tables undefined (type domain.ReleaseExecution has no field or method Tables)
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin [build failed]
+FAIL

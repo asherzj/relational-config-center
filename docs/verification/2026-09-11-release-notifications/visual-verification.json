@@ -1,0 +1,95 @@
+{
+  "all_document_widths_match_viewport": true,
+  "layout_checks": [
+    {
+      "path": "browser/initial/completion-former-reviewer-390-detail-layout.json",
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "path": "browser/initial/completion-former-reviewer-390-list-layout.json",
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "path": "browser/initial/publication-applicant-desktop-detail-layout.json",
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "path": "browser/initial/publication-applicant-desktop-list-layout.json",
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "path": "browser/initial/publication-former-reviewer-390-detail-layout.json",
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "path": "browser/initial/publication-former-reviewer-390-list-layout.json",
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "path": "browser/initial/publication-lost-response-390-layout.json",
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "path": "browser/initial/reprepare-cancellation-applicant-390-detail-layout.json",
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "path": "browser/initial/reprepare-cancellation-applicant-390-list-layout.json",
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "path": "browser/initial/reprepare-lost-response-390-layout.json",
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "path": "browser/initial/reprepare-new-draft-390-layout.json",
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "path": "browser/initial/rollback-applicant-desktop-detail-layout.json",
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "path": "browser/initial/rollback-applicant-desktop-list-layout.json",
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "path": "browser/initial/rollback-former-reviewer-390-detail-layout.json",
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "path": "browser/initial/rollback-former-reviewer-390-list-layout.json",
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "path": "browser/initial/rollback-lost-response-390-layout.json",
+      "viewport": 390,
+      "document": 390
+    }
+  ],
+  "implementer_inspected": [
+    "publication-applicant-desktop-detail.png",
+    "rollback-former-reviewer-390-detail.png",
+    "completion-former-reviewer-390-detail.png",
+    "reprepare-lost-response-390.png"
+  ],
+  "spec_reviewer_inspected": [
+    "publication-former-reviewer-390-detail.png",
+    "reprepare-lost-response-390.png"
+  ]
+}

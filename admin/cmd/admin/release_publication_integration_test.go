@@ -165,7 +165,8 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 	enableMutationPolicy(t, app, "z_atomic_second", mutationPolicyFixture{AllowModify: true})
 	reviewer := registerAccount(t, app, "atomic.reviewer", "atomic.reviewer@example.com", "correct horse battery staple")
 	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"committed"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"},{"content":{"code":"new-atomic"},"operation":"ADD","table_name":"mutation_delete_parents"},{"content":{"label":"after"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"z_atomic_second"}],"title":"集成测试发布单"}`, "atomic")
-	for _, failure := range []struct{ table, event, condition string }{{"rcc_record_versions", "INSERT", "TRUE"}, {"rcc_publication_commands", "INSERT", "TRUE"}, {"rcc_table_publications", "UPDATE", "NEW.table_version>0 AND NEW.table_name='z_atomic_second'"}, {"rcc_refresh_notifications", "INSERT", "NEW.table_name='z_atomic_second'"}, {"rcc_release_targets", "INSERT", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='SUCCEEDED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
+	beforeNotice := readApprovalProgress(t, app, reviewer, path)
+	for _, failure := range []struct{ table, event, condition string }{{"rcc_record_versions", "INSERT", "TRUE"}, {"rcc_publication_commands", "INSERT", "TRUE"}, {"rcc_table_publications", "UPDATE", "NEW.table_version>0 AND NEW.table_name='z_atomic_second'"}, {"rcc_refresh_notifications", "INSERT", "NEW.table_name='z_atomic_second'"}, {"rcc_release_targets", "INSERT", "TRUE"}, {"rcc_release_details", "UPDATE", "NEW.publication IS NOT NULL"}, {"rcc_release_executions", "INSERT", "TRUE"}, {"rcc_approval_notifications", "UPDATE", "TRUE"}, {"rcc_release_orders", "UPDATE", "NEW.state='SUCCEEDED'"}, {"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"}} {
 		t.Run(failure.table, func(t *testing.T) {
 			statement := fmt.Sprintf("CREATE TRIGGER fail_publication BEFORE %s ON %s FOR EACH ROW BEGIN IF %s THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='injected persistence failure'; END IF; END", failure.event, failure.table, failure.condition)
 			if _, err := owner.Exec(statement); err != nil {
@@ -197,6 +198,9 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
+			if readApprovalProgress(t, app, reviewer, path) != beforeNotice {
+				t.Fatal("failed publication changed personal result notification")
+			}
 			if targets != 2 || commands != 0 || notifications != 0 || requests != 0 || versions != 0 {
 				t.Fatalf("partial state: targets %d commands %d notifications %d requests %d table versions %d", targets, commands, notifications, requests, versions)
 			}
@@ -206,6 +210,7 @@ func TestPublicationAtomicPersistenceFailures(t *testing.T) {
 	if response.Code != 200 {
 		t.Fatalf("same key retry: %d %s", response.Code, response.Body)
 	}
+	assertReleaseNotificationAdvance(t, app, reviewer, path, beforeNotice)
 	batchEdgeCounts(t, owner, map[string]int{`SELECT COUNT(*) FROM rcc_refresh_notifications`: 2, `SELECT COUNT(*) FROM rcc_table_publications WHERE table_version=1`: 2, `SELECT COUNT(*) FROM z_atomic_second WHERE label='after'`: 1})
 }
 

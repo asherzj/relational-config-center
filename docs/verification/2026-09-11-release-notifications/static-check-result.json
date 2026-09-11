@@ -1,0 +1,15 @@
+{
+  "command": [
+    "git",
+    "diff",
+    "--cached",
+    "--check",
+    "--",
+    ".",
+    ":(exclude)docs/verification/2026-09-11-release-notifications/*.log"
+  ],
+  "exit_code": 0,
+  "stdout": "",
+  "stderr": "",
+  "raw_log_whitespace": "Vendor stdout is preserved byte-for-byte; log-only whitespace warnings are not source defects."
+}

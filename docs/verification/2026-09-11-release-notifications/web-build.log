@@ -1,0 +1,7 @@
+
+> @relational-config-center/web@0.0.0 build /private/tmp/rcc-issue-97-release-notifications/web
+> tsc --noEmit && vite build
+
+src/features/release-orders/ReleaseOrdersPage.test.tsx(2,30): error TS2307: Cannot find module 'fake-indexeddb' or its corresponding type declarations.
+src/test/setup.ts(3,28): error TS2307: Cannot find module 'fake-indexeddb' or its corresponding type declarations.
+ ELIFECYCLE  Command failed with exit code 1.

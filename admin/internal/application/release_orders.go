@@ -798,9 +798,11 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 		if err = s.SaveReleaseOrder(ctx, order, false); err != nil {
 			return err
 		}
-		if action == "submit" || action == "approve" || action == "reject" || (action == "cancel" && len(order.Approvals) > 0) {
+		if action == "submit" || action == "approve" || action == "reject" || action == "execute" || action == "complete" || (action == "cancel" && len(order.Approvals) > 0) {
 			recipients := []string{}
-			if action != "submit" {
+			if action == "execute" || action == "complete" {
+				recipients = releaseResultRecipients(order)
+			} else if action != "submit" {
 				recipients = append(recipients, order.ApplicantID)
 			}
 			if err = s.RecordApprovalNotifications(ctx, order, actor, recipients); err != nil {
@@ -991,6 +993,11 @@ func (r *ReleaseOrders) copyOrder(ctx context.Context, id string, input CopyRele
 		}
 		if err := replaceDraftTargets(ctx, s, result); err != nil {
 			return err
+		}
+		if reprepare {
+			if err := s.RecordApprovalNotifications(ctx, source, actor, []string{source.ApplicantID}); err != nil {
+				return err
+			}
 		}
 		return s.CompleteReleaseRequest(ctx, actor, operation, key, result)
 	})
