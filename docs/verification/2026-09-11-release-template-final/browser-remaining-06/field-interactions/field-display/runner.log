@@ -1,0 +1,13 @@
+AssertionError [ERR_ASSERTION]: PUT /api/v1/table-policies/field_display_browser_items/release-templates/STANDARD: {"error":{"code":"table_release_template_conflict","message":"association has changed; review the latest version","request_id":"rcc-dd0eebb2cca19f9187ad0c55ec9ed361"}}
+
+409 !== 200
+
+    at api (/private/tmp/rcc-issue-106-release-template-final/web/e2e/field-display.cjs:30:12)
+    at async /private/tmp/rcc-issue-106-release-template-final/web/e2e/field-display.cjs:54:5 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 409,
+  expected: 200,
+  operator: 'strictEqual',
+  diff: 'simple'
+}

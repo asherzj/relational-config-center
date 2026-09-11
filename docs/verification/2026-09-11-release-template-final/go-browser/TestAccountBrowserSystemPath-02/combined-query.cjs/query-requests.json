@@ -1,0 +1,69 @@
+{
+  "queries": [
+    {
+      "sequence": 0,
+      "requested_at": 1789122512261,
+      "body": {
+        "conditions": [],
+        "page_number": 1
+      },
+      "status": 200,
+      "responded_at": 1789122512301
+    },
+    {
+      "sequence": 1,
+      "requested_at": 1789122512566,
+      "body": {
+        "conditions": [
+          {
+            "field": "category",
+            "operator": "exact",
+            "value": "notice"
+          },
+          {
+            "field": "priority",
+            "operator": "closed_range",
+            "from": "20"
+          }
+        ],
+        "page_number": 1
+      },
+      "status": 200,
+      "responded_at": 1789122512581
+    },
+    {
+      "sequence": 2,
+      "requested_at": 1789122512716,
+      "body": {
+        "conditions": [],
+        "page_number": 1
+      },
+      "status": 200,
+      "responded_at": 1789122512745
+    },
+    {
+      "sequence": 3,
+      "requested_at": 1789122512818,
+      "body": {
+        "conditions": [
+          {
+            "field": "category",
+            "operator": "in",
+            "values": [
+              "notice",
+              "digest"
+            ]
+          }
+        ],
+        "page_number": 1
+      },
+      "status": 200,
+      "responded_at": 1789122512843
+    }
+  ],
+  "selectedQueries": {
+    "first": 1,
+    "clear": 2,
+    "second": 3
+  }
+}

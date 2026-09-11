@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "baseURL": "http://127.0.0.1:54463",
+  "chromium": "151.0.7922.34",
+  "checks": [
+    "query detail explains default order and pagination",
+    "metadata editing is separate from execution rules",
+    "deprecated mutation remains effective for its existing assignment",
+    "table detail and replacement preview show selected effects",
+    "managed data explains live schema and current capabilities",
+    "390px layout has no page overflow and remains readable"
+  ],
+  "pageErrors": [],
+  "failure": null
+}

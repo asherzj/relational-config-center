@@ -1,0 +1,65 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "document": 1440,
+  "dialogs": [],
+  "controls": [
+    {
+      "label": "刷新通知",
+      "left": 25,
+      "right": 73
+    },
+    {
+      "label": "本地账号入口",
+      "left": 12,
+      "right": 211
+    },
+    {
+      "label": "",
+      "left": 273,
+      "right": 481
+    },
+    {
+      "label": "",
+      "left": 493,
+      "right": 749
+    },
+    {
+      "label": "状态",
+      "left": 761,
+      "right": 937
+    },
+    {
+      "label": "",
+      "left": 949,
+      "right": 965
+    },
+    {
+      "label": "",
+      "left": 933,
+      "right": 949
+    },
+    {
+      "label": "查询审批",
+      "left": 1041,
+      "right": 1131
+    },
+    {
+      "label": "刷新列表",
+      "left": 1143,
+      "right": 1233
+    },
+    {
+      "label": "回到首页",
+      "left": 1217,
+      "right": 1307
+    },
+    {
+      "label": "下一页",
+      "left": 1315,
+      "right": 1391
+    }
+  ]
+}

@@ -545,7 +545,7 @@ it("原执行旧键重放返回已发布快照后仍重新读取当前已回滚�
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(String(input).endsWith("/execute")){writes.push(init!);return json(published)}if(String(input)===`/api/v1/release-orders/${id}`)return json(current);return json({orders:[],next_cursor:""})})));
  const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
  await repeatOriginal(user,"执行发布","确认发布到数据库");
- expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();expect(within(screen.getByRole("list",{name:"发布阶段"})).getByText("已回滚")).toBeVisible();
+ expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();expect(within(screen.getByRole("region",{name:"发布阶段"})).getByText("已回滚")).toBeVisible();
  await waitFor(()=>expect(writes).toHaveLength(1));expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBe("original-execute-key");await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
 });
 it("从列表的查看详情入口打开持久草稿，并取消后保留历史",async()=>{
@@ -1366,17 +1366,25 @@ it("详情真实阶段与最近五条历史可展开，并复制真实单号",as
 });
 
 it.each([
- ["DRAFT","准备中"],["PENDING_APPROVAL","待审批"],["APPROVED","待执行发布"],["SUCCEEDED","数据库已发布，待人工完结"],["COMPLETED","已完结"],["REJECTED","已拒绝，整单终止"],["CANCELLED","已取消"],
+ ["DRAFT","准备中"],["PENDING_APPROVAL","待审批"],["APPROVED","待执行发布"],["SUCCEEDED","数据库已发布，待人工完结"],["COMPLETED","已完结"],["REJECTED","已拒绝，整单终止"],["CANCELLED","已取消"],["ROLLED_BACK","已回滚"],
 ])("%s 详情使用已保存整单阶段",async(state,phase)=>{
  vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json({...order,state,allowed_actions:[]}))));
  mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("region",{name:"发布阶段"}));
  expect(stages.getByRole("heading",{name:phase})).toBeVisible();
  expect(stages.queryByRole("list")).not.toBeInTheDocument();
 });
-it("原单快速回滚保留原批准阶段且不创建新的审批阶段",async()=>{
- const current={...order,state:"ROLLED_BACK",allowed_actions:[],history:[...order.history,{...order.history[0]!,action:"APPROVE",actor_id:"original-approver"},{...order.history[0]!,action:"QUICK_ROLLBACK",actor_id:"actual-rollback"}]};
- vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json(current))));
- mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("list",{name:"发布阶段"}));expect(stages.getByText("已批准")).toBeVisible();expect(stages.getAllByRole("listitem")[1]).toHaveClass("is-complete");expect(stages.getByText("已回滚")).toBeVisible();
+it("原单回滚按真实实例保留批准和发布，终止未发生的完结且恢复不产生审批",async()=>{
+ const completed={state:"COMPLETED",actor_id:"original-approver",at:"2026-09-11T03:00:00Z"};
+ const flow={instance_id:"saved-forward",table_name:"items",release_type:"STANDARD",template_code:"saved_standard",template_name:"已审阅正向流程",template_version:"1",association_version:"1",instantiated_at:order.created_at,node_list:[{code:"review",type:"APPROVAL",name:"原表审批",required_role:"TABLE_APPROVER",...completed},{code:"publish",type:"PUBLICATION",name:"原整单发布",required_role:"PUBLISHER",...completed,actor_id:"original-publisher"},{code:"finish",type:"COMPLETION",name:"正向人工完结",required_role:"PUBLISHER",state:"STOPPED"}]};
+ const restoration={...flow,instance_id:"saved-restoration",release_type:"EMERGENCY",template_code:"saved_emergency",template_name:"已审阅恢复流程",node_list:[{code:"restore",type:"PUBLICATION",name:"整单逆序恢复",required_role:"PUBLISHER",...completed,actor_id:"actual-rollback"},{code:"finish",type:"COMPLETION",name:"恢复人工完结",required_role:"PUBLISHER",state:"STOPPED"}]};
+ const current={...order,state:"ROLLED_BACK",allowed_actions:[],table_flows:[flow],rollback_table_flows:[restoration]};
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{"original-approver":"原审批人","original-publisher":"原发布人","actual-rollback":"实际恢复人"}}):json(current))));
+ mount(`/configuration/release-orders/${id}`);const phase=await screen.findByRole("region",{name:"发布阶段"});
+ expect(within(phase).getByRole("heading",{name:"已回滚"})).toBeVisible();expect(within(phase).queryByRole("list")).not.toBeInTheDocument();
+ const forward=screen.getByRole("region",{name:"逐表发布流程"}),restore=screen.getByRole("region",{name:"逐表应急恢复流程"});
+ expect(within(forward).getAllByText("已完成")).toHaveLength(2);expect(await within(forward).findByText("原审批人")).toBeVisible();expect(within(forward).getByText("原发布人")).toBeVisible();
+ expect(within(restore).getAllByText("已完成")).toHaveLength(1);expect(within(restore).getByText("实际恢复人")).toBeVisible();expect(within(restore).queryByText(/按表审批资格/)).not.toBeInTheDocument();
+ for(const region of [forward,restore]){const stopped=within(region).getAllByRole("listitem").at(-1)!;expect(stopped).toHaveTextContent("已终止");expect(stopped.querySelector("time")).toBeNull();expect(within(region).queryByText("已完结")).not.toBeInTheDocument();}
 });
 it("准备人员时间来自提交，节点显示服务端实例中的真实操作者",async()=>{
  const events=[{action:"CREATE",actor_id:"creator",at:"2026-09-01T01:00:00Z"},{action:"SUBMIT",actor_id:"submitter",at:"2026-09-02T02:00:00Z"},{action:"COMPLETE",actor_id:"closer",at:"2026-09-05T05:00:00Z"}].map((event,index)=>({...event,version:String(index+1),reason:""}));

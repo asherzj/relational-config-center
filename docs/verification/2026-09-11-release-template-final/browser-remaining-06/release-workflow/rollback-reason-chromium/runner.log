@@ -1,0 +1,4 @@
+PASS applicant, forward publisher and unrelated viewer have no rollback reason edit entry
+PASS recorded rollback executor keeps the optional editor as VIEWER and saves through the keyboard at 390px
+PASS administrator correction preserves input after a lost response and manually replays the same key and body with two actor-bound revisions
+{"checks":["applicant, forward publisher and unrelated viewer have no rollback reason edit entry","recorded rollback executor keeps the optional editor as VIEWER and saves through the keyboard at 390px","administrator correction preserves input after a lost response and manually replays the same key and body with two actor-bound revisions"]}

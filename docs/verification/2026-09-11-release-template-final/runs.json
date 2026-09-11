@@ -1,0 +1,297 @@
+{
+  "environment": {
+    "os": "macOS",
+    "timezone": "Asia/Shanghai",
+    "go_cache": "/private/tmp/rcc-go-cache",
+    "docker_host": "unix:///Users/asher/.colima/default/docker.sock",
+    "ryuk_disabled": true,
+    "max_concurrent_owned_mysql": 2,
+    "fixtures": "random disposable Testcontainers or rcc-browser containers, no existing deployments",
+    "linux_ci": "not executed or claimed"
+  },
+  "runs": [
+    {
+      "id": "go-unit-initial",
+      "command": "GOCACHE=/private/tmp/rcc-go-cache make test",
+      "source": "source-01.json",
+      "status": "failed",
+      "log": "raw/go-unit.log",
+      "note": "Admin four process tests cannot bind local TCP in default sandbox. Other Admin packages pass; make stops before client/server/shared."
+    },
+    {
+      "id": "go-process-recheck",
+      "command": "GOCACHE=/private/tmp/rcc-go-cache go -C admin test -count=1 ./cmd/admin -run '^TestAdminExternalProcess'",
+      "source": "source-02.json",
+      "status": "passed",
+      "log": "raw/go-process-recheck.log",
+      "note": "Escalated local TCP permission; same four test functions plus other matching process coverage."
+    },
+    {
+      "id": "go-client-unit",
+      "command": "GOCACHE=/private/tmp/rcc-go-cache go -C client test ./...",
+      "source": "source-02.json",
+      "status": "passed",
+      "log": "raw/go-client-unit.log",
+      "note": "Previously not executed due to make short-circuit."
+    },
+    {
+      "id": "go-server-unit",
+      "command": "GOCACHE=/private/tmp/rcc-go-cache go -C server test ./...",
+      "source": "source-02.json",
+      "status": "passed",
+      "log": "raw/go-server-unit.log",
+      "note": "Previously not executed due to make short-circuit."
+    },
+    {
+      "id": "go-shared-unit",
+      "command": "GOCACHE=/private/tmp/rcc-go-cache go -C shared test ./...",
+      "source": "source-02.json",
+      "status": "passed",
+      "log": "raw/go-shared-unit.log",
+      "note": "Previously not executed due to make short-circuit."
+    },
+    {
+      "id": "go-build",
+      "command": "GOCACHE=/private/tmp/rcc-go-cache make build",
+      "source": "source-02.json",
+      "status": "passed",
+      "log": "raw/go-build.log"
+    },
+    {
+      "id": "web-full",
+      "command": "pnpm --dir web test:run",
+      "source": "source-01.json",
+      "status": "failed",
+      "log": "raw/web-full.log",
+      "note": "478/480 pass; one TCP EPERM test and unhandled exception, one retired phase-list selector. No other failures."
+    },
+    {
+      "id": "web-recheck",
+      "command": "pnpm --dir web exec vitest run src/api/client-stream.test.ts src/features/release-orders/ReleaseOrdersPage.test.tsx",
+      "source": "source-02.json",
+      "status": "passed",
+      "log": "raw/web-failure-recheck.log",
+      "note": "98/98 pass without unhandled errors; includes all release detail tests and real TCP interrupted response."
+    },
+    {
+      "id": "web-dev",
+      "command": "pnpm --dir web test:dev",
+      "source": "source-01.json",
+      "status": "passed",
+      "log": "raw/web-dev.log",
+      "note": "Escalated local port access."
+    },
+    {
+      "id": "web-typecheck",
+      "command": "pnpm --dir web typecheck",
+      "source": "source-02.json",
+      "status": "passed",
+      "log": "raw/web-typecheck.log"
+    },
+    {
+      "id": "web-build",
+      "command": "pnpm --dir web build",
+      "source": "source-02.json",
+      "status": "passed",
+      "log": "raw/web-build.log"
+    },
+    {
+      "id": "mysql-full",
+      "command": "TESTCONTAINERS_RYUK_DISABLED=true DOCKER_HOST=unix:///Users/asher/.colima/default/docker.sock GOCACHE=/private/tmp/rcc-go-cache GOFLAGS=-v make test-integration",
+      "source": "source-01.json",
+      "status": "failed",
+      "log": "raw/mysql-full.log",
+      "note": "Official -p1 -count1 -timeout60m ./... completed. cmd/admin reached the package-wide 60m alarm while TestSchemaReadinessRejectsKnownOldRelease had run 13s;29 later cmd/admin tests were not executed. Other packages continued.25 distinct top-level failures were retained and narrowly rechecked; the timeout is not a 1h individual-test deadlock. Test binary started from source01; production Go bytes remain unchanged.",
+      "exit_code": 2
+    },
+    {
+      "id": "foreign-key-fault-recheck",
+      "command": "go -C admin test -p 1 -count=1 -v -timeout=5m -tags=integration ./cmd/admin -run '^(TestAccountMaintenanceIndependentConnectionAndAtomicFailures|TestStartupRequiresTheProtectedPolicyCatalog|TestMutationAddFailsClosedWhenPolicyCatalogIsUnavailable|TestQueryFailsClosedWhenPolicyCatalogIsUnavailable)$'",
+      "source": "source-04.json",
+      "status": "passed",
+      "log": "raw/foreign-key-fault-recheck.log",
+      "note": "4/4 true MySQL tests pass; unavailable catalog produced via RENAME after new FK prevents DROP, all original API/atomicity assertions preserved."
+    },
+    {
+      "id": "browser-full-01",
+      "command": "RCC_E2E_ENGINES=chromium,firefox,webkit RCC_E2E_ARTIFACTS=<browser-full-01> make test-browser-acceptance",
+      "source": "source-02.json",
+      "status": "failed",
+      "log": "raw/browser-full-01.log",
+      "note": "2 cases passed. write-recovery failed during fixture cleanup due FK1451 after 28 business checks; remaining31 cases not executed. All three initial/configured/restarted readiness records passed."
+    },
+    {
+      "id": "browser-remaining-02",
+      "command": "RCC_E2E_ENGINES=chromium,firefox,webkit RCC_E2E_CASES=<all except unsaved-changes.cjs@chromium and rule-clarity.cjs@chromium> RCC_E2E_ARTIFACTS=<browser-remaining-02> make test-browser-acceptance",
+      "source": "source-04.json",
+      "status": "failed",
+      "log": "raw/browser-remaining-02.log",
+      "note": "write-recovery passed; operation-coverage failed because enabled fixture policy preceded account-maintenance grant; all later30 cases not executed."
+    },
+    {
+      "id": "business-flow-fixture-recheck",
+      "command": "go -C admin test -p 1 -count=1 -v -timeout=5m -tags=integration ./cmd/admin -run '^(TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost|TestConcurrentAccountsOwnTheirBusinessChanges|TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory)$'",
+      "source": "source-05.json",
+      "status": "passed",
+      "log": "raw/business-flow-fixture-recheck.log",
+      "note": "Three existing positive publication setups now explicitly bind STANDARD via formal API; assertions unchanged."
+    },
+    {
+      "id": "browser-remaining-03",
+      "command": "RCC_E2E_ENGINES=chromium,firefox,webkit RCC_E2E_CASES=<all except unsaved-changes,rule-clarity,write-recovery chromium> RCC_E2E_ARTIFACTS=<browser-remaining-03> make test-browser-acceptance",
+      "source": "source-05.json",
+      "status": "failed",
+      "log": "raw/browser-remaining-03.log",
+      "note": "13 cases passed; accounts@webkit timed out waiting template_key after UI remained on batch_browser_items; original screenshot inspected. 17 later cases not executed."
+    },
+    {
+      "id": "browser-account-webkit-recheck-04",
+      "command": "RCC_E2E_ENGINES=webkit RCC_E2E_CASES=accounts.mjs@webkit RCC_E2E_ARTIFACTS=<browser-account-webkit-recheck-04> make test-browser-acceptance",
+      "source": "source-06.json",
+      "status": "failed",
+      "log": "raw/browser-account-webkit-recheck-04.log",
+      "note": "Original wrong-table failure did not recur. Durable SUCCEEDED state was visible while replay confirmation still processing; packet-count assertion ran before repeated request; screenshot preserved and inspected."
+    },
+    {
+      "id": "browser-account-webkit-recheck-05",
+      "command": "RCC_E2E_ENGINES=webkit RCC_E2E_CASES=accounts.mjs@webkit RCC_E2E_ARTIFACTS=<browser-account-webkit-recheck-05> make test-browser-acceptance",
+      "source": "source-07.json",
+      "status": "passed",
+      "log": "raw/browser-account-webkit-recheck-05.log",
+      "note": "24 checks, waits for selected table visible configuration and repeated POST response plus confirmation closure before exact body/key comparison."
+    },
+    {
+      "id": "browser-remaining-06",
+      "command": "RCC_E2E_ENGINES=chromium,firefox,webkit RCC_E2E_CASES=<selections/browser-remaining-06.txt> RCC_E2E_ARTIFACTS=<browser-remaining-06> make test-browser-acceptance",
+      "source": "source-07.json",
+      "status": "failed",
+      "log": "raw/browser-remaining-06.log",
+      "note": "13 passed; field-display failed 409 because fixture wrote expected_version0 over an existing STANDARD association; three field-interactions engines not executed. Full-row postcheck not reached; cleanup and final counts verified."
+    },
+    {
+      "id": "mutation-catalog-fixture-recheck",
+      "source": "source-09.json",
+      "status": "passed",
+      "log": "raw/mutation-catalog-fixture-recheck.log",
+      "command": "go -C admin test -p 1 -count=1 -v -timeout=5m -tags=integration ./cmd/admin -run '^(TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOneSnapshot|TestRelationalMutationPolicyIsSoleAuthorizationSourceAndDeprecatedExecutes|TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically|TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement|TestMutationPolicyPatchFailsClosedForCurrentPolicyAndSchema|TestMutationPolicyDeleteFailsClosedBeforeExecution|TestMutationAddFailsClosedAndUsesTheLatestPolicySnapshot|TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite|TestReleaseFreezeMetadataCaseInsensitiveNames)$'",
+      "note": "9/9 passed. Positive fixtures explicitly configure STANDARD. Historical comparison stays exact at matching released prefix5."
+    },
+    {
+      "id": "browser-remaining-07",
+      "source": "source-11.json",
+      "status": "passed",
+      "log": "raw/browser-remaining-07.log",
+      "command": "RCC_E2E_ENGINES=chromium,firefox,webkit RCC_E2E_CASES=field-display.cjs@chromium,field-interactions.cjs@chromium,field-interactions.cjs@firefox,field-interactions.cjs@webkit RCC_E2E_ARTIFACTS=<browser-remaining-07> make test-browser-acceptance",
+      "note": "All remaining4 cases and full final row/count/cleanup guards passed. Official34case union complete."
+    },
+    {
+      "id": "browser-TestReleaseFlowBrowserSystemPath-01",
+      "source": "source-10.json",
+      "status": "failed",
+      "log": "raw/browser-TestReleaseFlowBrowserSystemPath-01.log",
+      "command": "RCC_E2E_ENGINE=chromium RCC_E2E_OUTPUT=<go-browser/TestReleaseFlowBrowserSystemPath-01> go -C admin test -v -count=1 -timeout=10m -tags=integration,browser ./cmd/admin -run '^TestReleaseFlowBrowserSystemPath$'",
+      "note": "New cancellation test omitted existing required reason; disabled confirm correctly prevented write. Original screenshot retained."
+    },
+    {
+      "id": "browser-TestReleaseFlowBrowserSystemPath-02",
+      "source": "source-11.json",
+      "status": "passed",
+      "log": "raw/browser-TestReleaseFlowBrowserSystemPath-02.log",
+      "command": "RCC_E2E_ENGINE=chromium RCC_E2E_OUTPUT=<go-browser/TestReleaseFlowBrowserSystemPath-02> go -C admin test -v -count=1 -timeout=10m -tags=integration,browser ./cmd/admin -run '^TestReleaseFlowBrowserSystemPath$'",
+      "note": "Five checks including new cancellation/rejection terminal nodes, desktop/390 and keyboard. Empty reason remains disabled."
+    },
+    {
+      "id": "browser-TestApprovalFinalBrowserSystemPath-02",
+      "source": "source-12.json",
+      "status": "passed",
+      "log": "raw/browser-TestApprovalFinalBrowserSystemPath-02.log",
+      "command": "RCC_E2E_ENGINE=chromium RCC_E2E_OUTPUT=<go-browser/TestApprovalFinalBrowserSystemPath-02> go -C admin test -v -count=1 -timeout=10m -tags=integration,browser ./cmd/admin -run '^TestApprovalFinalBrowserSystemPath$'",
+      "note": "Observed creation version used for enable; explicit STANDARD fixture configuration; original full journey passed."
+    },
+    {
+      "id": "browser-TestAccountBrowserSystemPath-02",
+      "source": "source-12.json",
+      "status": "passed",
+      "log": "raw/browser-TestAccountBrowserSystemPath-02.log",
+      "command": "RCC_E2E_ENGINE=chromium RCC_E2E_OUTPUT=<go-browser/TestAccountBrowserSystemPath-02> go -C admin test -v -count=1 -timeout=45m -tags=integration,browser ./cmd/admin -run '^TestAccountBrowserSystemPath$'",
+      "note": "Account journey and all14 management browser subpaths passed; actual operator/content, fixture readiness, final row/draft and process secrecy guards pass."
+    },
+    {
+      "id": "mixed-batch-summary-recheck",
+      "source": "source-12.json",
+      "status": "passed",
+      "log": "raw/mixed-batch-summary-recheck.log",
+      "command": "go -C admin test -p 1 -count=1 -v -timeout=5m -tags=integration ./cmd/admin -run '^TestReleaseMixedBatchPublication$'",
+      "note": "Current summary fields are bounded; valid publication node code no longer triggers false string match. All transaction/result/replay assertions preserved."
+    },
+    {
+      "id": "compose-migrations",
+      "source": "source-12.json",
+      "status": "failed",
+      "log": "raw/compose-migrations.log",
+      "command": "python3 scripts/compose-migration-acceptance.py --artifacts docs/verification/2026-09-11-release-template-final/compose-migrations",
+      "note": "Formal current11 migration succeeded; local fixture bind path under /private/tmp is not shared into Colima VM, so fixture file not found. Admin correctly did not start. Official cleanup removed own random project/volume; original log retained.",
+      "exit_code": 1
+    },
+    {
+      "id": "compose-migrations-02",
+      "source": "source-12.json",
+      "status": "passed",
+      "exit_code": 0,
+      "log": "raw/compose-migrations-02.log",
+      "command": "python3 <compose-source12-mirror.json:mirror>/scripts/compose-migration-acceptance.py --artifacts <worktree>/docs/verification/2026-09-11-release-template-final/compose-migrations-02",
+      "note": "Official script and Compose inputs unchanged,666 source files verified before/after in HOME Docker-shared writable directory. Six cases passed; random project/volume and own mirror removed. Original1..11 migration files unchanged."
+    },
+    {
+      "id": "identity-flow-fixture-recheck",
+      "source": "source-13.json",
+      "status": "passed",
+      "exit_code": 0,
+      "log": "raw/identity-flow-fixture-recheck.log",
+      "command": "go -C admin test -p 1 -count=1 -v -timeout=10m -tags=integration ./internal/infrastructure/mysql -run '^(TestPublicationJSONIdentityDoesNotUseURLPathSegments|TestExplicitIdentity|TestPublicationRejectsIdentityCreatedAfterApproval)'",
+      "note": "8/8 affected identity tests pass, including7 original failures; explicitly selected associations via authenticated management application and current versions; all identity/trigger/transaction assertions retained."
+    },
+    {
+      "id": "http-error-fixture-recheck",
+      "source": "source-14.json",
+      "status": "passed",
+      "exit_code": 0,
+      "log": "raw/http-error-fixture-recheck.log",
+      "command": "go -C admin test -p 1 -count=1 -v -timeout=5m -tags=integration ./internal/interfaces/http -run '^TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely$'",
+      "note": "One top-level,3 error subcases pass. In-memory read fixture supplied explicitly since it lacks management transaction store. All authenticated HTTP error/status/redaction assertions remain; this does not replace real transaction/failure integration tests."
+    },
+    {
+      "id": "mysql-unfinished-admin-02",
+      "source": "source-13.json",
+      "status": "passed",
+      "log": "raw/mysql-unfinished-admin-02.log",
+      "command_reference": "mysql-unfinished-admin-02-run.json",
+      "note": "Exactly30 selected tests passed: one interrupted after13s by original package-wide60m timeout plus29 unexecuted tests. No already-passed broad set repeated.",
+      "exit_code": 0
+    },
+    {
+      "id": "terminal-phase-red",
+      "source": null,
+      "status": "expected_failed",
+      "log": "raw/terminal-phase-red.log",
+      "note": "TDD red from old ROLLED_BACK fixed phase branch; full original output retained.",
+      "source_note": "Historical red/green iteration before the first full-regression snapshot. No exact full-source snapshot was frozen for this iteration; raw result retained. Final behavior is revalidated by source02 whole affected Web files."
+    },
+    {
+      "id": "terminal-phase-green-first",
+      "source": null,
+      "status": "failed",
+      "log": "raw/terminal-phase-green.log",
+      "note": "Eight tests pass; one new expectation used account ID instead of displayed actor name. Corrected fixture assertion; no production fallback.",
+      "source_note": "Historical red/green iteration before the first full-regression snapshot. No exact full-source snapshot was frozen for this iteration; raw result retained. Final behavior is revalidated by source02 whole affected Web files."
+    },
+    {
+      "id": "terminal-phase-green-02",
+      "source": null,
+      "status": "passed",
+      "log": "raw/terminal-phase-green-02.log",
+      "note": "All9 focused terminal behavior tests passed; later entire ReleaseOrdersPage file in98-test narrow verification passed.",
+      "source_note": "Historical red/green iteration before the first full-regression snapshot. No exact full-source snapshot was frozen for this iteration; raw result retained. Final behavior is revalidated by source02 whole affected Web files."
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+const { configureFixtureReleaseTemplates } = require('./release-template-fixture.cjs');
 const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
 const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
@@ -284,7 +285,6 @@ function fixtureSQL() {
     }
   }
   try {
-    sql(fixtureSQL());
     browser = await browserType.launch(browserOptions()); browserVersion = browser.version();
     context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, timezoneId: 'America/Los_Angeles' });
     approver = await browser.newContext({ viewport: { width: 1440, height: 1000 }, timezoneId: 'America/Los_Angeles' });
@@ -292,6 +292,8 @@ function fixtureSQL() {
     const applicantIdentity = await registerFixtureAccount(context, base);
     const approverIdentity = await registerFixtureAccount(approver, base);
     const publisherIdentity = await registerFixtureAccount(publisher, base);
+    sql(fixtureSQL());
+    await configureFixtureReleaseTemplates(context, base, tables);
     await assignRoles(context, approverIdentity.accountID, ['VIEWER']);
     await createFixtureApprovalRole(context, base, `Complex field review ${randomUUID()}`, [approverIdentity.accountID], tables);
     await assignRoles(context, publisherIdentity.accountID, ['PUBLISHER']);
@@ -698,7 +700,7 @@ function fixtureSQL() {
   finally {
     if (browser) await browser.close().catch(() => {});
     try {
-      sql(`DELETE FROM rcc_table_policies WHERE table_name IN (${tables.map((t) => `'${t}'`).join(',')}); DELETE FROM rcc_mutation_policies WHERE code IN ('stage4_plain_v1','stage4_auto_v1'); ${tables.map((t) => `DROP TABLE IF EXISTS ${t};`).join('\n')}`);
+      sql(`DELETE a FROM rcc_table_release_templates a JOIN rcc_table_policies p ON p.id=a.table_policy_id WHERE p.table_name IN (${tables.map((t) => `'${t}'`).join(',')}); DELETE FROM rcc_table_policies WHERE table_name IN (${tables.map((t) => `'${t}'`).join(',')}); DELETE FROM rcc_mutation_policies WHERE code IN ('stage4_plain_v1','stage4_auto_v1'); ${tables.map((t) => `DROP TABLE IF EXISTS ${t};`).join('\n')}`);
       cleanup = { fixtureRowsEqual: before === fixtureRows(), remainingTables: sql(`SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN (${tables.map((t) => `'${t}'`).join(',')});`), remainingTablePolicies: sql(`SELECT COUNT(*) FROM rcc_table_policies WHERE table_name IN (${tables.map((t) => `'${t}'`).join(',')});`), remainingPolicies: sql("SELECT COUNT(*) FROM rcc_mutation_policies WHERE code IN ('stage4_plain_v1','stage4_auto_v1');") };
       assert.deepEqual(cleanup, { fixtureRowsEqual: true, remainingTables: '0', remainingTablePolicies: '0', remainingPolicies: '0' });
     } catch (error) { failures.push({ case: 'cleanup', message: error.message }); }

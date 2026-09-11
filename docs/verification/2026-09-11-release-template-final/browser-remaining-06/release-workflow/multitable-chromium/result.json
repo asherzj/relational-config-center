@@ -1,0 +1,305 @@
+{
+  "checks": [
+    "管理员在设置页为同一后续多表发布链路配置管控键",
+    "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "同一原单贯通管理员管控键、真实分页多表草稿、独立审批发布、原单恢复和实际执行人原因补填",
+    "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+    "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿",
+    "持久化失败前零业务发送且保留输入，日志读取失败不阻断账号或无关只读页面"
+  ],
+  "original_order_journey": {
+    "order_id": "e1dc69b0a0d136aa5d6af8d0f72a69ee",
+    "publication_execution": "e1dc69b0a0d136aa5d6af8d0f72a69ee:PUBLICATION",
+    "rollback_execution": "e1dc69b0a0d136aa5d6af8d0f72a69ee:ROLLBACK",
+    "reason_actor": "b9f7e717-1e55-4814-bdd9-bdc776cc3b57",
+    "configured_keys": {
+      "multitable_browser_a": [
+        "label"
+      ],
+      "multitable_browser_b": [
+        "label"
+      ]
+    },
+    "review_pages": [
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "2",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "2",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "4",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "4",
+        "offset": "0",
+        "limit": "100"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "5",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "5",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "5",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "6",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "6",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "6",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "6",
+        "offset": "20",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "7",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "7",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "7",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "8",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "8",
+        "offset": "20",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "9",
+        "offset": "20",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "10",
+        "offset": "20",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/e1dc69b0a0d136aa5d6af8d0f72a69ee/details",
+        "version": "10",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/c88877471e7dc68048734b503f862622/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/c88877471e7dc68048734b503f862622/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "100"
+      },
+      {
+        "path": "/api/v1/release-orders/c88877471e7dc68048734b503f862622/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "100"
+      },
+      {
+        "path": "/api/v1/release-orders/3e123d69b6c252cdec8ec33c2a19ae1c/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/c88877471e7dc68048734b503f862622/details",
+        "version": "4",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/3e123d69b6c252cdec8ec33c2a19ae1c/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/05e2e8a069a79edb2c6cf7db8402b5ad/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/05e2e8a069a79edb2c6cf7db8402b5ad/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "100"
+      },
+      {
+        "path": "/api/v1/release-orders/082ee1aefa050d1630fde11b6778cdd4/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/05e2e8a069a79edb2c6cf7db8402b5ad/details",
+        "version": "4",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/082ee1aefa050d1630fde11b6778cdd4/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/082ee1aefa050d1630fde11b6778cdd4/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/082ee1aefa050d1630fde11b6778cdd4/details",
+        "version": "2",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/082ee1aefa050d1630fde11b6778cdd4/details",
+        "version": "2",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/082ee1aefa050d1630fde11b6778cdd4/details",
+        "version": "2",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/082ee1aefa050d1630fde11b6778cdd4/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "20"
+      }
+    ]
+  },
+  "session_checks": [
+    {
+      "account_id": "b9f7e717-1e55-4814-bdd9-bdc776cc3b57",
+      "roles": [
+        "EDITOR",
+        "PUBLISHER"
+      ],
+      "username": "e2e.a80fac5f4bfbbf36160c",
+      "workspace_ready": true
+    },
+    {
+      "account_id": "b9f7e717-1e55-4814-bdd9-bdc776cc3b57",
+      "roles": [
+        "VIEWER"
+      ],
+      "username": "e2e.a80fac5f4bfbbf36160c",
+      "workspace_ready": true
+    },
+    {
+      "account_id": "36d22197-7fb1-48a7-ba13-7851f7a40bb2",
+      "roles": [
+        "VIEWER"
+      ],
+      "username": "e2e.926e26bc9c588354806d",
+      "workspace_ready": true
+    },
+    {
+      "account_id": "b9f7e717-1e55-4814-bdd9-bdc776cc3b57",
+      "roles": [
+        "EDITOR",
+        "PUBLISHER"
+      ],
+      "username": "e2e.a80fac5f4bfbbf36160c",
+      "workspace_ready": true
+    }
+  ],
+  "large_request": {
+    "bytes": 9437321,
+    "sha256": "6098606ac814f10f3d22bd183bb731c053f66e16b29418200766bbc76e798606",
+    "same_key": true,
+    "same_order": true,
+    "account_isolation": true
+  },
+  "storage_unavailable": {
+    "calls": 1,
+    "injected": true
+  }
+}

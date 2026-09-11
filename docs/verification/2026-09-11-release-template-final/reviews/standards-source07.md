@@ -1,0 +1,5 @@
+Standards source06→source07：新增硬性违规 0；新增主观建议 1；累计未解决阻塞 0。
+
+主观 Duplicated Code：accounts.mjs 两处重复完整查询就绪等待、目标表选择和确认，建议提取辅助函数。两处 Go 绑定继续显式建立正向发布前提；历史结构比较固定正式前缀5，完整签名断言保留；浏览器等待针对真实响应和界面状态。
+
+固定 source07 manifest 26e14d6daa991a5df5b5591e90be1fcd1e78ee4639b56e803ebbae7712535c8e；diff a063d7fefc843dd8fe0b6b6165f00958179c213b7417f342dea5306d418e70f4。

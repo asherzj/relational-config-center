@@ -30,9 +30,12 @@ func newPolicyHTTPHandlerWithRouterOptions(t *testing.T, options httpinterface.R
 	return newPolicyHTTPHandlerWithExecutors(t, options, memoryQueryExecutor{})
 }
 
-func newPolicyHTTPHandlerWithExecutors(t *testing.T, options httpinterface.RouterOptions, queryExecutor application.QueryExecutor) http.Handler {
+func newPolicyHTTPHandlerWithExecutors(t *testing.T, options httpinterface.RouterOptions, queryExecutor application.QueryExecutor, initialPolicies ...domain.TablePolicy) http.Handler {
 	t.Helper()
 	adapter := newMemorySnapshotAdapter(queryExecutor)
+	for _, policy := range initialPolicies {
+		adapter.tablePolicies[policy.TableName] = policy
+	}
 	queryPolicies := application.NewQueryPolicyManagement(adapter, application.NewQueryPolicyTypeRegistry())
 	mutationPolicies := application.NewMutationPolicyManagement(adapter, application.NewMutationPolicyTypeRegistry())
 	policies := application.NewTablePolicyManagement(adapter, adapter, queryPolicies, mutationPolicies)

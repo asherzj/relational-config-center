@@ -498,7 +498,7 @@ async function waitDatabase() {
     if (stopped) { docker('start', container); await waitDatabase(); }
     if (browser) await browser.close();
     for (const trigger of ['rcc_query_policies','rcc_mutation_policies','rcc_table_policies'].flatMap(entity => ['add','modify','delete'].map(suffix => `stage2_${entity}_${suffix}`))) sql(`DROP TRIGGER IF EXISTS ${trigger};`);
-    sql(`UPDATE rcc_table_policies SET query_policy_code='notification_page_query_v1' WHERE table_name='${table}'; DELETE FROM ${table} WHERE name LIKE 'stage2_%'; DELETE FROM rcc_table_policies WHERE table_name='stage2_assignment_items'; DELETE FROM rcc_query_policies WHERE code LIKE 'stage2_%'; DELETE FROM rcc_mutation_policies WHERE code LIKE 'stage2_%'; DROP TABLE IF EXISTS stage2_assignment_items; DROP TABLE IF EXISTS stage2_write_audit;`);
+    sql(`UPDATE rcc_table_policies SET query_policy_code='notification_page_query_v1' WHERE table_name='${table}'; DELETE FROM ${table} WHERE name LIKE 'stage2_%'; DELETE a FROM rcc_table_release_templates a JOIN rcc_table_policies p ON p.id=a.table_policy_id WHERE p.table_name='stage2_assignment_items'; DELETE FROM rcc_table_policies WHERE table_name='stage2_assignment_items'; DELETE FROM rcc_query_policies WHERE code LIKE 'stage2_%'; DELETE FROM rcc_mutation_policies WHERE code LIKE 'stage2_%'; DROP TABLE IF EXISTS stage2_assignment_items; DROP TABLE IF EXISTS stage2_write_audit;`);
     await fs.writeFile(`${output}/result.json`, JSON.stringify({ ok: !failure, passed, evidence, routeErrors, pageErrors, failure }, null, 2));
   }
   if (failure) { console.error(JSON.stringify(failure, null, 2)); process.exitCode = 1; }

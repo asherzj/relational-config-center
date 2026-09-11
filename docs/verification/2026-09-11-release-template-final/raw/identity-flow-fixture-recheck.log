@@ -1,0 +1,138 @@
+=== RUN   TestPublicationJSONIdentityDoesNotUseURLPathSegments
+2026/09/11 18:40:20 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 8997f7e211f91b8d65eb9d27a758102d2beb0a7cd0efc31e3b57dc6304a09e82
+  Test ProcessID: 5f778210-5051-4133-b61e-907102520267
+2026/09/11 18:40:20 🐳 Creating container for image mysql:8.4
+2026/09/11 18:40:20 ✅ Container created: c905b0f8747c
+2026/09/11 18:40:20 🐳 Starting container: c905b0f8747c
+2026/09/11 18:40:20 ✅ Container started: c905b0f8747c
+2026/09/11 18:40:20 ⏳ Waiting for container id c905b0f8747c image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 18:40:26 🔔 Container is ready: c905b0f8747c
+=== RUN   TestPublicationJSONIdentityDoesNotUseURLPathSegments/.
+=== RUN   TestPublicationJSONIdentityDoesNotUseURLPathSegments/..
+=== RUN   TestPublicationJSONIdentityDoesNotUseURLPathSegments/键/值_?#%
+=== RUN   TestPublicationJSONIdentityDoesNotUseURLPathSegments/%2F
+2026/09/11 18:40:28 🐳 Stopping container: c905b0f8747c
+2026/09/11 18:40:29 ✅ Container stopped: c905b0f8747c
+2026/09/11 18:40:29 🐳 Terminating container: c905b0f8747c
+2026/09/11 18:40:29 🚫 Container terminated: c905b0f8747c
+--- PASS: TestPublicationJSONIdentityDoesNotUseURLPathSegments (9.57s)
+    --- PASS: TestPublicationJSONIdentityDoesNotUseURLPathSegments/. (0.15s)
+    --- PASS: TestPublicationJSONIdentityDoesNotUseURLPathSegments/.. (0.16s)
+    --- PASS: TestPublicationJSONIdentityDoesNotUseURLPathSegments/键/值_?#% (0.14s)
+    --- PASS: TestPublicationJSONIdentityDoesNotUseURLPathSegments/%2F (0.14s)
+=== RUN   TestExplicitIdentityRejectsNontransactionalTableBeforeWriting
+2026/09/11 18:40:29 🐳 Creating container for image mysql:8.4
+2026/09/11 18:40:29 ✅ Container created: 5b98ce114db7
+2026/09/11 18:40:29 🐳 Starting container: 5b98ce114db7
+2026/09/11 18:40:29 ✅ Container started: 5b98ce114db7
+2026/09/11 18:40:29 ⏳ Waiting for container id 5b98ce114db7 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 18:40:35 🔔 Container is ready: 5b98ce114db7
+=== RUN   TestExplicitIdentityRejectsNontransactionalTableBeforeWriting/generated_identity_also_requires_rollback_support
+2026/09/11 18:40:37 🐳 Stopping container: 5b98ce114db7
+2026/09/11 18:40:38 ✅ Container stopped: 5b98ce114db7
+2026/09/11 18:40:38 🐳 Terminating container: 5b98ce114db7
+2026/09/11 18:40:38 🚫 Container terminated: 5b98ce114db7
+--- PASS: TestExplicitIdentityRejectsNontransactionalTableBeforeWriting (8.59s)
+    --- PASS: TestExplicitIdentityRejectsNontransactionalTableBeforeWriting/generated_identity_also_requires_rollback_support (0.01s)
+=== RUN   TestExplicitIdentityReturnedAutoIDMustRemainSchemaAddressable
+2026/09/11 18:40:38 🐳 Creating container for image mysql:8.4
+2026/09/11 18:40:38 ✅ Container created: 951b2d1fd58f
+2026/09/11 18:40:38 🐳 Starting container: 951b2d1fd58f
+2026/09/11 18:40:38 ✅ Container started: 951b2d1fd58f
+2026/09/11 18:40:38 ⏳ Waiting for container id 951b2d1fd58f image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 18:40:44 🔔 Container is ready: 951b2d1fd58f
+    identity_guard_integration_test.go:82: second boolean auto identity: id="" error=invalid mutation content, SQL rows=1
+2026/09/11 18:40:45 🐳 Stopping container: 951b2d1fd58f
+2026/09/11 18:40:46 ✅ Container stopped: 951b2d1fd58f
+2026/09/11 18:40:46 🐳 Terminating container: 951b2d1fd58f
+2026/09/11 18:40:46 🚫 Container terminated: 951b2d1fd58f
+--- PASS: TestExplicitIdentityReturnedAutoIDMustRemainSchemaAddressable (8.47s)
+=== RUN   TestExplicitIdentityKeepsEngineStableUntilInsertTransactionEnds
+2026/09/11 18:40:46 🐳 Creating container for image mysql:8.4
+2026/09/11 18:40:46 ✅ Container created: 06d3d640b096
+2026/09/11 18:40:46 🐳 Starting container: 06d3d640b096
+2026/09/11 18:40:46 ✅ Container started: 06d3d640b096
+2026/09/11 18:40:46 ⏳ Waiting for container id 06d3d640b096 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 18:40:52 🔔 Container is ready: 06d3d640b096
+2026/09/11 18:40:54 🐳 Stopping container: 06d3d640b096
+2026/09/11 18:40:55 ✅ Container stopped: 06d3d640b096
+2026/09/11 18:40:55 🐳 Terminating container: 06d3d640b096
+2026/09/11 18:40:55 🚫 Container terminated: 06d3d640b096
+--- PASS: TestExplicitIdentityKeepsEngineStableUntilInsertTransactionEnds (8.51s)
+=== RUN   TestExplicitIdentityReadPermissionFailureAfterInsertRollsBack
+2026/09/11 18:40:55 🐳 Creating container for image mysql:8.4
+2026/09/11 18:40:55 ✅ Container created: 546b4d6dcd36
+2026/09/11 18:40:55 🐳 Starting container: 546b4d6dcd36
+2026/09/11 18:40:55 ✅ Container started: 546b4d6dcd36
+2026/09/11 18:40:55 ⏳ Waiting for container id 546b4d6dcd36 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 18:41:01 🔔 Container is ready: 546b4d6dcd36
+2026/09/11 18:41:02 🐳 Stopping container: 546b4d6dcd36
+2026/09/11 18:41:03 ✅ Container stopped: 546b4d6dcd36
+2026/09/11 18:41:03 🐳 Terminating container: 546b4d6dcd36
+2026/09/11 18:41:03 🚫 Container terminated: 546b4d6dcd36
+--- PASS: TestExplicitIdentityReadPermissionFailureAfterInsertRollsBack (8.45s)
+=== RUN   TestExplicitIdentityNeverReturnsExistingRowAfterTriggerChangesKey
+2026/09/11 18:41:03 🐳 Creating container for image mysql:8.4
+2026/09/11 18:41:03 ✅ Container created: f271b4e66455
+2026/09/11 18:41:03 🐳 Starting container: f271b4e66455
+2026/09/11 18:41:03 ✅ Container started: f271b4e66455
+2026/09/11 18:41:03 ⏳ Waiting for container id f271b4e66455 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 18:41:10 🔔 Container is ready: f271b4e66455
+    identity_guard_integration_test.go:278: submitted ID=77; returned ID="" error=duplicate key; original 77 rows=1, new 88 rows=0
+2026/09/11 18:41:11 🐳 Stopping container: f271b4e66455
+2026/09/11 18:41:12 ✅ Container stopped: f271b4e66455
+2026/09/11 18:41:12 🐳 Terminating container: f271b4e66455
+2026/09/11 18:41:12 🚫 Container terminated: f271b4e66455
+--- PASS: TestExplicitIdentityNeverReturnsExistingRowAfterTriggerChangesKey (9.33s)
+=== RUN   TestPublicationRejectsIdentityCreatedAfterApproval
+2026/09/11 18:41:12 🐳 Creating container for image mysql:8.4
+2026/09/11 18:41:13 ✅ Container created: f9fba3a2caa4
+2026/09/11 18:41:13 🐳 Starting container: f9fba3a2caa4
+2026/09/11 18:41:13 ✅ Container started: f9fba3a2caa4
+2026/09/11 18:41:13 ⏳ Waiting for container id f9fba3a2caa4 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 18:41:19 🔔 Container is ready: f9fba3a2caa4
+2026/09/11 18:41:21 🐳 Stopping container: f9fba3a2caa4
+2026/09/11 18:41:21 ✅ Container stopped: f9fba3a2caa4
+2026/09/11 18:41:21 🐳 Terminating container: f9fba3a2caa4
+2026/09/11 18:41:21 🚫 Container terminated: f9fba3a2caa4
+--- PASS: TestPublicationRejectsIdentityCreatedAfterApproval (8.90s)
+=== RUN   TestExplicitIdentityAutoResultBelongsToThisInsert
+2026/09/11 18:41:21 🐳 Creating container for image mysql:8.4
+2026/09/11 18:41:21 ✅ Container created: 7a00cd039363
+2026/09/11 18:41:21 🐳 Starting container: 7a00cd039363
+2026/09/11 18:41:22 ✅ Container started: 7a00cd039363
+2026/09/11 18:41:22 ⏳ Waiting for container id 7a00cd039363 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 18:41:29 🔔 Container is ready: 7a00cd039363
+=== RUN   TestExplicitIdentityAutoResultBelongsToThisInsert/omitted_false
+=== RUN   TestExplicitIdentityAutoResultBelongsToThisInsert/zero_false
+=== RUN   TestExplicitIdentityAutoResultBelongsToThisInsert/explicit77_false
+=== RUN   TestExplicitIdentityAutoResultBelongsToThisInsert/omitted_true
+=== RUN   TestExplicitIdentityAutoResultBelongsToThisInsert/zero_true
+=== RUN   TestExplicitIdentityAutoResultBelongsToThisInsert/explicit77_true
+=== RUN   TestExplicitIdentityAutoResultBelongsToThisInsert/unsigned_generated
+=== RUN   TestExplicitIdentityAutoResultBelongsToThisInsert/unsigned_trigger
+=== RUN   TestExplicitIdentityAutoResultBelongsToThisInsert/no_auto_zero
+2026/09/11 18:41:31 🐳 Stopping container: 7a00cd039363
+2026/09/11 18:41:32 ✅ Container stopped: 7a00cd039363
+2026/09/11 18:41:32 🐳 Terminating container: 7a00cd039363
+2026/09/11 18:41:32 🚫 Container terminated: 7a00cd039363
+--- PASS: TestExplicitIdentityAutoResultBelongsToThisInsert (10.77s)
+    --- PASS: TestExplicitIdentityAutoResultBelongsToThisInsert/omitted_false (0.16s)
+    --- PASS: TestExplicitIdentityAutoResultBelongsToThisInsert/zero_false (0.02s)
+    --- PASS: TestExplicitIdentityAutoResultBelongsToThisInsert/explicit77_false (0.15s)
+    --- PASS: TestExplicitIdentityAutoResultBelongsToThisInsert/omitted_true (0.14s)
+    --- PASS: TestExplicitIdentityAutoResultBelongsToThisInsert/zero_true (0.02s)
+    --- PASS: TestExplicitIdentityAutoResultBelongsToThisInsert/explicit77_true (0.02s)
+    --- PASS: TestExplicitIdentityAutoResultBelongsToThisInsert/unsigned_generated (0.16s)
+    --- PASS: TestExplicitIdentityAutoResultBelongsToThisInsert/unsigned_trigger (0.15s)
+    --- PASS: TestExplicitIdentityAutoResultBelongsToThisInsert/no_auto_zero (0.19s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql	73.793s

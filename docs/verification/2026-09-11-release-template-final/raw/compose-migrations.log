@@ -1,0 +1,11 @@
+Evidence: docs/verification/2026-09-11-release-template-final/compose-migrations
+Traceback (most recent call last):
+  File "/private/tmp/rcc-issue-106-release-template-final/scripts/compose-migration-acceptance.py", line 156, in <module>
+    main()
+  File "/private/tmp/rcc-issue-106-release-template-final/scripts/compose-migration-acceptance.py", line 113, in main
+    verify_success('fresh_volume')
+  File "/private/tmp/rcc-issue-106-release-template-final/scripts/compose-migration-acceptance.py", line 81, in verify_success
+    run(['up', '-d'], timeout=180)
+  File "/private/tmp/rcc-issue-106-release-template-final/scripts/compose-migration-acceptance.py", line 43, in run
+    raise RuntimeError(f'Compose {arguments} exited {result.returncode}; see {artifacts / "compose.log"}')
+RuntimeError: Compose ['up', '-d'] exited 1; see docs/verification/2026-09-11-release-template-final/compose-migrations/compose.log

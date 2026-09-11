@@ -487,7 +487,26 @@ func identityGuardApplication(t *testing.T, ctx context.Context, adapter *Adapte
 		}
 		return operator.Bind(ctx)
 	}
-	return &identityGuardPublication{orders: application.NewReleaseOrders(adapter), reviewer: actor("identity.reviewer")}, actor("identity.applicant")
+	reviewer, applicant := actor("identity.reviewer"), actor("identity.applicant")
+	associations := application.NewTableReleaseTemplateManagement(adapter)
+	for _, table := range tables {
+		current, err := associations.List(applicant, table)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, binding := range []struct{ kind, code string }{{"STANDARD", "default_standard_v1"}, {"EMERGENCY", "default_emergency_v1"}} {
+			var version uint64
+			for _, row := range current {
+				if string(row.Type) == binding.kind {
+					version = row.Version
+				}
+			}
+			if _, err := associations.Put(applicant, table, binding.kind, binding.code, true, version, "identity-bind-"+table+"-"+binding.kind); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	return &identityGuardPublication{orders: application.NewReleaseOrders(adapter), reviewer: reviewer}, applicant
 }
 
 type identityGuardPublication struct {

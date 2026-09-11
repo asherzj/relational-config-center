@@ -238,7 +238,10 @@ func TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite(t *testing.T
 	deliveryExec(t, owner, "CREATE DATABASE fresh_catalog CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
 	rootDriver.DBName = "fresh_catalog"
 	freshDatabase := deliveryDB(t, &rootDriver)
-	initializeCurrentIntegrationSchema(t, ctx, &rootDriver)
+	// This historical expand/contract path ends at the released pre-Goose
+	// catalog. Compare it with the same formal prefix; later upgrades are
+	// covered by the complete schema migration and baseline tests.
+	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 5), &rootDriver, "current", "up")
 
 	upgradedSignature := policyCatalogSchemaSignature(t, ctx, database)
 	freshSignature := policyCatalogSchemaSignature(t, ctx, freshDatabase)

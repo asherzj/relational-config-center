@@ -1,0 +1,9 @@
+{
+  "browser": "151.0.7922.34",
+  "checks": [
+    "ADD uses configured controls, required errors, precise prefill, explicit NULL and omission; custom choice saved to real draft; unsaved close and opening-time configuration preserved",
+    "390px MODIFY retains legacy custom value when another field changes, shows read-only original and saves real draft without readonly field",
+    "reopening reads newest configuration; pristine prefill has no unsaved prompt"
+  ],
+  "errors": []
+}

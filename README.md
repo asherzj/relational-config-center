@@ -74,6 +74,7 @@ go run ./admin/cmd/admin
 cd web
 pnpm install --frozen-lockfile
 pnpm test:run
+pnpm test:dev
 pnpm typecheck
 pnpm build
 
@@ -85,15 +86,15 @@ make test-integration
 
 集成测试使用 Testcontainers 和真实 MySQL 8.4；`make test-integration` 禁用 Go 测试缓存。正式入口先执行 Docker 健康检查，依赖不可用时命令失败；直接运行带 `integration` 标签的 Go 测试也会因缺失必需 Docker/MySQL 而失败。
 
-整组集成测试的进程上限为 40 分钟，以容纳隔离 MySQL 容器启动时间的波动；CI 任务另有 45 分钟总上限。各请求、数据库等待和进程停止的独立超时仍由对应测试验证。
+整组集成测试的进程上限为 60 分钟，以容纳隔离 MySQL 容器启动时间的波动；CI 任务另有 70 分钟总上限。各请求、数据库等待和进程停止的独立超时仍由对应测试验证。
 
 ## 持续集成
 
-GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行四个检查：`Web`、`Go unit and build`、`MySQL 8.4 integration` 和 `Browser acceptance`。浏览器检查在 Linux runner 上使用 Playwright 的 Chromium、Firefox 和 WebKit；每个引擎单独写入 artifact 子目录。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
+GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行五个检查：`Web`、`Go unit and build`、`MySQL 8.4 integration`、`Browser acceptance` 和 `Goose Compose deployment`。浏览器检查在 Linux runner 上使用 Playwright 的 Chromium、Firefox 和 WebKit；每个引擎单独写入 artifact 子目录。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
 
 浏览器验收通过公开 Cookie 会话及 CSRF 流程进入管理台；未登录的 Admin 和 Web 代理都拒绝业务请求。临时账号、规则和业务数据只存在于本次创建的独立 MySQL 中，结束后连同数据库一起清理。
 
-工作流当前只在推送到 `main` 和目标为 `main` 的 Pull Request 上运行这四个检查；推送到其他分支不会自动触发这套 CI。是否配置 branch protection、rulesets 或 required checks 由仓库设置决定，不能从本地文档推断为合并保证。
+工作流当前只在推送到 `main` 和目标为 `main` 的 Pull Request 上运行这五个检查；推送到其他分支不会自动触发这套 CI。是否配置 branch protection、rulesets 或 required checks 由仓库设置决定，不能从本地文档推断为合并保证。
 
 浏览器检查也可以在本地按套件或引擎运行。`all` 包含 `unsaved-changes`、`rule-clarity`、`write-recovery`、`operation-coverage`、`complex-fields`、`browser-accessibility`、`release-workflow` 和 `field-interactions`。正式发布套件实际执行草稿、独立审批、混合批量，以及按 `RCC_E2E_ENGINES` 逐引擎运行的正向/反向发布和会话、冲突、未知结果恢复；无障碍套件与完整字段流程套件也逐引擎运行，后者分别在桌面和390px验证管理员字段配置、组合查询、自定义值草稿和发布审阅。每次运行都应使用独立的空 artifact 目录：
 
@@ -138,4 +139,4 @@ docs/    跨模块设计与项目文档
 - Go package 使用简短、清晰的小写名称。
 - 引入新能力时同步补充测试和文档。
 
-记录并发保护、Admin/Web 请求迁移与数据库维护窗口见 [记录版本契约](docs/admin-record-versions.md)。发布草稿、独立审批、同表 1～1,000 项混合发布与审批回滚已接通，见[发布结果契约](docs/design-notes/publication-contract.md)。升级需依次迁移 010、011、012，并显式授予 TRIGGER 元数据与 PROCESS 权限；旧记录写路由已删除，分发尚未接入。完整操作与维护步骤见[发布单升级指南](docs/admin-release-upgrade.md)，逐项验收归属见[交付计划](docs/design-notes/release-order-ticket-plan.md)。
+记录并发保护、Admin/Web 请求迁移与数据库维护窗口见 [记录版本契约](docs/admin-record-versions.md)。发布流程模板、逐表关联和持久实例、多表合计 1～1,000 项混合发布已接通；常规按表审批，应急填写原因后待手动发布，两者均在待完结原单上支持免审批整单回滚，见[发布结果契约](docs/design-notes/publication-contract.md)。已纳入 Goose 的数据库通过 `schema-migrate up` 升级至 00011，新库使用同一入口；维护连接还需显式授予 TRIGGER 元数据与 PROCESS 权限；旧记录写路由已删除，分发尚未接入。完整操作与维护步骤见[发布单升级指南](docs/admin-release-upgrade.md)，逐项验收归属见[交付计划](docs/design-notes/release-order-ticket-plan.md)。

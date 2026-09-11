@@ -1,0 +1,115 @@
+Installing pinned Web dependencies and required Playwright browsers...
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+Done in 459ms using pnpm v10.28.2
+Building the Web preview artifact...
+
+> @relational-config-center/web@0.0.0 build /private/tmp/rcc-issue-106-release-template-final/web
+> tsc --noEmit && vite build
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 2158 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                             0.74 kB │ gzip:   0.40 kB
+dist/assets/index-D9Rwu6Cy.css             86.46 kB │ gzip:  16.70 kB
+dist/assets/rolldown-runtime-CbXtAM7H.js    0.58 kB │ gzip:   0.36 kB
+dist/assets/react-DXf84zf0.js             189.60 kB │ gzip:  59.62 kB
+dist/assets/vendor-B5DI7EYn.js            359.58 kB │ gzip: 112.44 kB
+dist/assets/index-BODSflcK.js             364.92 kB │ gzip:  99.95 kB
+
+✓ built in 274ms
+Verifying timeout cleanup against a TERM-resistant descendant...
+✔ kills the process group when its leader exits on TERM (1242.439584ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1298.858167
+Starting disposable MySQL 8.4 container rcc-browser-1789119673-70803-mysql...
+Building and applying the current Goose control schema...
+{"state":"current","current":11,"required":11,"pending":[],"attempt_id":11,"attempt_version":11,"attempt_digest":"2e51f69bd9fc53e0de693a6e28fa26e547fb640740c9210b830b6f820c182963","attempt_operation":"up"}
+Loading deploy/mysql/local-fixture/002-notification-templates.sql...
+Granting the disposable Admin account publication metadata access...
+Building and starting Admin on a dynamic loopback port...
+Starting Web preview on a different dynamic loopback port...
+{"files":["docs/verification/fixtures/stage1_acceptance.sql","web/e2e/fixtures/stage1-policies.sql","admin/cmd/admin/testdata/014-batch-browser.sql","admin/cmd/admin/testdata/015-draft-targets-browser.sql","admin/cmd/admin/testdata/016-multitable-browser.sql","web/e2e/fixtures/release-rollbacks.sql","web/e2e/fixtures/field-display.sql"],"added":["field_display_browser_items","stage1_acceptance_items","stage1_rollback_chromium_items","stage1_rollback_firefox_items","stage1_rollback_webkit_items"],"associations":[{"created_at":"2026-09-11T09:41:36.748Z","creator":"9532b85d-2516-4d3e-86c6-0da4cd2af512","enabled":true,"modifier":"9532b85d-2516-4d3e-86c6-0da4cd2af512","table_name":"field_display_browser_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:41:36.748Z","version":"1"},{"created_at":"2026-09-11T09:41:36.762Z","creator":"9532b85d-2516-4d3e-86c6-0da4cd2af512","enabled":true,"modifier":"9532b85d-2516-4d3e-86c6-0da4cd2af512","table_name":"field_display_browser_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:41:36.762Z","version":"1"},{"created_at":"2026-09-11T09:41:36.782Z","creator":"9532b85d-2516-4d3e-86c6-0da4cd2af512","enabled":true,"modifier":"9532b85d-2516-4d3e-86c6-0da4cd2af512","table_name":"stage1_acceptance_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:41:36.782Z","version":"1"},{"created_at":"2026-09-11T09:41:36.798Z","creator":"9532b85d-2516-4d3e-86c6-0da4cd2af512","enabled":true,"modifier":"9532b85d-2516-4d3e-86c6-0da4cd2af512","table_name":"stage1_acceptance_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:41:36.798Z","version":"1"},{"created_at":"2026-09-11T09:41:36.822Z","creator":"9532b85d-2516-4d3e-86c6-0da4cd2af512","enabled":true,"modifier":"9532b85d-2516-4d3e-86c6-0da4cd2af512","table_name":"stage1_rollback_chromium_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:41:36.822Z","version":"1"},{"created_at":"2026-09-11T09:41:36.838Z","creator":"9532b85d-2516-4d3e-86c6-0da4cd2af512","enabled":true,"modifier":"9532b85d-2516-4d3e-86c6-0da4cd2af512","table_name":"stage1_rollback_chromium_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:41:36.838Z","version":"1"},{"created_at":"2026-09-11T09:41:36.857Z","creator":"9532b85d-2516-4d3e-86c6-0da4cd2af512","enabled":true,"modifier":"9532b85d-2516-4d3e-86c6-0da4cd2af512","table_name":"stage1_rollback_firefox_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:41:36.857Z","version":"1"},{"created_at":"2026-09-11T09:41:36.868Z","creator":"9532b85d-2516-4d3e-86c6-0da4cd2af512","enabled":true,"modifier":"9532b85d-2516-4d3e-86c6-0da4cd2af512","table_name":"stage1_rollback_firefox_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:41:36.868Z","version":"1"},{"created_at":"2026-09-11T09:41:36.885Z","creator":"9532b85d-2516-4d3e-86c6-0da4cd2af512","enabled":true,"modifier":"9532b85d-2516-4d3e-86c6-0da4cd2af512","table_name":"stage1_rollback_webkit_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:41:36.885Z","version":"1"},{"created_at":"2026-09-11T09:41:36.898Z","creator":"9532b85d-2516-4d3e-86c6-0da4cd2af512","enabled":true,"modifier":"9532b85d-2516-4d3e-86c6-0da4cd2af512","table_name":"stage1_rollback_webkit_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:41:36.898Z","version":"1"}]}
+Running unsaved-changes...
+PASS untouched Query create closes without a warning
+PASS actual browser POP back cancel retains input and route
+PASS actual browser POP back confirm and forward restore the intended route
+PASS native beforeunload reload cancellation preserves input
+PASS native tab-close cancellation preserves the editing document
+PASS discard confirmation owns keyboard focus and fits a 390px viewport
+PASS restored original Query values clear protection
+PASS actual browser forward navigation is canceled or confirmed at its original target
+PASS real duplicate Policy Code rejection preserves Query form input
+PASS real completed write with delayed response blocks POP, then shows success once
+PASS disposable Query draft cleaned up through the Admin API
+PASS Change Set cancel and return retain values, NULL and omitted fields
+PASS real Admin/MySQL validation rejection retains the row draft and request error
+PASS confirmed discard closes the editor with no browser storage draft
+Running rule-clarity...
+{"ok":true,"checks":6,"resultPath":"/private/tmp/rcc-issue-106-release-template-final/docs/verification/2026-09-11-release-template-final/browser-full-01/rule-clarity/result.json","screenshotPath":"/private/tmp/rcc-issue-106-release-template-final/docs/verification/2026-09-11-release-template-final/browser-full-01/rule-clarity/rule-clarity-390.png"}
+Running write-recovery...
+PASS ADD abort: one publication, immutable intent, original-key recovery {"attempts":[{"path":"/api/v1/release-orders/7f8cf92e18101ae3404dae3f7457d4a6/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"57db868b-3a8b-4bea-8024-c2e6563a0b9a"},{"path":"/api/v1/release-orders/7f8cf92e18101ae3404dae3f7457d4a6/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"57db868b-3a8b-4bea-8024-c2e6563a0b9a"}],"commands":1,"faults":[{"path":"/api/v1/release-orders/7f8cf92e18101ae3404dae3f7457d4a6/execute","method":"POST","actualStatus":200,"requestId":"rcc-a15e1cd30de84d25abfd3ca3318ced1d"}]}
+PASS ADD json: one publication, immutable intent, original-key recovery {"attempts":[{"path":"/api/v1/release-orders/60e7d8000c5cbc93fa81f6524dc47384/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"6e0bf00e-5666-4ac9-845c-c00976f280ff"},{"path":"/api/v1/release-orders/60e7d8000c5cbc93fa81f6524dc47384/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"6e0bf00e-5666-4ac9-845c-c00976f280ff"}],"commands":1,"faults":[{"path":"/api/v1/release-orders/60e7d8000c5cbc93fa81f6524dc47384/execute","method":"POST","actualStatus":200,"requestId":"rcc-eba78e36d4903ff9d48a1c962454f659"}]}
+PASS ADD contract: one publication, immutable intent, original-key recovery {"attempts":[{"path":"/api/v1/release-orders/cc26efea7bc1425b6055b53de18de890/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"2e002cb7-22ab-462e-8ada-de12d79db80c"},{"path":"/api/v1/release-orders/cc26efea7bc1425b6055b53de18de890/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"2e002cb7-22ab-462e-8ada-de12d79db80c"}],"commands":1,"faults":[{"path":"/api/v1/release-orders/cc26efea7bc1425b6055b53de18de890/execute","method":"POST","actualStatus":200,"requestId":"rcc-f01ea1c78cebf6fe7870fbe655de0bf5"}]}
+PASS ADD 503: one publication, immutable intent, original-key recovery {"attempts":[{"path":"/api/v1/release-orders/212300f03d7a812fff675c9552caff25/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"866b5d77-5211-4f2f-8ce1-91ebe3bf0be6"},{"path":"/api/v1/release-orders/212300f03d7a812fff675c9552caff25/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"866b5d77-5211-4f2f-8ce1-91ebe3bf0be6"}],"commands":1,"faults":[{"path":"/api/v1/release-orders/212300f03d7a812fff675c9552caff25/execute","method":"POST","actualStatus":200,"requestId":"rcc-f092a10ac5d56259da1b88bf46ee6bbd"}]}
+PASS MODIFY lost response: exact identity and original-key replay {"attempts":[{"path":"/api/v1/release-orders/37d59539b0383e4508670cf5b1e0975a/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"c51b4a2c-dc8f-4891-a02a-2213cb16644a"},{"path":"/api/v1/release-orders/37d59539b0383e4508670cf5b1e0975a/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"c51b4a2c-dc8f-4891-a02a-2213cb16644a"}],"id":"10","commands":1,"faults":[{"path":"/api/v1/release-orders/37d59539b0383e4508670cf5b1e0975a/execute","method":"POST","actualStatus":200,"requestId":"rcc-451b2980fe9223bae6d742b637f51734"}]}
+PASS DELETE lost response: exact identity and original-key replay {"attempts":[{"path":"/api/v1/release-orders/2068cf89145d962d6e4efab0c79ba2d8/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"55cf0cdf-ec79-43ed-b369-ea5e9d7b236b"},{"path":"/api/v1/release-orders/2068cf89145d962d6e4efab0c79ba2d8/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"55cf0cdf-ec79-43ed-b369-ea5e9d7b236b"}],"id":"11","commands":1,"faults":[{"path":"/api/v1/release-orders/2068cf89145d962d6e4efab0c79ba2d8/execute","method":"POST","actualStatus":200,"requestId":"rcc-57469f0a00d0084fcbcebdf889695e22"}]}
+PASS separate unknown publications retain separate original request keys {"recoveredKeys":["2486d963-a5d2-4a20-b032-24d9d3bb43b0","a81dd2b7-e378-40a2-804a-1a3bd646dd28"]}
+PASS known publication followed by detail read failure recovers with GET only {"attempts":[{"path":"/api/v1/release-orders/67fd2815fe4f33ada24d3cd2acf9b189/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"3cfff25a-0c34-40e6-839e-80dd41702c65"}],"commands":1}
+PASS double-click, Enter and pending back/close execute once {"attempts":[{"path":"/api/v1/release-orders/3f17b59cc77d985c46830dcc6fa20941/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"02ead470-a841-43a7-9c88-5facd8bf4a07"}],"commands":1}
+PASS real ENUM failure preserves frozen intent; copied correction needs new approval and publishes once {"rejectedOrderID":"8be098d20481980632067fe4ac3c1d5b","correctedOrderID":"5ee1f0486eab9af9f0a88b6cfecaaea7","commands":1}
+PASS real database stop/start retains endpoint and original request, publishes once after recovery {"attempts":[{"path":"/api/v1/release-orders/6375277fc5d7e6902bae3535a3b370b1/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"07321efa-4838-4fd6-871a-b84b249c3a0b"},{"path":"/api/v1/release-orders/6375277fc5d7e6902bae3535a3b370b1/execute","method":"POST","body":"{\"expected_version\":\"3\"}","key":"07321efa-4838-4fd6-871a-b84b249c3a0b"}],"commands":1,"accountRecoveryStatuses":[503,503,200],"replayStatuses":[200]}
+PASS query create: saved state retained after response failure {"requests":[{"path":"/api/v1/query-policies","method":"POST"}],"actualWrites":1,"faults":[{"path":"/api/v1/query-policies","method":"POST","actualStatus":201,"requestId":"rcc-a99acda2304db642a5ca4dd110fc363d"}],"readonlyRequests":[{"path":"/api/v1/query-policies/stage2_query_create_v1","method":"GET"}]}
+PASS query replace: saved state retained after response failure {"requests":[{"path":"/api/v1/query-policies/stage2_query_replace_v1","method":"PUT"}],"actualWrites":1,"faults":[{"path":"/api/v1/query-policies/stage2_query_replace_v1","method":"PUT","actualStatus":200,"requestId":"rcc-59c95d2807bb0d4258aa28357a5b4379"}],"readonlyRequests":[{"path":"/api/v1/query-policies/stage2_query_replace_v1","method":"GET"}]}
+PASS query metadata: saved state retained after response failure {"requests":[{"path":"/api/v1/query-policies/stage2_query_metadata_v1/metadata","method":"PATCH"}],"actualWrites":1,"faults":[{"path":"/api/v1/query-policies/stage2_query_metadata_v1/metadata","method":"PATCH","actualStatus":200,"requestId":"rcc-b26c7cf2793896768565d09508cf7b74"}],"readonlyRequests":[{"path":"/api/v1/query-policies/stage2_query_metadata_v1","method":"GET"}]}
+PASS query activate: lifecycle response loss is recoverable by reads {"requests":[{"path":"/api/v1/query-policies/stage2_query_activate_v1/activate","method":"POST"}],"actualWrites":1,"faults":[{"path":"/api/v1/query-policies/stage2_query_activate_v1/activate","method":"POST","actualStatus":200,"requestId":"rcc-de0b118cbc6bbb05576e86db630a55ce"}],"readonlyRequests":[{"path":"/api/v1/query-policies/stage2_query_activate_v1","method":"GET"}]}
+PASS query deprecate: lifecycle response loss is recoverable by reads {"requests":[{"path":"/api/v1/query-policies/stage2_query_deprecate_v1/deprecate","method":"POST"}],"actualWrites":1,"faults":[{"path":"/api/v1/query-policies/stage2_query_deprecate_v1/deprecate","method":"POST","actualStatus":200,"requestId":"rcc-09acdc3e706ab71a11cadcf1361812d4"}],"readonlyRequests":[{"path":"/api/v1/query-policies/stage2_query_deprecate_v1","method":"GET"}]}
+PASS query delete: lost response, missing-resource check never repeats deletion {"writes":[{"path":"/api/v1/query-policies/stage2_query_delete_v1","method":"DELETE"}],"actualWrites":1,"faults":[{"path":"/api/v1/query-policies/stage2_query_delete_v1","method":"DELETE","actualStatus":204,"requestId":"rcc-d24b96e5254683186d1798409ca0c5f9"}]}
+PASS mutation create: saved state retained after response failure {"requests":[{"path":"/api/v1/mutation-policies","method":"POST"}],"actualWrites":1,"faults":[{"path":"/api/v1/mutation-policies","method":"POST","actualStatus":201,"requestId":"rcc-4b7a0a8aaee3129816ceaf502a816443"}],"readonlyRequests":[{"path":"/api/v1/mutation-policies/stage2_mutation_create_v1","method":"GET"}]}
+PASS mutation replace: saved state retained after response failure {"requests":[{"path":"/api/v1/mutation-policies/stage2_mutation_replace_v1","method":"PUT"}],"actualWrites":1,"faults":[{"path":"/api/v1/mutation-policies/stage2_mutation_replace_v1","method":"PUT","actualStatus":200,"requestId":"rcc-13511ab5eff570469718a0c542509717"}],"readonlyRequests":[{"path":"/api/v1/mutation-policies/stage2_mutation_replace_v1","method":"GET"}]}
+PASS mutation metadata: saved state retained after response failure {"requests":[{"path":"/api/v1/mutation-policies/stage2_mutation_metadata_v1/metadata","method":"PATCH"}],"actualWrites":1,"faults":[{"path":"/api/v1/mutation-policies/stage2_mutation_metadata_v1/metadata","method":"PATCH","actualStatus":200,"requestId":"rcc-fd85bf7f732f07855ebe3c7df634f58d"}],"readonlyRequests":[{"path":"/api/v1/mutation-policies/stage2_mutation_metadata_v1","method":"GET"}]}
+PASS mutation activate: lifecycle response loss is recoverable by reads {"requests":[{"path":"/api/v1/mutation-policies/stage2_mutation_activate_v1/activate","method":"POST"}],"actualWrites":1,"faults":[{"path":"/api/v1/mutation-policies/stage2_mutation_activate_v1/activate","method":"POST","actualStatus":200,"requestId":"rcc-aaa3dd40c2c2219561d1c27e9b2f9b5a"}],"readonlyRequests":[{"path":"/api/v1/mutation-policies/stage2_mutation_activate_v1","method":"GET"}]}
+PASS mutation deprecate: lifecycle response loss is recoverable by reads {"requests":[{"path":"/api/v1/mutation-policies/stage2_mutation_deprecate_v1/deprecate","method":"POST"}],"actualWrites":1,"faults":[{"path":"/api/v1/mutation-policies/stage2_mutation_deprecate_v1/deprecate","method":"POST","actualStatus":200,"requestId":"rcc-f7e18bbb7b7e10ef1bdc844abe2581c8"}],"readonlyRequests":[{"path":"/api/v1/mutation-policies/stage2_mutation_deprecate_v1","method":"GET"}]}
+PASS mutation delete: lost response, missing-resource check never repeats deletion {"writes":[{"path":"/api/v1/mutation-policies/stage2_mutation_delete_v1","method":"DELETE"}],"actualWrites":1,"faults":[{"path":"/api/v1/mutation-policies/stage2_mutation_delete_v1","method":"DELETE","actualStatus":204,"requestId":"rcc-1f900f4b94990bd49c8ba032a85ce0c5"}]}
+PASS rapid lifecycle confirmation and pending back navigation update once {"writes":[{"path":"/api/v1/query-policies/stage2_rapid_lifecycle_v1/activate","method":"POST"}],"actualWrites":1}
+PASS table assignment create: original request manually replayed without duplicate database change {"writes":[{"path":"/api/v1/table-policies","method":"POST","body":"{\"table_name\":\"stage2_assignment_items\",\"query_policy_code\":\"stage1_query_v1\",\"mutation_policy_code\":\"stage2_assignment_mutation_v1\",\"concurrency_key\":[]}","key":"table-policy-d06d5ba9-4be0-40ef-bd3b-2ac361de4d1a"},{"path":"/api/v1/table-policies","method":"POST","body":"{\"table_name\":\"stage2_assignment_items\",\"query_policy_code\":\"stage1_query_v1\",\"mutation_policy_code\":\"stage2_assignment_mutation_v1\",\"concurrency_key\":[]}","key":"table-policy-d06d5ba9-4be0-40ef-bd3b-2ac361de4d1a"}],"originalWrite":{"path":"/api/v1/table-policies","method":"POST","body":"{\"table_name\":\"stage2_assignment_items\",\"query_policy_code\":\"stage1_query_v1\",\"mutation_policy_code\":\"stage2_assignment_mutation_v1\",\"concurrency_key\":[]}","key":"table-policy-d06d5ba9-4be0-40ef-bd3b-2ac361de4d1a"}}
+PASS table assignment replace: original request manually replayed without duplicate database change {"writes":[{"path":"/api/v1/table-policies/stage2_assignment_items","method":"PUT","body":"{\"table_name\":\"stage2_assignment_items\",\"query_policy_code\":\"stage1_query_v1\",\"mutation_policy_code\":\"stage2_assignment_mutation_v1\",\"concurrency_key\":[],\"expected_version\":\"1\"}","key":"table-policy-ea769b55-2064-4413-929c-81ca6820aabc"},{"path":"/api/v1/table-policies/stage2_assignment_items","method":"PUT","body":"{\"table_name\":\"stage2_assignment_items\",\"query_policy_code\":\"stage1_query_v1\",\"mutation_policy_code\":\"stage2_assignment_mutation_v1\",\"concurrency_key\":[],\"expected_version\":\"1\"}","key":"table-policy-ea769b55-2064-4413-929c-81ca6820aabc"}],"originalWrite":{"path":"/api/v1/table-policies/stage2_assignment_items","method":"PUT","body":"{\"table_name\":\"stage2_assignment_items\",\"query_policy_code\":\"stage1_query_v1\",\"mutation_policy_code\":\"stage2_assignment_mutation_v1\",\"concurrency_key\":[],\"expected_version\":\"1\"}","key":"table-policy-ea769b55-2064-4413-929c-81ca6820aabc"}}
+PASS table assignment enable: original request manually replayed without duplicate database change {"writes":[{"path":"/api/v1/table-policies/stage2_assignment_items/enable","method":"POST","body":"{\"expected_version\":\"2\"}","key":"table-policy-806583aa-2692-4b8a-97b6-3b7483bdc4a9"},{"path":"/api/v1/table-policies/stage2_assignment_items/enable","method":"POST","body":"{\"expected_version\":\"2\"}","key":"table-policy-806583aa-2692-4b8a-97b6-3b7483bdc4a9"}],"originalWrite":{"path":"/api/v1/table-policies/stage2_assignment_items/enable","method":"POST","body":"{\"expected_version\":\"2\"}","key":"table-policy-806583aa-2692-4b8a-97b6-3b7483bdc4a9"}}
+PASS table assignment disable: original request manually replayed without duplicate database change {"writes":[{"path":"/api/v1/table-policies/stage2_assignment_items/disable","method":"POST","body":"{\"expected_version\":\"3\"}","key":"table-policy-b59086d5-a434-42d7-933c-061f5687f649"},{"path":"/api/v1/table-policies/stage2_assignment_items/disable","method":"POST","body":"{\"expected_version\":\"3\"}","key":"table-policy-b59086d5-a434-42d7-933c-061f5687f649"}],"originalWrite":{"path":"/api/v1/table-policies/stage2_assignment_items/disable","method":"POST","body":"{\"expected_version\":\"3\"}","key":"table-policy-b59086d5-a434-42d7-933c-061f5687f649"}}
+node:internal/errors:985
+  const err = new Error(message);
+              ^
+
+Error: Command failed: docker exec -i rcc-browser-1789119673-70803-mysql sh -c MYSQL_PWD="$MYSQL_PASSWORD" mysql --batch --skip-column-names -u"$MYSQL_USER" "$MYSQL_DATABASE"
+ERROR 1451 (23000) at line 1: Cannot delete or update a parent row: a foreign key constraint fails (`rcc`.`rcc_table_release_templates`, CONSTRAINT `fk_table_release_policy` FOREIGN KEY (`table_policy_id`) REFERENCES `rcc_table_policies` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT)
+
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at checkExecSyncError (node:child_process:942:11)
+    at execFileSync (node:child_process:978:15)
+    at sql (/private/tmp/rcc-issue-106-release-template-final/web/e2e/write-recovery.cjs:20:42)
+    at /private/tmp/rcc-issue-106-release-template-final/web/e2e/write-recovery.cjs:501:5 {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    '',
+    'ERROR 1451 (23000) at line 1: Cannot delete or update a parent row: a foreign key constraint fails (`rcc`.`rcc_table_release_templates`, CONSTRAINT `fk_table_release_policy` FOREIGN KEY (`table_policy_id`) REFERENCES `rcc_table_policies` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT)\n'
+  ],
+  pid: 71636,
+  stdout: '',
+  stderr: 'ERROR 1451 (23000) at line 1: Cannot delete or update a parent row: a foreign key constraint fails (`rcc`.`rcc_table_release_templates`, CONSTRAINT `fk_table_release_policy` FOREIGN KEY (`table_policy_id`) REFERENCES `rcc_table_policies` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT)\n'
+}
+
+Node.js v24.19.0
+artifact directory: /private/tmp/rcc-issue-106-release-template-final/docs/verification/2026-09-11-release-template-final/browser-full-01
+make: *** [test-browser-acceptance] Error 1

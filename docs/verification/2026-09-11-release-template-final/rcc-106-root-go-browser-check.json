@@ -1,0 +1,50 @@
+{
+  "TestAccountBrowserSystemPath": {
+    "status": "PASS",
+    "raw_log": "raw/browser-TestAccountBrowserSystemPath-02.log"
+  },
+  "TestApprovalFinalBrowserSystemPath": {
+    "status": "PASS",
+    "raw_log": "raw/browser-TestApprovalFinalBrowserSystemPath-02.log"
+  },
+  "TestApprovalNotificationsBrowserSystemPath": {
+    "status": "PASS",
+    "raw_log": "raw/browser-TestApprovalNotificationsBrowserSystemPath-01.log"
+  },
+  "TestApprovalRoleBrowserSystemPath": {
+    "status": "PASS",
+    "raw_log": "raw/browser-TestApprovalRoleBrowserSystemPath-01.log"
+  },
+  "TestNotificationCenterBrowserSystemPath": {
+    "status": "PASS",
+    "raw_log": "raw/browser-TestNotificationCenterBrowserSystemPath-01.log"
+  },
+  "TestReleaseEmergencyBrowserSystemPath": {
+    "status": "PASS",
+    "raw_log": "raw/browser-TestReleaseEmergencyBrowserSystemPath-01.log"
+  },
+  "TestReleaseFlowBrowserSystemPath": {
+    "status": "PASS",
+    "raw_log": "raw/browser-TestReleaseFlowBrowserSystemPath-02.log"
+  },
+  "TestReleaseNotificationsBrowserSystemPath": {
+    "status": "PASS",
+    "raw_log": "raw/browser-TestReleaseNotificationsBrowserSystemPath-01.log"
+  },
+  "TestReleaseTemplateBrowserSystemPath": {
+    "status": "PASS",
+    "raw_log": "raw/browser-TestReleaseTemplateBrowserSystemPath-01.log"
+  },
+  "TestRollbackFlowBrowserSystemPath": {
+    "status": "PASS",
+    "raw_log": "raw/browser-TestRollbackFlowBrowserSystemPath-01.log"
+  },
+  "TestTableApprovalBrowserSystemPath": {
+    "status": "PASS",
+    "raw_log": "raw/browser-TestTableApprovalBrowserSystemPath-01.log"
+  },
+  "TestTableReleaseTemplateBrowserSystemPath": {
+    "status": "PASS",
+    "raw_log": "raw/browser-TestTableReleaseTemplateBrowserSystemPath-01.log"
+  }
+}

@@ -165,6 +165,8 @@ const template = (code, name, prefix) => ({code,name,description:'原单应急�
   await button(page,'确认整单快速回滚').focus();await page.keyboard.press('Enter');const response=await rollbackResponse;assert.equal(response.status(),200,await response.text());
   assert.deepEqual(response.request().postDataJSON(),{expected_version:fresh.expected_version,preview_digest:fresh.preview_digest,reason:''});requests.push({order_id:order.id,rollback:{body:response.request().postData(),key:response.request().headers()['idempotency-key']}});
   await page.getByLabel('发布单状态',{exact:true}).filter({hasText:'已回滚'}).waitFor();await page.getByRole('dialog',{name:/^快速回滚 ·/}).waitFor({state:'hidden'});
+  await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'已回滚',exact:true}).waitFor();
+  assert.equal(await page.getByRole('list',{name:'发布阶段',exact:true}).count(),0);
   const rolled=await read(order.id);assert.equal(rolled.id,order.id);assert.equal(rolled.state,'ROLLED_BACK');assert.equal(rolled.history.filter(event=>event.action==='COMPLETE').length,0);assert.equal(rolled.history.filter(event=>event.action==='QUICK_ROLLBACK').length,1);
   for(const flow of rolled.rollback_table_flows){
    assert.deepEqual(flow.node_list.map(node=>node.state),['COMPLETED','STOPPED']);assert.equal(flow.node_list[0].actor_id,publisher.accountID);assert.ok(flow.node_list[0].at);assert.ok(!flow.node_list[1].actor_id&&!flow.node_list[1].at);

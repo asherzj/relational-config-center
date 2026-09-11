@@ -1,0 +1,275 @@
+{
+  "source": "raw/mysql-full.log",
+  "test": "TestSchemaReadinessRejectsKnownOldRelease",
+  "reason": "Go 60m package timeout skipped t.Cleanup",
+  "container_before": {
+    "Id": "ab9b99bb173bdd6a93305cf836f12b876ad50a559794ba7be6e4e86ac1bb9e99",
+    "Created": "2026-09-11T10:36:53.695175457Z",
+    "Path": "docker-entrypoint.sh",
+    "Args": [
+      "mysqld"
+    ],
+    "State": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 620296,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-09-11T10:36:53.72261779Z",
+      "FinishedAt": "0001-01-01T00:00:00Z"
+    },
+    "Image": "sha256:b3b90af2a6552ae30c266fdb7d5dd55f3afb72404bb78d37fe8a23eb857fd3fb",
+    "ResolvConfPath": "/var/lib/docker/containers/ab9b99bb173bdd6a93305cf836f12b876ad50a559794ba7be6e4e86ac1bb9e99/resolv.conf",
+    "HostnamePath": "/var/lib/docker/containers/ab9b99bb173bdd6a93305cf836f12b876ad50a559794ba7be6e4e86ac1bb9e99/hostname",
+    "HostsPath": "/var/lib/docker/containers/ab9b99bb173bdd6a93305cf836f12b876ad50a559794ba7be6e4e86ac1bb9e99/hosts",
+    "LogPath": "/var/lib/docker/containers/ab9b99bb173bdd6a93305cf836f12b876ad50a559794ba7be6e4e86ac1bb9e99/ab9b99bb173bdd6a93305cf836f12b876ad50a559794ba7be6e4e86ac1bb9e99-json.log",
+    "Name": "/jolly_hypatia",
+    "RestartCount": 0,
+    "Driver": "overlayfs",
+    "Platform": "linux",
+    "MountLabel": "",
+    "ProcessLabel": "",
+    "AppArmorProfile": "docker-default",
+    "ExecIDs": null,
+    "HostConfig": {
+      "Binds": null,
+      "ContainerIDFile": "",
+      "LogConfig": {
+        "Type": "json-file",
+        "Config": {}
+      },
+      "NetworkMode": "bridge",
+      "PortBindings": {
+        "3306/tcp": [
+          {
+            "HostIp": "",
+            "HostPort": "0"
+          }
+        ],
+        "33060/tcp": [
+          {
+            "HostIp": "",
+            "HostPort": "0"
+          }
+        ]
+      },
+      "RestartPolicy": {
+        "Name": "no",
+        "MaximumRetryCount": 0
+      },
+      "AutoRemove": false,
+      "VolumeDriver": "",
+      "VolumesFrom": null,
+      "ConsoleSize": [
+        0,
+        0
+      ],
+      "CapAdd": null,
+      "CapDrop": null,
+      "CgroupnsMode": "private",
+      "Dns": null,
+      "DnsOptions": null,
+      "DnsSearch": null,
+      "ExtraHosts": null,
+      "GroupAdd": null,
+      "IpcMode": "private",
+      "Cgroup": "",
+      "Links": null,
+      "OomScoreAdj": 0,
+      "PidMode": "",
+      "Privileged": false,
+      "PublishAllPorts": false,
+      "ReadonlyRootfs": false,
+      "SecurityOpt": null,
+      "UTSMode": "",
+      "UsernsMode": "",
+      "ShmSize": 67108864,
+      "Runtime": "runc",
+      "Isolation": "",
+      "CpuShares": 0,
+      "Memory": 0,
+      "NanoCpus": 0,
+      "CgroupParent": "",
+      "BlkioWeight": 0,
+      "BlkioWeightDevice": null,
+      "BlkioDeviceReadBps": null,
+      "BlkioDeviceWriteBps": null,
+      "BlkioDeviceReadIOps": null,
+      "BlkioDeviceWriteIOps": null,
+      "CpuPeriod": 0,
+      "CpuQuota": 0,
+      "CpuRealtimePeriod": 0,
+      "CpuRealtimeRuntime": 0,
+      "CpusetCpus": "",
+      "CpusetMems": "",
+      "Devices": null,
+      "DeviceCgroupRules": null,
+      "DeviceRequests": null,
+      "MemoryReservation": 0,
+      "MemorySwap": 0,
+      "MemorySwappiness": null,
+      "OomKillDisable": null,
+      "PidsLimit": null,
+      "Ulimits": null,
+      "CpuCount": 0,
+      "CpuPercent": 0,
+      "IOMaximumIOps": 0,
+      "IOMaximumBandwidth": 0,
+      "MaskedPaths": [
+        "/proc/acpi",
+        "/proc/asound",
+        "/proc/interrupts",
+        "/proc/kcore",
+        "/proc/keys",
+        "/proc/latency_stats",
+        "/proc/sched_debug",
+        "/proc/scsi",
+        "/proc/timer_list",
+        "/proc/timer_stats",
+        "/sys/devices/virtual/powercap",
+        "/sys/firmware"
+      ],
+      "ReadonlyPaths": [
+        "/proc/bus",
+        "/proc/fs",
+        "/proc/irq",
+        "/proc/sys",
+        "/proc/sysrq-trigger"
+      ]
+    },
+    "Storage": {
+      "RootFS": {
+        "Snapshot": {
+          "Name": "overlayfs"
+        }
+      }
+    },
+    "Mounts": [
+      {
+        "Type": "volume",
+        "Name": "bd8b994ee79c877e871fafb6c39d370b3203cc2ab8570ad7d61cdaff2a06608b",
+        "Source": "/var/lib/docker/volumes/bd8b994ee79c877e871fafb6c39d370b3203cc2ab8570ad7d61cdaff2a06608b/_data",
+        "Destination": "/var/lib/mysql",
+        "Driver": "local",
+        "Mode": "",
+        "RW": true,
+        "Propagation": ""
+      }
+    ],
+    "Config": {
+      "Hostname": "ab9b99bb173b",
+      "Domainname": "",
+      "User": "",
+      "AttachStdin": false,
+      "AttachStdout": false,
+      "AttachStderr": false,
+      "ExposedPorts": {
+        "3306/tcp": {},
+        "33060/tcp": {}
+      },
+      "Tty": false,
+      "OpenStdin": false,
+      "StdinOnce": false,
+      "Env": [
+        "MYSQL_ROOT_PASSWORD=rcc_password",
+        "MYSQL_DATABASE=rcc_test",
+        "MYSQL_USER=rcc_admin",
+        "MYSQL_PASSWORD=rcc_password",
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "GOSU_VERSION=1.19",
+        "MYSQL_MAJOR=8.4",
+        "MYSQL_VERSION=8.4.11-1.el9",
+        "MYSQL_SHELL_VERSION=8.4.10-1.el9"
+      ],
+      "Cmd": [
+        "mysqld"
+      ],
+      "Image": "mysql:8.4",
+      "Volumes": {
+        "/var/lib/mysql": {}
+      },
+      "WorkingDir": "/",
+      "Entrypoint": [
+        "docker-entrypoint.sh"
+      ],
+      "Labels": {
+        "org.testcontainers": "true",
+        "org.testcontainers.lang": "go",
+        "org.testcontainers.sessionId": "46c2190650b9be64ae65123221c65426f1d9b5e3d45cb417d17245548c2504a3",
+        "org.testcontainers.version": "0.44.0"
+      }
+    },
+    "NetworkSettings": {
+      "SandboxID": "7459ec9a287f18fd0fd9ddff7fbe6457c92dda9ed0c1a5615800c731e64babd5",
+      "SandboxKey": "/var/run/docker/netns/7459ec9a287f",
+      "Ports": {
+        "3306/tcp": [
+          {
+            "HostIp": "0.0.0.0",
+            "HostPort": "49009"
+          },
+          {
+            "HostIp": "::",
+            "HostPort": "49009"
+          }
+        ],
+        "33060/tcp": [
+          {
+            "HostIp": "0.0.0.0",
+            "HostPort": "49010"
+          },
+          {
+            "HostIp": "::",
+            "HostPort": "49010"
+          }
+        ]
+      },
+      "Networks": {
+        "bridge": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": null,
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "abfc3ccf83c002df34d222f6c8329bd2f505b1151ca020e9e5ee30b5cde9d9de",
+          "EndpointID": "cdfb11c89f3ae976bcea1ffd9b5dd2e424ba7f1557877f0e757764dba36b77d1",
+          "Gateway": "172.17.0.1",
+          "IPAddress": "172.17.0.2",
+          "MacAddress": "06:14:83:c5:fa:83",
+          "IPPrefixLen": 16,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": null
+        }
+      }
+    },
+    "ImageManifestDescriptor": {
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "digest": "sha256:c9be23757267a888182ff13a633118a84ce7ad360abaa0f12a9c357ddf628b61",
+      "size": 2859,
+      "annotations": {
+        "com.docker.official-images.bashbrew.arch": "arm64v8",
+        "org.opencontainers.image.base.digest": "sha256:22d40602b78a41cc8514b8c83348aba71c190f506a4d3fb2effb0434f726843d",
+        "org.opencontainers.image.base.name": "oraclelinux:9-slim",
+        "org.opencontainers.image.created": "2026-07-27T22:06:33Z",
+        "org.opencontainers.image.revision": "01f90d87012e46cd174073bba02d64e9fc693ed3",
+        "org.opencontainers.image.source": "https://github.com/docker-library/mysql.git#01f90d87012e46cd174073bba02d64e9fc693ed3:8.4",
+        "org.opencontainers.image.url": "https://hub.docker.com/_/mysql",
+        "org.opencontainers.image.version": "8.4.11"
+      },
+      "platform": {
+        "architecture": "arm64",
+        "os": "linux",
+        "variant": "v8"
+      }
+    }
+  },
+  "cleanup_returncode": 0,
+  "cleanup_stdout": "ab9b99bb173bdd6a93305cf836f12b876ad50a559794ba7be6e4e86ac1bb9e99\n",
+  "cleanup_stderr": ""
+}

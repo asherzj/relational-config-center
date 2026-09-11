@@ -1,0 +1,404 @@
+[
+  {
+    "page": "page-11",
+    "method": "POST",
+    "path": "/api/v1/tables/stage3_active_items/query",
+    "status": 200,
+    "requestId": "rcc-60dfaf2add1072b2fba4215a92884c72",
+    "body": {
+      "conditions": [
+        {
+          "field": "name",
+          "operator": "exact",
+          "value": "Stage3Alpha"
+        }
+      ],
+      "page_number": 1
+    }
+  },
+  {
+    "page": "page-11",
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/stage3_active_items",
+    "status": 200,
+    "requestId": "rcc-6128fbd65aa568cd797d7d2c2c156e2b"
+  },
+  {
+    "page": "page-12",
+    "method": "GET",
+    "path": "/api/v1/table-policies",
+    "status": 200,
+    "requestId": "rcc-41c7bacc92cdbb28920ffe662dba965f"
+  },
+  {
+    "page": "page-12",
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "requestId": "rcc-0a2d10c6d46c6d19e7c732d0a59bb689"
+  },
+  {
+    "page": "page-12",
+    "method": "GET",
+    "path": "/api/v1/mutation-policy-types",
+    "status": 200,
+    "requestId": "rcc-9f60149c22ec1a499d0c29d232cc9473"
+  },
+  {
+    "page": "page-12",
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200,
+    "requestId": "rcc-ca9b3b55e395ae92eb191b2260ba5ba7"
+  },
+  {
+    "page": "page-12",
+    "method": "GET",
+    "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+    "status": 200,
+    "requestId": "rcc-de7dbb6d42321ae78a90d4301fbe2c79"
+  },
+  {
+    "page": "page-12",
+    "method": "GET",
+    "path": "/api/v1/query-policies/notification_page_query_v1",
+    "status": 200,
+    "requestId": "rcc-eaf8a6dde8c083d5e71024d93d6c9399"
+  },
+  {
+    "page": "page-12",
+    "method": "POST",
+    "path": "/api/v1/tables/field_display_browser_items/query",
+    "status": 200,
+    "requestId": "rcc-ac37829aba5d016008ae9497f0dd4ede",
+    "body": {
+      "conditions": [],
+      "page_number": 1
+    }
+  },
+  {
+    "page": "page-12",
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/field_display_browser_items",
+    "status": 200,
+    "requestId": "rcc-7950b16989a5b8a3fea905867bfb7616"
+  },
+  {
+    "page": "page-12",
+    "method": "GET",
+    "path": "/api/v1/mutation-policies/stage3_mutation_denied_v1",
+    "status": 200,
+    "requestId": "rcc-df3bbd7211d93e9336d1b764dfa3621f"
+  },
+  {
+    "page": "page-12",
+    "method": "GET",
+    "path": "/api/v1/query-policies/stage3_query_full_v1",
+    "status": 200,
+    "requestId": "rcc-8e58c267b839f2177ea1a36cde79e204"
+  },
+  {
+    "page": "page-12",
+    "method": "POST",
+    "path": "/api/v1/tables/stage3_denied_items/query",
+    "status": 200,
+    "requestId": "rcc-99c924c28a0c487a37f678ed7ae100c3",
+    "body": {
+      "conditions": [],
+      "page_number": 1
+    }
+  },
+  {
+    "page": "page-12",
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/stage3_denied_items",
+    "status": 200,
+    "requestId": "rcc-d775c793185c77d917f82a58fdf728b4"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/mutation-policy-types",
+    "status": 200,
+    "requestId": "rcc-d856a304ad1e69651da2300da2b981bb"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200,
+    "requestId": "rcc-196781c39a77dbdb6d2f98cb57615540"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/query-policies",
+    "status": 200,
+    "requestId": "rcc-8f26100eedee3f2275da6b7dad2847a0"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/mutation-policies",
+    "status": 200,
+    "requestId": "rcc-f3a4779f96bd63c6daaf1123f1afa016"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "requestId": "rcc-af88b39928b42f73bbb3915380553f06"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/database-tables",
+    "status": 200,
+    "requestId": "rcc-0c214042422667b4d09818eb4c964db8"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/table-policies",
+    "status": 200,
+    "requestId": "rcc-02061083b003680b6f3df5b34051b096"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/table-policies/stage3_denied_items",
+    "status": 200,
+    "requestId": "rcc-c93d55949ad538b349f5ac02cca727fb"
+  },
+  {
+    "page": "page-13",
+    "method": "PUT",
+    "path": "/api/v1/table-policies/stage3_denied_items",
+    "status": 200,
+    "requestId": "rcc-9fa1fb98967baaccb62a0c1b3ebcac2d",
+    "body": {
+      "table_name": "stage3_denied_items",
+      "query_policy_code": "stage3_query_full_v1",
+      "mutation_policy_code": "stage3_mutation_full_v1",
+      "concurrency_key": [],
+      "expected_version": "1"
+    }
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/table-policies",
+    "status": 200,
+    "requestId": "rcc-4e68ce9fb723226cfe0a9895ee524bf2"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/table-policies/stage3_denied_items",
+    "status": 200,
+    "requestId": "rcc-c2d78949548ac12f60b0781d66434184"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/database-tables",
+    "status": 200,
+    "requestId": "rcc-850cc7e45f6180666257a4d7bdf19712"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/mutation-policy-types",
+    "status": 200,
+    "requestId": "rcc-e00cd402c44a96a048328c2a037f0b76"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/query-policies",
+    "status": 200,
+    "requestId": "rcc-793c9c5f22110f7e3fae7a91675d8dc4"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200,
+    "requestId": "rcc-aa970167a1c3185f9efb94ef3f8e7450"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/mutation-policies",
+    "status": 200,
+    "requestId": "rcc-ad922655e242b7bb747a8e49adafd26d"
+  },
+  {
+    "page": "page-13",
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "requestId": "rcc-b73a5c6f420dfa826a6eae3691f8046d"
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/table-policies",
+    "status": 200,
+    "requestId": "rcc-0d25deebf44c1fa7a6e5e821a691994c"
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "requestId": "rcc-3688361d3de1ecf6a728882227f2675d"
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/mutation-policy-types",
+    "status": 200,
+    "requestId": "rcc-340b515fdaf6746c4f00b94892fb3376"
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200,
+    "requestId": "rcc-871af495c59582e3d5b96bbb4da20fb2"
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+    "status": 200,
+    "requestId": "rcc-7b1f3baba0817610d8257cd6f4921c4a"
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/query-policies/notification_page_query_v1",
+    "status": 200,
+    "requestId": "rcc-827f7a575948ecec1ae635e16e3e501d"
+  },
+  {
+    "page": "page-14",
+    "method": "POST",
+    "path": "/api/v1/tables/field_display_browser_items/query",
+    "status": 200,
+    "requestId": "rcc-1f5bd9499c0376f8dc359ce440d62950",
+    "body": {
+      "conditions": [],
+      "page_number": 1
+    }
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/field_display_browser_items",
+    "status": 200,
+    "requestId": "rcc-a9485f604ba74ea30cc0f3d54b3b8df8"
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/query-policies/stage3_query_full_v1",
+    "status": 200,
+    "requestId": "rcc-0409a0504878ab478ff726a8e218fa85"
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/mutation-policies/stage3_mutation_full_v1",
+    "status": 200,
+    "requestId": "rcc-d989e826b95592a5350c18ba32d630a8"
+  },
+  {
+    "page": "page-14",
+    "method": "POST",
+    "path": "/api/v1/tables/stage3_denied_items/query",
+    "status": 200,
+    "requestId": "rcc-b17096542ab0b4622d5a4b0e016adb80",
+    "body": {
+      "conditions": [],
+      "page_number": 1
+    }
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/stage3_denied_items",
+    "status": 200,
+    "requestId": "rcc-de9f05b277bac7ea3e705b89d57932f6"
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/stage3_denied_items",
+    "status": 200,
+    "requestId": "rcc-c52bf16bb5def32d0bd8357714837d70"
+  },
+  {
+    "page": "page-14",
+    "method": "POST",
+    "path": "/api/v1/release-orders",
+    "status": 201,
+    "requestId": "rcc-e7dc845e0e482f6cbf4c90be25fe41bf",
+    "body": {
+      "items": [
+        {
+          "table_name": "stage3_denied_items",
+          "operation": "ADD",
+          "content": {
+            "name": "CapabilitySwitchApplied"
+          }
+        }
+      ],
+      "title": "stage3_denied_items 配置变更"
+    }
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "requestId": "rcc-7869d812bb546761792011fc61a1b5dc"
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "requestId": "rcc-0fa538f1bd8cadc2096df660922ed039"
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/release-orders/8546b044d6ec41f52edfaba25f25ac73",
+    "status": 200,
+    "requestId": "rcc-440e12b1057ca551873b66fdfe158335"
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/stage3_denied_items",
+    "status": 200,
+    "requestId": "rcc-71fb98de1a410ea546d3c9c1f825a57b"
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/release-orders/8546b044d6ec41f52edfaba25f25ac73/details",
+    "status": 200,
+    "requestId": "rcc-75bee3fd21398b385038bd4eb888df12"
+  },
+  {
+    "page": "page-14",
+    "method": "GET",
+    "path": "/api/v1/release-orders/8546b044d6ec41f52edfaba25f25ac73/people",
+    "status": 200,
+    "requestId": "rcc-7bef6bf457496a757651f4d1257eb387"
+  }
+]

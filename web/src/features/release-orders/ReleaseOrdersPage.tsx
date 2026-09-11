@@ -23,7 +23,6 @@ import {ErrorState,LoadingState} from "../../components/ui/Feedback";
 import {useAccountRole} from "../accounts/roles";
 import {useToast} from "../../components/ui/Toast";
 import {ReleaseTime} from "./ReleaseTime";
-import {ReleaseProgress} from "./ReleaseProgress";
 import {ReleaseFlows,ReleasePhase} from "./ReleaseFlows";
 import {ReleaseApprovals} from "./ReleaseApprovals";
 import {ReleaseHistory} from "./ReleaseHistory";
@@ -138,7 +137,7 @@ export function ReleaseDetail({id,listPath="/configuration/release-orders",listL
   {order.allowed_actions.length===0&&!requests.some(item=>releaseRequestOrder(item)===id)&&<p className="mt-3 text-xs text-muted-foreground">当前状态和权限下没有可执行操作。</p>}
  </header>
  {order.missing_flow_tables.length>0&&<section aria-label="流程配置未完成" className="release-panel min-w-0"><h2 className="text-lg font-semibold text-warning">流程配置未完成，暂不能提交</h2><p className="mt-2">以下表尚未保存当前发布方式的流程。请管理员检查对应模板与表关联；配置修复后，再保存草稿补齐缺失流程。已有表流程保持不变。</p><ul className="my-3 grid gap-1 break-all font-mono">{order.missing_flow_tables.map(table=><li key={table}>{table}</li>)}</ul>{canEdit&&(order.allowed_actions.includes("edit")||retained("edit"))&&<Button disabled={requestPending} onClick={()=>setEditing(true)}>保存草稿以补齐流程</Button>}</section>}
- {order.state==="ROLLED_BACK"?<ReleaseProgress order={order} people={names}/>:<ReleasePhase order={order} people={names}/>}
+ <ReleasePhase order={order} people={names}/>
  {peopleFailure&&<section className="inline-alert mb-4 min-w-0 flex-wrap" role="alert"><div><strong>人员姓名读取失败，当前仅显示永久账号 ID。</strong><span>{peopleFailure.message}</span><span>错误代码：{peopleCode}</span>{peopleFailure.requestId&&<span>请求编号：{peopleFailure.requestId}</span>}</div><Button variant="secondary" disabled={people.isFetching} onClick={()=>void people.refetch()}>{people.isFetching?"正在读取人员姓名…":"重新读取人员姓名"}</Button></section>}
  {order.frozen_digest&&<p className="text-sm text-muted-foreground">提交内容已冻结，后续发布以这份差异为准。</p>}
 

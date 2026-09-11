@@ -1,0 +1,115 @@
+{
+  "status": "completed",
+  "images": [
+    {
+      "path": "browser-remaining-03/release-workflow/approvals/release-detail-approved-desktop.png",
+      "sha256": "3f713822d5a69b83859e5676cc1afe5f516aff663c547cb48e7d8f313029535d",
+      "inspection": "view_image original artifact",
+      "observation": "Long title and values wrap; actual keyboard outline visible on change item; forward approval completed, publication in progress, completion pending. Whole-order phase awaits execution."
+    },
+    {
+      "path": "browser-remaining-03/release-workflow/approvals/release-detail-approved-390.png",
+      "sha256": "8b16f188229cc90ef487635335c86fe3027a3c30599a1f4ecd7bc8d0481363bb",
+      "inspection": "view_image original artifact",
+      "observation": "390px title/actions/phase/flow cards remain inside page. Change diff owns horizontal scroll; long identity and history wrap; focused summary visible."
+    },
+    {
+      "path": "browser-remaining-03/release-workflow/rollback-webkit/release-quick-rollback-result-mobile.png",
+      "sha256": "e1793dc072f5bd7e93378d1e1ac529d71c1cac3fba543168a6d1b42ec3bf343e",
+      "inspection": "view_image original artifact",
+      "observation": "390px real ROLLED_BACK: actual forward approval/publication completed, forward completion stopped; restoration publication completed, restoration completion stopped; no fictional actor/time on stopped nodes. Original-order restoration result and optional reason remain accessible."
+    },
+    {
+      "path": "browser-remaining-03/release-workflow/recovery-webkit/accounts-failure.png",
+      "sha256": "071789cd6e0a8a41e9e64e49b4191768e21e80e44839e87077c0da3d7680fa14",
+      "inspection": "view_image original artifact",
+      "observation": "Original failed attempt: selector and new-record drawer both batch_browser_items rather than desired notification_templates, explaining missing template_key."
+    },
+    {
+      "path": "browser-account-webkit-recheck-04/release-workflow/recovery-webkit/accounts-failure.png",
+      "sha256": "cc74067fb9edfa9cf1698c3144ab2702755d2a843154f866ef73c8e830a76092",
+      "inspection": "view_image original artifact",
+      "observation": "Second original failure: durable publication visible below but repeated execution dialog still processing; count assertion ran before replay response."
+    },
+    {
+      "path": "go-browser/TestReleaseFlowBrowserSystemPath-02/cancelled-flows-1440.png",
+      "sha256": "15fd28d48f6ffb208601ebd01f312984c7a2f72996f4f69234228a3d3db32593",
+      "inspection": "view_image original artifact",
+      "observation": "Cancellation retains six STOPPED nodes with no invented actors or times. Whole-order terminal phase and saved distinct per-table templates visible. No execution/completion action. Long content wraps within page at original viewport."
+    },
+    {
+      "path": "go-browser/TestReleaseFlowBrowserSystemPath-02/cancelled-flows-390.png",
+      "sha256": "cc43c130a1d7b1d58756de30263366cfa5246325787022b20e88c8c717764684",
+      "inspection": "view_image original artifact",
+      "observation": "Cancellation retains six STOPPED nodes with no invented actors or times. Whole-order terminal phase and saved distinct per-table templates visible. No execution/completion action. Long content wraps within page at original viewport."
+    },
+    {
+      "path": "go-browser/TestReleaseFlowBrowserSystemPath-02/rejected-flows-1440.png",
+      "sha256": "4f259112d87590440235424c3e42982d9a67d40566918a09b2db67f96a6bc7db",
+      "inspection": "view_image original artifact",
+      "observation": "Both approvals REJECTED by actual reviewer with timestamps; four unpublished/uncompleted nodes STOPPED without actors or times. Whole-order terminal phase and saved distinct per-table templates visible. No execution/completion action. Long content wraps within page at original viewport."
+    },
+    {
+      "path": "go-browser/TestReleaseFlowBrowserSystemPath-02/rejected-flows-390.png",
+      "sha256": "329aba6d59ea8f7e273a0205a770cc074eddb245ed434f5bfd01561d90c8280d",
+      "inspection": "view_image original artifact",
+      "observation": "Both approvals REJECTED by actual reviewer with timestamps; four unpublished/uncompleted nodes STOPPED without actors or times. Whole-order terminal phase and saved distinct per-table templates visible. No execution/completion action. Long content wraps within page at original viewport."
+    },
+    {
+      "path": "go-browser/TestReleaseTemplateBrowserSystemPath-01/release-template-catalog-desktop.png",
+      "sha256": "991de95ed64539d20f82f1bfb2a40abba10bcc64fc16c087c4bf61a6cdac6f15",
+      "inspection": "view_image original artifact",
+      "observation": "Catalog shows distinct codes, release types and actual node summaries; maintenance controls and labels are readable."
+    },
+    {
+      "path": "go-browser/TestReleaseTemplateBrowserSystemPath-01/release-template-mobile.png",
+      "sha256": "1cc6b0144ca576ec1445201078348c222243723654d7b9d4f4b18752b627d9ec",
+      "inspection": "view_image original artifact",
+      "observation": "390px template drawer keeps fixed code/type and editable/detail fields readable; bottom actions remain visible inside the viewport."
+    },
+    {
+      "path": "go-browser/TestTableReleaseTemplateBrowserSystemPath-01/table-release-desktop.png",
+      "sha256": "7612b3d562787909ad9340c76a1c087d3d859c8d29e58d353718880cb36eb9fb",
+      "inspection": "view_image original artifact",
+      "observation": "Independent standard/emergency sections display selected codes, node lists, actual version and modifier; long emergency name wraps; foreground settings drawer owns interaction."
+    },
+    {
+      "path": "go-browser/TestTableReleaseTemplateBrowserSystemPath-01/table-release-mobile-actions.png",
+      "sha256": "9a82971290fcd23cadfce52de33ca0a2c576e6533b480ae4dbc4f253280a35db",
+      "inspection": "view_image original artifact",
+      "observation": "390px long current identity wraps within drawer; save emergency remains reachable; emergency has no disable/unbind control. Native select truncates its closed label within available width."
+    },
+    {
+      "path": "go-browser/TestReleaseEmergencyBrowserSystemPath-01/emergency-session-interrupted-mobile.png",
+      "sha256": "998c19405c02277be904729870951ee9128e3a583adb5011d7196a77914c1343",
+      "inspection": "view_image original artifact",
+      "observation": "390px expired session presents only login surface with labeled username/password and reachable action; application controls are hidden."
+    },
+    {
+      "path": "go-browser/TestReleaseEmergencyBrowserSystemPath-01/emergency-pending-publication-mobile.png",
+      "sha256": "c3c7677d96183a324f1f17849a4454afb449092e073550ba673f598e8972344d",
+      "inspection": "view_image original artifact",
+      "observation": "Real emergency pending publication shows two saved publish/completion instances, publication active and completion pending; no approval progress or fabricated approval actor/event. Long title/reason wraps."
+    },
+    {
+      "path": "go-browser/TestRollbackFlowBrowserSystemPath-01/04-original-preview-replayed-390.png",
+      "sha256": "d5ab12ace0f50cbb626eb7a393b29f7499108fc5a72ad450aa036b0a97892ffd",
+      "inspection": "view_image original artifact",
+      "observation": "390px original recovery preview shows distinct saved per-table emergency nodes; long names wrap and keyboard focus outline remains on cancel action with confirm visible."
+    },
+    {
+      "path": "go-browser/TestRollbackFlowBrowserSystemPath-01/05-directly-ended-result-desktop.png",
+      "sha256": "f7311efbc56e8ceff9c38bafecdc20eb0d974f4ce7c59abc860a27df23a5f77d",
+      "inspection": "view_image original artifact",
+      "observation": "Original two-table order directly ended in ROLLED_BACK; true forward/restoration publication actors retained, completion nodes stopped without invented actors/timestamps. Optional reason and original/actual/restoration result tabs visible."
+    }
+  ],
+  "secondary_root_inspection": {
+    "original_images": [
+      "browser-remaining-03/release-workflow/rollback-webkit/release-quick-rollback-result-mobile.png",
+      "go-browser/TestReleaseFlowBrowserSystemPath-02/cancelled-flows-390.png",
+      "go-browser/TestReleaseFlowBrowserSystemPath-02/rejected-flows-1440.png"
+    ],
+    "note": "Root independently inspected actual rollback390 and Flow02 cancel390/reject1440 original images; primary image records above are authoritative paths and hashes."
+  }
+}

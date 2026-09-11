@@ -1,3 +1,4 @@
+const { configureFixtureReleaseTemplates } = require('./release-template-fixture.cjs');
 // AC-023: formal role configuration → table assignments → split/default review
 // → observed notification acknowledgement → publication and result visibility.
 const assert = require('node:assert/strict');
@@ -43,7 +44,11 @@ const tables = ['multitable_browser_a', 'multitable_browser_b'];
   const mutation = 'approval_final_browser_v1';
   await api(admin.context, base, 'POST', '/api/v1/mutation-policies', { code: mutation, name: '最终全链路验收', description: '', type_code: 'single_table_mutation', allow_add: true, allow_modify: true, allow_delete: true }, 201);
   await api(admin.context, base, 'POST', `/api/v1/mutation-policies/${mutation}/activate`, {});
-  for (const table of tables) { await api(admin.context, base, 'POST', '/api/v1/table-policies', { table_name: table, query_policy_code: 'notification_page_query_v1', mutation_policy_code: mutation }, 201); await api(admin.context, base, 'POST', `/api/v1/table-policies/${table}/enable`, {}); }
+  for (const table of tables) {
+   const created = await api(admin.context, base, 'POST', '/api/v1/table-policies', { table_name: table, query_policy_code: 'notification_page_query_v1', mutation_policy_code: mutation }, 201);
+   await api(admin.context, base, 'POST', `/api/v1/table-policies/${table}/enable`, {expected_version:created.version});
+  }
+  await configureFixtureReleaseTemplates(admin.context, base, tables);
   const createRole = async (name, member) => {
    await admin.page.goto(`${base}/platform/approval-roles`);
    await keyboard(button(admin.page, '新建审批角色'));

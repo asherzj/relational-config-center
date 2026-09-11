@@ -37,6 +37,18 @@ async function session(api) {
   return response.json();
 }
 
+async function selectNotificationTable(page) {
+  // The selected table's visible query configuration must be ready before
+  // opening a record drawer; a preceding table request may still be settling.
+  await page.waitForFunction(() => {
+    const button = Array.from(document.querySelectorAll('button')).find(element => element.textContent.trim() === '重新查询');
+    return button && !button.disabled;
+  });
+  assert.deepEqual(await page.getByLabel('Managed Table', { exact: true }).selectOption('notification_templates'), ['notification_templates']);
+  await page.getByLabel('筛选 template_key 值', { exact: true }).waitFor();
+  assert.equal(await page.getByLabel('Managed Table', { exact: true }).inputValue(), 'notification_templates');
+}
+
 async function releaseState(page, state) {
   await page.getByRole('heading', { name: 'notification_templates 配置变更', exact: true }).waitFor();
   await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: new RegExp(`^${state}$`) }).waitFor();
@@ -209,7 +221,7 @@ try {
   page = await context.newPage();
   await page.goto(`${origin}/configuration/managed-data`);
   await page.getByRole('heading', { name: '统一变更入口' }).waitFor();
-  await page.getByLabel('Managed Table', { exact: true }).selectOption('notification_templates');
+  await selectNotificationTable(page);
   await page.getByRole('button', { name: '新增记录', exact: true }).click();
   for (const [field, value] of Object.entries({ template_key: templateKey, channel: 'PUSH', body: 'browser initial configuration' })) {
     await page.getByLabel(`包含 ${field}`, { exact: true }).check();
@@ -279,7 +291,12 @@ try {
   page.on('dialog', acceptReload);
   await page.reload();
   page.off('dialog', acceptReload);
+  // The reload already sees the committed publication. Wait for the repeated
+  // request itself, then the confirmation closing, before comparing packets.
+  const repeatedExecute = page.waitForResponse(response => new URL(response.url()).pathname === executePath && response.request().method() === 'POST');
   await originalReleaseActions.repeatReleaseAction(page,'执行发布','确认发布到数据库');
+  assert.equal((await repeatedExecute).status(), 200);
+  await page.getByRole('button', { name: '确认发布到数据库', exact: true }).waitFor({ state: 'hidden' });
   await releaseState(page, '已发布待完结');
   await page.getByRole('heading', { name: '数据库发布结果', exact: true }).waitFor();
   await page.getByRole('region', { name: '发布结果' }).getByText(/分发尚未接入/, { exact: false }).waitFor();
@@ -315,7 +332,7 @@ try {
   await releaseState(page, '已完结');
 
   await page.goto(`${origin}/configuration/managed-data`);
-  await page.getByLabel('Managed Table', { exact: true }).selectOption('notification_templates');
+  await selectNotificationTable(page);
   const baseline = await page.evaluate(async key => {
     const auth = await (await fetch('/api/v1/auth/session')).json();
     const result = await (await fetch('/api/v1/tables/notification_templates/query', {
@@ -453,7 +470,15 @@ try {
     ],
   }));
 } catch (error) {
-  if (process.env.RCC_E2E_OUTPUT && page && !page.isClosed()) await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'accounts-failure.png'), fullPage: true }).catch(() => {});
+  if (process.env.RCC_E2E_OUTPUT && page && !page.isClosed()) {
+    await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'accounts-failure.png'), fullPage: true }).catch(() => {});
+    const state = await page.evaluate(() => ({
+      url: location.href,
+      selectedTable: document.querySelector('select[aria-label="Managed Table"]')?.value,
+      dialogTitles: Array.from(document.querySelectorAll('[role="dialog"] h2, [role="alertdialog"] h2')).map(element => element.textContent),
+    })).catch(() => ({ url: page.url() }));
+    await writeFile(join(process.env.RCC_E2E_OUTPUT, 'accounts-failure-state.json'), JSON.stringify(state, null, 2));
+  }
   throw error;
 } finally {
   await reviewerBrowser?.close();

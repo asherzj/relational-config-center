@@ -1,0 +1,5 @@
+PASS a hidden configured field remains in persisted actual before/final and duplicate labels retain both raw values
+PASS reopening history reads new names and option labels without changing persisted before/final
+PASS request review ignores list visibility while showing current labels and immutable requested values
+PASS metadata failure keeps raw request history, diagnostics and an independent retry
+{"checks":["a hidden configured field remains in persisted actual before/final and duplicate labels retain both raw values","reopening history reads new names and option labels without changing persisted before/final","request review ignores list visibility while showing current labels and immutable requested values","metadata failure keeps raw request history, diagnostics and an independent retry"],"errors":[],"order_id":"a72544553bc252f8b18edd7d8e5da6d7"}

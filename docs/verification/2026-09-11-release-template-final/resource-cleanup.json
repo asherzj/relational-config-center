@@ -1,0 +1,17 @@
+{
+  "owned_testcontainers_seen_in_raw_logs": 439,
+  "owned_remaining": [],
+  "compose_projects": [
+    "rcc-goose-d28c02a4e3cc",
+    "rcc-goose-1456896820d8"
+  ],
+  "owned_compose_volumes_remaining": [],
+  "baseline_containers_running": [
+    "f4e91bfe4ff1",
+    "18b51e6f8509"
+  ],
+  "timeout_cleanup": "timeout-container-cleanup.json",
+  "compose_source_mirror_removed": true,
+  "browser_cleanup": "browser-runner-integrity.json",
+  "note": "Read-only final inventory; no existing user container or volume was removed."
+}

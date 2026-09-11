@@ -1,0 +1,20 @@
+{
+  "ok": false,
+  "base": "http://127.0.0.1:57199",
+  "browser": null,
+  "passed": [],
+  "evidence": [],
+  "pageErrors": [],
+  "cleanup": {
+    "fixtureRowsEqual": true,
+    "tablePolicies": 0,
+    "queryPolicies": 0,
+    "mutationPolicies": 0,
+    "physicalTables": 0
+  },
+  "failure": {
+    "name": "Error",
+    "message": "Command failed: /var/folders/ll/6l3vq9q97v5c58_9s5nzqyv00000gn/T//rcc-browser-runtime.jKXd8W/account-maintain grant-admin --id 67dbfb4c-52fe-46ce-9f14-1bcfeb1f7eae\nschema_not_ready: complete schema-migrate up/recover before grant-admin\n",
+    "stack": "Error: Command failed: /var/folders/ll/6l3vq9q97v5c58_9s5nzqyv00000gn/T//rcc-browser-runtime.jKXd8W/account-maintain grant-admin --id 67dbfb4c-52fe-46ce-9f14-1bcfeb1f7eae\nschema_not_ready: complete schema-migrate up/recover before grant-admin\n\n    at genericNodeError (node:internal/errors:985:15)\n    at wrappedFn (node:internal/errors:539:14)\n    at checkExecSyncError (node:child_process:942:11)\n    at execFileSync (node:child_process:978:15)\n    at registerFixtureAccount (/private/tmp/rcc-issue-106-release-template-final/web/e2e/local-account.cjs:72:3)\n    at async /private/tmp/rcc-issue-106-release-template-final/web/e2e/operation-coverage.cjs:134:15"
+  }
+}

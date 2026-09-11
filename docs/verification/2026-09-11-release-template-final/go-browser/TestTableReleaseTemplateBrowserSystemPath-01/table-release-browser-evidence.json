@@ -1,0 +1,14 @@
+{
+  "code": "browser_emergency_v1",
+  "checks": [
+    "create table and emergency association atomically; committed response loss manually replays original create",
+    "merged admin navigation and all four table management entry points coexist",
+    "same-account reauthentication preserves unknown original association request without automatic write retry",
+    "formal table settings select same-type templates and safely replay lost association response",
+    "concurrent editor conflict retains selected template and observed version",
+    "standard association disabled while emergency remains enabled",
+    "390px long template name, reachable controls, keyboard focus and no page/drawer overflow",
+    "Escape preserves pending choice through shared unsaved confirmation",
+    "entire table can still be disabled"
+  ]
+}

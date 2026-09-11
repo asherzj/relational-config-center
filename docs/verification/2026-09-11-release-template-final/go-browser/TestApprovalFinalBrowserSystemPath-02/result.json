@@ -1,0 +1,52 @@
+{
+  "engine": "chromium",
+  "checks": [
+    "正式v8旧APPROVER升级为VIEWER；当前选项退出，历史含义和版本仍可读",
+    "正式角色页检索成员并保存；键盘完成两张表的独立角色分配",
+    "1440px 完整多表提交、分工审批、已读不清待办、发布和参与者结果",
+    "390px 完整多表提交、默认ADMIN审批、已读不清待办、发布和参与者结果"
+  ],
+  "errors": [],
+  "geometry": [
+    {
+      "name": "current-roles-and-permanent-history",
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "name": "partial-approval-1440",
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "name": "publication-result-1440",
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "name": "reviewer-result-1440",
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "name": "mobile-default-assignment-saved",
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "name": "partial-approval-390",
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "name": "publication-result-390",
+      "viewport": 390,
+      "document": 390
+    },
+    {
+      "name": "reviewer-result-390",
+      "viewport": 390,
+      "document": 390
+    }
+  ]
+}

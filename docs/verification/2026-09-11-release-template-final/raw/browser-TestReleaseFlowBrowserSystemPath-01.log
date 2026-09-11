@@ -1,0 +1,36 @@
+=== RUN   TestReleaseFlowBrowserSystemPath
+2026/09/11 18:11:46 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 85ff8073a2dd8ec1b3c64eafce2883cc25fe9c2fb0ae2a944a959ea3b16a163b
+  Test ProcessID: 7648f01a-cf13-4b99-b6c6-1e64730aede2
+2026/09/11 18:11:46 🐳 Creating container for image mysql:8.4
+2026/09/11 18:11:46 ✅ Container created: 5119fccc09c5
+2026/09/11 18:11:46 🐳 Starting container: 5119fccc09c5
+2026/09/11 18:11:46 ✅ Container started: 5119fccc09c5
+2026/09/11 18:11:46 ⏳ Waiting for container id 5119fccc09c5 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 18:11:53 🔔 Container is ready: 5119fccc09c5
+    release_flow_browser_integration_test.go:19: isolated browser target: MySQL localhost:48699/rcc_test, Admin http://127.0.0.1:49686 pid=78695, Vite http://127.0.0.1:49682 pid=78716; evidence /private/tmp/rcc-issue-106-release-template-final/docs/verification/2026-09-11-release-template-final/go-browser/TestReleaseFlowBrowserSystemPath-01
+    release_flow_browser_integration_test.go:19: release flow browser path: exit status 1 locator.waitFor: Timeout 20000ms exceeded.
+        Call log:
+        [2m  - waiting for getByRole('region', { name: '发布阶段', exact: true }).getByRole('heading', { name: '已取消', exact: true }) to be visible[22m
+        
+            at /private/tmp/rcc-issue-106-release-template-final/web/e2e/release-instances.cjs:157:104 {
+          log: [
+            "  - waiting for getByRole('region', { name: '发布阶段', exact: true }).getByRole('heading', { name: '已取消', exact: true }) to be visible"
+          ],
+          name: 'TimeoutError'
+        }
+2026/09/11 18:12:40 🐳 Stopping container: 5119fccc09c5
+2026/09/11 18:12:41 ✅ Container stopped: 5119fccc09c5
+2026/09/11 18:12:41 🐳 Terminating container: 5119fccc09c5
+2026/09/11 18:12:41 🚫 Container terminated: 5119fccc09c5
+--- FAIL: TestReleaseFlowBrowserSystemPath (55.24s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	57.318s
+FAIL

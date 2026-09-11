@@ -543,7 +543,7 @@ func TestQueryFailsClosedWhenPolicyCatalogIsUnavailable(t *testing.T) {
 		t.Fatalf("open fixture database: %v", err)
 	}
 	t.Cleanup(func() { _ = database.Close() })
-	if _, err := database.ExecContext(ctx, "DROP TABLE `rcc_table_policies`"); err != nil {
+	if _, err := database.ExecContext(ctx, "RENAME TABLE `rcc_table_policies` TO `unavailable_table_policies`"); err != nil {
 		t.Fatalf("make Policy Catalog unavailable: %v", err)
 	}
 

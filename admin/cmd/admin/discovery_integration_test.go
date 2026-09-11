@@ -121,7 +121,7 @@ func TestHealthDistinguishesRunningProcessFromRequiredInfrastructure(t *testing.
 func TestStartupRequiresTheProtectedPolicyCatalog(t *testing.T) {
 	ctx, driverConfig := startCurrentIntegrationMySQL(t)
 	db := deliveryDB(t, driverConfig)
-	deliveryExec(t, db, `DROP TABLE rcc_table_policies`)
+	deliveryExec(t, db, `RENAME TABLE rcc_table_policies TO unavailable_table_policies`)
 
 	app, err := newApplication(ctx, integrationConfig(driverConfig))
 	if err == nil {

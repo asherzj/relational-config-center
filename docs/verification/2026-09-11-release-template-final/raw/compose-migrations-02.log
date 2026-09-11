@@ -1,0 +1,7 @@
+fresh_volume: PASS
+adopted_volume_repeat: PASS
+unmanaged_volume_blocks: PASS
+explicit_adoption_restores_deployment: PASS
+unconfirmed_volume_blocks: PASS
+explicit_recovery_restores_deployment: PASS
+Evidence: /private/tmp/rcc-issue-106-release-template-final/docs/verification/2026-09-11-release-template-final/compose-migrations-02

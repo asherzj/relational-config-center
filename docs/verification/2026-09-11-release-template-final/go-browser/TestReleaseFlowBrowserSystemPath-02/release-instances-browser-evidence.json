@@ -1,0 +1,585 @@
+{
+  "order_id": "d0fb4c1cd5a9cb38290752efd0147990",
+  "repair_order_id": "2ae066922834ee02799bffd14b5ad77b",
+  "checks": [
+    "AC-009: real Web creates a two-table draft; distinct persisted templates render, source disclosure opens/closes by keyboard, and refresh performs no write",
+    "AC-010: editing/disabling source template and switching association leave the saved draft instance intact",
+    "AC-010/023/025: 390px missing-flow block; GET stays read-only after repair; explicit unchanged save fills only missing instance; committed lost response survives refresh and exact manual replay",
+    "AC-014: frozen table roles survive later assignment change; independent partial/all approvals drive real nodes; whole-order publication and completion retain actual actors",
+    "AC-025/027: keyboard cancellation and rejection terminate real saved nodes on desktop and 390px without inventing publication, completion, actors or timestamps"
+  ],
+  "snapshots": {
+    "saved": [
+      {
+        "instance_id": "d75822ec2da64770d1037590155fe907",
+        "table_name": "policy_alpha",
+        "release_type": "STANDARD",
+        "template_code": "flow_alpha_v1",
+        "template_name": "资金配置负责人核对及整单结果确认流程",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-11T10:14:13.04671Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "资金负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "PENDING"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "资金整单发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "资金结果完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      },
+      {
+        "instance_id": "5385c26c8d3bc85ec1d977addab2c2fd",
+        "table_name": "policy_beta",
+        "release_type": "STANDARD",
+        "template_code": "flow_beta_v1",
+        "template_name": "渠道负责人独立复核与整单发布流程",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-11T10:14:14.742279Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "渠道负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "PENDING"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "渠道整单发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "渠道结果完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      }
+    ],
+    "repaired": [
+      {
+        "instance_id": "4138ecd79a3e6c0f56d24fd92f28f7be",
+        "table_name": "policy_alpha",
+        "release_type": "STANDARD",
+        "template_code": "flow_replacement_v1",
+        "template_name": "新的关联流程",
+        "template_version": "1",
+        "association_version": "2",
+        "instantiated_at": "2026-09-11T10:14:15.700408Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "新配置负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "PENDING"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "新配置整单发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "新配置结果完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      },
+      {
+        "instance_id": "b0ad908ec828cfe4f3970726d111c7b0",
+        "table_name": "policy_beta",
+        "release_type": "STANDARD",
+        "template_code": "flow_beta_v1",
+        "template_name": "渠道负责人独立复核与整单发布流程",
+        "template_version": "1",
+        "association_version": "3",
+        "instantiated_at": "2026-09-11T10:14:16.508577Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "渠道负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "PENDING"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "渠道整单发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "渠道结果完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      }
+    ],
+    "manual_replay": {
+      "same_key": true,
+      "same_body": true,
+      "original_version": "1",
+      "stored_version": "2"
+    },
+    "submitted": [
+      {
+        "instance_id": "d75822ec2da64770d1037590155fe907",
+        "table_name": "policy_alpha",
+        "release_type": "STANDARD",
+        "template_code": "flow_alpha_v1",
+        "template_name": "资金配置负责人核对及整单结果确认流程",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-11T10:14:13.04671Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "资金负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "ACTIVE"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "资金整单发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "资金结果完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      },
+      {
+        "instance_id": "5385c26c8d3bc85ec1d977addab2c2fd",
+        "table_name": "policy_beta",
+        "release_type": "STANDARD",
+        "template_code": "flow_beta_v1",
+        "template_name": "渠道负责人独立复核与整单发布流程",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-11T10:14:14.742279Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "渠道负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "ACTIVE"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "渠道整单发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "渠道结果完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      }
+    ],
+    "partial_approval": [
+      {
+        "instance_id": "d75822ec2da64770d1037590155fe907",
+        "table_name": "policy_alpha",
+        "release_type": "STANDARD",
+        "template_code": "flow_alpha_v1",
+        "template_name": "资金配置负责人核对及整单结果确认流程",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-11T10:14:13.04671Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "资金负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "COMPLETED",
+            "actor_id": "4c4bc74c-6aad-48d5-8cdc-8afa0f5262cc",
+            "at": "2026-09-11T10:14:21.47636Z"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "资金整单发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "资金结果完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      },
+      {
+        "instance_id": "5385c26c8d3bc85ec1d977addab2c2fd",
+        "table_name": "policy_beta",
+        "release_type": "STANDARD",
+        "template_code": "flow_beta_v1",
+        "template_name": "渠道负责人独立复核与整单发布流程",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-11T10:14:14.742279Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "渠道负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "ACTIVE"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "渠道整单发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "渠道结果完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      }
+    ],
+    "all_approved": [
+      {
+        "instance_id": "d75822ec2da64770d1037590155fe907",
+        "table_name": "policy_alpha",
+        "release_type": "STANDARD",
+        "template_code": "flow_alpha_v1",
+        "template_name": "资金配置负责人核对及整单结果确认流程",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-11T10:14:13.04671Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "资金负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "COMPLETED",
+            "actor_id": "4c4bc74c-6aad-48d5-8cdc-8afa0f5262cc",
+            "at": "2026-09-11T10:14:21.47636Z"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "资金整单发布",
+            "required_role": "PUBLISHER",
+            "state": "ACTIVE"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "资金结果完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      },
+      {
+        "instance_id": "5385c26c8d3bc85ec1d977addab2c2fd",
+        "table_name": "policy_beta",
+        "release_type": "STANDARD",
+        "template_code": "flow_beta_v1",
+        "template_name": "渠道负责人独立复核与整单发布流程",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-11T10:14:14.742279Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "渠道负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "COMPLETED",
+            "actor_id": "b9993f12-6fc7-4b9e-af2e-e36e6f2d217b",
+            "at": "2026-09-11T10:14:23.498554Z"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "渠道整单发布",
+            "required_role": "PUBLISHER",
+            "state": "ACTIVE"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "渠道结果完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      }
+    ],
+    "completed": [
+      {
+        "instance_id": "d75822ec2da64770d1037590155fe907",
+        "table_name": "policy_alpha",
+        "release_type": "STANDARD",
+        "template_code": "flow_alpha_v1",
+        "template_name": "资金配置负责人核对及整单结果确认流程",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-11T10:14:13.04671Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "资金负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "COMPLETED",
+            "actor_id": "4c4bc74c-6aad-48d5-8cdc-8afa0f5262cc",
+            "at": "2026-09-11T10:14:21.47636Z"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "资金整单发布",
+            "required_role": "PUBLISHER",
+            "state": "COMPLETED",
+            "actor_id": "aacb6a2f-2412-4d16-b222-ea8ae4c03690",
+            "at": "2026-09-11T10:14:25.160974Z"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "资金结果完结",
+            "required_role": "PUBLISHER",
+            "state": "COMPLETED",
+            "actor_id": "aacb6a2f-2412-4d16-b222-ea8ae4c03690",
+            "at": "2026-09-11T10:14:26.095304Z"
+          }
+        ]
+      },
+      {
+        "instance_id": "5385c26c8d3bc85ec1d977addab2c2fd",
+        "table_name": "policy_beta",
+        "release_type": "STANDARD",
+        "template_code": "flow_beta_v1",
+        "template_name": "渠道负责人独立复核与整单发布流程",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-11T10:14:14.742279Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "渠道负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "COMPLETED",
+            "actor_id": "b9993f12-6fc7-4b9e-af2e-e36e6f2d217b",
+            "at": "2026-09-11T10:14:23.498554Z"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "渠道整单发布",
+            "required_role": "PUBLISHER",
+            "state": "COMPLETED",
+            "actor_id": "aacb6a2f-2412-4d16-b222-ea8ae4c03690",
+            "at": "2026-09-11T10:14:25.160974Z"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "渠道结果完结",
+            "required_role": "PUBLISHER",
+            "state": "COMPLETED",
+            "actor_id": "aacb6a2f-2412-4d16-b222-ea8ae4c03690",
+            "at": "2026-09-11T10:14:26.095304Z"
+          }
+        ]
+      }
+    ],
+    "cancelled": [
+      {
+        "instance_id": "4138ecd79a3e6c0f56d24fd92f28f7be",
+        "table_name": "policy_alpha",
+        "release_type": "STANDARD",
+        "template_code": "flow_replacement_v1",
+        "template_name": "新的关联流程",
+        "template_version": "1",
+        "association_version": "2",
+        "instantiated_at": "2026-09-11T10:14:15.700408Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "新配置负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "STOPPED"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "新配置整单发布",
+            "required_role": "PUBLISHER",
+            "state": "STOPPED"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "新配置结果完结",
+            "required_role": "PUBLISHER",
+            "state": "STOPPED"
+          }
+        ]
+      },
+      {
+        "instance_id": "b0ad908ec828cfe4f3970726d111c7b0",
+        "table_name": "policy_beta",
+        "release_type": "STANDARD",
+        "template_code": "flow_beta_v1",
+        "template_name": "渠道负责人独立复核与整单发布流程",
+        "template_version": "1",
+        "association_version": "3",
+        "instantiated_at": "2026-09-11T10:14:16.508577Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "渠道负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "STOPPED"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "渠道整单发布",
+            "required_role": "PUBLISHER",
+            "state": "STOPPED"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "渠道结果完结",
+            "required_role": "PUBLISHER",
+            "state": "STOPPED"
+          }
+        ]
+      }
+    ],
+    "rejected": [
+      {
+        "instance_id": "d07f25b639973c51a99843caa707422d",
+        "table_name": "policy_alpha",
+        "release_type": "STANDARD",
+        "template_code": "flow_replacement_v1",
+        "template_name": "新的关联流程",
+        "template_version": "1",
+        "association_version": "2",
+        "instantiated_at": "2026-09-11T10:14:27.263414Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "新配置负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "REJECTED",
+            "actor_id": "b9993f12-6fc7-4b9e-af2e-e36e6f2d217b",
+            "at": "2026-09-11T10:14:27.819971Z"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "新配置整单发布",
+            "required_role": "PUBLISHER",
+            "state": "STOPPED"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "新配置结果完结",
+            "required_role": "PUBLISHER",
+            "state": "STOPPED"
+          }
+        ]
+      },
+      {
+        "instance_id": "e12f8dcc042724a617154af84d69d71b",
+        "table_name": "policy_beta",
+        "release_type": "STANDARD",
+        "template_code": "flow_beta_v1",
+        "template_name": "渠道负责人独立复核与整单发布流程",
+        "template_version": "1",
+        "association_version": "3",
+        "instantiated_at": "2026-09-11T10:14:27.263414Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "渠道负责人核对",
+            "required_role": "TABLE_APPROVER",
+            "state": "REJECTED",
+            "actor_id": "b9993f12-6fc7-4b9e-af2e-e36e6f2d217b",
+            "at": "2026-09-11T10:14:27.819971Z"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "渠道整单发布",
+            "required_role": "PUBLISHER",
+            "state": "STOPPED"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "渠道结果完结",
+            "required_role": "PUBLISHER",
+            "state": "STOPPED"
+          }
+        ]
+      }
+    ]
+  }
+}

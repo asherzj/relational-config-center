@@ -150,6 +150,28 @@ const standard = (code, name, prefix) => ({code, name, description:'实例隔离
   const completed=await api(admin,'GET',path);snapshots.completed=completed.table_flows;assert.ok(completed.table_flows.every(flow=>flow.node_list.every(node=>node.state==='COMPLETED'&&node.actor_id&&node.at)));
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await shot(page,'completed-flows-mobile.png');
   checks.push('AC-014: frozen table roles survive later assignment change; independent partial/all approvals drive real nodes; whole-order publication and completion retain actual actors');
+  // Terminal orders retain saved node facts; their ordinal state cannot imply completion.
+  await page.goto(origin+'/configuration/release-orders/'+incomplete.id);
+  await button(page,'更多操作').click();await page.getByRole('menuitem',{name:'取消草稿',exact:true}).click();
+  assert.equal(await button(page,'确认取消草稿').isDisabled(),true);
+  await page.getByLabel('取消原因',{exact:true}).fill('结束未发布草稿，保留真实流程事实');
+  await button(page,'确认取消草稿').focus();await page.keyboard.press('Enter');
+  await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'已取消',exact:true}).waitFor();
+  const cancelled=await api(admin,'GET',repairPath);snapshots.cancelled=cancelled.table_flows;
+  assert.ok(cancelled.table_flows.every(flow=>flow.node_list.every(node=>node.state==='STOPPED'&&!node.actor_id&&!node.at)));
+  for(const width of [1440,390]){await page.setViewportSize({width,height:width===390?844:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await shot(page,`cancelled-flows-${width}.png`);}
+  let rejected=await api(admin,'POST','/api/v1/release-orders',{title:'拒绝结束整单且不虚构发布与完结',items:tables.map(table_name=>({table_name,operation:'ADD',content:{id:'13',value:'must never publish'}}))},201);
+  const rejectPath=`/api/v1/release-orders/${rejected.id}`;
+  rejected=await api(admin,'POST',rejectPath+'/submit',{expected_version:rejected.version});
+  const rejectPage=reviewers[1].page;await rejectPage.goto(origin+'/configuration/release-orders/'+rejected.id);
+  await button(rejectPage,'拒绝发布单').click();await rejectPage.getByLabel('审批意见',{exact:true}).fill('整单拒绝，未发生发布或完结');
+  await button(rejectPage,'确认拒绝').focus();await rejectPage.keyboard.press('Enter');
+  await rejectPage.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'已拒绝，整单终止',exact:true}).waitFor();
+  rejected=await api(admin,'GET',rejectPath);snapshots.rejected=rejected.table_flows;
+  assert.ok(rejected.table_flows.every(flow=>flow.node_list[0].state==='REJECTED'&&flow.node_list[0].actor_id===reviewers[1].identity.account.id&&flow.node_list.slice(1).every(node=>node.state==='STOPPED'&&!node.actor_id&&!node.at)));
+  for(const width of [1440,390]){await rejectPage.setViewportSize({width,height:width===390?844:1000});assert.equal(await rejectPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await shot(rejectPage,`rejected-flows-${width}.png`);}
+  for(const surface of [page,rejectPage]){const flows=surface.getByRole('region',{name:'逐表发布流程',exact:true});assert.equal(await flows.getByText('已完成',{exact:true}).count(),0);assert.equal(await flows.getByText('已终止',{exact:true}).count(),surface===page?6:4);assert.equal(await button(surface,'执行发布').count(),0);assert.equal(await button(surface,'完结发布单').count(),0);}
+  checks.push('AC-025/027: keyboard cancellation and rejection terminate real saved nodes on desktop and 390px without inventing publication, completion, actors or timestamps');
   assert.deepEqual(errors,[]);
   const evidence={order_id:id,repair_order_id:incomplete.id,checks,snapshots};await writeFile(join(output,'release-instances-browser-evidence.json'),JSON.stringify(evidence,null,2),{flag:'wx'});process.stdout.write(JSON.stringify({checks,order_id:id,repair_order_id:incomplete.id}));
  }catch(error){if(page){await shot(page,'failure.png');await writeFile(join(output,'failure.txt'),String(error),{flag:'wx'});}throw error;}finally{await browser.close();}

@@ -1,0 +1,50 @@
+=== RUN   TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely
+=== RUN   TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely/deadline
+2026/09/11 18:43:10 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 18872b9b1794ece8d6e71f884fb882158b108400983695a3cf7ab6c92eac0596
+  Test ProcessID: 7aae0714-efd3-4ec0-8791-4128943190a6
+2026/09/11 18:43:10 🐳 Creating container for image mysql:8.4
+2026/09/11 18:43:10 ✅ Container created: c5e36ac1e642
+2026/09/11 18:43:10 🐳 Starting container: c5e36ac1e642
+2026/09/11 18:43:10 ✅ Container started: c5e36ac1e642
+2026/09/11 18:43:10 ⏳ Waiting for container id c5e36ac1e642 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 18:43:17 🔔 Container is ready: c5e36ac1e642
+2026/09/11 18:43:18 🐳 Stopping container: c5e36ac1e642
+2026/09/11 18:43:19 ✅ Container stopped: c5e36ac1e642
+2026/09/11 18:43:19 🐳 Terminating container: c5e36ac1e642
+2026/09/11 18:43:19 🚫 Container terminated: c5e36ac1e642
+=== RUN   TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely/known_unavailable
+2026/09/11 18:43:19 🐳 Creating container for image mysql:8.4
+2026/09/11 18:43:19 ✅ Container created: 6cc5e3a56a35
+2026/09/11 18:43:19 🐳 Starting container: 6cc5e3a56a35
+2026/09/11 18:43:19 ✅ Container started: 6cc5e3a56a35
+2026/09/11 18:43:19 ⏳ Waiting for container id 6cc5e3a56a35 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 18:43:26 🔔 Container is ready: 6cc5e3a56a35
+2026/09/11 18:43:27 🐳 Stopping container: 6cc5e3a56a35
+2026/09/11 18:43:28 ✅ Container stopped: 6cc5e3a56a35
+2026/09/11 18:43:28 🐳 Terminating container: 6cc5e3a56a35
+2026/09/11 18:43:28 🚫 Container terminated: 6cc5e3a56a35
+=== RUN   TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely/unclassified_internal
+2026/09/11 18:43:28 🐳 Creating container for image mysql:8.4
+2026/09/11 18:43:28 ✅ Container created: b5bd98095609
+2026/09/11 18:43:28 🐳 Starting container: b5bd98095609
+2026/09/11 18:43:28 ✅ Container started: b5bd98095609
+2026/09/11 18:43:28 ⏳ Waiting for container id b5bd98095609 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 18:43:34 🔔 Container is ready: b5bd98095609
+2026/09/11 18:43:36 🐳 Stopping container: b5bd98095609
+2026/09/11 18:43:37 ✅ Container stopped: b5bd98095609
+2026/09/11 18:43:37 🐳 Terminating container: b5bd98095609
+2026/09/11 18:43:37 🚫 Container terminated: b5bd98095609
+--- PASS: TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely (27.10s)
+    --- PASS: TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely/deadline (9.27s)
+    --- PASS: TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely/known_unavailable (9.00s)
+    --- PASS: TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely/unclassified_internal (8.84s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/internal/interfaces/http	27.837s

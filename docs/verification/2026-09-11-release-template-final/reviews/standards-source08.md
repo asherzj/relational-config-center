@@ -1,0 +1,3 @@
+Standards source07→source08 窄复核通过：剩余硬性违规0，主观建议0。
+
+唯一 accounts.mjs 改动将两处重复代码提取 selectNotificationTable(page)，原等待、选择和断言完整保留。固定 /tmp/rcc106-review-source08，manifest 51011f3570ad5e9dadfcc7ed482176876b3d54ddb908789ec75953a16aab7f2e；diff eb407b0933cf4dd575345d6218a8f51c371e37a21bb70a32319892f598fc7e19。沿用此前 Standards 结论，本次未执行运行验收。

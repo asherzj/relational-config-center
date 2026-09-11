@@ -1,0 +1,65 @@
+{
+  "note": "Failed runners reached cleanup/count capture but not the final full-row comparison. Only successful targeted runners05/07 executed their own complete before/after guard. Case-level business assertions and pass results retain their original scope.",
+  "rows": [
+    {
+      "directory": "browser-account-webkit-recheck-04",
+      "runner_exit_status": 1,
+      "cleanup_verified": true,
+      "database_final": "5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED",
+      "before_sha256": "e95b69a8abcfa30f9877e54e0fe77acef22515193c7cb2db6e1401139d953eff",
+      "complete_before_after_row_check": false
+    },
+    {
+      "directory": "browser-account-webkit-recheck-05",
+      "runner_exit_status": 0,
+      "cleanup_verified": true,
+      "database_final": "5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED",
+      "before_sha256": "01f80ab41135a30aa785d686f0ea3206701432d5b6cd9e5fe50900ec751c1b6f",
+      "complete_before_after_row_check": true,
+      "after_sha256": "01f80ab41135a30aa785d686f0ea3206701432d5b6cd9e5fe50900ec751c1b6f",
+      "before_after_equal": true
+    },
+    {
+      "directory": "browser-full-01",
+      "runner_exit_status": 1,
+      "cleanup_verified": true,
+      "database_final": "5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED",
+      "before_sha256": "ce747822d067192eed7b58bba5038c961d90fcff099af2d36b28c8bc8aa5901b",
+      "complete_before_after_row_check": false
+    },
+    {
+      "directory": "browser-remaining-02",
+      "runner_exit_status": 1,
+      "cleanup_verified": true,
+      "database_final": "5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED",
+      "before_sha256": "75509361205a9a137381d14a3c0cd569ecf480c5abd8fd3196f5d20315bc4c18",
+      "complete_before_after_row_check": false
+    },
+    {
+      "directory": "browser-remaining-03",
+      "runner_exit_status": 1,
+      "cleanup_verified": true,
+      "database_final": "5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED",
+      "before_sha256": "5a44a995638bc7bb487a677a8da926b3f3c60b45eaf4682e32ba6b27cef11641",
+      "complete_before_after_row_check": false
+    },
+    {
+      "directory": "browser-remaining-06",
+      "runner_exit_status": 1,
+      "cleanup_verified": true,
+      "database_final": "5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED",
+      "before_sha256": "a4615829546f94a816557723c5c179974e5454fbf434a7592623124e47199bb4",
+      "complete_before_after_row_check": false
+    },
+    {
+      "directory": "browser-remaining-07",
+      "runner_exit_status": 0,
+      "cleanup_verified": true,
+      "database_final": "5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED",
+      "before_sha256": "8d3626143081dc0ebd917a40db9ff071a4e05a1ca8b4f9f15ddfc3b257bf808d",
+      "complete_before_after_row_check": true,
+      "after_sha256": "8d3626143081dc0ebd917a40db9ff071a4e05a1ca8b4f9f15ddfc3b257bf808d",
+      "before_after_equal": true
+    }
+  ]
+}

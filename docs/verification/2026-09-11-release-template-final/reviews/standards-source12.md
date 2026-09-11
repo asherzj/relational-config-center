@@ -1,0 +1,5 @@
+standards source10→source12 独立只读增量报告转录
+
+新增硬性违规0，主观建议0，累计未解决0。仅两测试文件变化：取消先断言空原因禁用再填必填原因；表规则启用采用创建响应真实版本并显式配置发布夹具。原断言保留。
+
+固定 /tmp/rcc106-review-source12；manifest 7b2d518616a643c7ebe75b49bb287ba2410f18cb7f82f931623060292aa8e6ec；diff e7988d3e2bd264f1a16f7f8ffd4da24e68aa2d98e1fc329b062f285867e9e963。完整SQL、Account浏览器、Compose与最终索引仍待，不作整体放行。

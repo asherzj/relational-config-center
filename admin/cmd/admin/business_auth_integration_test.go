@@ -51,6 +51,7 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = db.Close() })
 	assignRelationalMutationPolicy(t, app, "response_loss_mutation_v1", true, true, true, true)
+	bindFlowTemplate(t, app, "mutation_snapshot_items", "default_standard_v1", true)
 	server := httptest.NewServer(app.Handler())
 	t.Cleanup(server.Close)
 	jar, err := cookiejar.New(nil)
@@ -321,6 +322,7 @@ func TestConcurrentAccountsOwnTheirBusinessChanges(t *testing.T) {
 			checkActor(request("POST", path, body, 201))
 			checkActor(request("PUT", path+"/"+table, strings.TrimSuffix(body, "}")+`,"expected_version":"1"}`, 200))
 			checkActor(request("POST", path+"/"+table+"/enable", `{"expected_version":"2"}`, 200))
+			bindFlowTemplate(t, app, table, "default_standard_v1", true)
 			publish := func(input, key string) domain.ReleaseOrder {
 				path := approveActorPublication(t, app, session, sessions[1-i], input, key)
 				response := releaseActorRequest(t, app, session, "POST", path+"/execute", `{"expected_version":"3"}`, key+"-execute")
@@ -401,6 +403,7 @@ func TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory(t *testing.T)
 			t.Fatalf("setup %s: %d %s", step.path, response.Code, response.Body.String())
 		}
 	}
+	bindFlowTemplate(t, app, "actor_history", "default_standard_v1", true)
 	input := `{"items":[{"content":{"value":"must not commit"},"operation":"ADD","table_name":"actor_history"}],"title":"集成测试发布单"}`
 	reviewer := publicationFixtureReviewer(t, app)
 	for i, definition := range []string{"VARCHAR(12)", "CHAR(35)", "ENUM('legacy-admin','aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa')"} {
