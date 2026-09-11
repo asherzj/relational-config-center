@@ -34,6 +34,7 @@ type RouterOptions struct {
 	FieldPolicies      *application.TableFieldPolicyManagement
 	Authentication     *application.Authentication
 	AccountRoles       *application.AccountRoleManagement
+	ApprovalRoles      *application.ApprovalRoleManagement
 	ReleaseOrders      *application.ReleaseOrders
 	PublicationTimeout time.Duration
 	AccountHTTP        AccountHTTPOptions
@@ -199,7 +200,7 @@ func sessionAuthentication(options RouterOptions) gin.HandlerFunc {
 		required := application.RoleViewer
 		if change && c.FullPath() != "/api/v1/tables/:table_name/query" {
 			required = application.RoleAdmin
-			if c.FullPath() == "/api/v1/release-orders/:id/rollback-reason" {
+			if c.FullPath() == "/api/v1/release-orders/:id/rollback-reason" || c.FullPath() == "/api/v1/release-orders/:id/notification-read" {
 				required = application.RoleViewer
 			}
 			if c.FullPath() == "/api/v1/release-orders/:id/copy" || c.FullPath() == "/api/v1/release-orders/:id/reprepare" || c.FullPath() == "/api/v1/release-orders/:id/submit" || c.FullPath() == "/api/v1/release-orders/preview" || c.FullPath() == "/api/v1/release-orders" || c.FullPath() == "/api/v1/release-orders/:id" || c.FullPath() == "/api/v1/release-orders/:id/cancel" {
@@ -209,7 +210,7 @@ func sessionAuthentication(options RouterOptions) gin.HandlerFunc {
 				required = application.RolePublisher
 			}
 			if c.FullPath() == "/api/v1/release-orders/:id/approve" || c.FullPath() == "/api/v1/release-orders/:id/reject" {
-				required = application.RoleApprover
+				required = application.RoleViewer
 			}
 		}
 		if !operator.Allows(required) {

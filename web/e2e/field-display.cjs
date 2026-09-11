@@ -1,3 +1,4 @@
+const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
 const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 // Current field display rules over immutable release request/publication history.
 const assert = require('node:assert/strict');
@@ -48,8 +49,10 @@ const table = 'field_display_browser_items';
   try {
     if (output) await mkdir(output, { recursive: true });
     const applicant = await account(['EDITOR', 'PUBLISHER']);
-    const reviewer = await account(['APPROVER']);
+    const reviewer = await account(['VIEWER']);
     const administrator = await account(['ADMIN']);
+    const reviewerIdentity = await (await reviewer.request.get(`${base}/api/v1/auth/session`)).json();
+    await createFixtureApprovalRole(administrator, base, `Field display review ${randomUUID()}`, [reviewerIdentity.account.id], [table]);
     page = await applicant.newPage();
     page.setDefaultTimeout(15000);
     page.on('pageerror', error => errors.push(error.message));
@@ -67,7 +70,7 @@ const table = 'field_display_browser_items';
       items:[{table_name:table,operation: 'MODIFY', id: '5', expected_record_version: queried.record_versions[0], content: { name: newValue } }],
     }, 201);
     const pending = await api(applicant, 'POST', `/api/v1/release-orders/${draft.id}/submit`, { expected_version: draft.version });
-    const approved = await api(reviewer, 'POST', `/api/v1/release-orders/${draft.id}/approve`, { expected_version: pending.version, reason: '独立核对字段显示与真实值' });
+    const approved = await api(reviewer, 'POST', `/api/v1/release-orders/${draft.id}/approve`, await fixtureApprovalInput(reviewer, base, draft.id, { expected_version: pending.version, reason: '独立核对字段显示与真实值' }));
     const published = await api(applicant, 'POST', `/api/v1/release-orders/${draft.id}/execute`, { expected_version: approved.version });
     assert.equal(published.state, 'SUCCEEDED');
     const persistedBefore = JSON.stringify(executionCommands(published)[0].before);

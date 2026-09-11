@@ -36,6 +36,7 @@ export function useReleaseWrite(scope:string){
    const order=await sendReleaseRequest(accountID,intent);
    // A replay acknowledges the original write; mounted details must read current state.
    void client.invalidateQueries({queryKey:["release-orders"]});
+   void client.invalidateQueries({queryKey:["approval-notifications"]});
    if(order.executions.length)void client.invalidateQueries({queryKey:["managed-data"]});
    void client.invalidateQueries({queryKey:["release-order",order.id]});
    void client.invalidateQueries({queryKey:["release-order-people",order.id]});
@@ -55,9 +56,13 @@ export function useReleaseWrite(scope:string){
    if(!recorded){setError(cause instanceof ApiError?cause:new ApiError("release_journal_unavailable","浏览器无法保存完整请求，尚未发送。当前输入和已有待恢复请求保留，请释放浏览器存储空间后重试。",0));return;}
    // These write conflicts are returned only after original-key deduplication.
    // They prove no original success exists; authentication/read failures do not.
-   const rejected=cause instanceof ApiError&&["release_version_conflict","record_version_conflict","release_state_invalid","release_target_conflict","release_frozen_changed"].includes(cause.code);
+   const rejected=cause instanceof ApiError&&["release_approval_conflict","release_version_conflict","record_version_conflict","release_state_invalid","release_target_conflict","release_frozen_changed"].includes(cause.code);
+   // Submission eligibility is checked after original-key deduplication. This
+   // rejection also resolves an earlier uncertain submission as not committed.
+   const notSubmitted=cause instanceof ApiError&&cause.status===422&&cause.code==="release_approver_unavailable";
    const keep=Boolean(previous)||uncertainReleaseError(cause)||(cause instanceof ApiError&&cause.executionOutcome==="not_committed");
-   try{if(rejected)await rememberReleaseRequest(accountID,{...intent,rejection:cause.code as PendingReleaseRequest["rejection"]});
+   try{if(notSubmitted)await forgetReleaseRequest(accountID,intent.key);
+   else if(rejected)await rememberReleaseRequest(accountID,{...intent,rejection:cause.code as PendingReleaseRequest["rejection"]});
    else if(stored?.rejection&&!keep)await rememberReleaseRequest(accountID,{...intent,rejection:stored.rejection});
    else if(!keep)await forgetReleaseRequest(accountID,intent.key);
 
@@ -65,6 +70,7 @@ export function useReleaseWrite(scope:string){
    setError(cause);
    // A timeout or error cannot identify current state. Only normal reads do.
    void client.invalidateQueries({queryKey:["release-orders"]});
+   void client.invalidateQueries({queryKey:["approval-notifications"]});
    if(scopeID)void client.invalidateQueries({queryKey:["release-order",scopeID]});
  }finally{finishReleaseRequest(accountID,intent.key);busy.current=false;setPending(false)}
  };

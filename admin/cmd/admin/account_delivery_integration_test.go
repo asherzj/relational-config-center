@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"syscall"
 	"testing"
@@ -479,7 +480,8 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	freshDriver := ownerDriver
 	freshDriver.DBName = "fresh_accounts"
 	fresh := deliveryDB(t, &freshDriver)
-	requireSchemaMigrationState(t, schemaMigrate, &freshDriver, "current", "up")
+	// Compare the documented historical adoption boundary with its own release.
+	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 5), &freshDriver, "current", "up")
 	for _, query := range []string{
 		`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_TYPE,IS_NULLABLE,COALESCE(COLUMN_DEFAULT,'<null>'),COALESCE(COLLATION_NAME,''),EXTRA FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_details','rcc_release_executions','rcc_release_targets','rcc_release_table_references','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications','rcc_table_field_policies') ORDER BY TABLE_NAME,ORDINAL_POSITION`,
 		`SELECT TABLE_NAME,INDEX_NAME,NON_UNIQUE,SEQ_IN_INDEX,COLUMN_NAME,COALESCE(SUB_PART,0) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_details','rcc_release_executions','rcc_release_targets','rcc_release_table_references','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications','rcc_table_field_policies') ORDER BY TABLE_NAME,INDEX_NAME,SEQ_IN_INDEX`,
@@ -495,9 +497,59 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	if policyCatalogSchemaSignature(t, t.Context(), owner) != policyCatalogSchemaSignature(t, t.Context(), fresh) {
 		t.Fatal("historical Policy structure differs from fresh installation")
 	}
-	requireSchemaMigrationState(t, schemaMigrate, driver, "current", "baseline")
+	requireSchemaMigrationState(t, schemaMigrate, driver, "pending", "baseline")
 	if got := baselineDataSnapshot(t, owner); got != preservedBeforeBaseline {
 		t.Fatal("baseline changed historical account, session, policy or business rows")
+	}
+	requireSchemaMigrationState(t, schemaMigrate, driver, "current", "up")
+	requireSchemaMigrationState(t, schemaMigrate, &freshDriver, "current", "up")
+	// Historical contraction omitted descriptive table comments. Compare every
+	// full CREATE definition, ignoring only those footer comments and retained
+	// AUTO_INCREMENT counters, as required by the formal adoption contract.
+	controlSchema := func(database *sql.DB) string {
+		t.Helper()
+		rows, err := database.Query(`SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() AND LEFT(table_name,4)='rcc_' AND table_name NOT IN ('rcc_schema_migration_attempts','rcc_goose_db_version') ORDER BY table_name`)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var names []string
+		for rows.Next() {
+			var name string
+			if err := rows.Scan(&name); err != nil {
+				t.Fatal(err)
+			}
+			names = append(names, name)
+		}
+		if err := rows.Err(); err != nil {
+			t.Fatal(err)
+		}
+		rows.Close()
+		var definitions strings.Builder
+		for _, name := range names {
+			var table, definition string
+			if err := database.QueryRow("SHOW CREATE TABLE `"+name+"`").Scan(&table, &definition); err != nil {
+				t.Fatal(err)
+			}
+			footer := strings.LastIndex(definition, "\n) ENGINE=")
+			if footer < 0 {
+				t.Fatalf("missing physical table options: %s", name)
+			}
+			options := regexp.MustCompile(` COMMENT='(?:[^'\\]|\\.|'')*'$`).ReplaceAllString(definition[footer:], "")
+			options = regexp.MustCompile(` AUTO_INCREMENT=[0-9]+`).ReplaceAllString(options, "")
+			definitions.WriteString(definition[:footer] + options + "\n")
+		}
+		return definitions.String()
+	}
+	if controlSchema(owner) != controlSchema(fresh) {
+		t.Fatal("complete current control schema differs after formal upgrade")
+	}
+	preservedAfterUpgrade := baselineDataSnapshot(t, owner)
+	for _, table := range []string{"rcc_approval_notifications", "rcc_approval_role_members", "rcc_approval_role_references", "rcc_approval_role_requests", "rcc_approval_roles", "rcc_table_approval_assignments", "rcc_table_approval_requests"} {
+		// Only the exact empty additive tables may differ; no role or receipt is fabricated.
+		preservedAfterUpgrade = strings.Replace(preservedAfterUpgrade, table+":\n", "", 1)
+	}
+	if preservedAfterUpgrade != preservedBeforeBaseline {
+		t.Fatal("formal current upgrade changed retained historical data")
 	}
 	p := accountProcessCommand(t, binary, driver)
 	p.ready(t)
@@ -542,7 +594,7 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 		t.Fatal(status)
 	}
 	p.stop(t)
-	// Account maintenance must remain usable when normal Policy Catalog readiness fails.
+	// Identity maintenance remains available, but grants require formal current readiness.
 	deliveryExec(t, db, "RENAME TABLE rcc_query_policies TO unavailable_query_policies")
 	maintain := directory + "/account-maintain"
 	build = exec.Command("go", "build", "-o", maintain, "../account-maintain")
@@ -551,10 +603,19 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	}
 	bootstrap := exec.Command(maintain, "grant-admin", "--id", oldID)
 	bootstrap.Env = append([]string{"PATH=" + os.Getenv("PATH")}, integrationEnvironment(driver, "invalid-http-address")...)
-	if out, err := bootstrap.CombinedOutput(); err != nil {
-		t.Fatalf("explicit first administrator: %v %s", err, out)
+	beforeBlockedGrant := baselineDataSnapshot(t, owner)
+	if out, err := bootstrap.CombinedOutput(); err == nil || !strings.Contains(string(out), "schema_not_ready") {
+		t.Fatalf("grant bypassed unavailable catalog: %v %s", err, out)
+	}
+	if baselineDataSnapshot(t, owner) != beforeBlockedGrant {
+		t.Fatal("blocked grant changed data")
 	}
 	deliveryExec(t, db, "RENAME TABLE unavailable_query_policies TO rcc_query_policies")
+	bootstrap = exec.Command(maintain, "grant-admin", "--id", oldID)
+	bootstrap.Env = append([]string{"PATH=" + os.Getenv("PATH")}, integrationEnvironment(driver, "invalid-http-address")...)
+	if out, err := bootstrap.CombinedOutput(); err != nil {
+		t.Fatalf("explicit first administrator after readiness restored: %v %s", err, out)
+	}
 	p = accountProcessCommand(t, binary, driver)
 	p.ready(t)
 	if status, _, _ := p.request(t, "GET", "/api/v1/account-roles", "", oldCookies, ""); status != 200 {

@@ -1,17 +1,18 @@
 import { z } from "zod";
 import { request } from "./client";
 
-export const accountRoleSchema = z.enum(["VIEWER", "EDITOR", "APPROVER", "PUBLISHER", "ADMIN"]);
+export const accountRoleSchema = z.enum(["VIEWER", "EDITOR", "PUBLISHER", "ADMIN"]);
+const historicalAccountRoleSchema = z.enum(["VIEWER", "EDITOR", "APPROVER", "PUBLISHER", "ADMIN"]);
 export type AccountRole = z.infer<typeof accountRoleSchema>;
 const version = z.string().regex(/^[1-9][0-9]*$/);
 const roleAccountSchema = z.object({
  id: z.uuid(), username: z.string(), display_name: z.string(), enabled: z.boolean(),
- roles: z.array(accountRoleSchema).min(1).max(5), version,
+ roles: z.array(accountRoleSchema).min(1).max(4), version,
 });
 export type RoleAccount = z.infer<typeof roleAccountSchema>;
 const roleEventSchema = z.object({
  id: version, actor_kind: z.enum(["account", "maintenance"]), actor_id: z.string(), account_id: z.uuid(),
- before_roles: z.array(accountRoleSchema), after_roles: z.array(accountRoleSchema), version,
+ before_roles: z.array(historicalAccountRoleSchema), after_roles: z.array(historicalAccountRoleSchema), version,
  created_at: z.iso.datetime({ offset: true }),
 });
 export const accountRoles = {

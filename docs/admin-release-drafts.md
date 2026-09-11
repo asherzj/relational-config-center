@@ -14,7 +14,7 @@ T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供�
 | `GET /api/v1/release-orders/:id` | 当前主单摘要、执行摘要、永久申请人及操作历史，不含 `items` 或整单结果；不存在返回 404 |
 | `GET /api/v1/release-orders/:id/details?expected_version=4&offset=0&limit=20` | 同一整单版本的一页申请与逐项实际结果；返回 `order_id`、`version`、`item_count`、`offset`、`next_offset` 和 `items`。版本不符为 409，非法范围为 422 |
 | `GET /api/v1/release-orders/:id/people` | 仅解析本单申请、审批、发布和历史账号 ID 的当前显示名；VIEWER 可读，不授予账号列表或角色权限，找不到的 ID 省略 |
-| `GET /api/v1/release-orders` | `table_name`、`applicant_id`、`state`、`id` 精确筛选；`limit` 为 1～100，默认 20；按不可变单号升序、`after` 游标分页，返回摘要 `orders` / `next_cursor`，完整明细通过详情读取 |
+| `GET /api/v1/release-orders` | `table_name`、`applicant_id`、`state`、`id` 精确筛选；`limit` 为 1～100，默认 20；按不可变单号升序、`after` 游标分页，返回摘要 `orders` / `next_cursor`，完整明细通过详情读取；可选 `view` 提供[通知中心四视图](admin-notification-center.md) |
 | `POST /api/v1/release-orders/preview` | 只读核实当前申请目标，返回 `items`；不保存草稿或幂等记录。用于先查看最新基线，再由用户明确采用 |
 
 草稿输入只接受以下字段，客户端 `before`、差异字段、申请人、操作人及内部记录身份不能上传：

@@ -7,7 +7,10 @@ export function releaseFixture(value:unknown):unknown {
  const items=value.items.map((item,index)=>({...item,detail_id:item.detail_id??String(index+1).padStart(32,"0")}));
  const operation_counts:Record<string,number>={};for(const item of items)operation_counts[item.operation]=(operation_counts[item.operation]??0)+1;
  const executions="executions" in value&&Array.isArray(value.executions)?value.executions.map(execution=>({...execution,operation_counts:execution.operation_counts??operation_counts,notifications:execution.notifications??Object.fromEntries(Object.entries(execution.table_versions as Record<string,string>).map(([table,version])=>[table,{id:execution.id,table_name:table,table_version:version,status:"NOT_CONNECTED"}]))})):[];
- return {...value,items,table_names:[...new Set(items.map(item=>item.table_name))],item_count:items.length,operation_counts,executions};
+ const tables=[...new Set(items.map(item=>item.table_name))];
+ const context="approval_context" in value?value.approval_context:{revision:"fixture-approval-1",tables:tables.map(table_name=>({table_name,mode:"ROLE",reason:"审批角色成员",can_approve:true})),approvable_tables:tables};
+ const approvals="approvals" in value?value.approvals:tables.map(table_name=>({table_name,roles:[],state:"state" in value&&["APPROVED","SUCCEEDED","COMPLETED","ROLLED_BACK"].includes(String(value.state))?"APPROVED":"PENDING"}));
+ return {notification:{sequence:"0",unread:false,pending:false},...value,approvals,approval_context:context,items,table_names:[...new Set(items.map(item=>item.table_name))],item_count:items.length,operation_counts,executions};
 }
 
 // In-memory HTTP fixture router: a normal GET serves only its header. Detail

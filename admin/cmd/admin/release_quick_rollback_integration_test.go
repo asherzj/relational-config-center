@@ -185,12 +185,12 @@ func TestQuickRollbackRequiresItsOriginalRetainedTargets(t *testing.T) {
 }
 
 func TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole(t *testing.T) {
-	app, _ := batchEdgeApplication(t, `INSERT INTO mutation_add_items(id,code,label) VALUES(10,'quick-role','old')`)
+	app, db := batchEdgeApplication(t, `INSERT INTO mutation_add_items(id,code,label) VALUES(10,'quick-role','old')`)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowModify: true})
 	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"label":"published"},"expected_record_version":"0","id":"10","operation":"MODIFY","table_name":"mutation_add_items"}],"title":"权限与审阅"}`, "quick-role")
 	rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "quick-role-publish"), 200)
 	actor := registerAccount(t, app, "quick.roles", "quick.roles@example.com", "correct horse battery staple")
-	for i, roles := range []string{`["VIEWER"]`, `["EDITOR"]`, `["APPROVER"]`} {
+	for i, roles := range []string{`["VIEWER"]`, `["EDITOR"]`} {
 		if i > 0 {
 			grantReleaseRole(t, app, actor, roles, fmt.Sprint(i), fmt.Sprintf("quick-role-%d", i))
 		}
@@ -201,7 +201,11 @@ func TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrent
 			t.Fatal("quick rollback advertised to unauthorized role")
 		}
 	}
-	grantReleaseRole(t, app, actor, `["PUBLISHER"]`, "3", "quick-role-publisher")
+	var roles, roleVersion int
+	if err := db.QueryRow(`SELECT roles,role_version FROM rcc_accounts WHERE id=?`, accountID(t, actor)).Scan(&roles, &roleVersion); err != nil || roles != 2 || roleVersion != 2 {
+		t.Fatalf("current EDITOR matrix grant: roles=%d version=%d error=%v", roles, roleVersion, err)
+	}
+	grantReleaseRole(t, app, actor, `["PUBLISHER"]`, "2", "quick-role-publisher")
 	preview := readQuickPreview(t, app, actor, path, "4")
 	for i, body := range []string{quickRollbackBody("4", "", "reason"), quickRollbackBody("4", preview.Digest, strings.Repeat("界", 667)), `{"expected_version":"4","reason":"no preview"}`} {
 		assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, fmt.Sprintf("quick-role-invalid-%d", i)), 422, "release_invalid")
@@ -209,14 +213,14 @@ func TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrent
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("3", preview.Digest, "stale version"), "quick-role-stale"), 409, "release_version_conflict")
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("4", strings.Repeat("a", 64), "unreviewed"), "quick-role-digest"), 409, "release_frozen_changed")
 	body := quickRollbackBody("4", preview.Digest, "reviewed")
-	grantReleaseRole(t, app, actor, `["VIEWER"]`, "4", "quick-role-revoke")
+	grantReleaseRole(t, app, actor, `["VIEWER"]`, "3", "quick-role-revoke")
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, "quick-role-execute"), 403, "permission_denied")
-	grantReleaseRole(t, app, actor, `["ADMIN"]`, "5", "quick-role-admin")
+	grantReleaseRole(t, app, actor, `["ADMIN"]`, "4", "quick-role-admin")
 	result := rollbackOrderResponse(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, "quick-role-execute"), 200)
 	if result.Executions[1].ActorID != accountID(t, actor) {
 		t.Fatal("current administrator was not recorded")
 	}
-	grantReleaseRole(t, app, actor, `["VIEWER"]`, "6", "quick-role-revoke-replay")
+	grantReleaseRole(t, app, actor, `["VIEWER"]`, "5", "quick-role-revoke-replay")
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, "quick-role-execute"), 403, "permission_denied")
 }
 
@@ -311,6 +315,8 @@ func TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets
 	conflictBody := `{"items":[{"content":{"label":"next"},"expected_record_version":"1","id":"10","operation":"MODIFY","table_name":"mutation_add_items"},{"content":{"label":"next"},"expected_record_version":"1","id":"20","operation":"MODIFY","table_name":"mutation_add_items"}],"title":"目标仍保护"}`
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", conflictBody, "quick-fault-conflict"), 409, "release_target_conflict")
 
+	reviewer := publicationFixtureReviewer(t, app)
+	beforeNotice := readApprovalProgress(t, app, reviewer, path)
 	for _, failure := range []struct{ table, event, condition string }{
 		{"rcc_record_versions", "UPDATE", "NEW.lock_version>1"},
 		{"rcc_publication_commands", "INSERT", "TRUE"},
@@ -318,6 +324,7 @@ func TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets
 		{"rcc_refresh_notifications", "INSERT", "TRUE"},
 		{"rcc_release_details", "UPDATE", "NEW.rollback IS NOT NULL"},
 		{"rcc_release_executions", "INSERT", "NEW.kind='ROLLBACK'"},
+		{"rcc_approval_notifications", "UPDATE", "TRUE"},
 		{"rcc_release_orders", "UPDATE", "NEW.state='ROLLED_BACK'"},
 		{"rcc_release_targets", "DELETE", "TRUE"},
 		{"rcc_release_requests", "UPDATE", "NEW.result IS NOT NULL"},
@@ -334,6 +341,9 @@ func TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets
 			current := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
 			assertReleaseFailureOnly(t, original, current, "QUICK_ROLLBACK_FAILED")
 			original = current
+			if readApprovalProgress(t, app, reviewer, path) != beforeNotice {
+				t.Fatal("failed rollback changed personal result notification")
+			}
 			for _, id := range []string{"10", "20"} {
 				row, version := recordVersionRow(t, app, "mutation_add_items", id)
 				if *row["label"] != "published" || version != "1" {

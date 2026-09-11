@@ -4,6 +4,7 @@ package mysql
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"testing"
 	"time"
@@ -111,6 +112,7 @@ func TestDraftBaselineAndPublicationSerializeBeforeSnapshot(t *testing.T) {
 		defer cancel()
 		ready, resume := make(chan struct{}), make(chan struct{})
 		draft := make(chan error, 1)
+		var draftConnection int64
 		go func() {
 			draft <- adapter.ExecuteReleaseOrder(operation, func(s application.ReleaseOrderSession) error {
 				rows, err := read(operation, s)
@@ -120,9 +122,19 @@ func TestDraftBaselineAndPublicationSerializeBeforeSnapshot(t *testing.T) {
 				if *rows[0].Row["code"] != "10" {
 					return fmt.Errorf("wrong draft baseline")
 				}
+				if err := s.(*releaseOrderSession).database.Raw("SELECT CONNECTION_ID()").Row().Scan(&draftConnection); err != nil {
+					return err
+				}
 				close(ready)
 				select {
 				case <-resume:
+					again, err := read(operation, s)
+					if err != nil {
+						return err
+					}
+					if *again[0].Row["code"] != "10" {
+						return fmt.Errorf("concurrent publication changed admitted draft snapshot")
+					}
 					return nil
 				case <-operation.Done():
 					return operation.Err()
@@ -139,42 +151,71 @@ func TestDraftBaselineAndPublicationSerializeBeforeSnapshot(t *testing.T) {
 		publisher := make(chan error, 1)
 		go func() {
 			publisher <- adapter.ExecutePublication(operation, func(s application.PublicationSession) error {
-				return s.LockPublicationTable(operation, "guard_snapshot_a")
+				if err := s.LockPublicationTable(operation, "guard_snapshot_a"); err != nil {
+					return err
+				}
+				return s.(*publicationSession).database.Exec(`UPDATE guard_snapshot_a SET code=11 WHERE id=1`).Error
 			})
 		}()
-		// The same draft's read lock cannot block a publication for another table.
+		// Both real publications first serialize behind the draft's authorization
+		// lock, while retaining separate table guards and final business values.
 		independent := make(chan error, 1)
 		go func() {
 			independent <- adapter.ExecutePublication(operation, func(s application.PublicationSession) error {
-				return s.LockPublicationTable(operation, "guard_snapshot_b")
+				if err := s.LockPublicationTable(operation, "guard_snapshot_b"); err != nil {
+					return err
+				}
+				return s.(*publicationSession).database.Exec(`UPDATE guard_snapshot_b SET code=21 WHERE id=1`).Error
 			})
 		}()
-		var early error
-		completed := false
-		select {
-		case early = <-publisher:
-			completed = true
-		case <-time.After(150 * time.Millisecond):
-		}
-		select {
-		case err := <-independent:
+		deadline := time.Now().Add(3 * time.Second)
+		for {
+			waiting, err := authorizationWaiterCount(operation, db, draftConnection)
 			if err != nil {
 				close(resume)
 				t.Fatal(err)
 			}
-		case <-operation.Done():
-			close(resume)
-			t.Fatal(operation.Err())
+			if waiting == 2 {
+				break
+			}
+			if time.Now().After(deadline) {
+				close(resume)
+				t.Fatalf("expected two publication connections behind draft %d, got %d", draftConnection, waiting)
+			}
+			time.Sleep(10 * time.Millisecond)
+		}
+		t.Logf("two publications wait for draft connection %d authorization before their own table guards", draftConnection)
+		for name, responses := range map[string]chan error{"same table": publisher, "other table": independent} {
+			select {
+			case err := <-responses:
+				close(resume)
+				t.Fatalf("%s publication crossed draft transaction: %v", name, err)
+			default:
+			}
 		}
 		close(resume)
 		if err := <-draft; err != nil {
 			t.Fatal(err)
 		}
-		if completed {
-			t.Fatalf("publication crossed draft baseline transaction: %v", early)
-		}
 		if err := <-publisher; err != nil {
 			t.Fatal(err)
 		}
+		if err := <-independent; err != nil {
+			t.Fatal(err)
+		}
+		for table, expected := range map[string]int{"guard_snapshot_a": 11, "guard_snapshot_b": 21} {
+			var actual int
+			if err := db.QueryRowContext(operation, "SELECT code FROM "+table+" WHERE id=1").Scan(&actual); err != nil || actual != expected {
+				t.Fatalf("independent result %s=%d, want %d: %v", table, actual, expected, err)
+			}
+		}
 	})
+}
+
+// authorizationWaiterCount observes SQL connections only; callers own every
+// barrier, deadline, release and outcome assertion.
+func authorizationWaiterCount(ctx context.Context, db *sql.DB, blockerID int64) (int, error) {
+	var count int
+	err := db.QueryRowContext(ctx, `SELECT COUNT(DISTINCT waiter.PROCESSLIST_ID) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks requested ON requested.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID JOIN performance_schema.data_locks blocking ON blocking.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID JOIN performance_schema.threads waiter ON waiter.THREAD_ID=requested.THREAD_ID JOIN performance_schema.threads blocker ON blocker.THREAD_ID=blocking.THREAD_ID WHERE requested.OBJECT_SCHEMA=DATABASE() AND requested.OBJECT_NAME='rcc_auth_control_lock' AND blocker.PROCESSLIST_ID=?`, blockerID).Scan(&count)
+	return count, err
 }

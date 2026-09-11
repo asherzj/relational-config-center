@@ -1,3 +1,5 @@
+import {ReleaseNotificationRead} from "../notifications/ReleaseNotificationRead";
+import {useWorkspaceReady} from "../accounts/ProtectedWorkspace";
 import {useReleaseJournal} from "./useReleaseJournal";
 import {ApiError,shouldRetryQuery} from "../../api/client";
 import {presentError} from "../../api/error-messages";
@@ -8,7 +10,7 @@ import {useRef,useState} from "react";
 import {releaseRequestOrder,releaseRequestSending} from "./release-journal";
 import {useQuery} from "@tanstack/react-query";
 import {Link,useParams} from "react-router-dom";
-import {releaseOrders,releaseTables,type ReleaseStateAction} from "../../api/release-orders";
+import {canReviewRelease,releaseOrders,releaseTables,type ReleaseStateAction} from "../../api/release-orders";
 import {Button} from "../../components/ui/Button";
 import {Button as PrimitiveButton} from "../../components/shadcn/button";
 import {Badge} from "../../components/shadcn/badge";
@@ -22,6 +24,7 @@ import {useAccountRole} from "../accounts/roles";
 import {useToast} from "../../components/ui/Toast";
 import {ReleaseTime} from "./ReleaseTime";
 import {ReleaseProgress} from "./ReleaseProgress";
+import {ReleaseApprovals} from "./ReleaseApprovals";
 import {ReleaseHistory} from "./ReleaseHistory";
 import {RollbackReason} from "./RollbackReason";
 import {ReleaseReview} from "./ReleaseReview";
@@ -49,19 +52,20 @@ function ReleaseList(){
   <label>状态<NativeSelect aria-label="状态" value={input.state} onChange={e=>setInput({...input,state:e.target.value})}><option value="">全部状态</option>{Object.entries(releaseStateLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</NativeSelect></label>
   <Button type="submit">查询发布单</Button><Button onClick={()=>void list.refetch()}>刷新列表</Button>
  </form>{list.isPending?<LoadingState/>:list.isError?<ErrorState error={list.error} onRetry={()=>void list.refetch()}/>:<>
- <div className="table-scroll"><Table className="min-w-[760px]"><TableHeader><TableRow><TableHead>标题 / 单号 / 表</TableHead><TableHead>申请人</TableHead><TableHead>状态</TableHead><TableHead>变更</TableHead><TableHead className="sticky right-0 z-10 w-32 bg-background">操作</TableHead></TableRow></TableHeader><TableBody>{list.data.orders.map(order=><TableRow key={order.id}><TableCell><Link className="font-medium" to={`/configuration/release-orders/${order.id}`}>{order.title}</Link><p className="break-all text-xs text-muted-foreground">{order.id} · {releaseTables(order).join("、")||"暂无明细表"}</p></TableCell><TableCell className="whitespace-nowrap">{order.applicant_id}</TableCell><TableCell>{releaseStateLabels[order.state]}</TableCell><TableCell>{order.item_count} 项 · {Object.entries(order.operation_counts).map(([operation,count])=>`${operation} ${count}`).join("、")}</TableCell><TableCell className="sticky right-0 z-10 bg-background whitespace-nowrap"><PrimitiveButton asChild variant="ghost" size="sm"><Link to={`/configuration/release-orders/${order.id}`} aria-label={`查看详情：${order.title}`}>查看详情</Link></PrimitiveButton></TableCell></TableRow>)}</TableBody></Table></div>
+ <div className="table-scroll"><Table className="min-w-[760px]"><TableHeader><TableRow><TableHead>标题 / 单号 / 表</TableHead><TableHead>申请人</TableHead><TableHead>状态</TableHead><TableHead>变更</TableHead><TableHead className="sticky right-0 z-10 w-32 bg-background">操作</TableHead></TableRow></TableHeader><TableBody>{list.data.orders.map(order=><TableRow key={order.id}><TableCell><Link className="font-medium" to={`/configuration/release-orders/${order.id}`}>{order.title}</Link><p className="break-all text-xs text-muted-foreground">{order.id} · {releaseTables(order).join("、")||"暂无明细表"}</p></TableCell><TableCell className="whitespace-nowrap">{order.applicant_id}</TableCell><TableCell>{releaseStateLabels[order.state]}{order.approvals.length>0&&order.state!=="DRAFT"&&<p className="mt-1 text-xs text-muted-foreground">已通过 {order.approvals.filter(table=>table.state==="APPROVED").length} / {order.approvals.length} 表</p>}</TableCell><TableCell>{order.item_count} 项 · {Object.entries(order.operation_counts).map(([operation,count])=>`${operation} ${count}`).join("、")}</TableCell><TableCell className="sticky right-0 z-10 bg-background whitespace-nowrap"><PrimitiveButton asChild variant="ghost" size="sm"><Link to={`/configuration/release-orders/${order.id}`} aria-label={`查看详情：${order.title}`}>查看详情</Link></PrimitiveButton></TableCell></TableRow>)}</TableBody></Table></div>
  {list.data.orders.length===0&&<p className="feedback-state">没有符合条件的发布单。</p>}
  <footer className="catalog-footer"><Button disabled={!filters.after} onClick={()=>setFilters({...filters,after:""})}>回到首页</Button><Button disabled={!list.data.next_cursor} onClick={()=>setFilters({...filters,after:list.data.next_cursor})}>下一页</Button></footer>
  </>}</>;
 }
-function ReleaseDetail({id}:{id:string}){
+export function ReleaseDetail({id,listPath="/configuration/release-orders",listLabel="发布单"}:{id:string;listPath?:string;listLabel?:string}){
+ const ready=useWorkspaceReady();
  const {showToast}=useToast();
  const [copyError,setCopyError]=useState(false);
  const {requests,accountID}=useReleaseJournal();
  const requestPending=requests.some(item=>releaseRequestSending(accountID,item.key)&&releaseRequestOrder(item)===id);
  const retained=(action:string)=>requests.some(item=>item.scope===`${action}:${id}`);
- const query=useQuery({queryKey:["release-order",id],queryFn:()=>releaseOrders.get(id),retry:shouldRetryQuery});
- const people=useQuery({queryKey:["release-order-people",id],queryFn:()=>releaseOrders.people(id),enabled:query.isSuccess,retry:shouldRetryQuery});
+ const query=useQuery({queryKey:["release-order",id],queryFn:()=>releaseOrders.get(id),enabled:ready,retry:shouldRetryQuery});
+ const people=useQuery({queryKey:["release-order-people",id],queryFn:()=>releaseOrders.people(id),enabled:ready&&query.isSuccess,retry:shouldRetryQuery});
  const [action,setAction]=useState<ReleaseStateAction>();
  const [copy,setCopy]=useState(false);
  const [quickRollback,setQuickRollback]=useState(false);
@@ -71,15 +75,18 @@ function ReleaseDetail({id}:{id:string}){
  const moreActionsRef=useRef<HTMLButtonElement>(null);
  const canEdit=useAccountRole("EDITOR");
  const canPublish=useAccountRole("PUBLISHER");
- const canApprove=useAccountRole("APPROVER");
- if(query.isPending)return <LoadingState/>;
- if(!query.data)return <ErrorState error={query.error} onRetry={()=>void query.refetch()}/>;
+
+ const navigation=<Link className="mb-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground" to={listPath}><ArrowLeft className="size-3.5" aria-hidden="true"/>返回{listLabel}列表</Link>;
+ if(query.isPending)return <div className="release-detail min-w-0">{navigation}<LoadingState/></div>;
+ if(!query.data)return <div className="release-detail min-w-0">{navigation}<ErrorState error={query.error} onRetry={()=>void query.refetch()}/></div>;
  const order=query.data;
  const peopleFailure=people.isError?presentError(people.error):undefined;
  const peopleCode=people.error instanceof ApiError?people.error.code:"unknown_error";
  const names=people.isError?{}:people.data?.people??{};
  const publication=order.executions.find(execution=>execution.kind==="PUBLICATION");
  const approver=[...order.history].reverse().find(event=>event.action==="APPROVE");
+ const canApprove=canReviewRelease(order,"approve")||retained("approve");
+ const canReject=canReviewRelease(order,"reject")||retained("reject");
  const available=(name:string,role:boolean)=>role&&(order.allowed_actions.includes(name)||retained(name));
  const primaryCandidates=[["submit",canEdit],["approve",canApprove],["execute",canPublish],["complete",canPublish]] as const;
  const primaryAction=primaryCandidates.find(([name,role])=>role&&order.allowed_actions.includes(name))?.[0]??primaryCandidates.find(([name,role])=>available(name,role))?.[0];
@@ -88,17 +95,18 @@ function ReleaseDetail({id}:{id:string}){
  const statusClass=order.state==="DRAFT"||order.state==="PENDING_APPROVAL"?"status-draft":["REJECTED","CANCELLED","ROLLED_BACK"].includes(order.state)?"bg-danger-soft text-destructive":"status-active";
  return <CurrentFieldDisplayProvider tableNames={releaseTables(order)}><div className="release-detail min-w-0">
  {query.isError&&<ErrorState error={query.error} onRetry={()=>void query.refetch()}/>}
+ <ReleaseNotificationRead key={`${order.id}:${order.notification.sequence}`} order={order} canAcknowledge={query.isFetchedAfterMount&&query.isSuccess&&!query.isFetching} onRefresh={()=>void query.refetch()}/>
  <header className="min-w-0" aria-label="发布单页头">
   <div className="flex min-w-0 flex-wrap items-start justify-between gap-4">
    <div className="min-w-0 flex-1 basis-72">
-    <Link className="mb-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground" to="/configuration/release-orders"><ArrowLeft className="size-3.5" aria-hidden="true"/>返回发布单列表</Link>
+    {navigation}
     <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2"><h1 className="min-w-0 break-all text-2xl font-semibold">{order.title}</h1><Badge variant="outline" aria-label="发布单状态" className={`status-badge ${statusClass}`}>{releaseStateLabels[order.state]}</Badge></div>
    </div>
    <div className="flex max-w-full flex-wrap items-center gap-2 sm:pt-6" role="group" aria-label="发布操作">
     {available("edit",canEdit)&&<Button disabled={requestPending} onClick={()=>setEditing(true)}>编辑草稿</Button>}
     {available("submit",canEdit)&&<Button variant={actionVariant("submit")} disabled={requestPending||order.item_count===0} onClick={()=>setAction("submit")}>提交审批</Button>}
     {available("approve",canApprove)&&<Button variant={actionVariant("approve")} disabled={requestPending} onClick={()=>setAction("approve")}>批准发布单</Button>}
-    {available("reject",canApprove)&&<Button disabled={requestPending} className="text-destructive" onClick={()=>setAction("reject")}>拒绝发布单</Button>}
+    {available("reject",canReject)&&<Button disabled={requestPending} className="text-destructive" onClick={()=>setAction("reject")}>拒绝发布单</Button>}
     {available("execute",canPublish)&&<Button variant={actionVariant("execute")} disabled={requestPending} onClick={()=>setAction("execute")}>执行发布</Button>}
     {available("quick-rollback",canPublish)&&<Button variant="secondary" className="text-destructive" disabled={requestPending} onClick={()=>setQuickRollback(true)}>快速回滚</Button>}
     {available("complete",canPublish)&&<Button variant={actionVariant("complete")} disabled={requestPending} onClick={()=>setAction("complete")}>完结发布单</Button>}
@@ -130,7 +138,7 @@ function ReleaseDetail({id}:{id:string}){
  {peopleFailure&&<section className="inline-alert mb-4 min-w-0 flex-wrap" role="alert"><div><strong>人员姓名读取失败，当前仅显示永久账号 ID。</strong><span>{peopleFailure.message}</span><span>错误代码：{peopleCode}</span>{peopleFailure.requestId&&<span>请求编号：{peopleFailure.requestId}</span>}</div><Button variant="secondary" disabled={people.isFetching} onClick={()=>void people.refetch()}>{people.isFetching?"正在读取人员姓名…":"重新读取人员姓名"}</Button></section>}
  {order.frozen_digest&&<p className="text-sm text-muted-foreground">提交内容已冻结，审批和发布以这份差异为准。</p>}
 
- <ReleaseReview order={order} people={names} toolbarAction={available("edit",canEdit)&&(requestPending?<Button disabled icon={<Plus aria-hidden="true"/>}>添加变更</Button>:<PrimitiveButton asChild variant="outline"><Link to={`/configuration/managed-data?table_name=${encodeURIComponent(releaseTables(order)[0]??"")}&draft=${order.id}`}><Plus aria-hidden="true"/>添加变更</Link></PrimitiveButton>)}/>{order.state==="ROLLED_BACK"&&<RollbackReason order={order} people={names}/>}<ReleaseHistory order={order} people={names}/>
+ <ReleaseApprovals order={order} people={names}/><ReleaseReview order={order} people={names} toolbarAction={available("edit",canEdit)&&(requestPending?<Button disabled icon={<Plus aria-hidden="true"/>}>添加变更</Button>:<PrimitiveButton asChild variant="outline"><Link to={`/configuration/managed-data?table_name=${encodeURIComponent(releaseTables(order)[0]??"")}&draft=${order.id}`}><Plus aria-hidden="true"/>添加变更</Link></PrimitiveButton>)}/>{order.state==="ROLLED_BACK"&&<RollbackReason order={order} people={names}/>}<ReleaseHistory order={order} people={names}/>
  {editing&&<ReleaseDraftEditor order={order} onClose={()=>setEditing(false)}/>}
  {action&&<ReleaseActionDialog order={order} action={action} onClose={()=>setAction(undefined)}/>}
  {quickRollback&&<QuickRollbackDialog order={order} onClose={()=>setQuickRollback(false)}/>}

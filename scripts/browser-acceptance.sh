@@ -31,9 +31,25 @@ for command in docker node pnpm go curl od tr grep sort cmp; do
 done
 
 case ${RCC_E2E_SUITE:-all} in
-  all|unsaved-changes|rule-clarity|write-recovery|operation-coverage|complex-fields|browser-accessibility|release-workflow|draft-targets|release-multitable|rollback-reason|field-interactions) ;;
+  all|unsaved-changes|rule-clarity|write-recovery|operation-coverage|complex-fields|browser-accessibility|release-workflow|draft-targets|release-multitable|rollback-reason|field-interactions|approval-contract-regression) ;;
   *) printf 'unknown browser suite: %s\n' "$RCC_E2E_SUITE" >&2; exit 2 ;;
 esac
+
+# Optional exact script@engine selection for repairing a failed final matrix.
+# No selection keeps every invocation in the requested suite unchanged.
+selected_cases=()
+matched_cases=","
+if [[ -n ${RCC_E2E_CASES:-} ]]; then
+  case $RCC_E2E_CASES in *$'\n'*|*$'\r'*) printf 'browser case selection must be a single line\n' >&2; exit 2 ;; esac
+  case $RCC_E2E_CASES in ,*|*,|*,,*) printf 'invalid browser case selection\n' >&2; exit 2 ;; esac
+  IFS=, read -r -a selected_cases <<< "$RCC_E2E_CASES"
+  for selected_case in "${selected_cases[@]}"; do
+    if [[ ! $selected_case =~ ^[a-z-]+\.(cjs|mjs)@(chromium|firefox|webkit)$ ]] || [[ ! -f "$repo_root/web/e2e/${selected_case%@*}" ]]; then
+      printf 'unknown browser case: %s\n' "$selected_case" >&2; exit 2
+    fi
+  done
+fi
+printf 'case\tselection\texit_status\n' > "$artifact_root/case-results.tsv"
 
 runtime_dir=$(mktemp -d "${TMPDIR:-/tmp}/rcc-browser-runtime.XXXXXX")
 
@@ -254,7 +270,7 @@ run_logged 300 "$artifact_root/dependencies-install.log" \
   pnpm --dir "$repo_root/web" install --frozen-lockfile
 browser_engines=${RCC_E2E_ENGINES:-${RCC_E2E_ENGINE:-chromium}}
 browser_engine_list=()
-if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == browser-accessibility || ${RCC_E2E_SUITE:-all} == release-workflow || ${RCC_E2E_SUITE:-all} == field-interactions || ${RCC_E2E_SUITE:-all} == draft-targets || ${RCC_E2E_SUITE:-all} == release-multitable || ${RCC_E2E_SUITE:-all} == rollback-reason ]]; then
+if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == approval-contract-regression || ${RCC_E2E_SUITE:-all} == browser-accessibility || ${RCC_E2E_SUITE:-all} == release-workflow || ${RCC_E2E_SUITE:-all} == field-interactions || ${RCC_E2E_SUITE:-all} == draft-targets || ${RCC_E2E_SUITE:-all} == release-multitable || ${RCC_E2E_SUITE:-all} == rollback-reason ]]; then
   engine_ifs=$IFS
   IFS=,
   read -r -a browser_engine_list <<< "$browser_engines"
@@ -267,7 +283,7 @@ if [[ ${RCC_E2E_SUITE:-all} == browser-accessibility || ${RCC_E2E_SUITE:-all} ==
   playwright_install_targets=("${browser_engine_list[@]}")
 else
   playwright_install_targets=(chromium)
-  if [[ ${RCC_E2E_SUITE:-all} == all ]]; then
+  if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == approval-contract-regression ]]; then
     for browser_engine in "${browser_engine_list[@]}"; do
       target_present=false
       for install_target in "${playwright_install_targets[@]}"; do
@@ -430,6 +446,14 @@ run_browser_suite() {
   local suite_timeout=${4:-180}
   local browser_engine=${5:-${RCC_E2E_ENGINE:-chromium}}
   local status
+  local case_id="${script##*/}@$browser_engine"
+  if [[ -n ${RCC_E2E_CASES:-} ]]; then
+    if [[ ",$RCC_E2E_CASES," != *",$case_id,"* ]]; then
+      printf '%s\tnot-selected\t\n' "$case_id" >> "$artifact_root/case-results.tsv"
+      return 0
+    fi
+    matched_cases+="$case_id,"
+  fi
   mkdir -p "$output"
   printf 'Running %s...\n' "$name"
   if RCC_PLAYWRIGHT_MODULE="$repo_root/web/node_modules/playwright" \
@@ -439,6 +463,7 @@ run_browser_suite() {
     run_timeout "${RCC_E2E_TIMEOUT_SECONDS:-$suite_timeout}" node "$script" \
       > "$output/runner.log" 2>&1; then status=0; else status=$?; fi
   cat "$output/runner.log"
+  printf '%s\tselected\t%s\n' "$case_id" "$status" >> "$artifact_root/case-results.tsv"
   if [[ $status != 0 && ! -f "$output/result.json" ]]; then
     node -e '
       const fs = require("node:fs");
@@ -505,6 +530,35 @@ for field_script in field-policies field-inputs combined-query field-recovery fi
 for browser_engine in "${browser_engine_list[@]}"; do
   run_browser_suite "field interactions ($browser_engine)" "$repo_root/web/e2e/field-interactions.cjs" "$artifact_root/field-interactions/$browser_engine" 420 "$browser_engine"
 done
+fi
+
+# This bounded group shares the normal services, fault fixtures and cleanup.
+# Keep the full all group above unchanged; these are its approval call sites.
+if [[ ${RCC_E2E_SUITE:-all} == approval-contract-regression ]]; then
+  run_browser_suite write-recovery "$repo_root/web/e2e/write-recovery.cjs" "$artifact_root/write-recovery" 360 chromium
+  run_browser_suite operation-coverage "$repo_root/web/e2e/operation-coverage.cjs" "$artifact_root/operation-coverage" 420 chromium
+  run_browser_suite complex-fields "$repo_root/web/e2e/complex-fields.cjs" "$artifact_root/complex-fields" 420 chromium
+  for browser_engine in "${browser_engine_list[@]}"; do
+    run_browser_suite "browser-accessibility ($browser_engine)" "$repo_root/web/e2e/browser-accessibility.cjs" "$artifact_root/browser-accessibility/$browser_engine" 420 "$browser_engine"
+  done
+  run_browser_suite "release approvals" "$repo_root/web/e2e/release-approvals.cjs" "$artifact_root/release-workflow/approvals" 300 chromium
+  run_browser_suite "release batches" "$repo_root/web/e2e/release-batches.cjs" "$artifact_root/release-workflow/batches" 600 chromium
+  for browser_engine in "${browser_engine_list[@]}"; do
+    run_browser_suite "publication and rollback ($browser_engine)" "$repo_root/web/e2e/release-rollbacks.cjs" "$artifact_root/release-workflow/rollback-$browser_engine" 420 "$browser_engine"
+    run_browser_suite "session, conflict and unknown recovery ($browser_engine)" "$repo_root/web/e2e/accounts.mjs" "$artifact_root/release-workflow/recovery-$browser_engine" 600 "$browser_engine"
+    run_browser_suite "multi-table original order ($browser_engine)" "$repo_root/web/e2e/release-multitable.cjs" "$artifact_root/release-workflow/multitable-$browser_engine" 600 "$browser_engine"
+    run_browser_suite "rollback reason history ($browser_engine)" "$repo_root/web/e2e/release-rollback-reason.cjs" "$artifact_root/release-workflow/rollback-reason-$browser_engine" 240 "$browser_engine"
+  done
+  run_browser_suite field-display "$repo_root/web/e2e/field-display.cjs" "$artifact_root/field-interactions/field-display" 420 chromium
+fi
+
+if [[ -n ${RCC_E2E_CASES:-} ]]; then
+  for selected_case in "${selected_cases[@]}"; do
+    if [[ $matched_cases != *",$selected_case,"* ]]; then
+      printf 'browser case is not part of the requested suite/engine matrix: %s\n' "$selected_case" >&2
+      exit 2
+    fi
+  done
 fi
 
 expected='5|1|5|0|notification_page_query_v1|stage1_mutation_v1|1|DEPRECATED'

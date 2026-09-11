@@ -111,7 +111,7 @@ def main():
     try:
         run(['build'], timeout=900)
         verify_success('fresh_volume')
-        sql("CREATE TABLE business_marker(id int PRIMARY KEY,note text); INSERT INTO business_marker VALUES(17,'preserved through deployment'); INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,roles,role_version,session_version,created_at) VALUES('compose-account','compose.account','compose@example.test','Retained','fixture-hash',31,4,7,'2025-01-02');")
+        sql("CREATE TABLE business_marker(id int PRIMARY KEY,note text); INSERT INTO business_marker VALUES(17,'preserved through deployment'); INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,roles,role_version,session_version,created_at) VALUES('compose-account','compose.account','compose@example.test','Retained','fixture-hash',27,4,7,'2025-01-02');")
         before = preserved()
         recreate_containers()
         verify_success('adopted_volume_repeat')
@@ -130,13 +130,20 @@ def main():
         run(['run', '--rm', 'schema-migrate', 'baseline'])
         verify_success('explicit_adoption_restores_deployment')
         before = preserved()
-        sql("UPDATE rcc_schema_migration_attempts SET state='BASELINING',finished_at=NULL;")
+        # Baseline and forward upgrades are separate durable attempts. Interrupt
+        # only the latest successful up; earlier confirmed history must stay intact.
+        target_attempt = int(sql("SELECT id FROM rcc_schema_migration_attempts WHERE state='SUCCEEDED' ORDER BY id DESC LIMIT 1;"))
+        other_attempts = sql(f"SELECT * FROM rcc_schema_migration_attempts WHERE id<>{target_attempt} ORDER BY id;")
+        sql(f"UPDATE rcc_schema_migration_attempts SET state='RUNNING',finished_at=NULL WHERE id={target_attempt} AND state='SUCCEEDED';")
+        assert sql("SELECT COUNT(*) FROM rcc_schema_migration_attempts WHERE state IN ('RUNNING','BASELINING');") == '1'
+        assert sql(f"SELECT * FROM rcc_schema_migration_attempts WHERE id<>{target_attempt} ORDER BY id;") == other_attempts
         recreate_containers()
         verify_blocked('unconfirmed_volume_blocks', 'recovery_required')
         assert preserved() == before, 'blocked deployment changed existing data'
         run(['run', '--rm', 'schema-migrate', 'recover'])
         verify_success('explicit_recovery_restores_deployment')
         assert preserved() == before, 'recovery deployment changed existing data'
+        assert sql(f"SELECT * FROM rcc_schema_migration_attempts WHERE id<>{target_attempt} ORDER BY id;") == other_attempts, 'recovery changed another migration attempt'
     finally:
         run(['logs', '--no-color'], success=False)
         run(['down', '--volumes', '--remove-orphans'], success=False, timeout=120)

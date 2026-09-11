@@ -69,6 +69,9 @@ func (a *Adapter) ChangeAccountRoles(ctx context.Context, change domain.RoleChan
 		before := account.Roles
 		account.Roles = change.Roles
 		account.RoleVersion++
+		if err := reconcilePendingApprovalNotifications(ctx, tx, change.ActorID); err != nil {
+			return err
+		}
 		return saveRoleEvent(tx, "account", change.ActorID, before, account, change.RequestKey, digest, time.Now())
 	})
 	return account, err
@@ -100,6 +103,9 @@ func (a *Adapter) GrantAccountAdmin(ctx context.Context, id string, now time.Tim
 			return err
 		}
 		result := domain.RoleAccount{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Enabled: account.Enabled, Roles: account.Roles | domain.RoleAdmin, RoleVersion: account.RoleVersion + 1}
+		if err := reconcilePendingApprovalNotifications(ctx, tx, ""); err != nil {
+			return err
+		}
 		return saveRoleEvent(tx, "maintenance", "", account.Roles, result, hex.EncodeToString(key), roleChangeDigest(domain.RoleChange{AccountID: id, Roles: result.Roles, ExpectedVersion: account.RoleVersion}), now)
 	})
 }
@@ -122,7 +128,7 @@ func saveRoleEvent(tx *gorm.DB, kind, actor string, before domain.AccountRoles, 
 	if err != nil {
 		return err
 	}
-	return tx.Table(roleHistoryTable).Create(&storedRoleEvent{RoleEvent: domain.RoleEvent{ActorKind: kind, ActorID: actor, AccountID: result.ID, BeforeRoles: before, AfterRoles: result.Roles, Version: result.RoleVersion, CreatedAt: now.UTC().Truncate(time.Microsecond)}, RequestKey: key, RequestDigest: digest, Result: data}).Error
+	return tx.Table(roleHistoryTable).Create(&storedRoleEvent{RoleEvent: domain.RoleEvent{ActorKind: kind, ActorID: actor, AccountID: result.ID, BeforeRoles: domain.HistoricalAccountRoles(before), AfterRoles: domain.HistoricalAccountRoles(result.Roles), Version: result.RoleVersion, CreatedAt: now.UTC().Truncate(time.Microsecond)}, RequestKey: key, RequestDigest: digest, Result: data}).Error
 }
 func (a *Adapter) RoleHistory(ctx context.Context, id string, before uint64, limit int) ([]domain.RoleEvent, error) {
 	events := make([]domain.RoleEvent, 0)

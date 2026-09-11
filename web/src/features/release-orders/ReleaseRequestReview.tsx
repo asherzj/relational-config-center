@@ -1,13 +1,14 @@
 import {useReleaseJournal} from "./useReleaseJournal";
 import {useState} from "react";
 import {Link,useNavigate} from "react-router-dom";
-import {loadReleaseForEdit,decodeReleaseRequest,draftFromOrder,releaseActionLabels,releaseActionRole,releaseOrders,releaseDetailTables,releaseRequests,type DraftItem,type ReleaseOrder,type ReleaseRequestEnvelope} from "../../api/release-orders";
+import {canReviewRelease,loadReleaseForEdit,decodeReleaseRequest,draftFromOrder,releaseActionLabels,releaseActionRole,releaseOrders,releaseDetailTables,releaseRequests,type DraftItem,type ReleaseOrder,type ReleaseRequestEnvelope} from "../../api/release-orders";
 import {useAccountRole} from "../accounts/roles";
 import {Button} from "../../components/ui/Button";
 import {ErrorState,LoadingState} from "../../components/ui/Feedback";
 import {useDraftProtection} from "../../components/ui/LeaveProtection";
 import {type PendingReleaseRequest} from "./release-journal";
 import {useReleaseWrite} from "./useReleaseWrite";
+import {ApprovalScope,ReleaseApprovals} from "./ReleaseApprovals";
 import {ReleaseDiff} from "./ReleaseDiff";
 import {CurrentFieldDisplayProvider} from "../field-display/CurrentFieldDisplay";
 
@@ -45,7 +46,7 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
    }else if(intent.action==="edit-rollback-reason"){
     if(latest?.allowed_actions.includes("edit-rollback-reason"))setRebuilt(releaseRequests.rollbackReason(intent.id,intent.input.reason));
    }else if(intent.action==="cancel"||intent.action==="approve"||intent.action==="reject"){
-    if(latest?.allowed_actions.includes(intent.action))setRebuilt(releaseRequests.action(intent.action,intent.id,latest.version,intent.input.reason));
+    if(latest&&(intent.action==="cancel"?latest.allowed_actions.includes("cancel"):canReviewRelease(latest,intent.action)))setRebuilt(releaseRequests.action(intent.action,intent.id,latest.version,intent.input.reason,latest.approval_context));
    }else if(intent.action==="submit"){
     if(latest?.allowed_actions.includes("submit")){
       const snapshot=await releaseOrders.preview(draftFromOrder(latest));setPreview(snapshot);
@@ -73,7 +74,7 @@ function RejectedRequest({item}:{item:PendingReleaseRequest}){
  const confirmLabel=action==="cancel"?`确认按最新状态取消${current?.state==="DRAFT"?"草稿":"发布单"}`:action==="create"||action==="edit"||action==="edit-details"?"确认重建并保存草稿":`确认按最新状态${action?releaseActionLabels[action]:"重建"}`;
  return <><p role="alert">服务器已明确拒绝原请求。原申请保留，请查看最新状态与配置后决定是否重建。</p>
   <Button disabled={!action||!allowed||reading||write.pending} onClick={()=>void inspect()}>{reading?"正在检查…":"查看最新状态与配置"}</Button>{reading&&<LoadingState label="正在检查最新状态与配置…"/>}
-  {current&&<CurrentFieldDisplayProvider tableNames={releaseDetailTables(current)}><p>最新发布单版本：{current.version}，状态：{current.state}</p><ReleaseDiff order={current}/></CurrentFieldDisplayProvider>}
+  {current&&<CurrentFieldDisplayProvider tableNames={releaseDetailTables(current)}><p>最新发布单版本：{current.version}，状态：{current.state}</p>{(action==="approve"||action==="reject")&&<><ReleaseApprovals order={current}/>{rebuilt?<ApprovalScope context={current.approval_context} rejection={action==="reject"}/>:<p role="alert">当前已无可处理的审批范围，原意见保留。</p>}</>}<ReleaseDiff order={current}/></CurrentFieldDisplayProvider>}
   {preview&&<CurrentFieldDisplayProvider tableNames={releaseDetailTables(preview)}><p>{action==="quick-rollback"?"重新审阅整单恢复预览，确认后将使用新的请求标识执行：":"原申请与最新记录基线的差异："}</p><ReleaseDiff order={{items:preview.items}} beforeLabel={action==="quick-rollback"?"当前值":undefined} proposedLabel={action==="quick-rollback"?"恢复值":undefined}/></CurrentFieldDisplayProvider>}
   {needsDraftUpdate&&current&&<p>草稿记录基线已变化，请先<Link to={`/configuration/release-orders/${current.id}`}>编辑草稿并核对最新配置</Link>，再重新检查提交。</p>}
   {action==="quick-rollback"&&current&&!current.allowed_actions.includes("quick-rollback")&&<p>当前发布单已不能快速回滚，原原因保留供核对。</p>}
@@ -92,7 +93,8 @@ export function PendingIntent({item}:{item:PendingReleaseRequest}){
  if(intent.action==="complete")return <details className="my-2"><summary>查看原申请内容</summary><p>完结发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p><p>释放全部目标记录的占用，并关闭快速回滚；配置内容保持不变。</p></details>;
  if(intent.action==="execute")return <details className="my-2"><summary>查看原申请内容</summary><p>发布单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
  if(intent.action==="submit")return <details className="my-2"><summary>查看原申请内容</summary><p>提交单号：{intent.id}，发布单版本：{intent.input.expected_version}</p></details>;
- if(intent.action==="cancel"||intent.action==="approve"||intent.action==="reject")return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="cancel"?"取消原因":"审批意见"}：{intent.input.reason}</p></details>;
+ if(intent.action==="approve"||intent.action==="reject")return <details className="my-2"><summary>查看原申请内容</summary><p>审批意见：{intent.input.reason}</p><p className="break-all">原确认表范围：{intent.input.confirmed_tables.join("、")}</p><p>原发布单版本：{intent.input.expected_version}</p></details>;
+ if(intent.action==="cancel")return <details className="my-2"><summary>查看原申请内容</summary><p>{intent.action==="cancel"?"取消原因":"审批意见"}：{intent.input.reason}</p></details>;
  if(intent.action==="edit-details")return <details className="my-2"><summary>查看原申请内容</summary><p>整单版本 {intent.input.expected_version}</p><p>删除明细：{intent.input.changes.delete_detail_ids?.join("、")||"无"}</p><p>明细顺序：{intent.input.changes.detail_order?.join("、")||"保持"}</p>{intent.input.changes.upserts?.map((entry,index)=>{
   const position=entry.detail_id?intent.input.changes.detail_order?.indexOf(entry.detail_id):undefined;
   return <PendingDetail key={entry.detail_id??index} entry={entry} position={position!==undefined&&position>=0?position+1:undefined}/>;

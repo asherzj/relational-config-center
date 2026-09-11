@@ -46,6 +46,11 @@ func authError(err error) error {
 		}
 	}
 	var limited *domain.RateLimited
+	for _, known := range []error{domain.ErrApprovalRoleFields, domain.ErrApprovalRoleNotFound, domain.ErrApprovalRoleVersion, domain.ErrApprovalRoleReferenced, domain.ErrTableApprovalVersion} {
+		if errors.Is(err, known) {
+			return known
+		}
+	}
 	if errors.As(err, &limited) {
 		return limited
 	}

@@ -41,7 +41,7 @@ func TestSharedBusinessServicesDoNotStoreRequestIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Shared business services must never regain mutable per-account fields.
-	protected := map[string]bool{"QueryPolicyManagement": true, "MutationPolicyManagement": true, "TablePolicyManagement": true, "TableFieldPolicyManagement": true, "AccountRoleManagement": true, "ReleaseOrders": true}
+	protected := map[string]bool{"QueryPolicyManagement": true, "MutationPolicyManagement": true, "TablePolicyManagement": true, "TableFieldPolicyManagement": true, "AccountRoleManagement": true, "ApprovalRoleManagement": true, "ReleaseOrders": true}
 	for _, pkg := range files {
 		for filename, file := range pkg.Files {
 			ast.Inspect(file, func(node ast.Node) bool {
@@ -95,5 +95,51 @@ func TestReleaseDraftSessionCannotWriteBusinessRows(t *testing.T) {
 	})
 	if !found {
 		t.Fatal("release draft transaction contract missing")
+	}
+}
+
+func TestDomainDoesNotContainORMMappings(t *testing.T) {
+	files, err := parser.ParseDir(token.NewFileSet(), "../../domain", func(info os.FileInfo) bool { return !strings.HasSuffix(info.Name(), "_test.go") }, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, pkg := range files {
+		for name, file := range pkg.Files {
+			ast.Inspect(file, func(node ast.Node) bool {
+				if field, ok := node.(*ast.Field); ok && field.Tag != nil && strings.Contains(field.Tag.Value, "gorm:") {
+					t.Errorf("%s stores ORM mapping in domain; ADR-0012 requires persistence mappings in Infrastructure", name)
+				}
+				return true
+			})
+		}
+	}
+}
+
+func TestReleaseNotificationReadsCannotAcquireWriteCapabilities(t *testing.T) {
+	file, err := parser.ParseFile(token.NewFileSet(), "../../application/notification_center.go", nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	ast.Inspect(file, func(node ast.Node) bool {
+		spec, ok := node.(*ast.TypeSpec)
+		if !ok || spec.Name.Name != "ReleaseOrderListReader" {
+			return true
+		}
+		found = true
+		for _, field := range spec.Type.(*ast.InterfaceType).Methods.List {
+			if embedded, ok := field.Type.(*ast.Ident); ok && !strings.HasSuffix(embedded.Name, "Reader") {
+				t.Errorf("notification read embeds mutable capability %s", embedded.Name)
+			}
+			for _, name := range field.Names {
+				if !strings.HasPrefix(name.Name, "Read") && !strings.HasPrefix(name.Name, "List") {
+					t.Errorf("notification read exposes write %s", name.Name)
+				}
+			}
+		}
+		return false
+	})
+	if !found {
+		t.Fatal("notification read contract missing")
 	}
 }

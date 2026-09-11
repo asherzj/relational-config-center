@@ -1,3 +1,4 @@
+import { createFixtureApprovalRole, fixtureApprovalInput } from './table-approval-fixture.cjs';
 import {readAllReleaseDetailPages,executionCommands,applicationItems} from './release-detail-pages.cjs';
 import originalReleaseActions from "./release-original-action.cjs";
 import { execFileSync } from 'node:child_process';
@@ -79,10 +80,11 @@ async function publishSingle({ applicant, approver, publisher, item, keyPrefix }
   assert.equal(submittedResponse.status(), 200);
   const submitted = await submittedResponse.json();
 
-  const approvedResponse = await releaseWrite(approver, `/api/v1/release-orders/${created.id}/approve`, {
+  const approvalInput = await fixtureApprovalInput({ request: approver }, origin, created.id, {
     expected_version: submitted.version,
     reason: 'Independent concurrent browser baseline review',
-  }, `${keyPrefix}-approve`);
+  });
+  const approvedResponse = await releaseWrite(approver, `/api/v1/release-orders/${created.id}/approve`, approvalInput, `${keyPrefix}-approve`);
   assert.equal(approvedResponse.status(), 200);
   const approved = await approvedResponse.json();
 
@@ -175,11 +177,10 @@ try {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.getByRole('checkbox', { name: /查看者 VIEWER/ }).uncheck();
   await page.getByRole('checkbox', { name: /编辑者 EDITOR/ }).check();
-  await page.getByRole('checkbox', { name: /审批人 APPROVER/ }).check();
   await page.getByRole('button', { name: '保存角色', exact: true }).click();
   await page.getByText('角色已保存，后续请求立即生效。').waitFor();
   const memberIdentity = await session(member);
-  assert.deepEqual(memberIdentity.account.roles, ['EDITOR', 'APPROVER']);
+  assert.deepEqual(memberIdentity.account.roles, ['EDITOR']);
   await page.getByRole('button', { name: `管理 ${memberUsername} 的角色` }).click();
   await page.getByRole('heading', { name: '角色变更历史' }).waitFor();
   await page.getByText(`操作者：${identity.account.id}`, { exact: true }).waitFor();
@@ -188,6 +189,10 @@ try {
   adminAPI = await request.newContext();
   const adminIdentity = await login(adminAPI, adminUsername, 'browser password long enough');
   assert.ok(adminIdentity.account.roles.includes('ADMIN'));
+  // Both actors review the other's application through this explicit table
+  // role. Global role edits do not grant table approval eligibility.
+  await createFixtureApprovalRole({ request: adminAPI }, origin, `Account review ${runSuffix}`,
+    [identity.account.id, memberIdentity.account.id], ['notification_templates']);
   reviewerBrowser = await browserEngine.launch(launchOptions);
   const reviewerContext = await reviewerBrowser.newContext({
     storageState: await member.storageState(),

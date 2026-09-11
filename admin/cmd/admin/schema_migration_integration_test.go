@@ -20,7 +20,33 @@ import (
 	mysqldriver "github.com/go-sql-driver/mysql"
 )
 
-const currentTestSchemaVersion int64 = 5
+// The synthetic next-release fixture follows the current embedded migration set.
+// Historical release tests keep their explicit version arguments unchanged.
+func currentTestSchemaVersion(t *testing.T) int64 {
+	t.Helper()
+	entries, err := os.ReadDir("../../internal/infrastructure/mysql/migrations")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var latest int64
+	for _, entry := range entries {
+		if !strings.HasSuffix(entry.Name(), ".sql") {
+			continue
+		}
+		prefix, _, _ := strings.Cut(entry.Name(), "_")
+		version, err := strconv.ParseInt(prefix, 10, 64)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if version > latest {
+			latest = version
+		}
+	}
+	if latest == 0 {
+		t.Fatal("no schema migration source found")
+	}
+	return latest
+}
 
 // A second isolated release uses the unchanged public command and adds an
 // embedded migration. No production test hook or arbitrary-SQL CLI is needed.
@@ -83,11 +109,11 @@ func buildNextSchemaMigrationRelease(t *testing.T, slow ...bool) string {
 		if len(slow) > 0 && slow[0] {
 			fixture = strings.Replace(fixture, "\nINSERT", "\nSELECT SLEEP(3);\nINSERT", 1)
 		}
-		if err := os.WriteFile(filepath.Join(directory, fmt.Sprintf("%05d_fixture.sql", currentTestSchemaVersion+1)), []byte(fixture), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(directory, fmt.Sprintf("%05d_fixture.sql", currentTestSchemaVersion(t)+1)), []byte(fixture), 0644); err != nil {
 			t.Fatal(err)
 		}
 		var manifest map[string]string
-		data, err := os.ReadFile(filepath.Join(directory, fmt.Sprintf("%05d_schema.json", currentTestSchemaVersion)))
+		data, err := os.ReadFile(filepath.Join(directory, fmt.Sprintf("%05d_schema.json", currentTestSchemaVersion(t))))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -99,7 +125,7 @@ func buildNextSchemaMigrationRelease(t *testing.T, slow ...bool) string {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(directory, fmt.Sprintf("%05d_schema.json", currentTestSchemaVersion+1)), data, 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(directory, fmt.Sprintf("%05d_schema.json", currentTestSchemaVersion(t)+1)), data, 0644); err != nil {
 			t.Fatal(err)
 		}
 	})
@@ -408,7 +434,7 @@ func TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery(t *testing.T) {
 		t.Fatalf("confirmation failure must be safe: %v %s", err, output)
 	}
 	var versions int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=? AND is_applied=1`, currentTestSchemaVersion+1).Scan(&versions); err != nil || versions != 1 {
+	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=? AND is_applied=1`, currentTestSchemaVersion(t)+1).Scan(&versions); err != nil || versions != 1 {
 		t.Fatalf("version was not committed: %d %v", versions, err)
 	}
 	requireSchemaMigrationState(t, next, driver, "recovery_required", "status")
@@ -433,7 +459,7 @@ func TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery(t *testing.T) {
 		t.Fatal(err)
 	}
 	requireSchemaMigrationState(t, next, driver, "current", "recover")
-	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=?`, currentTestSchemaVersion+1).Scan(&versions); err != nil || versions != 1 {
+	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=?`, currentTestSchemaVersion(t)+1).Scan(&versions); err != nil || versions != 1 {
 		t.Fatalf("committed version duplicated: %d %v", versions, err)
 	}
 	for _, query := range []string{

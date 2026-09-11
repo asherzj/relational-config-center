@@ -85,6 +85,7 @@ func TestReleaseDraftTitleEditCASAndFreeze(t *testing.T) {
 	if current.Body.String() != updated.Body.String() {
 		t.Fatalf("stale update changed title or detail: %s", current.Body)
 	}
+	configurePublicationReviewer(t, app, publicationFixtureReviewer(t, app), "mutation_delete_parents")
 	submitted := releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"2"}`, "draft-title-submit")
 	if submitted.Code != 200 || !strings.Contains(submitted.Body.String(), `"title":"审批前的新标题"`) {
 		t.Fatalf("submit titled draft: %d %s", submitted.Code, submitted.Body)

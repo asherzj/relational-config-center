@@ -31,30 +31,34 @@ type ReleaseField struct {
 }
 
 type ReleaseEvent struct {
-	RelatedOrderID string `json:"related_order_id,omitempty"`
-	ExecutionID    string `json:"execution_id,omitempty"`
-	Action         string `json:"action"`
-	ActorID        string `json:"actor_id"`
-	At             string `json:"at"`
-	Version        string `json:"version"`
-	Reason         string `json:"reason"`
+	TableNames      []string                `json:"table_names,omitempty"`
+	ApprovalSources []ReleaseApprovalSource `json:"approval_sources,omitempty"`
+	RelatedOrderID  string                  `json:"related_order_id,omitempty"`
+	ExecutionID     string                  `json:"execution_id,omitempty"`
+	Action          string                  `json:"action"`
+	ActorID         string                  `json:"actor_id"`
+	At              string                  `json:"at"`
+	Version         string                  `json:"version"`
+	Reason          string                  `json:"reason"`
 }
 
 type ReleaseOrder struct {
-	FrozenTables map[string]ReleaseExecutionSnapshot `json:"frozen_tables,omitempty"`
-	TableNames   []string                            `json:"table_names"`
-	Title        string                              `json:"title"`
-	Executions   []ReleaseExecution                  `json:"executions"`
-	CopiedFromID string                              `json:"copied_from_id,omitempty"`
-	FrozenDigest string                              `json:"frozen_digest,omitempty"`
-	ID           string                              `json:"id"`
-	ApplicantID  string                              `json:"applicant_id"`
-	State        string                              `json:"state"`
-	Version      string                              `json:"version"`
-	Items        []ReleaseItem                       `json:"items"`
-	History      []ReleaseEvent                      `json:"history"`
-	CreatedAt    string                              `json:"created_at"`
-	UpdatedAt    string                              `json:"updated_at"`
+	Approvals       []ReleaseTableApproval              `json:"approvals"`
+	ApprovalContext ReleaseApprovalContext              `json:"approval_context"`
+	FrozenTables    map[string]ReleaseExecutionSnapshot `json:"frozen_tables,omitempty"`
+	TableNames      []string                            `json:"table_names"`
+	Title           string                              `json:"title"`
+	Executions      []ReleaseExecution                  `json:"executions"`
+	CopiedFromID    string                              `json:"copied_from_id,omitempty"`
+	FrozenDigest    string                              `json:"frozen_digest,omitempty"`
+	ID              string                              `json:"id"`
+	ApplicantID     string                              `json:"applicant_id"`
+	State           string                              `json:"state"`
+	Version         string                              `json:"version"`
+	Items           []ReleaseItem                       `json:"items"`
+	History         []ReleaseEvent                      `json:"history"`
+	CreatedAt       string                              `json:"created_at"`
+	UpdatedAt       string                              `json:"updated_at"`
 }
 
 type RecordBaseline struct {
@@ -68,6 +72,9 @@ type RecordBaseline struct {
 type ReleaseFilter struct {
 	TableName, ApplicantID, State, ID, After string
 	Limit                                    int
+	SubmittedOnly                            bool
+	UnreadOnly                               bool
+	ReviewedBy                               string
 }
 
 // Execution metadata retains NULL separately from text. Sections have a fixed,
@@ -136,20 +143,23 @@ func NewReleaseMutationSemantics(policy MutationPolicy) ReleaseMutationSemantics
 // ReleaseOrderSummary carries bounded catalog information; complete intent and
 // verified publication history are available through the order detail.
 type ReleaseOrderSummary struct {
-	TableNames      []string       `json:"table_names"`
-	Title           string         `json:"title"`
-	ID              string         `json:"id"`
-	ApplicantID     string         `json:"applicant_id"`
-	State           string         `json:"state"`
-	Version         string         `json:"version"`
-	CreatedAt       string         `json:"created_at"`
-	UpdatedAt       string         `json:"updated_at"`
-	ItemCount       int            `json:"item_count"`
-	OperationCounts map[string]int `json:"operation_counts"`
+	Notification    ApprovalNotification   `json:"notification"`
+	Approvals       []ReleaseTableApproval `json:"approvals"`
+	ApprovalContext ReleaseApprovalContext `json:"approval_context"`
+	TableNames      []string               `json:"table_names"`
+	Title           string                 `json:"title"`
+	ID              string                 `json:"id"`
+	ApplicantID     string                 `json:"applicant_id"`
+	State           string                 `json:"state"`
+	Version         string                 `json:"version"`
+	CreatedAt       string                 `json:"created_at"`
+	UpdatedAt       string                 `json:"updated_at"`
+	ItemCount       int                    `json:"item_count"`
+	OperationCounts map[string]int         `json:"operation_counts"`
 }
 
 func (order ReleaseOrder) Summary() ReleaseOrderSummary {
-	result := ReleaseOrderSummary{TableNames: order.TableNames, Title: order.Title, ID: order.ID, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
+	result := ReleaseOrderSummary{Approvals: order.Approvals, ApprovalContext: order.ApprovalContext, TableNames: order.TableNames, Title: order.Title, ID: order.ID, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
 	for _, item := range order.Items {
 		result.OperationCounts[item.Operation]++
 	}

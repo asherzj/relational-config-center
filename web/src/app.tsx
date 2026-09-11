@@ -1,4 +1,6 @@
+import { ApprovalRolesPage } from "./features/approval-roles/ApprovalRolesPage";
 import {ReleaseOrdersPage} from "./features/release-orders/ReleaseOrdersPage";
+import { NotificationsPage } from "./features/notifications/NotificationsPage";
 import { AccountRolesPage } from "./features/account-roles/AccountRolesPage";
 import { safeReturnDestination } from "./features/accounts/returnDestination";
 import { ProtectedWorkspace } from "./features/accounts/ProtectedWorkspace";
@@ -19,6 +21,7 @@ export function AppRoutes() {
       <Route element={<ProtectedWorkspace />}>
       <Route element={<AppShell />}>
         <Route index element={<Navigate to="/platform/query-policies" replace />} />
+        <Route path="platform/approval-roles" element={<ApprovalRolesPage />} />
         <Route path="platform/account-roles" element={<AccountRolesPage />} />
         <Route path="platform/query-policies" element={<QueryPoliciesPage />} />
         <Route path="platform/query-policies/:code" element={<QueryPoliciesPage />} />
@@ -27,6 +30,8 @@ export function AppRoutes() {
         <Route path="platform/table-policies" element={<TablePoliciesPage />} />
         <Route path="platform/table-policies/:tableName" element={<TablePoliciesPage />} />
         <Route path="configuration/release-orders" element={<ReleaseOrdersPage />} />
+        <Route path="configuration/notifications" element={<NotificationsPage />} />
+        <Route path="configuration/notifications/:id" element={<NotificationsPage />} />
  <Route path="configuration/release-orders/:id" element={<ReleaseOrdersPage />} />
  <Route path="configuration/managed-data" element={<ManagedDataPage />} />
         <Route path="*" element={<Navigate to="/platform/query-policies" replace />} />

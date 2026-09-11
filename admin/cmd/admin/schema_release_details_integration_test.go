@@ -10,7 +10,7 @@ import (
 // #81 AC-015: each interrupted table is a whole previous or target schema.
 // These are real privilege failures between DDL statements, not mocked status.
 func TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts(t *testing.T) {
-	v3, v4, v5 := buildSchemaMigrationReleaseAt(t, 3), buildSchemaMigrationReleaseAt(t, 4), buildSchemaMigrationCommand(t)
+	v3, v4, v5 := buildSchemaMigrationReleaseAt(t, 3), buildSchemaMigrationReleaseAt(t, 4), buildSchemaMigrationReleaseAt(t, 5)
 	_, driver := startIntegrationMySQL(t)
 	requireSchemaMigrationState(t, v3, driver, "current", "up")
 	owner := *driver

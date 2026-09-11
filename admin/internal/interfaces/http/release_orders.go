@@ -10,6 +10,27 @@ import (
 )
 
 func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseOrders) {
+	router.POST("/api/v1/release-orders/:id/notification-read", func(c *gin.Context) {
+		var input struct {
+			Sequence string `json:"sequence"`
+		}
+		if err := decodeRequest(c, &input); err != nil {
+			writeRequestDecodeError(c, err)
+			return
+		}
+		result, err := orders.AcknowledgeNotification(c.Request.Context(), c.Param("id"), input.Sequence)
+		if writeReleaseError(c, err) {
+			return
+		}
+		c.JSON(200, result)
+	})
+	router.GET("/api/v1/approval-notifications", func(c *gin.Context) {
+		counts, err := orders.NotificationCounts(c.Request.Context())
+		if writeReleaseError(c, err) {
+			return
+		}
+		c.JSON(200, counts)
+	})
 	router.POST("/api/v1/release-orders/:id/reprepare", func(c *gin.Context) {
 		var input application.CopyReleaseInput
 		if err := decodeRequest(c, &input); err != nil {
@@ -56,7 +77,22 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 				return
 			}
 		}
-		list, err := orders.List(c.Request.Context(), application.ReleaseFilter{TableName: c.Query("table_name"), ApplicantID: c.Query("applicant_id"), State: c.Query("state"), ID: c.Query("id"), After: c.Query("after"), Limit: limit})
+		if raw, ok := c.GetQuery("unread"); ok && (raw != "true" && raw != "false" || !c.Request.URL.Query().Has("view")) {
+			writeReleaseError(c, application.ErrReleaseInvalid)
+			return
+		}
+		filter := application.ReleaseFilter{UnreadOnly: c.Query("unread") == "true", TableName: c.Query("table_name"), ApplicantID: c.Query("applicant_id"), State: c.Query("state"), ID: c.Query("id"), After: c.Query("after"), Limit: limit}
+		var list []application.ReleaseOrderSummary
+		var err error
+		next := ""
+		if c.Request.URL.Query().Has("view") {
+			list, next, err = orders.NotificationOrders(c.Request.Context(), c.Query("view"), filter)
+		} else {
+			list, err = orders.List(c.Request.Context(), filter)
+			if len(list) == limit && len(list) > 0 {
+				next = list[len(list)-1].ID
+			}
+		}
 		if writeReleaseError(c, err) {
 			return
 		}
@@ -65,12 +101,8 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 			summary := struct {
 				application.ReleaseOrderSummary
 				AllowedActions []string `json:"allowed_actions"`
-			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{ID: order.ID, State: order.State, ApplicantID: order.ApplicantID})}
+			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{ID: order.ID, State: order.State, ApplicantID: order.ApplicantID, TableNames: order.TableNames, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext})}
 			response = append(response, summary)
-		}
-		next := ""
-		if len(list) == limit {
-			next = list[len(list)-1].ID
 		}
 		c.JSON(200, gin.H{"orders": response, "next_cursor": next})
 	})
@@ -242,6 +274,13 @@ func respondReleaseWrite(c *gin.Context, orders *application.ReleaseOrders, resu
 		writeReleaseError(c, application.ErrReleaseUnknown)
 		return
 	}
+	if result.Version == current.Version {
+		result.Approvals = current.Approvals
+	}
+	if result.Approvals == nil {
+		result.Approvals = []application.ReleaseTableApproval{}
+	}
+	result.ApprovalContext = current.ApprovalContext
 	c.JSON(status, releaseResponse(result, orders.AllowedActions(c.Request.Context(), current.Workflow())))
 }
 func releaseResponse(order application.ReleaseOrder, actions []string) any {
@@ -276,6 +315,10 @@ func writeReleaseError(c *gin.Context, err error) bool {
 	}
 	status, code, message := 503, "release_unavailable", "release order storage is unavailable"
 	switch {
+	case errors.Is(err, application.ErrReleaseApproverUnavailable):
+		status, code, message = 422, "release_approver_unavailable", err.Error()
+	case errors.Is(err, application.ErrReleaseApprovalConflict):
+		status, code, message = 409, "release_approval_conflict", "approval progress, qualification or confirmed scope changed; review the latest state"
 	case errors.Is(err, application.ErrRollbackRestoreMismatch):
 		status, code, message = 422, "rollback_restore_mismatch", "current schema, rules or database effects cannot restore every original business value"
 	case errors.Is(err, application.ErrPermissionDenied):

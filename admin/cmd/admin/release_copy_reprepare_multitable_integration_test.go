@@ -171,13 +171,13 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
 	applicant := registerAccount(t, app, "reprepare.multi.owner", "reprepare.multi.owner@example.com", "correct horse battery staple")
 	reviewer := registerAccount(t, app, "reprepare.multi.reviewer", "reprepare.multi.reviewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, applicant, `["EDITOR"]`, "1", "reprepare-multi-owner-role")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "reprepare-multi-reviewer-role")
+	configurePublicationReviewer(t, app, reviewer, "reprepare_multi_a", "reprepare_multi_b")
 	admin := integrationAdminSession(t, app)
 
 	source := rollbackOrderResponse(t, releaseActorRequest(t, app, applicant, "POST", "/api/v1/release-orders", `{"title":"reprepare current multitable baselines","items":[{"table_name":"reprepare_multi_a","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"next-a"}},{"table_name":"reprepare_multi_b","operation":"MODIFY","id":"1","expected_record_version":"0","content":{"code":"next-b"}}]}`, "reprepare-multi-create"), 201)
 	path := "/api/v1/release-orders/" + source.ID
 	source = rollbackOrderResponse(t, releaseActorRequest(t, app, applicant, "POST", path+"/submit", `{"expected_version":"1"}`, "reprepare-multi-submit"), 200)
-	source = rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"2","reason":"independent multitable approval"}`, "reprepare-multi-approve"), 200)
+	source = rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "independent multitable approval"), "reprepare-multi-approve"), 200)
 	deliveryExec(t, db, `UPDATE reprepare_multi_b SET code='drift-b' WHERE id=1`)
 	previewInput := map[string]any{"title": source.Title, "items": derivedDraftItems(source)}
 	previewBody, _ := json.Marshal(previewInput)
@@ -211,7 +211,7 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
 
 	// Hold the reprepare after its DELETE of a target retained by the replacement.
 	// A third order races for that exact target while the transaction is open. It
-	// must wait and then report the replacement as owner, never acquire a target
+	// must wait at the shared authorization lock, then report the replacement as owner, never acquire a target
 	// exposed between the source release and replacement reservation.
 	gate := "rcc_issue85_reprepare_gate"
 	entered := "rcc_issue85_reprepare_entered"
@@ -247,12 +247,14 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
 		repreparedResponses <- accountRequestFrom(app, "POST", path+"/reprepare", body, adminCookies, adminCSRF, "192.0.2.1:1234", map[string]string{"Idempotency-Key": "reprepare-multi-apply"})
 	}()
 	deadline := time.Now().Add(3 * time.Second)
+	var reprepareConnection int64
 	for {
 		var holder sql.NullInt64
 		if err := ownerDB.QueryRowContext(ctx, `SELECT IS_USED_LOCK(?)`, entered).Scan(&holder); err != nil {
 			t.Fatal(err)
 		}
 		if holder.Valid {
+			reprepareConnection = holder.Int64
 			break
 		}
 		if time.Now().After(deadline) {
@@ -268,11 +270,12 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
 	}()
 	deadline = time.Now().Add(3 * time.Second)
 	for {
-		var waiting int
-		if err := ownerDB.QueryRowContext(ctx, `SELECT COUNT(*) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks requested ON requested.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID JOIN performance_schema.data_locks blocking ON blocking.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID WHERE requested.OBJECT_SCHEMA=DATABASE() AND requested.OBJECT_NAME='rcc_release_targets' AND requested.INDEX_NAME='PRIMARY' AND blocking.OBJECT_SCHEMA=requested.OBJECT_SCHEMA AND blocking.OBJECT_NAME=requested.OBJECT_NAME`).Scan(&waiting); err != nil {
+		var waiting, contenderConnection int64
+		if err := ownerDB.QueryRowContext(ctx, `SELECT COUNT(*),COALESCE(MAX(waiter.PROCESSLIST_ID),0) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks requested ON requested.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID JOIN performance_schema.data_locks blocking ON blocking.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID JOIN performance_schema.threads waiter ON waiter.THREAD_ID=requested.THREAD_ID JOIN performance_schema.threads blocker ON blocker.THREAD_ID=blocking.THREAD_ID WHERE requested.OBJECT_SCHEMA=DATABASE() AND requested.OBJECT_NAME='rcc_auth_control_lock' AND requested.INDEX_NAME='PRIMARY' AND blocking.OBJECT_SCHEMA=requested.OBJECT_SCHEMA AND blocking.OBJECT_NAME=requested.OBJECT_NAME AND blocker.PROCESSLIST_ID=?`, reprepareConnection).Scan(&waiting, &contenderConnection); err != nil {
 			t.Fatal(err)
 		}
-		if waiting > 0 {
+		if waiting > 0 && contenderConnection != reprepareConnection {
+			t.Logf("contender connection %d waits for authorization lock held by open reprepare connection %d", contenderConnection, reprepareConnection)
 			break
 		}
 		select {
@@ -281,7 +284,7 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
 		default:
 		}
 		if time.Now().After(deadline) {
-			t.Fatal("contender did not reach the retained release-target lock")
+			t.Fatal("contender did not wait for the open reprepare transaction authorization lock")
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
@@ -329,7 +332,7 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
 	draftPath := "/api/v1/release-orders/" + reprepared.ID
 	submitted := rollbackOrderResponse(t, releaseActorRequest(t, app, admin, "POST", draftPath+"/submit", `{"expected_version":"1"}`, "reprepare-multi-resubmit"), 200)
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, admin, "POST", draftPath+"/approve", `{"expected_version":"2","reason":"self approval must not carry"}`, "reprepare-multi-self-approve"), 403, "permission_denied")
-	approvedReplacement := rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", draftPath+"/approve", `{"expected_version":"2","reason":"fresh independent review"}`, "reprepare-multi-independent-approve"), 200)
+	approvedReplacement := rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", draftPath+"/approve", confirmedApprovalBody(t, app, reviewer, draftPath, "fresh independent review"), "reprepare-multi-independent-approve"), 200)
 	if approvedReplacement.State != "APPROVED" || submitted.State != "PENDING_APPROVAL" {
 		t.Fatal("replacement did not require fresh approval")
 	}

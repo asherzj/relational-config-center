@@ -38,12 +38,12 @@ func TestMaintainerBootstrapsAdministratorAndAssignsRoles(t *testing.T) {
 		t.Fatalf("account search: %d %s", list.Code, list.Body.String())
 	}
 	path := "/api/v1/account-roles/" + accountID(t, editor)
-	result := accountRequestFrom(f.app, "PUT", path, `{"roles":["EDITOR","APPROVER"],"expected_version":"1"}`, admin.Result().Cookies(), sessionCSRF(t, admin), "192.0.2.1:1234", map[string]string{"Idempotency-Key": "roles-assign-0001"})
+	result := accountRequestFrom(f.app, "PUT", path, `{"roles":["EDITOR","PUBLISHER"],"expected_version":"1"}`, admin.Result().Cookies(), sessionCSRF(t, admin), "192.0.2.1:1234", map[string]string{"Idempotency-Key": "roles-assign-0001"})
 	if result.Code != 200 {
 		t.Fatalf("assign roles: %d %s", result.Code, result.Body.String())
 	}
 	current := accountRequest(f.app, "GET", "/api/v1/auth/session", "", editor.Result().Cookies(), "")
-	if current.Code != 200 || !strings.Contains(current.Body.String(), `"roles":["EDITOR","APPROVER"]`) {
+	if current.Code != 200 || !strings.Contains(current.Body.String(), `"roles":["EDITOR","PUBLISHER"]`) {
 		t.Fatalf("current roles: %d %s", current.Code, current.Body.String())
 	}
 }
@@ -171,7 +171,7 @@ func TestCurrentSessionUsesRolePermissionMatrix(t *testing.T) {
 	target := registerAccount(t, f.app, "matrix.target", "matrix.target@example.com", "correct horse battery staple")
 	f.run(t, "", "grant-admin", "--id", accountID(t, admin))
 	version := 1
-	for _, role := range []string{"VIEWER", "EDITOR", "APPROVER", "PUBLISHER", "ADMIN", "VIEWER"} {
+	for _, role := range []string{"VIEWER", "EDITOR", "PUBLISHER", "ADMIN", "VIEWER"} {
 		body := fmt.Sprintf(`{"roles":[%q],"expected_version":"%d"}`, role, version)
 		changed := accountRequestFrom(f.app, "PUT", "/api/v1/account-roles/"+accountID(t, target), body, admin.Result().Cookies(), sessionCSRF(t, admin), "192.0.2.1:1234", map[string]string{"Idempotency-Key": fmt.Sprintf("matrix-change-%02d", version)})
 		if changed.Code != 200 {
@@ -188,8 +188,9 @@ func TestCurrentSessionUsesRolePermissionMatrix(t *testing.T) {
 			{"POST", "/api/v1/release-orders", role == "EDITOR" || role == "ADMIN"},
 			{"PUT", "/api/v1/release-orders/missing", role == "EDITOR" || role == "ADMIN"},
 			{"POST", "/api/v1/release-orders/missing/submit", role == "EDITOR" || role == "ADMIN"},
-			{"POST", "/api/v1/release-orders/missing/approve", role == "APPROVER" || role == "ADMIN"},
-			{"POST", "/api/v1/release-orders/missing/reject", role == "APPROVER" || role == "ADMIN"},
+			// Table eligibility is checked on the loaded order, after viewer access.
+			{"POST", "/api/v1/release-orders/missing/approve", true},
+			{"POST", "/api/v1/release-orders/missing/reject", true},
 			{"POST", "/api/v1/release-orders/missing/reprepare", role == "EDITOR" || role == "ADMIN"},
 			{"POST", "/api/v1/release-orders/missing/execute", role == "PUBLISHER" || role == "ADMIN"},
 		}

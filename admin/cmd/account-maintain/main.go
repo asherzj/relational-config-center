@@ -76,6 +76,11 @@ func run(args []string, input *os.File, output, diagnostics io.Writer) int {
 	selector := application.AccountSelector{ID: *id, Username: *username}
 	var account application.LocalAccountSummary
 	if action == "grant-admin" {
+		// This command must not become a second legacy-grant migration entry.
+		if err := adapter.Ready(ctx); err != nil {
+			fmt.Fprintln(diagnostics, "schema_not_ready: complete schema-migrate up/recover before grant-admin")
+			return 1
+		}
 		account, err = maintenance.GrantAdmin(ctx, selector)
 	} else if action == "reset-password" {
 		account, err = maintenance.ResetPassword(ctx, selector, fieldInput)
@@ -114,7 +119,7 @@ func reportError(output io.Writer, err error) int {
 	case errors.Is(err, application.ErrAuthTimeout):
 		fmt.Fprintln(output, "database operation timed out: verify outcome before retrying")
 	default:
-		fmt.Fprintln(output, "account storage unavailable: verify database permissions and local-account control schema (migration 007); verify outcome before retrying")
+		fmt.Fprintln(output, "account storage unavailable: verify database permissions and required account and approval control schema; run schema-migrate status; verify outcome before retrying")
 	}
 	return 1
 }

@@ -132,7 +132,7 @@ T5 同时修正 FLOAT 主键的有损短文本权重与 FLOAT/DOUBLE 的正负�
 
 1. 备份数据库，停止旧 Admin 和其他 Policy 写入者。
 2. 对已完成 012 的数据库执行 `013-policy-audit-timestamps.sql`。
-3. 确认所有适用历史控制步骤（包括 014～017）和当前 `policy-migrate` 收缩均已完成，按[接管手册](../../../docs/schema-migrations.md#校验并接管现有库)显式运行 `schema-migrate baseline`，再以 `schema-migrate status` 确认 `state=current`、没有未确认操作。
+3. 确认所有适用历史控制步骤（包括 014～017）和当前 `policy-migrate` 收缩均已完成，按[接管手册](../../../docs/schema-migrations.md#校验并接管现有库)显式运行 `schema-migrate baseline`，随后 `schema-migrate up` 升级到当前构建，再以 `schema-migrate status` 确认 `state=current`、没有未确认操作。
 4. 部署新版 Admin/Web，确认就绪检查及三类 Policy 的查询、创建和修改均正常。
 
 迁移只重命名列，保留现有时间值、数据类型、默认值和自动更新时间行为；不会修改业务表，
@@ -147,7 +147,7 @@ T5 同时修正 FLOAT 主键的有损短文本权重与 FLOAT/DOUBLE 的正负�
 
 通过 mysql 客户端执行包含中文列注释的历史脚本时，必须使用 `--default-character-set=utf8mb4`；不能让客户端把 UTF-8 文件按其他字符集导入。
 
-014 仅供尚未接管且已完成 013 的历史数据库：停写时执行适用步骤及 `014-table-field-policies.sql`，并完成 015～017，再按[接管手册](../../../docs/schema-migrations.md)显式 `baseline`，确认 current 后部署 Admin/Web。新库和已使用 Goose 的库运行 `schema-migrate up`，由 00003 创建同一字段策略结构。两条路径均保留已有规则、发布单、幂等结果、版本、占用、通知和业务行。Admin 只读完整验证字段表的列、默认值、索引、CHECK、引擎以及版本状态；同名不兼容表不会被 IF NOT EXISTS 修正，应在维护窗口核对，不能删表绕过校验。
+014 仅供尚未接管且已完成 013 的历史数据库：停写时执行适用步骤及 `014-table-field-policies.sql`，并完成 015～017，再按[接管手册](../../../docs/schema-migrations.md)显式 `baseline` 后执行 `up` 升级后续版本，确认 current 后部署 Admin/Web。新库和已使用 Goose 的库运行 `schema-migrate up`，由 00003 创建同一字段策略结构。两条路径均保留已有规则、发布单、幂等结果、版本、占用、通知和业务行。Admin 只读完整验证字段表的列、默认值、索引、CHECK、引擎以及版本状态；同名不兼容表不会被 IF NOT EXISTS 修正，应在维护窗口核对，不能删表绕过校验。
 
 交互控件默认text，无auto；JSON NULL语义、原子保存及实时读取见[字段规则契约](../../../docs/admin-field-policies.md)。旧发布单清理属于独立且需明确指定隔离环境的维护工作，绝非014升级前提。
 
