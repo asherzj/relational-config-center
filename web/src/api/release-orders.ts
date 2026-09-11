@@ -33,17 +33,21 @@ const releaseFlowNodeSchema=z.object({code:z.string(),type:z.enum(["APPROVAL","P
 const tableReleaseFlowSchema=z.object({instance_id:z.string(),table_name:z.string(),release_type:releaseTypeSchema,template_code:z.string(),template_name:z.string(),template_version:version,association_version:version,instantiated_at:z.string(),node_list:z.array(releaseFlowNodeSchema)});
 export type TableReleaseFlow=z.infer<typeof tableReleaseFlowSchema>;
 export const releaseSummarySchema=z.object({notification:approvalNotificationSchema,id:z.string(),title:z.string(),table_names:z.array(z.string()),release_type:releaseTypeSchema,emergency_reason:z.string(),table_flows:z.array(tableReleaseFlowSchema),missing_flow_tables:z.array(z.string()),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","PENDING_PUBLICATION","APPROVED","SUCCEEDED","COMPLETED","REJECTED","CANCELLED","ROLLED_BACK"]),version,created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),approvals:z.array(tableApprovalSchema),approval_context:approvalContextSchema,item_count:z.number().int().min(0).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
-export const releaseHeaderSchema=releaseSummarySchema.extend({copied_from_id:z.string().optional(),frozen_digest:z.string().optional(),executions:z.array(executionSchema),history:z.array(z.object({action:z.string(),actor_id:z.string(),at:z.string(),version,reason:z.string(),related_order_id:z.string().optional(),execution_id:z.string().optional(),table_names:z.array(z.string()).optional(),approval_sources:z.array(approvalSourceSchema.extend({table_name:z.string()})).optional()}))});
+export const releaseHeaderSchema=releaseSummarySchema.extend({rollback_table_flows:z.array(tableReleaseFlowSchema),copied_from_id:z.string().optional(),frozen_digest:z.string().optional(),executions:z.array(executionSchema),history:z.array(z.object({action:z.string(),actor_id:z.string(),at:z.string(),version,reason:z.string(),related_order_id:z.string().optional(),execution_id:z.string().optional(),table_names:z.array(z.string()).optional(),approval_sources:z.array(approvalSourceSchema.extend({table_name:z.string()})).optional()}))});
 export const releaseItemSchema=draftItemSchema.extend({detail_id:z.string(),id:z.string().nullable(),expected_record_version:z.string(),before:content.nullable(),fields:z.array(releaseFieldSchema),publication:publicationCommandSchema.optional(),rollback:publicationCommandSchema.optional()});
 export const releaseOrderSchema=releaseHeaderSchema.omit({notification:true}).extend({items:z.array(releaseItemSchema)});
 export type ReleaseHeader=z.infer<typeof releaseHeaderSchema>;
 export type ReleaseOrder=z.infer<typeof releaseOrderSchema>;
 export const releaseDetailPageSchema=z.object({order_id:z.string(),version,item_count:z.number().int().min(0).max(1000),offset:z.number().int().nonnegative(),next_offset:z.number().int().nonnegative().nullable(),items:z.array(releaseItemSchema).max(100)});
-export const quickRollbackPreviewSchema=z.object({order_id:z.string(),expected_version:version,preview_digest:z.string().regex(/^[a-f0-9]{64}$/),items:z.array(releaseItemSchema)});
+export const quickRollbackPreviewSchema=z.object({order_id:z.string(),expected_version:version,release_type:z.literal("EMERGENCY"),table_flows:z.array(tableReleaseFlowSchema),preview_digest:z.string().regex(/^[a-f0-9]{64}$/),items:z.array(releaseItemSchema)});
 export type QuickRollbackPreview=z.infer<typeof quickRollbackPreviewSchema>;
 export type ReleaseField=z.infer<typeof releaseFieldSchema>;
 export const releaseOrders={
- quickRollbackPreview:(id:string,expectedVersion:string)=>request(`/api/v1/release-orders/${encodeURIComponent(id)}/quick-rollback/preview`,{method:"POST",body:JSON.stringify({expected_version:expectedVersion}),schema:quickRollbackPreviewSchema}),
+ writeQuickRollbackPreview:async(path:string,method:string,body:string,key:string)=>{
+  const result=await request(path,{method,body,headers:{"Idempotency-Key":key},schema:quickRollbackPreviewSchema});
+  if(result.order_id!==decodeURIComponent(path.split("/")[4]??""))throw new ApiError("contract_mismatch","恢复预览与原发布单不一致。",200);
+  return result;
+ },
  list:(filters:Record<string,string>)=>request(`/api/v1/release-orders?${new URLSearchParams(filters)}`,{schema:z.object({orders:z.array(releaseSummarySchema),next_cursor:z.string()})}),
  preview:(input:DraftContentInput)=>request("/api/v1/release-orders/preview",{method:"POST",body:JSON.stringify(input),schema:z.object({items:releaseOrderSchema.shape.items})}),
  get:(id:string)=>request(`/api/v1/release-orders/${encodeURIComponent(id)}`,{schema:releaseHeaderSchema}),
@@ -80,12 +84,13 @@ const rollbackReasonInputSchema=z.object({reason:z.string()});
 const submitInputSchema=z.object({expected_version:z.string(),emergency_reason:z.string().optional()});
 const copyInputSchema=z.object({expected_version:z.string(),confirmed:z.literal(true),items:z.array(draftItemSchema)});
 export type ReleaseStateAction="submit"|"approve"|"reject"|"cancel"|"execute"|"complete";
-export const releaseActionLabels={"quick-rollback":"快速回滚","edit-rollback-reason":"修改回滚原因","edit-details":"保存草稿修改",complete:"完结发布单",execute:"执行发布",submit:"提交审批",approve:"批准发布单",reject:"拒绝发布单",cancel:"取消发布单",copy:"复制新草稿",reprepare:"重新准备"};
-export const releaseActionRole=(action:string)=>action==="edit-rollback-reason"?"VIEWER" as const:action==="execute"||action==="complete"||action==="quick-rollback"?"PUBLISHER" as const:action==="approve"||action==="reject"?"VIEWER" as const:"EDITOR" as const;
+export const releaseActionLabels={"quick-rollback-preview":"保存恢复预览","quick-rollback":"快速回滚","edit-rollback-reason":"修改回滚原因","edit-details":"保存草稿修改",complete:"完结发布单",execute:"执行发布",submit:"提交审批",approve:"批准发布单",reject:"拒绝发布单",cancel:"取消发布单",copy:"复制新草稿",reprepare:"重新准备"};
+export const releaseActionRole=(action:string)=>action==="edit-rollback-reason"?"VIEWER" as const:action==="execute"||action==="complete"||(action==="quick-rollback"||action==="quick-rollback-preview")?"PUBLISHER" as const:action==="approve"||action==="reject"?"VIEWER" as const:"EDITOR" as const;
 
 export const releaseActionRequiresReason=(action:ReleaseStateAction)=>action!=="submit"&&action!=="execute"&&action!=="complete";
 
 export const releaseRequests={
+ quickRollbackPreview:(id:string,expectedVersion:string):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/quick-rollback/preview`,method:"POST",body:JSON.stringify({expected_version:expectedVersion})}),
  quickRollback:(id:string,expectedVersion:string,previewDigest:string,reason:string):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/quick-rollback`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,preview_digest:previewDigest,reason})}),
  rollbackReason:(id:string,reason:string):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/rollback-reason`,method:"POST",body:JSON.stringify({reason})}),
  action:(action:ReleaseStateAction,id:string,expectedVersion:string,reason="",approval?:ApprovalContext):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/${action}`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,...(action==="submit"&&reason?{emergency_reason:reason}:releaseActionRequiresReason(action)?{reason}:{}),...((action==="approve"||action==="reject")?{confirmed_tables:approval?.approvable_tables??[],expected_approval_revision:approval?.revision??""}:{})})}),
@@ -99,6 +104,7 @@ export function decodeReleaseRequest(value:ReleaseRequestEnvelope){
  const id=value.path.split("/")[4];
  const body:unknown=JSON.parse(value.body);
  const action=value.path.split("/")[5];
+ if(id&&action==="quick-rollback"&&value.path.endsWith("/preview"))return {action:"quick-rollback-preview" as const,id,input:submitInputSchema.parse(body)};
  if(id&&action==="quick-rollback")return {action:"quick-rollback" as const,id,input:quickRollbackInputSchema.parse(body)};
  if(id&&action==="rollback-reason")return {action:"edit-rollback-reason" as const,id,input:rollbackReasonInputSchema.parse(body)};
  if(id&&action==="complete")return {action:"complete" as const,id,input:submitInputSchema.parse(body)};

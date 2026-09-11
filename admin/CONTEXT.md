@@ -101,7 +101,7 @@ One named step within a Release Template, using a predefined workflow capability
 _Avoid_: Release Execution, workflow progress, arbitrary script, database row change
 
 **Release Table Flow（逐表流程实例）**:
-The workflow acknowledged for one involved Managed Table when a Release Order draft is saved, retaining its selected Release Type and ordered node definitions. Later template changes or table reassignment do not replace that saved workflow.
+The workflow acknowledged for one involved Managed Table when a Release Order draft or its restoration preview is saved, retaining its selected Release Type and ordered node definitions. Later template changes or table reassignment do not replace that saved workflow; a restoration flow belongs to the original order, always uses emergency publication and retains no additional approval or completion requirement.
 _Avoid_: Release Template, Approval Assignment Snapshot, whole-order template
 
 **Release Node Instance（发布节点实例）**:
@@ -149,7 +149,7 @@ The publication progress of one Managed Table, advanced when a change set is com
 _Avoid_: Record Version, Release Order Version, cache refresh time
 
 **Quick Rollback（快速回滚）**:
-The whole-order emergency reversal of a successful ordinary publication before Release Completion, authorized by a current publisher after reviewing the restoration intent, without new approval. It retains the original Active Targets throughout restoration and ends the original order on success, with the actual reversal recorded as its rollback Release Execution.
+The whole-order emergency reversal of a successful standard or emergency publication before Release Completion, authorized by a current publisher after reviewing the restoration intent, without new approval. It retains the original Active Targets throughout restoration and ends the original order on success, with the actual reversal recorded as its rollback Release Execution.
 _Avoid_: Rollback Release Order, partial restore, history deletion, forced overwrite
 
 **Rollback Reason（回滚原因）**:

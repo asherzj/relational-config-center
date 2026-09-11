@@ -1,0 +1,4 @@
+AssertionError [ERR_ASSERTION]: 04-original-preview-replayed-390: inaccessible dialog {"label":"_r_i_","left":0,"right":390,"top":-30.1015625,"bottom":874.1015625}
+    at shot (/private/tmp/rcc-issue-105-emergency-rollback/web/e2e/release-rollback-flows.cjs:42:45)
+    at async shots (/private/tmp/rcc-issue-105-emergency-rollback/web/e2e/release-rollback-flows.cjs:48:54)
+    at async /private/tmp/rcc-issue-105-emergency-rollback/web/e2e/release-rollback-flows.cjs:153:3

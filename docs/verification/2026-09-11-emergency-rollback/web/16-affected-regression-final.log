@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-105-emergency-rollback/web
+> vitest run src/features/release-orders src/api/release-orders.test.ts src/features/notifications src/features/managed-data/ChangeSetDialog.test.tsx src/features/managed-data/ManagedDataMutationPage.test.tsx
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-105-emergency-rollback/web
+
+
+ Test Files  9 passed (9)
+      Tests  178 passed (178)
+   Start at  16:36:17
+   Duration  36.35s (transform 4.21s, setup 3.50s, import 7.72s, tests 59.50s, environment 7.09s)
+

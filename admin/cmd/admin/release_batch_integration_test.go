@@ -217,7 +217,7 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 	if json.Unmarshal(previewBytes, &preview) != nil || len(preview.Items) != 1000 {
 		t.Fatal("incomplete restoration preview")
 	}
-	body := quickRollbackBody("4", preview.Digest, "")
+	body := quickRollbackBody(preview.ExpectedVersion, preview.Digest, "")
 	restored := request(path+"/quick-rollback", body, "thousand-restore", cookies, csrf)
 	var reverse domain.ReleaseOrder
 	if json.Unmarshal(restored, &reverse) != nil || reverse.State != "ROLLED_BACK" || reverse.ID != order.ID || singleExecutionTableVersion(reverse.Executions[1]) != "2" || len(executionCommands(reverse, "ROLLBACK")) != 1000 {

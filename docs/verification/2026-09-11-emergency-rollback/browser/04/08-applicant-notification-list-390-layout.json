@@ -1,0 +1,75 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "document": 390,
+  "dialogs": [],
+  "controls": [
+    {
+      "label": "打开导航",
+      "left": 18,
+      "right": 54
+    },
+    {
+      "label": "关闭导航",
+      "left": -53,
+      "right": -17
+    },
+    {
+      "label": "刷新通知",
+      "left": -199,
+      "right": -151
+    },
+    {
+      "label": "本地账号入口",
+      "left": -212,
+      "right": -13
+    },
+    {
+      "label": "",
+      "left": 33,
+      "right": 357
+    },
+    {
+      "label": "",
+      "left": 33,
+      "right": 357
+    },
+    {
+      "label": "状态",
+      "left": 33,
+      "right": 357
+    },
+    {
+      "label": "",
+      "left": 33,
+      "right": 49
+    },
+    {
+      "label": "",
+      "left": 17,
+      "right": 33
+    },
+    {
+      "label": "查询审批",
+      "left": 125,
+      "right": 215
+    },
+    {
+      "label": "刷新列表",
+      "left": 227,
+      "right": 317
+    },
+    {
+      "label": "回到首页",
+      "left": 183,
+      "right": 273
+    },
+    {
+      "label": "下一页",
+      "left": 281,
+      "right": 357
+    }
+  ]
+}

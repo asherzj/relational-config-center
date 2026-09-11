@@ -1,0 +1,281 @@
+关系型配置中心
+工作空间
+配置管理
+单数据源
+配置管理
+统一变更入口
+发布单
+通知中心
+表配置管理
+查询规则定义
+变更规则定义
+表规则分配
+个人未读 0
+
+待审批 0
+
+刷新通知
+Browser acceptance
+e2e.0bfd434638722876a493
+返回发布单列表
+浏览器快速回滚验收
+已发布待完结
+快速回滚
+完结发布单
+申请人
+B
+Browser acceptance
+创建时间
+2026/09/11 17:06:31
+变更数量
+1 项
+基本信息
+
+常规发布 · 整单阶段
+
+数据库已发布，待人工完结
+准备完成于提交
+B
+Browser acceptance
+2026/09/11 17:06:32
+
+提交内容已冻结，后续发布以这份差异为准。
+
+逐表发布流程
+
+各表使用保存时的流程。全部表审批通过后，整单统一发布。
+
+stage1_rollback_chromium_items
+
+默认常规发布
+
+1
+按表审批
+
+审批 · 按表审批资格
+
+已完成
+
+B
+Browser acceptance
+2026/09/11 17:06:33
+2
+发布
+
+发布 · 发布权限
+
+已完成
+
+B
+Browser acceptance
+2026/09/11 17:06:35
+3
+完结
+
+完结 · 发布权限
+
+进行中
+
+查看实例来源与版本
+逐表应急恢复流程
+
+固定使用各表已保存的应急流程。整单恢复成功后直接结束，无需审批或另行人工完结。
+
+stage1_rollback_chromium_items
+
+默认应急发布
+
+1
+应急发布
+
+发布 · 发布权限
+
+进行中
+
+2
+完结
+
+完结 · 发布权限
+
+待开始
+
+查看实例来源与版本
+已通过 1 / 1 表
+
+每表任一合格成员通过即可，所有表通过后才能整单发布。已完成决定保留。
+
+stage1_rollback_chromium_items
+已通过
+
+提交时分配：Rollback review 32cb2e13-4c2c-406d-8966-dbbf7b813f87
+
+Rollback review 32cb2e13-4c2c-406d-8966-dbbf7b813f87 · 124ee764-da8d-4389-b9e8-832ca3977a7e
+
+资格来源：Rollback review 32cb2e13-4c2c-406d-8966-dbbf7b813f87
+
+Rollback review 32cb2e13-4c2c-406d-8966-dbbf7b813f87 · 124ee764-da8d-4389-b9e8-832ca3977a7e
+
+B
+Browser acceptance
+2026/09/11 17:06:33
+
+Review forward change before quick restoration
+
+变更内容
+申请内容
+实际发布结果
+
+分页与字段筛选仅用于审阅，发布操作始终作用于整单变更。
+
+共 1 项结果
+
+数据库发布结果
+执行人：
+B
+Browser acceptance
+
+数据库执行时间：2026-09-11T09:06:35.102545Z
+
+stage1_rollback_chromium_items · 表发布版本 2 · 刷新通知 4147e42fdead773724e9ead54feaceb1:PUBLICATION · 分发尚未接入
+
+明细 1 · stage1_rollback_chromium_items · MODIFY · 记录 1
+
+表内变更序号：2 · 记录并发版本：2
+
+Schema 摘要：068710a2b5f65cee78e06f583a0694b1f6c1efbc3683f806f92849c53dbaa1c2
+
+最终行校验和：0d1f2e91663107f815f882498843e5527f4eee546e19f385e0b3699599577f00
+
+字段	实际 before	实际 final
+category
+varchar(32)
+	SQL NULL	SQL NULL
+created_at
+datetime(6)
+	值：2026-09-11 09:06:20.233925	值：2026-09-11 09:06:20.233925
+created_by
+varchar(64)
+	值：fixture	值：fixture
+id
+bigint unsigned
+	值：1	值：1
+name
+varchar(64)
+	值：T8 chromium browser published value	值：Quick chromium published value
+note
+varchar(255)
+	值：engine chromium	值：engine chromium
+priority
+int
+	值：1	值：1
+state
+enum('draft','active','paused')
+	值：active	值：active
+updated_at
+datetime(6)
+	值：2026-09-11 09:06:26.899331	值：2026-09-11 09:06:35.102545
+updated_by
+varchar(64)
+	值：3c250a90-e70e-467c-90d7-7dc28123af4d	值：3c250a90-e70e-467c-90d7-7dc28123af4d
+操作历史
+
+保存了应急恢复流程
+
+PREVIEW_QUICK_ROLLBACK · 版本 5
+
+2026/09/11 17:06:35
+B
+Browser acceptance
+
+发布到数据库
+
+EXECUTE · 版本 4
+
+2026/09/11 17:06:35
+B
+Browser acceptance
+
+通过了审批表
+
+APPROVE · 版本 3
+
+2026/09/11 17:06:33
+B
+Browser acceptance
+
+处理表范围：stage1_rollback_chromium_items
+
+stage1_rollback_chromium_items · Rollback review 32cb2e13-4c2c-406d-8966-dbbf7b813f87（124ee764-da8d-4389-b9e8-832ca3977a7e）
+
+Review forward change before quick restoration
+
+提交了审批
+
+SUBMIT · 版本 2
+
+2026/09/11 17:06:32
+B
+Browser acceptance
+
+创建了草稿
+
+CREATE · 版本 1
+
+2026/09/11 17:06:31
+B
+Browser acceptance
+快速回滚 · 浏览器快速回滚验收
+
+核对当前配置将恢复成的内容，一次确认整单恢复。数据库外部改动、规则或表结构变化仍可能阻止恢复。
+
+逐表应急恢复流程
+
+固定使用各表已保存的应急流程。整单恢复成功后直接结束，无需审批或另行人工完结。
+
+stage1_rollback_chromium_items
+
+默认应急发布
+
+1
+应急发布
+
+发布 · 发布权限
+
+进行中
+
+2
+完结
+
+完结 · 发布权限
+
+待开始
+
+查看实例来源与版本
+
+本次恢复涉及全部 1 项，无需再次审批。成功后原单标记已回滚，释放目标记录的占用。
+
+当前值 → 恢复值
+
+ADD 0 · MODIFY 1 · DELETE 0
+
+只显示有变化的字段
+
+共 1 项明细
+
+明细 1 · stage1_rollback_chromium_items · MODIFY · 记录 1
+
+记录基线 2
+
+字段	当前值	恢复值
+name
+string
+	值Quick chromium published value	值T8 chromium browser published value
+updated_at
+datetime
+	值2026-09-11 09:06:35.102545	发布时生成
+updated_by
+string
+	值3c250a90-e70e-467c-90d7-7dc28123af4d	发布时生成
+快速回滚原因（选填）
+取消快速回滚
+确认整单快速回滚

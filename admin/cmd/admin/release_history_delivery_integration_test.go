@@ -134,12 +134,12 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	forward = action(editor, forward, "submit", "")
 	forward = action(reviewer, forward, "approve", "正向批准意见")
 	forward = action(publisher, forward, "execute", "")
-	previewBytes := request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback/preview", `{"expected_version":"4"}`, "", 200)
+	previewBytes := request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback/preview", `{"expected_version":"4"}`, "history-preview", 200)
 	var preview quickPreviewResponse
 	if json.Unmarshal(previewBytes, &preview) != nil {
 		t.Fatal("preview decode")
 	}
-	forward = decode(request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback", quickRollbackBody("4", preview.Digest, "事后可选原因"), "history-restore", 200))
+	forward = decode(request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, "事后可选原因"), "history-restore", 200))
 	if forward.State != "ROLLED_BACK" || len(forward.Executions) < 2 || len(forward.Executions) != 2 {
 		t.Fatal("original rollback history missing")
 	}
@@ -162,7 +162,7 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 			if event.Action == "APPROVE" || event.Action == "REJECT" {
 				want = reviewer.id
 			}
-			if event.Action == "EXECUTE" || event.Action == "COMPLETE" || event.Action == "ROLLED_BACK" || event.Action == "QUICK_ROLLBACK" {
+			if event.Action == "EXECUTE" || event.Action == "COMPLETE" || event.Action == "ROLLED_BACK" || event.Action == "QUICK_ROLLBACK" || event.Action == "PREVIEW_QUICK_ROLLBACK" {
 				want = publisher.id
 			}
 			if event.ActorID != want {

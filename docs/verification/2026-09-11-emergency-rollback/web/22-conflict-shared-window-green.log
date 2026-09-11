@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-105-emergency-rollback/web
+> vitest run src/features/release-orders/ReleaseOrdersPage.test.tsx -t '被拒绝回滚的通用读取'
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-105-emergency-rollback/web
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 94 skipped (95)
+   Start at  16:48:20
+   Duration  2.72s (transform 632ms, setup 269ms, import 944ms, tests 812ms, environment 581ms)
+

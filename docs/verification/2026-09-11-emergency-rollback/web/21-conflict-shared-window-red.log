@@ -1,0 +1,38 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-105-emergency-rollback/web
+> vitest run src/features/release-orders/ReleaseOrdersPage.test.tsx -t '被拒绝回滚的通用读取'
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-105-emergency-rollback/web
+
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx (95 tests | 1 failed | 94 skipped) 371ms
+   × 被拒绝回滚的通用读取不写预览，原包恢复与明确重建都在共享恢复窗口完成 370ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/release-orders/ReleaseOrdersPage.test.tsx > 被拒绝回滚的通用读取不写预览，原包恢复与明确重建都在共享恢复窗口完成
+AssertionError: expected [ { method: 'POST', …(3) } ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx:1134:24
+    1132|  const user=userEvent.setup(),first=mount(`/configuration/release-orde…
+    1133|  await user.click(await originalButton("查看最新状态与配置"));await screen.find…
+    1134|  expect(previewWrites).toHaveLength(0);expect(executionWrites).toHaveL…
+       |                        ^
+    1135|  await user.click(await originalButton("打开恢复预览"));
+    1136|  expect(screen.getByLabelText("快速回滚原因（选填）")).toHaveValue("必须保留的原执行原因")…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 94 skipped (95)
+   Start at  16:46:48
+   Duration  2.53s (transform 744ms, setup 297ms, import 1.10s, tests 371ms, environment 641ms)
+
+ ELIFECYCLE  Command failed with exit code 1.

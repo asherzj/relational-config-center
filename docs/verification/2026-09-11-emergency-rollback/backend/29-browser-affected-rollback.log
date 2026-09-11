@@ -1,0 +1,45 @@
+=== RUN   TestAccountBrowserSystemPath
+2026/09/11 17:08:33 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 165f212a91439d8edaf6fa474f05aae0fcfe31200597c541e70c511620e2bd38
+  Test ProcessID: 77003564-ad91-443d-bece-a61e658b1415
+2026/09/11 17:08:33 🐳 Creating container for image mysql:8.4
+2026/09/11 17:08:33 ✅ Container created: 1ff940b3b7bb
+2026/09/11 17:08:33 🐳 Starting container: 1ff940b3b7bb
+2026/09/11 17:08:33 ✅ Container started: 1ff940b3b7bb
+2026/09/11 17:08:33 ⏳ Waiting for container id 1ff940b3b7bb image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 17:08:40 🔔 Container is ready: 1ff940b3b7bb
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:09:10.69Z","creator":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","enabled":true,"modifier":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","table_name":"stage1_rollback_chromium_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:09:10.69Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:09:10.7Z","creator":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","enabled":true,"modifier":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","table_name":"stage1_rollback_chromium_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:09:10.7Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:09:10.711Z","creator":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","enabled":true,"modifier":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","table_name":"stage1_rollback_firefox_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:09:10.711Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:09:10.72Z","creator":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","enabled":true,"modifier":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","table_name":"stage1_rollback_firefox_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:09:10.72Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:09:10.73Z","creator":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","enabled":true,"modifier":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","table_name":"stage1_rollback_webkit_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:09:10.73Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:09:10.739Z","creator":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","enabled":true,"modifier":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","table_name":"stage1_rollback_webkit_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:09:10.739Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:09:10.748Z","creator":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","enabled":true,"modifier":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","table_name":"field_display_browser_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:09:10.748Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:09:10.758Z","creator":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","enabled":true,"modifier":"4c980f78-d3db-4c1d-af8d-37d70c27e7ca","table_name":"field_display_browser_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:09:10.758Z","version":"1"}
+    account_browser_integration_test.go:129: late browser fixture readiness: status=200 missing emergency associations= response={"status":"ready"}
+=== RUN   TestAccountBrowserSystemPath/release-rollbacks.cjs
+    account_browser_integration_test.go:149: release-rollbacks.cjs: PASS separate EDITOR, VIEWER table-role member and PUBLISHER accounts complete the forward publication
+        PASS completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration
+        PASS completion permanently closes both rollback entry points
+        PASS quick rollback is publisher-only, reviews actual current and restoration values, has no mandatory reason and cancels without writes on desktop and 390px
+        PASS the original detail switches preserved application, actual publication and actual rollback
+        PASS quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish the original order
+        PASS a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends
+        {"checks":["separate EDITOR, VIEWER table-role member and PUBLISHER accounts complete the forward publication","completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration","completion permanently closes both rollback entry points","quick rollback is publisher-only, reviews actual current and restoration values, has no mandatory reason and cancels without writes on desktop and 390px","the original detail switches preserved application, actual publication and actual rollback","quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish the original order","a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends"]}
+=== NAME  TestAccountBrowserSystemPath
+    account_browser_integration_test.go:165: browser → Vite same-origin proxy → Admin → MySQL: record version conflict preserves input, explicit latest read and baseline rebuild, registration defaults VIEWER, maintenance ADMIN bootstrap, UI combination grant, 390px role catalog and drawer, role history with permanent actor, original member session refresh, refresh, reopen, dirty navigation protection, same-account Change Set recovery after session loss, hidden drawer keyboard isolation, draft submit independent approval and publisher execution, unknown execute result reload and original-key recovery, final row defaults and permanent actor fields, refresh notification remains NOT_CONNECTED, no direct record write request, HTTP Cookie, storage/URL secrecy, logout rejection; creator/modifier match current Account ID
+2026/09/11 17:09:28 🐳 Stopping container: 1ff940b3b7bb
+2026/09/11 17:09:29 ✅ Container stopped: 1ff940b3b7bb
+2026/09/11 17:09:29 🐳 Terminating container: 1ff940b3b7bb
+2026/09/11 17:09:29 🚫 Container terminated: 1ff940b3b7bb
+--- PASS: TestAccountBrowserSystemPath (56.17s)
+    --- PASS: TestAccountBrowserSystemPath/release-rollbacks.cjs (17.99s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	57.170s

@@ -32,7 +32,7 @@ func TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator(t *testing.T) {
 	approved := rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "independent review"), "reason-approve"), 200)
 	published := rollbackOrderResponse(t, releaseActorRequest(t, app, forwardPublisher, "POST", path+"/execute", `{"expected_version":"3"}`, "reason-publish"), 200)
 	preview := readQuickPreview(t, app, rollbackExecutor, path, published.Version)
-	rolled := rollbackOrderResponse(t, releaseActorRequest(t, app, rollbackExecutor, "POST", path+"/quick-rollback", quickRollbackBody(published.Version, preview.Digest, ""), "reason-rollback"), 200)
+	rolled := rollbackOrderResponse(t, releaseActorRequest(t, app, rollbackExecutor, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, ""), "reason-rollback"), 200)
 	if submitted.ApplicantID != accountID(t, applicant) || approved.ApplicantID != accountID(t, applicant) || len(rolled.Executions) < 2 || rolled.Executions[1].ActorID != accountID(t, rollbackExecutor) || rolled.Executions[0].ActorID != accountID(t, forwardPublisher) {
 		t.Fatal("fixture identities did not remain distinct")
 	}

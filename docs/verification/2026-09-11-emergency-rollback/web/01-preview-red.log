@@ -1,0 +1,333 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-105-emergency-rollback/web
+> vitest run src/features/release-orders/ReleaseOrdersPage.test.tsx -t '恢复预览先持久'
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-105-emergency-rollback/web
+
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx (90 tests | 1 failed | 89 skipped) 1337ms
+   × 恢复预览先持久保存原请求与各表应急实例，并用保存后的整单版本回滚 1335ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/release-orders/ReleaseOrdersPage.test.tsx > 恢复预览先持久保存原请求与各表应急实例，并用保存后的整单版本回滚
+TestingLibraryElementError: Unable to find an element with the text: 渠道应急恢复模板. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33maria-describedby[39m=[32m"_r_5_"[39m
+  [33maria-labelledby[39m=[32m"_r_4_"[39m
+  [33maria-modal[39m=[32m"true"[39m
+  [33mclass[39m=[32m"fixed top-[50%] left-[50%] z-50 max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] rounded-lg duration-200 outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 app-dialog max-h-[calc(100dvh-2rem)] border-0 bg-card shadow-xl grid w-full min-w-0 grid-rows-[auto_minmax(0,1fr)_auto] gap-5 overflow-hidden p-6 sm:max-w-[980px]"[39m
+  [33mdata-modal-surface[39m=[32m"true"[39m
+  [33mdata-slot[39m=[32m"dialog-content"[39m
+  [33mdata-state[39m=[32m"open"[39m
+  [33mid[39m=[32m"radix-_r_8_"[39m
+  [33mrole[39m=[32m"dialog"[39m
+  [33mtabindex[39m=[32m"-1"[39m
+[36m>[39m
+  [36m<header[39m
+    [33mclass[39m=[32m"grid gap-3"[39m
+  [36m>[39m
+    [36m<h2[39m
+      [33mclass[39m=[32m"text-lg leading-none font-semibold"[39m
+      [33mdata-slot[39m=[32m"dialog-title"[39m
+      [33mid[39m=[32m"_r_4_"[39m
+    [36m>[39m
+      [0m快速回滚 · [0m
+      [0m更新渠道展示名称[0m
+    [36m</h2>[39m
+    [36m<p[39m
+      [33mclass[39m=[32m"text-sm text-muted-foreground"[39m
+      [33mdata-slot[39m=[32m"dialog-description"[39m
+      [33mid[39m=[32m"_r_5_"[39m
+    [36m>[39m
+      [0m核对当前配置将恢复成的内容，一次确认整单恢复。数据库外部改动、规则或表结构变化仍可能阻止恢复。[0m
+    [36m</p>[39m
+  [36m</header>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"min-h-0 overflow-y-auto space-y-5"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"feedback-state feedback-error"[39m
+      [33mrole[39m=[32m"alert"[39m
+    [36m>[39m
+      [36m<svg[39m
+        [33maria-hidden[39m=[32m"true"[39m
+        [33mclass[39m=[32m"lucide lucide-circle-alert"[39m
+        [33mfill[39m=[32m"none"[39m
+        [33mheight[39m=[32m"24"[39m
+        [33mstroke[39m=[32m"currentColor"[39m
+        [33mstroke-linecap[39m=[32m"round"[39m
+        [33mstroke-linejoin[39m=[32m"round"[39m
+        [33mstroke-width[39m=[32m"2"[39m
+        [33mviewBox[39m=[32m"0 0 24 24"[39m
+        [33mwidth[39m=[32m"24"[39m
+        [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+      [36m>[39m
+        [36m<circle[39m
+          [33mcx[39m=[32m"12"[39m
+          [33mcy[39m=[32m"12"[39m
+          [33mr[39m=[32m"10"[39m
+        [36m/>[39m
+        [36m<line[39m
+          [33mx1[39m=[32m"12"[39m
+          [33mx2[39m=[32m"12"[39m
+          [33my1[39m=[32m"8"[39m
+          [33my2[39m=[32m"12"[39m
+        [36m/>[39m
+        [36m<line[39m
+          [33mx1[39m=[32m"12"[39m
+          [33mx2[39m=[32m"12.01"[39m
+          [33my1[39m=[32m"16"[39m
+          [33my2[39m=[32m"16"[39m
+        [36m/>[39m
+      [36m</svg>[39m
+      [36m<strong>[39m
+        [0mAdmin 连接或响应传输中断。[0m
+      [36m</strong>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 button"[39m
+        [33mdata-size[39m=[32m"default"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+        [33mdata-variant[39m=[32m"outline"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"lucide lucide-refresh-cw"[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mheight[39m=[32m"16"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"round"[39m
+          [33mstroke-linejoin[39m=[32m"round"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [33mwidth[39m=[32m"16"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"[39m
+          [36m/>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M21 3v5h-5"[39m
+          [36m/>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"[39m
+          [36m/>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M8 16H3v5"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+        [0m重试[0m
+      [36m</button>[39m
+    [36m</div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"grid gap-2"[39m
+    [36m>[39m
+      [36m<label[39m
+        [33mfor[39m=[32m"_r_6_"[39m
+      [36m>[39m
+        [0m快速回滚原因（选填）[0m
+      [36m</label>[39m
+      [36m<textarea[39m
+        [33maria-invalid[39m=[32m"false"[39m
+        [33mclass[39m=[32m"flex field-sizing-content min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:aria-invalid:ring-destructive/40"[39m
+        [33mdata-slot[39m=[32m"textarea"[39m
+        [33mid[39m=[32m"_r_6_"[39m
+      [36m/>[39m
+    [36m</div>[39m
+    [0m [0m
+    [0m [0m
+  [36m</div>[39m
+  [36m<footer[39m
+    [33mclass[39m=[32m"flex flex-wrap justify-end gap-3 border-t pt-4"[39m
+  [36m>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 button"[39m
+      [33mdata-size[39m=[32m"default"[39m
+      [33mdata-slot[39m=[32m"button"[39m
+      [33mdata-variant[39m=[32m"outline"[39m
+    [36m>[39m
+      [0m取消快速回滚[0m
+    [36m</button>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40 h-9 px-4 py-2 has-[>svg]:px-3 button"[39m
+      [33mdata-size[39m=[32m"default"[39m
+      [33mdata-slot[39m=[32m"button"[39m
+      [33mdata-variant[39m=[32m"destructive"[39m
+      [33mdisabled[39m=[32m""[39m
+    [36m>[39m
+      [0m确认整单快速回滚[0m
+    [36m</button>[39m
+  [36m</footer>[39m
+[36m</div>[39m
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33maria-describedby[39m=[32m"_r_5_"[39m
+  [33maria-labelledby[39m=[32m"_r_4_"[39m
+  [33maria-modal[39m=[32m"true"[39m
+  [33mclass[39m=[32m"fixed top-[50%] left-[50%] z-50 max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] rounded-lg duration-200 outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 app-dialog max-h-[calc(100dvh-2rem)] border-0 bg-card shadow-xl grid w-full min-w-0 grid-rows-[auto_minmax(0,1fr)_auto] gap-5 overflow-hidden p-6 sm:max-w-[980px]"[39m
+  [33mdata-modal-surface[39m=[32m"true"[39m
+  [33mdata-slot[39m=[32m"dialog-content"[39m
+  [33mdata-state[39m=[32m"open"[39m
+  [33mid[39m=[32m"radix-_r_8_"[39m
+  [33mrole[39m=[32m"dialog"[39m
+  [33mtabindex[39m=[32m"-1"[39m
+[36m>[39m
+  [36m<header[39m
+    [33mclass[39m=[32m"grid gap-3"[39m
+  [36m>[39m
+    [36m<h2[39m
+      [33mclass[39m=[32m"text-lg leading-none font-semibold"[39m
+      [33mdata-slot[39m=[32m"dialog-title"[39m
+      [33mid[39m=[32m"_r_4_"[39m
+    [36m>[39m
+      [0m快速回滚 · [0m
+      [0m更新渠道展示名称[0m
+    [36m</h2>[39m
+    [36m<p[39m
+      [33mclass[39m=[32m"text-sm text-muted-foreground"[39m
+      [33mdata-slot[39m=[32m"dialog-description"[39m
+      [33mid[39m=[32m"_r_5_"[39m
+    [36m>[39m
+      [0m核对当前配置将恢复成的内容，一次确认整单恢复。数据库外部改动、规则或表结构变化仍可能阻止恢复。[0m
+    [36m</p>[39m
+  [36m</header>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"min-h-0 overflow-y-auto space-y-5"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"feedback-state feedback-error"[39m
+      [33mrole[39m=[32m"alert"[39m
+    [36m>[39m
+      [36m<svg[39m
+        [33maria-hidden[39m=[32m"true"[39m
+        [33mclass[39m=[32m"lucide lucide-circle-alert"[39m
+        [33mfill[39m=[32m"none"[39m
+        [33mheight[39m=[32m"24"[39m
+        [33mstroke[39m=[32m"currentColor"[39m
+        [33mstroke-linecap[39m=[32m"round"[39m
+        [33mstroke-linejoin[39m=[32m"round"[39m
+        [33mstroke-width[39m=[32m"2"[39m
+        [33mviewBox[39m=[32m"0 0 24 24"[39m
+        [33mwidth[39m=[32m"24"[39m
+        [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+      [36m>[39m
+        [36m<circle[39m
+          [33mcx[39m=[32m"12"[39m
+          [33mcy[39m=[32m"12"[39m
+          [33mr[39m=[32m"10"[39m
+        [36m/>[39m
+        [36m<line[39m
+          [33mx1[39m=[32m"12"[39m
+          [33mx2[39m=[32m"12"[39m
+          [33my1[39m=[32m"8"[39m
+          [33my2[39m=[32m"12"[39m
+        [36m/>[39m
+        [36m<line[39m
+          [33mx1[39m=[32m"12"[39m
+          [33mx2[39m=[32m"12.01"[39m
+          [33my1[39m=[32m"16"[39m
+          [33my2[39m=[32m"16"[39m
+        [36m/>[39m
+      [36m</svg>[39m
+      [36m<strong>[39m
+        [0mAdmin 连接或响应传输中断。[0m
+      [36m</strong>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 button"[39m
+        [33mdata-size[39m=[32m"default"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+        [33mdata-variant[39m=[32m"outline"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"lucide lucide-refresh-cw"[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mheight[39m=[32m"16"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"round"[39m
+          [33mstroke-linejoin[39m=[32m"round"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [33mwidth[39m=[32m"16"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"[39m
+          [36m/>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M21 3v5h-5"[39m
+          [36m/>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"[39m
+          [36m/>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M8 16H3v5"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+        [0m重试[0m
+      [36m</button>[39m
+    [36m</div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"grid gap-2"[39m
+    [36m>[39m
+      [36m<label[39m
+        [33mfor[39m=[32m"_r_6_"[39m
+      [36m>[39m
+        [0m快速回滚原因（选填）[0m
+      [36m</label>[39m
+      [36m<textarea[39m
+        [33maria-invalid[39m=[32m"false"[39m
+        [33mclass[39m=[32m"flex field-sizing-content min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:aria-invalid:ring-destructive/40"[39m
+        [33mdata-slot[39m=[32m"textarea"[39m
+        [33mid[39m=[32m"_r_6_"[39m
+      [36m/>[39m
+    [36m</div>[39m
+    [0m [0m
+    [0m [0m
+  [36m</div>[39m
+  [36m<footer[39m
+    [33mclass[39m=[32m"flex flex-wrap justify-end gap-3 border-t pt-4"[39m
+  [36m>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 button"[39m
+      [33mdata-size[39m=[32m"default"[39m
+      [33mdata-slot[39m=[32m"button"[39m
+      [33mdata-variant[39m=[32m"outline"[39m
+    [36m>[39m
+      [0m取消快速回滚[0m
+    [36m</button>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40 h-9 px-4 py-2 has-[>svg]:px-3 button"[39m
+      [33mdata-size[39m=[32m"default"[39m
+      [33mdata-slot[39m=[32m"button"[39m
+      [33mdata-variant[39m=[32m"destructive"[39m
+      [33mdisabled[39m=[32m""[39m
+    [36m>[39m
+      [0m确认整单快速回滚[0m
+    [36m</button>[39m
+  [36m</footer>[39m
+[36m</div>[39m
+ ❯ waitForWrapper ../../rcc-issue-103-release-instances/web/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ ../../rcc-issue-103-release-instances/web/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx:993:30
+    991|  await user.click(await originalButton("快速回滚"));
+    992|  const dialog=await screen.findByRole("dialog",{name:`快速回滚 · ${order.t…
+    993|  expect(await within(dialog).findByText("渠道应急恢复模板")).toBeVisible();exp…
+       |                              ^
+    994|  expect(within(dialog).queryByRole("combobox")).not.toBeInTheDocument(…
+    995|  await user.click(await originalButton("确认整单快速回滚"));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 89 skipped (90)
+   Start at  16:22:23
+   Duration  3.82s (transform 990ms, setup 369ms, import 1.42s, tests 1.34s, environment 584ms)
+
+ ELIFECYCLE  Command failed with exit code 1.

@@ -98,10 +98,13 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 		}
 		response := make([]any, 0, len(list))
 		for _, order := range list {
+			if order.RollbackTableFlows == nil {
+				order.RollbackTableFlows = []application.ReleaseTableFlow{}
+			}
 			summary := struct {
 				application.ReleaseOrderSummary
 				AllowedActions []string `json:"allowed_actions"`
-			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{EmergencyReason: order.EmergencyReason, ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, ID: order.ID, State: order.State, ApplicantID: order.ApplicantID, TableNames: order.TableNames, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext})}
+			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{RollbackTableFlows: order.RollbackTableFlows, EmergencyReason: order.EmergencyReason, ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, ID: order.ID, State: order.State, ApplicantID: order.ApplicantID, TableNames: order.TableNames, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext})}
 			response = append(response, summary)
 		}
 		c.JSON(200, gin.H{"orders": response, "next_cursor": next})
@@ -162,7 +165,7 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
 			writeRequestDecodeError(c, err)
 			return
 		}
-		preview, err := orders.PreviewQuickRollback(c.Request.Context(), c.Param("id"), input)
+		preview, err := orders.PreviewQuickRollback(c.Request.Context(), c.Param("id"), input, c.GetHeader("Idempotency-Key"))
 		if writeReleaseError(c, err) {
 			return
 		}
@@ -284,6 +287,9 @@ func respondReleaseWrite(c *gin.Context, orders *application.ReleaseOrders, resu
 	c.JSON(status, releaseResponse(result, orders.AllowedActions(c.Request.Context(), current.Workflow())))
 }
 func releaseResponse(order application.ReleaseOrder, actions []string) any {
+	if order.RollbackTableFlows == nil {
+		order.RollbackTableFlows = []application.ReleaseTableFlow{}
+	}
 	if order.Executions == nil {
 		order.Executions = []application.ReleaseExecution{}
 	}
@@ -381,6 +387,9 @@ func writeReleaseError(c *gin.Context, err error) bool {
 }
 
 func releaseHeaderResponse(header application.ReleaseHeader, actions []string) any {
+	if header.RollbackTableFlows == nil {
+		header.RollbackTableFlows = []application.ReleaseTableFlow{}
+	}
 	header.FrozenTables = nil
 	return struct {
 		application.ReleaseHeader

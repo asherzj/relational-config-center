@@ -1,0 +1,5 @@
+{
+  "snapshot": "source-03.json",
+  "during_run_source_changed": false,
+  "failure": "cross-table command cursor comparison is invalid: sequence belongs to each table. UI geometry and real rollback completed. Later script asserts each table cursor/version exactly +1; actual reverse-order proof belongs to HTTP unique/FK constraint acceptance."
+}

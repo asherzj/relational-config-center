@@ -1,0 +1,10 @@
+{
+  "snapshot": "reviews/source-07.json",
+  "diff_sha256": "8b71cdd313012daeb91e1aa98c0a5027150876f6c7d636963cd3bb6756808ced",
+  "during_run_source_changed": false,
+  "post_run_hash_mismatches": [],
+  "result": "PASS",
+  "raw_log": "backend/29-browser-affected-rollback.log",
+  "selected_path": "TestAccountBrowserSystemPath/release-rollbacks.cjs",
+  "account_setup_prerequisite": "executed and passed; do not count repeated account runs as unique paths"
+}

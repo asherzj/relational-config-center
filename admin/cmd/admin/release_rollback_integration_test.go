@@ -81,7 +81,7 @@ func quickRestoreFixture(t *testing.T, app *adminApplication, path, key string) 
 	actor := integrationAdminSession(t, app)
 	original := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
 	preview := readQuickPreview(t, app, actor, path, original.Version)
-	return rollbackOrderResponse(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody(original.Version, preview.Digest, ""), key), 200)
+	return rollbackOrderResponse(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, ""), key), 200)
 }
 
 func TestReleaseRollbackUnwindsUniqueValueDependencies(t *testing.T) {
@@ -160,7 +160,7 @@ func TestReleaseRollbackRestoresBusinessFieldsWithNewAudit(t *testing.T) {
 	}
 	publisher := registerAccount(t, app, "rollback.publisher", "rollback.publisher@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, publisher, `["PUBLISHER"]`, "1", "rollback-publisher-role")
-	result := rollbackOrderResponse(t, releaseActorRequest(t, app, publisher, "POST", path+"/quick-rollback", quickRollbackBody("4", reverse.Digest, ""), "audit-restore"), 200)
+	result := rollbackOrderResponse(t, releaseActorRequest(t, app, publisher, "POST", path+"/quick-rollback", quickRollbackBody(reverse.ExpectedVersion, reverse.Digest, ""), "audit-restore"), 200)
 	for id, label := range map[string]string{"1": "original", "2": "deleted"} {
 		row, version := recordVersionRow(t, app, "rollback_audit", id)
 		if version != "2" || *row["label"] != label || len(*row["payload"]) != 200000 || *row["derived"] != label+":old" || *row["modifier"] != accountID(t, publisher) || *row["moment"] != "2020-03-04T05:06:07.123456Z" {

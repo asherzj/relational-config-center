@@ -156,41 +156,41 @@ func TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder(t *testing.T)
 	t.Run("reject exchanged publication results on same table", func(t *testing.T) { corruptResult(t, "publication", "4", true) })
 	t.Run("reject publication without original detail identity", func(t *testing.T) { corruptResult(t, "publication", "4", false) })
 	preview := readQuickPreview(t, app, actor, path, "4")
-	restored := rollbackOrderResponse(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, ""), "paged-rollback"), 200)
+	restored := rollbackOrderResponse(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, ""), "paged-rollback"), 200)
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "GET", path+"/details?expected_version=4&offset=20&limit=20", "", ""), 409, "release_version_conflict")
 	header = readHeader()
 	if header.State != "ROLLED_BACK" || len(header.Executions) != 2 {
 		t.Fatal(header)
 	}
-	first, last = readPage("5", 0), readPage("5", 20)
+	first, last = readPage("6", 0), readPage("6", 20)
 	for index, item := range append(first.Items, last.Items...) {
 		if item.DetailID != published.Items[index].DetailID || !reflect.DeepEqual(item.Publication, published.Items[index].Publication) || item.Rollback == nil || item.Rollback.ID != item.Publication.ID || item.Rollback.ExecutionID != restored.Executions[1].ID || item.Rollback.Operation != "DELETE" {
 			t.Fatal("restoration detached from original detail", index, item)
 		}
 	}
-	t.Run("reject rollback without original detail identity", func(t *testing.T) { corruptResult(t, "rollback", "5", false) })
+	t.Run("reject rollback without original detail identity", func(t *testing.T) { corruptResult(t, "rollback", "6", false) })
 	replay := rollbackOrderResponse(t, releaseActorRequest(t, app, actor, "POST", path+"/execute", `{"expected_version":"3"}`, "paged-publication"), 200)
 	if replay.State != "SUCCEEDED" || len(replay.Executions) != 1 || replay.Items[20].Rollback != nil {
 		t.Fatal("original acknowledgement changed", replay)
 	}
-	if current := readHeader(); current.State != "ROLLED_BACK" || current.Version != "5" {
+	if current := readHeader(); current.State != "ROLLED_BACK" || current.Version != "6" {
 		t.Fatal("old acknowledgement replaced current terminal state", current)
 	}
 	grantReleaseRole(t, app, actor, `["VIEWER"]`, "2", "paged-revoke-publisher")
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/execute", `{"expected_version":"3"}`, "paged-publication"), 403, "permission_denied")
-	if current := readHeader(); current.State != "ROLLED_BACK" || current.Version != "5" {
+	if current := readHeader(); current.State != "ROLLED_BACK" || current.Version != "6" {
 		t.Fatal(current)
 	}
-	readPage("5", 20)
+	readPage("6", 20)
 	// The last page rejects an otherwise valid result from the wrong detail.
 	var encoded []byte
 	if err := db.QueryRow(`SELECT rollback FROM rcc_release_details WHERE order_id=? AND position=20`, published.ID).Scan(&encoded); err != nil {
 		t.Fatal(err)
 	}
 	deliveryExec(t, db, `UPDATE rcc_release_details SET rollback=JSON_SET(rollback,'$.execution_id','another:ROLLBACK') WHERE order_id='`+published.ID+`' AND position=20`)
-	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "GET", path+"/details?expected_version=5&offset=20&limit=20", "", ""), 503, "release_unavailable")
+	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "GET", path+"/details?expected_version=6&offset=20&limit=20", "", ""), 503, "release_unavailable")
 	if _, err := db.Exec(`UPDATE rcc_release_details SET rollback=? WHERE order_id=? AND position=20`, encoded, published.ID); err != nil {
 		t.Fatal(err)
 	}
-	readPage("5", 20)
+	readPage("6", 20)
 }

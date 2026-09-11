@@ -1,0 +1,7 @@
+{
+  "removed_only": "web/node_modules",
+  "kind": "symlink",
+  "target": "/private/tmp/rcc-issue-103-release-instances/web/node_modules",
+  "target_directory_still_exists": true,
+  "lock_changed": false
+}

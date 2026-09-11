@@ -95,4 +95,20 @@ func advanceReleaseFlows(order *ReleaseOrder) {
 			}
 		}
 	}
+	// Restoration has one actual execution and ends the original order. The
+	// template's completion definition is retained, without inventing that action.
+	for fi := range order.RollbackTableFlows {
+		for ni := range order.RollbackTableFlows[fi].Nodes {
+			node := &order.RollbackTableFlows[fi].Nodes[ni]
+			node.State, node.ActorID, node.At = "PENDING", "", ""
+			if order.State == "SUCCEEDED" && node.Type == "PUBLICATION" {
+				node.State = "ACTIVE"
+			} else if order.State == "ROLLED_BACK" || order.State == "COMPLETED" {
+				node.State = "STOPPED"
+			}
+			if event, found := events["QUICK_ROLLBACK"]; found && node.Type == "PUBLICATION" {
+				node.State, node.ActorID, node.At = "COMPLETED", event.ActorID, event.At
+			}
+		}
+	}
 }

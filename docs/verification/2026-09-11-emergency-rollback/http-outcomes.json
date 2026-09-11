@@ -1,0 +1,517 @@
+{
+  "counting": "top-level Go tests; subtests and package events are separate, never counted as unique top-level cases",
+  "batches": {
+    "14-affected-http.jsonl": [
+      {
+        "test": "TestReleaseThousandItemsThroughExecutable",
+        "outcome": "pass",
+        "elapsed": 20.2
+      },
+      {
+        "test": "TestReleaseCompletionPermanentlyClosesRollbackWindow",
+        "outcome": "fail",
+        "elapsed": 9.91
+      },
+      {
+        "test": "TestReleaseEmergencyAC017AC018WholeOrderExecutionAndCompletion",
+        "outcome": "pass",
+        "elapsed": 9.9
+      },
+      {
+        "test": "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges",
+        "outcome": "fail",
+        "elapsed": 18.07
+      },
+      {
+        "test": "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults",
+        "outcome": "pass",
+        "elapsed": 10.99
+      },
+      {
+        "test": "TestMultitableThousandPagedDetailsExecuteAsOneOrder",
+        "outcome": "pass",
+        "elapsed": 28.04
+      },
+      {
+        "test": "TestMultitableLargeValuesThroughHTTPLifecycle",
+        "outcome": "pass",
+        "elapsed": 24.61
+      },
+      {
+        "test": "TestReleaseNotificationsPersistenceFailuresPreserveAllFacts",
+        "outcome": "pass",
+        "elapsed": 13.34
+      },
+      {
+        "test": "TestReleaseNotificationsLostResponsesRecoverOriginalFacts",
+        "outcome": "pass",
+        "elapsed": 11.77
+      },
+      {
+        "test": "TestReleaseNotificationsCommitUnknownRecoversEveryLifecycle",
+        "outcome": "pass",
+        "elapsed": 11.13
+      },
+      {
+        "test": "TestReleaseNotificationsTerminalCompetitionHasOneResult",
+        "outcome": "pass",
+        "elapsed": 12.01
+      },
+      {
+        "test": "TestReleaseNotificationsDisabledParticipantsRetainOutcomes",
+        "outcome": "pass",
+        "elapsed": 14.7
+      },
+      {
+        "test": "TestReleaseNotificationsPublicationUsesActualParticipants",
+        "outcome": "pass",
+        "elapsed": 9.78
+      },
+      {
+        "test": "TestReleaseNotificationsTerminalResultsPreserveOwnUnread",
+        "outcome": "pass",
+        "elapsed": 11.66
+      },
+      {
+        "test": "TestReleaseNotificationsReprepareCancelsSourceAtomically",
+        "outcome": "pass",
+        "elapsed": 9.82
+      },
+      {
+        "test": "TestOriginalOrderRollbackPreservesApplicationAndBothExecutions",
+        "outcome": "pass",
+        "elapsed": 9.72
+      },
+      {
+        "test": "TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder",
+        "outcome": "fail",
+        "elapsed": 9.87
+      },
+      {
+        "test": "TestQuickRollbackPreviewShowsWholeRestorationWithoutWritingBusinessData",
+        "outcome": "pass",
+        "elapsed": 9.98
+      },
+      {
+        "test": "TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult",
+        "outcome": "pass",
+        "elapsed": 9.78
+      },
+      {
+        "test": "TestQuickRollbackRejectsUnversionedExternalChangesBeforePreviewAndExecution",
+        "outcome": "fail",
+        "elapsed": 9.86
+      },
+      {
+        "test": "TestQuickRollbackRequiresItsOriginalRetainedTargets",
+        "outcome": "fail",
+        "elapsed": 9.86
+      },
+      {
+        "test": "TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole",
+        "outcome": "pass",
+        "elapsed": 9.99
+      },
+      {
+        "test": "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks",
+        "outcome": "pass",
+        "elapsed": 10.89
+      },
+      {
+        "test": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets",
+        "outcome": "fail",
+        "elapsed": 10.74
+      },
+      {
+        "test": "TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions",
+        "outcome": "pass",
+        "elapsed": 9.73
+      },
+      {
+        "test": "TestQuickRollbackConstraintFailureRollsBackEarlierItems",
+        "outcome": "pass",
+        "elapsed": 9.68
+      },
+      {
+        "test": "TestQuickRollbackCanTerminateAtAcceptedPublicationCapacity",
+        "outcome": "pass",
+        "elapsed": 12.06
+      },
+      {
+        "test": "TestQuickRollbackRejectsDatabaseEffectsThatCannotRestoreOriginalValues",
+        "outcome": "pass",
+        "elapsed": 9.96
+      },
+      {
+        "test": "TestRollbackFlowCurrentAuthorizationAfterWaitingForMaintenance",
+        "outcome": "pass",
+        "elapsed": 12.94
+      },
+      {
+        "test": "TestRollbackFlowPreviewStorageFailuresKeepOriginalAtomic",
+        "outcome": "pass",
+        "elapsed": 11.16
+      },
+      {
+        "test": "TestRollbackFlowPreviewDoesNotExtendRecoveryOrFreezeBusinessValues",
+        "outcome": "pass",
+        "elapsed": 9.69
+      },
+      {
+        "test": "TestRollbackFlowAC019PersistsCurrentEmergencyInstancesBeforeDisplay",
+        "outcome": "pass",
+        "elapsed": 9.81
+      },
+      {
+        "test": "TestRollbackFlowAC020EndsOriginalAndRecordsOnlyTrueExecution",
+        "outcome": "pass",
+        "elapsed": 9.76
+      },
+      {
+        "test": "TestRollbackFlowAC021EmergencyCancellationUsesRealSubmission",
+        "outcome": "pass",
+        "elapsed": 9.89
+      },
+      {
+        "test": "TestReleaseRollbackUnwindsUniqueValueDependencies",
+        "outcome": "pass",
+        "elapsed": 19.77
+      },
+      {
+        "test": "TestReleaseRollbackRestoresDeletedEnumIdentity",
+        "outcome": "pass",
+        "elapsed": 9.83
+      },
+      {
+        "test": "TestReleaseRollbackRestoresBusinessFieldsWithNewAudit",
+        "outcome": "pass",
+        "elapsed": 9.51
+      },
+      {
+        "test": "TestReleaseRollbackRestoresStoredTimeDuration",
+        "outcome": "pass",
+        "elapsed": 9.7
+      },
+      {
+        "test": "TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator",
+        "outcome": "pass",
+        "elapsed": 9.67
+      }
+    ],
+    "18-narrow-corrections.jsonl": [
+      {
+        "test": "TestReleaseCompletionPermanentlyClosesRollbackWindow",
+        "outcome": "pass",
+        "elapsed": 10.51
+      },
+      {
+        "test": "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges",
+        "outcome": "pass",
+        "elapsed": 15.96
+      },
+      {
+        "test": "TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder",
+        "outcome": "pass",
+        "elapsed": 9.96
+      },
+      {
+        "test": "TestQuickRollbackRejectsUnversionedExternalChangesBeforePreviewAndExecution",
+        "outcome": "pass",
+        "elapsed": 9.82
+      },
+      {
+        "test": "TestQuickRollbackRequiresItsOriginalRetainedTargets",
+        "outcome": "pass",
+        "elapsed": 9.83
+      },
+      {
+        "test": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets",
+        "outcome": "pass",
+        "elapsed": 11.85
+      },
+      {
+        "test": "TestRollbackFlowAC019PersistsCurrentEmergencyInstancesBeforeDisplay",
+        "outcome": "pass",
+        "elapsed": 9.92
+      }
+    ],
+    "19-public-arrays-boundaries.jsonl": [
+      {
+        "test": "TestRollbackFlowAC021EmergencyCancellationUsesRealSubmission",
+        "outcome": "pass",
+        "elapsed": 10.51
+      },
+      {
+        "test": "TestAdminHTTPCompositionCannotRunSchemaMaintenance",
+        "outcome": "pass",
+        "elapsed": 0
+      },
+      {
+        "test": "TestCurrentSchemaEntryPointsDoNotRestoreRetiredInitialization",
+        "outcome": "pass",
+        "elapsed": 0
+      }
+    ],
+    "24-preview-identity.jsonl": [
+      {
+        "test": "TestRollbackFlowPreviewReplayUsesCurrentAccountAndRoles",
+        "outcome": "pass",
+        "elapsed": 9.9
+      }
+    ]
+  },
+  "latest_applicable_outcomes": {
+    "TestReleaseThousandItemsThroughExecutable": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestReleaseThousandItemsThroughExecutable",
+      "outcome": "pass",
+      "elapsed": 20.2
+    },
+    "TestReleaseCompletionPermanentlyClosesRollbackWindow": {
+      "log": "backend/18-narrow-corrections.jsonl",
+      "test": "TestReleaseCompletionPermanentlyClosesRollbackWindow",
+      "outcome": "pass",
+      "elapsed": 10.51
+    },
+    "TestReleaseEmergencyAC017AC018WholeOrderExecutionAndCompletion": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestReleaseEmergencyAC017AC018WholeOrderExecutionAndCompletion",
+      "outcome": "pass",
+      "elapsed": 9.9
+    },
+    "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges": {
+      "log": "backend/18-narrow-corrections.jsonl",
+      "test": "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges",
+      "outcome": "pass",
+      "elapsed": 15.96
+    },
+    "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults",
+      "outcome": "pass",
+      "elapsed": 10.99
+    },
+    "TestMultitableThousandPagedDetailsExecuteAsOneOrder": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestMultitableThousandPagedDetailsExecuteAsOneOrder",
+      "outcome": "pass",
+      "elapsed": 28.04
+    },
+    "TestMultitableLargeValuesThroughHTTPLifecycle": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestMultitableLargeValuesThroughHTTPLifecycle",
+      "outcome": "pass",
+      "elapsed": 24.61
+    },
+    "TestReleaseNotificationsPersistenceFailuresPreserveAllFacts": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestReleaseNotificationsPersistenceFailuresPreserveAllFacts",
+      "outcome": "pass",
+      "elapsed": 13.34
+    },
+    "TestReleaseNotificationsLostResponsesRecoverOriginalFacts": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestReleaseNotificationsLostResponsesRecoverOriginalFacts",
+      "outcome": "pass",
+      "elapsed": 11.77
+    },
+    "TestReleaseNotificationsCommitUnknownRecoversEveryLifecycle": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestReleaseNotificationsCommitUnknownRecoversEveryLifecycle",
+      "outcome": "pass",
+      "elapsed": 11.13
+    },
+    "TestReleaseNotificationsTerminalCompetitionHasOneResult": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestReleaseNotificationsTerminalCompetitionHasOneResult",
+      "outcome": "pass",
+      "elapsed": 12.01
+    },
+    "TestReleaseNotificationsDisabledParticipantsRetainOutcomes": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestReleaseNotificationsDisabledParticipantsRetainOutcomes",
+      "outcome": "pass",
+      "elapsed": 14.7
+    },
+    "TestReleaseNotificationsPublicationUsesActualParticipants": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestReleaseNotificationsPublicationUsesActualParticipants",
+      "outcome": "pass",
+      "elapsed": 9.78
+    },
+    "TestReleaseNotificationsTerminalResultsPreserveOwnUnread": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestReleaseNotificationsTerminalResultsPreserveOwnUnread",
+      "outcome": "pass",
+      "elapsed": 11.66
+    },
+    "TestReleaseNotificationsReprepareCancelsSourceAtomically": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestReleaseNotificationsReprepareCancelsSourceAtomically",
+      "outcome": "pass",
+      "elapsed": 9.82
+    },
+    "TestOriginalOrderRollbackPreservesApplicationAndBothExecutions": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestOriginalOrderRollbackPreservesApplicationAndBothExecutions",
+      "outcome": "pass",
+      "elapsed": 9.72
+    },
+    "TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder": {
+      "log": "backend/18-narrow-corrections.jsonl",
+      "test": "TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder",
+      "outcome": "pass",
+      "elapsed": 9.96
+    },
+    "TestQuickRollbackPreviewShowsWholeRestorationWithoutWritingBusinessData": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestQuickRollbackPreviewShowsWholeRestorationWithoutWritingBusinessData",
+      "outcome": "pass",
+      "elapsed": 9.98
+    },
+    "TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult",
+      "outcome": "pass",
+      "elapsed": 9.78
+    },
+    "TestQuickRollbackRejectsUnversionedExternalChangesBeforePreviewAndExecution": {
+      "log": "backend/18-narrow-corrections.jsonl",
+      "test": "TestQuickRollbackRejectsUnversionedExternalChangesBeforePreviewAndExecution",
+      "outcome": "pass",
+      "elapsed": 9.82
+    },
+    "TestQuickRollbackRequiresItsOriginalRetainedTargets": {
+      "log": "backend/18-narrow-corrections.jsonl",
+      "test": "TestQuickRollbackRequiresItsOriginalRetainedTargets",
+      "outcome": "pass",
+      "elapsed": 9.83
+    },
+    "TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole",
+      "outcome": "pass",
+      "elapsed": 9.99
+    },
+    "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks",
+      "outcome": "pass",
+      "elapsed": 10.89
+    },
+    "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets": {
+      "log": "backend/18-narrow-corrections.jsonl",
+      "test": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets",
+      "outcome": "pass",
+      "elapsed": 11.85
+    },
+    "TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions",
+      "outcome": "pass",
+      "elapsed": 9.73
+    },
+    "TestQuickRollbackConstraintFailureRollsBackEarlierItems": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestQuickRollbackConstraintFailureRollsBackEarlierItems",
+      "outcome": "pass",
+      "elapsed": 9.68
+    },
+    "TestQuickRollbackCanTerminateAtAcceptedPublicationCapacity": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestQuickRollbackCanTerminateAtAcceptedPublicationCapacity",
+      "outcome": "pass",
+      "elapsed": 12.06
+    },
+    "TestQuickRollbackRejectsDatabaseEffectsThatCannotRestoreOriginalValues": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestQuickRollbackRejectsDatabaseEffectsThatCannotRestoreOriginalValues",
+      "outcome": "pass",
+      "elapsed": 9.96
+    },
+    "TestRollbackFlowCurrentAuthorizationAfterWaitingForMaintenance": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestRollbackFlowCurrentAuthorizationAfterWaitingForMaintenance",
+      "outcome": "pass",
+      "elapsed": 12.94
+    },
+    "TestRollbackFlowPreviewStorageFailuresKeepOriginalAtomic": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestRollbackFlowPreviewStorageFailuresKeepOriginalAtomic",
+      "outcome": "pass",
+      "elapsed": 11.16
+    },
+    "TestRollbackFlowPreviewDoesNotExtendRecoveryOrFreezeBusinessValues": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestRollbackFlowPreviewDoesNotExtendRecoveryOrFreezeBusinessValues",
+      "outcome": "pass",
+      "elapsed": 9.69
+    },
+    "TestRollbackFlowAC019PersistsCurrentEmergencyInstancesBeforeDisplay": {
+      "log": "backend/18-narrow-corrections.jsonl",
+      "test": "TestRollbackFlowAC019PersistsCurrentEmergencyInstancesBeforeDisplay",
+      "outcome": "pass",
+      "elapsed": 9.92
+    },
+    "TestRollbackFlowAC020EndsOriginalAndRecordsOnlyTrueExecution": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestRollbackFlowAC020EndsOriginalAndRecordsOnlyTrueExecution",
+      "outcome": "pass",
+      "elapsed": 9.76
+    },
+    "TestRollbackFlowAC021EmergencyCancellationUsesRealSubmission": {
+      "log": "backend/19-public-arrays-boundaries.jsonl",
+      "test": "TestRollbackFlowAC021EmergencyCancellationUsesRealSubmission",
+      "outcome": "pass",
+      "elapsed": 10.51
+    },
+    "TestReleaseRollbackUnwindsUniqueValueDependencies": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestReleaseRollbackUnwindsUniqueValueDependencies",
+      "outcome": "pass",
+      "elapsed": 19.77
+    },
+    "TestReleaseRollbackRestoresDeletedEnumIdentity": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestReleaseRollbackRestoresDeletedEnumIdentity",
+      "outcome": "pass",
+      "elapsed": 9.83
+    },
+    "TestReleaseRollbackRestoresBusinessFieldsWithNewAudit": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestReleaseRollbackRestoresBusinessFieldsWithNewAudit",
+      "outcome": "pass",
+      "elapsed": 9.51
+    },
+    "TestReleaseRollbackRestoresStoredTimeDuration": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestReleaseRollbackRestoresStoredTimeDuration",
+      "outcome": "pass",
+      "elapsed": 9.7
+    },
+    "TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator": {
+      "log": "backend/14-affected-http.jsonl",
+      "test": "TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator",
+      "outcome": "pass",
+      "elapsed": 9.67
+    },
+    "TestAdminHTTPCompositionCannotRunSchemaMaintenance": {
+      "log": "backend/19-public-arrays-boundaries.jsonl",
+      "test": "TestAdminHTTPCompositionCannotRunSchemaMaintenance",
+      "outcome": "pass",
+      "elapsed": 0
+    },
+    "TestCurrentSchemaEntryPointsDoNotRestoreRetiredInitialization": {
+      "log": "backend/19-public-arrays-boundaries.jsonl",
+      "test": "TestCurrentSchemaEntryPointsDoNotRestoreRetiredInitialization",
+      "outcome": "pass",
+      "elapsed": 0
+    },
+    "TestRollbackFlowPreviewReplayUsesCurrentAccountAndRoles": {
+      "log": "backend/24-preview-identity.jsonl",
+      "test": "TestRollbackFlowPreviewReplayUsesCurrentAccountAndRoles",
+      "outcome": "pass",
+      "elapsed": 9.9
+    }
+  }
+}

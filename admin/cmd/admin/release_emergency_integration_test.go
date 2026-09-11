@@ -203,11 +203,11 @@ func TestReleaseEmergencyAC017AC018WholeOrderExecutionAndCompletion(t *testing.T
 	}
 	contender := `{"title":"保护中的目标","release_type":"EMERGENCY","items":[{"table_name":"emergency_children","operation":"MODIFY","id":"1","expected_record_version":"1","content":{"label":"later"}}]}`
 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", contender, "emergency-target-after-publication"), 409, "release_target_conflict")
-	preview := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"3"}`, "")
+	preview := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"3"}`, fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1)))
 	if preview.Code != 200 {
 		t.Fatal("protected rollback entrance disappeared", preview.Body)
 	}
-	completed := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/complete", `{"expected_version":"3"}`, "emergency-whole-complete"), 200)
+	completed := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/complete", `{"expected_version":"4"}`, "emergency-whole-complete"), 200)
 	if completed.State != "COMPLETED" || len(completed.Executions) != 1 {
 		t.Fatal("completion invented execution", completed)
 	}
@@ -220,14 +220,14 @@ func TestReleaseEmergencyAC017AC018WholeOrderExecutionAndCompletion(t *testing.T
 			t.Fatal("completion lacks actual actor/time", flow)
 		}
 	}
-	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, ""), 422, "release_state_invalid")
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"5"}`, fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1))), 422, "release_state_invalid")
 	flowResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", contender, "emergency-target-after-publication"), 201)
 	old := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"2"}`, "emergency-whole-execute"), 200)
 	if old.State != "SUCCEEDED" || old.Version != "3" || !reflect.DeepEqual(old.Executions, published.Executions) {
 		t.Fatal("original result lost", old)
 	}
 	current := flowResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
-	if current.State != "COMPLETED" || current.Version != "4" {
+	if current.State != "COMPLETED" || current.Version != "5" {
 		t.Fatal("historical replay changed current", current)
 	}
 }

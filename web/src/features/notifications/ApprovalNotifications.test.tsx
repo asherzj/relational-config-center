@@ -78,7 +78,7 @@ it("前台每 30 秒和返回时刷新，隐藏与会话中断停止受保护读
 });
 
 const header = {
-  release_type: "STANDARD", emergency_reason: "", table_flows: [], missing_flow_tables: [],
+  release_type: "STANDARD", emergency_reason: "", table_flows: [], rollback_table_flows: [], missing_flow_tables: [],
   id: "a".repeat(32), title: "已展示的审批进展", table_names: [], applicant_id: "another-account", state: "PENDING_APPROVAL", version: "2",
   created_at: "2026-09-11T01:00:00Z", updated_at: "2026-09-11T02:00:00Z", item_count: 0, operation_counts: {}, allowed_actions: [],
   approvals: [], approval_context: { revision: "approval-2", tables: [], approvable_tables: [] }, history: [], executions: [],

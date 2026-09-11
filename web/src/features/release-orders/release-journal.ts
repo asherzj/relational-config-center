@@ -3,7 +3,7 @@ import {ApiError,isUncertainWriteError} from "../../api/client";
 import {businessSession} from "../../api/business-session";
 import {releaseOrders} from "../../api/release-orders";
 
-const pendingSchema=z.object({scope:z.string(),path:z.string().regex(/^\/api\/v1\/release-orders(?:\/[a-f0-9]{32}(?:\/(?:cancel|submit|approve|reject|copy|execute|complete|quick-rollback|rollback-reason|reprepare))?)?$/),method:z.enum(["POST","PUT"]),body:z.string(),key:z.string(),label:z.string(),rejection:z.enum(["release_approval_conflict","release_version_conflict","record_version_conflict","release_state_invalid","release_target_conflict","release_frozen_changed"]).optional()});
+const pendingSchema=z.object({scope:z.string(),path:z.string().regex(/^\/api\/v1\/release-orders(?:\/[a-f0-9]{32}(?:\/(?:cancel|submit|approve|reject|copy|execute|complete|quick-rollback(?:\/preview)?|rollback-reason|reprepare))?)?$/),method:z.enum(["POST","PUT"]),body:z.string(),key:z.string(),label:z.string(),rejection:z.enum(["release_approval_conflict","release_version_conflict","record_version_conflict","release_state_invalid","release_target_conflict","release_frozen_changed"]).optional()});
 export type PendingReleaseRequest=z.infer<typeof pendingSchema>;
 export const releaseJournalChanged="rcc:release-journal-changed";
 // IndexedDB is the single durable authority. React reads an in-memory mirror
@@ -72,6 +72,10 @@ export function forgetReleaseRequest(accountID:string,key:string){
 export async function sendReleaseRequest(accountID:string,value:PendingReleaseRequest){
  if(businessSession().credentials?.accountID!==accountID)throw new ApiError("stale_session","请使用原申请账号恢复此请求。",0);
  return releaseOrders.write(value.path,value.method,value.body,value.key);
+}
+export async function sendReleasePreviewRequest(accountID:string,value:PendingReleaseRequest){
+ if(businessSession().credentials?.accountID!==accountID)throw new ApiError("stale_session","请使用原申请账号恢复此请求。",0);
+ return releaseOrders.writeQuickRollbackPreview(value.path,value.method,value.body,value.key);
 }
 export function uncertainReleaseError(error:unknown){return isUncertainWriteError(error)||(error instanceof ApiError&&(error.status>=500||error.status===401||error.status===403))}
 

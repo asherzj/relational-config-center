@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-105-emergency-rollback/web
+> vitest run src/features/notifications
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-105-emergency-rollback/web
+
+
+ Test Files  2 passed (2)
+      Tests  13 passed (13)
+   Start at  16:30:33
+   Duration  3.70s (transform 1.05s, setup 449ms, import 1.64s, tests 3.58s, environment 1.05s)
+

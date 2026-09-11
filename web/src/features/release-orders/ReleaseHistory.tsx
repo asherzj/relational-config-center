@@ -5,7 +5,7 @@ import {Button} from "../../components/ui/Button";
 import {ReleaseTime} from "./ReleaseTime";
 import {ReleasePerson} from "./ReleasePerson";
 
-const actionLabels:Record<string,string>={CREATE:"创建了草稿",EDIT:"修改了草稿",UPDATE:"修改了草稿",SUBMIT:"提交了审批",APPROVE:"通过了审批表",REJECT:"拒绝了发布单",CANCEL:"取消了发布单",COPY:"复制了新草稿",REPREPARE:"重新准备了发布单",EXECUTE:"发布到数据库",EXECUTE_FAILED:"发布未提交",QUICK_ROLLBACK_FAILED:"快速回滚未提交",COMPLETE:"完结了发布单",ROLLBACK_REQUEST:"申请了回滚",QUICK_ROLLBACK:"执行了快速回滚",ROLLBACK_REASON:"修改了回滚原因",ROLLED_BACK:"完成了回滚",ROLLBACK_CANCELLED:"取消了回滚申请",ROLLBACK_REJECTED:"回滚申请被拒绝"};
+const actionLabels:Record<string,string>={CREATE:"创建了草稿",EDIT:"修改了草稿",UPDATE:"修改了草稿",SUBMIT:"提交了审批",APPROVE:"通过了审批表",REJECT:"拒绝了发布单",CANCEL:"取消了发布单",COPY:"复制了新草稿",REPREPARE:"重新准备了发布单",EXECUTE:"发布到数据库",EXECUTE_FAILED:"发布未提交",PREVIEW_QUICK_ROLLBACK:"保存了应急恢复流程",QUICK_ROLLBACK_FAILED:"快速回滚未提交",COMPLETE:"完结了发布单",ROLLBACK_REQUEST:"申请了回滚",QUICK_ROLLBACK:"执行了快速回滚",ROLLBACK_REASON:"修改了回滚原因",ROLLED_BACK:"完成了回滚",ROLLBACK_CANCELLED:"取消了回滚申请",ROLLBACK_REJECTED:"回滚申请被拒绝"};
 export function ReleaseHistory({order,people}:{order:ReleaseHeader;people:Record<string,string>}){
  const [all,setAll]=useState(false);
  const history=[...order.history].reverse();

@@ -1,0 +1,1367 @@
+{
+  "checks": [
+    "AC-019/023: committed preview response loss survives close/reload, manual original-key replay, template edits, and a fresh-key reopen with unchanged persisted per-table emergency instances",
+    "AC-020: keyboard confirmation with an empty reason reverses both tables once, ends the original order, records real restoration actors, stops completion nodes without a fictitious completion, and supports later reason correction",
+    "AC-021: the real applicant result notification opens the same original order and persisted per-table restoration details, without a pending approval",
+    "AC-023/024: historical preview replay acknowledges the original successful save after completion or rollback, while authoritative header reads keep both terminal orders ineligible for another recovery"
+  ],
+  "requests": [
+    {
+      "order_id": "df61726a2561147b88da2722bd3f181a",
+      "preview": [
+        {
+          "body": "{\"expected_version\":\"4\"}",
+          "key": "cfe73e9e-a7df-46a8-bada-2c48f7f794dd"
+        },
+        {
+          "body": "{\"expected_version\":\"4\"}",
+          "key": "cfe73e9e-a7df-46a8-bada-2c48f7f794dd"
+        }
+      ]
+    },
+    {
+      "order_id": "df61726a2561147b88da2722bd3f181a",
+      "rollback": {
+        "body": "{\"expected_version\":\"5\",\"preview_digest\":\"70e2c3c093b4d24653d0dedfc8c375e6e1fe95386b5969c03ae4d6de2dee1f92\",\"reason\":\"\"}",
+        "key": "9b90d1a3-15c3-40c7-a5b1-7e21e3bf0d62"
+      }
+    },
+    {
+      "order_id": "ec1862ae141cbd2a0f7b289e1e627cc8",
+      "preview": [
+        {
+          "body": "{\"expected_version\":\"3\"}",
+          "key": "d203a4df-04a7-4b2f-bf02-f41356a30f12"
+        },
+        {
+          "body": "{\"expected_version\":\"3\"}",
+          "key": "d203a4df-04a7-4b2f-bf02-f41356a30f12"
+        }
+      ]
+    },
+    {
+      "order_id": "9b5fbceb0a4d39d4b991d4ec92fef3e6",
+      "preview": [
+        {
+          "body": "{\"expected_version\":\"3\"}",
+          "key": "866a2b84-780b-4e37-85f0-5b0a89b0cb4f"
+        },
+        {
+          "body": "{\"expected_version\":\"3\"}",
+          "key": "866a2b84-780b-4e37-85f0-5b0a89b0cb4f"
+        }
+      ]
+    }
+  ],
+  "snapshots": {
+    "first_saved": {
+      "notification": {
+        "sequence": "0",
+        "unread": false,
+        "pending": false
+      },
+      "emergency_reason": "",
+      "release_type": "STANDARD",
+      "rollback_table_flows": [
+        {
+          "instance_id": "7085f6f986df98cb8c90ec2ade941d0f",
+          "table_name": "policy_alpha",
+          "release_type": "EMERGENCY",
+          "template_code": "rollback_flows_alpha_v1",
+          "template_name": "资金配置应急恢复流程（冻结后模板修改不影响本次恢复）",
+          "template_version": "1",
+          "association_version": "2",
+          "instantiated_at": "2026-09-11T08:59:10.453046Z",
+          "node_list": [
+            {
+              "code": "restore",
+              "type": "PUBLICATION",
+              "name": "资金整单恢复配置",
+              "required_role": "PUBLISHER",
+              "state": "ACTIVE"
+            },
+            {
+              "code": "finish",
+              "type": "COMPLETION",
+              "name": "资金人工完结节点",
+              "required_role": "PUBLISHER",
+              "state": "PENDING"
+            }
+          ]
+        },
+        {
+          "instance_id": "8be56f707c4fef02f25fb33347fffdaa",
+          "table_name": "policy_beta",
+          "release_type": "EMERGENCY",
+          "template_code": "rollback_flows_beta_v1",
+          "template_name": "渠道配置独立应急恢复流程（真实节点与整单恢复结果）",
+          "template_version": "1",
+          "association_version": "2",
+          "instantiated_at": "2026-09-11T08:59:10.453046Z",
+          "node_list": [
+            {
+              "code": "restore",
+              "type": "PUBLICATION",
+              "name": "渠道整单恢复配置",
+              "required_role": "PUBLISHER",
+              "state": "ACTIVE"
+            },
+            {
+              "code": "finish",
+              "type": "COMPLETION",
+              "name": "渠道人工完结节点",
+              "required_role": "PUBLISHER",
+              "state": "PENDING"
+            }
+          ]
+        }
+      ],
+      "table_flows": [
+        {
+          "instance_id": "05667f26cd9c3759ccd5fa6e0875ffe9",
+          "table_name": "policy_alpha",
+          "release_type": "STANDARD",
+          "template_code": "default_standard_v1",
+          "template_name": "默认常规发布",
+          "template_version": "1",
+          "association_version": "1",
+          "instantiated_at": "2026-09-11T08:59:07.369662Z",
+          "node_list": [
+            {
+              "code": "approval",
+              "type": "APPROVAL",
+              "name": "按表审批",
+              "required_role": "TABLE_APPROVER",
+              "state": "COMPLETED",
+              "actor_id": "c18120e1-e48b-4be1-8581-fc51133673cf",
+              "at": "2026-09-11T08:59:07.538652Z"
+            },
+            {
+              "code": "publication",
+              "type": "PUBLICATION",
+              "name": "发布",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+              "at": "2026-09-11T08:59:09.45294Z"
+            },
+            {
+              "code": "completion",
+              "type": "COMPLETION",
+              "name": "完结",
+              "required_role": "PUBLISHER",
+              "state": "ACTIVE"
+            }
+          ]
+        },
+        {
+          "instance_id": "80a022c0577d22059b6a426578184386",
+          "table_name": "policy_beta",
+          "release_type": "STANDARD",
+          "template_code": "default_standard_v1",
+          "template_name": "默认常规发布",
+          "template_version": "1",
+          "association_version": "1",
+          "instantiated_at": "2026-09-11T08:59:07.369662Z",
+          "node_list": [
+            {
+              "code": "approval",
+              "type": "APPROVAL",
+              "name": "按表审批",
+              "required_role": "TABLE_APPROVER",
+              "state": "COMPLETED",
+              "actor_id": "c18120e1-e48b-4be1-8581-fc51133673cf",
+              "at": "2026-09-11T08:59:07.538652Z"
+            },
+            {
+              "code": "publication",
+              "type": "PUBLICATION",
+              "name": "发布",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+              "at": "2026-09-11T08:59:09.45294Z"
+            },
+            {
+              "code": "completion",
+              "type": "COMPLETION",
+              "name": "完结",
+              "required_role": "PUBLISHER",
+              "state": "ACTIVE"
+            }
+          ]
+        }
+      ],
+      "missing_flow_tables": [],
+      "approvals": [
+        {
+          "table_name": "policy_alpha",
+          "roles": [],
+          "state": "APPROVED",
+          "decision": {
+            "actor_id": "c18120e1-e48b-4be1-8581-fc51133673cf",
+            "at": "2026-09-11T08:59:07.538652Z",
+            "reason": "管理员独立核对两张表",
+            "source": "ADMIN",
+            "roles": []
+          }
+        },
+        {
+          "table_name": "policy_beta",
+          "roles": [],
+          "state": "APPROVED",
+          "decision": {
+            "actor_id": "c18120e1-e48b-4be1-8581-fc51133673cf",
+            "at": "2026-09-11T08:59:07.538652Z",
+            "reason": "管理员独立核对两张表",
+            "source": "ADMIN",
+            "roles": []
+          }
+        }
+      ],
+      "approval_context": {
+        "revision": "a69f28cdf9b0be751520ac1e681c5951057bdfcc69b5cca7f23cbf0257cce187",
+        "tables": [
+          {
+            "table_name": "policy_alpha",
+            "mode": "COMPLETED",
+            "reason": "该表已处理",
+            "can_approve": false
+          },
+          {
+            "table_name": "policy_beta",
+            "mode": "COMPLETED",
+            "reason": "该表已处理",
+            "can_approve": false
+          }
+        ],
+        "approvable_tables": []
+      },
+      "table_names": [
+        "policy_alpha",
+        "policy_beta"
+      ],
+      "title": "资金与渠道配置的常规原单应急恢复（持久实例与原包重推）",
+      "id": "df61726a2561147b88da2722bd3f181a",
+      "applicant_id": "4d9ba2e6-6c57-459a-9f65-a021e56f3dba",
+      "state": "SUCCEEDED",
+      "version": "5",
+      "created_at": "2026-09-11T08:59:07.369662Z",
+      "updated_at": "2026-09-11T08:59:10.453046Z",
+      "item_count": 2,
+      "operation_counts": {
+        "ADD": 2
+      },
+      "frozen_digest": "f10fe665f0fbe19177cc1262ed3de9a5c11e7ce7190051c01e456a42ffdebe15",
+      "history": [
+        {
+          "action": "CREATE",
+          "actor_id": "4d9ba2e6-6c57-459a-9f65-a021e56f3dba",
+          "at": "2026-09-11T08:59:07.369662Z",
+          "version": "1",
+          "reason": ""
+        },
+        {
+          "action": "SUBMIT",
+          "actor_id": "4d9ba2e6-6c57-459a-9f65-a021e56f3dba",
+          "at": "2026-09-11T08:59:07.491595Z",
+          "version": "2",
+          "reason": ""
+        },
+        {
+          "table_names": [
+            "policy_alpha",
+            "policy_beta"
+          ],
+          "approval_sources": [
+            {
+              "table_name": "policy_alpha",
+              "source": "ADMIN",
+              "roles": []
+            },
+            {
+              "table_name": "policy_beta",
+              "source": "ADMIN",
+              "roles": []
+            }
+          ],
+          "action": "APPROVE",
+          "actor_id": "c18120e1-e48b-4be1-8581-fc51133673cf",
+          "at": "2026-09-11T08:59:07.539251Z",
+          "version": "3",
+          "reason": "管理员独立核对两张表"
+        },
+        {
+          "action": "EXECUTE",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "at": "2026-09-11T08:59:09.45294Z",
+          "version": "4",
+          "reason": ""
+        },
+        {
+          "action": "PREVIEW_QUICK_ROLLBACK",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "at": "2026-09-11T08:59:10.453046Z",
+          "version": "5",
+          "reason": ""
+        }
+      ],
+      "executions": [
+        {
+          "notifications": {
+            "policy_alpha": {
+              "table_version": "1",
+              "table_name": "policy_alpha",
+              "id": "df61726a2561147b88da2722bd3f181a:PUBLICATION",
+              "status": "NOT_CONNECTED"
+            },
+            "policy_beta": {
+              "table_version": "1",
+              "table_name": "policy_beta",
+              "id": "df61726a2561147b88da2722bd3f181a:PUBLICATION",
+              "status": "NOT_CONNECTED"
+            }
+          },
+          "id": "df61726a2561147b88da2722bd3f181a:PUBLICATION",
+          "kind": "PUBLICATION",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "executed_at": "2026-09-11T08:59:09.392457Z",
+          "table_versions": {
+            "policy_alpha": "1",
+            "policy_beta": "1"
+          },
+          "operation_counts": {
+            "ADD": 2
+          },
+          "item_count": 2,
+          "outcome": "SUCCEEDED"
+        }
+      ],
+      "allowed_actions": [
+        "complete",
+        "quick-rollback"
+      ]
+    },
+    "rolled": {
+      "notification": {
+        "sequence": "0",
+        "unread": false,
+        "pending": false
+      },
+      "emergency_reason": "",
+      "release_type": "STANDARD",
+      "rollback_table_flows": [
+        {
+          "instance_id": "7085f6f986df98cb8c90ec2ade941d0f",
+          "table_name": "policy_alpha",
+          "release_type": "EMERGENCY",
+          "template_code": "rollback_flows_alpha_v1",
+          "template_name": "资金配置应急恢复流程（冻结后模板修改不影响本次恢复）",
+          "template_version": "1",
+          "association_version": "2",
+          "instantiated_at": "2026-09-11T08:59:10.453046Z",
+          "node_list": [
+            {
+              "code": "restore",
+              "type": "PUBLICATION",
+              "name": "资金整单恢复配置",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+              "at": "2026-09-11T08:59:14.22381Z"
+            },
+            {
+              "code": "finish",
+              "type": "COMPLETION",
+              "name": "资金人工完结节点",
+              "required_role": "PUBLISHER",
+              "state": "STOPPED"
+            }
+          ]
+        },
+        {
+          "instance_id": "8be56f707c4fef02f25fb33347fffdaa",
+          "table_name": "policy_beta",
+          "release_type": "EMERGENCY",
+          "template_code": "rollback_flows_beta_v1",
+          "template_name": "渠道配置独立应急恢复流程（真实节点与整单恢复结果）",
+          "template_version": "1",
+          "association_version": "2",
+          "instantiated_at": "2026-09-11T08:59:10.453046Z",
+          "node_list": [
+            {
+              "code": "restore",
+              "type": "PUBLICATION",
+              "name": "渠道整单恢复配置",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+              "at": "2026-09-11T08:59:14.22381Z"
+            },
+            {
+              "code": "finish",
+              "type": "COMPLETION",
+              "name": "渠道人工完结节点",
+              "required_role": "PUBLISHER",
+              "state": "STOPPED"
+            }
+          ]
+        }
+      ],
+      "table_flows": [
+        {
+          "instance_id": "05667f26cd9c3759ccd5fa6e0875ffe9",
+          "table_name": "policy_alpha",
+          "release_type": "STANDARD",
+          "template_code": "default_standard_v1",
+          "template_name": "默认常规发布",
+          "template_version": "1",
+          "association_version": "1",
+          "instantiated_at": "2026-09-11T08:59:07.369662Z",
+          "node_list": [
+            {
+              "code": "approval",
+              "type": "APPROVAL",
+              "name": "按表审批",
+              "required_role": "TABLE_APPROVER",
+              "state": "COMPLETED",
+              "actor_id": "c18120e1-e48b-4be1-8581-fc51133673cf",
+              "at": "2026-09-11T08:59:07.538652Z"
+            },
+            {
+              "code": "publication",
+              "type": "PUBLICATION",
+              "name": "发布",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+              "at": "2026-09-11T08:59:09.45294Z"
+            },
+            {
+              "code": "completion",
+              "type": "COMPLETION",
+              "name": "完结",
+              "required_role": "PUBLISHER",
+              "state": "STOPPED"
+            }
+          ]
+        },
+        {
+          "instance_id": "80a022c0577d22059b6a426578184386",
+          "table_name": "policy_beta",
+          "release_type": "STANDARD",
+          "template_code": "default_standard_v1",
+          "template_name": "默认常规发布",
+          "template_version": "1",
+          "association_version": "1",
+          "instantiated_at": "2026-09-11T08:59:07.369662Z",
+          "node_list": [
+            {
+              "code": "approval",
+              "type": "APPROVAL",
+              "name": "按表审批",
+              "required_role": "TABLE_APPROVER",
+              "state": "COMPLETED",
+              "actor_id": "c18120e1-e48b-4be1-8581-fc51133673cf",
+              "at": "2026-09-11T08:59:07.538652Z"
+            },
+            {
+              "code": "publication",
+              "type": "PUBLICATION",
+              "name": "发布",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+              "at": "2026-09-11T08:59:09.45294Z"
+            },
+            {
+              "code": "completion",
+              "type": "COMPLETION",
+              "name": "完结",
+              "required_role": "PUBLISHER",
+              "state": "STOPPED"
+            }
+          ]
+        }
+      ],
+      "missing_flow_tables": [],
+      "approvals": [
+        {
+          "table_name": "policy_alpha",
+          "roles": [],
+          "state": "APPROVED",
+          "decision": {
+            "actor_id": "c18120e1-e48b-4be1-8581-fc51133673cf",
+            "at": "2026-09-11T08:59:07.538652Z",
+            "reason": "管理员独立核对两张表",
+            "source": "ADMIN",
+            "roles": []
+          }
+        },
+        {
+          "table_name": "policy_beta",
+          "roles": [],
+          "state": "APPROVED",
+          "decision": {
+            "actor_id": "c18120e1-e48b-4be1-8581-fc51133673cf",
+            "at": "2026-09-11T08:59:07.538652Z",
+            "reason": "管理员独立核对两张表",
+            "source": "ADMIN",
+            "roles": []
+          }
+        }
+      ],
+      "approval_context": {
+        "revision": "103bf5203a620d93a66d1cb2060858e162644376bfaa15894379efac454b960a",
+        "tables": [
+          {
+            "table_name": "policy_alpha",
+            "mode": "COMPLETED",
+            "reason": "该表已处理",
+            "can_approve": false
+          },
+          {
+            "table_name": "policy_beta",
+            "mode": "COMPLETED",
+            "reason": "该表已处理",
+            "can_approve": false
+          }
+        ],
+        "approvable_tables": []
+      },
+      "table_names": [
+        "policy_alpha",
+        "policy_beta"
+      ],
+      "title": "资金与渠道配置的常规原单应急恢复（持久实例与原包重推）",
+      "id": "df61726a2561147b88da2722bd3f181a",
+      "applicant_id": "4d9ba2e6-6c57-459a-9f65-a021e56f3dba",
+      "state": "ROLLED_BACK",
+      "version": "6",
+      "created_at": "2026-09-11T08:59:07.369662Z",
+      "updated_at": "2026-09-11T08:59:14.22381Z",
+      "item_count": 2,
+      "operation_counts": {
+        "ADD": 2
+      },
+      "frozen_digest": "f10fe665f0fbe19177cc1262ed3de9a5c11e7ce7190051c01e456a42ffdebe15",
+      "history": [
+        {
+          "action": "CREATE",
+          "actor_id": "4d9ba2e6-6c57-459a-9f65-a021e56f3dba",
+          "at": "2026-09-11T08:59:07.369662Z",
+          "version": "1",
+          "reason": ""
+        },
+        {
+          "action": "SUBMIT",
+          "actor_id": "4d9ba2e6-6c57-459a-9f65-a021e56f3dba",
+          "at": "2026-09-11T08:59:07.491595Z",
+          "version": "2",
+          "reason": ""
+        },
+        {
+          "table_names": [
+            "policy_alpha",
+            "policy_beta"
+          ],
+          "approval_sources": [
+            {
+              "table_name": "policy_alpha",
+              "source": "ADMIN",
+              "roles": []
+            },
+            {
+              "table_name": "policy_beta",
+              "source": "ADMIN",
+              "roles": []
+            }
+          ],
+          "action": "APPROVE",
+          "actor_id": "c18120e1-e48b-4be1-8581-fc51133673cf",
+          "at": "2026-09-11T08:59:07.539251Z",
+          "version": "3",
+          "reason": "管理员独立核对两张表"
+        },
+        {
+          "action": "EXECUTE",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "at": "2026-09-11T08:59:09.45294Z",
+          "version": "4",
+          "reason": ""
+        },
+        {
+          "action": "PREVIEW_QUICK_ROLLBACK",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "at": "2026-09-11T08:59:10.453046Z",
+          "version": "5",
+          "reason": ""
+        },
+        {
+          "execution_id": "df61726a2561147b88da2722bd3f181a:ROLLBACK",
+          "action": "QUICK_ROLLBACK",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "at": "2026-09-11T08:59:14.22381Z",
+          "version": "6",
+          "reason": ""
+        }
+      ],
+      "executions": [
+        {
+          "notifications": {
+            "policy_alpha": {
+              "table_version": "1",
+              "table_name": "policy_alpha",
+              "id": "df61726a2561147b88da2722bd3f181a:PUBLICATION",
+              "status": "NOT_CONNECTED"
+            },
+            "policy_beta": {
+              "table_version": "1",
+              "table_name": "policy_beta",
+              "id": "df61726a2561147b88da2722bd3f181a:PUBLICATION",
+              "status": "NOT_CONNECTED"
+            }
+          },
+          "id": "df61726a2561147b88da2722bd3f181a:PUBLICATION",
+          "kind": "PUBLICATION",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "executed_at": "2026-09-11T08:59:09.392457Z",
+          "table_versions": {
+            "policy_alpha": "1",
+            "policy_beta": "1"
+          },
+          "operation_counts": {
+            "ADD": 2
+          },
+          "item_count": 2,
+          "outcome": "SUCCEEDED"
+        },
+        {
+          "notifications": {
+            "policy_alpha": {
+              "table_version": "2",
+              "table_name": "policy_alpha",
+              "id": "df61726a2561147b88da2722bd3f181a:ROLLBACK",
+              "status": "NOT_CONNECTED"
+            },
+            "policy_beta": {
+              "table_version": "2",
+              "table_name": "policy_beta",
+              "id": "df61726a2561147b88da2722bd3f181a:ROLLBACK",
+              "status": "NOT_CONNECTED"
+            }
+          },
+          "id": "df61726a2561147b88da2722bd3f181a:ROLLBACK",
+          "kind": "ROLLBACK",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "executed_at": "2026-09-11T08:59:14.22381Z",
+          "table_versions": {
+            "policy_alpha": "2",
+            "policy_beta": "2"
+          },
+          "operation_counts": {
+            "DELETE": 2
+          },
+          "item_count": 2,
+          "outcome": "SUCCEEDED"
+        }
+      ],
+      "allowed_actions": [
+        "edit-rollback-reason"
+      ],
+      "items": [
+        {
+          "publication": {
+            "detail_id": "e3285b22696c33c51107b2a0c5421828",
+            "table_version": "1",
+            "execution_id": "df61726a2561147b88da2722bd3f181a:PUBLICATION",
+            "execution_kind": "PUBLICATION",
+            "order_id": "df61726a2561147b88da2722bd3f181a",
+            "sequence": "1",
+            "table_name": "policy_alpha",
+            "operation": "ADD",
+            "id": "10501",
+            "record_version": "1",
+            "before": {
+              "format": "rcc-admin-mysql-row-v1",
+              "schema_digest": "825d28e094432b6f9009317bd2c39a0c4f64adcddbd3c1bff243fbe1f441c15f",
+              "deleted": true,
+              "fields": [],
+              "checksum": "ecf38dab5dc03c24a309a4cae495031643cf343e999232d591960c2002e07492"
+            },
+            "final": {
+              "format": "rcc-admin-mysql-row-v1",
+              "schema_digest": "825d28e094432b6f9009317bd2c39a0c4f64adcddbd3c1bff243fbe1f441c15f",
+              "deleted": false,
+              "fields": [
+                {
+                  "name": "id",
+                  "type": "bigint unsigned",
+                  "encoding": "text",
+                  "value": "10501"
+                },
+                {
+                  "name": "value",
+                  "type": "varchar(64)",
+                  "encoding": "text",
+                  "value": "恢复验收已发布值 10501"
+                }
+              ],
+              "checksum": "6e6ee138301d475cabdc9f71b5bed5e5a991ec14b1c418b0ac558b46fa8e1144"
+            }
+          },
+          "rollback": {
+            "detail_id": "e3285b22696c33c51107b2a0c5421828",
+            "table_version": "2",
+            "execution_id": "df61726a2561147b88da2722bd3f181a:ROLLBACK",
+            "execution_kind": "ROLLBACK",
+            "order_id": "df61726a2561147b88da2722bd3f181a",
+            "sequence": "2",
+            "table_name": "policy_alpha",
+            "operation": "DELETE",
+            "id": "10501",
+            "record_version": "2",
+            "before": {
+              "format": "rcc-admin-mysql-row-v1",
+              "schema_digest": "825d28e094432b6f9009317bd2c39a0c4f64adcddbd3c1bff243fbe1f441c15f",
+              "deleted": false,
+              "fields": [
+                {
+                  "name": "id",
+                  "type": "bigint unsigned",
+                  "encoding": "text",
+                  "value": "10501"
+                },
+                {
+                  "name": "value",
+                  "type": "varchar(64)",
+                  "encoding": "text",
+                  "value": "恢复验收已发布值 10501"
+                }
+              ],
+              "checksum": "6e6ee138301d475cabdc9f71b5bed5e5a991ec14b1c418b0ac558b46fa8e1144"
+            },
+            "final": {
+              "format": "rcc-admin-mysql-row-v1",
+              "schema_digest": "825d28e094432b6f9009317bd2c39a0c4f64adcddbd3c1bff243fbe1f441c15f",
+              "deleted": true,
+              "fields": [],
+              "checksum": "ecf38dab5dc03c24a309a4cae495031643cf343e999232d591960c2002e07492"
+            }
+          },
+          "table_name": "policy_alpha",
+          "detail_id": "e3285b22696c33c51107b2a0c5421828",
+          "operation": "ADD",
+          "id": "10501",
+          "expected_record_version": "0",
+          "content": {
+            "id": "10501",
+            "value": "恢复验收已发布值 10501"
+          },
+          "before": null,
+          "fields": [
+            {
+              "nullable": false,
+              "editable": true,
+              "name": "id",
+              "type": "uint64",
+              "before_state": "absent",
+              "before": null,
+              "proposed_state": "value",
+              "proposed": "10501"
+            },
+            {
+              "nullable": false,
+              "editable": true,
+              "name": "value",
+              "type": "string",
+              "before_state": "absent",
+              "before": null,
+              "proposed_state": "value",
+              "proposed": "恢复验收已发布值 10501"
+            }
+          ]
+        },
+        {
+          "publication": {
+            "detail_id": "cca5b46252b284f4f7ca835d7bd31fd0",
+            "table_version": "1",
+            "execution_id": "df61726a2561147b88da2722bd3f181a:PUBLICATION",
+            "execution_kind": "PUBLICATION",
+            "order_id": "df61726a2561147b88da2722bd3f181a",
+            "sequence": "1",
+            "table_name": "policy_beta",
+            "operation": "ADD",
+            "id": "10502",
+            "record_version": "1",
+            "before": {
+              "format": "rcc-admin-mysql-row-v1",
+              "schema_digest": "f63e1c1fdb2ea754c35cfaed57b6e27611f7daa0d63d78a4003e12eb3810b222",
+              "deleted": true,
+              "fields": [],
+              "checksum": "38d49050f2a6a011a758d090c06955ef71e52067c7ac9f0400a401de2107ea50"
+            },
+            "final": {
+              "format": "rcc-admin-mysql-row-v1",
+              "schema_digest": "f63e1c1fdb2ea754c35cfaed57b6e27611f7daa0d63d78a4003e12eb3810b222",
+              "deleted": false,
+              "fields": [
+                {
+                  "name": "id",
+                  "type": "bigint unsigned",
+                  "encoding": "text",
+                  "value": "10502"
+                },
+                {
+                  "name": "value",
+                  "type": "varchar(64)",
+                  "encoding": "text",
+                  "value": "恢复验收已发布值 10502"
+                }
+              ],
+              "checksum": "c29e450ae10dc7a583434ab4f30a7ef6cfafa86cfbaa4a8280106727e50fd635"
+            }
+          },
+          "rollback": {
+            "detail_id": "cca5b46252b284f4f7ca835d7bd31fd0",
+            "table_version": "2",
+            "execution_id": "df61726a2561147b88da2722bd3f181a:ROLLBACK",
+            "execution_kind": "ROLLBACK",
+            "order_id": "df61726a2561147b88da2722bd3f181a",
+            "sequence": "2",
+            "table_name": "policy_beta",
+            "operation": "DELETE",
+            "id": "10502",
+            "record_version": "2",
+            "before": {
+              "format": "rcc-admin-mysql-row-v1",
+              "schema_digest": "f63e1c1fdb2ea754c35cfaed57b6e27611f7daa0d63d78a4003e12eb3810b222",
+              "deleted": false,
+              "fields": [
+                {
+                  "name": "id",
+                  "type": "bigint unsigned",
+                  "encoding": "text",
+                  "value": "10502"
+                },
+                {
+                  "name": "value",
+                  "type": "varchar(64)",
+                  "encoding": "text",
+                  "value": "恢复验收已发布值 10502"
+                }
+              ],
+              "checksum": "c29e450ae10dc7a583434ab4f30a7ef6cfafa86cfbaa4a8280106727e50fd635"
+            },
+            "final": {
+              "format": "rcc-admin-mysql-row-v1",
+              "schema_digest": "f63e1c1fdb2ea754c35cfaed57b6e27611f7daa0d63d78a4003e12eb3810b222",
+              "deleted": true,
+              "fields": [],
+              "checksum": "38d49050f2a6a011a758d090c06955ef71e52067c7ac9f0400a401de2107ea50"
+            }
+          },
+          "table_name": "policy_beta",
+          "detail_id": "cca5b46252b284f4f7ca835d7bd31fd0",
+          "operation": "ADD",
+          "id": "10502",
+          "expected_record_version": "0",
+          "content": {
+            "id": "10502",
+            "value": "恢复验收已发布值 10502"
+          },
+          "before": null,
+          "fields": [
+            {
+              "nullable": false,
+              "editable": true,
+              "name": "id",
+              "type": "uint64",
+              "before_state": "absent",
+              "before": null,
+              "proposed_state": "value",
+              "proposed": "10502"
+            },
+            {
+              "nullable": true,
+              "editable": true,
+              "name": "value",
+              "type": "string",
+              "before_state": "absent",
+              "before": null,
+              "proposed_state": "value",
+              "proposed": "恢复验收已发布值 10502"
+            }
+          ]
+        }
+      ]
+    },
+    "completed": {
+      "notification": {
+        "sequence": "0",
+        "unread": false,
+        "pending": false
+      },
+      "emergency_reason": "验证原单固定应急恢复",
+      "release_type": "EMERGENCY",
+      "rollback_table_flows": [
+        {
+          "instance_id": "3eb4db223464a1dcad8ba7f135c60235",
+          "table_name": "policy_alpha",
+          "release_type": "EMERGENCY",
+          "template_code": "rollback_flows_alpha_v1",
+          "template_name": "后续修改不应覆盖：资金配置应急恢复流程（冻结后模板修改不影响本次恢复）",
+          "template_version": "2",
+          "association_version": "2",
+          "instantiated_at": "2026-09-11T08:59:21.261535Z",
+          "node_list": [
+            {
+              "code": "restore",
+              "type": "PUBLICATION",
+              "name": "后续修改资金整单恢复配置",
+              "required_role": "PUBLISHER",
+              "state": "STOPPED"
+            },
+            {
+              "code": "finish",
+              "type": "COMPLETION",
+              "name": "后续修改资金人工完结节点",
+              "required_role": "PUBLISHER",
+              "state": "STOPPED"
+            }
+          ]
+        },
+        {
+          "instance_id": "2abfe814024f37923e52f242a43a0231",
+          "table_name": "policy_beta",
+          "release_type": "EMERGENCY",
+          "template_code": "rollback_flows_beta_v1",
+          "template_name": "后续修改不应覆盖：渠道配置独立应急恢复流程（真实节点与整单恢复结果）",
+          "template_version": "2",
+          "association_version": "2",
+          "instantiated_at": "2026-09-11T08:59:21.261535Z",
+          "node_list": [
+            {
+              "code": "restore",
+              "type": "PUBLICATION",
+              "name": "后续修改渠道整单恢复配置",
+              "required_role": "PUBLISHER",
+              "state": "STOPPED"
+            },
+            {
+              "code": "finish",
+              "type": "COMPLETION",
+              "name": "后续修改渠道人工完结节点",
+              "required_role": "PUBLISHER",
+              "state": "STOPPED"
+            }
+          ]
+        }
+      ],
+      "table_flows": [
+        {
+          "instance_id": "bcc67d4cf087855c0be2b8e056dd0bbb",
+          "table_name": "policy_alpha",
+          "release_type": "EMERGENCY",
+          "template_code": "rollback_flows_alpha_v1",
+          "template_name": "后续修改不应覆盖：资金配置应急恢复流程（冻结后模板修改不影响本次恢复）",
+          "template_version": "2",
+          "association_version": "2",
+          "instantiated_at": "2026-09-11T08:59:19.211936Z",
+          "node_list": [
+            {
+              "code": "restore",
+              "type": "PUBLICATION",
+              "name": "后续修改资金整单恢复配置",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+              "at": "2026-09-11T08:59:20.946421Z"
+            },
+            {
+              "code": "finish",
+              "type": "COMPLETION",
+              "name": "后续修改资金人工完结节点",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+              "at": "2026-09-11T08:59:21.433398Z"
+            }
+          ]
+        },
+        {
+          "instance_id": "85e6846f8a0d9fc7165ce62e809f4d6e",
+          "table_name": "policy_beta",
+          "release_type": "EMERGENCY",
+          "template_code": "rollback_flows_beta_v1",
+          "template_name": "后续修改不应覆盖：渠道配置独立应急恢复流程（真实节点与整单恢复结果）",
+          "template_version": "2",
+          "association_version": "2",
+          "instantiated_at": "2026-09-11T08:59:19.211936Z",
+          "node_list": [
+            {
+              "code": "restore",
+              "type": "PUBLICATION",
+              "name": "后续修改渠道整单恢复配置",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+              "at": "2026-09-11T08:59:20.946421Z"
+            },
+            {
+              "code": "finish",
+              "type": "COMPLETION",
+              "name": "后续修改渠道人工完结节点",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+              "at": "2026-09-11T08:59:21.433398Z"
+            }
+          ]
+        }
+      ],
+      "missing_flow_tables": [],
+      "approvals": [],
+      "approval_context": {
+        "revision": "5b9fc971a3a3e9f5d9e055994ffdbf107153686f47d606981480e1e40057f8de",
+        "tables": [],
+        "approvable_tables": []
+      },
+      "table_names": [
+        "policy_alpha",
+        "policy_beta"
+      ],
+      "title": "应急原单历史预览不能重新开放恢复 COMPLETED",
+      "id": "ec1862ae141cbd2a0f7b289e1e627cc8",
+      "applicant_id": "4d9ba2e6-6c57-459a-9f65-a021e56f3dba",
+      "state": "COMPLETED",
+      "version": "5",
+      "created_at": "2026-09-11T08:59:19.211936Z",
+      "updated_at": "2026-09-11T08:59:21.433398Z",
+      "item_count": 2,
+      "operation_counts": {
+        "ADD": 2
+      },
+      "frozen_digest": "0400525265ca77a7521db26377e77804e5a85d6d05cac875a8fbd24ba3ad0354",
+      "history": [
+        {
+          "action": "CREATE",
+          "actor_id": "4d9ba2e6-6c57-459a-9f65-a021e56f3dba",
+          "at": "2026-09-11T08:59:19.211936Z",
+          "version": "1",
+          "reason": ""
+        },
+        {
+          "action": "SUBMIT",
+          "actor_id": "4d9ba2e6-6c57-459a-9f65-a021e56f3dba",
+          "at": "2026-09-11T08:59:19.324161Z",
+          "version": "2",
+          "reason": "验证原单固定应急恢复"
+        },
+        {
+          "action": "EXECUTE",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "at": "2026-09-11T08:59:20.946421Z",
+          "version": "3",
+          "reason": ""
+        },
+        {
+          "action": "PREVIEW_QUICK_ROLLBACK",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "at": "2026-09-11T08:59:21.261535Z",
+          "version": "4",
+          "reason": ""
+        },
+        {
+          "action": "COMPLETE",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "at": "2026-09-11T08:59:21.433398Z",
+          "version": "5",
+          "reason": ""
+        }
+      ],
+      "executions": [
+        {
+          "notifications": {
+            "policy_alpha": {
+              "table_version": "3",
+              "table_name": "policy_alpha",
+              "id": "ec1862ae141cbd2a0f7b289e1e627cc8:PUBLICATION",
+              "status": "NOT_CONNECTED"
+            },
+            "policy_beta": {
+              "table_version": "3",
+              "table_name": "policy_beta",
+              "id": "ec1862ae141cbd2a0f7b289e1e627cc8:PUBLICATION",
+              "status": "NOT_CONNECTED"
+            }
+          },
+          "id": "ec1862ae141cbd2a0f7b289e1e627cc8:PUBLICATION",
+          "kind": "PUBLICATION",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "executed_at": "2026-09-11T08:59:20.904439Z",
+          "table_versions": {
+            "policy_alpha": "3",
+            "policy_beta": "3"
+          },
+          "operation_counts": {
+            "ADD": 2
+          },
+          "item_count": 2,
+          "outcome": "SUCCEEDED"
+        }
+      ],
+      "allowed_actions": []
+    },
+    "rolled_back": {
+      "notification": {
+        "sequence": "0",
+        "unread": false,
+        "pending": false
+      },
+      "emergency_reason": "验证原单固定应急恢复",
+      "release_type": "EMERGENCY",
+      "rollback_table_flows": [
+        {
+          "instance_id": "e422401ddf02a35d5cc0b8586c58113c",
+          "table_name": "policy_alpha",
+          "release_type": "EMERGENCY",
+          "template_code": "rollback_flows_alpha_v1",
+          "template_name": "后续修改不应覆盖：资金配置应急恢复流程（冻结后模板修改不影响本次恢复）",
+          "template_version": "2",
+          "association_version": "2",
+          "instantiated_at": "2026-09-11T08:59:25.236085Z",
+          "node_list": [
+            {
+              "code": "restore",
+              "type": "PUBLICATION",
+              "name": "后续修改资金整单恢复配置",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+              "at": "2026-09-11T08:59:25.496882Z"
+            },
+            {
+              "code": "finish",
+              "type": "COMPLETION",
+              "name": "后续修改资金人工完结节点",
+              "required_role": "PUBLISHER",
+              "state": "STOPPED"
+            }
+          ]
+        },
+        {
+          "instance_id": "8dbc55e24711c5b6d84633390f007e83",
+          "table_name": "policy_beta",
+          "release_type": "EMERGENCY",
+          "template_code": "rollback_flows_beta_v1",
+          "template_name": "后续修改不应覆盖：渠道配置独立应急恢复流程（真实节点与整单恢复结果）",
+          "template_version": "2",
+          "association_version": "2",
+          "instantiated_at": "2026-09-11T08:59:25.236085Z",
+          "node_list": [
+            {
+              "code": "restore",
+              "type": "PUBLICATION",
+              "name": "后续修改渠道整单恢复配置",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+              "at": "2026-09-11T08:59:25.496882Z"
+            },
+            {
+              "code": "finish",
+              "type": "COMPLETION",
+              "name": "后续修改渠道人工完结节点",
+              "required_role": "PUBLISHER",
+              "state": "STOPPED"
+            }
+          ]
+        }
+      ],
+      "table_flows": [
+        {
+          "instance_id": "dd430bd0fb61e232f1d4bb0654c92c49",
+          "table_name": "policy_alpha",
+          "release_type": "EMERGENCY",
+          "template_code": "rollback_flows_alpha_v1",
+          "template_name": "后续修改不应覆盖：资金配置应急恢复流程（冻结后模板修改不影响本次恢复）",
+          "template_version": "2",
+          "association_version": "2",
+          "instantiated_at": "2026-09-11T08:59:23.21659Z",
+          "node_list": [
+            {
+              "code": "restore",
+              "type": "PUBLICATION",
+              "name": "后续修改资金整单恢复配置",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+              "at": "2026-09-11T08:59:24.929024Z"
+            },
+            {
+              "code": "finish",
+              "type": "COMPLETION",
+              "name": "后续修改资金人工完结节点",
+              "required_role": "PUBLISHER",
+              "state": "STOPPED"
+            }
+          ]
+        },
+        {
+          "instance_id": "c9af2f0e449b2b2d158ea51df87f9ac1",
+          "table_name": "policy_beta",
+          "release_type": "EMERGENCY",
+          "template_code": "rollback_flows_beta_v1",
+          "template_name": "后续修改不应覆盖：渠道配置独立应急恢复流程（真实节点与整单恢复结果）",
+          "template_version": "2",
+          "association_version": "2",
+          "instantiated_at": "2026-09-11T08:59:23.21659Z",
+          "node_list": [
+            {
+              "code": "restore",
+              "type": "PUBLICATION",
+              "name": "后续修改渠道整单恢复配置",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+              "at": "2026-09-11T08:59:24.929024Z"
+            },
+            {
+              "code": "finish",
+              "type": "COMPLETION",
+              "name": "后续修改渠道人工完结节点",
+              "required_role": "PUBLISHER",
+              "state": "STOPPED"
+            }
+          ]
+        }
+      ],
+      "missing_flow_tables": [],
+      "approvals": [],
+      "approval_context": {
+        "revision": "033b7d062c652510a75c50ab34fbc272f22c0371bf39c80921e1cc18a3b2c526",
+        "tables": [],
+        "approvable_tables": []
+      },
+      "table_names": [
+        "policy_alpha",
+        "policy_beta"
+      ],
+      "title": "应急原单历史预览不能重新开放恢复 ROLLED_BACK",
+      "id": "9b5fbceb0a4d39d4b991d4ec92fef3e6",
+      "applicant_id": "4d9ba2e6-6c57-459a-9f65-a021e56f3dba",
+      "state": "ROLLED_BACK",
+      "version": "5",
+      "created_at": "2026-09-11T08:59:23.21659Z",
+      "updated_at": "2026-09-11T08:59:25.496882Z",
+      "item_count": 2,
+      "operation_counts": {
+        "ADD": 2
+      },
+      "frozen_digest": "e6c82f2c10cf376912d58fe9d81f6791a5dd9af2e0902cbadc0b96278a9b1e3b",
+      "history": [
+        {
+          "action": "CREATE",
+          "actor_id": "4d9ba2e6-6c57-459a-9f65-a021e56f3dba",
+          "at": "2026-09-11T08:59:23.21659Z",
+          "version": "1",
+          "reason": ""
+        },
+        {
+          "action": "SUBMIT",
+          "actor_id": "4d9ba2e6-6c57-459a-9f65-a021e56f3dba",
+          "at": "2026-09-11T08:59:23.32568Z",
+          "version": "2",
+          "reason": "验证原单固定应急恢复"
+        },
+        {
+          "action": "EXECUTE",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "at": "2026-09-11T08:59:24.929024Z",
+          "version": "3",
+          "reason": ""
+        },
+        {
+          "action": "PREVIEW_QUICK_ROLLBACK",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "at": "2026-09-11T08:59:25.236085Z",
+          "version": "4",
+          "reason": ""
+        },
+        {
+          "execution_id": "9b5fbceb0a4d39d4b991d4ec92fef3e6:ROLLBACK",
+          "action": "QUICK_ROLLBACK",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "at": "2026-09-11T08:59:25.496882Z",
+          "version": "5",
+          "reason": ""
+        }
+      ],
+      "executions": [
+        {
+          "notifications": {
+            "policy_alpha": {
+              "table_version": "4",
+              "table_name": "policy_alpha",
+              "id": "9b5fbceb0a4d39d4b991d4ec92fef3e6:PUBLICATION",
+              "status": "NOT_CONNECTED"
+            },
+            "policy_beta": {
+              "table_version": "4",
+              "table_name": "policy_beta",
+              "id": "9b5fbceb0a4d39d4b991d4ec92fef3e6:PUBLICATION",
+              "status": "NOT_CONNECTED"
+            }
+          },
+          "id": "9b5fbceb0a4d39d4b991d4ec92fef3e6:PUBLICATION",
+          "kind": "PUBLICATION",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "executed_at": "2026-09-11T08:59:24.886331Z",
+          "table_versions": {
+            "policy_alpha": "4",
+            "policy_beta": "4"
+          },
+          "operation_counts": {
+            "ADD": 2
+          },
+          "item_count": 2,
+          "outcome": "SUCCEEDED"
+        },
+        {
+          "notifications": {
+            "policy_alpha": {
+              "table_version": "5",
+              "table_name": "policy_alpha",
+              "id": "9b5fbceb0a4d39d4b991d4ec92fef3e6:ROLLBACK",
+              "status": "NOT_CONNECTED"
+            },
+            "policy_beta": {
+              "table_version": "5",
+              "table_name": "policy_beta",
+              "id": "9b5fbceb0a4d39d4b991d4ec92fef3e6:ROLLBACK",
+              "status": "NOT_CONNECTED"
+            }
+          },
+          "id": "9b5fbceb0a4d39d4b991d4ec92fef3e6:ROLLBACK",
+          "kind": "ROLLBACK",
+          "actor_id": "d0cfd4bb-bcf1-490d-8383-2af11ca3bb71",
+          "executed_at": "2026-09-11T08:59:25.496882Z",
+          "table_versions": {
+            "policy_alpha": "5",
+            "policy_beta": "5"
+          },
+          "operation_counts": {
+            "DELETE": 2
+          },
+          "item_count": 2,
+          "outcome": "SUCCEEDED"
+        }
+      ],
+      "allowed_actions": [
+        "edit-rollback-reason"
+      ]
+    }
+  },
+  "errors": []
+}

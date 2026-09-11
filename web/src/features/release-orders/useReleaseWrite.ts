@@ -2,11 +2,12 @@ import {useReleaseJournal} from "./useReleaseJournal";
 import {useQueryClient} from "@tanstack/react-query";
 import {useRef,useState} from "react";
 import {useWorkspaceIdentity} from "../accounts/ProtectedWorkspace";
-import {hydrateReleaseRequests,conflictingReleaseRequest,finishReleaseRequest,releaseRequestSending,startReleaseRequest,forgetReleaseRequest,pendingReleaseRequests,rememberReleaseRequest,sendReleaseRequest,uncertainReleaseError,type PendingReleaseRequest} from "./release-journal";
+import {hydrateReleaseRequests,conflictingReleaseRequest,finishReleaseRequest,releaseRequestSending,startReleaseRequest,forgetReleaseRequest,pendingReleaseRequests,rememberReleaseRequest,sendReleaseRequest,sendReleasePreviewRequest,uncertainReleaseError,type PendingReleaseRequest} from "./release-journal";
 import {ApiError} from "../../api/client";
-import type {ReleaseOrder} from "../../api/release-orders";
+import type {QuickRollbackPreview,ReleaseOrder} from "../../api/release-orders";
 
-export function useReleaseWrite(scope:string){
+type WriteResponse<Preview extends boolean> = Preview extends true ? QuickRollbackPreview : ReleaseOrder;
+export function useReleaseWrite<Preview extends boolean=false>(scope:string,previewResponse?:Preview){
  const accountID=useWorkspaceIdentity()!.account.id;
  const client=useQueryClient(),journal=useReleaseJournal();
  const [pending,setPending]=useState(false),[error,setError]=useState<unknown>();
@@ -16,7 +17,7 @@ export function useReleaseWrite(scope:string){
  const scopeID=scope.split(":").at(-1);
  const blocked=Boolean(scopeID&&conflictingReleaseRequest(accountID,`/api/v1/release-orders/${scopeID}`,scope));
  const busy=useRef(false),confirmedRebuild=useRef<string|undefined>(undefined);
- const send=async(input:Omit<PendingReleaseRequest,"scope"|"key">):Promise<ReleaseOrder|undefined>=>{
+ const send=async(input:Omit<PendingReleaseRequest,"scope"|"key">):Promise<WriteResponse<Preview>|undefined>=>{
   if(busy.current)return;
   if(conflictingReleaseRequest(accountID,input.path,scope)){setError(new ApiError("release_request_pending","此发布单已有请求正在处理，请稍后再执行。",409));return;}
   busy.current=true;setPending(true);setError(undefined);
@@ -33,14 +34,16 @@ export function useReleaseWrite(scope:string){
   try{
    // Persist before dispatch, so a refresh during the request is also recoverable.
    await rememberReleaseRequest(accountID,intent,rebuild?stored?.key:undefined);recorded=true;
-   const order=await sendReleaseRequest(accountID,intent);
+   const result=previewResponse?await sendReleasePreviewRequest(accountID,intent):await sendReleaseRequest(accountID,intent);
+   const order="order_id" in result?undefined:result;
+   const orderID="order_id" in result?result.order_id:result.id;
    // A replay acknowledges the original write; mounted details must read current state.
    void client.invalidateQueries({queryKey:["release-orders"]});
    void client.invalidateQueries({queryKey:["approval-notifications"]});
-   if(order.executions.length)void client.invalidateQueries({queryKey:["managed-data"]});
-   void client.invalidateQueries({queryKey:["release-order",order.id]});
-   void client.invalidateQueries({queryKey:["release-order-people",order.id]});
-   if(order.copied_from_id){
+   if(order?.executions.length)void client.invalidateQueries({queryKey:["managed-data"]});
+   void client.invalidateQueries({queryKey:["release-order",orderID]});
+   void client.invalidateQueries({queryKey:["release-order-people",orderID]});
+   if(order?.copied_from_id){
     void client.invalidateQueries({queryKey:["release-order",order.copied_from_id]});
     void client.invalidateQueries({queryKey:["release-order-people",order.copied_from_id]});
    }
@@ -51,7 +54,7 @@ export function useReleaseWrite(scope:string){
    }
    // A second tab may have saved a different intent while this editor was open.
    // Acknowledging that request must not close and discard this tab's input.
-   return previous&&previous.body!==input.body?undefined:order;
+   return previous&&previous.body!==input.body?undefined:result as WriteResponse<Preview>;
   }catch(cause){
    if(!recorded){setError(cause instanceof ApiError?cause:new ApiError("release_journal_unavailable","浏览器无法保存完整请求，尚未发送。当前输入和已有待恢复请求保留，请释放浏览器存储空间后重试。",0));return;}
    // These write conflicts are returned only after original-key deduplication.

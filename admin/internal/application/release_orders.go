@@ -47,6 +47,7 @@ type ReleaseItemError struct {
 func (e *ReleaseItemError) Error() string { return e.Cause.Error() }
 func (e *ReleaseItemError) Unwrap() error { return e.Cause }
 
+type ReleaseTableFlow = domain.ReleaseTableFlow
 type ReleaseHeader = domain.ReleaseHeader
 type ReleaseExecution = domain.ReleaseExecution
 type ReleaseOrderSummary = domain.ReleaseOrderSummary
@@ -96,6 +97,8 @@ type ReleaseOrderSession interface {
 	SaveReleaseOrder(context.Context, domain.ReleaseOrder, bool) error
 	BeginReleaseRequest(context.Context, string, string, string, []byte) (*domain.ReleaseOrder, error)
 	CompleteReleaseRequest(context.Context, string, string, string, domain.ReleaseOrder) error
+	BeginRollbackPreviewRequest(context.Context, string, string, string, []byte) (*domain.QuickRollbackPreview, error)
+	CompleteRollbackPreviewRequest(context.Context, string, string, string, domain.QuickRollbackPreview) error
 	DatabaseTime(context.Context) (time.Time, error)
 }
 
@@ -871,7 +874,7 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 		if err = s.SaveReleaseOrder(ctx, order, false); err != nil {
 			return err
 		}
-		if action == "submit" || action == "approve" || action == "reject" || action == "execute" || action == "complete" || (action == "cancel" && len(order.Approvals) > 0) {
+		if action == "submit" || action == "approve" || action == "reject" || action == "execute" || action == "complete" || (action == "cancel" && slices.ContainsFunc(order.History, func(event domain.ReleaseEvent) bool { return event.Action == "SUBMIT" })) {
 			recipients := []string{}
 			if action == "execute" || action == "complete" {
 				recipients = releaseResultRecipients(order)
@@ -904,7 +907,7 @@ func (r *ReleaseOrders) List(ctx context.Context, filter ReleaseFilter) ([]domai
 		}
 		for i := range orders {
 			summary := &orders[i]
-			order := ReleaseOrder{EmergencyReason: summary.EmergencyReason, ReleaseType: summary.ReleaseType, TableFlows: summary.TableFlows, MissingFlowTables: summary.MissingFlowTables, ID: summary.ID, Version: summary.Version, State: summary.State, ApplicantID: summary.ApplicantID, TableNames: summary.TableNames, Approvals: summary.Approvals}
+			order := ReleaseOrder{RollbackTableFlows: summary.RollbackTableFlows, EmergencyReason: summary.EmergencyReason, ReleaseType: summary.ReleaseType, TableFlows: summary.TableFlows, MissingFlowTables: summary.MissingFlowTables, ID: summary.ID, Version: summary.Version, State: summary.State, ApplicantID: summary.ApplicantID, TableNames: summary.TableNames, Approvals: summary.Approvals}
 			environment, err := reader.ReadApprovalEnvironment(ctx, order)
 			if err != nil {
 				return err

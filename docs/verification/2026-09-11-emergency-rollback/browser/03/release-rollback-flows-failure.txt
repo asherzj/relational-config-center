@@ -1,0 +1,5 @@
+AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert.ok(BigInt(commands[0].sequence)<BigInt(commands[1].sequence))
+
+    at /private/tmp/rcc-issue-105-emergency-rollback/web/e2e/release-rollback-flows.cjs:176:10

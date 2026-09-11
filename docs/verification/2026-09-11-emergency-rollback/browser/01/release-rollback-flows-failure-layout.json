@@ -1,0 +1,25 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "document": 1440,
+  "dialogs": [],
+  "controls": [
+    {
+      "label": "刷新通知",
+      "left": 25,
+      "right": 73
+    },
+    {
+      "label": "本地账号入口",
+      "left": 12,
+      "right": 211
+    },
+    {
+      "label": "重试",
+      "left": 793,
+      "right": 871
+    }
+  ]
+}

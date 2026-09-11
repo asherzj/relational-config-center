@@ -72,7 +72,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     const approved = await api(reviewer.context, 'POST', `/api/v1/release-orders/${draft.id}/approve`, await fixtureApprovalInput(reviewer.context, base, draft.id, { expected_version: submitted.version, reason: 'Independent review' }));
     const published = await api(forwardPublisher.context, 'POST', `/api/v1/release-orders/${draft.id}/execute`, { expected_version: approved.version });
     const preview = await api(executor.context, 'POST', `/api/v1/release-orders/${draft.id}/quick-rollback/preview`, { expected_version: published.version });
-    const rolled = await api(executor.context, 'POST', `/api/v1/release-orders/${draft.id}/quick-rollback`, { expected_version: published.version, preview_digest: preview.preview_digest, reason: '' });
+    const rolled = await api(executor.context, 'POST', `/api/v1/release-orders/${draft.id}/quick-rollback`, { expected_version: preview.expected_version, preview_digest: preview.preview_digest, reason: '' });
     assert.equal(rolled.state, 'ROLLED_BACK');
     assert.notEqual(rolled.applicant_id, rolled.executions[0].actor_id);
     assert.notEqual(rolled.executions[0].actor_id, rolled.executions[1].actor_id);

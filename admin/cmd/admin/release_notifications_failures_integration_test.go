@@ -29,7 +29,7 @@ func TestReleaseNotificationsPersistenceFailuresPreserveAllFacts(t *testing.T) {
 			}
 			if action == "quick-rollback" {
 				preview := readQuickPreview(t, app, publisher, path, "4")
-				body = quickRollbackBody("4", preview.Digest, "原子恢复")
+				body = quickRollbackBody(preview.ExpectedVersion, preview.Digest, "原子恢复")
 			}
 			before := rollbackOrderResponse(t, releaseActorReadAllDetails(t, app, applicant, "GET", path, "", ""), 200)
 			facts := releaseNotificationFacts(t, db, before.ID)
@@ -60,6 +60,7 @@ func TestReleaseNotificationsPersistenceFailuresPreserveAllFacts(t *testing.T) {
 				}
 			}
 			different := strings.Replace(body, `"expected_version":"3"`, `"expected_version":"999"`, 1)
+			different = strings.Replace(different, `"expected_version":"5"`, `"expected_version":"999"`, 1)
 			different = strings.Replace(different, `"expected_version":"4"`, `"expected_version":"999"`, 1)
 			assertIntegrationErrorCode(t, releaseActorRequest(t, app, publisher, "POST", path+"/"+action, different, "atomic-action-"+action), 409, "idempotency_conflict")
 			if !reflect.DeepEqual(savedFacts, releaseNotificationFacts(t, db, result.ID)) || readApprovalProgress(t, app, applicant, path) != applicantAfter || readApprovalProgress(t, app, reviewer, path) != reviewerAfter {
@@ -224,7 +225,7 @@ func TestReleaseNotificationsTerminalCompetitionHasOneResult(t *testing.T) {
 			applicantBefore := readApprovalProgress(t, app, applicant, path)
 			reviewerBefore := readApprovalProgress(t, app, reviewer, path)
 			preview := readQuickPreview(t, app, publisher, path, "4")
-			body := quickRollbackBody("4", preview.Digest, "竞争恢复")
+			body := quickRollbackBody(preview.ExpectedVersion, preview.Digest, "竞争恢复")
 			type result struct {
 				action, key, body string
 				response          *httptest.ResponseRecorder
@@ -236,7 +237,7 @@ func TestReleaseNotificationsTerminalCompetitionHasOneResult(t *testing.T) {
 				action, key, request := "quick-rollback", fmt.Sprintf("race-result-%s-%d", mode, n), body
 				if n == 1 && mode == "complete" {
 					action = "complete"
-					request = `{"expected_version":"4"}`
+					request = fmt.Sprintf(`{"expected_version":%q}`, preview.ExpectedVersion)
 				}
 				if n == 1 && mode == "rollback-same" {
 					key = "race-result-" + mode + "-0"
@@ -267,7 +268,7 @@ func TestReleaseNotificationsTerminalCompetitionHasOneResult(t *testing.T) {
 			terminal := rollbackOrderResponse(t, winner.response, 200)
 			applicantAfter := assertReleaseNotificationAdvance(t, app, applicant, path, applicantBefore)
 			reviewerAfter := assertReleaseNotificationAdvance(t, app, reviewer, path, reviewerBefore)
-			if terminal.Version != "5" || len(terminal.History) != 5 {
+			if terminal.Version != "6" || len(terminal.History) != 6 {
 				t.Fatal("duplicate workflow result")
 			}
 			executions, rows := 2, 0
@@ -317,7 +318,7 @@ func TestReleaseNotificationsDisabledParticipantsRetainOutcomes(t *testing.T) {
 	}
 	rollbackOrderResponse(t, releaseActorRequest(t, app, publisher, "POST", completePath+"/complete", `{"expected_version":"4"}`, "disabled-complete"), 200)
 	preview := readQuickPreview(t, app, publisher, rollbackPath, "4")
-	rollbackOrderResponse(t, releaseActorRequest(t, app, publisher, "POST", rollbackPath+"/quick-rollback", quickRollbackBody("4", preview.Digest, "停用参与人仍有历史"), "disabled-rollback"), 200)
+	rollbackOrderResponse(t, releaseActorRequest(t, app, publisher, "POST", rollbackPath+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, "停用参与人仍有历史"), "disabled-rollback"), 200)
 	f.run(t, "", "enable", "--id", accountID(t, reviewer))
 	reviewer = loginAccount(t, app, "lifecycle.reviewer", "correct horse battery staple")
 	for _, path := range []string{completePath, rollbackPath} {
@@ -341,7 +342,7 @@ func prepareReleaseNotificationAction(t *testing.T, app *adminApplication, appli
 	}
 	if action == "quick-rollback" {
 		preview := readQuickPreview(t, app, publisher, path, "4")
-		body = quickRollbackBody("4", preview.Digest, "transport recovery")
+		body = quickRollbackBody(preview.ExpectedVersion, preview.Digest, "transport recovery")
 	}
 	if action == "reprepare" {
 		source := rollbackOrderResponse(t, releaseActorReadAllDetails(t, app, applicant, "GET", path, "", ""), 200)
