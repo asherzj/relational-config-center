@@ -1,0 +1,8 @@
+
+> @relational-config-center/web@0.0.0 typecheck /private/tmp/rcc-release-template-approval-integration/web
+> tsc --noEmit
+
+src/features/table-policies/TablePoliciesPage.test.tsx(547,70): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'exact' does not exist in type 'ByRoleOptions'.
+ ELIFECYCLE  Command failed with exit code 1.

@@ -8,4 +8,4 @@ Policy 生命周期只有 `enabled` 和 `disabled` 两种状态，不引入 draf
 
 Policy 不绑定 Schema Fingerprint。每次执行都读取当前 MySQL 元数据；表结构变化自动进入后续请求，只有目标不再满足 Managed Table 的基本条件时才拒绝执行。
 
-2026-09-11，#102 按[发布模板关联决策](0026-configure-release-workflows-with-stable-templates.md)为表规则管理加入并发版本及持久原请求重推；本文的最后写入者获胜约定由此替代，原子替换与启用时重新校验保留。
+2026-09-11，#102 按[发布模板关联决策](0027-configure-release-workflows-with-stable-templates.md)为表规则管理加入并发版本及持久原请求重推；本文的最后写入者获胜约定由此替代，原子替换与启用时重新校验保留。

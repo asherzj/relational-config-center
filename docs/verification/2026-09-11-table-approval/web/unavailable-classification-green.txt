@@ -1,0 +1,486 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-94-table-approval/web
+> vitest run src/features/release-orders/ReleaseOrdersPage.test.tsx -t '无人审批明确拒绝' --maxWorkers=1
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-94-table-approval/web
+
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx (75 tests | 2 failed | 73 skipped) 772ms
+   × 无人审批明确拒绝后解除原提交并在窗口显示最新问题表（曾未知=false） 478ms
+   × 无人审批明确拒绝后解除原提交并在窗口显示最新问题表（曾未知=true） 293ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/release-orders/ReleaseOrdersPage.test.tsx > 无人审批明确拒绝后解除原提交并在窗口显示最新问题表（曾未知=false）
+TestingLibraryElementError: Found multiple elements with the role "button" and name "关闭"
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"关闭"[39m
+  [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 button size-9 shrink-0 p-0 icon-button"[39m
+  [33mdata-size[39m=[32m"default"[39m
+  [33mdata-slot[39m=[32m"button"[39m
+  [33mdata-variant[39m=[32m"ghost"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-x"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"20"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"20"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M18 6 6 18"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"m6 6 12 12"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 button"[39m
+  [33mdata-size[39m=[32m"default"[39m
+  [33mdata-slot[39m=[32m"button"[39m
+  [33mdata-variant[39m=[32m"outline"[39m
+[36m>[39m
+  [0m关闭[0m
+[36m</button>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33maria-describedby[39m=[32m"radix-_r_4_"[39m
+  [33maria-labelledby[39m=[32m"radix-_r_3_"[39m
+  [33maria-modal[39m=[32m"true"[39m
+  [33mclass[39m=[32m"fixed z-50 flex-col shadow-lg transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:animate-in data-[state=open]:duration-500 inset-y-0 right-0 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right drawer grid h-dvh w-full min-w-0 max-w-full grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 border-0 bg-card p-0 sm:max-w-[640px]"[39m
+  [33mdata-modal-surface[39m=[32m"true"[39m
+  [33mdata-slot[39m=[32m"sheet-content"[39m
+  [33mdata-state[39m=[32m"open"[39m
+  [33mid[39m=[32m"radix-_r_2_"[39m
+  [33mrole[39m=[32m"dialog"[39m
+  [33mtabindex[39m=[32m"-1"[39m
+[36m>[39m
+  [36m<header[39m
+    [33mclass[39m=[32m"drawer-header"[39m
+  [36m>[39m
+    [36m<div>[39m
+      [36m<h2[39m
+        [33mclass[39m=[32m"text-foreground text-xl font-semibold"[39m
+        [33mdata-slot[39m=[32m"sheet-title"[39m
+        [33mid[39m=[32m"radix-_r_3_"[39m
+      [36m>[39m
+        [0m提交审批[0m
+      [36m</h2>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"text-sm text-muted-foreground sr-only"[39m
+        [33mdata-slot[39m=[32m"sheet-description"[39m
+        [33mid[39m=[32m"radix-_r_4_"[39m
+      [36m>[39m
+        [0m发布单[0m
+      [36m</p>[39m
+    [36m</div>[39m
+    [36m<button[39m
+      [33maria-label[39m=[32m"关闭"[39m
+      [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 button size-9 shrink-0 p-0 icon-button"[39m
+      [33mdata-size[39m=[32m"default"[39m
+      [33mdata-slot[39m=[32m"button"[39m
+      [33mdata-variant[39m=[32m"ghost"[39m
+    [36m>[39m
+      [36m<svg[39m
+        [33maria-hidden[39m=[32m"true"[39m
+        [33mclass[39m=[32m"lucide lucide-x"[39m
+        [33mfill[39m=[32m"none"[39m
+        [33mheight[39m=[32m"20"[39m
+        [33mstroke[39m=[32m"currentColor"[39m
+        [33mstroke-linecap[39m=[32m"round"[39m
+        [33mstroke-linejoin[39m=[32m"round"[39m
+        [33mstroke-width[39m=[32m"2"[39m
+        [33mviewBox[39m=[32m"0 0 24 24"[39m
+        [33mwidth[39m=[32m"20"[39m
+        [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+      [36m>[39m
+        [36m<path[39m
+          [33md[39m=[32m"M18 6 6 18"[39m
+        [36m/>[39m
+        [36m<path[39m
+          [33md[39m=[32m"m6 6 12 12"[39m
+        [36m/>[39m
+      [36m</svg>[39m
+    [36m</button>[39m
+  [36m</header>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"drawer-body"[39m
+  [36m>[39m
+    [36m<p>[39m
+      [0m请核对以下差异。提交后内容将被冻结，已知记录会被此单占用，等待其他审批人确认。[0m
+    [36m</p>[39m
+    [36m<p>[39m
+      [0m全部 [0m
+      [0m1[0m
+      [0m 项将一起[0m
+      [0m提交[0m
+      [0m，预览分页不改变操作范围。[0m
+    [36m</p>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"提交审批安排"[39m
+      [33mclass[39m=[32m"release-panel min-w-0"[39m
+    [36m>[39m
+      [36m<h2[39m
+        [33mclass[39m=[32m"text-lg font-semibold"[39m
+      [36m>[39m
+        [0m提交审批安排[0m
+      [36m</h2>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"mt-2 mb-4 text-muted-foreground"[39m
+      [36m>[39m
+        [0m提交时固定各表角色；角色成员资格按处理时的当前状态判断。[0m
+      [36m</p>[39m
+      [36m<ul[39m
+        [33mclass[39m=[32m"grid divide-y"[39m
+      [36m>[39m
+        [36m<li[39m
+          [33mclass[39m=[32m"min-w-0 py-4 first:pt-0 last:pb-0 break-all"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex flex-wrap justify-between gap-2"[39m
+          [36m>[39m
+            [36m<h3[39m
+              [33mclass[39m=[32m"font-semibold font-mono"[39m
+            [36m>[39m
+              [0mitems[0m
+            [36m</h3>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"text-muted-foreground"[39m
+            [36m>[39m
+              [0m待提交[0m
+            [36m</span>[39m
+          [36m</div>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"mt-2"[39m
+          [36m>[39m
+            [0m当前分配[0m
+            [0m：[0m
+            [0m审批组[0m
+          [36m</p>[39m
+          [36m<ul[39m
+            [33mclass[39m=[32m"mt-1 text-xs text-muted-foreground"[39m
+          [36m>[39m
+            [36m<li>[39m
+              [0m审批组[0m
+              [0m · [0m
+              [0mreview-role[0m
+            [36m</li>[39m
+          [36m</ul>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"mt-2"[39m
+          [36m>[39m
+            [36m<p>[39m
+              [0m暂无独立审批人[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-muted-foreground"[39m
+            [36m>[39m
+              [0m缺少独立审批人，请补充启用的角色成员或非申请人 ADMIN[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-warning"[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0m请管理员补充已启用且不是申请人的角色成员或 ADMIN。[0m
+            [36m</p>[39m
+          [36m</div>[39m
+        [36m</li>[39m
+      [36m</ul>[39m
+    [36m</section>[39m
+    [36m<p[39m
+      [33mclass[39m=[32m"mb-3"[39m
+    [36m>[39m
+      [0m共 [0m
+      [0m1[0m
+      [0m 项[0m
+      [0m明细[0m
+    [36m</p>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"变更内容"[39m
+      [33mclass[39m=[32m"min-w-0"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center justify-between gap-3 mb-3"[39m
+      [36m>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-muted-foreground"[39m
+        [36m>[39m
+          [0mADD 0 · MODIFY 1 · DELETE 0[0m
+        [36m</p>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"flex items-center gap-2"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-checked[39m=[32m"true"[39m
+            [33mclass[39m=[32m"peer size-4 shrink-0 rounded-[4px] border border-input shadow-xs transition-shadow outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:bg-input/30 dark:aria-invalid:ring...
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:20:35
+ ❯ getMultipleElementsFoundError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:23:10
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx:1270:34
+    1268|  expect(within(dialog).queryByText(/原请求与意见已保留/)).not.toBeInTheDocument…
+    1269|  if(previousUnknown){expect(writes[1]!.body).toBe(writes[0]!.body);exp…
+    1270|  await user.click(within(dialog).getByRole("button",{name:"关闭",exact:t…
+       |                                  ^
+    1271|  expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    1272|  expect(screen.getByRole("button",{name:"取消草稿",exact:true})).toBeEnabl…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/features/release-orders/ReleaseOrdersPage.test.tsx > 无人审批明确拒绝后解除原提交并在窗口显示最新问题表（曾未知=true）
+TestingLibraryElementError: Found multiple elements with the role "button" and name "关闭"
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"关闭"[39m
+  [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 button size-9 shrink-0 p-0 icon-button"[39m
+  [33mdata-size[39m=[32m"default"[39m
+  [33mdata-slot[39m=[32m"button"[39m
+  [33mdata-variant[39m=[32m"ghost"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-x"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"20"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"20"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M18 6 6 18"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"m6 6 12 12"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 button"[39m
+  [33mdata-size[39m=[32m"default"[39m
+  [33mdata-slot[39m=[32m"button"[39m
+  [33mdata-variant[39m=[32m"outline"[39m
+[36m>[39m
+  [0m关闭[0m
+[36m</button>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33maria-describedby[39m=[32m"radix-_r_9_"[39m
+  [33maria-labelledby[39m=[32m"radix-_r_8_"[39m
+  [33maria-modal[39m=[32m"true"[39m
+  [33mclass[39m=[32m"fixed z-50 flex-col shadow-lg transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:animate-in data-[state=open]:duration-500 inset-y-0 right-0 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right drawer grid h-dvh w-full min-w-0 max-w-full grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 border-0 bg-card p-0 sm:max-w-[640px]"[39m
+  [33mdata-modal-surface[39m=[32m"true"[39m
+  [33mdata-slot[39m=[32m"sheet-content"[39m
+  [33mdata-state[39m=[32m"open"[39m
+  [33mid[39m=[32m"radix-_r_7_"[39m
+  [33mrole[39m=[32m"dialog"[39m
+  [33mtabindex[39m=[32m"-1"[39m
+[36m>[39m
+  [36m<header[39m
+    [33mclass[39m=[32m"drawer-header"[39m
+  [36m>[39m
+    [36m<div>[39m
+      [36m<h2[39m
+        [33mclass[39m=[32m"text-foreground text-xl font-semibold"[39m
+        [33mdata-slot[39m=[32m"sheet-title"[39m
+        [33mid[39m=[32m"radix-_r_8_"[39m
+      [36m>[39m
+        [0m提交审批[0m
+      [36m</h2>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"text-sm text-muted-foreground sr-only"[39m
+        [33mdata-slot[39m=[32m"sheet-description"[39m
+        [33mid[39m=[32m"radix-_r_9_"[39m
+      [36m>[39m
+        [0m发布单[0m
+      [36m</p>[39m
+    [36m</div>[39m
+    [36m<button[39m
+      [33maria-label[39m=[32m"关闭"[39m
+      [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 button size-9 shrink-0 p-0 icon-button"[39m
+      [33mdata-size[39m=[32m"default"[39m
+      [33mdata-slot[39m=[32m"button"[39m
+      [33mdata-variant[39m=[32m"ghost"[39m
+    [36m>[39m
+      [36m<svg[39m
+        [33maria-hidden[39m=[32m"true"[39m
+        [33mclass[39m=[32m"lucide lucide-x"[39m
+        [33mfill[39m=[32m"none"[39m
+        [33mheight[39m=[32m"20"[39m
+        [33mstroke[39m=[32m"currentColor"[39m
+        [33mstroke-linecap[39m=[32m"round"[39m
+        [33mstroke-linejoin[39m=[32m"round"[39m
+        [33mstroke-width[39m=[32m"2"[39m
+        [33mviewBox[39m=[32m"0 0 24 24"[39m
+        [33mwidth[39m=[32m"20"[39m
+        [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+      [36m>[39m
+        [36m<path[39m
+          [33md[39m=[32m"M18 6 6 18"[39m
+        [36m/>[39m
+        [36m<path[39m
+          [33md[39m=[32m"m6 6 12 12"[39m
+        [36m/>[39m
+      [36m</svg>[39m
+    [36m</button>[39m
+  [36m</header>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"drawer-body"[39m
+  [36m>[39m
+    [36m<p>[39m
+      [0m请核对以下差异。提交后内容将被冻结，已知记录会被此单占用，等待其他审批人确认。[0m
+    [36m</p>[39m
+    [36m<p>[39m
+      [0m全部 [0m
+      [0m1[0m
+      [0m 项将一起[0m
+      [0m提交[0m
+      [0m，预览分页不改变操作范围。[0m
+    [36m</p>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"提交审批安排"[39m
+      [33mclass[39m=[32m"release-panel min-w-0"[39m
+    [36m>[39m
+      [36m<h2[39m
+        [33mclass[39m=[32m"text-lg font-semibold"[39m
+      [36m>[39m
+        [0m提交审批安排[0m
+      [36m</h2>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"mt-2 mb-4 text-muted-foreground"[39m
+      [36m>[39m
+        [0m提交时固定各表角色；角色成员资格按处理时的当前状态判断。[0m
+      [36m</p>[39m
+      [36m<ul[39m
+        [33mclass[39m=[32m"grid divide-y"[39m
+      [36m>[39m
+        [36m<li[39m
+          [33mclass[39m=[32m"min-w-0 py-4 first:pt-0 last:pb-0 break-all"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex flex-wrap justify-between gap-2"[39m
+          [36m>[39m
+            [36m<h3[39m
+              [33mclass[39m=[32m"font-semibold font-mono"[39m
+            [36m>[39m
+              [0mitems[0m
+            [36m</h3>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"text-muted-foreground"[39m
+            [36m>[39m
+              [0m待提交[0m
+            [36m</span>[39m
+          [36m</div>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"mt-2"[39m
+          [36m>[39m
+            [0m当前分配[0m
+            [0m：[0m
+            [0m审批组[0m
+          [36m</p>[39m
+          [36m<ul[39m
+            [33mclass[39m=[32m"mt-1 text-xs text-muted-foreground"[39m
+          [36m>[39m
+            [36m<li>[39m
+              [0m审批组[0m
+              [0m · [0m
+              [0mreview-role[0m
+            [36m</li>[39m
+          [36m</ul>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"mt-2"[39m
+          [36m>[39m
+            [36m<p>[39m
+              [0m暂无独立审批人[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-muted-foreground"[39m
+            [36m>[39m
+              [0m缺少独立审批人，请补充启用的角色成员或非申请人 ADMIN[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-warning"[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0m请管理员补充已启用且不是申请人的角色成员或 ADMIN。[0m
+            [36m</p>[39m
+          [36m</div>[39m
+        [36m</li>[39m
+      [36m</ul>[39m
+    [36m</section>[39m
+    [36m<p[39m
+      [33mclass[39m=[32m"mb-3"[39m
+    [36m>[39m
+      [0m共 [0m
+      [0m1[0m
+      [0m 项[0m
+      [0m明细[0m
+    [36m</p>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"变更内容"[39m
+      [33mclass[39m=[32m"min-w-0"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center justify-between gap-3 mb-3"[39m
+      [36m>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-muted-foreground"[39m
+        [36m>[39m
+          [0mADD 0 · MODIFY 1 · DELETE 0[0m
+        [36m</p>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"flex items-center gap-2"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-checked[39m=[32m"true"[39m
+            [33mclass[39m=[32m"peer size-4 shrink-0 rounded-[4px] border border-input shadow-xs transition-shadow outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:bg-input/30 dark:aria-invalid:ring...
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:20:35
+ ❯ getMultipleElementsFoundError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:23:10
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx:1270:34
+    1268|  expect(within(dialog).queryByText(/原请求与意见已保留/)).not.toBeInTheDocument…
+    1269|  if(previousUnknown){expect(writes[1]!.body).toBe(writes[0]!.body);exp…
+    1270|  await user.click(within(dialog).getByRole("button",{name:"关闭",exact:t…
+       |                                  ^
+    1271|  expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    1272|  expect(screen.getByRole("button",{name:"取消草稿",exact:true})).toBeEnabl…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 73 skipped (75)
+   Start at  04:46:41
+   Duration  2.67s (transform 598ms, setup 249ms, import 937ms, tests 772ms, environment 580ms)
+
+ ELIFECYCLE  Command failed with exit code 1.

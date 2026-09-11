@@ -1,0 +1,44 @@
+=== RUN   TestTableApprovalPartialProgressAndFinalApproval
+2026/09/11 03:43:03 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 7b4151cc77ed5d018ec2b4caa0c16360b391ca261644a9b8727453bd532b35e9
+  Test ProcessID: 4506d834-75dd-47f2-b4e9-e685292a70ac
+2026/09/11 03:43:03 🐳 Creating container for image mysql:8.4
+2026/09/11 03:43:03 ✅ Container created: bc2a4773344b
+2026/09/11 03:43:03 🐳 Starting container: bc2a4773344b
+2026/09/11 03:43:03 ✅ Container started: bc2a4773344b
+2026/09/11 03:43:03 ⏳ Waiting for container id bc2a4773344b image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 03:43:10 🔔 Container is ready: bc2a4773344b
+{"request_id":"rcc-edbf247eb0deebd66e67d09500482384","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":15}
+{"request_id":"rcc-328a4cf8cbe63bbfa9989b1826aa31be","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":48}
+{"request_id":"rcc-40cfa50e8c1b6850ebada77c0bbb1a93","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-4e041a0cb3d9badfbdbf1270222ed83e","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":65}
+{"request_id":"rcc-7e674c7d1413f012b794e0ca4e07cb62","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":8}
+{"request_id":"rcc-d748e4ee7b7b0c3f40aa71f9be2f7a04","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":65}
+{"request_id":"rcc-a6b530e7e8edd194e8744e73e212ba6b","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-076d8f2e1c619d144922a50699228e2c","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":56}
+{"request_id":"rcc-a91bb3c3700655758354cbff5a08074a","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":15}
+{"request_id":"rcc-f3bf7810458abfb332f2f5e728a668cb","method":"GET","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":3}
+{"request_id":"rcc-8f12716479570f68e56c21ef347ab486","method":"PUT","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":16}
+{"request_id":"rcc-dcac150b7dd41c0e89cdc2e981c3e451","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":12}
+{"request_id":"rcc-66bf00d6a33e1f77389e3dec8149ed69","method":"GET","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":3}
+{"request_id":"rcc-f6a8555e94e94961ad614b25ac4f1d6e","method":"PUT","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":14}
+{"request_id":"rcc-9a2c8ecf84fbf9e6d03e89b1886db8db","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":41}
+{"request_id":"rcc-d4e368506e3db8e49cfdf0646ff3b319","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":102}
+{"request_id":"rcc-c5a84837fbcf4e693fd63160bc1bbdb1","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":3}
+{"request_id":"rcc-f879882c69a957242f02691238fef5c3","method":"POST","path":"/api/v1/release-orders/:id/approve","status":403,"duration_ms":1}
+    table_approval_integration_test.go:128: release status 403, expected 200: {"error":{"code":"permission_denied","message":"the current account does not have the required role","request_id":"rcc-f879882c69a957242f02691238fef5c3"}}
+2026/09/11 03:43:12 🐳 Stopping container: bc2a4773344b
+2026/09/11 03:43:13 ✅ Container stopped: bc2a4773344b
+2026/09/11 03:43:13 🐳 Terminating container: bc2a4773344b
+2026/09/11 03:43:13 🚫 Container terminated: bc2a4773344b
+--- FAIL: TestTableApprovalPartialProgressAndFinalApproval (9.88s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	13.362s
+FAIL

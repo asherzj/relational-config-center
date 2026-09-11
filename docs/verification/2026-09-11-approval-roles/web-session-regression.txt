@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-93-approval-role-management/web
+> vitest run src/api/client-stream.test.ts src/features/accounts/WorkspaceAccess.test.tsx
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-93-approval-role-management/web
+
+
+ Test Files  2 passed (2)
+      Tests  16 passed (16)
+   Start at  01:14:06
+   Duration  4.11s (transform 452ms, setup 237ms, import 869ms, tests 2.63s, environment 544ms)
+

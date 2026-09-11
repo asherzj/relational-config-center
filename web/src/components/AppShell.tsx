@@ -15,7 +15,7 @@ export function AppShell() {
   const { pathname } = useLocation();
   const section = pathname.startsWith("/configuration")
     ? "配置管理"
-    : pathname.startsWith("/platform/account-roles") ? "平台人员管理" : "表配置管理";
+    : (pathname.startsWith("/platform/account-roles") || pathname.startsWith("/platform/approval-roles")) ? "平台人员管理" : "表配置管理";
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -50,6 +50,7 @@ export function AppShell() {
           </section>
           {administrator && <section className="nav-group" aria-labelledby="people-navigation-title">
             <div id="people-navigation-title" className="nav-group-title">平台人员管理</div>
+            <NavLink to="/platform/approval-roles" onClick={() => setMobileNavOpen(false)}><ShieldCheck size={18} />角色管理</NavLink>
             <NavLink to="/platform/account-roles" onClick={() => setMobileNavOpen(false)}><ShieldCheck size={18} />账号角色</NavLink>
           </section>}
         </nav>

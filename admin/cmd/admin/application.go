@@ -38,6 +38,7 @@ func newApplicationWithClock(ctx context.Context, settings config.Config, now fu
 			FieldPolicies:         application.NewTableFieldPolicyManagement(mysql, mysql, mysql, mysql),
 			Authentication:        application.NewAuthentication(mysql, passwordadapter.NewArgon2id(), now, mysql, application.AuthenticationLimits{Registration: settings.AccountRegisterLimit, LoginIP: settings.AccountLoginIPLimit, LoginFailures: settings.AccountLoginFailureLimit}),
 			AccountRoles:          application.NewAccountRoleManagement(mysql),
+			ApprovalRoles:         application.NewApprovalRoleManagement(mysql),
 			ReleaseOrders:         application.NewReleaseOrders(mysql),
 			ReleaseTemplates:      application.NewReleaseTemplateManagement(mysql),
 			TableReleaseTemplates: application.NewTableReleaseTemplateManagement(mysql),

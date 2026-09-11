@@ -1,0 +1,4 @@
+$ go test ./internal/interfaces/http
+ok  	github.com/asherzj/relational-config-center/admin/internal/interfaces/http	0.855s
+
+exit_code=0

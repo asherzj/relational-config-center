@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/rcc-release-template-approval-integration/web
+
+
+ Test Files  1 passed (1)
+      Tests  18 passed (18)
+   Start at  08:00:08
+   Duration  5.98s (transform 535ms, setup 232ms, import 1.12s, tests 3.93s, environment 563ms)
+

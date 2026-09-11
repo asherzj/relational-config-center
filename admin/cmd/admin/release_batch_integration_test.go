@@ -121,7 +121,7 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
 	reviewer := registerAccount(t, app, "batch.reviewer", "batch.reviewer@example.com", "correct horse battery staple")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "batch-reviewer-role")
+	configurePublicationReviewer(t, app, reviewer, "mutation_add_items")
 	process := accountProcessCommand(t, buildIntegrationAdmin(t), driver)
 	process.ready(t)
 	cookies, csrf, _ := processCredentials(t, process, "/api/v1/auth/login", `{"username":"integration.user","password":"correct horse battery staple"}`)
@@ -179,7 +179,7 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 	}
 	path := "/api/v1/release-orders/" + order.ID
 	request(path+"/submit", `{"expected_version":"1"}`, "thousand-submit", cookies, csrf)
-	request(path+"/approve", `{"expected_version":"2","reason":"reviewed all 1000 items"}`, "thousand-approve", reviewCookies, reviewCSRF)
+	request(path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "reviewed all 1000 items"), "thousand-approve", reviewCookies, reviewCSRF)
 	result := request(path+"/execute", `{"expected_version":"3"}`, "thousand-execute", cookies, csrf)
 	if json.Unmarshal(result, &order) != nil || order.State != "SUCCEEDED" || len(order.Executions) < 1 || len(executionCommands(order, "PUBLICATION")) != 1000 {
 		t.Fatal("incomplete result")
@@ -317,6 +317,7 @@ func TestReleaseBatchLargeHistoryCanApproveAndCancel(t *testing.T) {
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	reviewer := publicationFixtureReviewer(t, app)
+	configurePublicationReviewer(t, app, reviewer, "mutation_delete_parents")
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"headroom"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"集成测试发布单"}`, "headroom-create")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
@@ -362,7 +363,7 @@ func TestReleaseBatchLargeHistoryCanApproveAndCancel(t *testing.T) {
 		t.Fatalf("fixture bytes %d", len(encoded))
 	}
 	seedReleaseWorkflowHistory(t, db, order)
-	approval := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"`+order.Version+`","reason":"`+strings.Repeat("<", 2000)+`"}`, "headroom-approve")
+	approval := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, strings.Repeat("<", 2000)), "headroom-approve")
 	if approval.Code != 200 {
 		t.Fatalf("large-history approval: status %d bytes %d", approval.Code, approval.Body.Len())
 	}

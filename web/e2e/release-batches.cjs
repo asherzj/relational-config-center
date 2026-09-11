@@ -1,3 +1,4 @@
+const { createFixtureApprovalRole } = require('./table-approval-fixture.cjs');
 const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real Chrome → same-origin Admin process → isolated MySQL batch acceptance.
@@ -60,7 +61,10 @@ const output = process.env.RCC_E2E_OUTPUT;
   const approve = async (review, url, count, title) => {
     await review.goto(url);
     await button(review, '批准发布单').click();
-    await review.getByText(`全部 ${count.toLocaleString('en-US')} 项将一起批准，预览分页不改变操作范围。`, { exact: true }).waitFor();
+    const scope = review.getByRole('region', { name: '本次审批范围', exact: true });
+    await scope.getByRole('heading', { name: '本次批准范围 · 1 表', exact: true }).waitFor();
+    await scope.getByText(table, { exact: true }).waitFor();
+    assert.deepEqual(await scope.locator('li').allTextContents(), [table]);
     if (count > 20) {
       const approval = review.getByRole('dialog', { name: '批准发布单', exact: true });
       await approval.getByLabel('定位明细', { exact: true }).fill(String(count));
@@ -91,8 +95,9 @@ const output = process.env.RCC_E2E_OUTPUT;
       table_name: table, query_policy_code: 'batch_browser_query_v1', mutation_policy_code: 'batch_browser_mutation_v1',
     }, 201);
     await api(applicant, 'POST', `/api/v1/table-policies/${table}/enable`,{expected_version:'1'});
+    const reviewerFixture = await registerFixtureAccount(reviewer, base, { roles: ['VIEWER'] });
+    await createFixtureApprovalRole(applicant, base, `Batch review ${randomUUID()}`, [reviewerFixture.accountID], [table]);
     await setFixtureRoles(applicant, base, (await identity(applicant)).account.id, ['EDITOR', 'PUBLISHER']);
-    await registerFixtureAccount(reviewer, base, { roles: ['APPROVER'] });
     page = await applicant.newPage();
     review = await reviewer.newPage();
     for (const current of [page, review]) {
@@ -231,7 +236,7 @@ const output = process.env.RCC_E2E_OUTPUT;
     assert.equal(mixedRows.rows.find(row => row.id === '3').label, 'original three');
     assert.equal(mixedRows.rows.filter(row => row.code === 'ui-added').length, 1);
     assert.equal(executionCommands(order)[2].id, mixedRows.rows.find(row => row.code === 'ui-added').id);
-    check('independent APPROVER approves all mixed items; EDITOR/PUBLISHER recovers a genuinely committed lost execute response after refresh with the original key and no duplicate rows/history');
+    check('independent VIEWER table-role member approves all mixed items; EDITOR/PUBLISHER recovers a genuinely committed lost execute response after refresh with the original key and no duplicate rows/history');
 
     const large = await api(applicant, 'POST', '/api/v1/release-orders', {
       title: '浏览器千条批量变更',

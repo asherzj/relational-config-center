@@ -1,0 +1,92 @@
+{
+  "engine": "chromium",
+  "affected_legacy_scripts": [
+    {
+      "script": "write-recovery.cjs",
+      "result": "PASS",
+      "log": "browser-regressions.txt",
+      "source_snapshot": "browser-regression-source.json",
+      "note": "This whole runner later failed at release-rollbacks; this script completed successfully. AC009-only later production delta does not change this covered behavior."
+    },
+    {
+      "script": "operation-coverage.cjs",
+      "result": "PASS",
+      "log": "browser-regressions.txt",
+      "source_snapshot": "browser-regression-source.json",
+      "note": "This whole runner later failed at release-rollbacks; this script completed successfully. AC009-only later production delta does not change this covered behavior."
+    },
+    {
+      "script": "complex-fields.cjs",
+      "result": "PASS",
+      "log": "browser-regressions.txt",
+      "source_snapshot": "browser-regression-source.json",
+      "note": "This whole runner later failed at release-rollbacks; this script completed successfully. AC009-only later production delta does not change this covered behavior."
+    },
+    {
+      "script": "browser-accessibility.cjs",
+      "result": "PASS",
+      "log": "browser-regressions.txt",
+      "source_snapshot": "browser-regression-source.json",
+      "note": "This whole runner later failed at release-rollbacks; this script completed successfully. AC009-only later production delta does not change this covered behavior."
+    },
+    {
+      "script": "release-approvals.cjs",
+      "result": "PASS",
+      "log": "browser-regressions.txt",
+      "source_snapshot": "browser-regression-source.json",
+      "note": "This whole runner later failed at release-rollbacks; this script completed successfully. AC009-only later production delta does not change this covered behavior."
+    },
+    {
+      "script": "release-batches.cjs",
+      "result": "PASS",
+      "log": "browser-regressions.txt",
+      "source_snapshot": "browser-regression-source.json",
+      "note": "This whole runner later failed at release-rollbacks; this script completed successfully. AC009-only later production delta does not change this covered behavior."
+    },
+    {
+      "script": "accounts.mjs",
+      "result": "PASS",
+      "log": "browser-remaining.txt",
+      "note": "Existing TestAccountBrowserSystemPath root runs accounts.mjs; selected four subtests run the remaining scripts. Full original business assertions preserved."
+    },
+    {
+      "script": "release-rollbacks.cjs",
+      "result": "PASS",
+      "log": "browser-remaining.txt",
+      "note": "Existing TestAccountBrowserSystemPath root runs accounts.mjs; selected four subtests run the remaining scripts. Full original business assertions preserved."
+    },
+    {
+      "script": "release-multitable.cjs",
+      "result": "PASS",
+      "log": "browser-remaining.txt",
+      "note": "Existing TestAccountBrowserSystemPath root runs accounts.mjs; selected four subtests run the remaining scripts. Full original business assertions preserved."
+    },
+    {
+      "script": "release-rollback-reason.cjs",
+      "result": "PASS",
+      "log": "browser-remaining.txt",
+      "note": "Existing TestAccountBrowserSystemPath root runs accounts.mjs; selected four subtests run the remaining scripts. Full original business assertions preserved."
+    },
+    {
+      "script": "field-display.cjs",
+      "result": "PASS",
+      "log": "browser-remaining.txt",
+      "note": "Existing TestAccountBrowserSystemPath root runs accounts.mjs; selected four subtests run the remaining scripts. Full original business assertions preserved."
+    }
+  ],
+  "new_feature": {
+    "groups": 7,
+    "result": "PASS",
+    "log": "browser-review-final.txt",
+    "test": "TestTableApprovalBrowserSystemPath",
+    "artifacts": "browser-review-final/result.json"
+  },
+  "failures_retained": [
+    "browser-initial.txt",
+    "browser-recheck.txt",
+    "browser-unavailable-red.txt",
+    "browser-regressions.txt",
+    "browser-review-final.txt"
+  ],
+  "full_repository_all_run": false
+}

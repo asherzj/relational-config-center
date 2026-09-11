@@ -1,0 +1,1748 @@
+diff --git a/web/DESIGN.md b/web/DESIGN.md
+index a697b66..f76062b 100644
+--- a/web/DESIGN.md
++++ b/web/DESIGN.md
+@@ -69,10 +69,12 @@
+ 
+ ## 页面布局
+ 
+-- **主导航**：按使用频率从上到下排列为“配置管理”（发布单、配置内容管理）、“表配置管理”（查询规则定义、变更规则定义、表规则分配）和“平台人员管理”（角色管理、账号角色，仅管理员可见）；顶部位置名称与当前页面所属分组一致，隐藏无权限的整组入口。
++- **主导航**：按使用频率从上到下排列为“配置管理”（发布单、配置内容管理）、“表配置管理”（查询规则定义、变更规则定义、表规则分配、发布流程模板，其中模板入口仅管理员可见）和“平台人员管理”（角色管理、账号角色，仅管理员可见）；顶部位置名称与当前页面所属分组一致，隐藏无权限的整组入口。
+ - **查询规则定义**：名称、编码和类型成组；展示查询默认值、生命周期和最近更新。类型注册信息轻量展示，主要操作为新建草稿。
+ - **变更规则定义**：按新增、修改、删除、自动填写字段、状态组织列；日期不拆成零碎数字，长编码可换行，操作列保持可见。
+ - **表规则分配**：数据库表概览采用列表行；目录将查询与变更规则成组展示。筛选输入与表格共用面板，不做重复工具栏。管理员从行内“字段配置”打开真实字段配置抽屉，按显示、查询、录入分组；静态选项以名称／实际值逐行编辑，数字范围与步长使用字符串输入，预填明确区分未配置／指定值／NULL。字段切换保留输入，保存错误定位对应字段，完整保存与停用遵循既有未保存和未知结果保护。页面细节见[字段规则管理设计](../docs/design-notes/field-policy-management.md)。
++- **表发布流程设置**：管理员从表规则目录的「发布流程」进入抽屉，按常规／应急分区查看当前模板、有效状态、版本、审计及候选节点；选择器仅列出同类型模板。常规关联可停用，应急固定启用；保存失败保留选择，版本冲突可显式读取最新关联并保留输入后再次保存。表规则创建、替换、启用和停用与关联管理均通过原操作手动重推未知结果，冻结原目标、版本、内容和请求键；当前权限仍决定是否允许重推，不设置独立只读结果核对入口。原操作成功后重新读取当前配置，历史重放结果不能覆盖当前缓存；干净关联表单同步成功读取，编辑中保留原基线。确定版本冲突可核对最新后建立新意图，权限拒绝继续保留未知原包。恢复读取和写入共享忙碌保护，失败读取不能凭旧缓存清除错误。
++- **发布流程模板**：管理员从目录查看同类型的多份模板，通过抽屉创建、查看和编辑受约束节点；编码和类型创建后保持稳定。应急模板的停用与删除操作不可用，常规模板的停用和删除使用共享危险确认。版本冲突保留表单输入；结果未知时冻结原动作、目标、正文、版本和请求键，只在原业务操作中手动重推，并显示 Request ID。
+ - **配置内容管理**：依次选择表、填写组合筛选、查看结果。组合筛选直接展示当前全部 effective 可查询字段，按 display_order 再按真实字段名排列；多列字段卡片在手机转单列，长表在筛选区局部滚动。结果列按当前字段配置的 is_visible 过滤，再按 display_order 与真实字段名排列；中文名称和静态选项名称旁始终保留真实字段名与实际值。删除确认不沿用列表隐藏规则，完整列出本次涉及的真实记录。字段配置按表批量读取，失败时结果保留原字段和值，并显示可单独重试的错误。运算符决定单值／集合／范围／无值形状，同形状切换保留输入，跨形状清空；仅一个运算符时显示名称而不展示选择器。空字符串、NULL 与未筛选分别表达，select/radio 首次未选择不得误示已选空值；查询值控件的可访问名称带“筛选”前缀，以区别同时打开的记录编辑器。折叠保留输入，清空同时重置控件内部中间态；查询与清空按钮、排序分页保持可达。字段读取失败提供错误与重试，失配显示警告与文本回退，容量超限明确阻止查询。表选择器旁提供“查看当前表规则能力”按钮，规则说明默认收起，点击后在选择器下方展开，再次点击可收起；切换表后恢复收起。按钮提供明确的展开状态并支持键盘操作。展开后的规则效果保持完整可读，按操作逐行说明自动填写行为；宽数据表在自身容器滚动。
+ - **规则与记录编辑**：抽屉固定标题和底部操作，内容独立滚动；相关字段成组，组之间用间距与分隔线区分。名称描述与执行规则分开。
+ - **记录的 NULL 值**：字段名旁使用独立标签标明“不允许 NULL”或“允许 NULL”，不将非 NULL 等同于必填。不允许 NULL 的字段不显示 NULL 选项；允许 NULL 的字段提供有边框的“设为 NULL”勾选区，选中后显示“已设为 NULL”并禁用值输入，取消后恢复先前输入。新增记录未包含的字段保持开关禁用。
+diff --git a/web/e2e/draft-targets.cjs b/web/e2e/draft-targets.cjs
+index bef68b9..953d28f 100644
+--- a/web/e2e/draft-targets.cjs
++++ b/web/e2e/draft-targets.cjs
+@@ -22,7 +22,7 @@ const base=process.env.RCC_WEB_URL,table='draft_browser_items'+suffix,longField=
+   await api(admin,'POST','/api/v1/mutation-policies',{code:mutation,name:'草稿管控验收',description:'',type_code:'single_table_mutation',allow_add:true,allow_modify:true,allow_delete:true,create_time_field:'stamp'},201);
+   await api(admin,'POST',`/api/v1/mutation-policies/${mutation}/activate`,{});
+   await api(admin,'POST','/api/v1/table-policies',{table_name:table,query_policy_code:'notification_page_query_v1',mutation_policy_code:mutation},201);
+-  await api(admin,'POST',`/api/v1/table-policies/${table}/enable`,{});
++  await api(admin,'POST',`/api/v1/table-policies/${table}/enable`,{expected_version:'1'});
+   const settings=await admin.newPage();settings.setDefaultTimeout(12000);settings.on("dialog",dialog=>dialog.accept());settings.on('pageerror',error=>errors.push(error.message));
+   await settings.goto(`${base}/platform/table-policies/${table}?mode=replace`);
+   let fieldReads=0;await settings.route('**/concurrency-key-fields?*',async route=>{if(++fieldReads===1)await route.abort();else await route.continue()});
+@@ -65,7 +65,7 @@ const base=process.env.RCC_WEB_URL,table='draft_browser_items'+suffix,longField=
+   await settings.goto(`${base}/configuration/release-orders/${id}`);await button(settings,'取消草稿').click();await settings.getByLabel('取消原因',{exact:true}).fill('管理员清理遗留草稿');await button(settings,'确认取消草稿').click();await settings.getByText(`${table} · 已取消`,{exact:true}).waitFor();await shot(settings,'draft-admin-cancel.png');
+   const cancelled=await api(admin,'GET',`/api/v1/release-orders/${id}`);assert.equal(cancelled.applicant_id,person.accountID);assert.equal(cancelled.state,'CANCELLED');
+   await api(admin,'POST',`/api/v1/release-orders/${blocker.id}/cancel`,{expected_version:blocker.version,reason:'end blocker fixture'});
+-  const policy=await api(admin,'GET',`/api/v1/table-policies/${table}`);await api(admin,'PUT',`/api/v1/table-policies/${table}`,{table_name:table,query_policy_code:policy.query_policy_code,mutation_policy_code:policy.mutation_policy_code,concurrency_key:[]});
++  const policy=await api(admin,'GET',`/api/v1/table-policies/${table}`);await api(admin,'PUT',`/api/v1/table-policies/${table}`,{table_name:table,query_policy_code:policy.query_policy_code,mutation_policy_code:policy.mutation_policy_code,concurrency_key:[],expected_version:policy.version});
+   check('未结束明细阻止配置变更；管理员取消他人的遗留草稿后释放引用');
+   assert.deepEqual(errors,[]);console.log(JSON.stringify({checks}));
+  }finally{await browser.close()}
+diff --git a/web/e2e/release-batches.cjs b/web/e2e/release-batches.cjs
+index 0ecca02..8ed6848 100644
+--- a/web/e2e/release-batches.cjs
++++ b/web/e2e/release-batches.cjs
+@@ -94,7 +94,7 @@ const output = process.env.RCC_E2E_OUTPUT;
+     await api(applicant, 'POST', '/api/v1/table-policies', {
+       table_name: table, query_policy_code: 'batch_browser_query_v1', mutation_policy_code: 'batch_browser_mutation_v1',
+     }, 201);
+-    await api(applicant, 'POST', `/api/v1/table-policies/${table}/enable`);
++    await api(applicant, 'POST', `/api/v1/table-policies/${table}/enable`,{expected_version:'1'});
+     const reviewerFixture = await registerFixtureAccount(reviewer, base, { roles: ['VIEWER'] });
+     await createFixtureApprovalRole(applicant, base, `Batch review ${randomUUID()}`, [reviewerFixture.accountID], [table]);
+     await setFixtureRoles(applicant, base, (await identity(applicant)).account.id, ['EDITOR', 'PUBLISHER']);
+diff --git a/web/e2e/release-multitable.cjs b/web/e2e/release-multitable.cjs
+index 89bf6b3..7cc4831 100644
+--- a/web/e2e/release-multitable.cjs
++++ b/web/e2e/release-multitable.cjs
+@@ -44,7 +44,7 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
+   await api(admin,'POST',`/api/v1/mutation-policies/${mutation}/activate`,{});
+   for(const table of [...tables,largeTable]){
+    await api(admin,'POST','/api/v1/table-policies',{table_name:table,query_policy_code:'notification_page_query_v1',mutation_policy_code:mutation},201);
+-   await api(admin,'POST',`/api/v1/table-policies/${table}/enable`,{});
++   await api(admin,'POST',`/api/v1/table-policies/${table}/enable`,{expected_version:'1'});
+   }
+   const settings=await pageFor(admin);
+   for(const table of tables){
+diff --git a/web/e2e/release-templates.cjs b/web/e2e/release-templates.cjs
+new file mode 100644
+index 0000000..d110061
+--- /dev/null
++++ b/web/e2e/release-templates.cjs
+@@ -0,0 +1,180 @@
++const assert = require('node:assert/strict');
++const { chromium, request } = require('playwright');
++const { writeFile } = require('node:fs/promises');
++const { join } = require('node:path');
++
++const origin = process.env.RCC_WEB_URL;
++const output = process.env.RCC_E2E_OUTPUT;
++assert.ok(origin && output, 'isolated browser origin and evidence directory are required');
++const code = 'browser_standard_v1';
++const checks = [];
++
++(async () => {
++  const launchOptions = process.env.RCC_BROWSER_EXECUTABLE
++    ? { executablePath: process.env.RCC_BROWSER_EXECUTABLE, headless: true }
++    : { channel: 'chrome', headless: true };
++  const browser = await chromium.launch(launchOptions);
++  try {
++    const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
++    const page = await context.newPage();
++    await page.goto(`${origin}/login`);
++    await page.getByLabel('用户名').fill('template.browser.admin');
++    await page.getByLabel('密码').fill('template browser password long enough');
++    await page.getByRole('button', { name: '登录', exact: true }).click();
++    await page.waitForURL(url => !url.pathname.endsWith('/login'));
++    await page.goto(`${origin}/platform/release-templates`);
++    await page.getByRole('heading', { name: '发布流程模板', exact: true }).waitFor();
++    await page.getByRole('button', { name: '查看' }).first().waitFor();
++    assert.equal(await page.getByRole('button', { name: '查看' }).count(), 2, 'new install exposes both default templates');
++    await page.screenshot({ path: join(output, 'release-template-catalog-desktop.png'), fullPage: true });
++    checks.push('desktop catalog and two defaults');
++
++    await page.getByRole('button', { name: '新建模板' }).click();
++    await page.getByLabel(/模板编码/).fill(code);
++    await page.getByLabel('模板名称').fill('浏览器常规模板');
++    await page.getByLabel('发布类型', { exact: true }).selectOption('STANDARD');
++    assert.deepEqual(await page.locator('.template-node').evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label'))), ['1. 按表审批', '2. 发布', '3. 完结']);
++    await page.getByRole('button', { name: '保存模板' }).click();
++    await page.getByText('发布流程模板已创建', { exact: true }).waitFor();
++    await page.getByText(code, { exact: true }).waitFor();
++    assert.equal(await page.getByRole('button', { name: '查看' }).count(), 3, 'same release type accepts more than one template');
++    checks.push('constrained create and multiple STANDARD templates');
++
++    await page.goto(`${origin}/platform/release-templates/${code}?mode=edit`);
++    await page.getByLabel('模板名称').fill('浏览器结果未知重试');
++    const unknownWrites = [];
++    let interruptOnce = true;
++    await page.route(`**/api/v1/release-templates/${code}`, async route => {
++      const request = route.request();
++      if (request.method() !== 'PUT') return route.continue();
++      unknownWrites.push({ body: request.postData(), key: request.headers()['idempotency-key'] });
++      if (!interruptOnce) return route.continue();
++      interruptOnce = false;
++      const response = await route.fetch();
++      assert.equal(response.status(), 200, 'server-side write must commit before response interruption');
++      return route.abort('connectionreset');
++    });
++    await page.getByRole('button', { name: '保存模板' }).click();
++    await page.getByText('保存结果未知；请保持当前页面，再次点击保存将原样重推同一请求。', { exact: true }).waitFor();
++    assert.equal(await page.getByLabel('模板名称').isDisabled(), true, 'unknown write must freeze its original fields');
++    await page.getByRole('button', { name: '重推原请求' }).click();
++    await page.getByText('发布流程模板已更新', { exact: true }).waitFor();
++    assert.equal(unknownWrites.length, 2);
++    assert.deepEqual(unknownWrites[0], unknownWrites[1], 'manual retry changed original write identity or body');
++    await page.unroute(`**/api/v1/release-templates/${code}`);
++    const currentAfterRetry = await page.evaluate(async value => (await fetch(`/api/v1/release-templates/${value}`)).json(), code);
++    assert.equal(currentAfterRetry.name, '浏览器结果未知重试');
++    checks.push('unknown result manually replays exact committed request');
++
++    const stale = await context.newPage();
++    let staleWrite;
++    stale.on('request', request => {
++      if (request.method() === 'PUT' && new URL(request.url()).pathname === `/api/v1/release-templates/${code}`) staleWrite = JSON.parse(request.postData());
++    });
++    await stale.goto(`${origin}/platform/release-templates/${code}?mode=edit`);
++    const staleName = stale.getByLabel('模板名称');
++    await staleName.waitFor();
++    await staleName.fill('陈旧管理员输入');
++    await page.goto(`${origin}/platform/release-templates/${code}?mode=edit`);
++    await page.getByLabel('模板名称').fill('浏览器常规模板已更新');
++    await page.getByRole('button', { name: '保存模板' }).click();
++    await page.getByText('发布流程模板已更新', { exact: true }).waitFor();
++    const refreshed = stale.waitForResponse(response => response.request().method() === 'GET' && new URL(response.url()).pathname === `/api/v1/release-templates/${code}`);
++    await stale.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
++    assert.equal((await (await refreshed).json()).version, '3', 'background detail did not refresh to the current version');
++    await stale.getByRole('button', { name: '保存模板' }).click();
++    await stale.getByText(/模板已被其他管理员修改/).waitFor();
++    assert.equal(await staleName.inputValue(), '陈旧管理员输入');
++    assert.equal(staleWrite.expected_version, '2', 'old form adopted the refreshed detail version');
++    await stale.screenshot({ path: join(output, 'release-template-version-conflict.png') });
++    await stale.close();
++    checks.push('stale version rejected with input retained');
++
++    await page.goto(`${origin}/platform/release-templates/default_emergency_v1`);
++    assert.equal(await page.getByRole('button', { name: '停用' }).isDisabled(), true);
++    assert.equal(await page.getByRole('button', { name: '删除' }).isDisabled(), true);
++    checks.push('emergency lifecycle protected');
++
++    await page.goto(`${origin}/platform/release-templates/${code}`);
++    await page.getByRole('button', { name: '停用' }).click();
++    const confirm = page.getByRole('alertdialog', { name: /停用发布流程模板/ });
++    await confirm.waitFor();
++    assert.equal(await page.getByRole('button', { name: '取消', exact: true }).evaluate(node => node === document.activeElement), true, 'cancel receives safe default focus');
++    await page.keyboard.press('Escape');
++    assert.equal(await confirm.count(), 0);
++    checks.push('keyboard-safe destructive confirmation');
++
++    const lifecycleWrites = [];
++    let interruptLifecycleOnce = true;
++    await page.route(`**/api/v1/release-templates/${code}/disable`, async route => {
++      const request = route.request();
++      lifecycleWrites.push({ body: request.postData(), key: request.headers()['idempotency-key'], path: new URL(request.url()).pathname });
++      if (!interruptLifecycleOnce) return route.continue();
++      interruptLifecycleOnce = false;
++      const response = await route.fetch();
++      assert.equal(response.status(), 200);
++      return route.abort('connectionreset');
++    });
++    await page.getByRole('button', { name: '停用' }).click();
++    await page.getByRole('button', { name: '确认停用' }).click();
++    await page.getByText('操作结果未知；再次确认将原样重推同一请求。', { exact: true }).waitFor();
++    await page.getByRole('button', { name: '取消', exact: true }).click();
++    assert.equal(await page.getByRole('button', { name: '删除' }).isDisabled(), true, 'unknown disable allowed a new delete intent');
++    assert.equal(await page.getByRole('button', { name: '重推停用请求' }).isEnabled(), true);
++    await page.getByRole('button', { name: '重推停用请求' }).click();
++    await page.getByRole('button', { name: '重推原请求' }).click();
++    await page.getByText('发布流程模板已停用', { exact: true }).waitFor();
++    assert.deepEqual(lifecycleWrites[0], lifecycleWrites[1], 'lifecycle retry changed action, target, body, or key');
++    const currentAfterDisable = await page.evaluate(async value => (await fetch(`/api/v1/release-templates/${value}`)).json(), code);
++    assert.equal(currentAfterDisable.enabled, false);
++    await page.unroute(`**/api/v1/release-templates/${code}/disable`);
++    checks.push('unknown lifecycle remains bound to original action and target');
++
++    await page.setViewportSize({ width: 390, height: 844 });
++    await page.goto(`${origin}/platform/release-templates`);
++    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'catalog overflows 390px viewport');
++    await page.getByRole('button', { name: '查看' }).last().click();
++    const mobileDrawer = page.getByRole('dialog');
++    await mobileDrawer.waitFor();
++    await mobileDrawer.evaluate(async element => {
++      for (;;) {
++        const active = element.getAnimations({ subtree: true }).filter(animation => animation.pending || animation.playState === 'running');
++        if (active.length === 0) break;
++        await Promise.all(active.map(animation => animation.finished.catch(error => {
++          if (error.name !== 'AbortError') throw error;
++        })));
++      }
++    });
++    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'drawer overflows 390px viewport');
++    await page.screenshot({ path: join(output, 'release-template-mobile.png'), fullPage: true });
++    checks.push('390px catalog and drawer');
++
++    const viewerAPI = await request.newContext({ baseURL: origin });
++    const prepared = await viewerAPI.get('/api/v1/auth/csrf');
++    const { csrf_token: csrf } = await prepared.json();
++    const registered = await viewerAPI.post('/api/v1/auth/register', {
++      headers: { Origin: origin, 'X-CSRF-Token': csrf },
++      data: { username: 'template.browser.viewer', email: 'template.browser.viewer@example.invalid', password: 'template viewer password long enough' },
++    });
++    assert.equal(registered.status(), 201);
++    const viewerContext = await browser.newContext({ storageState: await viewerAPI.storageState() });
++    const viewer = await viewerContext.newPage();
++    await viewer.goto(`${origin}/platform/release-templates`);
++    await viewer.getByRole('heading', { name: '发布流程模板', exact: true }).waitFor();
++    assert.equal(await viewer.getByRole('link', { name: '发布流程模板', exact: true }).count(), 0, 'viewer sees admin navigation');
++    assert.equal(await viewer.getByRole('button', { name: '新建模板' }).isDisabled(), true);
++    await viewer.getByText('当前账号没有执行此操作的角色，请联系管理员授权。').waitFor();
++    await page.goto(`${origin}/platform/release-templates`);
++    await page.getByText(code, { exact: true }).waitFor();
++    assert.equal(await page.getByText(code, { exact: true }).count(), 1, 'viewer session changed administrator page');
++    await viewerContext.close();
++    await viewerAPI.dispose();
++    checks.push('viewer denied without disturbing admin session');
++
++    await writeFile(join(output, 'release-template-browser-evidence.json'), JSON.stringify({ code, checks }, null, 2));
++    process.stdout.write(JSON.stringify({ code, checks }));
++    await context.close();
++  } finally {
++    await browser.close();
++  }
++})().catch(error => { console.error(error); process.exitCode = 1; });
+diff --git a/web/e2e/table-approvals.cjs b/web/e2e/table-approvals.cjs
+index 15a1f50..3de4511 100644
+--- a/web/e2e/table-approvals.cjs
++++ b/web/e2e/table-approvals.cjs
+@@ -36,7 +36,7 @@ const button = (page, name) => page.getByRole('button', { name, exact: true });
+     await api(admin.context, base, 'POST', `/api/v1/mutation-policies/${mutation}/activate`, {});
+     for (const table of tables) {
+       await api(admin.context, base, 'POST', '/api/v1/table-policies', { table_name: table, query_policy_code: 'notification_page_query_v1', mutation_policy_code: mutation }, 201);
+-      await api(admin.context, base, 'POST', `/api/v1/table-policies/${table}/enable`, {});
++      await api(admin.context, base, 'POST', `/api/v1/table-policies/${table}/enable`, { expected_version: "1" });
+     }
+     const opsRole = await createRole(admin.context, base, '商品运营审批角色 · 长名称验证多人分工', [ops.identity.accountID]);
+     const priceRole = await createRole(admin.context, base, '财务价格审批', [finance.identity.accountID]);
+diff --git a/web/e2e/table-release-templates.cjs b/web/e2e/table-release-templates.cjs
+new file mode 100644
+index 0000000..acca5d2
+--- /dev/null
++++ b/web/e2e/table-release-templates.cjs
+@@ -0,0 +1,44 @@
++const assert=require('node:assert/strict');
++const {chromium}=require('playwright');
++const {writeFile}=require('node:fs/promises');
++const {join}=require('node:path');
++const origin=process.env.RCC_WEB_URL, output=process.env.RCC_E2E_OUTPUT;
++const checks=[];
++(async()=>{
++ const browser=await chromium.launch(process.env.RCC_BROWSER_EXECUTABLE?{executablePath:process.env.RCC_BROWSER_EXECUTABLE,headless:true}:{channel:'chrome',headless:true});
++ try{
++  const context=await browser.newContext({viewport:{width:1280,height:900}});const page=await context.newPage();
++  async function login(){await page.getByLabel('用户名').fill('template.browser.admin');await page.getByLabel('密码',{exact:true}).fill('template browser password long enough');await page.getByRole('button',{name:'登录',exact:true}).click();await page.waitForURL(url=>!url.pathname.endsWith('/login'));}
++  await page.goto(origin+'/login');await login();
++  const csrf=(await(await context.request.get(origin+'/api/v1/auth/session')).json()).csrf_token;
++  async function api(path,method,data){const response=await context.request.fetch(origin+path,{method,headers:{Origin:origin,'X-CSRF-Token':csrf,'Idempotency-Key':`browser-${crypto.randomUUID()}`},data});assert.ok(response.ok(),`${method} ${path}: ${response.status()} ${await response.text()}`);return response.json();}
++  await api('/api/v1/query-policies','POST',{code:'browser_query_v1',name:'浏览器查询',description:'',type_code:'page_query',default_order_field:'id',default_order_direction:'ASC',default_page_size:20,max_page_size:200});
++  await api('/api/v1/query-policies/browser_query_v1/activate','POST');
++  await api('/api/v1/mutation-policies','POST',{code:'browser_mutation_v1',name:'浏览器变更',description:'',type_code:'single_table_mutation',allow_add:true,allow_modify:true,allow_delete:false,create_operator_field:null,create_time_field:null,modify_operator_field:null,modify_time_field:null});
++  await api('/api/v1/mutation-policies/browser_mutation_v1/activate','POST');
++  for(const type of ['STANDARD','EMERGENCY'])await api('/api/v1/release-templates','POST',{code:type==='STANDARD'?'browser_standard_v1':'browser_emergency_v1',name:type==='STANDARD'?'业务常规发布流程':'订单与活动配置的长名称应急发布流程模板（整套节点）',description:'浏览器验收',type,node_list:(type==='STANDARD'?['APPROVAL','PUBLICATION','COMPLETION']:['PUBLICATION','COMPLETION']).map(kind=>({code:kind.toLowerCase(),type:kind,name:kind==='APPROVAL'?'按表审批':kind==='PUBLICATION'?'人工发布':'人工完结',required_role:kind==='APPROVAL'?'TABLE_APPROVER':'PUBLISHER'}))});
++  await page.goto(origin+'/platform/table-policies');await page.getByRole('button',{name:'新建分配'}).click();
++  await page.getByLabel('真实数据库表').selectOption('policy_alpha');await page.getByLabel('Active 查询规则').selectOption('browser_query_v1');await page.getByLabel('Active 变更规则').selectOption('browser_mutation_v1');
++  const createWrites=[];let loseCreate=true;
++  await page.route('**/api/v1/table-policies',async route=>{if(route.request().method()!=='POST')return route.continue();createWrites.push({body:route.request().postData(),key:route.request().headers()['idempotency-key']});if(!loseCreate)return route.continue();loseCreate=false;const r=await route.fetch();assert.equal(r.status(),201);await route.abort('connectionreset');});
++  await page.getByRole('button',{name:'创建未启用分配'}).click();await page.getByText(/操作结果未知/).waitFor();assert.equal(createWrites.length,1);
++  assert.equal(await page.getByLabel('真实数据库表').isDisabled(),true);await page.getByRole('button',{name:'重推原请求',exact:true}).click();await page.getByText('表规则已创建并保持未启用',{exact:true}).waitFor();assert.deepEqual(createWrites[0],createWrites[1]);await page.unroute('**/api/v1/table-policies');checks.push('create table and emergency association atomically; committed response loss manually replays original create');
++  await page.getByRole('button',{name:'启用',exact:true}).click();await page.getByRole('button',{name:'确认启用'}).click();await page.getByText('表规则已启用',{exact:true}).waitFor();
++  await page.goto(origin+'/platform/table-policies');await page.getByRole('button',{name:'发布流程',exact:true}).click();await page.getByLabel('常规模板',{exact:true}).selectOption('browser_standard_v1');await page.getByRole('button',{name:'保存常规关联'}).click();await page.getByText('常规关联已保存',{exact:true}).waitFor();
++  const path='**/api/v1/table-policies/policy_alpha/release-templates/EMERGENCY';const writes=[];let lose=true;
++  await page.getByLabel('应急模板',{exact:true}).selectOption('browser_emergency_v1');
++  await page.route(path,async route=>{if(route.request().method()!=='PUT')return route.continue();writes.push({body:route.request().postData(),key:route.request().headers()['idempotency-key']});if(!lose)return route.continue();lose=false;const r=await route.fetch();assert.equal(r.status(),200);await route.abort('connectionreset');});
++  await page.getByRole('button',{name:'保存应急关联'}).click();await page.getByText(/保存结果未知/).waitFor();assert.equal(await page.getByLabel('应急模板',{exact:true}).isDisabled(),true);assert.equal(writes.length,1);const logout=await context.request.post(origin+'/api/v1/auth/logout',{headers:{Origin:origin,'X-CSRF-Token':csrf}});assert.equal(logout.status(),204);await page.getByRole('button',{name:'重推应急原请求'}).click();await page.getByLabel('用户名').waitFor();await login();await page.getByRole('heading',{name:'登录本地账号'}).waitFor({state:'hidden'});assert.equal(await page.getByLabel('应急模板',{exact:true}).inputValue(),'browser_emergency_v1');await page.getByRole('button',{name:'重推应急原请求'}).click();await page.getByText('应急关联已保存',{exact:true}).waitFor();assert.equal(writes.length,3);for(const write of writes.slice(1))assert.deepEqual(writes[0],write);checks.push('same-account reauthentication preserves unknown original association request without automatic write retry');await page.unroute(path);checks.push('formal table settings select same-type templates and safely replay lost association response');
++  await page.screenshot({path:join(output,'table-release-desktop.png'),fullPage:true});
++  const stale=await context.newPage();await stale.goto(origin+'/platform/table-policies/policy_alpha?mode=templates');await stale.getByLabel('应急模板',{exact:true}).selectOption('default_emergency_v1');
++  await page.getByLabel('应急模板',{exact:true}).selectOption('default_emergency_v1');await page.getByRole('button',{name:'保存应急关联'}).click();await page.getByText('应急关联已保存',{exact:true}).waitFor();
++  await stale.getByRole('button',{name:'保存应急关联'}).click();await stale.getByText(/关联已被其他管理员修改/).waitFor();assert.equal(await stale.getByLabel('应急模板',{exact:true}).inputValue(),'default_emergency_v1');await stale.getByText(/关联已被其他管理员修改/).scrollIntoViewIfNeeded();await stale.screenshot({path:join(output,'table-release-conflict.png')});await stale.close();checks.push('concurrent editor conflict retains selected template and observed version');
++  await page.getByLabel('启用常规关联').uncheck();await page.getByRole('button',{name:'保存常规关联'}).click();await page.getByText('常规关联已保存',{exact:true}).waitFor();assert.equal(await page.getByLabel('启用常规关联').isChecked(),false);assert.equal(await page.getByRole('button',{name:/解绑|删除应急|停用应急/}).count(),0);checks.push('standard association disabled while emergency remains enabled');
++  await page.setViewportSize({width:390,height:844});await page.getByLabel('应急模板',{exact:true}).focus();assert.equal(await page.getByLabel('应急模板',{exact:true}).evaluate(node=>node===document.activeElement),true);await page.keyboard.press('Tab');
++  await page.getByLabel('应急模板',{exact:true}).selectOption('browser_emergency_v1');await page.screenshot({path:join(output,'table-release-mobile.png'),fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);assert.equal(await page.getByRole('dialog').evaluate(el=>el.scrollWidth<=el.clientWidth),true);await page.getByRole('button',{name:'保存应急关联'}).scrollIntoViewIfNeeded();await page.screenshot({path:join(output,'table-release-mobile-actions.png')});checks.push('390px long template name, reachable controls, keyboard focus and no page/drawer overflow');
++  await page.getByLabel('应急模板',{exact:true}).selectOption('browser_emergency_v1');await page.keyboard.press('Escape');await page.getByRole('alertdialog',{name:'放弃未保存的修改？'}).waitFor();await page.getByRole('button',{name:'继续编辑'}).click();assert.equal(await page.getByLabel('应急模板',{exact:true}).inputValue(),'browser_emergency_v1');checks.push('Escape preserves pending choice through shared unsaved confirmation');
++  await page.getByRole('button',{name:'保存应急关联'}).click();await page.getByText('应急关联已保存',{exact:true}).waitFor();
++  await page.getByRole('button',{name:'关闭',exact:true}).last().click();await page.getByRole('button',{name:'停用',exact:true}).click();await page.getByRole('button',{name:'确认停用'}).click();await page.getByText('表规则已停用',{exact:true}).waitFor();checks.push('entire table can still be disabled');
++  const result={code:'browser_emergency_v1',checks};await writeFile(join(output,'table-release-browser-evidence.json'),JSON.stringify(result,null,2));process.stdout.write(JSON.stringify(result));await context.close();
++ }finally{await browser.close();}
++})().catch(error=>{console.error(error);process.exitCode=1;});
+diff --git a/web/e2e/write-recovery.cjs b/web/e2e/write-recovery.cjs
+index 00abfc3..1590df0 100644
+--- a/web/e2e/write-recovery.cjs
++++ b/web/e2e/write-recovery.cjs
+@@ -54,7 +54,7 @@ async function waitDatabase() {
+     requests = []; faults = [];
+     page.on('request', request => {
+       const path = new URL(request.url()).pathname;
+-      if (path.startsWith('/api/') && !path.startsWith('/api/v1/auth/')) requests.push({ path, method: request.method(), ...(path.endsWith('/query') ? { query: request.postDataJSON() } : {}), ...(path.endsWith('/execute') ? { body: request.postData(), key: request.headers()['idempotency-key'] } : {}) });
++      if (path.startsWith('/api/') && !path.startsWith('/api/v1/auth/')) requests.push({ path, method: request.method(), ...(path.endsWith('/query') ? { query: request.postDataJSON() } : {}), ...((path.endsWith('/execute') || path.startsWith('/api/v1/table-policies')) ? { body: request.postData(), key: request.headers()['idempotency-key'] } : {}) });
+     });
+     await page.goto(`${base}${path}`);
+   }
+@@ -474,18 +474,15 @@ async function waitDatabase() {
+       const path = `/api/v1/table-policies${operation === 'create' ? '' : `/${assignmentTable}`}${['enable', 'disable'].includes(operation) ? `/${operation}` : ''}`;
+       resetAudit(); await fault(path, operation === 'replace' ? 'PUT' : 'POST');
+       const label = { create: '创建未启用分配', replace: '检查并替换', enable: '确认启用', disable: '确认停用' }[operation];
+-      await button(label).click(); await uncertain().waitFor();
++      await button(label).click(); await page.getByText(/操作结果未知/).waitFor();
+       assert.equal(sql(`SELECT ${['enable', 'disable'].includes(operation) ? 'enabled' : 'query_policy_code'} FROM rcc_table_policies WHERE table_name='${assignmentTable}';`), ['enable', 'disable'].includes(operation) ? operation === 'enable' ? '1' : '0' : 'stage1_query_v1');
+-      await verifyUnknown(`table assignment ${operation}: persisted change and read-only recovery`, 'rcc_table_policies');
+-      await button(['create', 'replace'].includes(operation) ? '我已核对，返回修改' : '我已核对，结束本次核对').click();
+-      if (['enable', 'disable'].includes(operation)) {
+-        await page.waitForURL(`${base}/platform/table-policies`);
+-        await page.getByRole('dialog').waitFor({ state: 'detached' });
+-        await page.getByRole('region', { name: '表规则目录', exact: true }).getByRole('row').filter({ hasText: assignmentTable }).getByText(operation === 'enable' ? '已启用' : '未启用', { exact: true }).waitFor();
+-      }
+-      // Reset clears the mutation observer asynchronously after explicit resume.
+-      await uncertain().waitFor({ state: 'detached' });
+-      assert.equal(await uncertain().count(), 0); assert.equal(writes().length, 1);
++      assert.equal(writes().length,1);const originalWrite={...writes()[0]};
++      await page.unroute(`**${path}`);await button('重推原请求').click();
++      await page.getByText({create:'表规则已创建并保持未启用',replace:'表规则已替换',enable:'表规则已启用',disable:'表规则已停用'}[operation],{exact:true}).waitFor();
++      assert.equal(writes().length,2);
++      assert.equal(writes()[1].key,originalWrite.key);assert.deepEqual(writes()[1].body,originalWrite.body);
++      assert.equal(auditCount('rcc_table_policies'),1);
++      check(`table assignment ${operation}: original request manually replayed without duplicate database change`, {writes:writes(),originalWrite});
+     }
+     assert.deepEqual(routeErrors, []);
+     assert.deepEqual(pageErrors, []);
+diff --git a/web/src/api/client.ts b/web/src/api/client.ts
+index 79f17c9..d4a643e 100644
+--- a/web/src/api/client.ts
++++ b/web/src/api/client.ts
+@@ -159,6 +159,10 @@ const definiteWriteRejections = new Set([
+   "unauthorized", "cors_origin_forbidden", "cors_preflight_forbidden",
+   "session_invalid", "account_disabled", "csrf_invalid",
+   "account_roles_conflict",
++  "invalid_release_template", "invalid_release_type", "invalid_release_template_nodes", "release_template_exists",
++  "release_template_conflict", "emergency_template_protected",
++  "table_release_template_conflict", "invalid_table_release_template", "emergency_association_protected",
++  "release_template_in_use", "table_policy_conflict", "invalid_table_policy_request",
+   // Release input and capability checks happen before the request can be
+   // accepted. Keep authentication, permission, not-found and idempotency
+   // responses conservative because they do not prove the original outcome.
+diff --git a/web/src/api/contracts.ts b/web/src/api/contracts.ts
+index d245816..b32317b 100644
+--- a/web/src/api/contracts.ts
++++ b/web/src/api/contracts.ts
+@@ -61,6 +61,30 @@ export const mutationPolicyListDtoSchema = z.object({
+   policies: z.array(mutationPolicyDtoSchema),
+ });
+ 
++export const releaseTemplateNodeDtoSchema = z.object({
++  code: z.string(),
++  type: z.enum(["APPROVAL", "PUBLICATION", "COMPLETION"]),
++  name: z.string(),
++  required_role: z.enum(["TABLE_APPROVER", "PUBLISHER"]),
++});
++
++export const releaseTemplateDtoSchema = z.object({
++  code: z.string(),
++  name: z.string(),
++  description: z.string(),
++  type: z.enum(["STANDARD", "EMERGENCY"]),
++  node_list: z.array(releaseTemplateNodeDtoSchema),
++  monitor_list: z.array(z.string()).length(0),
++  enabled: z.boolean(),
++  version: z.string().regex(/^[1-9][0-9]*$/),
++  creator: z.string(),
++  modifier: z.string(),
++  created_at: z.string(),
++  updated_at: z.string(),
++});
++
++export const releaseTemplateListDtoSchema = z.object({ templates: z.array(releaseTemplateDtoSchema) });
++
+ export const databaseTableDtoSchema = z.object({
+   table_name: z.string(),
+   table_comment: z.string(),
+@@ -82,6 +106,7 @@ export const databaseTableListDtoSchema = z.object({
+ });
+ 
+ export const tablePolicyDtoSchema = z.object({
++  version: z.string().regex(/^[1-9][0-9]*$/),
+   concurrency_key: z.array(z.string()).optional().default([]),
+   table_name: z.string(),
+   query_policy_code: z.string(),
+@@ -160,6 +185,7 @@ export type QueryPolicyDto = z.infer<typeof queryPolicyDtoSchema>;
+ export type PolicyStatusDto = z.infer<typeof policyStatusSchema>;
+ export type MutationPolicyDto = z.infer<typeof mutationPolicyDtoSchema>;
+ export type MutationPolicyTypeDto = z.infer<typeof mutationPolicyTypeListDtoSchema>["types"][number];
++export type ReleaseTemplateDto = z.infer<typeof releaseTemplateDtoSchema>;
+ export type DatabaseTableDto = z.infer<typeof databaseTableDtoSchema>;
+ export type TablePolicyDto = z.infer<typeof tablePolicyDtoSchema>;
+ export type ManagedDataQueryResponseDto = z.infer<typeof managedDataQueryResponseDtoSchema>;
+diff --git a/web/src/api/error-messages.ts b/web/src/api/error-messages.ts
+index 0725e71..0835727 100644
+--- a/web/src/api/error-messages.ts
++++ b/web/src/api/error-messages.ts
+@@ -30,6 +30,20 @@ const errorMessages: Record<string, string> = {
+   release_result_unknown: "提交结果未知，可刷新查看主单；再次点击原操作将安全重推同一请求。",
+   rollback_restore_mismatch: "当前数据库规则无法完整恢复原业务值，回滚未提交；请查看失败原因和当前配置。",
+   account_not_found: "账号不存在，请刷新列表。",
++  invalid_release_template: "模板字段或请求标识无效，请检查后重试。",
++  invalid_release_type: "发布类型必须是常规或应急。",
++  invalid_release_template_nodes: "流程节点与发布类型不匹配，请检查节点顺序和权限。",
++  release_template_not_found: "发布流程模板不存在或已被删除。",
++  release_template_exists: "模板编码已存在，请使用其他版本化编码。",
++  table_release_template_conflict: "关联已被其他管理员修改；你的选择已保留，请核对最新版本。",
++  invalid_table_release_template: "请选择同类型的有效模板；当前选择已保留。",
++  emergency_association_protected: "应急关联必须始终有效，不能停用、解绑或删除。",
++  release_template_in_use: "模板仍被表引用，请先替换关联后再删除。",
++  table_policy_conflict: "表规则已被其他管理员修改；你的输入已保留，请核对最新版本。",
++  invalid_table_policy_request: "请保留原请求标识和已读取版本后重推。",
++  release_template_conflict: "模板已被其他管理员修改；你的输入已保留，请核对最新版本。",
++  emergency_template_protected: "应急模板必须保持可用，不能停用或删除。",
++  release_template_unavailable: "模板目录暂时不可用；如刚进行保存，请保留原请求后重试。",
+ 
+   invalid_policy_code: "规则编码必须使用小写、包含版本号，并且不能包含技术实现名称。",
+   invalid_query_policy_definition: "查询规则定义不完整，请检查必填项。",
+diff --git a/web/src/api/release-templates.ts b/web/src/api/release-templates.ts
+new file mode 100644
+index 0000000..79962e9
+--- /dev/null
++++ b/web/src/api/release-templates.ts
+@@ -0,0 +1,18 @@
++import { releaseTemplateDtoSchema, releaseTemplateListDtoSchema, type ReleaseTemplateDto } from "./contracts";
++import { request } from "./client";
++import type { ReleaseTemplate, ReleaseTemplateDraft } from "../features/release-templates/model";
++
++const root = "/api/v1/release-templates";
++const fromDto = (dto: ReleaseTemplateDto): ReleaseTemplate => ({
++  code: dto.code, name: dto.name, description: dto.description, type: dto.type,
++  nodes: dto.node_list.map(node => ({ code: node.code, type: node.type, name: node.name, requiredRole: node.required_role })),
++  enabled: dto.enabled, version: dto.version, creator: dto.creator, modifier: dto.modifier, createdAt: dto.created_at, updatedAt: dto.updated_at,
++});
++const body = (draft: ReleaseTemplateDraft) => ({ code: draft.code, name: draft.name, description: draft.description, type: draft.type, node_list: draft.nodes.map(node => ({ code: node.code, type: node.type, name: node.name, required_role: node.requiredRole })) });
++
++export async function listReleaseTemplates() { return (await request(root, { schema: releaseTemplateListDtoSchema })).templates.map(fromDto); }
++export async function getReleaseTemplate(code: string) { return fromDto(await request(`${root}/${encodeURIComponent(code)}`, { schema: releaseTemplateDtoSchema })); }
++export async function createReleaseTemplate(draft: ReleaseTemplateDraft, key: string) { return fromDto(await request(root, { method: "POST", headers: { "Idempotency-Key": key }, body: JSON.stringify(body(draft)), schema: releaseTemplateDtoSchema })); }
++export async function replaceReleaseTemplate(code: string, draft: ReleaseTemplateDraft, version: string, key: string) { return fromDto(await request(`${root}/${encodeURIComponent(code)}`, { method: "PUT", headers: { "Idempotency-Key": key }, body: JSON.stringify({ ...body(draft), expected_version: version }), schema: releaseTemplateDtoSchema })); }
++export async function setReleaseTemplateEnabled(code: string, enabled: boolean, version: string, key: string) { return fromDto(await request(`${root}/${encodeURIComponent(code)}/${enabled ? "enable" : "disable"}`, { method: "POST", headers: { "Idempotency-Key": key }, body: JSON.stringify({ expected_version: version }), schema: releaseTemplateDtoSchema })); }
++export async function deleteReleaseTemplate(code: string, version: string, key: string) { await request(`${root}/${encodeURIComponent(code)}`, { method: "DELETE", headers: { "Idempotency-Key": key }, body: JSON.stringify({ expected_version: version }) }); }
+diff --git a/web/src/api/table-policies.test.ts b/web/src/api/table-policies.test.ts
+index 3b13883..5335a58 100644
+--- a/web/src/api/table-policies.test.ts
++++ b/web/src/api/table-policies.test.ts
+@@ -16,7 +16,7 @@ describe("Table Policy API contract", () => {
+       }] });
+       return json({ policies: [{
+         table_name: "notification_templates", query_policy_code: "standard_query_v1",
+-        mutation_policy_code: "standard_mutation_v1", enabled: false, creator: "admin", modifier: "admin",
++        mutation_policy_code: "standard_mutation_v1", version:"1", enabled: false, creator: "admin", modifier: "admin",
+         created_at: "2026-08-24T09:00:00Z", updated_at: "2026-08-24T10:00:00Z",
+       }] });
+     }));
+@@ -27,12 +27,12 @@ describe("Table Policy API contract", () => {
+ 
+   it("serializes all three immutable assignment identifiers on create", async () => {
+     const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => json({
+-      ...JSON.parse(String(init?.body)), enabled: false, creator: "admin", modifier: "admin",
++      ...JSON.parse(String(init?.body)), version:"1", enabled: false, creator: "admin", modifier: "admin",
+       created_at: "2026-08-24T09:00:00Z", updated_at: "2026-08-24T09:00:00Z",
+     }, 201));
+     vi.stubGlobal("fetch", fetchMock);
+ 
+-    await createTablePolicy({ tableName: "notification_templates", queryPolicyCode: "standard_query_v1", mutationPolicyCode: "standard_mutation_v1" });
++    await createTablePolicy({ key:"test-create-key", assignment:{ tableName: "notification_templates", queryPolicyCode: "standard_query_v1", mutationPolicyCode: "standard_mutation_v1" } });
+ 
+     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+       table_name: "notification_templates",
+diff --git a/web/src/api/table-policies.ts b/web/src/api/table-policies.ts
+index 98c21e1..1560ecb 100644
+--- a/web/src/api/table-policies.ts
++++ b/web/src/api/table-policies.ts
+@@ -24,6 +24,7 @@ function databaseTableFromDto(dto: DatabaseTableDto): DatabaseTable {
+ 
+ function tablePolicyFromDto(dto: TablePolicyDto): TablePolicy {
+   return {
++    version: dto.version,
+     tableName: dto.table_name,
+     queryPolicyCode: dto.query_policy_code,
+     mutationPolicyCode: dto.mutation_policy_code,
+@@ -59,20 +60,20 @@ export async function getTablePolicy(tableName: string): Promise<TablePolicy> {
+   return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}`, { schema: tablePolicyDtoSchema }));
+ }
+ 
+-export async function createTablePolicy(assignment: TablePolicyAssignment): Promise<TablePolicy> {
+-  return tablePolicyFromDto(await request(root, { method: "POST", body: JSON.stringify(assignmentToDto(assignment)), schema: tablePolicyDtoSchema }));
++export async function createTablePolicy({assignment,key}: {assignment: TablePolicyAssignment;key:string}): Promise<TablePolicy> {
++  return tablePolicyFromDto(await request(root, { method: "POST", headers:{"Idempotency-Key":key}, body: JSON.stringify(assignmentToDto(assignment)), schema: tablePolicyDtoSchema }));
+ }
+ 
+-export async function replaceTablePolicy(tableName: string, assignment: TablePolicyAssignment): Promise<TablePolicy> {
+-  return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}`, { method: "PUT", body: JSON.stringify(assignmentToDto(assignment)), schema: tablePolicyDtoSchema }));
++export async function replaceTablePolicy({tableName,assignment,version,key}: {tableName:string;assignment:TablePolicyAssignment;version:string;key:string}): Promise<TablePolicy> {
++  return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}`, { method: "PUT", headers:{"Idempotency-Key":key}, body: JSON.stringify({...assignmentToDto(assignment),expected_version:version}), schema: tablePolicyDtoSchema }));
+ }
+ 
+-export async function enableTablePolicy(tableName: string): Promise<TablePolicy> {
+-  return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}/enable`, { method: "POST", schema: tablePolicyDtoSchema }));
++export async function enableTablePolicy({tableName,version,key}: {tableName:string;version:string;key:string}): Promise<TablePolicy> {
++  return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}/enable`, { method: "POST", headers:{"Idempotency-Key":key},body:JSON.stringify({expected_version:version}), schema: tablePolicyDtoSchema }));
+ }
+ 
+-export async function disableTablePolicy(tableName: string): Promise<TablePolicy> {
+-  return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}/disable`, { method: "POST", schema: tablePolicyDtoSchema }));
++export async function disableTablePolicy({tableName,version,key}: {tableName:string;version:string;key:string}): Promise<TablePolicy> {
++  return tablePolicyFromDto(await request(`${root}/${encodeURIComponent(tableName)}/disable`, { method: "POST", headers:{"Idempotency-Key":key},body:JSON.stringify({expected_version:version}), schema: tablePolicyDtoSchema }));
+ }
+ 
+ export const concurrencyKeyFields=(table:string,mutation:string)=>request(`${root}/${encodeURIComponent(table)}/concurrency-key-fields?${new URLSearchParams({mutation_policy_code:mutation})}`,{schema:z.object({fields:z.array(z.object({name:z.string(),type:z.string(),eligible:z.boolean()}))})});
+diff --git a/web/src/api/table-release-templates.ts b/web/src/api/table-release-templates.ts
+new file mode 100644
+index 0000000..ef850e0
+--- /dev/null
++++ b/web/src/api/table-release-templates.ts
+@@ -0,0 +1,9 @@
++import {z} from "zod";
++import {request} from "./client";
++
++const associationSchema=z.object({table_name:z.string(),type:z.enum(["STANDARD","EMERGENCY"]),template_code:z.string(),template_name:z.string(),template_enabled:z.boolean(),enabled:z.boolean(),version:z.string(),creator:z.string(),modifier:z.string(),created_at:z.string(),updated_at:z.string()});
++export type TableReleaseTemplate=z.infer<typeof associationSchema>;
++export type AssociationWrite={table:string;type:TableReleaseTemplate["type"];templateCode:string;enabled:boolean;version:string;key:string};
++const path=(table:string)=>`/api/v1/table-policies/${encodeURIComponent(table)}/release-templates`;
++export async function listTableReleaseTemplates(table:string){return(await request(path(table),{schema:z.object({associations:z.array(associationSchema)})})).associations;}
++export async function putTableReleaseTemplate(write:AssociationWrite){return request(`${path(write.table)}/${write.type}`,{method:"PUT",headers:{"Idempotency-Key":write.key},body:JSON.stringify({template_code:write.templateCode,enabled:write.enabled,expected_version:write.version}),schema:associationSchema});}
+diff --git a/web/src/app.tsx b/web/src/app.tsx
+index 4b47e3a..67e1a75 100644
+--- a/web/src/app.tsx
++++ b/web/src/app.tsx
+@@ -10,6 +10,7 @@ import { QueryPoliciesPage } from "./features/query-policies/QueryPoliciesPage";
+ import { MutationPoliciesPage } from "./features/mutation-policies/MutationPoliciesPage";
+ import { TablePoliciesPage } from "./features/table-policies/TablePoliciesPage";
+ import { ManagedDataPage } from "./features/managed-data/ManagedDataPage";
++import { ReleaseTemplatesPage } from "./features/release-templates/ReleaseTemplatesPage";
+ 
+ export function AppRoutes() {
+   return (
+@@ -28,6 +29,8 @@ export function AppRoutes() {
+         <Route path="platform/mutation-policies/:code" element={<MutationPoliciesPage />} />
+         <Route path="platform/table-policies" element={<TablePoliciesPage />} />
+         <Route path="platform/table-policies/:tableName" element={<TablePoliciesPage />} />
++        <Route path="platform/release-templates" element={<ReleaseTemplatesPage />} />
++        <Route path="platform/release-templates/:code" element={<ReleaseTemplatesPage />} />
+         <Route path="configuration/release-orders" element={<ReleaseOrdersPage />} />
+  <Route path="configuration/release-orders/:id" element={<ReleaseOrdersPage />} />
+  <Route path="configuration/managed-data" element={<ManagedDataPage />} />
+diff --git a/web/src/components/AppShell.tsx b/web/src/components/AppShell.tsx
+index 255bcb3..97689ec 100644
+--- a/web/src/components/AppShell.tsx
++++ b/web/src/components/AppShell.tsx
+@@ -1,6 +1,6 @@
+ import { useAccountRole, roleLabels } from "../features/accounts/roles";
+ import { useWorkspaceIdentity } from "../features/accounts/ProtectedWorkspace";
+-import { ArrowLeftRight, ChevronRight, Database, FileSearch, Layers3, Menu, ShieldCheck, Table2, X } from "lucide-react";
++import { ArrowLeftRight, ChevronRight, Database, FileSearch, GitBranchPlus, Layers3, Menu, ShieldCheck, Table2, X } from "lucide-react";
+ import { useState } from "react";
+ import { NavLink, Outlet, useLocation } from "react-router-dom";
+ import { Button } from "./ui/Button";
+@@ -46,6 +46,7 @@ export function AppShell() {
+             <NavLink to="/platform/query-policies" onClick={() => setMobileNavOpen(false)}><FileSearch size={18} />查询规则定义</NavLink>
+             <NavLink to="/platform/mutation-policies" onClick={() => setMobileNavOpen(false)}><ArrowLeftRight size={18} />变更规则定义</NavLink>
+             <NavLink to="/platform/table-policies" onClick={() => setMobileNavOpen(false)}><Layers3 size={18} />表规则分配</NavLink>
++            {administrator && <NavLink to="/platform/release-templates" onClick={() => setMobileNavOpen(false)}><GitBranchPlus size={18} />发布流程模板</NavLink>}
+           </section>
+           {administrator && <section className="nav-group" aria-labelledby="people-navigation-title">
+             <div id="people-navigation-title" className="nav-group-title">平台人员管理</div>
+diff --git a/web/src/features/release-templates/ReleaseTemplateForm.tsx b/web/src/features/release-templates/ReleaseTemplateForm.tsx
+new file mode 100644
+index 0000000..dabfaec
+--- /dev/null
++++ b/web/src/features/release-templates/ReleaseTemplateForm.tsx
+@@ -0,0 +1,61 @@
++import { useState, type FormEvent } from "react";
++import { Input } from "../../components/shadcn/input";
++import { Label } from "../../components/shadcn/label";
++import { NativeSelect } from "../../components/shadcn/native-select";
++import { Textarea } from "../../components/shadcn/textarea";
++import { Badge } from "../../components/shadcn/badge";
++import { useDraftProtection } from "../../components/ui/LeaveProtection";
++import { presentError } from "../../api/error-messages";
++import { defaultNodes, nodeTypeLabels, releaseTypeLabels, roleLabels, validateReleaseTemplate, type ReleaseTemplate, type ReleaseTemplateDraft, type ReleaseType } from "./model";
++
++const emptyDraft: ReleaseTemplateDraft = { code: "", name: "", description: "", type: "STANDARD", nodes: defaultNodes("STANDARD") };
++const draftFor = (template?: ReleaseTemplate): ReleaseTemplateDraft => template ? { code: template.code, name: template.name, description: template.description, type: template.type, nodes: template.nodes.map(node => ({ ...node })) } : emptyDraft;
++
++export function ReleaseTemplateForm({ template, mode, pending, serverError, uncertainWrite, onSubmit }: { template?: ReleaseTemplate; mode: "create" | "edit" | "view"; pending: boolean; serverError?: unknown; uncertainWrite?: boolean; onSubmit: (draft: ReleaseTemplateDraft, expectedVersion?: string) => void }) {
++  const [baseline] = useState(() => draftFor(template));
++  const [baselineVersion] = useState(template?.version);
++  const [draft, setDraft] = useState(() => draftFor(template));
++  const [errors, setErrors] = useState<Record<string, string>>({});
++  const readOnly = mode === "view";
++  useDraftProtection(!readOnly && JSON.stringify(draft) !== JSON.stringify(baseline), pending);
++  const updateType = (type: ReleaseType) => { setDraft(current => ({ ...current, type, nodes: defaultNodes(type) })); setErrors({}); };
++  const updateNode = (index: number, key: "code" | "name", value: string) => {
++    setDraft(current => ({ ...current, nodes: current.nodes.map((node, nodeIndex) => nodeIndex === index ? { ...node, [key]: value } : node) }));
++    setErrors(current => ({ ...current, [`node-${index}-${key}`]: "", nodes: "" }));
++  };
++  const submit = (event: FormEvent) => {
++    event.preventDefault();
++    if (readOnly || pending) return;
++    const next = { ...draft, code: draft.code.trim(), name: draft.name.trim(), description: draft.description.trim(), nodes: draft.nodes.map(node => ({ ...node, code: node.code.trim(), name: node.name.trim() })) };
++    const nextErrors = validateReleaseTemplate(next);
++    if (Object.keys(nextErrors).length) { setErrors(nextErrors); return; }
++    onSubmit(next, baselineVersion);
++  };
++  const shownError = serverError ? presentError(serverError) : null;
++  return <form id="release-template-form" className="policy-form" onSubmit={submit} noValidate>
++    {shownError && <div className="inline-alert" role="alert"><strong>{uncertainWrite ? "保存结果未知；请保持当前页面，再次点击保存将原样重推同一请求。" : shownError.message}</strong>{shownError.requestId && <span>请求编号：{shownError.requestId}</span>}</div>}
++    {template && <Badge variant="outline" className={`status-badge ${template.enabled ? "status-active" : "status-deprecated"}`}>{template.enabled ? "已启用" : "已停用"}</Badge>}
++    <fieldset className="form-controls" disabled={pending || readOnly || uncertainWrite}>
++      <section className="form-section" aria-labelledby="template-basics-heading">
++        <div className="form-section-heading"><h3 id="template-basics-heading">模板信息</h3><p>编码与发布类型创建后固定；名称和节点名称会保存到后续实例。</p></div>
++        <Label className="field field-wide"><span>模板编码 · 创建后不可变</span><Input autoFocus value={draft.code} disabled={mode !== "create"} onChange={event => setDraft(current => ({ ...current, code: event.target.value }))} aria-invalid={Boolean(errors.code)} />{errors.code && <small className="field-error">{errors.code}</small>}</Label>
++        <Label className="field field-wide"><span>模板名称</span><Input value={draft.name} onChange={event => setDraft(current => ({ ...current, name: event.target.value }))} aria-invalid={Boolean(errors.name)} />{errors.name && <small className="field-error">{errors.name}</small>}</Label>
++        <Label className="field field-wide"><span>发布类型</span><NativeSelect aria-label="发布类型" value={draft.type} disabled={mode !== "create"} onChange={event => updateType(event.target.value as ReleaseType)}><option value="STANDARD">常规</option><option value="EMERGENCY">应急</option></NativeSelect><small>{releaseTypeLabels[draft.type]}模板采用固定可执行节点顺序。</small></Label>
++        <Label className="field field-wide"><span>描述</span><Textarea rows={3} value={draft.description} onChange={event => setDraft(current => ({ ...current, description: event.target.value }))} aria-invalid={Boolean(errors.description)} />{errors.description && <small className="field-error">{errors.description}</small>}</Label>
++      </section>
++      <section className="form-panel" aria-labelledby="template-nodes-heading">
++        <div className="form-section-heading"><h3 id="template-nodes-heading">流程节点</h3><p>节点类型、顺序和权限来源由发布类型约束；审批复用正式按表审批能力。</p></div>
++        {errors.nodes && <p className="field-error">{errors.nodes}</p>}
++        <div className="template-node-list">{draft.nodes.map((node, index) => <section className="template-node" key={`${node.type}-${index}`} aria-label={`${index + 1}. ${nodeTypeLabels[node.type]}`}>
++          <header><span className="template-node-index">{index + 1}</span><strong>{nodeTypeLabels[node.type]}</strong><Badge variant="outline">{roleLabels[node.requiredRole]}</Badge></header>
++          <div className="form-grid">
++            <Label className="field"><span>节点编码</span><Input value={node.code} onChange={event => updateNode(index, "code", event.target.value)} aria-invalid={Boolean(errors[`node-${index}-code`])} />{errors[`node-${index}-code`] && <small className="field-error">{errors[`node-${index}-code`]}</small>}</Label>
++            <Label className="field"><span>节点名称</span><Input value={node.name} onChange={event => updateNode(index, "name", event.target.value)} aria-invalid={Boolean(errors[`node-${index}-name`])} />{errors[`node-${index}-name`] && <small className="field-error">{errors[`node-${index}-name`]}</small>}</Label>
++          </div>
++        </section>)}</div>
++        <p className="form-note">监控节点未启用；模板的监控列表固定为空。</p>
++      </section>
++      {template && <dl className="audit-grid"><div><dt>版本</dt><dd>{template.version}</dd></div><div><dt>创建人</dt><dd>{template.creator}</dd></div><div><dt>修改人</dt><dd>{template.modifier}</dd></div><div><dt>最近更新</dt><dd>{new Date(template.updatedAt).toLocaleString("zh-CN")}</dd></div></dl>}
++    </fieldset>
++  </form>;
++}
+diff --git a/web/src/features/release-templates/ReleaseTemplatesPage.test.tsx b/web/src/features/release-templates/ReleaseTemplatesPage.test.tsx
+new file mode 100644
+index 0000000..c155863
+--- /dev/null
++++ b/web/src/features/release-templates/ReleaseTemplatesPage.test.tsx
+@@ -0,0 +1,192 @@
++import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
++import { render, screen, waitFor } from "@testing-library/react";
++import userEvent from "@testing-library/user-event";
++import { afterEach, describe, expect, it, vi } from "vitest";
++import { AppRoutes } from "../../app";
++import { ToastProvider } from "../../components/ui/Toast";
++import { TestRouter } from "../../test/TestRouter";
++import { withAdminSession } from "../../test/account-session";
++
++const standard = {
++  code: "ordinary_release_v1", name: "常规发布", description: "标准流程", type: "STANDARD",
++  node_list: [
++    { code: "approval", type: "APPROVAL", name: "按表审批", required_role: "TABLE_APPROVER" },
++    { code: "publication", type: "PUBLICATION", name: "发布", required_role: "PUBLISHER" },
++    { code: "completion", type: "COMPLETION", name: "完结", required_role: "PUBLISHER" },
++  ],
++  monitor_list: [], enabled: true, version: "1", creator: "admin-id", modifier: "admin-id",
++  created_at: "2026-09-11T00:00:00Z", updated_at: "2026-09-11T00:00:00Z",
++};
++const emergency = { ...standard, code: "urgent_release_v1", name: "应急发布", type: "EMERGENCY", node_list: standard.node_list.slice(1) };
++const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } });
++function renderPage(path = "/platform/release-templates") {
++  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
++  return render(<QueryClientProvider client={client}><TestRouter initialEntries={[path]}><ToastProvider><AppRoutes /></ToastProvider></TestRouter></QueryClientProvider>);
++}
++afterEach(() => vi.unstubAllGlobals());
++
++describe("发布流程模板页面", () => {
++  it("shows the formal ADMIN catalog and protects emergency lifecycle actions", async () => {
++    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL) => {
++      const url = String(input);
++      if (url.endsWith("/release-templates")) return json({ templates: [standard, emergency] });
++      if (url.endsWith("/release-templates/urgent_release_v1")) return json(emergency);
++      throw new Error(`unexpected request ${url}`);
++    })));
++    const user = userEvent.setup();
++    renderPage();
++    expect(await screen.findByRole("heading", { name: "发布流程模板" })).toBeVisible();
++    expect(screen.getByRole("link", { name: "发布流程模板" })).toHaveClass("active");
++    await user.click((await screen.findAllByRole("button", { name: "查看" }))[1]);
++    expect(await screen.findByRole("button", { name: "停用" })).toBeDisabled();
++    expect(screen.getByRole("button", { name: "删除" })).toBeDisabled();
++  });
++
++  it("creates an emergency template with a constrained node list and a request identity", async () => {
++    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
++      const url = String(input);
++      if (url.endsWith("/release-templates") && init?.method === "POST") return json(emergency, 201);
++      if (url.endsWith("/release-templates")) return json({ templates: [] });
++      throw new Error(`unexpected request ${url}`);
++    });
++    vi.stubGlobal("fetch", withAdminSession(fetchMock));
++    const user = userEvent.setup();
++    renderPage("/platform/release-templates/new");
++    await user.type(await screen.findByLabelText(/模板编码/), "urgent_release_v1");
++    await user.type(screen.getByLabelText("模板名称"), "应急发布");
++    await user.selectOptions(screen.getByLabelText("发布类型"), "EMERGENCY");
++    await user.click(screen.getByRole("button", { name: "保存模板" }));
++    await waitFor(() => expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(true));
++    const [, request] = fetchMock.mock.calls.find(([, init]) => init?.method === "POST")!;
++    expect(new Headers(request?.headers).get("Idempotency-Key")).toMatch(/^release-template-/);
++    const body = JSON.parse(String(request?.body));
++    expect(body.node_list.map((node: { type: string }) => node.type)).toEqual(["PUBLICATION", "COMPLETION"]);
++    expect(body.monitor_list).toBeUndefined();
++  });
++
++  it("keeps stale edit input and submits the version observed when editing began", async () => {
++    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
++      const url = String(input);
++      if (url.endsWith("/release-templates/ordinary_release_v1") && init?.method === "PUT") return json({ error: { code: "release_template_conflict", message: "模板已被其他管理员修改", request_id: "template-conflict" } }, 409);
++      if (url.endsWith("/release-templates/ordinary_release_v1")) return json(standard);
++      if (url.endsWith("/release-templates")) return json({ templates: [standard] });
++      throw new Error(`unexpected request ${url}`);
++    });
++    vi.stubGlobal("fetch", withAdminSession(fetchMock));
++    const user = userEvent.setup();
++    renderPage("/platform/release-templates/ordinary_release_v1?mode=edit");
++    const name = await screen.findByLabelText("模板名称");
++    await user.clear(name);
++    await user.type(name, "我的未保存版本");
++    await user.click(screen.getByRole("button", { name: "保存模板" }));
++    expect(await screen.findByText(/模板已被其他管理员修改/)).toBeVisible();
++    expect(name).toHaveValue("我的未保存版本");
++    const [, request] = fetchMock.mock.calls.find(([, init]) => init?.method === "PUT")!;
++    expect(JSON.parse(String(request?.body)).expected_version).toBe("1");
++  });
++
++  it("uses the shared confirmation dialog and focuses cancel before disabling a standard template", async () => {
++    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL) => {
++      const url = String(input);
++      if (url.endsWith("/release-templates/ordinary_release_v1")) return json(standard);
++      if (url.endsWith("/release-templates")) return json({ templates: [standard] });
++      throw new Error(`unexpected request ${url}`);
++    })));
++    const user = userEvent.setup();
++    renderPage("/platform/release-templates/ordinary_release_v1");
++    await user.click(await screen.findByRole("button", { name: "停用" }));
++    expect(screen.getByRole("alertdialog", { name: /停用发布流程模板/ })).toBeVisible();
++    expect(screen.getByRole("button", { name: "取消" })).toHaveFocus();
++  });
++
++  it("retries an unknown edit with the original body, version and request identity", async () => {
++    let attempts = 0;
++    const updated = { ...standard, name: "已保存名称", version: "2" };
++    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
++      const url = String(input);
++      if (url.endsWith("/release-templates/ordinary_release_v1") && init?.method === "PUT") {
++        attempts += 1;
++        if (attempts === 1) throw new TypeError("connection closed after request");
++        return json(updated);
++      }
++      if (url.endsWith("/release-templates/ordinary_release_v1")) return json(standard);
++      if (url.endsWith("/release-templates")) return json({ templates: [standard] });
++      throw new Error(`unexpected request ${url}`);
++    });
++    vi.stubGlobal("fetch", withAdminSession(fetchMock));
++    const user = userEvent.setup();
++    renderPage("/platform/release-templates/ordinary_release_v1?mode=edit");
++    const name = await screen.findByLabelText("模板名称");
++    await user.clear(name);
++    await user.type(name, "已保存名称");
++    await user.click(screen.getByRole("button", { name: "保存模板" }));
++    expect(await screen.findByRole("alert")).toHaveTextContent("保存结果未知；请保持当前页面，再次点击保存将原样重推同一请求。");
++    expect(name).toBeDisabled();
++    await user.click(screen.getByRole("button", { name: "重推原请求" }));
++    await waitFor(() => expect(attempts).toBe(2));
++    const writes = fetchMock.mock.calls.filter(([, init]) => init?.method === "PUT");
++    expect(writes[0][1]?.body).toBe(writes[1][1]?.body);
++    expect(new Headers(writes[0][1]?.headers).get("Idempotency-Key")).toBe(new Headers(writes[1][1]?.headers).get("Idempotency-Key"));
++  });
++
++  it("keeps an unknown lifecycle request bound to its original action and target", async () => {
++    let attempts = 0;
++    const disabled = { ...standard, enabled: false, version: "2" };
++    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
++      const url = String(input);
++      if (url.endsWith("/release-templates/ordinary_release_v1/disable") && init?.method === "POST") {
++        attempts += 1;
++        if (attempts === 1) return json({ error: { code: "release_template_unavailable", message: "response lost after commit", request_id: "lifecycle-unknown" } }, 503);
++        return json(disabled);
++      }
++      if (url.endsWith("/release-templates/ordinary_release_v1")) return json(standard);
++      if (url.endsWith("/release-templates")) return json({ templates: [standard] });
++      throw new Error(`unexpected request ${url}`);
++    });
++    vi.stubGlobal("fetch", withAdminSession(fetchMock));
++    const user = userEvent.setup();
++    renderPage("/platform/release-templates/ordinary_release_v1");
++    await user.click(await screen.findByRole("button", { name: "停用" }));
++    await user.click(screen.getByRole("button", { name: "确认停用" }));
++    expect(await screen.findByRole("alert")).toHaveTextContent("操作结果未知；再次确认将原样重推同一请求。");
++    expect(screen.getByRole("alert")).toHaveTextContent("请求编号：lifecycle-unknown");
++    await user.click(screen.getByRole("button", { name: /^取消$/ }));
++    expect(screen.getByRole("alert")).toHaveTextContent("请求编号：lifecycle-unknown");
++    expect(screen.getAllByRole("button", { name: "编辑" }).some(button => button.hasAttribute("disabled"))).toBe(true);
++    expect(screen.getByRole("button", { name: "删除" })).toBeDisabled();
++    expect(screen.getByRole("button", { name: "重推停用请求" })).toBeEnabled();
++    await user.click(screen.getByRole("button", { name: "重推停用请求" }));
++    expect(screen.getByRole("alertdialog", { name: /ordinary_release_v1/ })).toHaveTextContent("停用");
++    await user.click(screen.getByRole("button", { name: "重推原请求" }));
++    await waitFor(() => expect(attempts).toBe(2));
++    const writes = fetchMock.mock.calls.filter(([, init]) => init?.method === "POST");
++    expect(String(writes[0][0])).toBe(String(writes[1][0]));
++    expect(writes[0][1]?.body).toBe(writes[1][1]?.body);
++    expect(new Headers(writes[0][1]?.headers).get("Idempotency-Key")).toBe(new Headers(writes[1][1]?.headers).get("Idempotency-Key"));
++  });
++
++  it("does not carry a discarded template error into another target", async () => {
++    const second = { ...standard, code: "second_standard_v1", name: "第二模板" };
++    vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
++      const url = String(input);
++      if (url.endsWith("/release-templates/ordinary_release_v1") && init?.method === "PUT") return json({ error: { code: "release_template_conflict", message: "conflict", request_id: "old-target" } }, 409);
++      if (url.endsWith("/release-templates/ordinary_release_v1")) return json(standard);
++      if (url.endsWith("/release-templates/second_standard_v1")) return json(second);
++      if (url.endsWith("/release-templates")) return json({ templates: [standard, second] });
++      throw new Error(`unexpected request ${url}`);
++    })));
++    const user = userEvent.setup();
++    renderPage("/platform/release-templates/ordinary_release_v1?mode=edit");
++    const name = await screen.findByLabelText("模板名称");
++    await user.clear(name);
++    await user.type(name, "冲突输入");
++    await user.click(screen.getByRole("button", { name: "保存模板" }));
++    expect(await screen.findByText(/模板已被其他管理员修改/)).toBeVisible();
++    await user.click(screen.getAllByRole("button", { name: /^关闭$/ }).at(-1)!);
++    await user.click(await screen.findByRole("button", { name: "放弃修改并离开" }));
++    await user.click((await screen.findAllByRole("button", { name: "编辑" }))[1]);
++    expect(await screen.findByDisplayValue("第二模板")).toBeVisible();
++    expect(screen.queryByText(/模板已被其他管理员修改/)).not.toBeInTheDocument();
++    expect(screen.queryByText("old-target")).not.toBeInTheDocument();
++  });
++});
+diff --git a/web/src/features/release-templates/ReleaseTemplatesPage.tsx b/web/src/features/release-templates/ReleaseTemplatesPage.tsx
+new file mode 100644
+index 0000000..f40f403
+--- /dev/null
++++ b/web/src/features/release-templates/ReleaseTemplatesPage.tsx
+@@ -0,0 +1,111 @@
++import { useEffect, useRef, useState } from "react";
++import { GitBranchPlus, Plus, RefreshCw } from "lucide-react";
++import { useNavigate, useParams, useSearchParams } from "react-router-dom";
++import { isUncertainWriteError } from "../../api/client";
++import { presentError } from "../../api/error-messages";
++import { Badge } from "../../components/shadcn/badge";
++import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/shadcn/table";
++import { Button } from "../../components/ui/Button";
++import { Drawer } from "../../components/ui/Drawer";
++import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
++import { EmptyState, ErrorState, LoadingState } from "../../components/ui/Feedback";
++import { useLeaveProtection } from "../../components/ui/LeaveProtection";
++import { useToast } from "../../components/ui/Toast";
++import { useAccountRole } from "../accounts/roles";
++import { nodeTypeLabels, releaseTypeLabels, type ReleaseTemplateDraft } from "./model";
++import { useCreateReleaseTemplate, useDeleteReleaseTemplate, useReleaseTemplate, useReleaseTemplates, useReplaceReleaseTemplate, useSetReleaseTemplateEnabled } from "./queries";
++import { ReleaseTemplateForm } from "./ReleaseTemplateForm";
++
++export function ReleaseTemplatesPage() {
++  const canManage = useAccountRole("ADMIN");
++  const navigate = useNavigate();
++  const protection = useLeaveProtection();
++  const { showToast } = useToast();
++  const { code } = useParams<{ code?: string }>();
++  const [search] = useSearchParams();
++  const creating = code === "new";
++  const editing = search.get("mode") === "edit";
++  const list = useReleaseTemplates();
++  const detail = useReleaseTemplate(creating ? undefined : code);
++  const create = useCreateReleaseTemplate();
++  const replace = useReplaceReleaseTemplate();
++  const state = useSetReleaseTemplateEnabled();
++  const remove = useDeleteReleaseTemplate();
++  const [commandError, setCommandError] = useState<unknown>(null);
++  const [confirmation, setConfirmation] = useState<"enable" | "disable" | "delete" | null>(null);
++  type FrozenWrite =
++    | { kind: "create"; draft: ReleaseTemplateDraft; key: string }
++    | { kind: "replace"; code: string; draft: ReleaseTemplateDraft; version: string; key: string }
++    | { kind: "state"; code: string; enabled: boolean; version: string; key: string }
++    | { kind: "delete"; code: string; version: string; key: string };
++  const unresolvedWrite = useRef<FrozenWrite | null>(null);
++  const [uncertainWrite, setUncertainWrite] = useState(false);
++  const routeCode = useRef(code);
++  useEffect(() => {
++    if (routeCode.current === code) return;
++    routeCode.current = code;
++    unresolvedWrite.current = null;
++    setUncertainWrite(false);
++    setCommandError(null);
++    setConfirmation(null);
++    create.reset();
++    replace.reset();
++    state.reset();
++    remove.reset();
++  }, [code]);
++  const close = () => navigate("/platform/release-templates");
++  const mutationError = create.error ?? replace.error;
++  const pending = create.isPending || replace.isPending || state.isPending || remove.isPending;
++  const finish = (message: string) => {
++    unresolvedWrite.current = null;
++    setUncertainWrite(false);
++    setConfirmation(null);
++    setCommandError(null);
++    protection.afterSave(() => { showToast(message); close(); });
++  };
++  const failed = (write: FrozenWrite, error: unknown, commandFailure = false) => {
++    const uncertain = isUncertainWriteError(error);
++    unresolvedWrite.current = uncertain ? write : null;
++    setUncertainWrite(uncertain);
++    if (commandFailure) setCommandError(error);
++  };
++  const execute = (write: FrozenWrite) => {
++    if (write.kind === "create") create.mutate(write, { onSuccess: () => finish("发布流程模板已创建"), onError: error => failed(write, error) });
++    else if (write.kind === "replace") replace.mutate(write, { onSuccess: () => finish("发布流程模板已更新"), onError: error => failed(write, error) });
++    else if (write.kind === "delete") remove.mutate(write, { onSuccess: () => finish("发布流程模板已删除"), onError: error => failed(write, error, true) });
++    else state.mutate(write, { onSuccess: () => finish(write.enabled ? "发布流程模板已启用" : "发布流程模板已停用"), onError: error => failed(write, error, true) });
++  };
++  const submit = (draft: ReleaseTemplateDraft, expectedVersion?: string) => {
++    const retry = unresolvedWrite.current;
++    if (retry && (retry.kind === "create" || retry.kind === "replace")) { execute(retry); return; }
++    const frozen = { ...draft, nodes: draft.nodes.map(node => ({ ...node })) };
++    if (creating) execute({ kind: "create", draft: frozen, key: `release-template-${crypto.randomUUID()}` });
++    else if (detail.data && expectedVersion) execute({ kind: "replace", code: detail.data.code, draft: frozen, version: expectedVersion, key: `release-template-${crypto.randomUUID()}` });
++  };
++  const command = () => {
++    if (!detail.data || !confirmation) return;
++    const retry = unresolvedWrite.current;
++    if (retry?.kind === "delete" && confirmation === "delete") { execute(retry); return; }
++    if (retry?.kind === "state" && confirmation === (retry.enabled ? "enable" : "disable")) { execute(retry); return; }
++    const template = detail.data;
++    setCommandError(null);
++    setUncertainWrite(false);
++    if (confirmation === "delete") execute({ kind: "delete", code: template.code, version: template.version, key: `release-template-${crypto.randomUUID()}` });
++    else execute({ kind: "state", code: template.code, enabled: confirmation === "enable", version: template.version, key: `release-template-${crypto.randomUUID()}` });
++  };
++  const lifecycleRecovery = uncertainWrite && (unresolvedWrite.current?.kind === "state" || unresolvedWrite.current?.kind === "delete") ? unresolvedWrite.current : null;
++  const commandPresentation = commandError ? presentError(commandError) : null;
++  const stateAction = lifecycleRecovery?.kind === "state" ? lifecycleRecovery.enabled ? "enable" : "disable" : detail.data?.enabled ? "disable" : "enable";
++  return <main className="workspace">
++    <div className="page-heading"><div><h1>发布流程模板</h1><p>维护常规与应急发布的可复用节点定义。应急模板始终保持可用。</p></div><Button variant="primary" icon={<Plus size={17} />} disabled={!canManage} onClick={() => navigate("/platform/release-templates/new")}>新建模板</Button></div>
++    <section className="type-registry" aria-label="发布类型说明"><span><GitBranchPlus size={18} />可用发布类型</span><span className="mutation-type"><code>STANDARD</code><small>审批 → 发布 → 完结</small></span><span className="mutation-type"><code>EMERGENCY</code><small>发布 → 完结</small></span></section>
++    <section className="catalog" aria-label="发布流程模板目录">{list.isPending ? <LoadingState label="正在读取模板目录…" /> : list.isError && !list.data ? <ErrorState error={list.error} onRetry={() => void list.refetch()} /> : !list.data?.length ? <EmptyState entity="发布流程模板" /> : <div className="table-scroll"><Table className="policy-table release-template-table"><TableHeader><TableRow><TableHead>模板</TableHead><TableHead>类型</TableHead><TableHead>节点</TableHead><TableHead>状态</TableHead><TableHead>版本 / 最近更新</TableHead><TableHead>操作</TableHead></TableRow></TableHeader><TableBody>{list.data.map(template => <TableRow key={template.code} className={code === template.code ? "selected-row" : ""}><TableCell className="rule-identity"><strong title={template.description}>{template.name}</strong><code>{template.code}</code></TableCell><TableCell><Badge variant="outline" className={template.type === "EMERGENCY" ? "status-badge status-draft" : "status-badge"}>{releaseTypeLabels[template.type]}</Badge></TableCell><TableCell><div className="template-node-summary">{template.nodes.map(node => <span key={node.code}>{nodeTypeLabels[node.type]}</span>)}</div></TableCell><TableCell><Badge variant="outline" className={`status-badge ${template.enabled ? "status-active" : "status-deprecated"}`}>{template.enabled ? "已启用" : "已停用"}</Badge></TableCell><TableCell className="timestamp"><strong>v{template.version}</strong><small>{new Date(template.updatedAt).toLocaleString("zh-CN")}</small></TableCell><TableCell><div className="row-actions"><Button variant="ghost" onClick={() => navigate(`/platform/release-templates/${encodeURIComponent(template.code)}`)}>查看</Button><Button variant="ghost" disabled={!canManage} onClick={() => navigate(`/platform/release-templates/${encodeURIComponent(template.code)}?mode=edit`)}>编辑</Button></div></TableCell></TableRow>)}</TableBody></Table></div>}
++      <footer className="catalog-footer"><span>共 {list.data?.length ?? 0} 个模板</span><span>编码与类型稳定 · 节点受约束</span><Button className="catalog-refresh" variant="ghost" icon={<RefreshCw size={15} />} onClick={() => void list.refetch()} disabled={list.isFetching}>刷新</Button></footer>
++    </section>
++    {code && <Drawer open title={creating ? "新建发布流程模板" : editing ? "编辑发布流程模板" : "发布流程模板详情"} eyebrow="发布流程模板" onClose={() => protection.requestLeave(close)} footer={<>{(creating || editing) && <Button variant="primary" type="submit" form="release-template-form" disabled={!canManage || pending}>{pending ? "正在保存…" : uncertainWrite ? "重推原请求" : "保存模板"}</Button>}{!creating && !editing && detail.data && <><Button variant="primary" disabled={Boolean(lifecycleRecovery)} onClick={() => navigate("?mode=edit")}>编辑</Button><Button disabled={!canManage || pending || detail.data.type === "EMERGENCY" || Boolean(lifecycleRecovery && lifecycleRecovery.kind !== "state")} onClick={() => setConfirmation(stateAction)}>{lifecycleRecovery?.kind === "state" ? `重推${lifecycleRecovery.enabled ? "启用" : "停用"}请求` : detail.data.enabled ? "停用" : "启用"}</Button><Button variant="danger" disabled={!canManage || pending || detail.data.type === "EMERGENCY" || Boolean(lifecycleRecovery && lifecycleRecovery.kind !== "delete")} onClick={() => setConfirmation("delete")}>{lifecycleRecovery?.kind === "delete" ? "重推删除请求" : "删除"}</Button></>}<Button onClick={() => protection.requestLeave(close)} disabled={pending}>关闭</Button></>}>
++      {lifecycleRecovery && !confirmation && <div className="inline-alert" role="alert"><strong>{lifecycleRecovery.kind === "delete" ? "删除" : lifecycleRecovery.enabled ? "启用" : "停用"}结果未知；只能针对模板 {lifecycleRecovery.code} 重推原请求，或关闭后放弃本页恢复入口。</strong>{commandPresentation?.requestId && <span>请求编号：{commandPresentation.requestId}</span>}</div>}
++      {!creating && detail.isPending ? <LoadingState label="正在读取模板…" /> : !creating && detail.isError && !detail.data ? <ErrorState error={detail.error} onRetry={() => void detail.refetch()} /> : <ReleaseTemplateForm key={`${code}:${editing ? "edit" : creating ? "create" : "view"}`} template={detail.data} mode={creating ? "create" : editing ? "edit" : "view"} pending={pending} serverError={mutationError} uncertainWrite={uncertainWrite && !lifecycleRecovery} onSubmit={submit} />}
++    </Drawer>}
++    {confirmation && detail.data && <ConfirmDialog open title={confirmation === "delete" ? `删除发布流程模板 ${detail.data.code}？` : `${confirmation === "disable" ? "停用" : "启用"}发布流程模板 ${detail.data.code}？`} description={confirmation === "delete" ? "删除后无法恢复。" : confirmation === "disable" ? "停用后不能用于新的流程实例；已有实例保持不变。" : "启用后可以重新用于新的流程实例。"} confirmLabel={uncertainWrite ? "重推原请求" : confirmation === "delete" ? "确认删除" : confirmation === "disable" ? "确认停用" : "确认启用"} destructive={confirmation === "delete" || confirmation === "disable"} pending={pending} onCancel={() => { if (!pending) { setConfirmation(null); if (!uncertainWrite) setCommandError(null); } }} onConfirm={command}>{commandError ? uncertainWrite ? <div className="inline-alert" role="alert"><strong>操作结果未知；再次确认将原样重推同一请求。</strong>{commandPresentation?.requestId && <span>请求编号：{commandPresentation.requestId}</span>}</div> : <ErrorState error={commandError} /> : null}</ConfirmDialog>}
++  </main>;
++}
+diff --git a/web/src/features/release-templates/model.ts b/web/src/features/release-templates/model.ts
+new file mode 100644
+index 0000000..9555d8a
+--- /dev/null
++++ b/web/src/features/release-templates/model.ts
+@@ -0,0 +1,37 @@
++export type ReleaseType = "STANDARD" | "EMERGENCY";
++export type ReleaseTemplateNodeType = "APPROVAL" | "PUBLICATION" | "COMPLETION";
++export type ReleaseTemplateNode = { code: string; type: ReleaseTemplateNodeType; name: string; requiredRole: "TABLE_APPROVER" | "PUBLISHER" };
++export type ReleaseTemplate = {
++  code: string; name: string; description: string; type: ReleaseType;
++  nodes: ReleaseTemplateNode[]; enabled: boolean; version: string;
++  creator: string; modifier: string; createdAt: string; updatedAt: string;
++};
++export type ReleaseTemplateDraft = Pick<ReleaseTemplate, "code" | "name" | "description" | "type" | "nodes">;
++
++export const releaseTypeLabels: Record<ReleaseType, string> = { STANDARD: "常规", EMERGENCY: "应急" };
++export const nodeTypeLabels: Record<ReleaseTemplateNodeType, string> = { APPROVAL: "按表审批", PUBLICATION: "发布", COMPLETION: "完结" };
++export const roleLabels = { TABLE_APPROVER: "表审批人员", PUBLISHER: "发布人员" } as const;
++
++export function defaultNodes(type: ReleaseType): ReleaseTemplateNode[] {
++  const publish: ReleaseTemplateNode = { code: "publication", type: "PUBLICATION", name: type === "EMERGENCY" ? "应急发布" : "发布", requiredRole: "PUBLISHER" };
++  const complete: ReleaseTemplateNode = { code: "completion", type: "COMPLETION", name: "完结", requiredRole: "PUBLISHER" };
++  return type === "STANDARD" ? [{ code: "approval", type: "APPROVAL", name: "按表审批", requiredRole: "TABLE_APPROVER" }, publish, complete] : [publish, complete];
++}
++
++export function validateReleaseTemplate(draft: ReleaseTemplateDraft) {
++  const errors: Record<string, string> = {};
++  if (!/^[a-z][a-z0-9_]*_v[1-9][0-9]*$/.test(draft.code)) errors.code = "使用小写字母、数字和下划线，并以 _v1 这类版本号结尾。";
++  if (!draft.name.trim()) errors.name = "请输入模板名称。";
++  else if ([...draft.name.trim()].length > 100) errors.name = "模板名称不能超过 100 个字符。";
++  if ([...draft.description.trim()].length > 500) errors.description = "描述不能超过 500 个字符。";
++  const expected = draft.type === "STANDARD" ? ["APPROVAL", "PUBLICATION", "COMPLETION"] : ["PUBLICATION", "COMPLETION"];
++  if (draft.nodes.length !== expected.length || draft.nodes.some((node, index) => node.type !== expected[index])) errors.nodes = "节点顺序与发布类型不匹配。";
++  const codes = new Set<string>();
++  draft.nodes.forEach((node, index) => {
++    if (!/^[a-z][a-z0-9_]{0,63}$/.test(node.code)) errors[`node-${index}-code`] = "节点编码须为小写字母、数字或下划线。";
++    else if (codes.has(node.code)) errors[`node-${index}-code`] = "节点编码不能重复。";
++    codes.add(node.code);
++    if (!node.name.trim()) errors[`node-${index}-name`] = "请输入节点名称。";
++  });
++  return errors;
++}
+diff --git a/web/src/features/release-templates/queries.ts b/web/src/features/release-templates/queries.ts
+new file mode 100644
+index 0000000..3789a38
+--- /dev/null
++++ b/web/src/features/release-templates/queries.ts
+@@ -0,0 +1,16 @@
++import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
++import { createReleaseTemplate, deleteReleaseTemplate, getReleaseTemplate, listReleaseTemplates, replaceReleaseTemplate, setReleaseTemplateEnabled } from "../../api/release-templates";
++import { shouldRetryQuery } from "../../api/client";
++import type { ReleaseTemplateDraft } from "./model";
++
++export const releaseTemplateKeys = { list: ["release-templates"] as const, detail: (code: string) => ["release-templates", code] as const };
++export const useReleaseTemplates = () => useQuery({ queryKey: releaseTemplateKeys.list, queryFn: listReleaseTemplates, retry: shouldRetryQuery });
++export const useReleaseTemplate = (code?: string) => useQuery({ queryKey: releaseTemplateKeys.detail(code ?? ""), queryFn: () => getReleaseTemplate(code!), enabled: Boolean(code), retry: shouldRetryQuery });
++function useTemplateMutation<T>(run: (input: T) => Promise<unknown>) {
++  const client = useQueryClient();
++  return useMutation({ mutationFn: run, onSuccess: () => client.invalidateQueries({ queryKey: releaseTemplateKeys.list }) });
++}
++export const useCreateReleaseTemplate = () => useTemplateMutation(({ draft, key }: { draft: ReleaseTemplateDraft; key: string }) => createReleaseTemplate(draft, key));
++export const useReplaceReleaseTemplate = () => useTemplateMutation(({ code, draft, version, key }: { code: string; draft: ReleaseTemplateDraft; version: string; key: string }) => replaceReleaseTemplate(code, draft, version, key));
++export const useSetReleaseTemplateEnabled = () => useTemplateMutation(({ code, enabled, version, key }: { code: string; enabled: boolean; version: string; key: string }) => setReleaseTemplateEnabled(code, enabled, version, key));
++export const useDeleteReleaseTemplate = () => useTemplateMutation(({ code, version, key }: { code: string; version: string; key: string }) => deleteReleaseTemplate(code, version, key));
+diff --git a/web/src/features/table-policies/TablePoliciesPage.test.tsx b/web/src/features/table-policies/TablePoliciesPage.test.tsx
+index 94b2ccf..95cab37 100644
+--- a/web/src/features/table-policies/TablePoliciesPage.test.tsx
++++ b/web/src/features/table-policies/TablePoliciesPage.test.tsx
+@@ -9,6 +9,7 @@ import { ToastProvider } from "../../components/ui/Toast";
+ import { businessSessionInvalid } from "../../api/business-session";
+ 
+ const tablePolicy = {
++  version:"1",
+   table_name: "notification_templates",
+   query_policy_code: "standard_page_query_v1",
+   mutation_policy_code: "standard_mutation_v1",
+@@ -130,6 +131,8 @@ describe("表规则分配页面", () => {
+ 
+     expect(await screen.findByRole("heading", { name: "表规则分配" })).toBeVisible();
+     expect(screen.getByRole("link", { name: "表规则分配" })).toHaveClass("active");
++    expect(screen.getByRole("link",{name:"角色管理"})).toBeVisible();
++    expect(screen.getByRole("link",{name:"发布流程模板"})).toBeVisible();
+     expect((await screen.findAllByText("notification_templates")).length).toBeGreaterThan(0);
+     expect(screen.getByText("通知模板")).toBeVisible();
+     expect(screen.getByText("audit_events")).toBeVisible();
+@@ -137,6 +140,8 @@ describe("表规则分配页面", () => {
+     expect(screen.getByText("standard_page_query_v1")).toBeVisible();
+     expect(screen.getByText("standard_mutation_v1")).toBeVisible();
+     expect(screen.getAllByText("已启用").length).toBeGreaterThan(0);
++    const directory=screen.getByRole("region",{name:"表规则目录"});
++    for(const name of ["查看","字段配置","发布流程","审批角色"])expect(within(directory).getByRole("button",{name})).toBeVisible();
+ 
+     await user.type(screen.getByRole("searchbox", { name: "筛选表规则" }), "missing_table");
+     expect(screen.queryByText("standard_page_query_v1")).not.toBeInTheDocument();
+@@ -194,131 +199,60 @@ describe("表规则分配页面", () => {
+     expect(await screen.findByText("表规则已创建并保持未启用")).toBeVisible();
+   });
+ 
+-  it("does not replay a table-rule assignment whose response was lost and offers a read-only check", async () => {
+-    let writes = 0;
+-    let reads = 0;
+-    let failedCheckStatus = 0;
+-    let failedReads = 0;
+-    let finishCheck: ((response: Response) => void) | undefined;
+-    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+-      const url = String(input);
+-      if (url.endsWith("/database-tables")) { reads += 1; return json({ tables: discoveryTables }); }
+-      if (url.endsWith("/query-policy-types")) return json(queryPolicyTypes);
+-      if (url.endsWith("/mutation-policy-types")) return json(mutationPolicyTypes);
+-      if (url.endsWith("/query-policies")) return json({ policies: queryPolicies });
+-      if (url.endsWith("/mutation-policies")) return json({ policies: mutationPolicies });
+-      if (url.endsWith("/table-policies") && init?.method === "POST") {
+-        writes += 1;
+-        throw new TypeError("response lost after commit");
+-      }
+-      if (url.endsWith("/table-policies/message_templates")) {
+-        reads += 1;
+-        if (failedCheckStatus) {
+-          failedReads += 1;
+-          if (!finishCheck) return new Promise<Response>((resolve) => { finishCheck = resolve; });
+-          return json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, failedCheckStatus);
+-        }
+-        return json({ ...tablePolicy, table_name: "message_templates", enabled: false });
+-      }
+-      if (url.endsWith("/table-policies")) {
+-        reads += 1;
+-        return json({ policies: [tablePolicy] });
++  it.each(["create", "disable"])("manually replays the original %s request after response loss", async kind => {
++    const writes:RequestInit[]=[];
++    vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input:RequestInfo|URL,init?:RequestInit)=>{
++      const url=String(input);
++      if(init?.method==="POST"&&url.includes("/table-policies")){
++        writes.push(init);if(writes.length===1)throw new TypeError("response lost after commit");
++        return json({...tablePolicy,table_name:kind==="create"?"message_templates":"notification_templates",enabled:false,version:kind==="create"?"1":"2"},kind==="create"?201:200);
+       }
+-      throw new Error(`unexpected request ${url}`);
+-    });
+-    vi.stubGlobal("fetch", withAdminSession(fetchMock));
+-    const user = userEvent.setup();
+-    renderPage("/platform/table-policies?mode=create");
+-    await user.selectOptions(await screen.findByRole("combobox", { name: "真实数据库表" }), "message_templates");
+-    await user.selectOptions(screen.getByRole("combobox", { name: "Active 查询规则" }), "standard_page_query_v1");
+-    await user.selectOptions(screen.getByRole("combobox", { name: "Active 变更规则" }), "standard_mutation_v1");
+-    await user.click(screen.getByRole("button", { name: "创建未启用分配" }));
+-    expect(await screen.findByLabelText("提交结果尚未确认")).toHaveTextContent("提交结果尚未确认");
+-    expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeDisabled();
+-    expect(writes).toBe(1);
+-    for (const status of [503, 504]) {
+-      failedCheckStatus = status;
+-      failedReads = 0;
+-      finishCheck = undefined;
+-      await user.click(screen.getByRole("button", { name: "只读核对当前状态" }));
+-      await waitFor(() => expect(finishCheck).toBeTypeOf("function"));
+-      await act(async () => { finishCheck!(json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, status)); });
+-      await waitFor(() => expect(failedReads).toBe(1));
+-      expect(await screen.findByLabelText("提交结果尚未确认")).toHaveTextContent("提交结果尚未确认");
+-      expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeDisabled();
+-      expect(writes).toBe(1);
+-    }
+-    failedCheckStatus = 0;
+-    const readsBeforeCheck = reads;
+-    await user.click(screen.getByRole("button", { name: "只读核对当前状态" }));
+-    await vi.waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
+-    expect(await screen.findByText("当前查询结果（仅供核对）")).toBeVisible();
+-    expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeDisabled();
+-    await user.click(screen.getByRole("button", { name: "我已核对，返回修改" }));
+-    await waitFor(() => expect(screen.queryByLabelText("提交结果尚未确认")).not.toBeInTheDocument());
+-    expect(screen.getByRole("button", { name: "创建未启用分配" })).toBeEnabled();
+-    expect(writes).toBe(1);
++      if(url.endsWith("/database-tables"))return json({tables:discoveryTables});
++      if(url.endsWith("/query-policy-types"))return json(queryPolicyTypes);
++      if(url.endsWith("/mutation-policy-types"))return json(mutationPolicyTypes);
++      if(url.endsWith("/query-policies"))return json({policies:queryPolicies});
++      if(url.endsWith("/mutation-policies"))return json({policies:mutationPolicies});
++      if(url.endsWith("/table-policies"))return json({policies:[tablePolicy]});
++      if(url.endsWith("/table-policies/message_templates"))return json({...tablePolicy,table_name:"message_templates",enabled:false});
++      if(url.endsWith("/table-policies/notification_templates"))return json(tablePolicy);
++      throw new Error(url);
++    })));
++    const user=userEvent.setup();renderPage(kind==="create"?"/platform/table-policies?mode=create":"/platform/table-policies/notification_templates");
++    if(kind==="create"){
++      await user.selectOptions(await screen.findByRole("combobox",{name:"真实数据库表"}),"message_templates");
++      await user.selectOptions(screen.getByRole("combobox",{name:"Active 查询规则"}),"standard_page_query_v1");
++      await user.selectOptions(screen.getByRole("combobox",{name:"Active 变更规则"}),"standard_mutation_v1");
++      await user.click(screen.getByRole("button",{name:"创建未启用分配"}));
++    }else{await user.click(await screen.findByRole("button",{name:"停用"}));await user.click(screen.getByRole("button",{name:"确认停用"}));}
++    await screen.findByText(/操作结果未知/);expect(writes).toHaveLength(1);
++    expect(screen.queryByRole("button",{name:"只读核对当前状态"})).not.toBeInTheDocument();
++    if(kind==="create")expect(screen.getByRole("combobox",{name:"真实数据库表"})).toBeDisabled();
++    await user.click(screen.getByRole("button",{name:"重推原请求"}));
++    await waitFor(()=>expect(writes).toHaveLength(2));
++    expect(writes[1]?.body).toEqual(writes[0]?.body);
++    expect(new Headers(writes[1]?.headers).get("Idempotency-Key")).toEqual(new Headers(writes[0]?.headers).get("Idempotency-Key"));
++    await screen.findByText(kind==="create"?"表规则已创建并保持未启用":"表规则已停用");
+   });
+ 
+-  it("blocks a table-rule state command after its response is lost until a read-only check", async () => {
+-    let writes = 0;
+-    let reads = 0;
+-    let failedCheckStatus = 0;
+-    let failedReads = 0;
+-    let finishCheck: ((response: Response) => void) | undefined;
+-    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+-      const url = String(input);
+-      if (url.endsWith("/database-tables")) { reads += 1; return json({ tables: discoveryTables }); }
+-      if (url.endsWith("/table-policies/notification_templates/disable") && init?.method === "POST") {
+-        writes += 1;
+-        throw new TypeError("response lost after commit");
+-      }
+-      if (url.endsWith("/table-policies/notification_templates")) {
+-        reads += 1;
+-        if (failedCheckStatus) {
+-          failedReads += 1;
+-          if (!finishCheck) return new Promise<Response>((resolve) => { finishCheck = resolve; });
+-          return json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, failedCheckStatus);
+-        }
+-        return json(tablePolicy);
+-      }
+-      if (url.endsWith("/table-policies")) { reads += 1; return json({ policies: [tablePolicy] }); }
+-      throw new Error(`unexpected request ${url}`);
+-    });
+-    vi.stubGlobal("fetch", withAdminSession(fetchMock));
+-    const user = userEvent.setup();
+-    renderPage("/platform/table-policies/notification_templates");
+-    await user.click(await screen.findByRole("button", { name: "停用" }));
+-    await user.click(screen.getByRole("button", { name: "确认停用" }));
+-    expect(await screen.findByLabelText("提交结果尚未确认")).toHaveTextContent("提交结果尚未确认");
+-    expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
+-    expect(writes).toBe(1);
+-    await user.click(screen.getByRole("button", { name: "关闭抽屉" }));
+-    await user.click(screen.getByRole("button", { name: "查看" }));
+-    expect(await screen.findByRole("dialog", { name: "表规则详情" })).toBeInTheDocument();
+-    expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
+-    for (const status of [503, 504]) {
+-      failedCheckStatus = status;
+-      failedReads = 0;
+-      finishCheck = undefined;
+-      await user.click(screen.getByRole("button", { name: "只读核对当前状态" }));
+-      await waitFor(() => expect(finishCheck).toBeTypeOf("function"));
+-      await act(async () => { finishCheck!(json({ error: { code: "policy_catalog_unavailable", message: "read unavailable", request_id: "req-check" } }, status)); });
+-      await waitFor(() => expect(failedReads).toBe(1));
+-      expect(await screen.findByLabelText("提交结果尚未确认")).toHaveTextContent("提交结果尚未确认");
+-      expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
+-      expect(writes).toBe(1);
+-    }
+-    failedCheckStatus = 0;
+-    const readsBeforeCheck = reads;
+-    await user.click(screen.getByRole("button", { name: "只读核对当前状态" }));
+-    await waitFor(() => expect(reads).toBeGreaterThan(readsBeforeCheck));
+-    expect(await screen.findByText("当前查询结果（仅供核对）")).toBeVisible();
+-    expect(screen.queryByRole("button", { name: "停用" })).not.toBeInTheDocument();
+-    await user.click(screen.getByRole("button", { name: "我已核对，结束本次核对" }));
+-    await waitFor(() => expect(screen.queryByLabelText("提交结果尚未确认")).not.toBeInTheDocument());
+-    expect(await screen.findByRole("button", { name: "查看" })).toBeEnabled();
+-    expect(writes).toBe(1);
++  it("recovers a state-command version conflict without treating cached data as a successful refresh", async()=>{
++    const writes:RequestInit[]=[];let reads=0;let readFails=false;let slowRead=false;let releaseRead:(()=>void)|undefined;
++    vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input:RequestInfo|URL,init?:RequestInit)=>{
++      const url=String(input);
++      if(init?.method==="POST"&&url.endsWith("/disable")){writes.push(init);if(writes.length===1)return json({error:{code:"dependency_unavailable",message:"down",request_id:"down"}},503);if(writes.length===2)return json({error:{code:"table_policy_conflict",message:"changed",request_id:"write-conflict"}},409);return json({...tablePolicy,enabled:false,version:"4"});}
++      if(url.endsWith("/notification_templates")){reads++;if(slowRead)return new Promise<Response>(resolve=>{releaseRead=()=>{slowRead=false;resolve(json({...tablePolicy,version:"3"}));};});return readFails?json({error:{code:"invalid_request",message:"read failed",request_id:"read-failure"}},422):json({...tablePolicy,version:reads===1?"1":"3"});}
++      if(url.endsWith("/database-tables"))return json({tables:discoveryTables});
++      if(url.endsWith("/query-policy-types"))return json(queryPolicyTypes);
++      if(url.endsWith("/mutation-policy-types"))return json(mutationPolicyTypes);
++      if(url.endsWith("/query-policies"))return json({policies:queryPolicies});
++      if(url.endsWith("/mutation-policies"))return json({policies:mutationPolicies});
++      if(url.endsWith("/table-policies"))return json({policies:[tablePolicy]});throw new Error(url);
++    })));
++    renderPage("/platform/table-policies/notification_templates");await userEvent.click(await screen.findByRole("button",{name:"停用"}));await userEvent.click(screen.getByRole("button",{name:"确认停用"}));await screen.findByText(/操作结果未知/);
++    await userEvent.click(screen.getByRole("button",{name:"重推原请求"}));await screen.findByText(/表规则已被其他管理员修改/);expect(screen.queryByRole("button",{name:"重推原请求"})).not.toBeInTheDocument();
++    readFails=true;await userEvent.click(screen.getByRole("button",{name:"读取最新表规则并保留输入"}));await screen.findByText("请求编号：read-failure");expect(screen.getByText(/表规则已被其他管理员修改/)).toBeVisible();
++    readFails=false;slowRead=true;await userEvent.click(screen.getByRole("button",{name:"读取最新表规则并保留输入"}));expect(screen.getByRole("button",{name:"停用"})).toBeDisabled();await userEvent.click(screen.getByRole("button",{name:"停用"}));expect(writes).toHaveLength(2);releaseRead?.();await waitFor(()=>expect(screen.queryByText(/表规则已被其他管理员修改/)).not.toBeInTheDocument());
++    await userEvent.click(screen.getByRole("button",{name:"停用"}));await userEvent.click(screen.getByRole("button",{name:"确认停用"}));await waitFor(()=>expect(writes).toHaveLength(3));expect(JSON.parse(String(writes[2]?.body)).expected_version).toBe("3");expect(new Headers(writes[2]?.headers).get("Idempotency-Key")).not.toBe(new Headers(writes[0]?.headers).get("Idempotency-Key"));
++    await screen.findByText("表规则已停用");await waitFor(()=>expect(screen.getByRole("button",{name:"停用"})).toBeEnabled());
+   });
+ 
+   it("keeps a table-rule assignment across same-account login and revalidates its candidates", async () => {
+@@ -398,6 +332,7 @@ describe("表规则分配页面", () => {
+       query_policy_code: "strict_page_query_v2",
+       mutation_policy_code: "readonly_mutation_v2",
+       concurrency_key: [],
++      expected_version: "1",
+     });
+     expect(await screen.findByText("表规则已替换")).toBeVisible();
+   });
+@@ -587,15 +522,15 @@ describe("表规则分配页面", () => {
+ });
+ 
+ 
+-it("ends an uncertain enable/disable check in the refreshed table directory", async () => {
++it("ends a manually replayed state command in the refreshed table directory", async () => {
+   let enabled = true;
+-  let writes = 0;
++  const writes:RequestInit[] = [];
+   vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+     const url = String(input);
+     if (url.endsWith("/table-policies/notification_templates/disable") && init?.method === "POST") {
+-      writes++; enabled = false; throw new TypeError("response lost after disabling");
++      writes.push(init); enabled = false; if(writes.length===1)throw new TypeError("response lost after disabling");return json({...tablePolicy,enabled,version:"2"});
+     }
+-    if (url.endsWith("/table-policies/notification_templates")) return json({ ...tablePolicy, enabled });
++    if (url.endsWith("/table-policies/notification_templates")) return json({ ...tablePolicy, enabled, version:enabled?"1":"2" });
+     if (url.endsWith("/table-policies")) return json({ policies: [{ ...tablePolicy, enabled }] });
+     if (url.endsWith("/database-tables")) return json({ tables: discoveryTables.map(table => table.table_name === "notification_templates" ? { ...table, policy_enabled: enabled } : table) });
+     if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+@@ -608,13 +543,15 @@ it("ends an uncertain enable/disable check in the refreshed table directory", as
+   const drawer = await screen.findByRole("dialog", { name: "表规则详情" });
+   await userEvent.click(await within(drawer).findByRole("button", { name: "停用" }));
+   await userEvent.click(screen.getByRole("button", { name: "确认停用" }));
+-  await screen.findByLabelText("提交结果尚未确认");
+-  await userEvent.click(screen.getByRole("button", { name: "只读核对当前状态" }));
+-  await screen.findByText("当前查询结果（仅供核对）");
+-  await userEvent.click(screen.getByRole("button", { name: "我已核对，结束本次核对" }));
++  await screen.findByText(/操作结果未知/);
++  await userEvent.click(screen.getByRole("button", { name: "重推原请求" }));
++  await screen.findByText("表规则已停用");
++  expect(writes).toHaveLength(2);expect(writes[1]!.body).toBe(writes[0]!.body);
++  expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
++  await userEvent.click(within(drawer).getAllByRole("button",{name:"关闭"}).at(-1)!);
+   await waitFor(() => expect(screen.queryByRole("dialog", { name: "表规则详情" })).not.toBeInTheDocument());
+   expect(await within(screen.getByRole("region", { name: "表规则目录" })).findByText("未启用")).toBeVisible();
+-  expect(writes).toBe(1);
++  expect(writes).toHaveLength(2);
+ });
+ 
+ it("表审批分配跨完整角色分页选择并独立保存版本", async () => {
+diff --git a/web/src/features/table-policies/TablePoliciesPage.tsx b/web/src/features/table-policies/TablePoliciesPage.tsx
+index 5e27597..ff97e94 100644
+--- a/web/src/features/table-policies/TablePoliciesPage.tsx
++++ b/web/src/features/table-policies/TablePoliciesPage.tsx
+@@ -1,3 +1,4 @@
++import { TableReleaseTemplatesDrawer } from "./TableReleaseTemplatesDrawer";
+ import { useAccountRole } from "../accounts/roles";
+ import { Input } from "../../components/shadcn/input";
+ import { Label } from "../../components/shadcn/label";
+@@ -65,13 +66,13 @@ export function TablePoliciesPage() {
+               <TableCell className="rule-identity"><code>{policy.tableName}</code></TableCell><TableCell className="rule-pair"><div><small>查询</small><code>{policy.queryPolicyCode}</code></div><div><small>变更</small><code>{policy.mutationPolicyCode}</code></div></TableCell>
+               <TableCell><Badge variant="outline" className={`status-badge ${policy.enabled ? "status-active" : "status-draft"}`}>{policy.enabled ? "已启用" : "未启用"}</Badge></TableCell>
+               <TableCell className="timestamp">{formatTimestamp(policy.modifiedAt)}<small>{policy.modifier}</small></TableCell>
+-              <TableCell><div className="row-actions"><Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}`)}>查看</Button>{canManage && <><Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}?mode=fields`)}>字段配置</Button><Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}?mode=approvals`)}>审批角色</Button></>}</div></TableCell>
++              <TableCell><div className="row-actions"><Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}`)}>查看</Button>{canManage && <><Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}?mode=fields`)}>字段配置</Button><Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}?mode=templates`)}>发布流程</Button><Button variant="ghost" onClick={() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}?mode=approvals`)}>审批角色</Button></>}</div></TableCell>
+             </TableRow>)}
+           </TableBody></Table></div>
+         )}
+         <footer className="catalog-footer"><span>共 {policies.data?.length ?? 0} 个表规则</span><span>显示 {filteredPolicies.length} 个</span><Button className="catalog-refresh" variant="ghost" icon={<RefreshCw size={15} />} onClick={() => { void policies.refetch(); void discovery.refetch(); }}>刷新</Button></footer>
+       </section>
+-      {tableName && searchParams.get("mode") === "approvals" ? <TableApprovalDrawer key={tableName} tableName={tableName} /> : tableName && searchParams.get("mode") === "fields" ? <FieldPolicyDrawer key={tableName} tableName={tableName} /> : <TablePolicyDrawer tableName={tableName} />}
++      {tableName && searchParams.get("mode") === "approvals" ? <TableApprovalDrawer key={tableName} tableName={tableName} /> : tableName && searchParams.get("mode") === "templates" ? <TableReleaseTemplatesDrawer key={tableName} tableName={tableName}/> : tableName && searchParams.get("mode") === "fields" ? <FieldPolicyDrawer key={tableName} tableName={tableName} /> : <TablePolicyDrawer tableName={tableName} />}
+     </main>
+   );
+ }
+diff --git a/web/src/features/table-policies/TablePolicyDrawer.tsx b/web/src/features/table-policies/TablePolicyDrawer.tsx
+index 9342ef8..ad3e587 100644
+--- a/web/src/features/table-policies/TablePolicyDrawer.tsx
++++ b/web/src/features/table-policies/TablePolicyDrawer.tsx
+@@ -3,15 +3,14 @@ import { Input } from "../../components/shadcn/input";
+ import { NativeSelect } from "../../components/shadcn/native-select";
+ import { Label } from "../../components/shadcn/label";
+ import { Badge } from "../../components/shadcn/badge";
+-import { useQuery, useQueryClient } from "@tanstack/react-query";
+-import { concurrencyKeyFields, getTablePolicy } from "../../api/table-policies";
+-import { useWriteRecovery, WriteRecovery } from "../../components/ui/WriteRecovery";
++import { useQuery } from "@tanstack/react-query";
++import { concurrencyKeyFields } from "../../api/table-policies";
+ import { AlertCircle } from "lucide-react";
+ import { useEffect, useRef, useState, type FormEvent, type MutableRefObject, type ReactNode } from "react";
+ import { useNavigate, useSearchParams } from "react-router-dom";
+ import { useDraftProtection } from "../../components/ui/LeaveProtection";
+ import { Button } from "../../components/ui/Button";
+-import { isUncertainWriteError, prioritizeUncertainWriteError } from "../../api/client";
++import { ApiError, isUncertainWriteError, prioritizeUncertainWriteError } from "../../api/client";
+ import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
+ import { Drawer } from "../../components/ui/Drawer";
+ import { ErrorState, LoadingState } from "../../components/ui/Feedback";
+@@ -22,7 +21,7 @@ import { MutationPolicyEffect, QueryPolicyEffect } from "../policies/PolicyEffec
+ import { supportedQueryPolicyTypes } from "../query-policies/model";
+ import { useQueryPolicies, useQueryPolicyTypes } from "../query-policies/queries";
+ import type { TablePolicyAssignment } from "./model";
+-import { tablePolicyKeys, useCreateTablePolicy, useDatabaseTables, useDisableTablePolicy, useEnableTablePolicy, useReplaceTablePolicy, useTablePolicy } from "./queries";
++import { useCreateTablePolicy, useDatabaseTables, useDisableTablePolicy, useEnableTablePolicy, useReplaceTablePolicy, useTablePolicy } from "./queries";
+ 
+ type Props = { tableName?: string };
+ const emptyAssignment: TablePolicyAssignment = { concurrencyKey: [], tableName: "", queryPolicyCode: "", mutationPolicyCode: "" };
+@@ -34,8 +33,7 @@ export function TablePolicyDrawer({ tableName }: Props) {
+   const enable = useEnableTablePolicy();
+   const disable = useDisableTablePolicy();
+   const submittedTable = useRef<string | undefined>(undefined);
+-  // Editing selections reset on navigation; an unconfirmed write outcome must
+-  // survive closing and reopening the drawer until its state is read back.
++  // Each editor keeps its input and original request through same-account reauthentication.
+   return <TablePolicySession key={`${tableName}:${searchParams.get("mode")}`} tableName={tableName} commands={{ create, replace, enable, disable }} submittedTable={submittedTable} />;
+ }
+ 
+@@ -52,7 +50,6 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
+   const editingAllowedAtOpen = useRef(canManage).current;
+   const [searchParams] = useSearchParams();
+   const { showToast } = useToast();
+-  const queryClient = useQueryClient();
+   const creating = editingAllowedAtOpen && !tableName && searchParams.get("mode") === "create";
+   const replacing = editingAllowedAtOpen && !creating && searchParams.get("mode") === "replace";
+   const selectingAssignment = creating || replacing;
+@@ -67,36 +64,34 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
+   const [showKeyFields,setShowKeyFields]=useState(false);
+   const keyFields=useQuery({queryKey:["concurrency-key-fields",assignment.tableName,assignment.mutationPolicyCode],queryFn:()=>concurrencyKeyFields(assignment.tableName,assignment.mutationPolicyCode),enabled:showKeyFields&&selectingAssignment&&Boolean(assignment.tableName&&assignment.mutationPolicyCode),retry:false});
+   const inFlight = useRef(false);
+-  const recovery = useWriteRecovery();
+-  const pending = create.isPending || replace.isPending || enable.isPending || disable.isPending;
+-  const protection = useDraftProtection(selectingAssignment && baseline !== null && JSON.stringify(assignment) !== JSON.stringify(baseline), pending, inFlight);
++  type FrozenWrite = { kind:"create"; assignment:TablePolicyAssignment; key:string } | {kind:"replace";tableName:string;assignment:TablePolicyAssignment;version:string;key:string} | {kind:"enable"|"disable";tableName:string;version:string;key:string};
++  const original = useRef<FrozenWrite|null>(null);
++  const observedVersion=useRef<string|undefined>(undefined);
++  const [readingLatest,setReadingLatest]=useState(false);
++  const pending = readingLatest || create.isPending || replace.isPending || enable.isPending || disable.isPending;
++  const protection = useDraftProtection((selectingAssignment && baseline !== null && JSON.stringify(assignment) !== JSON.stringify(baseline)) || original.current!==null, pending, inFlight);
+   const [confirmReplace, setConfirmReplace] = useState(false);
+   const [pendingStateCommand, setPendingStateCommand] = useState<"enable" | "disable" | null>(null);
+   const close = () => navigate("/platform/table-policies");
+   const serverError = prioritizeUncertainWriteError([create.error, replace.error, enable.error, disable.error]);
+-  const uncertain = isUncertainWriteError(serverError);
+-  const finishRecovery = () => {
+-    recovery.reset(); create.reset(); replace.reset(); enable.reset(); disable.reset();
+-    if (!selectingAssignment) {
+-      close();
+-      void queryClient.invalidateQueries({ queryKey: tablePolicyKeys.list });
+-      void queryClient.invalidateQueries({ queryKey: tablePolicyKeys.discovery });
+-    }
+-  };
+-  const checkCurrentState = async () => {
+-    const snapshot = await getTablePolicy(submittedTable.current!);
+-    await Promise.all([
+-      queryClient.refetchQueries({ queryKey: tablePolicyKeys.list }, { throwOnError: true }),
+-      queryClient.refetchQueries({ queryKey: tablePolicyKeys.discovery }, { throwOnError: true }),
+-      ...(submittedTable.current ? [queryClient.refetchQueries({ queryKey: tablePolicyKeys.detail(submittedTable.current) }, { throwOnError: true })] : []),
+-    ]);
+-    return snapshot;
+-  };
+-  const writeError = serverError && !uncertain ? <ErrorState error={serverError} /> : null;
++  const uncertain = original.current !== null;
++  const [refreshError,setRefreshError]=useState<unknown>(null);
++  async function reviewLatest(){
++    if(inFlight.current||pending||!canManage)return;
++    inFlight.current=true;setReadingLatest(true);
++    try{
++      const latest=await detail.refetch();
++      if(!latest.isSuccess){setRefreshError(latest.error);return;}
++      observedVersion.current=latest.data.version;setRefreshError(null);create.reset();replace.reset();enable.reset();disable.reset();
++    }finally{inFlight.current=false;setReadingLatest(false);protection.submissionSettled();}
++  }
++  const writeError = <>{serverError&&<ErrorState error={serverError}/ >}{refreshError!=null&&<ErrorState error={refreshError}/ >}{uncertain&&<p role="alert">操作结果未知；已保留原请求、版本与输入，再次操作将原样重推。</p>}{serverError&&!uncertain&&!creating&&<Button type="button" disabled={pending||detail.isFetching||!canManage} onClick={()=>void reviewLatest()}>读取最新表规则并保留输入</Button>}</>;
++
+ 
+   useEffect(() => {
+     if (!baseline && detail.data) {
+       const initial = { tableName: detail.data.tableName, queryPolicyCode: detail.data.queryPolicyCode, mutationPolicyCode: detail.data.mutationPolicyCode, concurrencyKey: detail.data.concurrencyKey ?? [] };
++      observedVersion.current=detail.data.version;
+       setAssignment(initial);
+       setBaseline(initial);
+     }
+@@ -150,53 +145,39 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
+     );
+   };
+ 
+-  const executeReplace = () => {
+-    if (!canManage || !tableName || !valid || uncertain || inFlight.current || pending || recovery.blocked.current) return;
+-    inFlight.current = true;
+-    submittedTable.current = tableName ?? assignment.tableName;
+-    replace.mutate({ tableName, assignment }, {
+-      onSuccess() {
+-        setConfirmReplace(false);
+-        showToast("表规则已替换");
+-        protection.afterSave(() => navigate(`/platform/table-policies/${encodeURIComponent(tableName)}`));
++  const execute = (write:FrozenWrite) => {
++    if (!canManage || inFlight.current || pending) return;
++    inFlight.current=true;
++    submittedTable.current=write.kind==="create"?write.assignment.tableName:write.tableName;
++    const options={
++      onSuccess(policy:import("./model").TablePolicy){
++        original.current=null;setConfirmReplace(false);setPendingStateCommand(null);
++        observedVersion.current=undefined;setRefreshError(null);
++        showToast(write.kind==="create"?"表规则已创建并保持未启用":write.kind==="replace"?"表规则已替换":write.kind==="enable"?"表规则已启用":"表规则已停用");
++        if(write.kind==="create"||write.kind==="replace")protection.afterSave(()=>navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}`));
+       },
+-      onError(error) { recovery.fail(error); setConfirmReplace(false); },
+-      onSettled() { inFlight.current = false; protection.submissionSettled(); },
+-    });
++      onError(error:unknown){original.current=error instanceof ApiError&&error.code==="table_policy_conflict"?null:isUncertainWriteError(error)||original.current?write:null;setConfirmReplace(false);setPendingStateCommand(null);},
++      onSettled(){inFlight.current=false;protection.submissionSettled();},
++    };
++    if(write.kind==="create")create.mutate(write,options);
++    else if(write.kind==="replace")replace.mutate(write,options);
++    else (write.kind==="enable"?enable:disable).mutate(write,options);
++  };
++  const executeReplace = () => {
++    if(original.current){execute(original.current);return;}
++    if(!tableName||!valid||!observedVersion.current)return;
++    execute({kind:"replace",tableName,assignment:structuredClone(assignment),version:observedVersion.current,key:`table-policy-${crypto.randomUUID()}`});
+   };
+-
+   const executeStateCommand = () => {
+-    if (!canManage || !tableName || !pendingStateCommand || uncertain || inFlight.current || pending || recovery.blocked.current) return;
+-    inFlight.current = true;
+-    submittedTable.current = tableName ?? assignment.tableName;
+-    const command = pendingStateCommand;
+-    const mutation = command === "enable" ? enable : disable;
+-    mutation.mutate(tableName, {
+-      onSuccess() {
+-        showToast(command === "enable" ? "表规则已启用" : "表规则已停用");
+-        setPendingStateCommand(null);
+-      },
+-      onError(error) { recovery.fail(error); setPendingStateCommand(null); },
+-      onSettled() { inFlight.current = false; protection.submissionSettled(); },
+-    });
++    if(original.current){execute(original.current);return;}
++    if(!tableName||!pendingStateCommand||!detail.data)return;
++    execute({kind:pendingStateCommand,tableName,version:detail.data.version,key:`table-policy-${crypto.randomUUID()}`});
+   };
+-
+-  const submit = (event: FormEvent) => {
+-    event.preventDefault();
+-    if (!canManage || !valid || uncertain || inFlight.current || pending || recovery.blocked.current) return;
+-    if (creating) {
+-      inFlight.current = true;
+-      submittedTable.current = tableName ?? assignment.tableName;
+-      create.mutate(assignment, {
+-        onSuccess(policy) {
+-          showToast("表规则已创建并保持未启用");
+-          protection.afterSave(() => navigate(`/platform/table-policies/${encodeURIComponent(policy.tableName)}`));
+-        },
+-        onError: recovery.fail,
+-        onSettled() { inFlight.current = false; protection.submissionSettled(); },
+-      });
+-    } else if (detail.data?.enabled) setConfirmReplace(true);
+-    else executeReplace();
++  const submit = (event:FormEvent) => {
++    event.preventDefault();if(!canManage||pending||inFlight.current)return;
++    if(original.current){execute(original.current);return;}if(!valid)return;
++    if(creating)execute({kind:"create",assignment:structuredClone(assignment),key:`table-policy-${crypto.randomUUID()}`});
++    else if(detail.data?.enabled)setConfirmReplace(true);else executeReplace();
+   };
+ 
+   let content: ReactNode;
+@@ -225,8 +206,8 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
+   );
+   else content = (
+     <form id="table-policy-form" className="policy-form" onSubmit={submit}>
+-      <fieldset className="form-controls" disabled={pending || !canManage}>
+-      <div className="form-note"><AlertCircle size={17} /><span>{creating ? "新分配始终创建为未启用；启用前 Admin 会再次校验实时 Schema 与两条规则引用。" : "查询规则和变更规则会一起校验、一起替换；校验拒绝时保持原分配；响应丢失时须先核对结果。"}</span></div>
++      <fieldset className="form-controls" disabled={pending || !canManage || uncertain}>
++      <div className="form-note"><AlertCircle size={17} /><span>{creating ? "新分配始终创建为未启用；启用前 Admin 会再次校验实时 Schema 与两条规则引用。" : "查询规则和变更规则会一起校验、一起替换；校验拒绝时保持原分配；响应丢失时保留原请求，手动重推。"}</span></div>
+       {creating ? <Label className="field"><span>真实数据库表</span><NativeSelect aria-label="真实数据库表" value={assignment.tableName} onChange={(event) => setAssignment((current) => ({ ...current, tableName: event.target.value }))}>
+           <option value="">请选择兼容且未分配的表</option>
+           {assignment.tableName && !candidates.some((table) => table.tableName === assignment.tableName) && <option value={assignment.tableName} disabled>{assignment.tableName} · 当前选择已不可新分配</option>}
+@@ -255,12 +236,12 @@ function TablePolicySession({ tableName, commands: { create, replace, enable, di
+   );
+ 
+   let footer: ReactNode;
+-  if (creating || replacing) footer = <><Button type="submit" form="table-policy-form" variant="primary" disabled={!canManage || recovery.blocked.current || !valid || uncertain || create.isPending || replace.isPending}>{create.isPending || replace.isPending ? "正在保存…" : creating ? "创建未启用分配" : "检查并替换"}</Button><Button onClick={() => replacing && tableName ? navigate(`/platform/table-policies/${encodeURIComponent(tableName)}`) : close()} disabled={create.isPending || replace.isPending}>取消</Button></>;
++  if (creating || replacing) footer = <><Button type="submit" form="table-policy-form" variant="primary" disabled={!canManage || (!uncertain && !valid) || pending}>{create.isPending || replace.isPending ? "正在保存…" : uncertain ? "重推原请求" : creating ? "创建未启用分配" : "检查并替换"}</Button><Button onClick={() => replacing && tableName ? navigate(`/platform/table-policies/${encodeURIComponent(tableName)}`) : close()} disabled={pending}>取消</Button></>;
+   else footer = uncertain
+-    ? <Button className="drawer-close-action" onClick={close}>关闭</Button>
+-    : <><Button variant="primary" disabled={recovery.blocked.current} onClick={() => navigate("?mode=replace")}>替换所选规则</Button>{detail.data && <Button variant={detail.data.enabled ? "danger" : "primary"} disabled={recovery.blocked.current} onClick={() => setPendingStateCommand(detail.data.enabled ? "disable" : "enable")}>{detail.data.enabled ? "停用" : "启用"}</Button>}<Button className="drawer-close-action" onClick={close}>关闭</Button></>;
++    ? <><Button variant="primary" disabled={!canManage||pending} onClick={()=>original.current&&execute(original.current)}>重推原请求</Button><Button className="drawer-close-action" onClick={close}>关闭</Button></>
++    : <><Button variant="primary" disabled={pending} onClick={() => navigate("?mode=replace")}>替换所选规则</Button>{detail.data && <Button variant={detail.data.enabled ? "danger" : "primary"} disabled={pending} onClick={() => setPendingStateCommand(detail.data.enabled ? "disable" : "enable")}>{detail.data.enabled ? "停用" : "启用"}</Button>}<Button className="drawer-close-action" onClick={close}>关闭</Button></>;
+   if (!canManage) footer = <Button onClick={close}>关闭</Button>;
+   const title = creating ? "新建表规则分配" : replacing ? "替换表规则" : "表规则详情";
+   const stateConfirm = pendingStateCommand === "enable" ? { title: "启用表规则？", description: "Admin 将根据实时 Schema 和两条规则引用重新校验；成功后该表成为 Managed Table。", label: "确认启用" } : { title: "停用表规则？", description: "停用后该表立即失去 Managed Table 身份，后续数据 API 请求将被拒绝。", label: "确认停用" };
+-  return <><Drawer open title={title} eyebrow="表规则" onClose={close} footer={footer}>{content}<WriteRecovery onResume={finishRecovery} resumeLabel={selectingAssignment ? "我已核对，返回修改" : "我已核对，结束本次核对"} error={serverError} onCheck={checkCurrentState} /></Drawer>{detail.data?.enabled && <ConfirmDialog open={confirmReplace} title="替换已启用的表规则？" description="查询规则和变更规则校验成功后会一起替换，下一次请求立即生效。" confirmLabel="确认替换" pending={replace.isPending} confirmDisabled={uncertain || recovery.blocked.current} onCancel={() => setConfirmReplace(false)} onConfirm={executeReplace} />}{pendingStateCommand && <ConfirmDialog open title={stateConfirm.title} description={stateConfirm.description} confirmLabel={stateConfirm.label} destructive={pendingStateCommand === "disable"} pending={enable.isPending || disable.isPending} confirmDisabled={uncertain || recovery.blocked.current} onCancel={() => setPendingStateCommand(null)} onConfirm={executeStateCommand} />}</>;
++  return <><Drawer open title={title} eyebrow="表规则" onClose={close} footer={footer}>{content}</Drawer>{detail.data?.enabled && <ConfirmDialog open={confirmReplace} title="替换已启用的表规则？" description="查询规则和变更规则校验成功后会一起替换，下一次请求立即生效。" confirmLabel="确认替换" pending={replace.isPending} confirmDisabled={!canManage} onCancel={() => setConfirmReplace(false)} onConfirm={executeReplace} />}{pendingStateCommand && <ConfirmDialog open title={stateConfirm.title} description={stateConfirm.description} confirmLabel={stateConfirm.label} destructive={pendingStateCommand === "disable"} pending={enable.isPending || disable.isPending} confirmDisabled={!canManage} onCancel={() => setPendingStateCommand(null)} onConfirm={executeStateCommand} />}</>;
+ }
+diff --git a/web/src/features/table-policies/TableReleaseTemplatesDrawer.test.tsx b/web/src/features/table-policies/TableReleaseTemplatesDrawer.test.tsx
+new file mode 100644
+index 0000000..bdb94b7
+--- /dev/null
++++ b/web/src/features/table-policies/TableReleaseTemplatesDrawer.test.tsx
+@@ -0,0 +1,66 @@
++import {QueryClient,QueryClientProvider} from "@tanstack/react-query";
++import {render,screen,waitFor,within} from "@testing-library/react";
++import userEvent from "@testing-library/user-event";
++import {afterEach,describe,expect,it,vi} from "vitest";
++import {AppRoutes} from "../../app";
++import {TestRouter} from "../../test/TestRouter";
++import {withAdminSession} from "../../test/account-session";
++import {ToastProvider} from "../../components/ui/Toast";
++
++const audit={creator:"admin",modifier:"admin",created_at:"2026-09-11T00:00:00Z",updated_at:"2026-09-11T00:00:00Z",version:"1"};
++const templates=["STANDARD","EMERGENCY","EMERGENCY"].map((type,index)=>({...audit,code:`template_${index}_v1`,name:`模板${index}`,description:"",type,enabled:true,monitor_list:[],node_list:(type==="STANDARD"?["APPROVAL","PUBLICATION","COMPLETION"]:["PUBLICATION","COMPLETION"]).map(kind=>({code:kind.toLowerCase(),type:kind,name:kind,required_role:kind==="APPROVAL"?"TABLE_APPROVER":"PUBLISHER"}))}));
++const rows=[{...audit,table_name:"items",type:"STANDARD",template_code:"template_0_v1",template_name:"模板0",enabled:true,template_enabled:true},{...audit,table_name:"items",type:"EMERGENCY",template_code:"template_1_v1",template_name:"模板1",enabled:true,template_enabled:true}];
++const json=(value:unknown,status=200)=>new Response(JSON.stringify(value),{status,headers:{"Content-Type":"application/json"}});
++function mount(write:(init:RequestInit)=>Promise<Response>, read=async()=>json({associations:rows})){
++ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input:RequestInfo|URL,init?:RequestInit)=>{
++  const url=String(input);
++  if(init?.method==="PUT")return write(init);
++  if(url.endsWith("/items/release-templates"))return read();
++  if(url.endsWith("/release-templates"))return json({templates});
++  if(url.endsWith("/table-policies"))return json({policies:[]});
++  if(url.endsWith("/database-tables"))return json({tables:[]});
++  throw new Error(url);
++ })));
++ render(<QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}})}><TestRouter initialEntries={["/platform/table-policies/items?mode=templates"]}><ToastProvider><AppRoutes/></ToastProvider></TestRouter></QueryClientProvider>);
++}
++afterEach(()=>vi.unstubAllGlobals());
++describe("table release template settings",()=>{
++ it("offers only same-type templates and allows standard disable",async()=>{
++  const writes:RequestInit[]=[];mount(async init=>{writes.push(init);return json({...rows[0],enabled:false,version:"2"});});
++  const standard=await screen.findByRole("combobox",{name:"常规模板"});expect(within(standard).queryByRole("option",{name:/模板1/})).not.toBeInTheDocument();
++  expect(within(screen.getByRole("combobox",{name:"应急模板"})).queryByRole("option",{name:/模板0/})).not.toBeInTheDocument();
++  await userEvent.click(screen.getByLabelText("启用常规关联"));await userEvent.click(screen.getByRole("button",{name:"保存常规关联"}));await screen.findByText("常规关联已保存");
++  expect(JSON.parse(String(writes[0]?.body))).toEqual({template_code:"template_0_v1",enabled:false,expected_version:"1"});
++  expect(screen.queryByRole("button",{name:/停用应急|解绑|删除/})).not.toBeInTheDocument();
++ });
++ it("keeps selected input on version conflict",async()=>{
++  mount(async()=>json({error:{code:"table_release_template_conflict",message:"stale",request_id:"association-conflict"}},409));
++  await userEvent.selectOptions(await screen.findByRole("combobox",{name:"应急模板"}),"template_2_v1");await userEvent.click(screen.getByRole("button",{name:"保存应急关联"}));
++  await screen.findByText(/关联已被其他管理员修改/);expect(screen.getByLabelText("应急模板")).toHaveValue("template_2_v1");expect(within(screen.getByRole("region",{name:"应急发布关联"})).getByRole("alert")).toHaveTextContent("association-conflict");
++ });
++ it("freezes and manually replays exactly the original request across an intervening denial",async()=>{
++  const writes:RequestInit[]=[];mount(async init=>{writes.push(init);if(writes.length===1)throw new TypeError("response lost");if(writes.length===2)return json({error:{code:"permission_denied",message:"revoked",request_id:"revoked"}},403);return json({...rows[1],template_code:"template_2_v1",template_name:"模板2",version:"2"});});
++  await userEvent.selectOptions(await screen.findByRole("combobox",{name:"应急模板"}),"template_2_v1");await userEvent.click(screen.getByRole("button",{name:"保存应急关联"}));await screen.findByText(/保存结果未知/);
++  expect(writes).toHaveLength(1);expect(screen.getByLabelText("应急模板")).toBeDisabled();
++  await userEvent.click(screen.getByRole("button",{name:"重推应急原请求"}));await waitFor(()=>expect(writes).toHaveLength(2));
++  await userEvent.click(screen.getByRole("button",{name:"重推应急原请求"}));await screen.findByText("应急关联已保存");
++  for(const write of writes.slice(1)){expect(write.body).toBe(writes[0]?.body);expect(new Headers(write.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]?.headers).get("Idempotency-Key"));}
++ });
++ it("unlocks a rejected original request after a definite version conflict and retains its input",async()=>{
++  const writes:RequestInit[]=[];let current=rows;
++  mount(async init=>{writes.push(init);if(writes.length===1)return json({error:{code:"dependency_unavailable",message:"unavailable",request_id:"first"}},503);if(writes.length===2)return json({error:{code:"table_release_template_conflict",message:"stale",request_id:"conflict"}},409);return json({...rows[1],template_code:"template_2_v1",version:"4"});},async()=>json({associations:current}));
++  await userEvent.selectOptions(await screen.findByLabelText("应急模板"),"template_2_v1");await userEvent.click(screen.getByRole("button",{name:"保存应急关联"}));await screen.findByText(/保存结果未知/);
++  await userEvent.click(screen.getByRole("button",{name:"重推应急原请求"}));await screen.findByText(/关联已被其他管理员修改/);
++  expect(screen.getByLabelText("应急模板")).toBeEnabled();expect(screen.getByLabelText("应急模板")).toHaveValue("template_2_v1");
++  current=rows.map(row=>({...row,version:"3"}));await userEvent.click(screen.getByRole("button",{name:"读取最新关联并保留输入"}));await screen.findByText(/已读取最新关联/);
++  await userEvent.click(screen.getByRole("button",{name:"保存应急关联"}));await waitFor(()=>expect(writes).toHaveLength(3));expect(JSON.parse(String(writes[2]?.body)).expected_version).toBe("3");expect(new Headers(writes[2]?.headers).get("Idempotency-Key")).not.toBe(new Headers(writes[0]?.headers).get("Idempotency-Key"));
++ });
++ it("reads current state after replay instead of displaying a historical result as current",async()=>{
++  let current=rows;const writes:RequestInit[]=[];
++  mount(async init=>{writes.push(init);if(writes.length===1){current=rows.map(row=>row.type==="EMERGENCY"?{...row,version:"4"}:row);throw new TypeError("lost");}return json({...rows[1],template_code:"template_2_v1",template_name:"模板2",version:"2"});},async()=>json({associations:current}));
++  await userEvent.selectOptions(await screen.findByLabelText("应急模板"),"template_2_v1");await userEvent.click(screen.getByRole("button",{name:"保存应急关联"}));await screen.findByText(/保存结果未知/);await userEvent.click(screen.getByRole("button",{name:"重推应急原请求"}));
++  await waitFor(()=>expect(screen.getByLabelText("应急模板")).toHaveValue("template_1_v1"));expect(screen.getByRole("region",{name:"应急发布关联"})).toHaveTextContent("v4");
++  await userEvent.selectOptions(screen.getByLabelText("应急模板"),"template_2_v1");await userEvent.click(screen.getByRole("button",{name:"保存应急关联"}));await waitFor(()=>expect(writes).toHaveLength(3));expect(JSON.parse(String(writes[2]?.body)).expected_version).toBe("4");
++ });
++
++});
+diff --git a/web/src/features/table-policies/TableReleaseTemplatesDrawer.tsx b/web/src/features/table-policies/TableReleaseTemplatesDrawer.tsx
+new file mode 100644
+index 0000000..91e1436
+--- /dev/null
++++ b/web/src/features/table-policies/TableReleaseTemplatesDrawer.tsx
+@@ -0,0 +1,61 @@
++import {useEffect,useRef,useState} from "react";
++import {useQuery,useQueryClient} from "@tanstack/react-query";
++import {useNavigate} from "react-router-dom";
++import {listTableReleaseTemplates,putTableReleaseTemplate,type AssociationWrite,type TableReleaseTemplate} from "../../api/table-release-templates";
++import {listReleaseTemplates} from "../../api/release-templates";
++import {ApiError,isUncertainWriteError} from "../../api/client";
++import {Button} from "../../components/ui/Button";
++import {useToast} from "../../components/ui/Toast";
++import {Drawer} from "../../components/ui/Drawer";
++import {ErrorState,LoadingState} from "../../components/ui/Feedback";
++import {useDraftProtection,useLeaveProtection} from "../../components/ui/LeaveProtection";
++import {Label} from "../../components/shadcn/label";
++import {NativeSelect} from "../../components/shadcn/native-select";
++import {Checkbox} from "../../components/shadcn/checkbox";
++import {useAccountRole} from "../accounts/roles";
++import type {ReleaseTemplate} from "../release-templates/model";
++
++export function TableReleaseTemplatesDrawer({tableName}:{tableName:string}){
++ const navigate=useNavigate();const canManage=useAccountRole("ADMIN");const protection=useLeaveProtection();
++ const associations=useQuery({queryKey:["table-release-templates",tableName],queryFn:()=>listTableReleaseTemplates(tableName),enabled:canManage,retry:false});
++ const templates=useQuery({queryKey:["release-templates","list"],queryFn:listReleaseTemplates,enabled:canManage,retry:false});
++ const close=()=>protection.requestLeave(()=>navigate(`/platform/table-policies/${encodeURIComponent(tableName)}`));
++ return <Drawer open title="表发布流程设置" eyebrow={tableName} onClose={close} footer={<Button onClick={close}>关闭</Button>}>
++  {!canManage&&!associations.data?<p>仅管理员可以管理表发布流程。</p>:associations.isPending||templates.isPending?<LoadingState label="正在读取表关联与模板…"/>:(associations.isError&&!associations.data)||(templates.isError&&!templates.data)?<ErrorState error={associations.error??templates.error} onRetry={()=>{void associations.refetch();void templates.refetch();}}/>:<div className="policy-form">{(associations.isError||templates.isError)&&<ErrorState error={associations.error??templates.error}/>}<p className="text-muted-foreground">每种方式选择一个模板。应急关联始终启用，替换成功后整体切换；此处配置用于后续流程实例。</p>{(["STANDARD","EMERGENCY"] as const).map(type=><AssociationForm key={`${tableName}:${type}`} table={tableName} type={type} initial={associations.data.find(row=>row.type===type)} currentReady={associations.isSuccess&&!associations.isFetching} templates={templates.data} canManage={canManage}/>)}</div>}
++ </Drawer>;
++}
++
++function AssociationForm({table,type,initial,currentReady,templates,canManage}:{table:string;type:TableReleaseTemplate["type"];initial?:TableReleaseTemplate;currentReady:boolean;templates:ReleaseTemplate[];canManage:boolean}){
++ const {showToast}=useToast();const client=useQueryClient();
++ const [saved,setSaved]=useState(initial);const [code,setCode]=useState(initial?.template_code??"");const [enabled,setEnabled]=useState(initial?.enabled??true);
++ const [pending,setPending]=useState(false);const [error,setError]=useState<unknown>(null);const [message,setMessage]=useState("");const original=useRef<AssociationWrite|null>(null);const inFlight=useRef(false);
++ const uncertain=original.current!==null;const label=type==="STANDARD"?"常规":"应急";const selected=templates.find(item=>item.code===code);
++ const dirty=code!==(saved?.template_code??"")||enabled!==(saved?.enabled??true)||uncertain;
++ const protection=useDraftProtection(dirty,pending,inFlight);
++ useEffect(()=>{if(!dirty&&!pending&&currentReady){setSaved(initial);setCode(initial?.template_code??"");setEnabled(initial?.enabled??true);}},[initial,currentReady,dirty,pending]);
++ async function save(){
++  if(!canManage||inFlight.current||(!original.current&&!code))return;
++  const write=original.current??{table,type,templateCode:code,enabled,version:saved?.version??"0",key:`table-template-${crypto.randomUUID()}`};
++  inFlight.current=true;setPending(true);setMessage("");
++  try{const result=await putTableReleaseTemplate(write);setSaved(result);setCode(result.template_code);setEnabled(result.enabled);original.current=null;setError(null);showToast(`${label}关联已保存`);await client.invalidateQueries({queryKey:["table-release-templates",table]});}
++  catch(err){setError(err);if(err instanceof ApiError&&err.code==="table_release_template_conflict")original.current=null;else if(isUncertainWriteError(err)||original.current)original.current=write;}
++  finally{inFlight.current=false;setPending(false);protection.submissionSettled();}
++ }
++ async function reviewLatest(){
++  if(inFlight.current||uncertain)return;inFlight.current=true;setPending(true);
++  try{const rows=await listTableReleaseTemplates(table);setSaved(rows.find(row=>row.type===type));client.setQueryData(["table-release-templates",table],rows);setError(null);setMessage("已读取最新关联，当前输入保留；核对后可重新保存。");}
++  catch(err){setError(err);}finally{inFlight.current=false;setPending(false);protection.submissionSettled();}
++ }
++ return <section className="grid min-w-0 gap-3 border-t pt-5" aria-label={`${label}发布关联`}>
++  <h3 className="font-semibold">{label}发布</h3>
++  <p className="break-all text-muted-foreground">当前：{initial?`${initial.template_name} · ${initial.template_code} · ${initial.enabled&&initial.template_enabled?"有效":"已停用"} · v${initial.version}`:"尚未选择模板"}</p>
++  <fieldset className="grid min-w-0 gap-3" disabled={!canManage||pending||uncertain}>
++   <Label className="field"><span>{label}模板</span><NativeSelect aria-label={`${label}模板`} value={code} onChange={event=>setCode(event.target.value)}><option value="">请选择{label}模板</option>{templates.filter(item=>item.type===type).map(item=><option key={item.code} value={item.code} disabled={!item.enabled&&item.code!==saved?.template_code}>{item.name} · {item.code}{item.enabled?"":" · 已停用"}</option>)}</NativeSelect></Label>
++   {type==="STANDARD"?<Label className="flex items-center gap-2"><Checkbox checked={enabled} onCheckedChange={value=>setEnabled(value===true)}/>启用常规关联</Label>:<p>应急关联始终启用，不提供停用、解绑或删除。</p>}
++  </fieldset>
++  {selected&&<ol className="grid gap-2" aria-label={`${label}模板节点`}>{selected.nodes.map((node,index)=><li className="break-words" key={node.code}>{index+1}. {node.name}</li>)}</ol>}
++  {initial&&<p className="break-all text-muted-foreground">最近修改：{initial.modifier} · {new Date(initial.updated_at).toLocaleString("zh-CN")}</p>}
++  {error!=null&&<ErrorState error={error}/>}{uncertain&&<p role="alert">保存结果未知；输入和原请求已保留，再次保存将原样重推。</p>}{message&&<p role="status">{message}</p>}
++  <div className="flex flex-wrap gap-2"><Button variant="primary" disabled={!canManage||pending||(!uncertain&&(!code||!dirty))} onClick={()=>void save()}>{pending?"正在保存…":uncertain?`重推${label}原请求`:`保存${label}关联`}</Button>{error!=null&&!uncertain&&<Button disabled={pending||!canManage} onClick={()=>void reviewLatest()}>读取最新关联并保留输入</Button>}</div>
++ </section>;
++}
+diff --git a/web/src/features/table-policies/model.ts b/web/src/features/table-policies/model.ts
+index e77763d..af2290c 100644
+--- a/web/src/features/table-policies/model.ts
++++ b/web/src/features/table-policies/model.ts
+@@ -13,6 +13,7 @@ export type DatabaseTable = {
+ };
+ 
+ export type TablePolicy = {
++  version: string;
+   concurrencyKey?: string[];
+   tableName: string;
+   queryPolicyCode: string;
+diff --git a/web/src/features/table-policies/queries.ts b/web/src/features/table-policies/queries.ts
+index 5431fa9..fba3ab4 100644
+--- a/web/src/features/table-policies/queries.ts
++++ b/web/src/features/table-policies/queries.ts
+@@ -9,7 +9,7 @@ import {
+   listTablePolicies,
+   replaceTablePolicy,
+ } from "../../api/table-policies";
+-import type { TablePolicy, TablePolicyAssignment } from "./model";
++import type { TablePolicy } from "./model";
+ 
+ export const tablePolicyKeys = {
+   list: ["table-policies", "list"] as const,
+@@ -39,7 +39,7 @@ function useTablePolicyCommand<TVariables>(command: (variables: TVariables) => P
+   return useMutation({
+     mutationFn: command,
+     onSuccess(policy) {
+-      client.setQueryData(tablePolicyKeys.detail(policy.tableName), policy);
++      void client.invalidateQueries({ queryKey: tablePolicyKeys.detail(policy.tableName) });
+       void client.invalidateQueries({ queryKey: tablePolicyKeys.list });
+       void client.invalidateQueries({ queryKey: tablePolicyKeys.discovery });
+     },
+@@ -48,7 +48,7 @@ function useTablePolicyCommand<TVariables>(command: (variables: TVariables) => P
+ 
+ export function useCreateTablePolicy() { return useTablePolicyCommand(createTablePolicy); }
+ export function useReplaceTablePolicy() {
+-  return useTablePolicyCommand(({ tableName, assignment }: { tableName: string; assignment: TablePolicyAssignment }) => replaceTablePolicy(tableName, assignment));
++  return useTablePolicyCommand(replaceTablePolicy);
+ }
+ export function useEnableTablePolicy() { return useTablePolicyCommand(enableTablePolicy); }
+ export function useDisableTablePolicy() { return useTablePolicyCommand(disableTablePolicy); }
+diff --git a/web/src/styles.css b/web/src/styles.css
+index c59ac9c..14e7c9e 100644
+--- a/web/src/styles.css
++++ b/web/src/styles.css
+@@ -160,6 +160,14 @@
+ .policy-table td > small { display: block; max-width: 260px; color: var(--muted-foreground); font-size: 12px; line-height: 1.5; }
+ .policy-table .unsupported-copy { margin-top: 4px; color: var(--warning); }
+ .mutation-policy-table { min-width: 940px; }
++.release-template-table { min-width: 900px; }
++.template-node-summary { display: flex; flex-wrap: wrap; gap: 6px; }
++.template-node-summary span { padding: 3px 8px; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); font-size: 12px; }
++.template-node-list { display: grid; gap: 12px; }
++.template-node { padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); }
++.template-node header { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
++.template-node-index { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); font-size: 12px; }
++.template-node header .badge { margin-left: auto; }
+ .table-policy-table { min-width: 840px; }
+ .capability { display: inline-flex; min-width: 36px; justify-content: center; padding: 2px 6px; border-radius: 5px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+ .capability-allowed { color: #276c53; background: #eaf4ed; }

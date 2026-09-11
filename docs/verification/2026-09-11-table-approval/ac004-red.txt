@@ -1,0 +1,12 @@
+# github.com/asherzj/relational-config-center/admin/cmd/admin
+cmd/admin/application.go:9:2: open /Users/asher/Library/Caches/go-build/ba/ba9046ce29e63c36bedc2889c23e4b5e170a569e94b415a16ec519bd7ff1b05b-d: operation not permitted
+# github.com/asherzj/relational-config-center/admin/cmd/admin
+cmd/admin/application.go:10:2: open /Users/asher/Library/Caches/go-build/c9/c9aebafd9341f03bdd6d2da05c497fa5c91a7f0fa301a4daac116de9de258ec6-d: operation not permitted
+# github.com/asherzj/relational-config-center/admin/cmd/admin
+cmd/admin/application.go:11:2: open /Users/asher/Library/Caches/go-build/d3/d3008f18af6a72767e324c70275b1b24519bc39e564dcffc79ff575949129254-d: operation not permitted
+# github.com/asherzj/relational-config-center/admin/cmd/admin
+cmd/admin/application.go:12:2: open /Users/asher/Library/Caches/go-build/15/15a923a729853bb555ea9028eb108f571ba69b044a22e1d22f5d2a790100b5d8-d: operation not permitted
+# github.com/asherzj/relational-config-center/admin/cmd/admin
+cmd/admin/application.go:13:2: open /Users/asher/Library/Caches/go-build/05/057f8c4b37ac5c11cb12d1572665f81bbfd02fae5c1f9d9ddc853092ee0b7ae5-d: operation not permitted
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin [setup failed]
+FAIL

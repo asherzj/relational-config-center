@@ -1,0 +1,130 @@
+diff --git a/admin/cmd/admin/application.go b/admin/cmd/admin/application.go
+index 1997436..ea88ea8 100644
+--- a/admin/cmd/admin/application.go
++++ b/admin/cmd/admin/application.go
+@@ -38,6 +38,7 @@ func newApplicationWithClock(ctx context.Context, settings config.Config, now fu
+ 			FieldPolicies:         application.NewTableFieldPolicyManagement(mysql, mysql, mysql, mysql),
+ 			Authentication:        application.NewAuthentication(mysql, passwordadapter.NewArgon2id(), now, mysql, application.AuthenticationLimits{Registration: settings.AccountRegisterLimit, LoginIP: settings.AccountLoginIPLimit, LoginFailures: settings.AccountLoginFailureLimit}),
+ 			AccountRoles:          application.NewAccountRoleManagement(mysql),
++			ApprovalRoles:         application.NewApprovalRoleManagement(mysql),
+ 			ReleaseOrders:         application.NewReleaseOrders(mysql),
+ 			ReleaseTemplates:      application.NewReleaseTemplateManagement(mysql),
+ 			TableReleaseTemplates: application.NewTableReleaseTemplateManagement(mysql),
+diff --git a/admin/cmd/admin/business_auth_integration_test.go b/admin/cmd/admin/business_auth_integration_test.go
+index b83ff0f..f233adf 100644
+--- a/admin/cmd/admin/business_auth_integration_test.go
++++ b/admin/cmd/admin/business_auth_integration_test.go
+@@ -127,6 +127,8 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
+ 		t.Fatal(err)
+ 	}
+ 
++	reviewer := publicationFixtureReviewer(t, app)
++	configurePublicationReviewer(t, app, reviewer, "mutation_snapshot_items")
+ 	// Prepare and independently approve through the public release workflow.
+ 	created, err := do(http.MethodPost, "/api/v1/release-orders", `{"items":[{"content":{"code":"response-loss","label":"committed once"},"operation":"ADD","table_name":"mutation_snapshot_items"}],"title":"集成测试发布单"}`, csrf, "response-loss-create")
+ 	if err != nil {
+@@ -149,7 +151,7 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
+ 	if submitted.StatusCode != 200 {
+ 		t.Fatalf("submit: %d %s", submitted.StatusCode, payload)
+ 	}
+-	approved := releaseActorRequest(t, app, publicationFixtureReviewer(t, app), "POST", path+"/approve", `{"expected_version":"2","reason":"independently checked"}`, "response-loss-approve")
++	approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "independently checked"), "response-loss-approve")
+ 	if approved.Code != 200 {
+ 		t.Fatalf("approve: %d %s", approved.Code, approved.Body)
+ 	}
+@@ -588,7 +590,7 @@ func TestAccountControlTablesCannotBeDiscoveredOrManaged(t *testing.T) {
+ 	if discovered.Code != 200 || strings.Contains(discovered.Body.String(), "rcc_") {
+ 		t.Fatalf("control table discovered: %d %s", discovered.Code, discovered.Body.String())
+ 	}
+-	for _, table := range []string{"rcc_accounts", "rcc_login_sessions", "rcc_preauth_credentials", "rcc_auth_rate_limits", "rcc_auth_control_lock", "rcc_account_role_history", "rcc_record_versions", "rcc_release_orders", "rcc_release_details", "rcc_release_executions", "rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_table_publications", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_goose_db_version", "rcc_schema_migration_attempts", "rcc_future_control", "rcc_release_templates", "rcc_table_release_templates", "RCC_ACCOUNTS"} {
++	for _, table := range []string{"rcc_accounts", "rcc_login_sessions", "rcc_preauth_credentials", "rcc_auth_rate_limits", "rcc_auth_control_lock", "rcc_account_role_history", "rcc_record_versions", "rcc_release_orders", "rcc_release_details", "rcc_release_executions", "rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_table_publications", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_goose_db_version", "rcc_schema_migration_attempts", "rcc_future_control", "rcc_release_templates", "rcc_table_release_templates", "RCC_ACCOUNTS", "rcc_approval_roles", "rcc_approval_role_members", "rcc_approval_role_requests", "rcc_approval_role_references", "rcc_table_approval_assignments", "rcc_table_approval_requests"} {
+ 		if response := request("GET", "/api/v1/database-tables/"+table, ""); response.Code != 404 {
+ 			t.Fatalf("control detail %s: %d %s", table, response.Code, response.Body.String())
+ 		}
+@@ -631,12 +633,13 @@ func approveActorPublication(t *testing.T, app *adminApplication, applicant, rev
+ 	if err := json.Unmarshal(created.Body.Bytes(), &order); err != nil {
+ 		t.Fatal(err)
+ 	}
++	configurePublicationReviewer(t, app, reviewer, order.TableNames...)
+ 	path := "/api/v1/release-orders/" + order.ID
+ 	submitted := releaseActorRequest(t, app, applicant, "POST", path+"/submit", `{"expected_version":"1"}`, key+"-submit")
+ 	if submitted.Code != 200 {
+ 		t.Fatalf("submit: %d %s", submitted.Code, submitted.Body)
+ 	}
+-	approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"2","reason":"independently checked"}`, key+"-approve")
++	approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "independently checked"), key+"-approve")
+ 	if approved.Code != 200 {
+ 		t.Fatalf("approve: %d %s", approved.Code, approved.Body)
+ 	}
+diff --git a/admin/cmd/admin/release_history_delivery_integration_test.go b/admin/cmd/admin/release_history_delivery_integration_test.go
+index def3b04..90ccb55 100644
+--- a/admin/cmd/admin/release_history_delivery_integration_test.go
++++ b/admin/cmd/admin/release_history_delivery_integration_test.go
+@@ -57,9 +57,15 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
+ 	for i, grant := range []struct {
+ 		actor actor
+ 		role  string
+-	}{{editor, "EDITOR"}, {reviewer, "APPROVER"}, {publisher, "PUBLISHER"}} {
++	}{{editor, "EDITOR"}, {publisher, "PUBLISHER"}} {
+ 		request(admin, "PUT", "/api/v1/account-roles/"+grant.actor.id, fmt.Sprintf(`{"expected_version":"1","roles":[%q]}`, grant.role), fmt.Sprintf("history-role-%d", i), 200)
+ 	}
++	roleData := request(admin, "POST", "/api/v1/approval-roles", fmt.Sprintf(`{"name":"History reviewers","description":"","enabled":true,"member_ids":[%q]}`, reviewer.id), "history-reviewer-role", 201)
++	var role approvalRoleResult
++	if err := json.Unmarshal(roleData, &role); err != nil {
++		t.Fatal(err)
++	}
++	request(admin, "PUT", "/api/v1/table-policies/history_items/approval-roles", fmt.Sprintf(`{"expected_version":"0","role_ids":[%q]}`, role.ID), "history-reviewer-assignment", 200)
+ 	decode := func(data []byte) domain.ReleaseOrder {
+ 		var order domain.ReleaseOrder
+ 		if err := json.Unmarshal(data, &order); err != nil {
+@@ -96,6 +102,14 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
+ 		if name == "submit" || name == "execute" || name == "complete" {
+ 			body, _ = json.Marshal(map[string]string{"expected_version": order.Version})
+ 		}
++		if name == "approve" || name == "reject" {
++			data := request(a, "GET", "/api/v1/release-orders/"+order.ID, "", "", 200)
++			var header domain.ReleaseHeader
++			if err := json.Unmarshal(data, &header); err != nil {
++				t.Fatal(err)
++			}
++			body, _ = json.Marshal(map[string]any{"expected_version": header.Version, "reason": reason, "confirmed_tables": header.ApprovalContext.ApprovableTables, "expected_approval_revision": header.ApprovalContext.Revision})
++		}
+ 		return decode(request(a, "POST", "/api/v1/release-orders/"+order.ID+"/"+name, string(body), order.ID+"-"+name, 200))
+ 	}
+ 	orders := map[string]domain.ReleaseOrder{}
+diff --git a/admin/internal/interfaces/http/router.go b/admin/internal/interfaces/http/router.go
+index 5c35612..abc307f 100644
+--- a/admin/internal/interfaces/http/router.go
++++ b/admin/internal/interfaces/http/router.go
+@@ -28,6 +28,10 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
+ 	if options.AccountRoles != nil {
+ 		registerAccountRoleRoutes(router, options.AccountRoles)
+ 	}
++	if options.ApprovalRoles != nil {
++		registerApprovalRoleRoutes(router, options.ApprovalRoles)
++		registerTableApprovalRoutes(router, options.ApprovalRoles)
++	}
+ 	if options.ReleaseOrders != nil {
+ 		registerReleaseOrderRoutes(router, options.ReleaseOrders)
+ 	}
+diff --git a/admin/internal/interfaces/http/security.go b/admin/internal/interfaces/http/security.go
+index e4b3628..bad10ba 100644
+--- a/admin/internal/interfaces/http/security.go
++++ b/admin/internal/interfaces/http/security.go
+@@ -34,6 +34,7 @@ type RouterOptions struct {
+ 	FieldPolicies         *application.TableFieldPolicyManagement
+ 	Authentication        *application.Authentication
+ 	AccountRoles          *application.AccountRoleManagement
++	ApprovalRoles         *application.ApprovalRoleManagement
+ 	ReleaseOrders         *application.ReleaseOrders
+ 	ReleaseTemplates      *application.ReleaseTemplateManagement
+ 	TableReleaseTemplates *application.TableReleaseTemplateManagement
+@@ -211,7 +212,7 @@ func sessionAuthentication(options RouterOptions) gin.HandlerFunc {
+ 				required = application.RolePublisher
+ 			}
+ 			if c.FullPath() == "/api/v1/release-orders/:id/approve" || c.FullPath() == "/api/v1/release-orders/:id/reject" {
+-				required = application.RoleApprover
++				required = application.RoleViewer
+ 			}
+ 		}
+ 		if !operator.Allows(required) {

@@ -1,0 +1,11 @@
+{
+  "browser": "152.0.7977.83",
+  "checks": [
+    "a hidden configured field remains in persisted actual before/final and duplicate labels retain both raw values",
+    "reopening history reads new names and option labels without changing persisted before/final",
+    "request review ignores list visibility while showing current labels and immutable requested values",
+    "metadata failure keeps raw request history, diagnostics and an independent retry"
+  ],
+  "errors": [],
+  "order_id": "c582259f87bed4db9f41f9cde1c93585"
+}

@@ -127,6 +127,8 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	reviewer := publicationFixtureReviewer(t, app)
+	configurePublicationReviewer(t, app, reviewer, "mutation_snapshot_items")
 	// Prepare and independently approve through the public release workflow.
 	created, err := do(http.MethodPost, "/api/v1/release-orders", `{"items":[{"content":{"code":"response-loss","label":"committed once"},"operation":"ADD","table_name":"mutation_snapshot_items"}],"title":"集成测试发布单"}`, csrf, "response-loss-create")
 	if err != nil {
@@ -149,7 +151,7 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
 	if submitted.StatusCode != 200 {
 		t.Fatalf("submit: %d %s", submitted.StatusCode, payload)
 	}
-	approved := releaseActorRequest(t, app, publicationFixtureReviewer(t, app), "POST", path+"/approve", `{"expected_version":"2","reason":"independently checked"}`, "response-loss-approve")
+	approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "independently checked"), "response-loss-approve")
 	if approved.Code != 200 {
 		t.Fatalf("approve: %d %s", approved.Code, approved.Body)
 	}
@@ -538,13 +540,31 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
-	revoked := accountRequest(app, "POST", "/api/v1/auth/logout-all", "", session.Result().Cookies(), csrf)
-	if revoked.Code != 204 {
-		t.Fatalf("revoke: %d %s", revoked.Code, revoked.Body)
-	}
-	rejected := releaseActorRequest(t, app, session, "POST", path+"/execute", `{"expected_version":"3"}`, "after-revoke-execute")
-	if rejected.Code != 401 {
-		t.Fatalf("new request after revocation: %d %s", rejected.Code, rejected.Body)
+	// Revocation serializes behind the authenticated publication's authorization
+	// lock. Observe that real wait before allowing its business transaction to finish.
+	revocationFinished := make(chan *httptest.ResponseRecorder, 1)
+	go func() {
+		revocationFinished <- accountRequest(app, "POST", "/api/v1/auth/logout-all", "", session.Result().Cookies(), csrf)
+	}()
+	deadline = time.Now().Add(3 * time.Second)
+	for {
+		var waiting int
+		err := owner.QueryRowContext(t.Context(), `SELECT COUNT(*) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID WHERE l.OBJECT_SCHEMA=DATABASE() AND l.OBJECT_NAME='rcc_auth_control_lock'`).Scan(&waiting)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if waiting > 0 {
+			break
+		}
+		select {
+		case response := <-revocationFinished:
+			t.Fatalf("revocation did not wait for authorization lock: %d %s", response.Code, response.Body)
+		default:
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("revocation did not enter its authorization transaction")
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
 	if err := lock.Commit(); err != nil {
 		t.Fatal(err)
@@ -563,6 +583,18 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
 		}
 	case <-time.After(10 * time.Second):
 		t.Fatal("inflight publication did not finish")
+	}
+	select {
+	case revoked := <-revocationFinished:
+		if revoked.Code != 204 {
+			t.Fatalf("revoke: %d %s", revoked.Code, revoked.Body)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("revocation did not finish after publication")
+	}
+	rejected := releaseActorRequest(t, app, session, "POST", path+"/execute", `{"expected_version":"3"}`, "after-revoke-execute")
+	if rejected.Code != 401 {
+		t.Fatalf("new request after revocation: %d %s", rejected.Code, rejected.Body)
 	}
 	renewed := loginAccount(t, app, "inflight.user", "correct horse battery staple")
 	result := accountRequest(app, "POST", "/api/v1/tables/mutation_snapshot_items/query", `{}`, renewed.Result().Cookies(), sessionCSRF(t, renewed))
@@ -588,7 +620,7 @@ func TestAccountControlTablesCannotBeDiscoveredOrManaged(t *testing.T) {
 	if discovered.Code != 200 || strings.Contains(discovered.Body.String(), "rcc_") {
 		t.Fatalf("control table discovered: %d %s", discovered.Code, discovered.Body.String())
 	}
-	for _, table := range []string{"rcc_accounts", "rcc_login_sessions", "rcc_preauth_credentials", "rcc_auth_rate_limits", "rcc_auth_control_lock", "rcc_account_role_history", "rcc_record_versions", "rcc_release_orders", "rcc_release_details", "rcc_release_executions", "rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_table_publications", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_goose_db_version", "rcc_schema_migration_attempts", "rcc_future_control", "rcc_release_templates", "rcc_table_release_templates", "RCC_ACCOUNTS"} {
+	for _, table := range []string{"rcc_accounts", "rcc_login_sessions", "rcc_preauth_credentials", "rcc_auth_rate_limits", "rcc_auth_control_lock", "rcc_account_role_history", "rcc_record_versions", "rcc_release_orders", "rcc_release_details", "rcc_release_executions", "rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_table_publications", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_goose_db_version", "rcc_schema_migration_attempts", "rcc_future_control", "rcc_release_templates", "rcc_table_release_templates", "RCC_ACCOUNTS", "rcc_approval_roles", "rcc_approval_role_members", "rcc_approval_role_requests", "rcc_approval_role_references", "rcc_table_approval_assignments", "rcc_table_approval_requests"} {
 		if response := request("GET", "/api/v1/database-tables/"+table, ""); response.Code != 404 {
 			t.Fatalf("control detail %s: %d %s", table, response.Code, response.Body.String())
 		}
@@ -631,12 +663,13 @@ func approveActorPublication(t *testing.T, app *adminApplication, applicant, rev
 	if err := json.Unmarshal(created.Body.Bytes(), &order); err != nil {
 		t.Fatal(err)
 	}
+	configurePublicationReviewer(t, app, reviewer, order.TableNames...)
 	path := "/api/v1/release-orders/" + order.ID
 	submitted := releaseActorRequest(t, app, applicant, "POST", path+"/submit", `{"expected_version":"1"}`, key+"-submit")
 	if submitted.Code != 200 {
 		t.Fatalf("submit: %d %s", submitted.Code, submitted.Body)
 	}
-	approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"2","reason":"independently checked"}`, key+"-approve")
+	approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "independently checked"), key+"-approve")
 	if approved.Code != 200 {
 		t.Fatalf("approve: %d %s", approved.Code, approved.Body)
 	}

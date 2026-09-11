@@ -169,7 +169,7 @@ const definiteWriteRejections = new Set([
   "release_auto_id_ambiguous", "publication_unsupported", "publication_metadata_permission",
   "release_snapshot_unsupported", "release_metadata_permission", "release_cross_table",
   "release_item_limit", "release_duplicate_target",
-  "release_invalid", "rollback_restore_mismatch",
+  "release_invalid", "release_approver_unavailable", "rollback_restore_mismatch",
   "concurrency_key_invalid", "concurrency_key_in_use", "concurrency_key_value_required",
 ]);
 

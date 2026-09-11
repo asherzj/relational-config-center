@@ -1,3 +1,4 @@
+const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
 const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real browser -> production Web proxy -> Cookie-authenticated Admin -> disposable MySQL 8.4.
@@ -115,7 +116,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
   }
   async function publishRelease(draft) {
     let order = await releaseWrite(context, `/api/v1/release-orders/${draft.id}/submit`, { expected_version: draft.version });
-    order = await releaseWrite(approvalContext, `/api/v1/release-orders/${draft.id}/approve`, { expected_version: order.version, reason: 'Accessibility publication review' });
+    order = await releaseWrite(approvalContext, `/api/v1/release-orders/${draft.id}/approve`, await fixtureApprovalInput(approvalContext, base, draft.id, { expected_version: order.version, reason: 'Accessibility publication review' }));
     assert.equal(order.history.find((event) => event.action === 'APPROVE')?.actor_id, approverAccount.accountID);
     assert.notEqual(order.applicant_id, approverAccount.accountID, 'approval must use a separate permanent account');
     const result = await releaseWrite(context, `/api/v1/release-orders/${draft.id}/execute`, { expected_version: order.version });
@@ -128,7 +129,8 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     account = await registerFixtureAccount(context, base);
     approvalContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
-    approverAccount = await registerFixtureAccount(approvalContext, base, { roles: ['APPROVER'] });
+    approverAccount = await registerFixtureAccount(approvalContext, base, { roles: ['VIEWER'] });
+    await createFixtureApprovalRole(context, base, `Accessibility review ${randomUUID()}`, [approverAccount.accountID], [table]);
     browserVersion = browser.version();
 
     // Rule editing, native browser history and modal ownership.
@@ -316,7 +318,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await page.waitForURL('**/configuration/release-orders/*');
     let invalidOrder = await (await authenticatedRequest(context, base, new URL(page.url()).pathname.replace('/configuration', '/api/v1'))).json();
     invalidOrder = await releaseWrite(context, `/api/v1/release-orders/${invalidOrder.id}/submit`, { expected_version: invalidOrder.version });
-    invalidOrder = await releaseWrite(approvalContext, `/api/v1/release-orders/${invalidOrder.id}/approve`, { expected_version: invalidOrder.version, reason: 'Independent accessibility validation review' });
+    invalidOrder = await releaseWrite(approvalContext, `/api/v1/release-orders/${invalidOrder.id}/approve`, await fixtureApprovalInput(approvalContext, base, invalidOrder.id, { expected_version: invalidOrder.version, reason: 'Independent accessibility validation review' }));
     assert.equal(invalidOrder.history.find((event) => event.action === 'APPROVE')?.actor_id, approverAccount.accountID);
     const rejected = await releaseWrite(context, `/api/v1/release-orders/${invalidOrder.id}/execute`, { expected_version: invalidOrder.version }, 422);
     assert.equal(rejected.error.code, 'invalid_mutation_content');

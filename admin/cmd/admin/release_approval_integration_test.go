@@ -24,6 +24,7 @@ import (
 func TestReleaseSubmitFreezesIntent(t *testing.T) {
 	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true, AllowDelete: true})
+	configurePublicationReviewer(t, app, publicationFixtureReviewer(t, app), "mutation_delete_parents")
 	body := `{"items":[{"content":{"code":"proposed"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"集成测试发布单"}`
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "approval-create-01")
 	if created.Code != 201 {
@@ -55,6 +56,7 @@ func TestReleaseSubmitFreezesIntent(t *testing.T) {
 func TestReleaseTargetsCompeteAndCancelReleases(t *testing.T) {
 	app := startIntegrationApplication(t, "testdata/010-record-identity-fixture.sql")
 	enableMutationPolicy(t, app, "record_identity_ci", mutationPolicyFixture{AllowAdd: true})
+	configurePublicationReviewer(t, app, publicationFixtureReviewer(t, app), "record_identity_ci")
 	bodies := make([]string, 2)
 	for i, id := range []string{"Résumé", "RESUME"} {
 		raw, _ := json.Marshal(map[string]any{"title": "集成测试发布单", "items": []any{map[string]any{"table_name": "record_identity_ci", "operation": "ADD", "content": map[string]string{"id": id, "label": "draft"}}}})
@@ -117,7 +119,7 @@ func TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin(t *testing.T) {
 	publisher := registerAccount(t, app, "people.publisher", "people.publisher@example.com", "correct horse battery staple")
 	viewer := registerAccount(t, app, "people.viewer", "people.viewer@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, editor, `["EDITOR"]`, "1", "people-editor-role")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "people-reviewer-role")
+	configurePublicationReviewer(t, app, reviewer, "mutation_add_items")
 	grantReleaseRole(t, app, publisher, `["PUBLISHER"]`, "1", "people-publisher-role")
 	created := releaseActorRequest(t, app, editor, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"people","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"验证人员归属"}`, "people-create")
 	if created.Code != 201 {
@@ -131,7 +133,7 @@ func TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin(t *testing.T) {
 	if submitted := releaseActorRequest(t, app, editor, "POST", path+"/submit", `{"expected_version":"1"}`, "people-submit"); submitted.Code != 200 {
 		t.Fatal(submitted.Body)
 	}
-	if approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"2","reason":"人员独立审批"}`, "people-approve"); approved.Code != 200 {
+	if approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "人员独立审批"), "people-approve"); approved.Code != 200 {
 		t.Fatal(approved.Body)
 	}
 	if published := releaseActorRequest(t, app, publisher, "POST", path+"/execute", `{"expected_version":"3"}`, "people-execute"); published.Code != 200 {
@@ -170,6 +172,22 @@ func TestReleaseApprovalCurrentRolesAndHistory(t *testing.T) {
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
 	admin := integrationAdminSession(t, app)
 	reviewer := registerAccount(t, app, "release.reviewer", "release.reviewer@example.com", "correct horse battery staple")
+	initialReviewer := publicationFixtureReviewer(t, app)
+	role := tableApprovalRole(t, app, "Current release reviewers", initialReviewer)
+	assignTableApproval(t, app, "mutation_add_items", role)
+	setMembers := func(members ...*httptest.ResponseRecorder) {
+		t.Helper()
+		ids := []string{}
+		for _, member := range members {
+			ids = append(ids, accountID(t, member))
+		}
+		input, _ := json.Marshal(map[string]any{"name": role.Name, "description": role.Description, "enabled": true, "expected_version": role.Version, "member_ids": ids})
+		response := releaseRequest(t, app, "PUT", "/api/v1/approval-roles/"+role.ID, string(input), "review-members-"+role.Version)
+		if response.Code != 200 {
+			t.Fatal(response.Body)
+		}
+		role = decodeApprovalRole(t, response)
+	}
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"approved","label":"new"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "review-create-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
@@ -181,12 +199,13 @@ func TestReleaseApprovalCurrentRolesAndHistory(t *testing.T) {
 	if submitted.Code != 200 {
 		t.Fatal(submitted.Body)
 	}
-	body := `{"expected_version":"2","reason":"reviewed change"}`
+	body := confirmedApprovalBody(t, app, reviewer, path, "reviewed change")
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, admin, "POST", path+"/approve", body, "review-self-01"), 403, "permission_denied")
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", body, "review-approve-01"), 403, "permission_denied")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "review-grant-01")
+	setMembers(reviewer)
+	body = confirmedApprovalBody(t, app, reviewer, path, "reviewed change")
 	for _, action := range []string{"approve", "reject"} {
-		assertIntegrationErrorCode(t, releaseActorRequest(t, app, reviewer, "POST", path+"/"+action, `{"expected_version":"2","reason":"  "}`, "review-empty-"+action), 422, "release_invalid")
+		assertIntegrationErrorCode(t, releaseActorRequest(t, app, reviewer, "POST", path+"/"+action, confirmedApprovalBody(t, app, reviewer, path, "  "), "review-empty-"+action), 422, "release_invalid")
 	}
 	approved := releaseActorRequest(t, app, reviewer, "POST", path+"/approve", body, "review-approve-01")
 	if approved.Code != 200 || !strings.Contains(approved.Body.String(), `"state":"APPROVED"`) || !strings.Contains(approved.Body.String(), accountID(t, reviewer)) {
@@ -196,18 +215,22 @@ func TestReleaseApprovalCurrentRolesAndHistory(t *testing.T) {
 	if replay.Body.String() != approved.Body.String() {
 		t.Fatalf("approval replay changed: %s", replay.Body)
 	}
-	assertIntegrationErrorCode(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", `{"expected_version":"2","reason":"different"}`, "review-approve-01"), 409, "idempotency_conflict")
-	grantReleaseRole(t, app, reviewer, `["VIEWER"]`, "2", "review-revoke-01")
+	assertIntegrationErrorCode(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", strings.Replace(body, "reviewed change", "different", 1), "review-approve-01"), 409, "idempotency_conflict")
+	setMembers(initialReviewer)
 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", body, "review-approve-01"), 403, "permission_denied")
 	read := releaseActorReadAllDetails(t, app, reviewer, "GET", path, "", "")
-	if read.Body.String() != approved.Body.String() {
+	var originalApproval, currentApproval domain.ReleaseOrder
+	if json.Unmarshal(approved.Body.Bytes(), &originalApproval) != nil || json.Unmarshal(read.Body.Bytes(), &currentApproval) != nil {
+		t.Fatal("invalid approval response")
+	}
+	if !reflect.DeepEqual(currentApproval.History, originalApproval.History) || !reflect.DeepEqual(currentApproval.Approvals, originalApproval.Approvals) || currentApproval.State != originalApproval.State {
 		t.Fatalf("revocation changed historical approval: %s", read.Body)
 	}
 	cancelled := releaseRequest(t, app, "POST", path+"/cancel", `{"expected_version":"3","reason":"stop approved order"}`, "review-cancel-01")
 	if cancelled.Code != 200 {
 		t.Fatal(cancelled.Body)
 	}
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "3", "review-restore-01")
+	setMembers(reviewer)
 	replay = releaseActorRequest(t, app, reviewer, "POST", path+"/approve", body, "review-approve-01")
 	if replay.Code != 200 || !strings.Contains(replay.Body.String(), `"state":"APPROVED"`) {
 		t.Fatalf("old successful result lost after cancellation: %s", replay.Body)
@@ -224,7 +247,7 @@ func TestReleaseRejectedCopyRechecksBaseline(t *testing.T) {
 	app := startIntegrationApplication(t, "testdata/006-mutation-fixture.sql")
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	reviewer := registerAccount(t, app, "copy.reviewer", "copy.reviewer@example.com", "correct horse battery staple")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "copy-reviewer-01")
+	configurePublicationReviewer(t, app, reviewer, "mutation_delete_parents")
 	original := `{"items":[{"content":{"code":"proposal"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"调整删除保护配置"}`
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", original, "copy-original-01")
 	if created.Code != 201 {
@@ -237,7 +260,7 @@ func TestReleaseRejectedCopyRechecksBaseline(t *testing.T) {
 	if r.Code != 200 {
 		t.Fatal(r.Body)
 	}
-	rejected := releaseActorRequest(t, app, reviewer, "POST", path+"/reject", `{"expected_version":"2","reason":"needs another review"}`, "copy-reject-01")
+	rejected := releaseActorRequest(t, app, reviewer, "POST", path+"/reject", confirmedApprovalBody(t, app, reviewer, path, "needs another review"), "copy-reject-01")
 	if rejected.Code != 200 {
 		t.Fatal(rejected.Body)
 	}
@@ -290,7 +313,7 @@ func TestReleaseWorkflowAtomicityAndCompetition(t *testing.T) {
 	owner := deliveryDB(t, &ownerDriver)
 	enableMutationPolicy(t, app, "mutation_delete_parents", mutationPolicyFixture{AllowModify: true})
 	reviewer := registerAccount(t, app, "race.reviewer", "race.reviewer@example.com", "correct horse battery staple")
-	grantReleaseRole(t, app, reviewer, `["APPROVER"]`, "1", "race-grant-01")
+	configurePublicationReviewer(t, app, reviewer, "mutation_delete_parents")
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"proposal"},"expected_record_version":"0","id":"1","operation":"MODIFY","table_name":"mutation_delete_parents"}],"title":"集成测试发布单"}`, "atomic-create-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
@@ -321,15 +344,18 @@ func TestReleaseWorkflowAtomicityAndCompetition(t *testing.T) {
 		t.Fatal(submitted.Body)
 	}
 	admin := integrationAdminSession(t, app)
+	decisionBody := confirmedApprovalBody(t, app, reviewer, path, "concurrent decision")
 	responses := make(chan *httptest.ResponseRecorder, 3)
 	for _, action := range []string{"approve", "reject", "cancel"} {
 		actor := reviewer
+		body := decisionBody
 		if action == "cancel" {
 			actor = admin
+			body = `{"expected_version":"2","reason":"concurrent decision"}`
 		}
 		cookies, csrf := actor.Result().Cookies(), sessionCSRF(t, actor)
 		go func(action string) {
-			responses <- accountRequestFrom(app, "POST", path+"/"+action, `{"expected_version":"2","reason":"concurrent decision"}`, cookies, csrf, "192.0.2.1:1234", map[string]string{"Idempotency-Key": "race-" + action + "-01"})
+			responses <- accountRequestFrom(app, "POST", path+"/"+action, body, cookies, csrf, "192.0.2.1:1234", map[string]string{"Idempotency-Key": "race-" + action + "-01"})
 		}(action)
 	}
 	successes := 0
@@ -382,6 +408,7 @@ func TestReleaseFreezeTracksExecutionSemantics(t *testing.T) {
 	ownerDriver.User = "root"
 	owner := deliveryDB(t, &ownerDriver)
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
+	configurePublicationReviewer(t, app, publicationFixtureReviewer(t, app), "mutation_add_items")
 	sequence := 0
 	freeze := func() string {
 		t.Helper()
@@ -467,6 +494,7 @@ func TestReleaseFreezeMetadataVisibility(t *testing.T) {
 	}
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
+	configurePublicationReviewer(t, app, publicationFixtureReviewer(t, app), "mutation_add_items")
 	created := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"items":[{"content":{"code":"permission","label":"intent"},"operation":"ADD","table_name":"mutation_add_items"}],"title":"集成测试发布单"}`, "metadata-create-01")
 	if created.Code != 201 {
 		t.Fatal(created.Body)
@@ -621,6 +649,7 @@ func TestReleaseAutoIncrementZeroIdentity(t *testing.T) {
 	}
 	t.Cleanup(func() { app.Close() })
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
+	configurePublicationReviewer(t, app, publicationFixtureReviewer(t, app), "mutation_add_items")
 	ownerDriver := *driver
 	ownerDriver.User = "root"
 	owner := deliveryDB(t, &ownerDriver)
@@ -664,7 +693,7 @@ func TestReleaseAutoIncrementZeroIdentity(t *testing.T) {
 	}
 	// Remove the external identity proof, then publish the frozen literal zero.
 	deliveryExec(t, exactDB, `DELETE FROM mutation_add_items WHERE id=0`)
-	approved := releaseActorRequest(t, exact, publicationFixtureReviewer(t, exact), "POST", paths[0]+"/approve", `{"expected_version":"2","reason":"literal zero is the verified identity"}`, "literal-zero-approve")
+	approved := releaseActorRequest(t, exact, publicationFixtureReviewer(t, app), "POST", paths[0]+"/approve", confirmedApprovalBody(t, exact, publicationFixtureReviewer(t, app), paths[0], "literal zero is the verified identity"), "literal-zero-approve")
 	if approved.Code != 200 {
 		t.Fatal(approved.Body)
 	}
@@ -684,6 +713,7 @@ func TestReleaseFreezeMetadataGrantNameIdentity(t *testing.T) {
 	}
 	defer app.Close()
 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true})
+	configurePublicationReviewer(t, app, publicationFixtureReviewer(t, app), "mutation_add_items")
 	ownerDriver := *driver
 	ownerDriver.User = "root"
 	owner := deliveryDB(t, &ownerDriver)
@@ -813,6 +843,7 @@ func TestReleaseFreezeMetadataCaseInsensitiveNames(t *testing.T) {
 		t.Fatalf("uppercase policy assignment: %d %s", assigned.Code, assigned.Body.String())
 	}
 	setPolicyAssignmentEnabled(t, app, "MUTATION_ADD_ITEMS", true)
+	configurePublicationReviewer(t, app, publicationFixtureReviewer(t, app), "mutation_add_items")
 	duplicateAliases := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"same physical target","items":[{"table_name":"MUTATION_ADD_ITEMS","operation":"ADD","content":{"id":"99","code":"upper","label":"upper"}},{"table_name":"mutation_add_items","operation":"ADD","content":{"id":"99","code":"lower","label":"lower"}}]}`, "case-alias-duplicate")
 	assertIntegrationErrorCode(t, duplicateAliases, 422, "release_duplicate_target")
 	setDraftTestKey(t, app, "mutation_add_items", []string{"code"})

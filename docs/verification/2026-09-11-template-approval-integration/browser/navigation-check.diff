@@ -1,0 +1,22 @@
+diff --git a/web/e2e/table-release-templates.cjs b/web/e2e/table-release-templates.cjs
+index acca5d2..78a277f 100644
+--- a/web/e2e/table-release-templates.cjs
++++ b/web/e2e/table-release-templates.cjs
+@@ -9,7 +9,7 @@ const checks=[];
+  try{
+   const context=await browser.newContext({viewport:{width:1280,height:900}});const page=await context.newPage();
+   async function login(){await page.getByLabel('用户名').fill('template.browser.admin');await page.getByLabel('密码',{exact:true}).fill('template browser password long enough');await page.getByRole('button',{name:'登录',exact:true}).click();await page.waitForURL(url=>!url.pathname.endsWith('/login'));}
+-  await page.goto(origin+'/login');await login();
++  await page.goto(origin+'/login');await login();for(const name of ['角色管理','账号角色','发布流程模板'])await page.getByRole('link',{name,exact:true}).waitFor();
+   const csrf=(await(await context.request.get(origin+'/api/v1/auth/session')).json()).csrf_token;
+   async function api(path,method,data){const response=await context.request.fetch(origin+path,{method,headers:{Origin:origin,'X-CSRF-Token':csrf,'Idempotency-Key':`browser-${crypto.randomUUID()}`},data});assert.ok(response.ok(),`${method} ${path}: ${response.status()} ${await response.text()}`);return response.json();}
+   await api('/api/v1/query-policies','POST',{code:'browser_query_v1',name:'浏览器查询',description:'',type_code:'page_query',default_order_field:'id',default_order_direction:'ASC',default_page_size:20,max_page_size:200});
+@@ -24,7 +24,7 @@ const checks=[];
+   await page.getByRole('button',{name:'创建未启用分配'}).click();await page.getByText(/操作结果未知/).waitFor();assert.equal(createWrites.length,1);
+   assert.equal(await page.getByLabel('真实数据库表').isDisabled(),true);await page.getByRole('button',{name:'重推原请求',exact:true}).click();await page.getByText('表规则已创建并保持未启用',{exact:true}).waitFor();assert.deepEqual(createWrites[0],createWrites[1]);await page.unroute('**/api/v1/table-policies');checks.push('create table and emergency association atomically; committed response loss manually replays original create');
+   await page.getByRole('button',{name:'启用',exact:true}).click();await page.getByRole('button',{name:'确认启用'}).click();await page.getByText('表规则已启用',{exact:true}).waitFor();
+-  await page.goto(origin+'/platform/table-policies');await page.getByRole('button',{name:'发布流程',exact:true}).click();await page.getByLabel('常规模板',{exact:true}).selectOption('browser_standard_v1');await page.getByRole('button',{name:'保存常规关联'}).click();await page.getByText('常规关联已保存',{exact:true}).waitFor();
++  await page.goto(origin+'/platform/table-policies');for(const name of ['查看','字段配置','发布流程','审批角色'])await page.getByRole('button',{name,exact:true}).waitFor();await page.screenshot({path:join(output,'integrated-management-directory.png'),fullPage:true});checks.push('merged admin navigation and all four table management entry points coexist');await page.getByRole('button',{name:'发布流程',exact:true}).click();await page.getByLabel('常规模板',{exact:true}).selectOption('browser_standard_v1');await page.getByRole('button',{name:'保存常规关联'}).click();await page.getByText('常规关联已保存',{exact:true}).waitFor();
+   const path='**/api/v1/table-policies/policy_alpha/release-templates/EMERGENCY';const writes=[];let lose=true;
+   await page.getByLabel('应急模板',{exact:true}).selectOption('browser_emergency_v1');
+   await page.route(path,async route=>{if(route.request().method()!=='PUT')return route.continue();writes.push({body:route.request().postData(),key:route.request().headers()['idempotency-key']});if(!lose)return route.continue();lose=false;const r=await route.fetch();assert.equal(r.status(),200);await route.abort('connectionreset');});

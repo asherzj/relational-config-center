@@ -1,0 +1,156 @@
+{
+  "base": "bd3e5d16389d7e82dca54ea022dafcb99b993778",
+  "passed": 25,
+  "tests": {
+    "TestLastEnabledAdministratorCannotBeRemovedOrDisabled": {
+      "result": "PASS",
+      "seconds": 10.65,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestRoleChangesAndAccountMaintenanceAreConcurrentSafe": {
+      "result": "PASS",
+      "seconds": 9.78,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestRoleChangeRaceAndAuditFailureDoNotLeavePartialGrants": {
+      "result": "PASS",
+      "seconds": 9.74,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestApprovalRoleMembershipPersistsWithoutGrantingAccountRoles": {
+      "result": "PASS",
+      "seconds": 9.71,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestApprovalRoleRetriesKeepOriginalResultAndRejectChangedIntent": {
+      "result": "PASS",
+      "seconds": 9.69,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestApprovalRoleUnreferencedLifecycle": {
+      "result": "PASS",
+      "seconds": 9.69,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestApprovalRoleAuthorizationValidationAndConcurrentEdits": {
+      "result": "PASS",
+      "seconds": 9.66,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestApprovalRoleFailedRequestRecordRollsBackMembersAndVersion": {
+      "result": "PASS",
+      "seconds": 9.82,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade": {
+      "result": "PASS",
+      "seconds": 14.5,
+      "source": "schema-integration-targeted.txt",
+      "source_sha256": "4415f2c9cb4ff07adc79de77d4f978ff23b8f1bcc56b4989fd59c26f94dcaa11"
+    },
+    "TestAccountControlTablesCannotBeDiscoveredOrManaged": {
+      "result": "PASS",
+      "seconds": 9.82,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestReleaseApprovalCurrentRolesAndHistory": {
+      "result": "PASS",
+      "seconds": 8.85,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory": {
+      "result": "PASS",
+      "seconds": 10.22,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites": {
+      "result": "PASS",
+      "seconds": 10.35,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestSchemaBaselineRecoversUnconfirmedRegistration": {
+      "result": "PASS",
+      "seconds": 13.5,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestSchemaBaselineReleaseUpgradesT1AndRecoversPartialAuditRename": {
+      "result": "PASS",
+      "seconds": 19.09,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestSchemaBaselineRecoversBeforeAttemptWasRecorded": {
+      "result": "PASS",
+      "seconds": 10.26,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix": {
+      "result": "PASS",
+      "seconds": 9.37,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestSchemaBaselineProcessInterruptionRetainsUnconfirmedState": {
+      "result": "PASS",
+      "seconds": 12.44,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestSchemaBaselineUsesTransactionalVersionLedger": {
+      "result": "PASS",
+      "seconds": 9.44,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestSchemaBaselineRefusesToRecreateLostConfirmedHistory": {
+      "result": "PASS",
+      "seconds": 9.78,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestFrozenGooseInstallationMatchesFrozenAdoptionStructure": {
+      "result": "PASS",
+      "seconds": 12.49,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestSchemaReadinessRejectsUnmanagedStartup": {
+      "result": "PASS",
+      "seconds": 9.94,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly": {
+      "result": "PASS",
+      "seconds": 17.12,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestSchemaReadinessRejectsKnownOldRelease": {
+      "result": "PASS",
+      "seconds": 15.08,
+      "source": "mysql-integrated.txt",
+      "source_sha256": "d2cfd4e0f6b16e1c0d0a55d12f584e9865b887c8746405483695f8ed3cadc66c"
+    },
+    "TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts": {
+      "result": "PASS",
+      "seconds": 13.83,
+      "source": "schema-v5-pinned-green.txt",
+      "source_sha256": "e75baec12f9ffb025da9948bb4adda59a039a64616825039b83a8e0c615188e0"
+    }
+  }
+}

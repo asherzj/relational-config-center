@@ -1,3 +1,4 @@
+import { createFixtureApprovalRole, fixtureApprovalInput } from './table-approval-fixture.cjs';
 import {readAllReleaseDetailPages,executionCommands,applicationItems} from './release-detail-pages.cjs';
 import originalReleaseActions from "./release-original-action.cjs";
 import { execFileSync } from 'node:child_process';
@@ -79,10 +80,11 @@ async function publishSingle({ applicant, approver, publisher, item, keyPrefix }
   assert.equal(submittedResponse.status(), 200);
   const submitted = await submittedResponse.json();
 
-  const approvedResponse = await releaseWrite(approver, `/api/v1/release-orders/${created.id}/approve`, {
+  const approvalInput = await fixtureApprovalInput({ request: approver }, origin, created.id, {
     expected_version: submitted.version,
     reason: 'Independent concurrent browser baseline review',
-  }, `${keyPrefix}-approve`);
+  });
+  const approvedResponse = await releaseWrite(approver, `/api/v1/release-orders/${created.id}/approve`, approvalInput, `${keyPrefix}-approve`);
   assert.equal(approvedResponse.status(), 200);
   const approved = await approvedResponse.json();
 
@@ -188,6 +190,10 @@ try {
   adminAPI = await request.newContext();
   const adminIdentity = await login(adminAPI, adminUsername, 'browser password long enough');
   assert.ok(adminIdentity.account.roles.includes('ADMIN'));
+  // Both actors review the other's application through this explicit table
+  // role. The legacy APPROVER checkbox above still verifies stored role edits.
+  await createFixtureApprovalRole({ request: adminAPI }, origin, `Account review ${runSuffix}`,
+    [identity.account.id, memberIdentity.account.id], ['notification_templates']);
   reviewerBrowser = await browserEngine.launch(launchOptions);
   const reviewerContext = await reviewerBrowser.newContext({
     storageState: await member.storageState(),

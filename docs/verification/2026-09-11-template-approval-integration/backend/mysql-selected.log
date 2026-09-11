@@ -1,0 +1,62 @@
+$ go test -tags integration -run ^(TestApprovalRoleMembershipPersistsWithoutGrantingAccountRoles|TestReleaseSubmitRequiresIndependentApprover|TestTableApprovalPartialProgressAndFinalApproval|TestTableApprovalSnapshotMembershipFallbackAndHistory|TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit|TestTableApprovalQualificationChangesSerializeWithDecisions|TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable|TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay|TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure|TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin|TestTableReleaseTemplateHTTPCurrentAuthorizationAndRequiredRequestIdentity|TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency|TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost|TestBusinessAPIsRequireSessionAndCSRF|TestConcurrentAccountsOwnTheirBusinessChanges|TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory|TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish|TestAccountControlTablesCannotBeDiscoveredOrManaged|TestReleaseHistorySurvivesExecutableRestartAndExternalChanges)$ -count=1 -parallel=1 -p=1 -timeout=20m -json ./cmd/admin
+=== RUN   TestApprovalRoleMembershipPersistsWithoutGrantingAccountRoles
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestApprovalRoleMembershipPersistsWithoutGrantingAccountRoles (0.00s)
+=== RUN   TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost (0.00s)
+=== RUN   TestBusinessAPIsRequireSessionAndCSRF
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestBusinessAPIsRequireSessionAndCSRF (0.00s)
+=== RUN   TestConcurrentAccountsOwnTheirBusinessChanges
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestConcurrentAccountsOwnTheirBusinessChanges (0.00s)
+=== RUN   TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory (0.00s)
+=== RUN   TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish (0.00s)
+=== RUN   TestAccountControlTablesCannotBeDiscoveredOrManaged
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestAccountControlTablesCannotBeDiscoveredOrManaged (0.00s)
+=== RUN   TestReleaseHistorySurvivesExecutableRestartAndExternalChanges
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestReleaseHistorySurvivesExecutableRestartAndExternalChanges (0.00s)
+=== RUN   TestReleaseSubmitRequiresIndependentApprover
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestReleaseSubmitRequiresIndependentApprover (0.00s)
+=== RUN   TestTableApprovalPartialProgressAndFinalApproval
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestTableApprovalPartialProgressAndFinalApproval (0.00s)
+=== RUN   TestTableApprovalSnapshotMembershipFallbackAndHistory
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestTableApprovalSnapshotMembershipFallbackAndHistory (0.00s)
+=== RUN   TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit (0.00s)
+=== RUN   TestTableApprovalQualificationChangesSerializeWithDecisions
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestTableApprovalQualificationChangesSerializeWithDecisions (0.00s)
+=== RUN   TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable (0.00s)
+=== RUN   TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay (0.00s)
+=== RUN   TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure (0.00s)
+=== RUN   TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin (0.00s)
+=== RUN   TestTableReleaseTemplateHTTPCurrentAuthorizationAndRequiredRequestIdentity
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestTableReleaseTemplateHTTPCurrentAuthorizationAndRequiredRequestIdentity (0.00s)
+=== RUN   TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency
+    discovery_integration_test.go:262: required Docker provider unavailable: rootless Docker not found, failed to create Docker provider
+--- FAIL: TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency (0.00s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	1.976s
+
+exit_code=1

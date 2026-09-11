@@ -1,0 +1,1 @@
+All task-owned MySQL containers were stopped and removed by their own runners. Formal shell-runner cleanup verified=true (including the failed run). Final read-only docker ps lists only pre-existing rcc-main-preview-admin-1 and deploy-mysql-1. No task-owned browser profile, password env file, or database container retained.

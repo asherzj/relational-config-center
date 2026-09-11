@@ -188,8 +188,9 @@ func TestCurrentSessionUsesRolePermissionMatrix(t *testing.T) {
 			{"POST", "/api/v1/release-orders", role == "EDITOR" || role == "ADMIN"},
 			{"PUT", "/api/v1/release-orders/missing", role == "EDITOR" || role == "ADMIN"},
 			{"POST", "/api/v1/release-orders/missing/submit", role == "EDITOR" || role == "ADMIN"},
-			{"POST", "/api/v1/release-orders/missing/approve", role == "APPROVER" || role == "ADMIN"},
-			{"POST", "/api/v1/release-orders/missing/reject", role == "APPROVER" || role == "ADMIN"},
+			// Table eligibility is checked on the loaded order, after viewer access.
+			{"POST", "/api/v1/release-orders/missing/approve", true},
+			{"POST", "/api/v1/release-orders/missing/reject", true},
 			{"POST", "/api/v1/release-orders/missing/reprepare", role == "EDITOR" || role == "ADMIN"},
 			{"POST", "/api/v1/release-orders/missing/execute", role == "PUBLISHER" || role == "ADMIN"},
 		}

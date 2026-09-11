@@ -1,0 +1,39 @@
+{
+  "ours": "7eb9dd36affe16739d8e8b178afdd9977d4976a3",
+  "theirs": "2612bb354ef71d42e193648564b9f30bd9281eb4",
+  "merge_base": "dafdde3a4a41a2b8afd03ae57fa51b9908fae08b",
+  "shared_modified_source": [
+    "admin/CONTEXT.md",
+    "admin/cmd/admin/application.go",
+    "admin/cmd/admin/business_auth_integration_test.go",
+    "admin/cmd/admin/release_history_delivery_integration_test.go",
+    "admin/cmd/admin/schema_baseline_integration_test.go",
+    "admin/cmd/admin/schema_migration_integration_test.go",
+    "admin/cmd/admin/schema_readiness_integration_test.go",
+    "admin/cmd/admin/schema_release_details_integration_test.go",
+    "admin/internal/infrastructure/mysql/schema_baseline.go",
+    "admin/internal/interfaces/http/router.go",
+    "admin/internal/interfaces/http/security.go",
+    "docs/schema-migrations.md",
+    "web/DESIGN.md",
+    "web/e2e/release-batches.cjs",
+    "web/e2e/release-multitable.cjs",
+    "web/e2e/write-recovery.cjs",
+    "web/src/api/client.ts",
+    "web/src/api/error-messages.ts",
+    "web/src/app.tsx",
+    "web/src/components/AppShell.tsx",
+    "web/src/features/table-policies/TablePoliciesPage.test.tsx",
+    "web/src/features/table-policies/TablePoliciesPage.tsx",
+    "web/src/styles.css"
+  ],
+  "additional_integration_paths": [
+    "admin/cmd/admin/template_approval_schema_integration_test.go",
+    "admin/cmd/admin/table_approval_schema_integration_test.go",
+    "admin/internal/infrastructure/mysql/migrations/00008_schema.json",
+    "admin/internal/infrastructure/mysql/migrations/00009_schema.json",
+    "docs/adr/0027-configure-release-workflows-with-stable-templates.md",
+    "docs/adr/0005-atomic-policy-replacement.md",
+    "web/e2e/table-approvals.cjs"
+  ]
+}

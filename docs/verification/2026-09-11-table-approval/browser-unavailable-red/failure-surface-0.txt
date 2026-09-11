@@ -1,0 +1,177 @@
+关系型配置中心
+工作空间
+配置管理
+单数据源
+配置管理
+发布单
+配置内容管理
+表配置管理
+查询规则定义
+变更规则定义
+表规则分配
+平台人员管理
+角色管理
+账号角色
+Browser acceptance
+e2e.01796cac7dd35920dbad
+发布单
+配置管理 / 发布单 / 详情
+返回发布单列表
+1
+准备
+
+准备中
+
+2
+审批
+
+待提交
+
+3
+发布
+
+待审批后发布
+
+4
+完结
+
+待发布后完结
+
+无人可审批时保留申请与进度
+
+multitable_browser_a、multitable_browser_b · 草稿
+
+发布单号
+f4f63ad92f2c3ec5c93c66698382d86d复制发布单号
+申请人
+B
+Browser acceptance
+664e08d1-de4a-48cd-83f0-8c7deec2d8bb
+创建时间
+2026/09/11 04:35:29
+最近审批人
+尚无批准记录
+发布单版本
+1
+发布操作
+
+草稿
+
+本单共 2 项变更。审批按本人可审批表确认，发布与取消针对整单；分页与筛选仅用于审阅。
+
+编辑草稿
+添加明细
+提交审批
+取消草稿
+提交审批安排
+
+提交时固定各表角色；角色成员资格按处理时的当前状态判断。
+
+multitable_browser_a
+待提交
+
+当前分配：无角色 · 默认 ADMIN 规则
+
+暂无独立审批人
+
+缺少独立审批人，请补充启用的角色成员或非申请人 ADMIN
+
+请管理员补充已启用且不是申请人的角色成员或 ADMIN。
+
+multitable_browser_b
+待提交
+
+当前分配：无角色 · 默认 ADMIN 规则
+
+暂无独立审批人
+
+缺少独立审批人，请补充启用的角色成员或非申请人 ADMIN
+
+请管理员补充已启用且不是申请人的角色成员或 ADMIN。
+
+变更内容
+申请差异
+
+以下是申请时的差异；发布时生成的字段以实际数据库结果为准。
+
+共 2 项明细
+
+ADD 0 · MODIFY 2 · DELETE 0
+
+仅看变更
+明细 1 · multitable_browser_a · MODIFY · 记录 4
+
+记录基线 0
+
+字段	服务器原值	申请值
+label
+string
+	值before-4	值preserved-unavailable-approval
+明细 2 · multitable_browser_b · MODIFY · 记录 4
+操作历史
+
+创建了草稿
+
+CREATE · 版本 1
+
+2026/09/11 04:35:29
+B
+Browser acceptance
+664e08d1-de4a-48cd-83f0-8c7deec2d8bb
+提交审批
+
+发布单
+
+请核对以下差异。提交后内容将被冻结，已知记录会被此单占用，等待其他审批人确认。
+
+全部 2 项将一起提交，预览分页不改变操作范围。
+
+提交审批安排
+
+提交时固定各表角色；角色成员资格按处理时的当前状态判断。
+
+multitable_browser_a
+待提交
+
+当前分配：无角色 · 默认 ADMIN 规则
+
+暂无独立审批人
+
+缺少独立审批人，请补充启用的角色成员或非申请人 ADMIN
+
+请管理员补充已启用且不是申请人的角色成员或 ADMIN。
+
+multitable_browser_b
+待提交
+
+当前分配：无角色 · 默认 ADMIN 规则
+
+暂无独立审批人
+
+缺少独立审批人，请补充启用的角色成员或非申请人 ADMIN
+
+请管理员补充已启用且不是申请人的角色成员或 ADMIN。
+
+查看原申请内容
+
+共 2 项明细
+
+ADD 0 · MODIFY 2 · DELETE 0
+
+仅看变更
+明细 1 · multitable_browser_a · MODIFY · 记录 4
+
+记录基线 0
+
+字段	服务器原值	申请值
+label
+string
+	值before-4	值preserved-unavailable-approval
+明细 2 · multitable_browser_b · MODIFY · 记录 4
+independent approver required for [multitable_browser_a multitable_browser_b]
+请求编号：rcc-6c893736a6c3e4c041a1cd213ba27d25
+
+原请求与意见已保留；再次点击同一操作将提交原请求。
+
+关闭
+确认提交审批

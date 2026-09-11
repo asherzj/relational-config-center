@@ -1,0 +1,18 @@
+{
+  "browser": "152.0.7977.83",
+  "checks": [
+    "empty state, searchable real member selection, keyboard form order, unsaved close protection and real save",
+    "role directory read failure retains the last successful list and offers a working retry",
+    "390px role catalog scrolls with arrow keys while its edit action remains visible",
+    "personnel read failure retains cached search results and selected identities, then retries successfully",
+    "reload preserves role identity and members; removing one member saves through public API",
+    "real database rollback returns definite failure, preserves editable inputs and allows a corrected save",
+    "stale version rejects overwrite, preserves input, exposes current content and requires explicit save",
+    "lost committed response preserves exact original key/body; explicit retry returns original result at 390px",
+    "an undelivered uncertain request that later conflicts can return to latest-content review without losing input",
+    "real missing-cookie interruption hides protected inputs, same-account login preserves input and members, mobile keyboard can disable and save",
+    "enable restoration and unreferenced deletion with cancel-first keyboard confirmation",
+    "revocation preserves draft and disables save; switching real accounts discards private draft"
+  ],
+  "errors": []
+}

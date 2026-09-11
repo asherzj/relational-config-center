@@ -1,0 +1,7 @@
+--- FAIL: TestDomainDoesNotContainORMMappings (0.00s)
+    dependencies_test.go:107: ../../domain/approval_role.go stores ORM mapping in domain; ADR-0012 requires persistence mappings in Infrastructure
+    dependencies_test.go:107: ../../domain/approval_role.go stores ORM mapping in domain; ADR-0012 requires persistence mappings in Infrastructure
+    dependencies_test.go:107: ../../domain/approval_role.go stores ORM mapping in domain; ADR-0012 requires persistence mappings in Infrastructure
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/internal/interfaces/http	2.474s
+FAIL

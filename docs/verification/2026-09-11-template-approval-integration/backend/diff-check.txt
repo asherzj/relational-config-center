@@ -1,0 +1,3 @@
+$ git diff --check -- admin/cmd/admin/application.go admin/cmd/admin/business_auth_integration_test.go admin/cmd/admin/release_history_delivery_integration_test.go admin/internal/interfaces/http/router.go admin/internal/interfaces/http/security.go
+
+exit_code=0

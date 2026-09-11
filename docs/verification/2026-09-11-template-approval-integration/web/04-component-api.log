@@ -1,0 +1,183 @@
+
+ RUN  v4.1.11 /private/tmp/rcc-release-template-approval-integration/web
+
+ ❯ src/features/table-policies/TablePoliciesPage.test.tsx (18 tests | 1 failed) 5420ms
+   × ends a manually replayed state command in the refreshed table directory 197ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/table-policies/TablePoliciesPage.test.tsx > ends a manually replayed state command in the refreshed table directory
+TestingLibraryElementError: Found multiple elements with the role "button" and name "关闭"
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"关闭"[39m
+  [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 button size-9 shrink-0 p-0 icon-button"[39m
+  [33mdata-size[39m=[32m"default"[39m
+  [33mdata-slot[39m=[32m"button"[39m
+  [33mdata-variant[39m=[32m"ghost"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-x"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"20"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"20"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M18 6 6 18"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"m6 6 12 12"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 button drawer-close-action"[39m
+  [33mdata-size[39m=[32m"default"[39m
+  [33mdata-slot[39m=[32m"button"[39m
+  [33mdata-variant[39m=[32m"outline"[39m
+[36m>[39m
+  [0m关闭[0m
+[36m</button>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33maria-describedby[39m=[32m"radix-_r_47_"[39m
+  [33maria-labelledby[39m=[32m"radix-_r_46_"[39m
+  [33maria-modal[39m=[32m"true"[39m
+  [33mclass[39m=[32m"fixed z-50 flex-col shadow-lg transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:animate-in data-[state=open]:duration-500 inset-y-0 right-0 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right drawer grid h-dvh w-full min-w-0 max-w-full grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 border-0 bg-card p-0 sm:max-w-[640px]"[39m
+  [33mdata-modal-surface[39m=[32m"true"[39m
+  [33mdata-slot[39m=[32m"sheet-content"[39m
+  [33mdata-state[39m=[32m"open"[39m
+  [33mid[39m=[32m"radix-_r_45_"[39m
+  [33mrole[39m=[32m"dialog"[39m
+  [33mtabindex[39m=[32m"-1"[39m
+[36m>[39m
+  [36m<header[39m
+    [33mclass[39m=[32m"drawer-header"[39m
+  [36m>[39m
+    [36m<div>[39m
+      [36m<h2[39m
+        [33mclass[39m=[32m"text-foreground text-xl font-semibold"[39m
+        [33mdata-slot[39m=[32m"sheet-title"[39m
+        [33mid[39m=[32m"radix-_r_46_"[39m
+      [36m>[39m
+        [0m表规则详情[0m
+      [36m</h2>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"text-sm text-muted-foreground sr-only"[39m
+        [33mdata-slot[39m=[32m"sheet-description"[39m
+        [33mid[39m=[32m"radix-_r_47_"[39m
+      [36m>[39m
+        [0m表规则[0m
+      [36m</p>[39m
+    [36m</div>[39m
+    [36m<button[39m
+      [33maria-label[39m=[32m"关闭"[39m
+      [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 button size-9 shrink-0 p-0 icon-button"[39m
+      [33mdata-size[39m=[32m"default"[39m
+      [33mdata-slot[39m=[32m"button"[39m
+      [33mdata-variant[39m=[32m"ghost"[39m
+    [36m>[39m
+      [36m<svg[39m
+        [33maria-hidden[39m=[32m"true"[39m
+        [33mclass[39m=[32m"lucide lucide-x"[39m
+        [33mfill[39m=[32m"none"[39m
+        [33mheight[39m=[32m"20"[39m
+        [33mstroke[39m=[32m"currentColor"[39m
+        [33mstroke-linecap[39m=[32m"round"[39m
+        [33mstroke-linejoin[39m=[32m"round"[39m
+        [33mstroke-width[39m=[32m"2"[39m
+        [33mviewBox[39m=[32m"0 0 24 24"[39m
+        [33mwidth[39m=[32m"20"[39m
+        [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+      [36m>[39m
+        [36m<path[39m
+          [33md[39m=[32m"M18 6 6 18"[39m
+        [36m/>[39m
+        [36m<path[39m
+          [33md[39m=[32m"m6 6 12 12"[39m
+        [36m/>[39m
+      [36m</svg>[39m
+    [36m</button>[39m
+  [36m</header>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"drawer-body"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"policy-form"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3 border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground status-badge status-draft"[39m
+        [33mdata-slot[39m=[32m"badge"[39m
+        [33mdata-variant[39m=[32m"outline"[39m
+      [36m>[39m
+        [0m未启用[0m
+      [36m</span>[39m
+      [36m<label[39m
+        [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 field"[39m
+        [33mdata-slot[39m=[32m"label"[39m
+      [36m>[39m
+        [36m<span>[39m
+          [0m真实数据库表[0m
+        [36m</span>[39m
+        [36m<input[39m
+          [33mclass[39m=[32m"h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40"[39m
+          [33mdata-slot[39m=[32m"input"[39m
+          [33mdisabled[39m=[32m""[39m
+          [33mreadonly[39m=[32m""[39m
+          [33mvalue[39m=[32m"notification_templates"[39m
+        [36m/>[39m
+      [36m</label>[39m
+      [36m<label[39m
+        [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 field"[39m
+        [33mdata-slot[39m=[32m"label"[39m
+      [36m>[39m
+        [36m<span>[39m
+          [0m查询规则编码[0m
+        [36m</span>[39m
+        [36m<input[39m
+          [33mclass[39m=[32m"h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40"[39m
+          [33mdata-slot[39m=[32m"input"[39m
+          [33mdisabled[39m=[32m""[39m
+          [33mreadonly[39m=[32m""[39m
+          [33mvalue[39m=[32m"standard_page_query_v1"[39m
+        [36m/>[39m
+      [36m</label>[39m
+      [36m<label[39m
+        [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 field"[39m
+        [33mdata-sl...
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:20:35
+ ❯ getMultipleElementsFoundError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:23:10
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/features/table-policies/TablePoliciesPage.test.tsx:551:40
+    549|   expect(writes).toHaveLength(2);expect(writes[1]!.body).toBe(writes[0…
+    550|   expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(…
+    551|   await userEvent.click(within(drawer).getAllByRole("button",{name:"关闭…
+       |                                        ^
+    552|   await waitFor(() => expect(screen.queryByRole("dialog", { name: "表规则…
+    553|   expect(await within(screen.getByRole("region", { name: "表规则目录" })).f…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 9 passed (10)
+      Tests  1 failed | 187 passed (188)
+   Start at  07:59:13
+   Duration  24.02s (transform 4.04s, setup 3.70s, import 7.27s, tests 39.47s, environment 8.34s)
+

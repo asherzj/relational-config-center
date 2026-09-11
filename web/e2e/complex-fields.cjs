@@ -1,3 +1,4 @@
+const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
 const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real Playwright browser -> production same-origin Web proxy -> Cookie-authenticated Admin -> disposable MySQL 8.4.
@@ -202,7 +203,7 @@ function fixtureSQL() {
     }
     currentOrder = submitted.response;
     assert.equal(currentOrder.state, 'PENDING_APPROVAL');
-    const approved = await api(approver, 'POST', `/api/v1/release-orders/${currentOrder.id}/approve`, { expected_version: currentOrder.version, reason: 'Independent complex field review' }, expectedFailures.length ? [200, ...expectedFailures] : 200);
+    const approved = await api(approver, 'POST', `/api/v1/release-orders/${currentOrder.id}/approve`, await fixtureApprovalInput(approver, base, currentOrder.id, { expected_version: currentOrder.version, reason: 'Independent complex field review' }), expectedFailures.length ? [200, ...expectedFailures] : 200);
     if (approved.status !== 200) {
       const retained = await api(context, 'GET', `/api/v1/release-orders/${currentOrder.id}`);
       currentOrder = await readAllReleaseDetailPages(context,base,retained.response);
@@ -291,7 +292,8 @@ function fixtureSQL() {
     const applicantIdentity = await registerFixtureAccount(context, base);
     const approverIdentity = await registerFixtureAccount(approver, base);
     const publisherIdentity = await registerFixtureAccount(publisher, base);
-    await assignRoles(context, approverIdentity.accountID, ['APPROVER']);
+    await assignRoles(context, approverIdentity.accountID, ['VIEWER']);
+    await createFixtureApprovalRole(context, base, `Complex field review ${randomUUID()}`, [approverIdentity.accountID], tables);
     await assignRoles(context, publisherIdentity.accountID, ['PUBLISHER']);
     await assignRoles(context, applicantIdentity.accountID, ['EDITOR', 'ADMIN']);
     await run('TEXT and JSON browser ADD, MODIFY, SQL byte comparison, readback and reopened editor', async () => {

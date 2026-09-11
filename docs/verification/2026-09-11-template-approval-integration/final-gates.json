@@ -1,0 +1,18 @@
+{
+  "source_whitespace": {
+    "command": [
+      "git",
+      "diff",
+      "--check",
+      "HEAD",
+      "--",
+      ".",
+      ":!docs/verification"
+    ],
+    "exit_code": 0
+  },
+  "review_findings": {
+    "standards": 0,
+    "spec": 0
+  }
+}

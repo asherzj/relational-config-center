@@ -1,0 +1,71 @@
+PASS syntax web/e2e/approval-roles.cjs
+PASS syntax web/e2e/auth-boundary.cjs
+PASS syntax web/e2e/browser-accessibility.cjs
+PASS syntax web/e2e/combined-query.cjs
+PASS syntax web/e2e/complex-fields.cjs
+PASS syntax web/e2e/draft-targets.cjs
+PASS syntax web/e2e/field-display.cjs
+PASS syntax web/e2e/field-inputs.cjs
+PASS syntax web/e2e/field-interactions.cjs
+PASS syntax web/e2e/field-policies.cjs
+PASS syntax web/e2e/field-recovery.cjs
+PASS syntax web/e2e/local-account.cjs
+PASS syntax web/e2e/operation-coverage.cjs
+PASS syntax web/e2e/release-approvals.cjs
+PASS syntax web/e2e/release-batches.cjs
+PASS syntax web/e2e/release-detail-pages.cjs
+PASS syntax web/e2e/release-drafts.cjs
+PASS syntax web/e2e/release-multitable.cjs
+PASS syntax web/e2e/release-original-action.cjs
+PASS syntax web/e2e/release-rollback-reason.cjs
+PASS syntax web/e2e/release-rollbacks.cjs
+PASS syntax web/e2e/rule-clarity.cjs
+PASS syntax web/e2e/table-approval-fixture.cjs
+PASS syntax web/e2e/table-approvals.cjs
+PASS syntax web/e2e/unsaved-changes.cjs
+PASS syntax web/e2e/write-recovery.cjs
+PASS syntax web/e2e/accounts.mjs
+PASS bash syntax scripts/browser-acceptance.sh
+PASS selection engines=chromium: 11 script calls, 11 unique scripts, installs=['chromium']
+  write-recovery.cjs chromium
+  operation-coverage.cjs chromium
+  complex-fields.cjs chromium
+  browser-accessibility.cjs chromium
+  release-approvals.cjs chromium
+  release-batches.cjs chromium
+  release-rollbacks.cjs chromium
+  accounts.mjs chromium
+  release-multitable.cjs chromium
+  release-rollback-reason.cjs chromium
+  field-display.cjs chromium
+PASS selection engines=chromium,firefox: 16 script calls, 11 unique scripts, installs=['chromium', 'firefox']
+  write-recovery.cjs chromium
+  operation-coverage.cjs chromium
+  complex-fields.cjs chromium
+  browser-accessibility.cjs chromium
+  browser-accessibility.cjs firefox
+  release-approvals.cjs chromium
+  release-batches.cjs chromium
+  release-rollbacks.cjs chromium
+  accounts.mjs chromium
+  release-multitable.cjs chromium
+  release-rollback-reason.cjs chromium
+  release-rollbacks.cjs firefox
+  accounts.mjs firefox
+  release-multitable.cjs firefox
+  release-rollback-reason.cjs firefox
+  field-display.cjs chromium
+PASS selection engines=webkit: 11 script calls, 11 unique scripts, installs=['chromium', 'webkit']
+  write-recovery.cjs chromium
+  operation-coverage.cjs chromium
+  complex-fields.cjs chromium
+  browser-accessibility.cjs webkit
+  release-approvals.cjs chromium
+  release-batches.cjs chromium
+  release-rollbacks.cjs webkit
+  accounts.mjs webkit
+  release-multitable.cjs webkit
+  release-rollback-reason.cjs webkit
+  field-display.cjs chromium
+PASS existing all selection unchanged (chromium + firefox)
+No browser, MySQL, HTTP service or browser-acceptance startup executed.

@@ -1,0 +1,5 @@
+{
+  "command": "git diff --cached --check -- web",
+  "exit": 0,
+  "output": ""
+}

@@ -498,7 +498,17 @@ func (p *identityGuardPublication) approve(ctx context.Context, table string, co
 	if err != nil {
 		return order, key, err
 	}
-	order, err = p.orders.Approve(p.reviewer, order.ID, application.ReleaseDecisionInput{ExpectedVersion: order.Version, Reason: "independent identity review"}, key+"-approve")
+	// The separate administrator reads the pending fallback scope before confirming it.
+	review, err := p.orders.Get(p.reviewer, order.ID)
+	if err != nil {
+		return order, key, err
+	}
+	order, err = p.orders.Approve(p.reviewer, order.ID, application.ReleaseDecisionInput{
+		ExpectedVersion:          review.Version,
+		Reason:                   "independent identity review",
+		ConfirmedTables:          review.ApprovalContext.ApprovableTables,
+		ExpectedApprovalRevision: review.ApprovalContext.Revision,
+	}, key+"-approve")
 	return order, key, err
 }
 func (p *identityGuardPublication) Add(ctx context.Context, table string, content domain.MutationContent) (string, error) {

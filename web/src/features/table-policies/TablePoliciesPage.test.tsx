@@ -131,6 +131,8 @@ describe("表规则分配页面", () => {
 
     expect(await screen.findByRole("heading", { name: "表规则分配" })).toBeVisible();
     expect(screen.getByRole("link", { name: "表规则分配" })).toHaveClass("active");
+    expect(screen.getByRole("link",{name:"角色管理"})).toBeVisible();
+    expect(screen.getByRole("link",{name:"发布流程模板"})).toBeVisible();
     expect((await screen.findAllByText("notification_templates")).length).toBeGreaterThan(0);
     expect(screen.getByText("通知模板")).toBeVisible();
     expect(screen.getByText("audit_events")).toBeVisible();
@@ -138,6 +140,8 @@ describe("表规则分配页面", () => {
     expect(screen.getByText("standard_page_query_v1")).toBeVisible();
     expect(screen.getByText("standard_mutation_v1")).toBeVisible();
     expect(screen.getAllByText("已启用").length).toBeGreaterThan(0);
+    const directory=screen.getByRole("region",{name:"表规则目录"});
+    for(const name of ["查看","字段配置","发布流程","审批角色"])expect(within(directory).getByRole("button",{name})).toBeVisible();
 
     await user.type(screen.getByRole("searchbox", { name: "筛选表规则" }), "missing_table");
     expect(screen.queryByText("standard_page_query_v1")).not.toBeInTheDocument();
@@ -515,4 +519,103 @@ describe("表规则分配页面", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("实时表结构");
     expect(screen.getByRole("alert")).toHaveTextContent("req-schema-24");
   });
+});
+
+
+it("ends a manually replayed state command in the refreshed table directory", async () => {
+  let enabled = true;
+  const writes:RequestInit[] = [];
+  vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.endsWith("/table-policies/notification_templates/disable") && init?.method === "POST") {
+      writes.push(init); enabled = false; if(writes.length===1)throw new TypeError("response lost after disabling");return json({...tablePolicy,enabled,version:"2"});
+    }
+    if (url.endsWith("/table-policies/notification_templates")) return json({ ...tablePolicy, enabled, version:enabled?"1":"2" });
+    if (url.endsWith("/table-policies")) return json({ policies: [{ ...tablePolicy, enabled }] });
+    if (url.endsWith("/database-tables")) return json({ tables: discoveryTables.map(table => table.table_name === "notification_templates" ? { ...table, policy_enabled: enabled } : table) });
+    if (url.endsWith("/query-policy-types")) return json({ types: [{ code: "page_query" }] });
+    if (url.endsWith("/mutation-policy-types")) return json({ types: [{ code: "single_table_mutation", operations: ["ADD", "MODIFY", "DELETE"] }] });
+    if (url.endsWith("/query-policies")) return json({ policies: queryPolicies });
+    if (url.endsWith("/mutation-policies")) return json({ policies: mutationPolicies });
+    throw new Error(`unexpected request ${url}`);
+  })));
+  renderPage("/platform/table-policies/notification_templates");
+  const drawer = await screen.findByRole("dialog", { name: "表规则详情" });
+  await userEvent.click(await within(drawer).findByRole("button", { name: "停用" }));
+  await userEvent.click(screen.getByRole("button", { name: "确认停用" }));
+  await screen.findByText(/操作结果未知/);
+  await userEvent.click(screen.getByRole("button", { name: "重推原请求" }));
+  await screen.findByText("表规则已停用");
+  expect(writes).toHaveLength(2);expect(writes[1]!.body).toBe(writes[0]!.body);
+  expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).toBe(new Headers(writes[0]!.headers).get("Idempotency-Key"));
+  await userEvent.click(within(drawer).getAllByRole("button",{name:"关闭"}).at(-1)!);
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: "表规则详情" })).not.toBeInTheDocument());
+  expect(await within(screen.getByRole("region", { name: "表规则目录" })).findByText("未启用")).toBeVisible();
+  expect(writes).toHaveLength(2);
+});
+
+it("表审批分配跨完整角色分页选择并独立保存版本", async () => {
+  const ids = ["11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222"];
+  const writes: RequestInit[] = [];
+  const role = (index: number) => ({ id: ids[index], name: index ? "财务审批" : "商品运营", description: "负责审批", enabled: true, version: "1", members: [], referenced: false, deleted: false, creator: testAdminIdentity.account.id, modifier: testAdminIdentity.account.id, created_at: "2026-09-11T00:00:00Z", updated_at: "2026-09-11T00:00:00Z" });
+  vi.stubGlobal("fetch", withAdminSession(vi.fn(async (input, init) => {
+    const path = String(input);
+    if (path.endsWith("/database-tables")) return json({ tables: discoveryTables });
+    if (path.endsWith("/table-policies")) return json({ policies: [tablePolicy] });
+    if (path.includes("/approval-roles?")) return json(path.includes("after=next") ? { roles: [role(1)], next_cursor: "" } : { roles: [role(0)], next_cursor: "next" });
+    if (path.endsWith("/approval-roles")) {
+      if (init?.method === "PUT") { writes.push(init); return json({ table_name: tablePolicy.table_name, version: "1", role_ids: ids, roles: ids.map((id, index) => ({ id, name: role(index).name })) }); }
+      return json({ table_name: tablePolicy.table_name, version: "0", role_ids: [], roles: [] });
+    }
+    throw new Error(`unexpected request ${path}`);
+  })));
+  const user = userEvent.setup(); renderPage();
+  await user.click(await screen.findByRole("button", { name: "审批角色" }));
+  expect(await screen.findByText("未选择角色时，由已启用且不是申请人的 ADMIN 默认审批。无人符合时不能提交。")).toBeVisible();
+  await user.click(await screen.findByRole("checkbox", { name: "选择审批角色 商品运营" }));
+  await user.click(screen.getByRole("button", { name: "更多审批角色" }));
+  await user.click(await screen.findByRole("checkbox", { name: "选择审批角色 财务审批" }));
+  expect(screen.getByRole("region", { name: "已选择审批角色" })).toHaveTextContent("商品运营");
+  await user.click(screen.getByRole("button", { name: "保存表审批角色" }));
+  await waitFor(() => expect(writes).toHaveLength(1));
+  expect(JSON.parse(String(writes[0]!.body))).toEqual({ expected_version: "0", role_ids: ids });
+  expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBeTruthy();
+  expect(await screen.findByText("表审批角色已保存。")).toBeVisible();
+});
+
+it("表审批分配冲突保留选择，读取最新后明确保存并以原键恢复丢失响应", async () => {
+ const chosen={id:"11111111-1111-4111-8111-111111111111",name:"原选择"};
+ const other={id:"22222222-2222-4222-8222-222222222222",name:"他人已保存角色"};
+ const writes:RequestInit[]=[];let reads=0;
+ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+  const path=String(input);
+  if(path.endsWith("/database-tables"))return json({tables:discoveryTables});
+  if(path.endsWith("/table-policies"))return json({policies:[tablePolicy]});
+  if(path.includes("/approval-roles?"))return json({roles:[],next_cursor:""});
+  if(path.endsWith("/approval-roles")){
+   if(init?.method==="PUT"){
+    writes.push(init);if(writes.length===1)return json({error:{code:"table_approval_conflict",message:"changed",request_id:"assignment-conflict"}},409);
+    if(writes.length===2)throw new TypeError("committed response lost");
+    return json({table_name:tablePolicy.table_name,version:"3",role_ids:[],roles:[]});
+   }
+   reads++;return json({table_name:tablePolicy.table_name,version:reads===1?"1":"2",role_ids:[reads===1?chosen.id:other.id],roles:[reads===1?chosen:other]});
+  }
+  throw new Error(`unexpected request ${path}`);
+ })));
+ const user=userEvent.setup();renderPage(`/platform/table-policies/${tablePolicy.table_name}?mode=approvals`);
+ await user.click(await screen.findByRole("button",{name:"移除审批角色 原选择"}));
+ await user.click(screen.getByRole("button",{name:"保存表审批角色"}));
+ expect(await screen.findByRole("button",{name:"查看最新审批分配"})).toBeEnabled();
+ expect(screen.getByRole("button",{name:"保存表审批角色"})).toBeDisabled();
+ await user.click(screen.getByRole("button",{name:"查看最新审批分配"}));
+ expect(await screen.findByRole("region",{name:"服务器最新审批分配"})).toHaveTextContent("他人已保存角色");
+ expect(screen.getByRole("region",{name:"已选择审批角色"})).toHaveTextContent("已选择 0 个审批角色");
+ await user.click(screen.getByRole("button",{name:"保存表审批角色"}));
+ await user.click(await screen.findByRole("button",{name:"使用原请求重试"}));
+ await waitFor(()=>expect(writes).toHaveLength(3));
+ expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"1",role_ids:[]});
+ expect(JSON.parse(String(writes[1]!.body))).toEqual({expected_version:"2",role_ids:[]});
+ expect(writes[2]!.body).toEqual(writes[1]!.body);
+ expect(new Headers(writes[2]!.headers).get("Idempotency-Key")).toEqual(new Headers(writes[1]!.headers).get("Idempotency-Key"));
+ expect(new Headers(writes[1]!.headers).get("Idempotency-Key")).not.toEqual(new Headers(writes[0]!.headers).get("Idempotency-Key"));
 });

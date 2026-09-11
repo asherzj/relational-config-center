@@ -1,0 +1,30 @@
+{
+  "ok": true,
+  "checks": [
+    "applicant, forward publisher and unrelated viewer have no rollback reason edit entry",
+    "recorded rollback executor keeps the optional editor as VIEWER and saves through the keyboard at 390px",
+    "administrator correction preserves input after a lost response and manually replays the same key and body with two actor-bound revisions"
+  ],
+  "order_id": "07b743f5f9c9f8341cc1e348cdc6a6c7",
+  "rollback_execution_id": "07b743f5f9c9f8341cc1e348cdc6a6c7:ROLLBACK",
+  "executor_account_id": "836cb344-e1d8-49fd-ac56-f440cf6724b1",
+  "administrator_account_id": "45840ac8-539e-4afa-9700-c613b22998bd",
+  "executor_request_count": 1,
+  "administrator_request_count": 2,
+  "administrator_request_replayed_with_same_key_body": true,
+  "revisions": [
+    {
+      "actor_id": "836cb344-e1d8-49fd-ac56-f440cf6724b1",
+      "at": "2026-09-10T21:06:35.451117Z",
+      "reason": "数据库约束冲突，恢复上一版",
+      "execution_id": "07b743f5f9c9f8341cc1e348cdc6a6c7:ROLLBACK"
+    },
+    {
+      "actor_id": "45840ac8-539e-4afa-9700-c613b22998bd",
+      "at": "2026-09-10T21:06:36.225847Z",
+      "reason": "确认是外键约束冲突，已恢复上一版",
+      "execution_id": "07b743f5f9c9f8341cc1e348cdc6a6c7:ROLLBACK"
+    }
+  ],
+  "browser_errors": []
+}

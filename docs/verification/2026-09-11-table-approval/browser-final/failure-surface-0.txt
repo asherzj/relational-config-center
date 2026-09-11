@@ -1,0 +1,143 @@
+关系型配置中心
+发布单
+配置管理 / 发布单 / 详情
+返回发布单列表
+准备
+
+已准备
+
+B
+Browser acceptance
+d95c77e9-cb26-4b01-8bd3-efbe29dd4e19
+
+2026/09/11 04:11:09
+
+2
+审批
+
+待审批
+
+3
+发布
+
+待审批后发布
+
+4
+完结
+
+待发布后完结
+
+商品与价格分别审批 · 长标题检查审批范围
+
+multitable_browser_a、multitable_browser_b · 待审批
+
+发布单号
+57845ed65075542be6e3e043cb52f933复制发布单号
+申请人
+B
+Browser acceptance
+d95c77e9-cb26-4b01-8bd3-efbe29dd4e19
+创建时间
+2026/09/11 04:11:07
+最近审批人
+B
+Browser acceptance
+ad651c2e-d0ea-4788-b364-b0de0a067a35
+发布单版本
+3
+发布操作
+
+待审批
+
+本单共 2 项变更。审批按本人可审批表确认，发布与取消针对整单；分页与筛选仅用于审阅。
+
+取消发布单
+
+提交内容已冻结，审批和发布以这份差异为准。
+
+已通过 1 / 2 表
+
+每表任一合格成员通过即可，所有表通过后才能整单发布。已完成决定保留。
+
+multitable_browser_a
+已通过
+
+提交时分配：商品运营审批角色 · 长名称验证多人分工
+
+商品运营审批角色 · 长名称验证多人分工 · 5ba38692-4cfc-4049-9d7a-9d9444e48390
+
+资格来源：商品运营审批角色 · 长名称验证多人分工
+
+商品运营审批角色 · 长名称验证多人分工 · 5ba38692-4cfc-4049-9d7a-9d9444e48390
+
+B
+Browser acceptance
+ad651c2e-d0ea-4788-b364-b0de0a067a35
+2026/09/11 04:11:11
+
+商品表已核对，价格表交给财务
+
+multitable_browser_b
+待审批
+
+提交时分配：财务价格审批
+
+财务价格审批 · 97c85e55-8694-4d47-bbee-a68660bfd87c
+
+角色成员审批
+
+由提交时审批角色的当前合格成员处理
+
+变更内容
+申请差异
+
+以下是申请时的差异；发布时生成的字段以实际数据库结果为准。
+
+共 2 项明细
+
+ADD 0 · MODIFY 2 · DELETE 0
+
+仅看变更
+明细 1 · multitable_browser_a · MODIFY · 记录 1
+
+记录基线 0
+
+字段	服务器原值	申请值
+label
+string
+	值before-1	值approval-1
+明细 2 · multitable_browser_b · MODIFY · 记录 1
+操作历史
+
+通过了审批表
+
+APPROVE · 版本 3
+
+2026/09/11 04:11:11
+B
+Browser acceptance
+ad651c2e-d0ea-4788-b364-b0de0a067a35
+
+处理表范围：multitable_browser_a
+
+multitable_browser_a · 商品运营审批角色 · 长名称验证多人分工（5ba38692-4cfc-4049-9d7a-9d9444e48390）
+
+商品表已核对，价格表交给财务
+
+提交了审批
+
+SUBMIT · 版本 2
+
+2026/09/11 04:11:09
+B
+Browser acceptance
+d95c77e9-cb26-4b01-8bd3-efbe29dd4e19
+
+创建了草稿
+
+CREATE · 版本 1
+
+2026/09/11 04:11:07
+B
+Browser acceptance
+d95c77e9-cb26-4b01-8bd3-efbe29dd4e19

@@ -30,8 +30,14 @@ const historicalTestMigrationCount int64 = 5
 // and the table-policy control version. Historical business bytes stay exact.
 func preTemplateDataSnapshot(t *testing.T, db *sql.DB) string {
 	t.Helper()
-	return baselineDataSnapshot(t, db, "rcc_release_templates", "rcc_table_release_templates", "rcc_table_policies") +
+	snapshot := baselineDataSnapshot(t, db, "rcc_release_templates", "rcc_table_release_templates", "rcc_table_policies") +
 		baselineRows(t, db, `SELECT id,table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier,created_at,updated_at,concurrency_key FROM rcc_table_policies ORDER BY id`)
+	// Role migrations add empty tables to historical version 5. Remove only
+	// their headers: any unexpected seeded rows still fail the data comparison.
+	for _, table := range []string{"rcc_approval_roles", "rcc_approval_role_members", "rcc_approval_role_requests", "rcc_approval_role_references", "rcc_table_approval_assignments", "rcc_table_approval_requests"} {
+		snapshot = strings.Replace(snapshot, table+":\n", "", 1)
+	}
+	return snapshot
 }
 
 // MySQL image init scripts use the client's default charset. Apply historical
@@ -119,8 +125,12 @@ func TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory(t *testing.T
 	if got := preTemplateDataSnapshot(t, db); got != beforeUpgrade {
 		t.Fatal("explicit upgrade changed historical control or business data")
 	}
-	if err := db.QueryRow(`SELECT GROUP_CONCAT(version_id ORDER BY id) FROM rcc_goose_db_version`).Scan(&versions); err != nil || versions != "0,1,2,3,4,5,8,9" {
-		t.Fatalf("explicit upgrade must append candidate migrations 8 and 9 once: %s %v", versions, err)
+	expectedVersions := []string{"0"}
+	for version := int64(1); version <= currentTestSchemaVersion(t); version++ {
+		expectedVersions = append(expectedVersions, fmt.Sprint(version))
+	}
+	if err := db.QueryRow(`SELECT GROUP_CONCAT(version_id ORDER BY id) FROM rcc_goose_db_version`).Scan(&versions); err != nil || versions != strings.Join(expectedVersions, ",") {
+		t.Fatalf("explicit upgrade must append each subsequent migration once: %s %v", versions, err)
 	}
 	app, err := newApplication(ctx, integrationConfig(driver))
 	if err != nil {

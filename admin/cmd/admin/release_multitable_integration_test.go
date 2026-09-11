@@ -130,8 +130,10 @@ func TestMultitableThousandPagedDetailsExecuteAsOneOrder(t *testing.T) {
 	}
 	tooMany := releaseRequest(t, app, "PUT", path, fmt.Sprintf(`{"title":"千条多表草稿","expected_version":%q,"changes":{"upserts":[{"table_name":"thousand_release_a","operation":"ADD","content":{"id":"501","label":"rejected"}}]}}`, order.Version), "thousand-multi-over-limit")
 	assertIntegrationErrorCode(t, tooMany, 422, "release_item_limit")
-	submitted := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/submit", fmt.Sprintf(`{"expected_version":%q}`, order.Version), "thousand-multi-submit"), 200)
-	approved := rollbackOrderResponse(t, releaseActorRequest(t, app, publicationFixtureReviewer(t, app), "POST", path+"/approve", fmt.Sprintf(`{"expected_version":%q,"reason":"review all pages"}`, submitted.Version), "thousand-multi-approve"), 200)
+	reviewer := publicationFixtureReviewer(t, app)
+	configurePublicationReviewer(t, app, reviewer, order.TableNames...)
+	rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/submit", fmt.Sprintf(`{"expected_version":%q}`, order.Version), "thousand-multi-submit"), 200)
+	approved := rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "review all pages"), "thousand-multi-approve"), 200)
 	started := time.Now()
 	published := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", fmt.Sprintf(`{"expected_version":%q}`, approved.Version), "thousand-multi-execute"), 200)
 	t.Logf("1000 multitable publish %s", time.Since(started))
@@ -275,11 +277,15 @@ func TestMultitableLargeValuesThroughHTTPLifecycle(t *testing.T) {
 		t.Fatal("large saved details")
 	}
 	path := "/api/v1/release-orders/" + order.ID
+	reviewer := publicationFixtureReviewer(t, app)
+	configurePublicationReviewer(t, app, reviewer, order.TableNames...)
 	for _, action := range []struct{ name, version string }{{"submit", "1"}, {"approve", "2"}, {"execute", "3"}} {
 		payload := fmt.Sprintf(`{"expected_version":%q}`, action.version)
-		response := releaseRequest(t, app, "POST", path+"/"+action.name, payload, "large-multitable-"+action.name)
+		var response *httptest.ResponseRecorder
 		if action.name == "approve" {
-			response = releaseActorRequest(t, app, publicationFixtureReviewer(t, app), "POST", path+"/approve", `{"expected_version":"2","reason":"reviewed whole order"}`, "large-multitable-independent-approve")
+			response = releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "reviewed whole order"), "large-multitable-independent-approve")
+		} else {
+			response = releaseRequest(t, app, "POST", path+"/"+action.name, payload, "large-multitable-"+action.name)
 		}
 		if response.Code != 200 {
 			t.Fatalf("large %s: status %d, bytes %d, %.500s", action.name, response.Code, response.Body.Len(), response.Body.String())

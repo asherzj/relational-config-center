@@ -1,0 +1,21 @@
+{
+  "admin/cmd/admin/approval_roles_browser_integration_test.go": "6683278a405bae111d05f80908add93ff41f60ac4394c6fec1715dd1fd744f63",
+  "admin/cmd/admin/table_approval_browser_integration_test.go": "70a180238a25104637aefd20b7becdea57fe8856bb3ad55c8e501bc0aab9da4a",
+  "admin/cmd/admin/table_release_template_browser_integration_test.go": "d423dbe8534c0226d5e2dcc63d16cb32a201050e934a163171a18610329ee9f1",
+  "web/e2e/approval-roles.cjs": "f7db683efee45e922ba9263d38058d6724ad1ddd8431e6399928a33b4d388fc1",
+  "web/e2e/table-approvals.cjs": "12cbc0076838769d87079f49e5b807553ad63d9dcdc7098372de5f1a6b1bc40c",
+  "web/e2e/table-release-templates.cjs": "a60142244c14cef57cc7c194d674b52e89622e2a770383034ab14940df835299",
+  "web/e2e/local-account.cjs": "48a56034d0b0ccab5becaf8c7b7b18f630998f1bceb117d5524d41a5b263d2f0",
+  "web/e2e/table-approval-fixture.cjs": "aea1044da3fecf01478ae544035f6ed84ff1bc06e67aa167486bce3f5b557072",
+  "web/src/components/AppShell.tsx": "6767358f7df396b6000216c1d948e0110e2323af678f2fe1d3bcc43b5f876f9a",
+  "web/src/features/table-policies/TablePoliciesPage.tsx": "f778f0b551eab6249dd1441a6706795bc96d74092fb80a1c482b1de31e8f32f1",
+  "web/src/features/table-policies/TableApprovalDrawer.tsx": "1f1a23babcf03ba26fb9d40b22849c59c7db69860d0feec1f8502cfe856c303a",
+  "web/src/features/table-policies/TableReleaseTemplatesDrawer.tsx": "ab75832189717f5d8f9a4a6d970dfa588088110b7dfa3dd57b3646a397959703",
+  "web/src/features/table-policies/TablePolicyDrawer.tsx": "e4c476671442c1ea3008a5af51819050eb2e824f303c21a139124406f296cfdd",
+  "web/src/features/approval-roles/ApprovalRolesPage.tsx": "d989e2c8978a49355a65e2bf761e9e0795f109217e716e83aa1913d68ab7defe",
+  "web/src/features/release-orders/ReleaseActionDialog.tsx": "340be99b490ffbe4c960597da2f65faa56f963c3191916e8a8ec094f7eb42973",
+  "web/src/features/release-orders/ReleaseApprovals.tsx": "ebbfcab385a108bdd13195da0fa7a2c5c1cb78f2c646cd179431611bbcfc60b7",
+  "web/vite.config.ts": "e82bbe824ad2fdfec548de7ae8207fe8ba2c61f7a29503f49a5bc4f98245014f",
+  "web/package.json": "14aea09f62c60129fb6cf9127b835d4964ccdb32f48d0f0d34d13c5097b7f50e",
+  "web/pnpm-lock.yaml": "00afda34c8efcfd2bb91c34b4ff8a341dfe64026e7073de39bd1b1b9c8e281ae"
+}

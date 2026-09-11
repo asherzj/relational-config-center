@@ -1,0 +1,30 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-tags",
+    "integration",
+    "-run",
+    "^(TestReleaseHistorySurvivesExecutableRestartAndExternalChanges)$",
+    "-count=1",
+    "-parallel=1",
+    "-p=1",
+    "-timeout=5m",
+    "-json",
+    "./cmd/admin"
+  ],
+  "environment": {
+    "TESTCONTAINERS_RYUK_DISABLED": "true",
+    "DOCKER_HOST": "unix:///Users/asher/.colima/default/docker.sock",
+    "GOCACHE": "/private/tmp/rcc-go-cache"
+  },
+  "exit_code": 0,
+  "elapsed_seconds": 18.879,
+  "expected_tests": [
+    "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges"
+  ],
+  "passed_top_level": [
+    "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges"
+  ],
+  "failed_top_level": []
+}

@@ -1,0 +1,35 @@
+{
+  "status": "original output bytes retained without normalization",
+  "files": [
+    {
+      "path": "final-resolved-owned.diff",
+      "bytes": 14034,
+      "sha256": "b6f9d1baabdd02fc22c03f2a2f71f8e73e40d414174421be25b56b95d2d0adbc"
+    },
+    {
+      "path": "mysql-fixture-diagnostic.log",
+      "bytes": 12493,
+      "sha256": "009fdcf3b48b7ccd242f9a5bb67c6bfe377f41a6a7400e98255ec98b4138e383"
+    },
+    {
+      "path": "mysql-history-recheck.log",
+      "bytes": 1791,
+      "sha256": "794d56326123e0a277df9320ff926aa56c2e2cae99dc56fba6ec838d91b08f7a"
+    },
+    {
+      "path": "mysql-selected-recheck.log",
+      "bytes": 142156,
+      "sha256": "3226aed6bcc54dc196e6030e758762e08e7aad3b31a6018d62db699a6d8c56d8"
+    },
+    {
+      "path": "mysql-selected.log",
+      "bytes": 6661,
+      "sha256": "5721227ab831feb228ffcc3d74017b0cd8e162f2bb3e0954206311e933d99a85"
+    },
+    {
+      "path": "resolved-owned.diff",
+      "bytes": 9316,
+      "sha256": "5383c73a527facf97e0946742e791d87f0bee87fb2b06f9a3b545c7de6409365"
+    }
+  ]
+}

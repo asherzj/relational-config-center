@@ -12,7 +12,7 @@ type ReleaseHeader struct {
 }
 
 func (header ReleaseHeader) Workflow() ReleaseOrder {
-	return ReleaseOrder{ID: header.ID, Title: header.Title, TableNames: header.TableNames, ApplicantID: header.ApplicantID, State: header.State, Version: header.Version, CreatedAt: header.CreatedAt, UpdatedAt: header.UpdatedAt, CopiedFromID: header.CopiedFromID, FrozenDigest: header.FrozenDigest, FrozenTables: header.FrozenTables, History: header.History, Executions: header.Executions}
+	return ReleaseOrder{Approvals: header.Approvals, ApprovalContext: header.ApprovalContext, ID: header.ID, Title: header.Title, TableNames: header.TableNames, ApplicantID: header.ApplicantID, State: header.State, Version: header.Version, CreatedAt: header.CreatedAt, UpdatedAt: header.UpdatedAt, CopiedFromID: header.CopiedFromID, FrozenDigest: header.FrozenDigest, FrozenTables: header.FrozenTables, History: header.History, Executions: header.Executions}
 }
 
 // Offset and NextOffset are zero-based original detail positions. Results stay

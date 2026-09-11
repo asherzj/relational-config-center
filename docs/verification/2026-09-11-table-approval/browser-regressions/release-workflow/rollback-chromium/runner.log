@@ -1,0 +1,30 @@
+PASS separate EDITOR, VIEWER table-role member and PUBLISHER accounts complete the forward publication
+PASS completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration
+PASS completion permanently closes both rollback entry points
+PASS quick rollback is publisher-only, reviews actual current and restoration values, has no mandatory reason and cancels without writes on desktop and 390px
+PASS the original detail switches preserved application, actual publication and actual rollback
+PASS quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish the original order
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
+    allowed_actions: [],
+    applicant_id: '8b07d3d7-9ac4-4bf4-93c3-8d52cf104278',
+    approval_context: {
+      approvable_tables: [],
++     revision: '20d209e3a2e7ff6eba0ade6c8cce8a0240896a6d08a4779c6a8856b4de352104',
+-     revision: '9d6355e085076fc4ce6973018377e5fbb037aa65c5caa52239d9f10b0a4af31e',
+      tables: [
+        {
+          can_approve: false,
+          mode: 'COMPLETED',
+          reason: '该表已处理',
+
+    at /private/tmp/rcc-issue-94-table-approval/web/e2e/release-rollbacks.cjs:312:12 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [Object],
+  expected: [Object],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
