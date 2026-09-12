@@ -163,61 +163,6 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  # Temporary #110 engine-version comparison; remove this job and all probe
-  # scripts after this bounded investigation and before delivery.
-  accounts-webkit-signal-diagnostic:
-    name: Accounts WebKit 1.63 comparison
-    if: github.event_name == 'pull_request' && github.event.pull_request.number == 111
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 10.28.2
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24.19.0
-          cache: pnpm
-          cache-dependency-path: web/pnpm-lock.yaml
-      - name: Set up Go
-        uses: actions/setup-go@v7
-        with:
-          go-version-file: go.work
-          cache-dependency-path: |
-            go.work.sum
-            admin/go.sum
-      - name: Install the signal tracer
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y strace
-      - name: Compare WebKit 2359 during at most twelve original cases
-        env:
-          DEBUG: pw:browser
-          RCC_E2E_ARTIFACTS: ${{ runner.temp }}/rcc-accounts-webkit-browser
-          RCC_SIGNAL_ARTIFACTS: ${{ runner.temp }}/rcc-accounts-webkit-signals
-          RCC_E2E_SUITE: release-workflow
-          RCC_E2E_ENGINES: webkit
-          RCC_E2E_CASES: accounts.mjs@webkit
-        run: |
-          diagnostic_runner=$(mktemp "$PWD/scripts/.accounts-webkit-repeat.XXXXXX")
-          trap 'rm -f -- "$diagnostic_runner" || true' EXIT
-          node scripts/diagnose-accounts-webkit-repeat.cjs "$diagnostic_runner"
-          bash scripts/diagnose-accounts-webkit-version.sh "$diagnostic_runner"
-      - name: Upload signal diagnostic evidence
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: accounts-webkit-signals-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            ${{ runner.temp }}/rcc-accounts-webkit-browser
-            ${{ runner.temp }}/rcc-accounts-webkit-signals
-          if-no-files-found: error
-          retention-days: 14
-
   compose-migrations:
     name: Goose Compose deployment
     runs-on: ubuntu-latest

@@ -1,0 +1,214 @@
+8661<dirname> 1789203948.308214 exit_group(0) = ?
+8661<dirname> 1789203948.308455 +++ exited with 0 +++
+8660<bash> 1789203948.308547 wait4(-1, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 8661
+8660<bash> 1789203948.308759 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=8661, si_uid=1001, si_status=0, si_utime=0, si_stime=0} ---
+8660<bash> 1789203948.308801 wait4(-1, 0x7ffc0cae8190, WNOHANG, NULL) = -1 ECHILD (No child processes)
+8660<bash> 1789203948.309494 exit_group(0) = ?
+8660<bash> 1789203948.309677 +++ exited with 0 +++
+8659<bash> 1789203948.309689 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=8660<bash>, si_uid=1001, si_status=0, si_utime=0, si_stime=0} ---
+8659<bash> 1789203948.309756 wait4(-1, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], WNOHANG, NULL) = 8660
+8659<bash> 1789203948.309829 wait4(-1, 0x7ffc0cae7dd0, WNOHANG, NULL) = -1 ECHILD (No child processes)
+8662<uname> 1789203948.319504 exit_group(0) = ?
+8659<bash> 1789203948.319634 wait4(-1,  <unfinished ...>
+8662<uname> 1789203948.319707 +++ exited with 0 +++
+8659<bash> 1789203948.319730 <... wait4 resumed>[{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 8662
+8659<bash> 1789203948.319844 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=8662, si_uid=1001, si_status=0, si_utime=0, si_stime=0} ---
+8659<bash> 1789203948.319882 wait4(-1, 0x7ffc0cae8dd0, WNOHANG, NULL) = -1 ECHILD (No child processes)
+8663<uname> 1789203948.329789 exit_group(0) = ?
+8659<bash> 1789203948.329914 wait4(-1,  <unfinished ...>
+8663<uname> 1789203948.330002 +++ exited with 0 +++
+8659<bash> 1789203948.330015 <... wait4 resumed>[{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 8663
+8659<bash> 1789203948.330126 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=8663, si_uid=1001, si_status=0, si_utime=0, si_stime=0} ---
+8659<bash> 1789203948.330163 wait4(-1, 0x7ffc0cae8c90, WNOHANG, NULL) = -1 ECHILD (No child processes)
+8664<bash> 1789203948.331758 exit_group(0) = ?
+8664<bash> 1789203948.331937 +++ exited with 0 +++
+8659<bash> 1789203948.331950 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=8664<bash>, si_uid=1001, si_status=0, si_utime=0, si_stime=0} ---
+8659<bash> 1789203948.331995 wait4(-1, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], WNOHANG, NULL) = 8664
+8659<bash> 1789203948.332064 wait4(-1, 0x7ffc0cae6fd0, WNOHANG, NULL) = -1 ECHILD (No child processes)
+8659<bash> 1789203948.333158 wait4(-1,  <unfinished ...>
+8667<readlink> 1789203948.344080 exit_group(0) = ?
+8666<MiniBrowser> 1789203948.344128 wait4(-1,  <unfinished ...>
+8667<readlink> 1789203948.344253 +++ exited with 0 +++
+8666<MiniBrowser> 1789203948.344266 <... wait4 resumed>[{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 8667
+8666<MiniBrowser> 1789203948.344325 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=8667, si_uid=1001, si_status=0, si_utime=0, si_stime=0} ---
+8666<MiniBrowser> 1789203948.344437 wait4(-1, 0x7ffeba638e8c, WNOHANG, NULL) = -1 ECHILD (No child processes)
+8666<MiniBrowser> 1789203948.351070 exit_group(0 <unfinished ...>
+8665<MiniBrowser> 1789203948.351095 wait4(-1,  <unfinished ...>
+8666<MiniBrowser> 1789203948.351113 <... exit_group resumed>) = ?
+8666<MiniBrowser> 1789203948.351246 +++ exited with 0 +++
+8665<MiniBrowser> 1789203948.351264 <... wait4 resumed>[{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 8666
+8665<MiniBrowser> 1789203948.351321 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=8666, si_uid=1001, si_status=0, si_utime=0, si_stime=0} ---
+8665<MiniBrowser> 1789203948.351428 wait4(-1, 0x7ffeba63915c, WNOHANG, NULL) = -1 ECHILD (No child processes)
+8675<olveDirectories> 1789203948.523167 exit(0) = ?
+8675<olveDirectories> 1789203948.523296 +++ exited with 0 +++
+8777<CryptoQueue> 1789203961.114557 exit(0) = ?
+8777<CryptoQueue> 1789203961.114685 +++ exited with 0 +++
+8699<pool-WPEWebProc> 1789203964.296855 exit(0) = ?
+8699<pool-WPEWebProc> 1789203964.296972 +++ exited with 0 +++
+8731<pool-WPEWebProc> 1789203964.912806 exit(0) = ?
+8731<pool-WPEWebProc> 1789203964.912951 +++ exited with 0 +++
+8700<JSCWarmUp> 1789203969.164543 exit(0) = ?
+8700<JSCWarmUp> 1789203969.164730 +++ exited with 0 +++
+8776<ollector Thread> 1789203969.375900 exit(0) = ?
+8776<ollector Thread> 1789203969.376065 +++ exited with 0 +++
+8773<HeapHelper> 1789203969.377044 exit(0) = ?
+8773<HeapHelper> 1789203969.377170 +++ exited with 0 +++
+8775<HeapHelper> 1789203969.377253 exit(0) = ?
+8775<HeapHelper> 1789203969.377379 +++ exited with 0 +++
+8774<HeapHelper> 1789203969.377509 exit(0) = ?
+8774<HeapHelper> 1789203969.377610 +++ exited with 0 +++
+8684<WPEWebProcess> 1789203970.275043 exit(0) = ?
+8684<WPEWebProcess> 1789203970.275202 +++ exited with 0 +++
+8720<SkiaCPUWorker> 1789203974.543130 exit(0) = ?
+8720<SkiaCPUWorker> 1789203974.543417 +++ exited with 0 +++
+8719<SkiaCPUWorker> 1789203974.543706 exit(0 <unfinished ...>
+8750<SkiaCPUWorker> 1789203974.543799 exit(0 <unfinished ...>
+8719<SkiaCPUWorker> 1789203974.543834 <... exit resumed>) = ?
+8750<SkiaCPUWorker> 1789203974.543930 <... exit resumed>) = ?
+8719<SkiaCPUWorker> 1789203974.543972 +++ exited with 0 +++
+8750<SkiaCPUWorker> 1789203974.544076 +++ exited with 0 +++
+8749<SkiaCPUWorker> 1789203974.544177 exit(0) = ?
+8749<SkiaCPUWorker> 1789203974.544394 +++ exited with 0 +++
+8665<MiniBrowser> 1789203974.547622 exit_group(0 <unfinished ...>
+8802<pool-MiniBrowse> 1789203974.547834 +++ exited with 0 +++
+8753<tore Work Queue> 1789203974.547850 +++ exited with 0 +++
+8722<ReceiveQueue> 1789203974.547857 +++ exited with 0 +++
+8715<VBlankMonitor> 1789203974.547864 +++ exited with 0 +++
+8680<ReceiveQueue> 1789203974.547877 +++ exited with 0 +++
+8677<PressureMonitor> 1789203974.547891 +++ exited with 0 +++
+8674<ebsiteDataStore> 1789203974.547902 +++ exited with 0 +++
+8669<MiniBrowser> 1789203974.547929 +++ exited with 0 +++
+8665<MiniBrowser> 1789203974.547945 <... exit_group resumed>) = ?
+8679<ReceiveQueue> 1789203974.548022 +++ exited with 0 +++
+8673<gdbus> 1789203974.548032 +++ exited with 0 +++
+8672<pool-spawner> 1789203974.548041 +++ exited with 0 +++
+8671<tor pipe reader> 1789203974.548050 +++ exited with 0 +++
+8670<tor pipe writer> 1789203974.548059 +++ exited with 0 +++
+8668<gmain> 1789203974.548068 +++ exited with 0 +++
+8665<MiniBrowser> 1789203974.555800 +++ exited with 0 +++
+8659<bash> 1789203974.555826 <... wait4 resumed>[{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 8665
+8659<bash> 1789203974.556186 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=8665, si_uid=1001, si_status=0, si_utime=34 /* 0.34 s */, si_stime=76 /* 0.76 s */} ---
+8659<bash> 1789203974.556242 wait4(-1, 0x7ffc0cae8b10, WNOHANG, NULL) = -1 ECHILD (No child processes)
+8659<bash> 1789203974.556752 exit_group(0) = ?
+8659<bash> 1789203974.557084 +++ exited with 0 +++
+8676<WPENetworkProce> 1789203974.561777 exit_group(0 <unfinished ...>
+8690<persistent> 1789203974.562046 +++ exited with 0 +++
+8695<ReceiveQueue> 1789203974.562063 +++ exited with 0 +++
+8694<pool> 1789203974.562073 +++ exited with 0 +++
+8691<Storage> 1789203974.562083 +++ exited with 0 +++
+8693<erialBackground> 1789203974.562090 +++ exited with 0 +++
+8688<ReceiveQueue> 1789203974.562096 +++ exited with 0 +++
+8685<gdbus> 1789203974.562102 +++ exited with 0 +++
+8683<gmain> 1789203974.562109 +++ exited with 0 +++
+8682<pool-spawner> 1789203974.562115 +++ exited with 0 +++
+8681<WPENetworkProce> 1789203974.562122 +++ exited with 0 +++
+8676<WPENetworkProce> 1789203974.562133 <... exit_group resumed>) = ?
+8804<WatchDogQueue> 1789203974.562183 +++ exited with 0 +++
+8751<dconf worker> 1789203974.562193 +++ exited with 0 +++
+8727<ReceiveQueue> 1789203974.562207 +++ exited with 0 +++
+8692<background> 1789203974.562223 +++ exited with 0 +++
+8713<eadedCompositor> 1789203974.562548 exit(0) = ?
+8713<eadedCompositor> 1789203974.562660 +++ exited with 0 +++
+8714<eadedCompositor> 1789203974.563447 exit(0) = ?
+8714<eadedCompositor> 1789203974.563549 +++ exited with 0 +++
+8702<eadedCompositor> 1789203974.564112 exit(0) = ?
+8702<eadedCompositor> 1789203974.564205 +++ exited with 0 +++
+8676<WPENetworkProce> 1789203974.567747 +++ exited with 0 +++
+8717<WPEWebProcess> 1789203974.567841 exit(0) = ?
+8717<WPEWebProcess> 1789203974.567943 +++ exited with 0 +++
+8718<WPEWebProcess> 1789203974.567987 exit(0) = ?
+8718<WPEWebProcess> 1789203974.568066 +++ exited with 0 +++
+8711<WPEWebP:disk$0> 1789203974.568578 exit(0) = ?
+8711<WPEWebP:disk$0> 1789203974.568676 +++ exited with 0 +++
+8710<eadedCompositor> 1789203974.569292 exit(0 <unfinished ...>
+8708<eadedCompositor> 1789203974.569312 exit(0 <unfinished ...>
+8710<eadedCompositor> 1789203974.569360 <... exit resumed>) = ?
+8708<eadedCompositor> 1789203974.569396 <... exit resumed>) = ?
+8709<eadedCompositor> 1789203974.569418 exit(0 <unfinished ...>
+8710<eadedCompositor> 1789203974.569457 +++ exited with 0 +++
+8709<eadedCompositor> 1789203974.569465 <... exit resumed>) = ?
+8708<eadedCompositor> 1789203974.569476 +++ exited with 0 +++
+8707<eadedCompositor> 1789203974.569491 exit(0 <unfinished ...>
+8709<eadedCompositor> 1789203974.569521 +++ exited with 0 +++
+8707<eadedCompositor> 1789203974.569535 <... exit resumed>) = ?
+8707<eadedCompositor> 1789203974.569596 +++ exited with 0 +++
+8703<llvmpipe-0> 1789203974.570200 exit(0) = ?
+8704<llvmpipe-1> 1789203974.570287 exit(0) = ?
+8703<llvmpipe-0> 1789203974.570371 +++ exited with 0 +++
+8704<llvmpipe-1> 1789203974.570412 +++ exited with 0 +++
+8705<llvmpipe-2> 1789203974.570482 exit(0) = ?
+8705<llvmpipe-2> 1789203974.570565 +++ exited with 0 +++
+8706<llvmpipe-3> 1789203974.570656 exit(0) = ?
+8706<llvmpipe-3> 1789203974.570751 +++ exited with 0 +++
+8678<WPEWebProcess> 1789203974.573144 exit_group(0) = ?
+8698<pool-spawner> 1789203974.573409 +++ exited with 0 +++
+8697<gmain> 1789203974.573438 +++ exited with 0 +++
+8701<gdbus> 1789203974.573448 +++ exited with 0 +++
+8696<ReceiveQueue> 1789203974.573456 +++ exited with 0 +++
+8716<Core: Scrolling> 1789203974.573466 +++ exited with 0 +++
+8689<ReceiveQueue> 1789203974.573476 +++ exited with 0 +++
+8687<rruptDispatcher> 1789203974.573488 +++ exited with 0 +++
+8686<EventDispatcher> 1789203974.573495 +++ exited with 0 +++
+8801<WPEWebProcess> 1789203974.573509 +++ exited with 0 +++
+8803<WatchDogQueue> 1789203974.585429 +++ exited with 0 +++
+8678<WPEWebProcess> 1789203974.585447 +++ exited with 0 +++
+8744<eadedCompositor> 1789203974.587022 exit(0) = ?
+8745<eadedCompositor> 1789203974.587069 exit(0 <unfinished ...>
+8744<eadedCompositor> 1789203974.587099 +++ exited with 0 +++
+8745<eadedCompositor> 1789203974.587110 <... exit resumed>) = ?
+8745<eadedCompositor> 1789203974.587160 +++ exited with 0 +++
+8734<eadedCompositor> 1789203974.591542 exit(0) = ?
+8734<eadedCompositor> 1789203974.591626 +++ exited with 0 +++
+8747<WPEWebProcess> 1789203974.594262 exit(0) = ?
+8748<WPEWebProcess> 1789203974.594375 exit(0 <unfinished ...>
+8747<WPEWebProcess> 1789203974.594392 +++ exited with 0 +++
+8748<WPEWebProcess> 1789203974.594405 <... exit resumed>) = ?
+8748<WPEWebProcess> 1789203974.594468 +++ exited with 0 +++
+8743<WPEWebP:disk$0> 1789203974.594801 exit(0) = ?
+8743<WPEWebP:disk$0> 1789203974.594877 +++ exited with 0 +++
+8742<eadedCompositor> 1789203974.595389 exit(0 <unfinished ...>
+8741<eadedCompositor> 1789203974.595409 exit(0 <unfinished ...>
+8740<eadedCompositor> 1789203974.595420 exit(0 <unfinished ...>
+8742<eadedCompositor> 1789203974.595435 <... exit resumed>) = ?
+8741<eadedCompositor> 1789203974.595445 <... exit resumed>) = ?
+8742<eadedCompositor> 1789203974.595486 +++ exited with 0 +++
+8741<eadedCompositor> 1789203974.595494 +++ exited with 0 +++
+8740<eadedCompositor> 1789203974.595501 <... exit resumed>) = ?
+8740<eadedCompositor> 1789203974.595541 +++ exited with 0 +++
+8739<eadedCompositor> 1789203974.595551 exit(0) = ?
+8739<eadedCompositor> 1789203974.595624 +++ exited with 0 +++
+8735<llvmpipe-0> 1789203974.596168 exit(0 <unfinished ...>
+8736<llvmpipe-1> 1789203974.596210 exit(0 <unfinished ...>
+8735<llvmpipe-0> 1789203974.596228 <... exit resumed>) = ?
+8736<llvmpipe-1> 1789203974.596255 <... exit resumed>) = ?
+8737<llvmpipe-2> 1789203974.596288 exit(0 <unfinished ...>
+8735<llvmpipe-0> 1789203974.596306 +++ exited with 0 +++
+8737<llvmpipe-2> 1789203974.596358 <... exit resumed>) = ?
+8736<llvmpipe-1> 1789203974.596383 +++ exited with 0 +++
+8737<llvmpipe-2> 1789203974.596414 +++ exited with 0 +++
+8738<llvmpipe-3> 1789203974.596465 exit(0) = ?
+8738<llvmpipe-3> 1789203974.596520 +++ exited with 0 +++
+8721<WPEWebProcess> 1789203974.598745 exit_group(0) = ?
+8805<WatchDogQueue> 1789203974.599120 +++ exited with 0 +++
+8797<CryptoQueue> 1789203974.599130 +++ exited with 0 +++
+8785<CryptoQueue> 1789203974.599137 +++ exited with 0 +++
+8778<CryptoQueue> 1789203974.599143 +++ exited with 0 +++
+8764<CryptoQueue> 1789203974.599150 +++ exited with 0 +++
+8763<ollector Thread> 1789203974.599156 +++ exited with 0 +++
+8762<HeapHelper> 1789203974.599163 +++ exited with 0 +++
+8761<HeapHelper> 1789203974.599169 +++ exited with 0 +++
+8760<HeapHelper> 1789203974.599175 +++ exited with 0 +++
+8755<JITWorker> 1789203974.599182 +++ exited with 0 +++
+8754<JITWorker> 1789203974.599188 +++ exited with 0 +++
+8752<JITWorker> 1789203974.599195 +++ exited with 0 +++
+8746<Core: Scrolling> 1789203974.599201 +++ exited with 0 +++
+8733<gdbus> 1789203974.599208 +++ exited with 0 +++
+8732<JSCWarmUp> 1789203974.599214 +++ exited with 0 +++
+8730<pool-spawner> 1789203974.599221 +++ exited with 0 +++
+8729<gmain> 1789203974.599227 +++ exited with 0 +++
+8728<ReceiveQueue> 1789203974.599233 +++ exited with 0 +++
+8726<ReceiveQueue> 1789203974.599240 +++ exited with 0 +++
+8725<rruptDispatcher> 1789203974.599246 +++ exited with 0 +++
+8723<WPEWebProcess> 1789203974.599253 +++ exited with 0 +++
+8724<EventDispatcher> 1789203974.631551 +++ exited with 0 +++
+8721<WPEWebProcess> 1789203974.631576 +++ exited with 0 +++

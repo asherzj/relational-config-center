@@ -1,0 +1,14 @@
+{
+  "docs/verification/2026-09-12-accounts-webkit-version/fixture/candidate.patch": {
+    "archive": "docs/verification/2026-09-12-accounts-webkit-adoption/retired-fixture/candidate.patch",
+    "sha256": "06791c16e5e39862939ed7ddf8bc54c31de32ab6f9d5bf4c71f4ae89e78c3254"
+  },
+  "docs/verification/2026-09-12-accounts-webkit-version/fixture/candidate.sha256": {
+    "archive": "docs/verification/2026-09-12-accounts-webkit-adoption/retired-fixture/candidate.sha256",
+    "sha256": "d95b2f148d75adc0e397467e6ebd545cfdb39fad65a2786977b345c2a965285b"
+  },
+  "docs/verification/2026-09-12-accounts-webkit-version/fixture/original.sha256": {
+    "archive": "docs/verification/2026-09-12-accounts-webkit-adoption/retired-fixture/original.sha256",
+    "sha256": "2b3e9cf2fcd9309ef2e44b2af4cbd7866476c855c6f0059fbd4c2786fc51077f"
+  }
+}

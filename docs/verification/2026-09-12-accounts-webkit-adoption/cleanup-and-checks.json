@@ -1,0 +1,26 @@
+{
+  "base": "4b45aa1b3f16a9ca8401cc7aa0c887c751d0aae4",
+  "ci_equals_original_main": true,
+  "formal_dependency_bytes_equal_reviewed_comparison": true,
+  "accounts_and_formal_runner_equal_base": true,
+  "temporary_scripts_absent": [
+    "scripts/diagnose-accounts-webkit-native.cjs",
+    "scripts/diagnose-accounts-webkit-repeat.cjs",
+    "scripts/diagnose-accounts-webkit-signals.sh",
+    "scripts/diagnose-accounts-webkit-version.sh"
+  ],
+  "generated_runners_remaining": 0,
+  "active_fixture_absent": true,
+  "retired_fixture_original_bytes_preserved": true,
+  "web_typecheck": "PASS",
+  "web_build": "PASS",
+  "web_tests": {
+    "files_passed": 42,
+    "tests_passed": 480
+  },
+  "development_origin_checks": 2,
+  "sandbox_first_attempt": "one listen EPERM; preserved separately; same full suite passed with local listener permitted",
+  "docker_containers_started_in_adoption": 0,
+  "integrated_required_ci": "PENDING root integration with #112",
+  "independent_review": "PENDING"
+}

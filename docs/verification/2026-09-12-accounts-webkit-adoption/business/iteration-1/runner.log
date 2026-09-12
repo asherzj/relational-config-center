@@ -1,0 +1,27 @@
+2026-09-12T09:04:26.984Z pw:browser <launching> /home/runner/.cache/ms-playwright/webkit-2359/pw_run.sh --inspector-pipe --headless --user-data-dir=/home/runner/work/_temp/rcc-accounts-webkit-browser/release-workflow/recovery-webkit/iteration-1/account-browser-profile-f8UakJ about:blank
+2026-09-12T09:04:26.989Z pw:browser <launched> pid=7742
+2026-09-12T09:04:29.247Z pw:browser [pid=7742][err] 
+2026-09-12T09:04:29.247Z pw:browser [pid=7742][err] ** (MiniBrowser:7751): CRITICAL **: 09:04:29.246: WebKitWebView is-controlled-by-automation set but automation is not allowed in the context, falling back to default session.
+2026-09-12T09:04:36.987Z pw:browser <launching> /home/runner/.cache/ms-playwright/webkit-2359/pw_run.sh --inspector-pipe --headless --no-startup-window
+2026-09-12T09:04:36.989Z pw:browser <launched> pid=7869
+2026-09-12T09:04:37.478Z pw:browser [pid=7869][err] 
+2026-09-12T09:04:37.478Z pw:browser [pid=7869][err] ** (MiniBrowser:7878): CRITICAL **: 09:04:37.477: WebKitWebView is-controlled-by-automation set but automation is not allowed in the context, falling back to default session.
+2026-09-12T09:04:38.470Z pw:browser [pid=7742] <gracefully close start>
+2026-09-12T09:04:38.579Z pw:browser [pid=7742] <process did exit: exitCode=0, signal=null>
+2026-09-12T09:04:38.579Z pw:browser [pid=7742] starting temporary directories cleanup
+2026-09-12T09:04:38.581Z pw:browser [pid=7742] finished temporary directories cleanup
+2026-09-12T09:04:38.581Z pw:browser [pid=7742] <gracefully close end>
+2026-09-12T09:04:38.582Z pw:browser <launching> /home/runner/.cache/ms-playwright/webkit-2359/pw_run.sh --inspector-pipe --headless --user-data-dir=/home/runner/work/_temp/rcc-accounts-webkit-browser/release-workflow/recovery-webkit/iteration-1/account-browser-profile-f8UakJ about:blank
+2026-09-12T09:04:38.585Z pw:browser <launched> pid=7939
+2026-09-12T09:04:39.462Z pw:browser [pid=7939][err] 
+2026-09-12T09:04:39.462Z pw:browser [pid=7939][err] ** (MiniBrowser:7948): CRITICAL **: 09:04:39.461: WebKitWebView is-controlled-by-automation set but automation is not allowed in the context, falling back to default session.
+{"run_suffix":"8bfb1ff53409","account_id":"170b138f-5dcd-448c-b7f7-7b94ffa305a2","username":"browser.user.8bfb1ff53409","member_username":"roles.member.8bfb1ff53409","template_key":"browser_system_8bfb1ff53409","checks":["record version conflict preserves input","explicit latest read and baseline rebuild","registration defaults VIEWER","maintenance ADMIN bootstrap","UI combination grant","390px role catalog and drawer","role history with permanent actor","original member session refresh","refresh","reopen","dirty navigation protection","same-account Change Set recovery after session loss","hidden drawer keyboard isolation","draft submit independent approval and publisher execution","unknown execute result reload and original-key recovery","final row defaults and permanent actor fields","refresh notification remains NOT_CONNECTED","no direct record write request","HTTP Cookie","storage/URL secrecy","logout rejection"]}2026-09-12T09:05:06.339Z pw:browser [pid=7869] <gracefully close start>
+2026-09-12T09:05:06.436Z pw:browser [pid=7869] <process did exit: exitCode=0, signal=null>
+2026-09-12T09:05:06.436Z pw:browser [pid=7869] starting temporary directories cleanup
+2026-09-12T09:05:06.436Z pw:browser [pid=7869] finished temporary directories cleanup
+2026-09-12T09:05:06.436Z pw:browser [pid=7869] <gracefully close end>
+2026-09-12T09:05:06.438Z pw:browser [pid=7939] <gracefully close start>
+2026-09-12T09:05:06.532Z pw:browser [pid=7939] <process did exit: exitCode=0, signal=null>
+2026-09-12T09:05:06.532Z pw:browser [pid=7939] starting temporary directories cleanup
+2026-09-12T09:05:06.533Z pw:browser [pid=7939] finished temporary directories cleanup
+2026-09-12T09:05:06.533Z pw:browser [pid=7939] <gracefully close end>
