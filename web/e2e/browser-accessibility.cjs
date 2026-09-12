@@ -6,7 +6,9 @@ const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const { browserOptions, registerFixtureAccount, authenticatedRequest } = require('./local-account.cjs');
+const { clickWithDiagnostics, diagnosticDeadline } = require('./click-diagnostics.cjs');
 const fs = require('node:fs/promises');
+const { appendFileSync } = require('node:fs');
 const { execFileSync } = require('node:child_process');
 
 const base = process.env.RCC_WEB_URL;
@@ -30,6 +32,27 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
   const pageErrors = [];
   const http = [];
   const requests = [];
+  const clickObservations = [];
+  const lifecycle = [];
+  const diagnosticStarted = Date.now();
+  let phase = 'setup';
+  function recordLifecycle(event, details = {}) {
+    const entry = { elapsedMs: Date.now() - diagnosticStarted, phase, event, ...details };
+    lifecycle.push(entry);
+    try {
+      appendFileSync(`${output}/lifecycle.jsonl`, `${JSON.stringify(entry)}\n`);
+    } catch (error) {
+      // Diagnostics must not replace the original business or browser failure.
+      process.stderr.write(`Accessibility lifecycle diagnostic unavailable: ${error.code || error.name}\n`);
+    }
+  }
+  function observeContext(current, label) {
+    current.on('page', observed => {
+      observed.on('crash', () => recordLifecycle('page-crash', { context: label, url: observed.url() }));
+      observed.on('close', () => recordLifecycle('page-close', { context: label, url: observed.url() }));
+    });
+    current.on('close', () => recordLifecycle('context-close', { context: label }));
+  }
   const cleanupNames = new Set();
   let browser;
   let context;
@@ -60,6 +83,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     return { left, right, width, clientWidth: node.clientWidth, scrollWidth: node.scrollWidth, innerWidth };
   });
   async function open(pathname, viewport = { width: 1440, height: 1000 }) {
+    phase = 'open-page';
     if (page) await page.close();
     page = await context.newPage();
     await page.setViewportSize(viewport);
@@ -86,6 +110,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
       http.push({ method: request.method(), path: url.pathname, status: response.status(), ...(body === undefined ? {} : { body }) });
     });
     await page.goto(`${base}${pathname}`);
+    phase = 'scenario';
   }
   async function managed(viewport) {
     // Start on this suite's fixture instead of briefly loading the first table.
@@ -129,9 +154,12 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
 
   try {
     browser = await engine.launch(browserOptions());
+    browser.on('disconnected', () => recordLifecycle('browser-disconnected'));
     context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    observeContext(context, 'applicant');
     account = await registerFixtureAccount(context, base);
     approvalContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    observeContext(approvalContext, 'approver');
     approverAccount = await registerFixtureAccount(approvalContext, base, { roles: ['VIEWER'] });
     await createFixtureApprovalRole(context, base, `Accessibility review ${randomUUID()}`, [approverAccount.accountID], [table]);
     browserVersion = browser.version();
@@ -343,16 +371,22 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await page.getByRole('textbox', { name: '取消原因', exact: true }).fill('Correct the rejected value without changing the frozen intent');
     await button('确认取消发布单').click();
     await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: /^已取消$/ }).waitFor();
+    phase = 'open-copy';
     await button('复制新草稿').click();
-    await button('读取最新配置').click();
+    phase = 'read-copy-configuration';
+    await clickWithDiagnostics(button('读取最新配置'), clickObservations);
+    phase = 'confirm-copy';
     await button('确认最新基线并复制').click();
     await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();
     await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: /^草稿$/ }).waitFor();
+    phase = 'open-copied-draft';
     await button('编辑草稿').click();
     const copiedNote = page.getByRole('textbox', { name: 'note 申请值', exact: true });
     assert.equal(await copiedNote.getAttribute('readonly'), '');
     assert.equal(await copiedNote.inputValue(), rawCR.replace(/\r\n?/g, '\n'));
-    await button('note 申请值：转换为 LF 再编辑').click();
+    phase = 'lf-conversion';
+    await clickWithDiagnostics(button('note 申请值：转换为 LF 再编辑'), clickObservations);
+    phase = 'converted-draft';
     assert.equal(await copiedNote.getAttribute('readonly'), null);
     assert.equal(await copiedNote.inputValue(), rawCR.replace(/\r\n?/g, '\n'));
     await page.getByRole('dialog', { name: `编辑多表草稿`, exact: true }).locator('.drawer-footer').getByRole('button', { name: '关闭', exact: true }).click();
@@ -432,11 +466,19 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     assert.deepEqual(pageErrors, []);
   } catch (error) {
     failure = { name: error.name, message: error.message, stack: error.stack };
+    recordLifecycle('failure', { name: error.name, message: error.message });
+    phase = 'failure-artifacts';
     if (page) {
-      await page.screenshot({ path: `${output}/failure.png`, fullPage: true }).catch(() => {});
-      await fs.writeFile(`${output}/failure-body.txt`, await page.locator('body').innerText().catch(() => 'page unavailable')).catch(() => {});
+      await diagnosticDeadline(page.screenshot({ path: `${output}/failure.png`, fullPage: true }))
+        .catch(error => recordLifecycle('artifact-error', { artifact: 'failure.png', message: error.message }));
+      await fs.writeFile(`${output}/failure-body.txt`, await diagnosticDeadline(page.locator('body').innerText()).catch(error => {
+        recordLifecycle('artifact-error', { artifact: 'failure-body.txt', message: error.message });
+        return 'page unavailable';
+      })).catch(error => recordLifecycle('artifact-error', { artifact: 'failure-body.txt', message: error.message }));
     }
   } finally {
+    phase = 'cleanup';
+    recordLifecycle('cleanup-start');
     if (browser) await browser.close().catch(() => {});
     let cleanup = null;
     try {
@@ -457,6 +499,8 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
       http,
       requests,
       faultEvidence,
+      clickObservations,
+      lifecycle,
       cleanup,
       coverageBoundaries: {
         safari: 'Playwright WebKit engine; not an installed Safari release',
