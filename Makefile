@@ -1,8 +1,9 @@
 GO_MODULES := admin client server shared
 GO_COMMAND_MODULES := admin server
 GO_LIBRARY_MODULES := client shared
+RCC_INTEGRATION_SHARD ?= all
 
-.PHONY: fmt test test-integration test-browser-acceptance test-browser test-compose-migrations build
+.PHONY: fmt test test-integration-runner test-integration test-browser-acceptance test-browser test-compose-migrations build
 
 fmt:
 	@for module in $(GO_MODULES); do \
@@ -14,9 +15,16 @@ test:
 		(cd $$module && go test ./...) || exit $$?; \
 	done
 
+test-integration-runner:
+	@python3 -m unittest scripts/tests/test_mysql_integration.py
+
 test-integration:
 	@docker info >/dev/null
-	@cd admin && go test -p 1 -count=1 -timeout=60m -tags=integration ./...
+	@if [ -n "$(RCC_INTEGRATION_ARTIFACTS)" ]; then \
+		python3 scripts/mysql_integration.py --shard "$(RCC_INTEGRATION_SHARD)" --artifacts "$(RCC_INTEGRATION_ARTIFACTS)"; \
+	else \
+		python3 scripts/mysql_integration.py --shard "$(RCC_INTEGRATION_SHARD)"; \
+	fi
 
 test-browser-acceptance:
 	@./scripts/browser-acceptance.sh

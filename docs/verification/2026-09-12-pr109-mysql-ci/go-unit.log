@@ -1,0 +1,14 @@
+?   	github.com/asherzj/relational-config-center/admin/cmd/account-maintain	[no test files]
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	19.987s
+?   	github.com/asherzj/relational-config-center/admin/cmd/policy-migrate	[no test files]
+?   	github.com/asherzj/relational-config-center/admin/cmd/release-reset	[no test files]
+?   	github.com/asherzj/relational-config-center/admin/cmd/schema-migrate	[no test files]
+ok  	github.com/asherzj/relational-config-center/admin/internal/application	(cached)
+ok  	github.com/asherzj/relational-config-center/admin/internal/domain	(cached)
+ok  	github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql	(cached)
+?   	github.com/asherzj/relational-config-center/admin/internal/infrastructure/password	[no test files]
+ok  	github.com/asherzj/relational-config-center/admin/internal/interfaces/http	(cached)
+ok  	github.com/asherzj/relational-config-center/admin/internal/platform/config	(cached)
+?   	github.com/asherzj/relational-config-center/client	[no test files]
+?   	github.com/asherzj/relational-config-center/server/cmd/server	[no test files]
+?   	github.com/asherzj/relational-config-center/shared	[no test files]

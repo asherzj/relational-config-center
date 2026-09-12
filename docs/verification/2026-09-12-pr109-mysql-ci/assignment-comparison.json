@@ -1,0 +1,9 @@
+{
+  "status": "pass",
+  "method": "Compared shard, package, and top-level name after independently sorting both assignments",
+  "total": 431,
+  "shard_counts": [108, 108, 108, 107],
+  "cmd_admin_counts": [94, 94, 93, 93],
+  "independent_assignment_sha256": "d576cf5522b88c143c222ad6e14d1b4947eb6d5268810d5b6c61c166459b8f34",
+  "runner_assignment_sha256": "d576cf5522b88c143c222ad6e14d1b4947eb6d5268810d5b6c61c166459b8f34"
+}

@@ -93,7 +93,7 @@ Admin 的 `/health/ready` 成功为 200，异常为既有 `503 {"status":"not_re
 
 发布流程模板表属于 RCC 控制结构，`node_list` 以受约束的 JSON 数组保存，模板级 `monitor_list` 在当前切片固定为空数组。Ready 校验表结构及稳定编码 `default_emergency_v1` 的默认应急模板保持有效；同类型仍可存在多份模板，合法停用或删除常规模板不会使服务失去就绪状态。
 
-`make test-compose-migrations` 自动构建真实镜像，创建专用随机 Compose 项目和数据卷，验证新装、重复部署、未接管阻断与显式接管、未确认阻断与显式恢复，核对顺序和保留数据；结束只清理该专用项目。CI 保存日志与 JSON 结果。`make test-integration` 串行执行真实 MySQL 回归，避免多个包同时争用本地 Docker 资源。
+`make test-compose-migrations` 自动构建真实镜像，创建专用随机 Compose 项目和数据卷，验证新装、重复部署、未接管阻断与显式接管、未确认阻断与显式恢复，核对顺序和保留数据；结束只清理该专用项目。CI 保存日志与 JSON 结果。`make test-integration` 将发现的顶层测试稳定分成四组；组内逐包串行执行真实 MySQL 回归，CI 的四组使用独立 runner，避免多个包在同一 Docker provider 上争用资源。
 
 ## 新增迁移
 

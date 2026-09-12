@@ -1,0 +1,86 @@
+{
+  ".github/workflows/ci.yml": {
+    "bytes": 4744,
+    "sha256": "f38f592727e1b1961c7942571df3fb191046a93367bb488bcbc1a7a4047d54bb"
+  },
+  "Makefile": {
+    "bytes": 1840,
+    "sha256": "fab3e070d50378dba2c227373e77443ba1ff835386285b26ebe03ca08578116a"
+  },
+  "README.md": {
+    "bytes": 11727,
+    "sha256": "6b105f01e974eaaed63750b3c5dc4e32232c12b41336601ce0d59428d573888e"
+  },
+  "docs/schema-migrations.md": {
+    "bytes": 17427,
+    "sha256": "b00e5fecd0648bd640d0ba0941971d9707e39e3da1a94a2e190c0621f0e3ff5a"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/README.md": {
+    "bytes": 2856,
+    "sha256": "03a4c780fb1b620ccfefcb624d9e3d18b6a5c9c54e5586c3981b1ad944ee0408"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/assignment-comparison.json": {
+    "bytes": 424,
+    "sha256": "9395b6f6f8deb3c8a889719f1a5aa0c8c5d06cecc571d2db00acb39612bc600e"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/evidence-manifest.json": {
+    "bytes": 1291,
+    "sha256": "e00672edcb7896fa154ddae857c3d8c548c7fe8c824177300cbddd1fd4427acf"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/go-unit-sandbox.log": {
+    "bytes": 2082,
+    "sha256": "0343648522e1689d13f66a9f6be1869fc2f78f9dfd6ab0fe97e0ce18eba6e076"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/go-unit.log": {
+    "bytes": 1202,
+    "sha256": "9d1d609ff306b895d6bee29c61bfeb0e8582d0ed24de1e1014e8664bc4023336"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/independent-expected-shards.json": {
+    "bytes": 75313,
+    "sha256": "d8e299088d35f69ef75606c152cf3067e8bb80edc60cba7249ff2169b829cbe4"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/independent-inventory.json": {
+    "bytes": 72058,
+    "sha256": "e467b3d7515d9be091b202c665c4ac2034b66e1238f558e208490d005f66c4a3"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/initial-ci-final.json": {
+    "bytes": 9113,
+    "sha256": "fd3003b005448273eef827bd915b2c7126c569cb8b44131a690c7c596ecc5262"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/initial-ci-mysql.log": {
+    "bytes": 1742299,
+    "sha256": "564d6586e59540ee8563309ff922e5cf72b763d431fd34e7e01db8a2eb617b99"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/runner-assignment.json": {
+    "bytes": 79374,
+    "sha256": "c83138cfa8466086b04238e316d380c45cd117936a1409323fda49c0b84fa454"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/runner-inventory-result.json": {
+    "bytes": 55,
+    "sha256": "18f7dd8ebe333b151d043ec92b88de2a3877ef1637795f3bb5be3f3f92d0cefb"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/runner-inventory.jsonl": {
+    "bytes": 93861,
+    "sha256": "505bd5860df6a8557f5cc598d2b1b5b8bfb5a1e4ae601e506a65b0df7bc387ff"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/runner-tests.log": {
+    "bytes": 7794,
+    "sha256": "5b7c8b494577dfebc796e1451177112fa3624f8b87803f709781c094bd4c43f9"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/source-manifest.json": {
+    "bytes": 671,
+    "sha256": "b50ebc4bdb2bce97419b2eb75579a796b80756ad8ccdca60e69f3fd111dc8ab0"
+  },
+  "docs/verification/2026-09-12-pr109-mysql-ci/targeted-schema-baseline.jsonl": {
+    "bytes": 8958,
+    "sha256": "c010947c83eab2331e0e317ab164e0f7ac401be24caff9c3408a92ae0fcc4301"
+  },
+  "scripts/mysql_integration.py": {
+    "bytes": 12001,
+    "sha256": "8ab4607667c9a78caf6d24766b40fec33c71b6ad0b0ae25590d1423f146ed2dc"
+  },
+  "scripts/tests/test_mysql_integration.py": {
+    "bytes": 7650,
+    "sha256": "114ce71c0c4f97ab546e2c2a48a610f25fb5043d1d4164e2392cc6e11d57eddc"
+  }
+}

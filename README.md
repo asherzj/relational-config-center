@@ -86,11 +86,19 @@ make test-integration
 
 集成测试使用 Testcontainers 和真实 MySQL 8.4；`make test-integration` 禁用 Go 测试缓存。正式入口先执行 Docker 健康检查，依赖不可用时命令失败；直接运行带 `integration` 标签的 Go 测试也会因缺失必需 Docker/MySQL 而失败。
 
-整组集成测试的进程上限为 60 分钟，以容纳隔离 MySQL 容器启动时间的波动；CI 任务另有 70 分钟总上限。各请求、数据库等待和进程停止的独立超时仍由对应测试验证。
+集成测试入口先用 `go test -list -json` 发现全部顶层 Test、Example 和 Fuzz 项，按 `(package, name)` 排序后稳定分成四组。每组对每个包启动独立的 `go test -json` 进程，并用精确的包内 `-run` 过滤；选中项必须实际运行并通过，skip、漏跑、额外运行、测试失败或进程失败都会使入口失败。单个包进程上限为 60 分钟，以容纳隔离 MySQL 容器启动时间的波动；CI 每组另有 70 分钟总上限。各请求、数据库等待和进程停止的独立超时仍由对应测试验证。
 
 ## 持续集成
 
-GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行五个检查：`Web`、`Go unit and build`、`MySQL 8.4 integration`、`Browser acceptance` 和 `Goose Compose deployment`。浏览器检查在 Linux runner 上使用 Playwright 的 Chromium、Firefox 和 WebKit；每个引擎单独写入 artifact 子目录。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
+GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行 `Web`、`Go unit and build`、四组 `MySQL 8.4 integration`、`Browser acceptance` 和 `Goose Compose deployment` 检查。四组 MySQL 检查各自运行在独立 runner 上，关闭 matrix fail-fast，并分别保存发现清单、确定性分配、逐包 JSON 事件和最终结果。浏览器检查在 Linux runner 上使用 Playwright 的 Chromium、Firefox 和 WebKit；每个引擎单独写入 artifact 子目录。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
+
+不设置分组时，`make test-integration` 依次运行全部四组，某个独立包或分组失败后仍继续收集其余结果，最后返回失败。可以只复现一组：
+
+```bash
+RCC_INTEGRATION_SHARD=2 \
+RCC_INTEGRATION_ARTIFACTS=/tmp/rcc-mysql-integration-shard-2 \
+  make test-integration
+```
 
 浏览器验收通过公开 Cookie 会话及 CSRF 流程进入管理台；未登录的 Admin 和 Web 代理都拒绝业务请求。临时账号、规则和业务数据只存在于本次创建的独立 MySQL 中，结束后连同数据库一起清理。
 

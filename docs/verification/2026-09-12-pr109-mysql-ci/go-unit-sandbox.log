@@ -1,0 +1,25 @@
+?   	github.com/asherzj/relational-config-center/admin/cmd/account-maintain	[no test files]
+--- FAIL: TestAdminExternalProcessServesHealthAndEnforcesAuthDefault (0.00s)
+    process_runtime_test.go:64: reserve process address: listen tcp 127.0.0.1:0: bind: operation not permitted
+--- FAIL: TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully (0.00s)
+    --- FAIL: TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully/interrupt (0.00s)
+        process_runtime_test.go:80: reserve process address: listen tcp 127.0.0.1:0: bind: operation not permitted
+    --- FAIL: TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully/terminated (0.00s)
+        process_runtime_test.go:80: reserve process address: listen tcp 127.0.0.1:0: bind: operation not permitted
+--- FAIL: TestAdminExternalProcessForcesShutdownAtConfiguredBoundAndStillClosesApplication (0.00s)
+    process_runtime_test.go:102: reserve process address: listen tcp 127.0.0.1:0: bind: operation not permitted
+--- FAIL: TestAdminExternalProcessWaitsForIncompleteRequestHeadersOnShutdown (0.00s)
+    process_runtime_test.go:118: reserve process address: listen tcp 127.0.0.1:0: bind: operation not permitted
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	6.665s
+?   	github.com/asherzj/relational-config-center/admin/cmd/policy-migrate	[no test files]
+?   	github.com/asherzj/relational-config-center/admin/cmd/release-reset	[no test files]
+?   	github.com/asherzj/relational-config-center/admin/cmd/schema-migrate	[no test files]
+ok  	github.com/asherzj/relational-config-center/admin/internal/application	1.921s
+ok  	github.com/asherzj/relational-config-center/admin/internal/domain	1.462s
+ok  	github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql	2.454s
+?   	github.com/asherzj/relational-config-center/admin/internal/infrastructure/password	[no test files]
+ok  	github.com/asherzj/relational-config-center/admin/internal/interfaces/http	3.301s
+ok  	github.com/asherzj/relational-config-center/admin/internal/platform/config	3.750s
+FAIL
+make: *** [test] Error 1
