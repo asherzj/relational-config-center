@@ -1,0 +1,119 @@
+关系型配置中心
+返回发布单列表
+field_display_browser_items 配置变更
+草稿
+编辑草稿
+提交审批
+更多操作
+申请人
+B
+Browser acceptance
+创建时间
+2026/09/12 01:07:35
+变更数量
+1 项
+基本信息
+
+常规发布 · 整单阶段
+
+准备中
+逐表发布流程
+
+各表使用保存时的流程。全部表审批通过后，整单统一发布。
+
+field_display_browser_items
+
+默认常规发布
+
+1
+按表审批
+
+审批 · 按表审批资格
+
+待开始
+
+2
+发布
+
+发布 · 发布权限
+
+待开始
+
+3
+完结
+
+完结 · 发布权限
+
+待开始
+
+查看实例来源与版本
+提交审批安排
+
+提交时固定各表角色；角色成员资格按处理时的当前状态判断。
+
+field_display_browser_items
+待提交
+
+当前分配：无角色 · 默认 ADMIN 规则
+
+默认 ADMIN 审批
+
+提交时角色没有合格独立成员，由非申请人 ADMIN 默认审批
+
+变更内容
+添加变更
+
+分页与字段筛选仅用于审阅，发布操作始终作用于整单变更。
+
+以下是申请时的差异；发布时生成的字段以实际数据库结果为准。
+
+共 1 项明细
+
+ADD 1 · MODIFY 0 · DELETE 0
+
+只显示有变化的字段
+明细 1 · field_display_browser_items · ADD · 记录 发布时生成 id
+
+记录基线 尚无已知 id
+
+字段	服务器原值	申请值
+category
+string
+不存在	未提交
+created_at
+datetime
+不存在	发布时生成
+created_by
+string
+不存在	发布时生成
+id
+uint64
+不存在	未提交
+name
+string
+不存在	值stage5_webkit_invalid
+note
+string
+不存在	值prefix-webkit
+secondtail
+priority
+int64
+不存在	未提交
+state
+string
+不存在	值invalid-state
+updated_at
+datetime
+不存在	发布时生成
+updated_by
+string
+不存在	发布时生成
+操作历史
+
+创建了草稿
+
+CREATE · 版本 1
+
+2026/09/12 01:07:35
+B
+Browser acceptance

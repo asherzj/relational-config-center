@@ -401,8 +401,6 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await page.getByRole('combobox', { name: 'Managed Table', exact: true }).waitFor();
     await button('打开导航').click();
     await page.getByRole('link', { name: '发布单', exact: true }).click();
-    await page.getByRole('alertdialog', { name: '放弃未保存的修改？', exact: true }).waitFor();
-    await button('放弃修改并离开').click();
     await button('新建草稿').click();
     await button('确认并保存草稿').click();
     await page.waitForURL('**/configuration/release-orders/*');

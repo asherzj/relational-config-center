@@ -1,5 +1,6 @@
 const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
 const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
+const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real browser -> production Web proxy -> Cookie-authenticated Admin -> disposable MySQL 8.4.
 // RCC_E2E_ENGINE chooses one Playwright engine; the runner records each separately.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
@@ -396,15 +397,10 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await page.unroute(`**${writePath}`);
     page.once('dialog', dialog => dialog.accept());
     await page.reload();
-    // Continue through the restored mobile workspace without a second document
-    // navigation interrupting its initial session and field-configuration reads.
+    // reload() waits for document load, not React's session recovery. Let the
+    // restored workspace mount before repeatDraftSave starts another navigation.
     await page.getByRole('combobox', { name: 'Managed Table', exact: true }).waitFor();
-    await button('打开导航').click();
-    await page.getByRole('link', { name: '发布单', exact: true }).click();
-    await page.getByRole('alertdialog', { name: '放弃未保存的修改？', exact: true }).waitFor();
-    await button('放弃修改并离开').click();
-    await button('新建草稿').click();
-    await button('确认并保存草稿').click();
+    await repeatDraftSave(page);
     await page.waitForURL('**/configuration/release-orders/*');
     const draftWrites = requests.slice(unknownRequestStart).filter((entry) => entry.method === 'POST' && entry.path === writePath);
     assert.equal(draftWrites.length, 2);

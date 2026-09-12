@@ -1,0 +1,135 @@
+关系型配置中心
+统一变更入口
+重新查询
+新增记录
+Managed Table
+field_display_browser_items
+notification_templates
+stage1_acceptance_items
+stage1_rollback_chromium_items
+stage1_rollback_firefox_items
+stage1_rollback_webkit_items
+查看当前表规则能力
+已启用表规则
+组合筛选
+填写的条件以 AND 连接，未填写的字段不参与筛选。
+收起筛选
+category
+category · string
+等于
+筛选空字符串
+created_at
+created_at · datetime
+等于
+created_by
+created_by · string
+等于
+筛选空字符串
+id
+id · uint64
+等于
+name
+name · string
+等于
+筛选空字符串
+note
+note · string
+等于
+筛选空字符串
+priority
+priority · int64
+等于
+state
+state · string
+等于
+筛选空字符串
+updated_at
+updated_at · datetime
+等于
+updated_by
+updated_by · string
+等于
+筛选空字符串
+排序字段
+使用查询规则默认排序
+id
+name
+category
+note
+state
+priority
+created_by
+created_at
+updated_by
+updated_at
+排序方向
+ASC
+DESC
+每页数量
+清空
+查询
+
+已明确选择 0 项
+
+删除已选 0 项
+清空选择
+选择	
+category
+string · 可为 NULL
+	
+created_at
+datetime · 非 NULL
+	
+created_by
+string · 非 NULL
+	
+id
+uint64 · 非 NULL
+	
+name
+string · 非 NULL
+	
+note
+string · 可为 NULL
+	
+priority
+int64 · 非 NULL
+	
+state
+string · 非 NULL
+	
+updated_at
+datetime · 非 NULL
+	
+updated_by
+string · 非 NULL
+	操作
+	digest	2026-09-12 01:16:56.563653	fixture	5	Epsilon	final seed	50	draft	2026-09-12 01:16:56.563653	fixture	
+修改
+删除
+
+	NULL	2026-09-12 01:16:56.563653	fixture	4	Delta	range candidate	40	active	2026-09-12 01:16:56.563653	fixture	
+修改
+删除
+
+	notice	2026-09-12 01:16:56.563653	fixture	3	Gamma	contains 100% literal	30	draft	2026-09-12 01:16:56.563653	fixture	
+修改
+删除
+
+	alert	2026-09-12 01:16:56.563653	fixture	2	Beta	空字符串	20	paused	2026-09-12 01:16:56.563653	fixture	
+修改
+删除
+
+	notice	2026-09-12 01:16:56.563653	fixture	1	Alpha	NULL	10	active	2026-09-12 01:16:56.563653	fixture	
+修改
+删除
+共 5 条
+第 1 / 1 页
+上一页
+下一页
+放弃未保存的修改？
+
+离开后，本次输入和字段选择将丢失。继续编辑可保留当前内容。
+
+继续编辑
+放弃修改并离开

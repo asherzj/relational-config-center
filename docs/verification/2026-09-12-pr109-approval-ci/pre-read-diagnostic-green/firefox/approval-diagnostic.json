@@ -1,0 +1,609 @@
+{
+  "engine": "firefox",
+  "expectedActorID": "1eb848aa-6a9b-4b37-9093-fd9a92e742c8",
+  "expectedReviewerID": "abaf9c4a-9d5f-44a0-a8a2-78b5f98c7b53",
+  "createdOrder": {
+    "emergency_reason": "",
+    "release_type": "STANDARD",
+    "rollback_table_flows": [],
+    "table_flows": [
+      {
+        "instance_id": "3fc27fff3a60bb8bc9acb588399f774f",
+        "table_name": "stage1_acceptance_items",
+        "release_type": "STANDARD",
+        "template_code": "default_standard_v1",
+        "template_name": "默认常规发布",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-12T01:05:03.167077Z",
+        "node_list": [
+          {
+            "code": "approval",
+            "type": "APPROVAL",
+            "name": "按表审批",
+            "required_role": "TABLE_APPROVER",
+            "state": "PENDING"
+          },
+          {
+            "code": "publication",
+            "type": "PUBLICATION",
+            "name": "发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "completion",
+            "type": "COMPLETION",
+            "name": "完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      }
+    ],
+    "missing_flow_tables": [],
+    "approvals": [
+      {
+        "table_name": "stage1_acceptance_items",
+        "roles": [
+          {
+            "id": "11f835f8-91e4-476d-8290-c3d056e5898b",
+            "name": "Accessibility review 26bb568d-9c02-42fc-be05-a16c1d776661"
+          }
+        ],
+        "state": "PENDING"
+      }
+    ],
+    "approval_context": {
+      "revision": "07b8bd1e358635b2074cbe1c34b1d68705269c025afde65e88058de0c7ca3bbd",
+      "tables": [
+        {
+          "table_name": "stage1_acceptance_items",
+          "mode": "ROLE",
+          "reason": "由提交时审批角色的当前合格成员处理",
+          "can_approve": false
+        }
+      ],
+      "approvable_tables": []
+    },
+    "table_names": [
+      "stage1_acceptance_items"
+    ],
+    "title": "stage1_acceptance_items 配置变更",
+    "executions": [],
+    "id": "c574be82df5382d101803fb07214db26",
+    "applicant_id": "1eb848aa-6a9b-4b37-9093-fd9a92e742c8",
+    "state": "DRAFT",
+    "version": "1",
+    "items": [
+      {
+        "table_name": "stage1_acceptance_items",
+        "detail_id": "9764c1cec31bceb842069ad7563fd4b1",
+        "operation": "ADD",
+        "id": null,
+        "expected_record_version": "",
+        "content": {
+          "name": "stage5_firefox_invalid",
+          "note": "prefix-firefox\r\nsecond\rtail",
+          "state": "invalid-state"
+        },
+        "before": null,
+        "fields": [
+          {
+            "nullable": false,
+            "editable": true,
+            "name": "id",
+            "type": "uint64",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "omitted",
+            "proposed": null
+          },
+          {
+            "nullable": false,
+            "editable": true,
+            "name": "name",
+            "type": "string",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "value",
+            "proposed": "stage5_firefox_invalid"
+          },
+          {
+            "nullable": true,
+            "editable": true,
+            "name": "category",
+            "type": "string",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "omitted",
+            "proposed": null
+          },
+          {
+            "nullable": true,
+            "editable": true,
+            "name": "note",
+            "type": "string",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "value",
+            "proposed": "prefix-firefox\r\nsecond\rtail"
+          },
+          {
+            "nullable": false,
+            "editable": true,
+            "name": "state",
+            "type": "string",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "value",
+            "proposed": "invalid-state"
+          },
+          {
+            "nullable": false,
+            "editable": true,
+            "name": "priority",
+            "type": "int64",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "omitted",
+            "proposed": null
+          },
+          {
+            "nullable": false,
+            "editable": false,
+            "name": "created_by",
+            "type": "string",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "automatic",
+            "proposed": null
+          },
+          {
+            "nullable": false,
+            "editable": false,
+            "name": "created_at",
+            "type": "datetime",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "automatic",
+            "proposed": null
+          },
+          {
+            "nullable": false,
+            "editable": false,
+            "name": "updated_by",
+            "type": "string",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "automatic",
+            "proposed": null
+          },
+          {
+            "nullable": false,
+            "editable": false,
+            "name": "updated_at",
+            "type": "datetime",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "automatic",
+            "proposed": null
+          }
+        ]
+      }
+    ],
+    "history": [
+      {
+        "action": "CREATE",
+        "actor_id": "1eb848aa-6a9b-4b37-9093-fd9a92e742c8",
+        "at": "2026-09-12T01:05:03.167077Z",
+        "version": "1",
+        "reason": ""
+      }
+    ],
+    "created_at": "2026-09-12T01:05:03.167077Z",
+    "updated_at": "2026-09-12T01:05:03.167077Z",
+    "item_count": 1,
+    "operation_counts": {
+      "ADD": 1
+    },
+    "allowed_actions": [
+      "edit",
+      "submit",
+      "cancel"
+    ]
+  },
+  "reviewer": {
+    "display_name": "Browser acceptance",
+    "email": "e2e.40d72d24ce46344ee486@example.invalid",
+    "email_verified": false,
+    "id": "abaf9c4a-9d5f-44a0-a8a2-78b5f98c7b53",
+    "roles": [
+      "VIEWER"
+    ],
+    "status": "enabled",
+    "username": "e2e.40d72d24ce46344ee486"
+  },
+  "fixtureRole": {
+    "created_at": "2026-09-12T01:04:58.548143Z",
+    "creator": "1eb848aa-6a9b-4b37-9093-fd9a92e742c8",
+    "deleted": false,
+    "description": "隔离验收角色",
+    "enabled": true,
+    "id": "11f835f8-91e4-476d-8290-c3d056e5898b",
+    "members": [
+      {
+        "display_name": "Browser acceptance",
+        "enabled": true,
+        "id": "abaf9c4a-9d5f-44a0-a8a2-78b5f98c7b53",
+        "username": "e2e.40d72d24ce46344ee486"
+      }
+    ],
+    "modifier": "1eb848aa-6a9b-4b37-9093-fd9a92e742c8",
+    "name": "Accessibility review 26bb568d-9c02-42fc-be05-a16c1d776661",
+    "referenced": false,
+    "updated_at": "2026-09-12T01:04:58.548143Z",
+    "version": "1"
+  },
+  "currentAssignment": {
+    "table_name": "stage1_acceptance_items",
+    "version": "2",
+    "role_ids": [
+      "11f835f8-91e4-476d-8290-c3d056e5898b"
+    ],
+    "roles": [
+      {
+        "id": "11f835f8-91e4-476d-8290-c3d056e5898b",
+        "name": "Accessibility review 26bb568d-9c02-42fc-be05-a16c1d776661"
+      }
+    ]
+  },
+  "submitted": {
+    "emergency_reason": "",
+    "release_type": "STANDARD",
+    "rollback_table_flows": [],
+    "table_flows": [
+      {
+        "instance_id": "3fc27fff3a60bb8bc9acb588399f774f",
+        "table_name": "stage1_acceptance_items",
+        "release_type": "STANDARD",
+        "template_code": "default_standard_v1",
+        "template_name": "默认常规发布",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-12T01:05:03.167077Z",
+        "node_list": [
+          {
+            "code": "approval",
+            "type": "APPROVAL",
+            "name": "按表审批",
+            "required_role": "TABLE_APPROVER",
+            "state": "ACTIVE"
+          },
+          {
+            "code": "publication",
+            "type": "PUBLICATION",
+            "name": "发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "completion",
+            "type": "COMPLETION",
+            "name": "完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      }
+    ],
+    "missing_flow_tables": [],
+    "approvals": [
+      {
+        "table_name": "stage1_acceptance_items",
+        "roles": [
+          {
+            "id": "11f835f8-91e4-476d-8290-c3d056e5898b",
+            "name": "Accessibility review 26bb568d-9c02-42fc-be05-a16c1d776661"
+          }
+        ],
+        "state": "PENDING"
+      }
+    ],
+    "approval_context": {
+      "revision": "169e9b8cd8bad4d8f02cdb8943cfb145027e17d8b387b9115c5f0e47ed1c8d9c",
+      "tables": [
+        {
+          "table_name": "stage1_acceptance_items",
+          "mode": "ROLE",
+          "reason": "由提交时审批角色的当前合格成员处理",
+          "can_approve": false
+        }
+      ],
+      "approvable_tables": []
+    },
+    "table_names": [
+      "stage1_acceptance_items"
+    ],
+    "title": "stage1_acceptance_items 配置变更",
+    "executions": [],
+    "frozen_digest": "1ba3c1e75a09bef89a77d447787de1968fcc5307eba0d47480d31df68827a8ea",
+    "id": "c574be82df5382d101803fb07214db26",
+    "applicant_id": "1eb848aa-6a9b-4b37-9093-fd9a92e742c8",
+    "state": "PENDING_APPROVAL",
+    "version": "2",
+    "items": [
+      {
+        "table_name": "stage1_acceptance_items",
+        "detail_id": "9764c1cec31bceb842069ad7563fd4b1",
+        "operation": "ADD",
+        "id": null,
+        "expected_record_version": "",
+        "content": {
+          "name": "stage5_firefox_invalid",
+          "note": "prefix-firefox\r\nsecond\rtail",
+          "state": "invalid-state"
+        },
+        "before": null,
+        "fields": [
+          {
+            "nullable": false,
+            "editable": true,
+            "name": "id",
+            "type": "uint64",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "omitted",
+            "proposed": null
+          },
+          {
+            "nullable": false,
+            "editable": true,
+            "name": "name",
+            "type": "string",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "value",
+            "proposed": "stage5_firefox_invalid"
+          },
+          {
+            "nullable": true,
+            "editable": true,
+            "name": "category",
+            "type": "string",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "omitted",
+            "proposed": null
+          },
+          {
+            "nullable": true,
+            "editable": true,
+            "name": "note",
+            "type": "string",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "value",
+            "proposed": "prefix-firefox\r\nsecond\rtail"
+          },
+          {
+            "nullable": false,
+            "editable": true,
+            "name": "state",
+            "type": "string",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "value",
+            "proposed": "invalid-state"
+          },
+          {
+            "nullable": false,
+            "editable": true,
+            "name": "priority",
+            "type": "int64",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "omitted",
+            "proposed": null
+          },
+          {
+            "nullable": false,
+            "editable": false,
+            "name": "created_by",
+            "type": "string",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "automatic",
+            "proposed": null
+          },
+          {
+            "nullable": false,
+            "editable": false,
+            "name": "created_at",
+            "type": "datetime",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "automatic",
+            "proposed": null
+          },
+          {
+            "nullable": false,
+            "editable": false,
+            "name": "updated_by",
+            "type": "string",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "automatic",
+            "proposed": null
+          },
+          {
+            "nullable": false,
+            "editable": false,
+            "name": "updated_at",
+            "type": "datetime",
+            "before_state": "absent",
+            "before": null,
+            "proposed_state": "automatic",
+            "proposed": null
+          }
+        ]
+      }
+    ],
+    "history": [
+      {
+        "action": "CREATE",
+        "actor_id": "1eb848aa-6a9b-4b37-9093-fd9a92e742c8",
+        "at": "2026-09-12T01:05:03.167077Z",
+        "version": "1",
+        "reason": ""
+      },
+      {
+        "action": "SUBMIT",
+        "actor_id": "1eb848aa-6a9b-4b37-9093-fd9a92e742c8",
+        "at": "2026-09-12T01:05:03.275027Z",
+        "version": "2",
+        "reason": ""
+      }
+    ],
+    "created_at": "2026-09-12T01:05:03.167077Z",
+    "updated_at": "2026-09-12T01:05:03.275027Z",
+    "item_count": 1,
+    "operation_counts": {
+      "ADD": 1
+    },
+    "allowed_actions": [
+      "cancel"
+    ]
+  },
+  "reviewerOrder": {
+    "notification": {
+      "sequence": "1",
+      "unread": true,
+      "pending": true
+    },
+    "emergency_reason": "",
+    "release_type": "STANDARD",
+    "rollback_table_flows": [],
+    "table_flows": [
+      {
+        "instance_id": "3fc27fff3a60bb8bc9acb588399f774f",
+        "table_name": "stage1_acceptance_items",
+        "release_type": "STANDARD",
+        "template_code": "default_standard_v1",
+        "template_name": "默认常规发布",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-12T01:05:03.167077Z",
+        "node_list": [
+          {
+            "code": "approval",
+            "type": "APPROVAL",
+            "name": "按表审批",
+            "required_role": "TABLE_APPROVER",
+            "state": "ACTIVE"
+          },
+          {
+            "code": "publication",
+            "type": "PUBLICATION",
+            "name": "发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "completion",
+            "type": "COMPLETION",
+            "name": "完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      }
+    ],
+    "missing_flow_tables": [],
+    "approvals": [
+      {
+        "table_name": "stage1_acceptance_items",
+        "roles": [
+          {
+            "id": "11f835f8-91e4-476d-8290-c3d056e5898b",
+            "name": "Accessibility review 26bb568d-9c02-42fc-be05-a16c1d776661"
+          }
+        ],
+        "state": "PENDING"
+      }
+    ],
+    "approval_context": {
+      "revision": "cdf221c4eefc338db70de0dbdc738909ceb0c6ee8fdc39a57ee3bdc0ef00d8e0",
+      "tables": [
+        {
+          "table_name": "stage1_acceptance_items",
+          "mode": "ROLE",
+          "reason": "由提交时审批角色的当前合格成员处理",
+          "can_approve": true
+        }
+      ],
+      "approvable_tables": [
+        "stage1_acceptance_items"
+      ]
+    },
+    "table_names": [
+      "stage1_acceptance_items"
+    ],
+    "title": "stage1_acceptance_items 配置变更",
+    "id": "c574be82df5382d101803fb07214db26",
+    "applicant_id": "1eb848aa-6a9b-4b37-9093-fd9a92e742c8",
+    "state": "PENDING_APPROVAL",
+    "version": "2",
+    "created_at": "2026-09-12T01:05:03.167077Z",
+    "updated_at": "2026-09-12T01:05:03.275027Z",
+    "item_count": 1,
+    "operation_counts": {
+      "ADD": 1
+    },
+    "frozen_digest": "1ba3c1e75a09bef89a77d447787de1968fcc5307eba0d47480d31df68827a8ea",
+    "history": [
+      {
+        "action": "CREATE",
+        "actor_id": "1eb848aa-6a9b-4b37-9093-fd9a92e742c8",
+        "at": "2026-09-12T01:05:03.167077Z",
+        "version": "1",
+        "reason": ""
+      },
+      {
+        "action": "SUBMIT",
+        "actor_id": "1eb848aa-6a9b-4b37-9093-fd9a92e742c8",
+        "at": "2026-09-12T01:05:03.275027Z",
+        "version": "2",
+        "reason": ""
+      }
+    ],
+    "executions": [],
+    "allowed_actions": [
+      "approve",
+      "reject"
+    ]
+  },
+  "liveRoles": [
+    {
+      "created_at": "2026-09-12T01:04:58.548143Z",
+      "creator": "1eb848aa-6a9b-4b37-9093-fd9a92e742c8",
+      "deleted": false,
+      "description": "隔离验收角色",
+      "enabled": true,
+      "id": "11f835f8-91e4-476d-8290-c3d056e5898b",
+      "members": [
+        {
+          "display_name": "Browser acceptance",
+          "enabled": true,
+          "id": "abaf9c4a-9d5f-44a0-a8a2-78b5f98c7b53",
+          "username": "e2e.40d72d24ce46344ee486"
+        }
+      ],
+      "modifier": "1eb848aa-6a9b-4b37-9093-fd9a92e742c8",
+      "name": "Accessibility review 26bb568d-9c02-42fc-be05-a16c1d776661",
+      "referenced": true,
+      "updated_at": "2026-09-12T01:04:58.548143Z",
+      "version": "1"
+    }
+  ]
+}
