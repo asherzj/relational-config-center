@@ -305,6 +305,8 @@ const output = process.env.RCC_E2E_OUTPUT;
     const publishedCompetition = await api(publisher, 'POST', `/api/v1/release-orders/${competingDraft.id}/execute`, { expected_version: approvedCompetition.version });
     await publishPage.setViewportSize({ width: 1440, height: 1000 });
     await publishPage.getByRole('link', { name: '返回发布单列表', exact: true }).click();
+    await publishPage.getByLabel('单号', { exact: true }).fill(competingDraft.id);
+    await button(publishPage, '查询发布单').click();
     await publishPage.getByRole('row').filter({ hasText: competingDraft.id }).getByRole('link', { name: '浏览器完结与快速回滚竞争', exact: true }).click();
     await publishPage.waitForURL(`**/configuration/release-orders/${competingDraft.id}`);
     await button(publishPage, '快速回滚').click();

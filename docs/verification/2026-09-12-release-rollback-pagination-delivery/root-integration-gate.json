@@ -1,0 +1,19 @@
+{
+  "base": "1687423d3e3643c1ed2d64b7691fea3c73aa43dd",
+  "reviewed_tree": "79f8f6def9c79933625e183c8cc40116f89c4415",
+  "candidate_path_count": 2,
+  "reviews": [
+    {
+      "path": "docs/verification/2026-09-12-release-rollback-pagination-delivery/standards-review.md",
+      "sha256": "8882eaf8221f81f459cbb28c1545399b5aed008c822a144a41a21eb34fe8d9ac",
+      "size": 1109
+    },
+    {
+      "path": "docs/verification/2026-09-12-release-rollback-pagination-delivery/spec-review.md",
+      "sha256": "a181369042d1898aa60ef70b95c1c8d5f60db7bce239a5e06ba4956c43179ed2",
+      "size": 2061
+    }
+  ],
+  "gate": "independent local implementation review complete; final integrated eight-job CI required before delivery",
+  "root_verification": "all candidate working files match immutable reviewed tree including ignored raw evidence and deletions"
+}
