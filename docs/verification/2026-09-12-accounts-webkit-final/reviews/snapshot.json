@@ -1,0 +1,9 @@
+{
+  "base": "5ac0d268e51814973b977371270da2f351fccbda",
+  "reviewed_tree": "71fc2720ae2eba9f1c28e2f21e7639be1fd36f2c",
+  "gate": "cleanup local checks and review passed; final required CI pending before delivery",
+  "reports": {
+    "docs/verification/2026-09-12-accounts-webkit-final/reviews/spec.md": "f3e7f40f25c7c270d002fcd73c1febc19ce116d869528c31021505ceb699d870",
+    "docs/verification/2026-09-12-accounts-webkit-final/reviews/standards.md": "98f2e3d47312b9d148cc496c0fd26ad5c3a2d4a1e5519ab9db00bac43ee11da2"
+  }
+}

@@ -150,7 +150,6 @@ jobs:
 
       - name: Run isolated browser acceptance
         env:
-          DEBUG: pw:browser
           RCC_E2E_ARTIFACTS: ${{ runner.temp }}/rcc-browser-acceptance
           RCC_E2E_ENGINES: chromium,firefox,webkit
         run: make test-browser-acceptance
@@ -161,71 +160,6 @@ jobs:
         with:
           name: browser-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/rcc-browser-acceptance
-          if-no-files-found: error
-          retention-days: 14
-
-  # Temporary #110 native crash evidence; remove this job, sampler and repeat
-  # generator after the bounded investigation and before #110 delivery.
-  accounts-webkit-native-diagnostic:
-    name: Accounts WebKit native diagnostic
-    if: github.event_name == 'pull_request' && github.event.pull_request.number == 111
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 10.28.2
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24.19.0
-          cache: pnpm
-          cache-dependency-path: web/pnpm-lock.yaml
-      - name: Set up Go
-        uses: actions/setup-go@v7
-        with:
-          go-version-file: go.work
-          cache-dependency-path: |
-            go.work.sum
-            admin/go.sum
-      - name: Observe twelve original accounts cases on shared real services
-        env:
-          DEBUG: pw:browser
-          RCC_E2E_ARTIFACTS: ${{ runner.temp }}/rcc-accounts-webkit-browser
-          RCC_NATIVE_ARTIFACTS: ${{ runner.temp }}/rcc-accounts-webkit-native
-          RCC_E2E_SUITE: release-workflow
-          RCC_E2E_ENGINES: webkit
-          RCC_E2E_CASES: accounts.mjs@webkit
-        run: |
-          mkdir -p "$RCC_NATIVE_ARTIFACTS"
-          node scripts/diagnose-accounts-webkit-native.cjs "$RCC_NATIVE_ARTIFACTS/resources.jsonl" &
-          diagnostic_pid=$!
-          diagnostic_runner=''
-          stop_diagnostic() {
-            kill "$diagnostic_pid" 2>/dev/null || true
-            wait "$diagnostic_pid" 2>/dev/null || true
-            if [[ -n "$diagnostic_runner" ]]; then rm -f -- "$diagnostic_runner" || true; fi
-          }
-          trap stop_diagnostic EXIT
-          diagnostic_runner=$(mktemp "$PWD/scripts/.accounts-webkit-repeat.XXXXXX")
-          node scripts/diagnose-accounts-webkit-repeat.cjs "$diagnostic_runner"
-          bash "$diagnostic_runner"
-      - name: Collect kernel crash and OOM messages
-        if: always()
-        run: |
-          mkdir -p "${{ runner.temp }}/rcc-accounts-webkit-native"
-          sudo dmesg --ctime --level=emerg,alert,crit,err,warn > "${{ runner.temp }}/rcc-accounts-webkit-native/kernel-warnings.log" 2>&1 || true
-      - name: Upload native diagnostic evidence
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: accounts-webkit-native-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            ${{ runner.temp }}/rcc-accounts-webkit-browser
-            ${{ runner.temp }}/rcc-accounts-webkit-native
           if-no-files-found: error
           retention-days: 14
 
