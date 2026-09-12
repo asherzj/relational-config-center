@@ -1,0 +1,2 @@
+1789201908.784750 --- SIGABRT {si_signo=SIGABRT, si_code=SI_USER, si_pid=230<python3>, si_uid=0} ---
+1789201908.785220 +++ killed by SIGABRT +++

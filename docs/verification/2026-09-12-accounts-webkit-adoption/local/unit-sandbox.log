@@ -1,0 +1,53 @@
+
+> @relational-config-center/web@0.0.0 test:run /Users/asher/Projects/relational-config-center/.worktrees/ci-accounts-webkit/web
+> vitest run
+
+
+ RUN  v4.1.11 /Users/asher/Projects/relational-config-center/.worktrees/ci-accounts-webkit/web
+
+ ❯ src/api/client-stream.test.ts (1 test | 1 failed) 10006ms
+   × retains received HTTP status and Request ID after a real TCP response body interruption 10005ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/client-stream.test.ts > retains received HTTP status and Request ID after a real TCP response body interruption
+Error: Test timed out in 10000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/api/client-stream.test.ts:6:1
+      4| import { request } from "./client";
+      5|
+      6| it("retains received HTTP status and Request ID after a real TCP respo…
+       | ^
+      7|   let writes = 0;
+      8|   const server = createServer((req, res) => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯⎯ Uncaught Exception ⎯⎯⎯⎯⎯
+Error: listen EPERM: operation not permitted 127.0.0.1
+ ❯ Server.setupListenHandle [as _listen2] node:net:2145:21
+ ❯ listenInCluster node:net:2224:12
+ ❯ node:net:2448:7
+ ❯ processTicksAndRejections node:internal/process/task_queues:90:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'EPERM', errno: -1, syscall: 'listen', address: '127.0.0.1' }
+This error originated in "src/api/client-stream.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "retains received HTTP status and Request ID after a real TCP response body interruption". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed | 41 passed (42)
+      Tests  1 failed | 479 passed (480)
+     Errors  1 error
+   Start at  17:14:33
+   Duration  39.16s (transform 6.23s, setup 9.64s, import 18.65s, tests 132.17s, environment 24.26s)
+
+ ELIFECYCLE  Command failed with exit code 1.

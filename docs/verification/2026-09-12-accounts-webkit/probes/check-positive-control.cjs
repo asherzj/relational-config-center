@@ -1,0 +1,12 @@
+const assert = require('node:assert/strict');
+const { readFileSync } = require('node:fs');
+const events = readFileSync(process.argv[2], 'utf8').trim().split('\n').map(line => JSON.parse(line));
+const close = events.findIndex(event => event.event === 'page-close' && event.phase === 'publication-confirmation');
+const failure = events.findIndex(event => event.event === 'test-failure');
+const cleanup = events.findIndex(event => event.event === 'cleanup-start');
+assert.ok(close >= 0 && failure > close && cleanup > failure, 'page close must be recorded before failure and cleanup');
+assert.match(events[failure].message, /Target page, context or browser has been closed/);
+const observation = events.find(event => event.event === 'confirmation-end').observations[0];
+assert.match(observation.failure.message, /element is not stable/);
+assert.match(observation.failure.message, /Target page, context or browser has been closed/);
+console.log('PASS explicit page-close positive control: unstable click -> close -> preserved failure -> cleanup');

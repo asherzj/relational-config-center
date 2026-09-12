@@ -1,0 +1,1137 @@
+{
+  "ok": true,
+  "engine": "chromium",
+  "browserVersion": "151.0.7922.34",
+  "checks": [
+    {
+      "name": "drawer background is inert and actual Shift+Tab/Tab loops inside the drawer",
+      "evidence": {
+        "inert": true,
+        "focusStayedInTopModal": true,
+        "bodyClasses": [
+          "modal-open"
+        ],
+        "rootLocked": true,
+        "focusProbe": "programmatic HTMLElement.focus used only for native inert",
+        "keyboardPath": [
+          "Shift+Tab skips appended hidden/disabled fixtures -> 取消",
+          "Tab -> 关闭",
+          "focus-loss fixture then real Tab -> 关闭"
+        ]
+      }
+    },
+    {
+      "name": "native back cancel/confirm and forward preserve the intended history entry",
+      "evidence": {
+        "unloadProbe": {
+          "defaultPrevented": true,
+          "dispatchReturned": false,
+          "fixture": "cancelable browser event; no user-agent prompt"
+        },
+        "lowerDrawerInertWhilePromptOpen": true,
+        "focusRestoredToDrawer": true
+      }
+    },
+    {
+      "name": "320px long drawer scroll keeps the action footer reachable",
+      "evidence": {
+        "viewport": "320x568 CSS pixels",
+        "documentOverflow": 0,
+        "optionalIdIncluded": false,
+        "actualMouseWheel": {
+          "before": 668,
+          "after": 1028
+        },
+        "surfaces": [
+          {
+            "selector": ".drawer",
+            "metrics": {
+              "left": 0,
+              "right": 320,
+              "width": 320,
+              "clientWidth": 320,
+              "scrollWidth": 320,
+              "innerWidth": 320
+            }
+          },
+          {
+            "selector": ".drawer-header",
+            "metrics": {
+              "left": 0,
+              "right": 320,
+              "width": 320,
+              "clientWidth": 320,
+              "scrollWidth": 320,
+              "innerWidth": 320
+            }
+          },
+          {
+            "selector": ".drawer-body",
+            "metrics": {
+              "left": 0,
+              "right": 320,
+              "width": 320,
+              "clientWidth": 320,
+              "scrollWidth": 320,
+              "innerWidth": 320
+            }
+          },
+          {
+            "selector": ".drawer-footer",
+            "metrics": {
+              "left": 0,
+              "right": 320,
+              "width": 320,
+              "clientWidth": 320,
+              "scrollWidth": 320,
+              "innerWidth": 320
+            }
+          }
+        ],
+        "noteRect": {
+          "left": 20,
+          "right": 300,
+          "top": 12.375,
+          "bottom": 102.375,
+          "width": 280,
+          "height": 90,
+          "innerWidth": 320,
+          "innerHeight": 568
+        },
+        "footerActions": [
+          {
+            "action": "取消",
+            "rect": {
+              "left": 20,
+              "right": 156,
+              "top": 512.5,
+              "bottom": 548.5,
+              "width": 136,
+              "height": 36,
+              "innerWidth": 320,
+              "innerHeight": 568
+            }
+          },
+          {
+            "action": "查看 Change Set",
+            "rect": {
+              "left": 164,
+              "right": 300,
+              "top": 512.5,
+              "bottom": 548.5,
+              "width": 136,
+              "height": 36,
+              "innerWidth": 320,
+              "innerHeight": 568
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "320px Change Set owns horizontal/vertical overflow and keeps actions reachable",
+      "evidence": {
+        "keyboardPath": [
+          "Shift+Tab -> 确认并保存草稿",
+          "Tab -> 变更字段对比，可横向滚动",
+          "Tab -> 发布单标题",
+          "Tab -> 选择已有草稿"
+        ],
+        "documentOverflow": 0,
+        "scrolling": {
+          "horizontal": {
+            "client": 288,
+            "total": 600,
+            "offset": 312
+          },
+          "vertical": {
+            "client": 87,
+            "total": 700,
+            "offset": 613
+          }
+        },
+        "footerActions": [
+          {
+            "action": "放弃本次编辑",
+            "rect": {
+              "left": 32,
+              "right": 155.5,
+              "top": 455,
+              "bottom": 491,
+              "width": 123.5,
+              "height": 36,
+              "innerWidth": 320,
+              "innerHeight": 568
+            }
+          },
+          {
+            "action": "返回修改",
+            "rect": {
+              "left": 164.5,
+              "right": 288,
+              "top": 455,
+              "bottom": 491,
+              "width": 123.5,
+              "height": 36,
+              "innerWidth": 320,
+              "innerHeight": 568
+            }
+          },
+          {
+            "action": "确认并保存草稿",
+            "rect": {
+              "left": 32,
+              "right": 288,
+              "top": 500,
+              "bottom": 536,
+              "width": 256,
+              "height": 36,
+              "innerWidth": 320,
+              "innerHeight": 568
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "only the top nested leave dialog handles Tab/Escape and focus returns to Change Set",
+      "evidence": {
+        "lowerChangeSetInert": true,
+        "bodyRemainedLocked": true
+      }
+    },
+    {
+      "name": "real MySQL rejection freezes raw CR; a copied draft requires explicit LF conversion before editing",
+      "evidence": {
+        "status": 422,
+        "rejectedOrder": "d7737d4683df7f1d5eb71700c01c1c68",
+        "rawHex": "7072656669782d6368726f6d69756d0d0a7365636f6e640d7461696c",
+        "submittedHex": "7072656669782d6368726f6d69756d0d0a7365636f6e640d7461696c",
+        "clipboardBoundary": "synthetic paste Event with injected DataTransfer; no OS clipboard access"
+      }
+    },
+    {
+      "name": "390px unknown release-draft recovery replays one intent and then publishes it",
+      "evidence": {
+        "faultEvidence": {
+          "actualStatus": 201,
+          "requestId": "rcc-820e5a3bd7eb52c3d1e7649ef95ac7bf",
+          "injectedStatus": 503
+        },
+        "releaseDraftRequests": 2,
+        "replayedOriginalBodyAndKey": true,
+        "releaseOrder": "4069495a748115b78b34f346106d00d6",
+        "sqlRows": 1,
+        "faultBoundary": "Playwright API response fault injection after route.fetch durably created the release draft",
+        "documentOverflow": 0
+      }
+    }
+  ],
+  "pageErrors": [],
+  "http": [
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-policies",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies/notification_page_query_v1",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/stage1_acceptance_items/query",
+      "status": 200,
+      "body": {
+        "conditions": [],
+        "page_number": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders",
+      "status": 201,
+      "body": {
+        "items": [
+          {
+            "table_name": "stage1_acceptance_items",
+            "operation": "ADD",
+            "content": {
+              "name": "stage5_chromium_invalid",
+              "note": "prefix-chromium\r\nsecond\rtail",
+              "state": "invalid-state"
+            }
+          }
+        ],
+        "title": "stage1_acceptance_items 配置变更"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/notification-read",
+      "status": 200,
+      "body": {
+        "sequence": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/cancel",
+      "status": 200,
+      "body": {
+        "expected_version": "3",
+        "reason": "Correct the rejected value without changing the frozen intent"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/preview",
+      "status": 200,
+      "body": {
+        "title": "stage1_acceptance_items 配置变更",
+        "expected_version": "4",
+        "release_type": "STANDARD",
+        "items": [
+          {
+            "detail_id": "c51b83183cbd7d114f94f22a0e94fd67",
+            "table_name": "stage1_acceptance_items",
+            "operation": "ADD",
+            "expected_record_version": "",
+            "content": {
+              "name": "stage5_chromium_invalid",
+              "note": "prefix-chromium\r\nsecond\rtail",
+              "state": "invalid-state"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/copy",
+      "status": 201,
+      "body": {
+        "expected_version": "4",
+        "confirmed": true,
+        "items": [
+          {
+            "detail_id": "c51b83183cbd7d114f94f22a0e94fd67",
+            "table_name": "stage1_acceptance_items",
+            "operation": "ADD",
+            "expected_record_version": "",
+            "content": {
+              "name": "stage5_chromium_invalid",
+              "note": "prefix-chromium\r\nsecond\rtail",
+              "state": "invalid-state"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/06dcc6faa62078cd10a8bc4e458f6846",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/06dcc6faa62078cd10a8bc4e458f6846/details",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/06dcc6faa62078cd10a8bc4e458f6846/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/06dcc6faa62078cd10a8bc4e458f6846/details",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-policies",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies/notification_page_query_v1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/stage1_acceptance_items/query",
+      "status": 200,
+      "body": {
+        "conditions": [],
+        "page_number": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders",
+      "status": 503,
+      "body": {
+        "items": [
+          {
+            "table_name": "stage1_acceptance_items",
+            "operation": "ADD",
+            "content": {
+              "name": "stage5_chromium_unknown"
+            }
+          }
+        ],
+        "title": "stage1_acceptance_items 配置变更"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-policies",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies/notification_page_query_v1",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/stage1_acceptance_items/query",
+      "status": 200,
+      "body": {
+        "conditions": [],
+        "page_number": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders",
+      "status": 201,
+      "body": {
+        "items": [
+          {
+            "table_name": "stage1_acceptance_items",
+            "operation": "ADD",
+            "content": {
+              "name": "stage5_chromium_unknown"
+            }
+          }
+        ],
+        "title": "stage1_acceptance_items 配置变更"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/4069495a748115b78b34f346106d00d6",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/4069495a748115b78b34f346106d00d6/details",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/4069495a748115b78b34f346106d00d6/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders",
+      "status": 200
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-policies",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/stage1_acceptance_items/query",
+      "body": "{\"conditions\":[],\"page_number\":1}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies/notification_page_query_v1",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders",
+      "body": "{\"items\":[{\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"content\":{\"name\":\"stage5_chromium_invalid\",\"note\":\"prefix-chromium\\r\\nsecond\\rtail\",\"state\":\"invalid-state\"}}],\"title\":\"stage1_acceptance_items 配置变更\"}",
+      "key": "ee3f7075-6124-4393-9d3a-8c9dcce7408f"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/people",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/notification-read",
+      "body": "{\"sequence\":\"1\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/people",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/cancel",
+      "body": "{\"expected_version\":\"3\",\"reason\":\"Correct the rejected value without changing the frozen intent\"}",
+      "key": "d08b5065-27ac-494e-9174-c09ec294cc3a"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/people",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/preview",
+      "body": "{\"title\":\"stage1_acceptance_items 配置变更\",\"expected_version\":\"4\",\"release_type\":\"STANDARD\",\"items\":[{\"detail_id\":\"c51b83183cbd7d114f94f22a0e94fd67\",\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"expected_record_version\":\"\",\"content\":{\"name\":\"stage5_chromium_invalid\",\"note\":\"prefix-chromium\\r\\nsecond\\rtail\",\"state\":\"invalid-state\"}}]}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/copy",
+      "body": "{\"expected_version\":\"4\",\"confirmed\":true,\"items\":[{\"detail_id\":\"c51b83183cbd7d114f94f22a0e94fd67\",\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"expected_record_version\":\"\",\"content\":{\"name\":\"stage5_chromium_invalid\",\"note\":\"prefix-chromium\\r\\nsecond\\rtail\",\"state\":\"invalid-state\"}}]}",
+      "key": "51175621-1883-459e-b19a-5ca413b3cd01"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/people",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/06dcc6faa62078cd10a8bc4e458f6846",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/06dcc6faa62078cd10a8bc4e458f6846/details",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/06dcc6faa62078cd10a8bc4e458f6846/people",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/06dcc6faa62078cd10a8bc4e458f6846/details",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-policies",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/stage1_acceptance_items/query",
+      "body": "{\"conditions\":[],\"page_number\":1}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies/notification_page_query_v1",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders",
+      "body": "{\"items\":[{\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"content\":{\"name\":\"stage5_chromium_unknown\"}}],\"title\":\"stage1_acceptance_items 配置变更\"}",
+      "key": "4df23fd6-e819-474a-9058-c69ac9f1172b"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-policies",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/stage1_acceptance_items/query",
+      "body": "{\"conditions\":[],\"page_number\":1}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies/notification_page_query_v1",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders",
+      "body": "{\"items\":[{\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"content\":{\"name\":\"stage5_chromium_unknown\"}}],\"title\":\"stage1_acceptance_items 配置变更\"}",
+      "key": "4df23fd6-e819-474a-9058-c69ac9f1172b"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/4069495a748115b78b34f346106d00d6",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/4069495a748115b78b34f346106d00d6/details",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/4069495a748115b78b34f346106d00d6/people",
+      "body": null
+    }
+  ],
+  "faultEvidence": {
+    "actualStatus": 201,
+    "requestId": "rcc-820e5a3bd7eb52c3d1e7649ef95ac7bf",
+    "injectedStatus": 503
+  },
+  "cleanup": {
+    "remainingRows": 0
+  },
+  "coverageBoundaries": {
+    "safari": "Playwright WebKit engine; not an installed Safari release",
+    "clipboard": "synthetic paste Event with injected DataTransfer; not the OS clipboard",
+    "unknownWrite": "Playwright API response fault injection after a real MySQL commit",
+    "beforeUnload": "This suite checks a cancelable browser event; the existing Chromium unsaved-changes suite separately observes the native user-agent prompt."
+  },
+  "failure": null
+}

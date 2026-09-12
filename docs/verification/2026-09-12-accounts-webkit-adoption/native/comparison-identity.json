@@ -1,0 +1,16 @@
+{
+  "playwright": "1.63.0",
+  "core": "1.63.0",
+  "webkit": {
+    "name": "webkit",
+    "revision": "2359",
+    "installByDefault": true,
+    "revisionOverrides": {
+      "mac14": "2251",
+      "mac14-arm64": "2251"
+    },
+    "browserVersion": "26.6",
+    "title": "WebKit"
+  },
+  "executable": "/home/runner/.cache/ms-playwright/webkit-2359/pw_run.sh"
+}

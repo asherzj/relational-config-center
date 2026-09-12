@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /Users/asher/Projects/relational-config-center/.worktrees/ci-accounts-webkit/web
+> vitest run
+
+
+ RUN  v4.1.11 /Users/asher/Projects/relational-config-center/.worktrees/ci-accounts-webkit/web
+
+
+ Test Files  42 passed (42)
+      Tests  480 passed (480)
+   Start at  17:15:35
+   Duration  37.49s (transform 4.46s, setup 9.04s, import 15.13s, tests 120.41s, environment 19.84s)
+

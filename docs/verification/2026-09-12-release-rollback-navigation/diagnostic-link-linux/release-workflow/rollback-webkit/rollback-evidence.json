@@ -1,0 +1,20 @@
+{
+  "checks": [
+    "separate EDITOR, VIEWER table-role member and PUBLISHER accounts complete the forward publication",
+    "completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration",
+    "completion permanently closes both rollback entry points",
+    "quick rollback is publisher-only, reviews actual current and restoration values, has no mandatory reason and cancels without writes on desktop and 390px",
+    "the original detail switches preserved application, actual publication and actual rollback",
+    "quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish the original order",
+    "a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends"
+  ],
+  "original_order_id": "8e90d5093e43beabfc6c769a02ca9483",
+  "rollback_request_replayed_with_same_key": true,
+  "quick_original_order_id": "762f752a6725449a168e258c493b4416",
+  "quick_actual_publisher_id": "29a023e4-4f5e-4d79-b442-8a117fcb679e",
+  "quick_request_replayed_with_same_key_body": true,
+  "quick_preview_reads": 2,
+  "quick_restored_record_version": "3",
+  "competition_completed_order_id": "7b03bb87a4c9a91183b76263e223d88d",
+  "browser_errors": []
+}

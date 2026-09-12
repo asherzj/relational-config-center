@@ -1,0 +1,19 @@
+{
+  "base": "a221562036136942ff5cbbeace95a44d13532900",
+  "formal_eight_jobs_byte_identical": true,
+  "unchanged_files": {
+    "web/package.json": "14aea09f62c60129fb6cf9127b835d4964ccdb32f48d0f0d34d13c5097b7f50e",
+    "web/pnpm-lock.yaml": "00afda34c8efcfd2bb91c34b4ff8a341dfe64026e7073de39bd1b1b9c8e281ae",
+    "web/e2e/accounts.mjs": "27596293b5ba49bcfb57fe535c787d0dc6359d10895d8f40e8e134acb65fcd9f",
+    "scripts/browser-acceptance.sh": "cfafd6d6a2a0a5c390a3aca763583819984f18980fb8e58c6410bcd20ee19681",
+    "scripts/diagnose-accounts-webkit-repeat.cjs": "0248317ed6c92edfc2054d973afb0bf7d23316eba956d0783e2ef5f58fa794b6",
+    "scripts/diagnose-accounts-webkit-signals.sh": "ee0ce2abfaa40fadaeb6fef5c3922cb18baf1f650e3c34dff27c3d23bd1dc588"
+  },
+  "patch_applicability": "PASS",
+  "dependency_graph_scope": "PASS; Playwright family and its sole orphan Darwin optional dependency",
+  "bash_yaml_syntax": "PASS",
+  "restore_and_hash_checks": 5,
+  "native_version_comparison": "PENDING",
+  "generated_runners_remaining": 0,
+  "whitespace": "authored source/docs PASS; raw evidence preserved"
+}

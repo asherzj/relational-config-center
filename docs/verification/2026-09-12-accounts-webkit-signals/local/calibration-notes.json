@@ -1,0 +1,7 @@
+{
+  "tmp_mount_attempt": "Did not execute: Colima /tmp bind had no check.sh; switched to owned workspace bind.",
+  "first_browser_probe": "Real WebKit PASS and launcher restore PASS; renderer-name assertion failed with -ff because labels were not present.",
+  "strace_version_option": "Installed strace 6.8 lacks --always-show-pid; used supported -f -o per-browser trace with PID/comm prefixes.",
+  "final_probe": "PASS; no extra syscall categories, business case untouched.",
+  "platform": "Linux arm64 infrastructure calibration; pending CI uses native amd64."
+}

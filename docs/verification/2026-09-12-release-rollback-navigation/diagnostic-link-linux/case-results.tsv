@@ -1,0 +1,9 @@
+case	selection	exit_status
+release-drafts.cjs@chromium	not-selected	
+release-approvals.cjs@chromium	not-selected	
+release-batches.cjs@chromium	not-selected	
+release-rollbacks.cjs@webkit	selected	0
+accounts.mjs@webkit	not-selected	
+draft-targets.cjs@webkit	not-selected	
+release-multitable.cjs@webkit	not-selected	
+release-rollback-reason.cjs@webkit	not-selected	

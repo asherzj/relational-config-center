@@ -1,0 +1,19 @@
+[Sat Sep 12 07:55:10 2026] Speculative Return Stack Overflow: IBPB-extending microcode not applied!
+[Sat Sep 12 07:55:10 2026] Speculative Return Stack Overflow: WARNING: See https://kernel.org/doc/html/latest/admin-guide/hw-vuln/srso.html for mitigation options.
+[Sat Sep 12 07:55:10 2026] PCI: System does not support PCI
+[Sat Sep 12 07:55:10 2026] Could not retrieve perf counters (-19)
+[Sat Sep 12 07:55:10 2026] device-mapper: core: CONFIG_IMA_DISABLE_HTABLE is disabled. Duplicate IMA measurements will not be recorded in the IMA log.
+[Sat Sep 12 07:55:10 2026] amd_pstate: the _CPC object is not present in SBIOS or ACPI disabled
+[Sat Sep 12 07:55:10 2026] GPT:Primary header thinks Alt. header is not at the end of the disk.
+[Sat Sep 12 07:55:10 2026] GPT:157286399 != 314572799
+[Sat Sep 12 07:55:10 2026] GPT:Alternate GPT header not at the end of the disk.
+[Sat Sep 12 07:55:10 2026] GPT:157286399 != 314572799
+[Sat Sep 12 07:55:10 2026] GPT: Use GNU Parted to correct GPT errors.
+[Sat Sep 12 07:55:11 2026] check access for rdinit=/init failed: -2, ignoring
+[Sat Sep 12 07:55:13 2026] workqueue: drm_fb_helper_damage_work hogged CPU for >10000us 4 times, consider switching to WQ_UNBOUND
+[Sat Sep 12 07:55:13 2026] workqueue: drm_fb_helper_damage_work hogged CPU for >10000us 5 times, consider switching to WQ_UNBOUND
+[Sat Sep 12 07:55:13 2026] workqueue: drm_fb_helper_damage_work hogged CPU for >10000us 7 times, consider switching to WQ_UNBOUND
+[Sat Sep 12 07:55:14 2026] /dev/sr0: Can't lookup blockdev
+[Sat Sep 12 07:55:14 2026] mlx5_core 4ee7:00:02.0 eth1: Disabling LRO, not supported in legacy RQ
+[Sat Sep 12 07:55:14 2026] mlx5_core 4ee7:00:02.0 eth1: Disabling LRO, not supported in legacy RQ
+[Sat Sep 12 07:55:22 2026] kauditd_printk_skb: 113 callbacks suppressed

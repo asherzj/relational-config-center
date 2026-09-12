@@ -1,0 +1,2 @@
+web/package.json: OK
+web/pnpm-lock.yaml: OK

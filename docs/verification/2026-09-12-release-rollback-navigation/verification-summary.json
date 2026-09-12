@@ -1,0 +1,59 @@
+{
+  "issue": 112,
+  "base": "a306c94f484a5a4796f727bc4a37c192d9538bef",
+  "formal_failed_head": "a221562036136942ff5cbbeace95a44d13532900",
+  "formal_ci": {
+    "run": 34683913900,
+    "job": 103527409853,
+    "selected": 16,
+    "passed": 15,
+    "failed": "release-rollbacks.cjs@webkit",
+    "not_executed": 18,
+    "business_checks_before_failure": 7,
+    "page_errors": ["/127.0.0.1:35863/api/v1/approval-notifications due to access control checks."],
+    "timestamped_page_error": false
+  },
+  "diagnostic_boundary": {
+    "environment": "official Playwright 1.62.1 Linux arm64 WebKit with real Admin and MySQL",
+    "old_hard_navigation": {
+      "server_response_status": 200,
+      "navigation_after_response_held_ms": 1557,
+      "request_failure_after_navigation_start_ms": 6,
+      "failure": "Load request cancelled",
+      "test_exit": 1
+    },
+    "ui_link_navigation": {
+      "navigation_duration_ms": 164,
+      "held_response_delivered_after_navigation_ms": 3375,
+      "notification_cancellations": 0,
+      "page_errors": [],
+      "business_checks": 7,
+      "test_exit": 0
+    },
+    "exact_ci_pageerror_reproduced": false
+  },
+  "candidate": {
+    "source": "web/e2e/release-rollbacks.cjs",
+    "source_sha256": "2474e03eb60a292e6b5c76cc92cc428b7cacc807db250c72f33a557cfbff5d82",
+    "source_diff": { "added": 3, "deleted": 1 },
+    "temporary_active_probes_removed": true
+  },
+  "first_final_attempt": {
+    "chromium": "passed 7 checks",
+    "firefox": "failed strict locator because prior/current engines left two same-title rows",
+    "webkit": "not executed",
+    "runner_exit": 1,
+    "cleanup_verified": true
+  },
+  "final_three_v2": {
+    "chromium": { "checks": 7, "page_errors": [], "exit": 0 },
+    "firefox": { "checks": 7, "page_errors": [], "exit": 0 },
+    "webkit_linux_arm64": { "checks": 7, "page_errors": [], "exit": 0 },
+    "web_build_typecheck": "passed",
+    "timeout_cleanup_test": "passed",
+    "database_postcheck": "passed",
+    "owned_mysql_cleanup": "passed",
+    "runner_exit": 0
+  },
+  "remaining_gate": "independent Standards/Spec review and final Linux amd64 CI after integration"
+}

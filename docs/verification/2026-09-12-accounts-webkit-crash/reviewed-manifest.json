@@ -1,0 +1,17 @@
+{
+  "docs/verification/2026-09-12-accounts-webkit-crash/README.md": "2ea4452fcd2379837e9d63714421bd48d556ec5e75fb0ada8819b39dff7ef02f",
+  "docs/verification/2026-09-12-accounts-webkit-crash/formal-pr111/accounts-failure-state.json": "c45b7473c96204dab924af289a9bb0d7658bd0dd84ecf3b0e111ca25ae8c026e",
+  "docs/verification/2026-09-12-accounts-webkit-crash/formal-pr111/accounts-lifecycle.jsonl": "f1a8eb945c23d7bfdf5a893e75c2968b04c8c92afe77a035db6fac5da8ab5642",
+  "docs/verification/2026-09-12-accounts-webkit-crash/formal-pr111/browser-job.log": "03742b0ae6478c4ef9ecd1fce0cb4cd5cb5bbe57306103114a6e05f279536daf",
+  "docs/verification/2026-09-12-accounts-webkit-crash/formal-pr111/case-results.tsv": "b2a172662bef5b5afcc982eed75d75a64aa863ecca43776d9f57b9544faca0ea",
+  "docs/verification/2026-09-12-accounts-webkit-crash/formal-pr111/run.txt": "c25e93cca61c242c024141b78dbfe0191a578237f91acbf54079897c6f214694",
+  "docs/verification/2026-09-12-accounts-webkit-crash/formal-pr111/runner.log": "0c20242fa8c94aec5b164b117affebe5e1ff8653884e0a320ce8b3845522ae35",
+  "docs/verification/2026-09-12-accounts-webkit-crash/monitor-check/browser-native.log": "258e76ff5a684bc71ed9f5e60bf5485f500f9cd45c7d3e968b438b8b4185c62d",
+  "docs/verification/2026-09-12-accounts-webkit-crash/monitor-check/resources.jsonl": "2335996cb7f29ed7e98357abfdd0f82a798e8c595cbf5abdf673c0b49df9d0f4",
+  "docs/verification/2026-09-12-accounts-webkit-crash/monitor-check/summary.json": "7efa42bd3b0fef90ae0e36e2219fa375abd534e03866006cb5e012054cc59800",
+  "docs/verification/2026-09-12-accounts-webkit-crash/monitor-check-initial/exit-preservation.json": "b88282597fe03b8767616f1784bd3370c7c56afa8188958f456911f20c05151f",
+  "docs/verification/2026-09-12-accounts-webkit-crash/monitor-check-initial/resources.jsonl": "4318f550de7733a3436c2980c988d0668ecc5093d3b0541e5bd8099435bb068a",
+  ".github/workflows/ci.yml": "6e538a166922f05a7dff21992aa2ec169d3807ef2c48f5163763a9d8d76de2db",
+  "scripts/diagnose-accounts-webkit-native.cjs": "ee5ad6c5df05865efa4a4f6a918e8ad4286910fbdc5322f72c30e1b0a1e3389c",
+  "web/e2e/accounts.mjs": "27596293b5ba49bcfb57fe535c787d0dc6359d10895d8f40e8e134acb65fcd9f"
+}

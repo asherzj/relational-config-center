@@ -1,0 +1,30 @@
+[
+  {
+    "at_ms": 16897,
+    "kind": "notification-response-held",
+    "status": 200,
+    "url": "http://127.0.0.1:53883/configuration/release-orders/ada90c90f71d6fce513b76c4a7376374"
+  },
+  {
+    "at_ms": 18454,
+    "kind": "hard-navigation-start",
+    "from": "http://127.0.0.1:53883/configuration/release-orders/ada90c90f71d6fce513b76c4a7376374",
+    "to": "http://127.0.0.1:53883/configuration/release-orders/6436833ce02fb4ea06e75d46000022e5"
+  },
+  {
+    "at_ms": 18460,
+    "kind": "notification-failed",
+    "url": "http://127.0.0.1:53883/configuration/release-orders/ada90c90f71d6fce513b76c4a7376374",
+    "error": "Load request cancelled"
+  },
+  {
+    "at_ms": 18554,
+    "kind": "hard-navigation-end",
+    "url": "http://127.0.0.1:53883/configuration/release-orders/6436833ce02fb4ea06e75d46000022e5"
+  },
+  {
+    "at_ms": 21912,
+    "kind": "notification-response-delivered",
+    "url": "http://127.0.0.1:53883/configuration/release-orders/6436833ce02fb4ea06e75d46000022e5"
+  }
+]

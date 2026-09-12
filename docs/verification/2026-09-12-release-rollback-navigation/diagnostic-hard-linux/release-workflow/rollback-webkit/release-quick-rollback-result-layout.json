@@ -1,0 +1,186 @@
+{
+  "viewport": 390,
+  "document": 390,
+  "overflowing": [
+    {
+      "tag": "TABLE",
+      "role": null,
+      "classes": "w-full caption-bottom text-sm min-w-[560px] table-fixed",
+      "text": "字段服务器原值申请值namestring值T8 webkit browser published value值Quick webkit published valueupdated_atdatetime值2026-09-12 09:08:0",
+      "left": 50,
+      "right": 610,
+      "width": 560
+    },
+    {
+      "tag": "THEAD",
+      "role": null,
+      "classes": "[&_tr]:border-b",
+      "text": "字段服务器原值申请值",
+      "left": 50,
+      "right": 610,
+      "width": 560
+    },
+    {
+      "tag": "TR",
+      "role": null,
+      "classes": "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+      "text": "字段服务器原值申请值",
+      "left": 50,
+      "right": 610,
+      "width": 560
+    },
+    {
+      "tag": "TH",
+      "role": null,
+      "classes": "h-11 px-5 text-left align-middle text-xs font-medium whitespace-nowrap text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      "text": "服务器原值",
+      "left": 190,
+      "right": 400,
+      "width": 210
+    },
+    {
+      "tag": "TH",
+      "role": null,
+      "classes": "h-11 px-5 text-left align-middle text-xs font-medium whitespace-nowrap text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      "text": "申请值",
+      "left": 400,
+      "right": 610,
+      "width": 210
+    },
+    {
+      "tag": "TBODY",
+      "role": null,
+      "classes": "[&_tr:last-child]:border-0",
+      "text": "namestring值T8 webkit browser published value值Quick webkit published valueupdated_atdatetime值2026-09-12 09:08:02.022502发布",
+      "left": 50,
+      "right": 610,
+      "width": 560
+    },
+    {
+      "tag": "TR",
+      "role": null,
+      "classes": "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+      "text": "namestring值T8 webkit browser published value值Quick webkit published value",
+      "left": 50,
+      "right": 610,
+      "width": 560
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "classes": "px-5 py-4 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] align-top font-mono release-diff-before",
+      "text": "值T8 webkit browser published value",
+      "left": 190,
+      "right": 400,
+      "width": 210
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "classes": "px-5 py-4 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] align-top font-mono release-diff-after",
+      "text": "值Quick webkit published value",
+      "left": 400,
+      "right": 610,
+      "width": 210
+    },
+    {
+      "tag": "SPAN",
+      "role": null,
+      "classes": "whitespace-pre-wrap break-all",
+      "text": "值Quick webkit published value",
+      "left": 420,
+      "right": 583.609375,
+      "width": 163.609375
+    },
+    {
+      "tag": "SMALL",
+      "role": null,
+      "classes": "mr-2 rounded border px-1 text-muted-foreground",
+      "text": "值",
+      "left": 420,
+      "right": 441.1875,
+      "width": 21.1875
+    },
+    {
+      "tag": "SPAN",
+      "role": null,
+      "classes": "",
+      "text": "Quick webkit published value",
+      "left": 420,
+      "right": 583.609375,
+      "width": 163.609375
+    },
+    {
+      "tag": "TR",
+      "role": null,
+      "classes": "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+      "text": "updated_atdatetime值2026-09-12 09:08:02.022502发布时生成",
+      "left": 50,
+      "right": 610,
+      "width": 560
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "classes": "px-5 py-4 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] align-top font-mono release-diff-before",
+      "text": "值2026-09-12 09:08:02.022502",
+      "left": 190,
+      "right": 400,
+      "width": 210
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "classes": "px-5 py-4 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] align-top font-mono release-diff-after",
+      "text": "发布时生成",
+      "left": 400,
+      "right": 610,
+      "width": 210
+    },
+    {
+      "tag": "SPAN",
+      "role": null,
+      "classes": "whitespace-pre-wrap break-all",
+      "text": "发布时生成",
+      "left": 420,
+      "right": 490,
+      "width": 70
+    },
+    {
+      "tag": "TR",
+      "role": null,
+      "classes": "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+      "text": "updated_bystring值8b158dca-35c6-445f-8a0f-b5dfb0d4bc7d发布时生成",
+      "left": 50,
+      "right": 610,
+      "width": 560
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "classes": "px-5 py-4 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] align-top font-mono release-diff-before",
+      "text": "值8b158dca-35c6-445f-8a0f-b5dfb0d4bc7d",
+      "left": 190,
+      "right": 400,
+      "width": 210
+    },
+    {
+      "tag": "TD",
+      "role": null,
+      "classes": "px-5 py-4 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] align-top font-mono release-diff-after",
+      "text": "发布时生成",
+      "left": 400,
+      "right": 610,
+      "width": 210
+    },
+    {
+      "tag": "SPAN",
+      "role": null,
+      "classes": "whitespace-pre-wrap break-all",
+      "text": "发布时生成",
+      "left": 420,
+      "right": 490,
+      "width": 70
+    }
+  ]
+}

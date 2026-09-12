@@ -1,0 +1,19 @@
+{
+  "base": "4b45aa1b3f16a9ca8401cc7aa0c887c751d0aae4",
+  "reviewed_tree": "c9ec3b4bf753508d835c6a2c1239179144564b17",
+  "candidate_path_count": 122,
+  "reviews": [
+    {
+      "path": "docs/verification/2026-09-12-accounts-webkit-adoption/standards-review.md",
+      "sha256": "5a47f2c9dad720c5e9db4a65660623f67b7da9b87f411eaa24e5c723bf830faf",
+      "size": 1152
+    },
+    {
+      "path": "docs/verification/2026-09-12-accounts-webkit-adoption/spec-review.md",
+      "sha256": "7dce2ee9cf4c368a986c56a7aa113130c13c145d3627d49844ceabbe2930f117",
+      "size": 2363
+    }
+  ],
+  "gate": "independent local implementation review complete; final integrated eight-job CI required before delivery",
+  "root_verification": "all candidate working files match immutable reviewed tree including ignored raw evidence and deletions"
+}

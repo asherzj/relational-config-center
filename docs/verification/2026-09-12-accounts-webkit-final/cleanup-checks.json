@@ -1,0 +1,19 @@
+{
+  "ci_equals_d4f_and_main": true,
+  "formal_runner_equals_main": true,
+  "accounts_sha256": "27596293b5ba49bcfb57fe535c787d0dc6359d10895d8f40e8e134acb65fcd9f",
+  "removed_runtime_files": [
+    "scripts/diagnose-accounts-webkit-native.cjs",
+    "scripts/diagnose-accounts-webkit-repeat.cjs"
+  ],
+  "generated_runners_remaining": 0,
+  "native_runtime_references_in_ci": 0,
+  "raw_resources_kernel_unchanged": true,
+  "resource_samples": 152,
+  "node_syntax": "PASS",
+  "yaml_parse": "PASS",
+  "final_head_ci": "PENDING",
+  "independent_final_review": "PENDING",
+  "git_diff_check_source_and_authored_docs": "PASS",
+  "raw_artifact_whitespace": "Preserved byte-for-byte; TSV empty cells and original logs may have trailing whitespace; excluded from authored-file whitespace check."
+}

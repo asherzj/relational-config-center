@@ -1,0 +1,11 @@
+# Native signal finding: run 34683913900
+
+Reviewer browser wrapper trace `webkit-7806` records TID 7852 (`eadedCompositor`, truncated process comm) receiving SIGSEGV at 2026-09-12T08:44:00.047340Z (epoch 1789202640.047340), `si_code=SEGV_MAPERR`, `si_addr=NULL`. A second identical fault immediately follows. No kill/tgkill syscall appears in the three browser trace files. This is a fault-origin SIGSEGV, not evidence of an external user-sent kill; no signal sender PID is applicable to the initial fault record.
+
+At 08:44:15.423868Z renderer PID7839 WPEWebProcess terminates with SIGSEGV; MiniBrowser7815 receives SIGCHLD with status SIGSEGV, and gmain7818 waitid confirms CLD_DUMPED. Other JITWorker/SkiaCPUWorker thread termination messages are consequences of process-wide death and do not locate the initiating fault. The OS reports core-dump status; no core memory file was collected. The 15.38-second delay from fault to reaping may involve dump/termination processing but the trace does not establish its cause.
+
+Lifecycle records reviewer page-crash at 52,199ms, failure at52,200ms and cleanup at52,366ms. First publication confirmation had succeeded533ms; the failing operation is later approval confirmation, accounts line435. The run failed on iteration1; remaining11 were not executed. Launcher before/after SHA and mode compare equal. strace6.8.
+
+Bounded upstream revision check found two nearby null protections, neither a demonstrated match: https://github.com/WebKit/WebKit/commit/c7e77855c828 (animation weak pointer in asynchronously scheduled KeyframeEffect work; different execution-thread evidence) and https://github.com/WebKit/WebKit/commit/b77f86b890e1 (service-worker image buffer with absent PlatformDisplay; different scenario). No crash stack is available to link either to this fault.
+
+Next proposed experiment: isolated diagnostic-only dependency graph override from Playwright1.62.1/WebKit2336 to1.63.0/2359, preserving original business source, animation/compositing configuration, native signal whitelist, fixed12 rounds/first-failure stop. Observe overall version effect, not an asserted specific fix. Formal dependencies/jobs stay unchanged until reviewed evidence supports a separate adoption decision.

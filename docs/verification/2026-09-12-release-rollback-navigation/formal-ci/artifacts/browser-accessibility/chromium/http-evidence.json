@@ -1,0 +1,489 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policies",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-policies",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mutation-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policies/notification_page_query_v1",
+    "status": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/tables/stage1_acceptance_items/query",
+    "status": 200,
+    "body": {
+      "conditions": [],
+      "page_number": 1
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+    "status": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/release-orders",
+    "status": 201,
+    "body": {
+      "items": [
+        {
+          "table_name": "stage1_acceptance_items",
+          "operation": "ADD",
+          "content": {
+            "name": "stage5_chromium_invalid",
+            "note": "prefix-chromium\r\nsecond\rtail",
+            "state": "invalid-state"
+          }
+        }
+      ],
+      "title": "stage1_acceptance_items 配置变更"
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/people",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+    "status": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/notification-read",
+    "status": 200,
+    "body": {
+      "sequence": "1"
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/people",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+    "status": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/cancel",
+    "status": 200,
+    "body": {
+      "expected_version": "3",
+      "reason": "Correct the rejected value without changing the frozen intent"
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/people",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/details",
+    "status": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/release-orders/preview",
+    "status": 200,
+    "body": {
+      "title": "stage1_acceptance_items 配置变更",
+      "expected_version": "4",
+      "release_type": "STANDARD",
+      "items": [
+        {
+          "detail_id": "c51b83183cbd7d114f94f22a0e94fd67",
+          "table_name": "stage1_acceptance_items",
+          "operation": "ADD",
+          "expected_record_version": "",
+          "content": {
+            "name": "stage5_chromium_invalid",
+            "note": "prefix-chromium\r\nsecond\rtail",
+            "state": "invalid-state"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/copy",
+    "status": 201,
+    "body": {
+      "expected_version": "4",
+      "confirmed": true,
+      "items": [
+        {
+          "detail_id": "c51b83183cbd7d114f94f22a0e94fd67",
+          "table_name": "stage1_acceptance_items",
+          "operation": "ADD",
+          "expected_record_version": "",
+          "content": {
+            "name": "stage5_chromium_invalid",
+            "note": "prefix-chromium\r\nsecond\rtail",
+            "state": "invalid-state"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/d7737d4683df7f1d5eb71700c01c1c68/people",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/06dcc6faa62078cd10a8bc4e458f6846",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/06dcc6faa62078cd10a8bc4e458f6846/details",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/06dcc6faa62078cd10a8bc4e458f6846/people",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/06dcc6faa62078cd10a8bc4e458f6846/details",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-policies",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policies/notification_page_query_v1",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mutation-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+    "status": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/tables/stage1_acceptance_items/query",
+    "status": 200,
+    "body": {
+      "conditions": [],
+      "page_number": 1
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+    "status": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/release-orders",
+    "status": 503,
+    "body": {
+      "items": [
+        {
+          "table_name": "stage1_acceptance_items",
+          "operation": "ADD",
+          "content": {
+            "name": "stage5_chromium_unknown"
+          }
+        }
+      ],
+      "title": "stage1_acceptance_items 配置变更"
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-policies",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mutation-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policies/notification_page_query_v1",
+    "status": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/tables/stage1_acceptance_items/query",
+    "status": 200,
+    "body": {
+      "conditions": [],
+      "page_number": 1
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders",
+    "status": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/release-orders",
+    "status": 201,
+    "body": {
+      "items": [
+        {
+          "table_name": "stage1_acceptance_items",
+          "operation": "ADD",
+          "content": {
+            "name": "stage5_chromium_unknown"
+          }
+        }
+      ],
+      "title": "stage1_acceptance_items 配置变更"
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/4069495a748115b78b34f346106d00d6",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/4069495a748115b78b34f346106d00d6/details",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/4069495a748115b78b34f346106d00d6/people",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders",
+    "status": 200
+  }
+]

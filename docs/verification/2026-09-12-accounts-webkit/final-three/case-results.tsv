@@ -1,0 +1,19 @@
+case	selection	exit_status
+release-drafts.cjs@chromium	not-selected	
+release-approvals.cjs@chromium	not-selected	
+release-batches.cjs@chromium	not-selected	
+release-rollbacks.cjs@chromium	not-selected	
+accounts.mjs@chromium	selected	0
+release-rollbacks.cjs@firefox	not-selected	
+accounts.mjs@firefox	selected	0
+release-rollbacks.cjs@webkit	not-selected	
+accounts.mjs@webkit	selected	0
+draft-targets.cjs@chromium	not-selected	
+release-multitable.cjs@chromium	not-selected	
+release-rollback-reason.cjs@chromium	not-selected	
+draft-targets.cjs@firefox	not-selected	
+release-multitable.cjs@firefox	not-selected	
+release-rollback-reason.cjs@firefox	not-selected	
+draft-targets.cjs@webkit	not-selected	
+release-multitable.cjs@webkit	not-selected	
+release-rollback-reason.cjs@webkit	not-selected	

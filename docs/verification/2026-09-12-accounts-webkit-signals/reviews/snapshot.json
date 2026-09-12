@@ -1,0 +1,9 @@
+{
+  "base": "490a9e18017dff934c27a74dee0db3193a03fb8a",
+  "reviewed_tree": "2c906bed92aaa90c58095ff1b4ebd857af8a6838",
+  "gate": "bounded OS signal collection only; final delivery remains blocked",
+  "reports": {
+    "docs/verification/2026-09-12-accounts-webkit-signals/reviews/spec.md": "bea8933a72735ea3ae21e257314b1f317dad56edde6dafca57df606b08306951",
+    "docs/verification/2026-09-12-accounts-webkit-signals/reviews/standards.md": "34e61377f49c243883a15d433ff27d52b46b18fcd4aa69eec3bb0991b3b2f63e"
+  }
+}

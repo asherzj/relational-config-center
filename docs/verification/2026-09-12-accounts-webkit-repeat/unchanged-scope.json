@@ -1,0 +1,6 @@
+{
+  "formal_workflow_outside_temporary_job": "byte-identical",
+  "formal_runner": "byte-identical",
+  "accounts_business_case": "byte-identical",
+  "native_900_sample_monitor": "byte-identical"
+}

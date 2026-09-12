@@ -1,0 +1,14 @@
+
+> @relational-config-center/web@0.0.0 test:dev /Users/asher/Projects/relational-config-center/.worktrees/ci-accounts-webkit/web
+> node --test scripts/dev-server-check.mjs
+
+✔ uses the configured browser port and preserves Origin through the Admin proxy (125.375584ms)
+✔ fails when the configured port is occupied instead of changing the login origin (12.425667ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 290.405958

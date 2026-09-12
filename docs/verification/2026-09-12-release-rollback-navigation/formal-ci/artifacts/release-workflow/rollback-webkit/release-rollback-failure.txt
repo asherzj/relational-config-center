@@ -1,0 +1,275 @@
+关系型配置中心
+工作空间
+配置管理
+单数据源
+配置管理
+统一变更入口
+发布单
+通知中心
+表配置管理
+查询规则定义
+变更规则定义
+表规则分配
+个人未读 0
+
+待审批 0
+
+刷新通知
+
+Browser acceptance
+e2e.11da162e7feeae92444e
+申请冲突审阅
+
+快速回滚 浏览器完结与快速回滚竞争
+
+查看原申请内容
+
+服务器已明确拒绝原请求。原申请保留，请查看最新状态与配置后决定是否重建。
+
+查看最新状态与配置
+
+最新发布单版本：6，状态：COMPLETED
+
+ADD 0 · MODIFY 1 · DELETE 0
+
+只显示有变化的字段
+
+共 1 项明细
+
+明细 1 · stage1_rollback_webkit_items · MODIFY · 记录 1
+
+记录基线 3
+
+字段	服务器原值	申请值
+name
+string
+值
+T8 webkit browser published value
+值
+Completion wins the reviewed quick rollback
+
+updated_at
+datetime
+值
+2026-09-12 08:52:21.804738
+发布时生成
+
+updated_by
+string
+值
+8b6eb4f8-3a3f-47a9-bbdb-70a712d9dc31
+发布时生成
+
+当前发布单已不能快速回滚，原原因保留供核对。
+
+打开恢复预览
+返回发布单列表
+浏览器完结与快速回滚竞争
+已完结
+快速回滚
+申请人
+B
+Browser acceptance
+创建时间
+2026/09/12 08:52:23
+变更数量
+1 项
+基本信息
+
+常规发布 · 整单阶段
+
+已完结
+准备完成于提交
+B
+Browser acceptance
+2026/09/12 08:52:24
+
+提交内容已冻结，后续发布以这份差异为准。
+
+逐表发布流程
+
+各表使用保存时的流程。全部表审批通过后，整单统一发布。
+
+stage1_rollback_webkit_items
+
+默认常规发布
+
+1
+按表审批
+
+审批 · 按表审批资格
+
+已完成
+
+B
+Browser acceptance
+2026/09/12 08:52:24
+2
+发布
+
+发布 · 发布权限
+
+已完成
+
+B
+Browser acceptance
+2026/09/12 08:52:24
+3
+完结
+
+完结 · 发布权限
+
+已完成
+
+?
+账号 87b811d8
+2026/09/12 08:52:24
+查看实例来源与版本
+逐表应急恢复流程
+
+固定使用各表已保存的应急流程。整单恢复成功后直接结束，无需审批或另行人工完结。
+
+stage1_rollback_webkit_items
+
+默认应急发布
+
+1
+应急发布
+
+发布 · 发布权限
+
+已终止
+
+2
+完结
+
+完结 · 发布权限
+
+已终止
+
+查看实例来源与版本
+已通过 1 / 1 表
+
+每表任一合格成员通过即可，所有表通过后才能整单发布。已完成决定保留。
+
+stage1_rollback_webkit_items
+已通过
+
+提交时分配：Rollback review fef11fd5-98bc-4e5e-b39b-9acb2e286976
+
+Rollback review fef11fd5-98bc-4e5e-b39b-9acb2e286976 · 2760b7c9-77c0-4e06-9b80-a3fe2e9ab563
+
+资格来源：Rollback review fef11fd5-98bc-4e5e-b39b-9acb2e286976
+
+Rollback review fef11fd5-98bc-4e5e-b39b-9acb2e286976 · 2760b7c9-77c0-4e06-9b80-a3fe2e9ab563
+
+B
+Browser acceptance
+2026/09/12 08:52:24
+
+Independent approval
+
+变更内容
+申请内容
+实际发布结果
+
+分页与字段筛选仅用于审阅，发布操作始终作用于整单变更。
+
+共 1 项结果
+
+数据库发布结果
+执行人：
+B
+Browser acceptance
+
+数据库执行时间：2026-09-12T08:52:24.102636Z
+
+stage1_rollback_webkit_items · 表发布版本 4 · 刷新通知 8c3dcf6f37f2305b8856a932befa66e4:PUBLICATION · 分发尚未接入
+
+明细 1 · stage1_rollback_webkit_items · MODIFY · 记录 1
+
+表内变更序号：4 · 记录并发版本：4
+
+Schema 摘要：dea7d508c1fc5766cb3008548e9ac4d8e3aedaf5791e4f8d1b6e1f73b07475c6
+
+最终行校验和：45a7f9a864c092f3273d7553995f1daed6cdc49d46d2e56ef4ffc0ddc910990c
+
+字段	实际 before	实际 final
+category
+varchar(32)
+SQL NULL	SQL NULL
+created_at
+datetime(6)
+值：2026-09-12 08:43:39.174855	值：2026-09-12 08:43:39.174855
+created_by
+varchar(64)
+值：fixture	值：fixture
+id
+bigint unsigned
+值：1	值：1
+name
+varchar(64)
+值：T8 webkit browser published value	值：Completion wins the reviewed quick rollback
+note
+varchar(255)
+值：engine webkit	值：engine webkit
+priority
+int
+值：1	值：1
+state
+enum('draft','active','paused')
+值：active	值：active
+updated_at
+datetime(6)
+值：2026-09-12 08:52:21.804738	值：2026-09-12 08:52:24.102636
+updated_by
+varchar(64)
+值：8b6eb4f8-3a3f-47a9-bbdb-70a712d9dc31	值：8b6eb4f8-3a3f-47a9-bbdb-70a712d9dc31
+操作历史
+查看全部 6 条记录
+
+完结了发布单
+
+COMPLETE · 版本 6
+
+2026/09/12 08:52:24
+?
+账号 87b811d8
+
+保存了应急恢复流程
+
+PREVIEW_QUICK_ROLLBACK · 版本 5
+
+2026/09/12 08:52:24
+B
+Browser acceptance
+
+发布到数据库
+
+EXECUTE · 版本 4
+
+2026/09/12 08:52:24
+B
+Browser acceptance
+
+通过了审批表
+
+APPROVE · 版本 3
+
+2026/09/12 08:52:24
+B
+Browser acceptance
+
+处理表范围：stage1_rollback_webkit_items
+
+stage1_rollback_webkit_items · Rollback review fef11fd5-98bc-4e5e-b39b-9acb2e286976（2760b7c9-77c0-4e06-9b80-a3fe2e9ab563）
+
+Independent approval
+
+提交了审批
+
+SUBMIT · 版本 2
+
+2026/09/12 08:52:24
+B
+Browser acceptance

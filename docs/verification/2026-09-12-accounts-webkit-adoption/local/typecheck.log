@@ -1,0 +1,4 @@
+
+> @relational-config-center/web@0.0.0 typecheck /Users/asher/Projects/relational-config-center/.worktrees/ci-accounts-webkit/web
+> tsc --noEmit
+
