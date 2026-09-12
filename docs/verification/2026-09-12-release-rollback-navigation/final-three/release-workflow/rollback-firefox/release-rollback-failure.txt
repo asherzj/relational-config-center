@@ -1,0 +1,83 @@
+关系型配置中心
+工作空间
+配置管理
+单数据源
+配置管理
+统一变更入口
+发布单
+通知中心
+表配置管理
+查询规则定义
+变更规则定义
+表规则分配
+个人未读 0
+
+待审批 0
+
+刷新通知
+Browser acceptance
+e2e.316d367a5f10d37cc751
+发布单
+表名
+申请人账号 ID
+单号
+状态
+查询发布单
+刷新列表
+标题 / 单号 / 表	申请人	状态	变更	操作
+浏览器回滚验收变更
+
+17b1afc62d4be796e0cea9728bf207d6 · stage1_rollback_firefox_items
+
+	2bc0bf6e-d293-4f5e-aab0-1e739ce99ed5	已完结
+
+已通过 1 / 1 表
+
+	1 项 · MODIFY 1	查看详情
+浏览器完结与快速回滚竞争
+
+1f2966528c3a5c6e1eeecf9c7bc86b2c · stage1_rollback_chromium_items
+
+	160bb6c1-0345-44d2-b94c-4a2c724b3610	已完结
+
+已通过 1 / 1 表
+
+	1 项 · MODIFY 1	查看详情
+浏览器完结与快速回滚竞争
+
+268dd6d0238f9861b5b516acec211222 · stage1_rollback_firefox_items
+
+	2bc0bf6e-d293-4f5e-aab0-1e739ce99ed5	已发布待完结
+
+已通过 1 / 1 表
+
+	1 项 · MODIFY 1	查看详情
+浏览器回滚验收变更
+
+8e9feb2e8969d36e16d792a5e5fd8322 · stage1_rollback_chromium_items
+
+	160bb6c1-0345-44d2-b94c-4a2c724b3610	已完结
+
+已通过 1 / 1 表
+
+	1 项 · MODIFY 1	查看详情
+浏览器快速回滚验收
+
+e9a5f493e9450019a6832ccd90a8fae7 · stage1_rollback_chromium_items
+
+	160bb6c1-0345-44d2-b94c-4a2c724b3610	已回滚
+
+已通过 1 / 1 表
+
+	1 项 · MODIFY 1	查看详情
+浏览器快速回滚验收
+
+fef2a8df3dc4150fc70c0c5aec78ab64 · stage1_rollback_firefox_items
+
+	2bc0bf6e-d293-4f5e-aab0-1e739ce99ed5	已回滚
+
+已通过 1 / 1 表
+
+	1 项 · MODIFY 1	查看详情
+回到首页
+下一页

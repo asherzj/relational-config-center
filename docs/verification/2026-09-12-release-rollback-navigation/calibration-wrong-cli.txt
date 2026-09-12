@@ -1,0 +1,5 @@
+The first owned browser-server calibration used `npx playwright run-server` inside the official image. The image did not expose that package through the container npm lookup, so npx reported:
+
+  npm warn exec The following package was not found and will be installed: playwright@1.63.0
+
+That server was never used for a business run. The owned container was removed and recreated with this worktree's read-only `web/node_modules` mounted and `/workspace/node_modules/playwright/cli.js`, which is the locked Playwright 1.62.1 package. `linux-webkit-server.log` is the raw startup log of the corrected server.

@@ -1,0 +1,196 @@
+关系型配置中心
+工作空间
+配置管理
+单数据源
+配置管理
+统一变更入口
+发布单
+通知中心
+表配置管理
+查询规则定义
+变更规则定义
+表规则分配
+个人未读 0
+
+待审批 0
+
+刷新通知
+
+Browser acceptance
+e2e.8851a9da8a9002a3a8b9
+返回发布单列表
+浏览器完结与快速回滚竞争
+已发布待完结
+快速回滚
+完结发布单
+申请人
+B
+Browser acceptance
+创建时间
+2026/09/12 09:08:12
+变更数量
+1 项
+基本信息
+
+常规发布 · 整单阶段
+
+数据库已发布，待人工完结
+准备完成于提交
+B
+Browser acceptance
+2026/09/12 09:08:12
+
+提交内容已冻结，后续发布以这份差异为准。
+
+逐表发布流程
+
+各表使用保存时的流程。全部表审批通过后，整单统一发布。
+
+stage1_rollback_webkit_items
+
+默认常规发布
+
+1
+按表审批
+
+审批 · 按表审批资格
+
+已完成
+
+B
+Browser acceptance
+2026/09/12 09:08:12
+2
+发布
+
+发布 · 发布权限
+
+已完成
+
+B
+Browser acceptance
+2026/09/12 09:08:12
+3
+完结
+
+完结 · 发布权限
+
+进行中
+
+查看实例来源与版本
+已通过 1 / 1 表
+
+每表任一合格成员通过即可，所有表通过后才能整单发布。已完成决定保留。
+
+stage1_rollback_webkit_items
+已通过
+
+提交时分配：Rollback review 903014ff-f04b-4c85-a370-e52dca9bdd89
+
+Rollback review 903014ff-f04b-4c85-a370-e52dca9bdd89 · 4b15252b-1ac8-4509-ace8-e35fb06bd1ca
+
+资格来源：Rollback review 903014ff-f04b-4c85-a370-e52dca9bdd89
+
+Rollback review 903014ff-f04b-4c85-a370-e52dca9bdd89 · 4b15252b-1ac8-4509-ace8-e35fb06bd1ca
+
+B
+Browser acceptance
+2026/09/12 09:08:12
+
+Independent approval
+
+变更内容
+申请内容
+实际发布结果
+
+分页与字段筛选仅用于审阅，发布操作始终作用于整单变更。
+
+共 1 项结果
+
+数据库发布结果
+执行人：
+B
+Browser acceptance
+
+数据库执行时间：2026-09-12T09:08:12.911898Z
+
+stage1_rollback_webkit_items · 表发布版本 4 · 刷新通知 6436833ce02fb4ea06e75d46000022e5:PUBLICATION · 分发尚未接入
+
+明细 1 · stage1_rollback_webkit_items · MODIFY · 记录 1
+
+表内变更序号：4 · 记录并发版本：4
+
+Schema 摘要：dea7d508c1fc5766cb3008548e9ac4d8e3aedaf5791e4f8d1b6e1f73b07475c6
+
+最终行校验和：29d0e4ab3e138600056761a43a11ae9a5b75b354f7620d2e9c0e4143576341b0
+
+字段	实际 before	实际 final
+category
+varchar(32)
+SQL NULL	SQL NULL
+created_at
+datetime(6)
+值：2026-09-12 09:07:50.876236	值：2026-09-12 09:07:50.876236
+created_by
+varchar(64)
+值：fixture	值：fixture
+id
+bigint unsigned
+值：1	值：1
+name
+varchar(64)
+值：T8 webkit browser published value	值：Completion wins the reviewed quick rollback
+note
+varchar(255)
+值：engine webkit	值：engine webkit
+priority
+int
+值：1	值：1
+state
+enum('draft','active','paused')
+值：active	值：active
+updated_at
+datetime(6)
+值：2026-09-12 09:08:11.238771	值：2026-09-12 09:08:12.911898
+updated_by
+varchar(64)
+值：8b158dca-35c6-445f-8a0f-b5dfb0d4bc7d	值：8b158dca-35c6-445f-8a0f-b5dfb0d4bc7d
+操作历史
+
+发布到数据库
+
+EXECUTE · 版本 4
+
+2026/09/12 09:08:12
+B
+Browser acceptance
+
+通过了审批表
+
+APPROVE · 版本 3
+
+2026/09/12 09:08:12
+B
+Browser acceptance
+
+处理表范围：stage1_rollback_webkit_items
+
+stage1_rollback_webkit_items · Rollback review 903014ff-f04b-4c85-a370-e52dca9bdd89（4b15252b-1ac8-4509-ace8-e35fb06bd1ca）
+
+Independent approval
+
+提交了审批
+
+SUBMIT · 版本 2
+
+2026/09/12 09:08:12
+B
+Browser acceptance
+
+创建了草稿
+
+CREATE · 版本 1
+
+2026/09/12 09:08:12
+B
+Browser acceptance

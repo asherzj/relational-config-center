@@ -1,0 +1,14 @@
+PASS untouched Query create closes without a warning
+PASS actual browser POP back cancel retains input and route
+PASS actual browser POP back confirm and forward restore the intended route
+PASS native beforeunload reload cancellation preserves input
+PASS native tab-close cancellation preserves the editing document
+PASS discard confirmation owns keyboard focus and fits a 390px viewport
+PASS restored original Query values clear protection
+PASS actual browser forward navigation is canceled or confirmed at its original target
+PASS real duplicate Policy Code rejection preserves Query form input
+PASS real completed write with delayed response blocks POP, then shows success once
+PASS disposable Query draft cleaned up through the Admin API
+PASS Change Set cancel and return retain values, NULL and omitted fields
+PASS real Admin/MySQL validation rejection retains the row draft and request error
+PASS confirmed discard closes the editor with no browser storage draft

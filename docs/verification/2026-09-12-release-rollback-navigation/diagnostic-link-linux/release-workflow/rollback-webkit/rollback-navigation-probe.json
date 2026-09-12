@@ -1,0 +1,24 @@
+[
+  {
+    "at_ms": 15236,
+    "kind": "notification-response-held",
+    "status": 200,
+    "url": "http://127.0.0.1:54604/configuration/release-orders/762f752a6725449a168e258c493b4416"
+  },
+  {
+    "at_ms": 16710,
+    "kind": "link-navigation-start",
+    "from": "http://127.0.0.1:54604/configuration/release-orders/762f752a6725449a168e258c493b4416",
+    "to": "http://127.0.0.1:54604/configuration/release-orders/7b03bb87a4c9a91183b76263e223d88d"
+  },
+  {
+    "at_ms": 16874,
+    "kind": "link-navigation-end",
+    "url": "http://127.0.0.1:54604/configuration/release-orders/7b03bb87a4c9a91183b76263e223d88d"
+  },
+  {
+    "at_ms": 20249,
+    "kind": "notification-response-delivered",
+    "url": "http://127.0.0.1:54604/configuration/release-orders/7b03bb87a4c9a91183b76263e223d88d"
+  }
+]

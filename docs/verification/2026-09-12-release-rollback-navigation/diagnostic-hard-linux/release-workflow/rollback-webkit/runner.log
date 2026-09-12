@@ -1,0 +1,19 @@
+Linux WebKit official v1.62.1-noble, loopback forwarded
+PASS separate EDITOR, VIEWER table-role member and PUBLISHER accounts complete the forward publication
+PASS completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration
+PASS completion permanently closes both rollback entry points
+PASS quick rollback is publisher-only, reviews actual current and restoration values, has no mandatory reason and cancels without writes on desktop and 390px
+PASS the original detail switches preserved application, actual publication and actual rollback
+PASS quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish the original order
+AssertionError [ERR_ASSERTION]: hard navigation must not cancel the held successful notification response
+
+1 !== 0
+
+    at /Users/asher/Projects/relational-config-center/.worktrees/ci-rollback-navigation/web/e2e/release-rollbacks.cjs:336:12 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}

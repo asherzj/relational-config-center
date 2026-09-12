@@ -1,0 +1,48 @@
+Unable to find image 'mysql:8.4' locally
+8.4: Pulling from library/mysql
+13c85306055e: Pulling fs layer
+62f909f48b33: Pulling fs layer
+70d659eb9b53: Pulling fs layer
+7c507b2b0af4: Pulling fs layer
+f5703b642196: Pulling fs layer
+35c18fec455d: Pulling fs layer
+ec3187676fa6: Pulling fs layer
+2a2df1f368eb: Pulling fs layer
+e1ff04460a23: Pulling fs layer
+052c01bf8f0e: Pulling fs layer
+7c507b2b0af4: Waiting
+f5703b642196: Waiting
+35c18fec455d: Waiting
+ec3187676fa6: Waiting
+2a2df1f368eb: Waiting
+e1ff04460a23: Waiting
+052c01bf8f0e: Waiting
+62f909f48b33: Download complete
+70d659eb9b53: Download complete
+f5703b642196: Download complete
+7c507b2b0af4: Verifying Checksum
+7c507b2b0af4: Download complete
+35c18fec455d: Verifying Checksum
+35c18fec455d: Download complete
+13c85306055e: Verifying Checksum
+13c85306055e: Download complete
+2a2df1f368eb: Verifying Checksum
+2a2df1f368eb: Download complete
+052c01bf8f0e: Verifying Checksum
+052c01bf8f0e: Download complete
+ec3187676fa6: Verifying Checksum
+ec3187676fa6: Download complete
+e1ff04460a23: Verifying Checksum
+e1ff04460a23: Download complete
+13c85306055e: Pull complete
+62f909f48b33: Pull complete
+70d659eb9b53: Pull complete
+7c507b2b0af4: Pull complete
+f5703b642196: Pull complete
+35c18fec455d: Pull complete
+ec3187676fa6: Pull complete
+2a2df1f368eb: Pull complete
+e1ff04460a23: Pull complete
+052c01bf8f0e: Pull complete
+Digest: sha256:85b9bf2e29cf836ecb8c2a15a935d4ba0c606631dff1dd79531a11983c638f2a
+Status: Downloaded newer image for mysql:8.4

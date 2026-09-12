@@ -1,0 +1,7 @@
+{
+  "ok": false,
+  "runnerExitStatus": 1,
+  "failure": {
+    "message": "browser process exited before it could write its own result"
+  }
+}
