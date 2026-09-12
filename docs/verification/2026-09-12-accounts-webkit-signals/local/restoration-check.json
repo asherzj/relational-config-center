@@ -1,0 +1,32 @@
+{
+  "restoration_cases": [
+    {
+      "runner_exit": 0,
+      "backup_removed_by_fixture": false,
+      "supervisor_exit": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "runner_exit": 42,
+      "backup_removed_by_fixture": false,
+      "supervisor_exit": 42,
+      "expected": 42,
+      "passed": true
+    },
+    {
+      "runner_exit": 0,
+      "backup_removed_by_fixture": true,
+      "supervisor_exit": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "runner_exit": 42,
+      "backup_removed_by_fixture": true,
+      "supervisor_exit": 42,
+      "expected": 42,
+      "passed": true
+    }
+  ]
+}

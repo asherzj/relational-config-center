@@ -1,0 +1,5 @@
+1789201765.692169 kill(218<python3>, SIGABRT) = 0
+1789201765.693699 wait4(218<python3>, [{WIFSIGNALED(s) && WTERMSIG(s) == SIGABRT}], 0, NULL) = 218
+1789201765.694723 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_KILLED, si_pid=218, si_uid=0, si_status=SIGABRT, si_utime=0, si_stime=0} ---
+1789201765.694914 exit_group(42)        = ?
+1789201765.695586 +++ exited with 42 +++

@@ -1,0 +1,10 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.evaluate: Target page, context or browser has been closed
+    at /home/runner/work/relational-config-center/relational-config-center/web/e2e/accounts.mjs:205:72 {
+  log: []
+}
+
+Node.js v24.19.0

@@ -1,0 +1,10 @@
+1789201765.692169 kill(218<python3>, SIGABRT) = 0
+1789201765.693699 wait4(218<python3>, [{WIFSIGNALED(s) && WTERMSIG(s) == SIGABRT}], 0, NULL) = 218
+1789201765.694723 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_KILLED, si_pid=218, si_uid=0, si_status=SIGABRT, si_utime=0, si_stime=0} ---
+1789201765.693842 --- SIGABRT {si_signo=SIGABRT, si_code=SI_USER, si_pid=217<python3>, si_uid=0} ---
+1789201765.694283 +++ killed by SIGABRT +++
+1789201908.783800 kill(231<python3>, SIGABRT) = 0
+1789201908.784573 wait4(231<python3>, [{WIFSIGNALED(s) && WTERMSIG(s) == SIGABRT}], 0, NULL) = 231
+1789201908.785667 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_KILLED, si_pid=231, si_uid=0, si_status=SIGABRT, si_utime=0, si_stime=0} ---
+1789201908.784750 --- SIGABRT {si_signo=SIGABRT, si_code=SI_USER, si_pid=230<python3>, si_uid=0} ---
+1789201908.785220 +++ killed by SIGABRT +++

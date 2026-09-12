@@ -1,0 +1,13 @@
+{
+  "original_eight_jobs_byte_identical": true,
+  "accounts_and_formal_runner_byte_identical": true,
+  "repeat_generator_equals_reviewed_5ac": true,
+  "accounts_sha256": "27596293b5ba49bcfb57fe535c787d0dc6359d10895d8f40e8e134acb65fcd9f",
+  "trace_canaries_argv_env_payloads_absent": true,
+  "renderer_named_in_real_trace": true,
+  "SIGABRT_sender_and_exit_recorded": true,
+  "bash_node_yaml_syntax": "PASS",
+  "business_native_amd64_probe": "PENDING",
+  "source_whitespace": "PASS",
+  "raw_evidence_whitespace": "Preserved, excluded from authored check"
+}

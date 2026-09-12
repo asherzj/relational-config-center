@@ -1,0 +1,7 @@
+{"elapsedMs":31320,"phase":"setup","event":"page-crash","context":"initial-persistent","url":"http://127.0.0.1:42343/platform/account-roles"}
+{"elapsedMs":31322,"phase":"setup","event":"test-failure","name":"Error","message":"locator.evaluate: Target page, context or browser has been closed"}
+{"elapsedMs":31325,"phase":"cleanup","event":"cleanup-start"}
+{"elapsedMs":31328,"phase":"cleanup","event":"page-close","context":"initial-persistent","url":"about:blank"}
+{"elapsedMs":31328,"phase":"cleanup","event":"page-close","context":"initial-persistent","url":"http://127.0.0.1:42343/platform/account-roles"}
+{"elapsedMs":31356,"phase":"cleanup","event":"context-close","context":"initial-persistent"}
+{"elapsedMs":31356,"phase":"cleanup","event":"browser-disconnected","context":"initial-persistent"}
