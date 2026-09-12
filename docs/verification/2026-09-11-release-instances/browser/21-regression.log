@@ -1,0 +1,39 @@
+=== RUN   TestAccountBrowserSystemPath
+2026/09/11 10:06:32 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 1621758773a707e17bbe4d77bfbab8d36a20572f9b2179a3a9af66008ad5a43a
+  Test ProcessID: 66f0bb69-d72a-4ce6-937f-edacf8e06906
+2026/09/11 10:06:32 🐳 Creating container for image mysql:8.4
+2026/09/11 10:06:32 ✅ Container created: d4ff75ed4ddd
+2026/09/11 10:06:32 🐳 Starting container: d4ff75ed4ddd
+2026/09/11 10:06:32 ✅ Container started: d4ff75ed4ddd
+2026/09/11 10:06:32 ⏳ Waiting for container id d4ff75ed4ddd image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 10:06:39 🔔 Container is ready: d4ff75ed4ddd
+    account_browser_integration_test.go:76: browser system path: exit status 1 node:internal/fs/promises:1254
+          return await PromisePrototypeThen(
+                 ^
+        
+        Error: ENOENT: no such file or directory, mkdtemp '/private/tmp/rcc-issue-103-release-instances/docs/verification/2026-09-11-release-instances/browser/legacy-01/account-browser-profile-aGsAOY'
+            at async mkdtemp (node:internal/fs/promises:1254:10)
+            at async file:///private/tmp/rcc-issue-103-release-instances/web/e2e/accounts.mjs:18:17 {
+          errno: -2,
+          code: 'ENOENT',
+          syscall: 'mkdtemp',
+          path: '/private/tmp/rcc-issue-103-release-instances/docs/verification/2026-09-11-release-instances/browser/legacy-01/account-browser-profile-aGsAOY'
+        }
+        
+        Node.js v24.19.0
+2026/09/11 10:06:43 🐳 Stopping container: d4ff75ed4ddd
+2026/09/11 10:06:44 ✅ Container stopped: d4ff75ed4ddd
+2026/09/11 10:06:44 🐳 Terminating container: d4ff75ed4ddd
+2026/09/11 10:06:44 🚫 Container terminated: d4ff75ed4ddd
+--- FAIL: TestAccountBrowserSystemPath (12.27s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	14.690s
+FAIL

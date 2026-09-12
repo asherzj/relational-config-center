@@ -1,0 +1,25 @@
+=== RUN   TestTableReleaseTemplateBrowserSystemPath
+2026/09/11 07:28:14 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: a43fe3dc017e491369c1b780dad98773dafad55773c08d1a0f38c77ac13ea859
+  Test ProcessID: 593d2b24-938f-4fd5-bc87-3ba9a1460ba1
+2026/09/11 07:28:14 🐳 Creating container for image mysql:8.4
+2026/09/11 07:28:14 ✅ Container created: f9e4500d2997
+2026/09/11 07:28:14 🐳 Starting container: f9e4500d2997
+2026/09/11 07:28:14 ✅ Container started: f9e4500d2997
+2026/09/11 07:28:14 ⏳ Waiting for container id f9e4500d2997 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:28:21 🔔 Container is ready: f9e4500d2997
+    table_release_template_browser_integration_test.go:108: browser → Vite proxy → Admin → MySQL: [create table and emergency association atomically; committed response loss manually replays original create same-account reauthentication preserves unknown original association request without automatic write retry formal table settings select same-type templates and safely replay lost association response concurrent editor conflict retains selected template and observed version standard association disabled while emergency remains enabled 390px long template name, reachable controls, keyboard focus and no page/drawer overflow Escape preserves pending choice through shared unsaved confirmation entire table can still be disabled]
+2026/09/11 07:28:36 🐳 Stopping container: f9e4500d2997
+2026/09/11 07:28:38 ✅ Container stopped: f9e4500d2997
+2026/09/11 07:28:38 🐳 Terminating container: f9e4500d2997
+2026/09/11 07:28:38 🚫 Container terminated: f9e4500d2997
+--- PASS: TestTableReleaseTemplateBrowserSystemPath (23.88s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	24.863s

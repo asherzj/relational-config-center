@@ -1,0 +1,25 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-tags=integration,browser",
+    "./admin/cmd/admin",
+    "-run",
+    "^TestReleaseEmergencyBrowserSystemPath$",
+    "-count=1",
+    "-v",
+    "-timeout=10m"
+  ],
+  "cwd": "/private/tmp/rcc-issue-104-emergency-release",
+  "started_unix": 1789110098.547864,
+  "duration_seconds": 30.557037115097046,
+  "exit_code": 0,
+  "environment": {
+    "TESTCONTAINERS_RYUK_DISABLED": "true",
+    "DOCKER_HOST": "unix:///Users/asher/.colima/default/docker.sock",
+    "GOCACHE": "/private/tmp/rcc-go-cache",
+    "RCC_E2E_OUTPUT": "/private/tmp/rcc-issue-104-emergency-release/docs/verification/2026-09-11-emergency-release/browser/02"
+  },
+  "source_changed_during_run": [],
+  "input_sha256_file": "02/source-input.json"
+}

@@ -16,6 +16,7 @@ var (
 )
 
 type CreateTablePolicy struct {
+	ExpectedVersion    uint64
 	ConcurrencyKey     []string
 	TableName          string
 	QueryPolicyCode    string

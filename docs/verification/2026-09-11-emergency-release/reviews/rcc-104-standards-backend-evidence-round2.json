@@ -1,0 +1,34 @@
+{
+  "docs/verification/2026-09-11-emergency-release/backend/14-isolated-red.json": {
+    "sha256": "74e8c3753a65974ef72c1b08430281f00ce043d9608b1e77587541189e1faa05",
+    "bytes": 57593
+  },
+  "docs/verification/2026-09-11-emergency-release/backend/14-isolated-red.log": {
+    "sha256": "15dea8dd12f9c896dd196f8aea94b1236d96b43cc689f3789b5d96bc4467cf0e",
+    "bytes": 23975
+  },
+  "docs/verification/2026-09-11-emergency-release/backend/15-isolated-fixes.json": {
+    "sha256": "aac5d7ec507d458fa4741e6c26b93245c639ff8fbec955ee913f5944c85552bc",
+    "bytes": 57771
+  },
+  "docs/verification/2026-09-11-emergency-release/backend/15-isolated-fixes.log": {
+    "sha256": "86a5bec3c06a62880dccbe18a5bce30c7492623fb6ac9dab7cdd4eaba920c45b",
+    "bytes": 24972
+  },
+  "docs/verification/2026-09-11-emergency-release/backend/16-all-admin-compile.json": {
+    "sha256": "c91e41050afa44d3adea65357148d6c0619bd6d22be8b78ef4005f5299596114",
+    "bytes": 57400
+  },
+  "docs/verification/2026-09-11-emergency-release/backend/16-all-admin-compile.log": {
+    "sha256": "c88bd76f6c0e763d1e1900d2437b2371d44d2190e52d63d8b62491cf591722b4",
+    "bytes": 1072
+  },
+  "docs/verification/2026-09-11-emergency-release/backend/17-submit-original-final.json": {
+    "sha256": "0ef6ebab567a3cbadebacf74b36181a803280e1815e1370a1f18f80fa1f6ead9",
+    "bytes": 57518
+  },
+  "docs/verification/2026-09-11-emergency-release/backend/17-submit-original-final.log": {
+    "sha256": "d1308b43d3e569b727c59339c83b24d1d6676a8885c4a465e9a9048bf5a0d486",
+    "bytes": 8932
+  }
+}

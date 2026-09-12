@@ -1,0 +1,486 @@
+diff --git a/web/DESIGN.md b/web/DESIGN.md
+index f76062b..48f09fd 100644
+--- a/web/DESIGN.md
++++ b/web/DESIGN.md
+@@ -84,7 +84,7 @@
+ - **表审批角色**：管理员从表规则行内“审批角色”进入独立抽屉，角色可检索并完整分页；已选择项跨页保留，显示名称与永久 ID。空集合明确由已启用且非申请人的 ADMIN 默认审批。保存保护独立版本；冲突保留选择、先展示最新分配再明确保存；未知结果仅重推原请求，撤权禁用写入并保留内容。
+ - **发布单列表**：每行右侧提供固定的“操作”列和“查看详情”入口，窄屏横向滚动时入口保持可见；标题也可进入详情。已提交单据显示真实已通过表数。
+ - **逐表审批**：提交窗口显示各表当前角色和默认原因；提交后显示冻结角色名称与身份、各表待审批／已通过／已拒绝及真实决定来源，部分通过不标记整单审批阶段完成。批准与拒绝窗口明确列出打开时确认的全部可审批表；分页不改变范围，拒绝说明整单终止。成员或状态变化引起冲突时保留原范围、版本、意见与请求，显式读取最新范围后才创建新请求。普通 VIEWER 成员可依服务端资格审批，ADMIN 没有通用审批入口；未知结果恢复保留同账号原业务动作。
+-- **发布单详情**：顶部保留返回列表链接，不显示常驻的重新读取按钮；读取失败时在对应错误提示中提供重试。沿用灰色画布与石墨操作，依次呈现四阶段、基本信息与当前操作、申请/实际结果审阅、回滚原因、最近历史。步骤人员与时间只取对应真实事件（准备完成取提交）；取消、拒绝、回滚不显示为四步正常完成，快速回滚不伪造审批。已回滚原单显示当前可选原因和最近修改人／时间；真实回滚执行人或管理员可打开编辑窗口补填、修正或清空，每次修改继续显示在操作历史。桌面信息与操作并列，窄屏单列；长标题、永久 ID 和人员姓名完整换行。
++- **发布单详情**：顶部保留返回列表链接，不显示常驻的重新读取按钮；读取失败时在对应错误提示中提供重试。沿用灰色画布与石墨操作，依次呈现整单阶段、基本信息与当前操作、逐表发布流程及审批、申请/实际结果审阅、回滚原因、最近历史。常规路径按各表已保存实例展示节点，不从第一张表或当前模板推断整单流程。准备完成单独取真实提交事件，节点名称、状态、人员与时间取对应实例事实；取消、拒绝、回滚不显示为正常全部完成。回滚总览暂保留既有阶段呈现，由 #106 移除，不用于常规配置缺失时兜底。已回滚原单显示当前可选原因和最近修改人／时间；真实回滚执行人或管理员可打开编辑窗口补填、修正或清空，每次修改继续显示在操作历史。桌面信息与操作并列，窄屏单列；长标题、永久 ID 和人员姓名完整换行。
+ - **发布单审阅**：申请差异初次默认仅看变更、第一项展开；MODIFY 隐藏申请未提交及确定同值字段，自动填写和数据库生成说明保持可见；关闭过滤后完整视图仍区分未提交与 NULL，不推断实际发布结果。ADD/DELETE 保留全部字段。申请差异和实际 before/final 均使用每次查看时读取的当前字段名称与静态选项名称，但不按 is_visible 隐藏本次涉及字段；真实字段名与实际值始终可核对。实际结果只读取发布时持久化的 before/final，字段配置变更只改变显示，不改写历史内容，也不从当前业务行反推。字段配置缺失时回退原名原值，读取失败时保留历史并提供独立重试。每页 20 项，定位会展开目标项，分页不改变整单操作范围。字段表实际滚动容器显式提供中文名称、Tab焦点和焦点环，容器自身聚焦时可通过左右方向键查看完整对比；表内输入控件和组合快捷键保持各自行为。成功初次默认实际数据库结果，可切回申请差异或同一原单的实际恢复结果；未完结原单的快速回滚在恢复预览窗口中一次确认，原因选填，不新建回滚单；完结后不再提供回滚。历史默认最近五条倒序，可展开全部。
+ - **角色管理**：审批角色列表显示名称、说明、永久 ID、成员数量和启用状态；角色抽屉维护名称、说明、启停和成员，已选人员与检索结果分别列出用户名、显示名称和永久 ID。成员选择跨检索保留；冲突显示最新内容并保留输入，未知结果只允许原请求重推。删除使用取消优先的危险确认，只有无修改且从未引用的角色可发起删除。
+ - **账号页面**：登录和注册聚焦单列表单；账号设置分为身份信息、资料、密码、会话等区块。桌面可用两列表单，手机回到单列。
+@@ -133,3 +133,7 @@
+ ### 多表发布单
+ 
+ 主单从标题开始保存空草稿；每条明细携带真实表名。配置内容页可将不同表的选择加入同一本人草稿，分页编辑与键盘排序保持稳定明细身份，并提交整单版本。明细摘要、编辑选择和发布/恢复结果同时标明全局位置、表名、操作和记录身份；表内游标不能作为整单顺序。发布与回滚针对最多 1,000 条的全部明细，详情主单只读摘要，申请及实际结果每页从服务器读取 20 项，所有页绑定整单版本；跨页版本变化须刷新，不得混页。编辑、复制、重新准备及冲突重建需要完整申请或全局顺序时明确收集同版本页，任一页失败不采用部分结果。背景主单更新决定当前权限，但不能替换已打开编辑器的本地输入、原基线或请求日志。每表版本及刷新通知分别展示。390px 验收同时检查页面与抽屉内真实输入的边界。
++
++常规发布详情的整单阶段取已保存状态，逐表节点按实例顺序展示，各表使用自己的模板名称与节点；实例身份、来源模板和版本、表关联版本、保存时间可展开核对。桌面节点横向排列，窄屏纵向排列，表名、节点名和人员永久 ID 完整换行。提交前审批安排保持实时读取，提交后显示冻结的表角色；部分表通过时，整单仍为待审批。
++
++常规流程缺失时，详情列出缺失表与阻止提交的原因，并允许通过原草稿编辑器明确保存补齐；无需为触发保存而修改标题或明细。管理员修复配置后的普通读取不会补建流程。保存只补齐缺失实例，已有实例保持不变；保存请求继续使用原正文、版本、键与 IndexedDB 日志保护。
+diff --git a/web/e2e/release-approvals.cjs b/web/e2e/release-approvals.cjs
+index 787ed4b..1107059 100644
+--- a/web/e2e/release-approvals.cjs
++++ b/web/e2e/release-approvals.cjs
+@@ -39,7 +39,8 @@ const longValue='approved-field-value-'.repeat(3);
+   review.once('dialog',d=>d.accept());await review.reload();const approvalReplay=review.waitForResponse(response=>response.request().method()==='POST'&&response.url().endsWith(`/${copyID}/approve`));await repeatReleaseAction(review,'批准发布单','确认批准');assert.equal((await approvalReplay).status(),200);await review.getByText('stage1_acceptance_items · 已批准',{exact:true}).waitFor();await review.getByText('Verified independently',{exact:true}).first().waitFor();assert.equal(writes.length,2);assert.deepEqual(writes[0],writes[1]);
+   check('Approval-role member recovers a committed lost approval response after refresh using original key and state version');
+   await page.reload();await page.getByText('stage1_acceptance_items · 已批准',{exact:true}).waitFor();
+-  assert.equal(await page.getByRole('list',{name:'发布阶段',exact:true}).getByRole('listitem').count(),4);
++  await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'待执行发布',exact:true}).waitFor();
++  await page.getByRole('region',{name:'逐表发布流程',exact:true}).waitFor();
+   assert.equal(await page.getByRole('checkbox',{name:'仅看变更',exact:true}).isChecked(),true);
+   await applicant.grantPermissions(['clipboard-read','clipboard-write'],{origin:base});
+   await page.getByRole('button',{name:'复制发布单号',exact:true}).click();await page.getByText('已复制发布单号',{exact:true}).waitFor();
+diff --git a/web/src/api/error-messages.ts b/web/src/api/error-messages.ts
+index 0835727..8867bef 100644
+--- a/web/src/api/error-messages.ts
++++ b/web/src/api/error-messages.ts
+@@ -6,6 +6,7 @@ const errorMessages: Record<string, string> = {
+   release_item_limit:"每张发布单必须包含 1～1,000 项明细。",
+   table_approval_conflict: "表审批角色已变化，请读取最新分配后重新确认。",
+   release_approval_conflict: "审批资格或确认表范围已变化，原意见保留，请重新审阅最新范围。",
++  release_flow_incomplete: "常规流程尚未补齐，请管理员修复配置后再次保存草稿，再提交审批。",
+   release_approver_unavailable: "有表缺少独立审批人，请查看各表审批安排并补充合格人员后重新提交。",
+   approval_role_not_saved: "本次尝试未保存，输入已保留。可修正后重新保存；若之前仍有待确认请求，请继续使用原请求重试。",
+   invalid_approval_role: "请检查角色名称、成员、版本和请求信息。",
+diff --git a/web/src/api/release-orders.test.ts b/web/src/api/release-orders.test.ts
+index cfb4c2d..6230746 100644
+--- a/web/src/api/release-orders.test.ts
++++ b/web/src/api/release-orders.test.ts
+@@ -1,8 +1,13 @@
+ import {afterEach,expect,it,vi} from "vitest";
+ import {loadReleaseForEdit,releaseOrders,type ReleaseHeader} from "./release-orders";
+-const header:ReleaseHeader={id:"original",title:"多表草稿",table_names:["items"],applicant_id:"author",state:"DRAFT",version:"3",created_at:"now",updated_at:"now",allowed_actions:["edit"],item_count:101,operation_counts:{ADD:101},executions:[],history:[],approvals:[],approval_context:{revision:"test",tables:[],approvable_tables:[]}};
++const header:ReleaseHeader={id:"original",title:"多表草稿",table_names:["items"],release_type:"STANDARD",table_flows:[],missing_flow_tables:[],applicant_id:"author",state:"DRAFT",version:"3",created_at:"now",updated_at:"now",allowed_actions:["edit"],item_count:101,operation_counts:{ADD:101},executions:[],history:[],approvals:[],approval_context:{revision:"test",tables:[],approvable_tables:[]}};
+ const detail=(index:number)=>({detail_id:String(index),table_name:"items",operation:"ADD",id:null,expected_record_version:"",content:{label:`value ${index}`},before:null,fields:[]});
+ afterEach(()=>vi.unstubAllGlobals());
++it("详情保留服务端已经保存的逐表流程身份、模板版本和真实节点事实",async()=>{
++ const saved={...header,release_type:"STANDARD",missing_flow_tables:["unconfigured"],table_flows:[{instance_id:"saved-instance-a",table_name:"items",release_type:"STANDARD",template_code:"careful_review",template_name:"资金配置核对",template_version:"7",association_version:"3",instantiated_at:"2026-09-11T01:00:00Z",node_list:[{code:"review_funds",type:"APPROVAL",name:"资金负责人确认",required_role:"TABLE_APPROVER",state:"COMPLETED",actor_id:"reviewer-a",at:"2026-09-11T02:00:00Z"},{code:"publish_funds",type:"PUBLICATION",name:"整单生效",required_role:"PUBLISHER",state:"ACTIVE"},{code:"finish_funds",type:"COMPLETION",name:"确认资金配置",required_role:"PUBLISHER",state:"PENDING"}]}]};
++ vi.stubGlobal("fetch",vi.fn(async()=>Response.json(saved)));
++ expect(await releaseOrders.get(header.id)).toEqual(saved);
++});
+ it("普通 get 只读取 header，显式编辑按固定整单版本收集每页",async()=>{
+  const reads:string[]=[];
+  vi.stubGlobal("fetch",vi.fn(async(input)=>{
+diff --git a/web/src/api/release-orders.ts b/web/src/api/release-orders.ts
+index bcdc18e..7a740ae 100644
+--- a/web/src/api/release-orders.ts
++++ b/web/src/api/release-orders.ts
+@@ -26,7 +26,10 @@ const approvalSourceSchema=z.object({source:z.enum(["ROLE","ADMIN"]),roles:z.arr
+ const tableApprovalSchema=z.object({table_name:z.string(),roles:z.array(approvalRoleIdentitySchema),state:z.enum(["PENDING","APPROVED","REJECTED"]),decision:approvalSourceSchema.extend({actor_id:z.string(),at:z.string(),reason:z.string()}).optional()});
+ const approvalContextSchema=z.object({revision:z.string(),tables:z.array(z.object({table_name:z.string(),mode:z.enum(["ROLE","ADMIN","UNAVAILABLE","COMPLETED"]),reason:z.string(),can_approve:z.boolean()})),approvable_tables:z.array(z.string())});
+ export type ApprovalContext=z.infer<typeof approvalContextSchema>;
+-export const releaseSummarySchema=z.object({id:z.string(),title:z.string(),table_names:z.array(z.string()),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","APPROVED","SUCCEEDED","COMPLETED","REJECTED","CANCELLED","ROLLED_BACK"]),version,created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),approvals:z.array(tableApprovalSchema),approval_context:approvalContextSchema,item_count:z.number().int().min(0).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
++const releaseFlowNodeSchema=z.object({code:z.string(),type:z.enum(["APPROVAL","PUBLICATION","COMPLETION"]),name:z.string(),required_role:z.enum(["TABLE_APPROVER","PUBLISHER"]),state:z.enum(["PENDING","ACTIVE","COMPLETED","REJECTED","STOPPED"]),actor_id:z.string().optional(),at:z.string().optional()});
++const tableReleaseFlowSchema=z.object({instance_id:z.string(),table_name:z.string(),release_type:z.literal("STANDARD"),template_code:z.string(),template_name:z.string(),template_version:version,association_version:version,instantiated_at:z.string(),node_list:z.array(releaseFlowNodeSchema)});
++export type TableReleaseFlow=z.infer<typeof tableReleaseFlowSchema>;
++export const releaseSummarySchema=z.object({id:z.string(),title:z.string(),table_names:z.array(z.string()),release_type:z.literal("STANDARD"),table_flows:z.array(tableReleaseFlowSchema),missing_flow_tables:z.array(z.string()),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","APPROVED","SUCCEEDED","COMPLETED","REJECTED","CANCELLED","ROLLED_BACK"]),version,created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),approvals:z.array(tableApprovalSchema),approval_context:approvalContextSchema,item_count:z.number().int().min(0).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
+ export const releaseHeaderSchema=releaseSummarySchema.extend({copied_from_id:z.string().optional(),frozen_digest:z.string().optional(),executions:z.array(executionSchema),history:z.array(z.object({action:z.string(),actor_id:z.string(),at:z.string(),version,reason:z.string(),related_order_id:z.string().optional(),execution_id:z.string().optional(),table_names:z.array(z.string()).optional(),approval_sources:z.array(approvalSourceSchema.extend({table_name:z.string()})).optional()}))});
+ export const releaseItemSchema=draftItemSchema.extend({detail_id:z.string(),id:z.string().nullable(),expected_record_version:z.string(),before:content.nullable(),fields:z.array(releaseFieldSchema),publication:publicationCommandSchema.optional(),rollback:publicationCommandSchema.optional()});
+ export const releaseOrderSchema=releaseHeaderSchema.extend({items:z.array(releaseItemSchema)});
+diff --git a/web/src/features/managed-data/ManagedDataMutationPage.test.tsx b/web/src/features/managed-data/ManagedDataMutationPage.test.tsx
+index d9b1866..bf2b202 100644
+--- a/web/src/features/managed-data/ManagedDataMutationPage.test.tsx
++++ b/web/src/features/managed-data/ManagedDataMutationPage.test.tsx
+@@ -13,6 +13,7 @@ import { ToastProvider } from "../../components/ui/Toast";
+ import { businessSessionInvalid } from "../../api/business-session";
+ 
+ const tablePolicy = {
++  version: "1",
+   table_name: "notification_templates",
+   query_policy_code: "notification_page_query_v1",
+   mutation_policy_code: "notification_full_mutation_v1",
+@@ -559,7 +560,7 @@ it("明确勾选两行后加入本人跨表已有草稿，保留原明细和各
+ 
+ it("已有草稿去向只列出当前可编辑的草稿",async()=>{
+  const editableID="11111111222222223333333344444444",readonlyID="55555555666666667777777788888888";
+- const summary=(id:string,extra:object={})=>({id,title:"消息模板草稿",table_names:["notification_templates"],applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",allowed_actions:["edit"],item_count:1,operation_counts:{MODIFY:1},approvals:[],approval_context:{revision:"draft",tables:[],approvable_tables:[]},...extra});
++ const summary=(id:string,extra:object={})=>({id,release_type:"STANDARD",table_flows:[],missing_flow_tables:[],title:"消息模板草稿",table_names:["notification_templates"],applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",allowed_actions:["edit"],item_count:1,operation_counts:{MODIFY:1},approvals:[],approval_context:{revision:"draft",tables:[],approvable_tables:[]},...extra});
+  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+   if(String(input).startsWith("/api/v1/release-orders?"))return json({orders:[summary(editableID),summary(readonlyID,{allowed_actions:["submit","cancel"]})],next_cursor:""});
+   return readFetch(input,init,{...mutationPolicy,allow_modify:true});
+diff --git a/web/src/features/release-orders/ReleaseDraftEditor.tsx b/web/src/features/release-orders/ReleaseDraftEditor.tsx
+index 0631336..cc7788b 100644
+--- a/web/src/features/release-orders/ReleaseDraftEditor.tsx
++++ b/web/src/features/release-orders/ReleaseDraftEditor.tsx
+@@ -68,6 +68,7 @@ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;cu
+  return <Drawer open eyebrow="发布草稿" title="编辑多表草稿" onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>关闭</Button><Button variant="primary" disabled={write.blocked||(!allowed&&!canRepeat)||Boolean(titleError)||write.pending||reading||conflict||recordConflict} onClick={()=>void save()}>{write.pending?"正在保存…":"保存草稿修改"}</Button></>}>
+  {!allowed&&<p role="alert">当前身份或发布单状态不允许编辑，已输入内容保留。</p>}
+  <p>保存草稿即占用目标，直到移除最后一条引用或发布单结束。只提交本次明细变更，全部分页共用整单版本。</p>
++ {baseline.missing_flow_tables.length>0&&<p className="mt-3 text-warning">缺失常规流程：{baseline.missing_flow_tables.join("、")}。管理员修复配置后，可直接保存，无需修改内容；保存仅补齐缺失流程，已有实例保持不变。</p>}
+  <div className="grid gap-2 my-5"><label htmlFor="release-order-title">发布单标题</label><Input id="release-order-title" value={title} required aria-invalid={Boolean(titleError)} aria-describedby={`release-order-title-count${titleError?" release-order-title-error":""}`} disabled={write.blocked||!allowed||write.pending||write.unresolved} onChange={event=>setTitle(event.target.value)}/><span id="release-order-title-count" className="text-xs text-muted-foreground">{Array.from(title).length} / 100 字符</span>{titleError&&<small id="release-order-title-error" className="field-error">{titleError}</small>}</div>
+  <fieldset disabled={write.pending||write.unresolved}><ReleaseItemPager count={items.length} page={page} onPage={page=>setSelected(page*releasePageSize)} onLocate={setSelected} label="编辑明细"/></fieldset>
+  <div className="flex flex-wrap items-end gap-3 my-5"><label>编辑明细<NativeSelect aria-label="编辑明细" value={selected} disabled={write.pending||write.unresolved} onChange={event=>setSelected(Number(event.target.value))}>{items.slice(page*releasePageSize,(page+1)*releasePageSize).map((entry,offset)=>{const index=page*releasePageSize+offset;return <option key={index} value={index}>明细 {index+1} · {entry.table_name} · {entry.operation} · {entry.id??"待生成 id"}</option>})}</NativeSelect></label><Button disabled={write.blocked||!allowed||items.length===0||write.pending||write.unresolved} onClick={()=>{setItems(current=>current.filter((_,index)=>index!==selected));setSelected(Math.max(0,selected-1));setRecordLatest(undefined)}}>移除此明细</Button><p>共 {items.length} 项。保存只提交本次修改、删除和排序。</p></div>
+diff --git a/web/src/features/release-orders/ReleaseOrdersPage.test.tsx b/web/src/features/release-orders/ReleaseOrdersPage.test.tsx
+index 203b161..3b01afd 100644
+--- a/web/src/features/release-orders/ReleaseOrdersPage.test.tsx
++++ b/web/src/features/release-orders/ReleaseOrdersPage.test.tsx
+@@ -36,6 +36,40 @@ async function repeatOriginal(user:ReturnType<typeof userEvent.setup>,action:str
+  await user.click(await originalButton(confirm));
+ }
+ afterEach(()=>{vi.unstubAllGlobals();sessionStorage.clear();fieldPolicyResponse=()=>json(defaultFieldPolicies("items",[{name:"id",type:"uint64",nullable:false},{name:"label",type:"string",nullable:true}]))});
++it("多表详情按各自已保存实例展示节点和来源，重读不改用当前模板",async()=>{
++ const first={instance_id:"flow-items-1",table_name:"items",release_type:"STANDARD",template_code:"finance_v1",template_name:"资金配置核对",template_version:"7",association_version:"3",instantiated_at:"2026-09-11T01:00:00Z",node_list:[{code:"review_funds",type:"APPROVAL",name:"资金负责人确认",required_role:"TABLE_APPROVER",state:"PENDING"},{code:"publish_funds",type:"PUBLICATION",name:"整单资金生效",required_role:"PUBLISHER",state:"PENDING"},{code:"finish_funds",type:"COMPLETION",name:"资金结果确认",required_role:"PUBLISHER",state:"PENDING"}]};
++ const second={...first,instance_id:"flow-channels-1",table_name:"channels",template_code:"channels_v3",template_name:"渠道配置复核",template_version:"2",node_list:first.node_list.map((node,index)=>({...node,code:`channel-${index}`,name:["渠道负责人复核","整单渠道发布","渠道结果核实"][index]}))};
++ const current={...order,items:[...order.items,{...order.items[0],detail_id:"2".repeat(32),table_name:"channels"}],table_flows:[first,second]};
++ const writes:RequestInit[]=[];
++ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(init?.method&&init.method!=="GET")writes.push(init);return String(input).endsWith("/people")?json({people:{}}):json(current)})));
++ const user=userEvent.setup(),{client}=mount(`/configuration/release-orders/${id}`);
++ const flows=await screen.findByRole("region",{name:"逐表发布流程"});
++ expect(within(flows).getByText("资金配置核对")).toBeVisible();expect(within(flows).getByText("渠道配置复核")).toBeVisible();
++ expect(within(flows).getByRole("list",{name:"items 流程节点"})).toHaveTextContent("资金负责人确认");
++ expect(within(flows).getByRole("list",{name:"channels 流程节点"})).toHaveTextContent("渠道负责人复核");
++ await user.click(within(flows).getAllByText("查看实例来源与版本")[0]!);
++ expect(within(flows).getByText("flow-items-1")).toBeVisible();expect(within(flows).getByText("finance_v1 · 版本 7")).toBeVisible();
++ await act(async()=>{await client.refetchQueries({queryKey:["release-order",id]})});
++ expect(within(flows).getByText("资金负责人确认")).toBeVisible();expect(writes).toHaveLength(0);
++ expect(screen.getByRole("region",{name:"提交审批安排"})).toBeVisible();
++});
++it("缺失流程阻止提交，配置修复后无需改动内容也可明确保存补齐",async()=>{
++ let current={...order,missing_flow_tables:["items"],table_flows:[] as unknown[],allowed_actions:["edit","cancel"]};const writes:RequestInit[]=[];
++ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
++  if(init?.method==="PUT"){writes.push(init);current={...current,version:"2",missing_flow_tables:[],allowed_actions:["edit","submit","cancel"],table_flows:[{instance_id:"repaired-items",table_name:"items",release_type:"STANDARD",template_code:"repaired_standard",template_name:"恢复的常规流程",template_version:"1",association_version:"2",instantiated_at:"2026-09-11T03:00:00Z",node_list:[{code:"review",type:"APPROVAL",name:"恢复后的表审批",required_role:"TABLE_APPROVER",state:"PENDING"},{code:"publish",type:"PUBLICATION",name:"恢复后的发布",required_role:"PUBLISHER",state:"PENDING"},{code:"finish",type:"COMPLETION",name:"恢复后的完结",required_role:"PUBLISHER",state:"PENDING"}]}]};return json(current)}
++  return String(input).endsWith("/people")?json({people:{}}):json(current);
++ })));
++ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
++ const missing=await screen.findByRole("region",{name:"流程配置未完成"});
++ expect(within(missing).getByText("items")).toBeVisible();expect(screen.queryByRole("button",{name:"提交审批"})).not.toBeInTheDocument();
++ expect(within(screen.getByRole("region",{name:"逐表发布流程"})).queryByRole("list")).not.toBeInTheDocument();expect(writes).toHaveLength(0);
++ await user.click(within(missing).getByRole("button",{name:"保存草稿以补齐流程"}));
++ await user.click(await originalButton("保存草稿修改"));
++ expect(await screen.findByText("恢复后的表审批")).toBeVisible();expect(screen.queryByRole("region",{name:"流程配置未完成"})).not.toBeInTheDocument();
++ await waitFor(()=>expect(screen.getByRole("button",{name:"提交审批"})).toBeEnabled());
++ expect(writes).toHaveLength(1);expect(JSON.parse(String(writes[0]!.body))).toEqual({title:order.title,expected_version:"1",changes:{upserts:[],delete_detail_ids:[]}});
++ expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBeTruthy();
++});
+ it("原申请人或管理员核对最新配置后原子化重新准备已批准普通单",async()=>{
+  const approved={...order,applicant_id:"original-applicant",state:"APPROVED",version:"3",allowed_actions:["execute","reprepare"],frozen_digest:"a".repeat(64)};
+  const freshItems=approved.items.map(item=>({...item,expected_record_version:"2",before:{id:"1",label:"latest database value"},fields:item.fields.map(field=>field.name==="label"?{...field,before:"latest database value"}:field)}));
+@@ -946,36 +980,39 @@ it("同一表的不同发布单在每次查看详情时重读当前显示规则"
+  expect(reads).toBe(2);
+ });
+ 
+-it("详情四阶段与最近五条历史可展开，并复制真实单号",async()=>{
++it("详情真实阶段与最近五条历史可展开，并复制真实单号",async()=>{
+  const events=Array.from({length:8},(_,index)=>({action:index===7?"REJECT":"EDIT",actor_id:order.applicant_id,version:String(index+1),at:order.created_at,reason:`审阅记录 ${index+1}`}));
+  vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json({...order,state:"REJECTED",allowed_actions:["copy"],history:events}))));
+  const user=userEvent.setup();const copy=vi.spyOn(navigator.clipboard,"writeText").mockResolvedValue();mount(`/configuration/release-orders/${id}`);
+- const progress=await screen.findByRole("list",{name:"发布阶段"});expect(within(progress).getAllByRole("listitem")).toHaveLength(4);
+- expect(within(progress).getByText("已拒绝")).toBeVisible();expect(within(progress).getByText("未发布")).toBeVisible();expect(within(progress).queryByText("已完结")).not.toBeInTheDocument();
++ const progress=await screen.findByRole("region",{name:"发布阶段"});
++ expect(within(progress).getByText("已拒绝，整单终止")).toBeVisible();expect(within(progress).queryByText("已完结")).not.toBeInTheDocument();
+  const history=screen.getByRole("region",{name:"操作历史"});expect(within(history).getAllByRole("listitem")).toHaveLength(5);expect(within(history).queryByText("审阅记录 3")).not.toBeInTheDocument();expect(within(history).getAllByRole("listitem")[0]).toHaveTextContent("审阅记录 8");
+  await user.click(within(history).getByRole("button",{name:"查看全部 8 条记录"}));expect(within(history).getAllByRole("listitem")).toHaveLength(8);
+  await user.click(screen.getByRole("button",{name:"复制发布单号"}));expect(copy).toHaveBeenCalledWith(id);expect(await screen.findByText("已复制发布单号")).toBeVisible();
+ });
+ 
+ it.each([
+- ["DRAFT","准备中","待发布后完结"],["PENDING_APPROVAL","待审批","待发布后完结"],["APPROVED","待执行","待发布后完结"],["SUCCEEDED","数据库已发布","待人工完结"],["COMPLETED","数据库已发布","已完结"],["REJECTED","未发布","已终止"],["CANCELLED","未发布","已终止"],["ROLLED_BACK","数据库已发布","已回滚"],
+-])("%s 详情使用真实阶段",async(state,progress,ending)=>{
++ ["DRAFT","准备中"],["PENDING_APPROVAL","待审批"],["APPROVED","待执行发布"],["SUCCEEDED","数据库已发布，待人工完结"],["COMPLETED","已完结"],["REJECTED","已拒绝，整单终止"],["CANCELLED","已取消"],
++])("%s 详情使用已保存整单阶段",async(state,phase)=>{
+  vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json({...order,state,allowed_actions:[]}))));
+- mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("list",{name:"发布阶段"}));
+- expect(stages.getByText(progress)).toBeVisible();expect(stages.getAllByRole("listitem")[3]).toHaveTextContent(ending);
+- if(["REJECTED","CANCELLED","ROLLED_BACK"].includes(state))expect(stages.getAllByRole("listitem")[3]).not.toHaveClass("is-complete");
++ mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("region",{name:"发布阶段"}));
++ expect(stages.getByRole("heading",{name:phase})).toBeVisible();
++ expect(stages.queryByRole("list")).not.toBeInTheDocument();
+ });
+ it("原单快速回滚保留原批准阶段且不创建新的审批阶段",async()=>{
+  const current={...order,state:"ROLLED_BACK",allowed_actions:[],history:[...order.history,{...order.history[0]!,action:"APPROVE",actor_id:"original-approver"},{...order.history[0]!,action:"QUICK_ROLLBACK",actor_id:"actual-rollback"}]};
+  vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json(current))));
+  mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("list",{name:"发布阶段"}));expect(stages.getByText("已批准")).toBeVisible();expect(stages.getAllByRole("listitem")[1]).toHaveClass("is-complete");expect(stages.getByText("已回滚")).toBeVisible();
+ });
+-it("步骤人员时间来自提交而非创建，完结显示真实完结操作者",async()=>{
+- const events=[{action:"CREATE",actor_id:"creator",at:"2026-09-01T01:00:00Z"},{action:"SUBMIT",actor_id:"submitter",at:"2026-09-02T02:00:00Z"},{action:"APPROVE",actor_id:"approver",at:"2026-09-03T03:00:00Z"},{action:"EXECUTE",actor_id:"publisher",at:"2026-09-04T04:00:00Z"},{action:"COMPLETE",actor_id:"closer",at:"2026-09-05T05:00:00Z"}].map((event,index)=>({...event,version:String(index+1),reason:""}));
+- vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{submitter:"提交人",approver:"审批人",publisher:"发布人",closer:"完结人"}}):json({...order,state:"COMPLETED",history:events,allowed_actions:[]}))));
+- mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("list",{name:"发布阶段"}));
+- const steps=stages.getAllByRole("listitem");expect(await within(steps[0]!).findByText("提交人")).toBeVisible();expect(steps[0]!.querySelector("time")).toHaveAttribute("datetime",events[1]!.at);expect(within(steps[0]!).queryByText("creator")).not.toBeInTheDocument();
+- expect(within(steps[3]!).getByText("完结人")).toBeVisible();expect(steps[3]!.querySelector("time")).toHaveAttribute("datetime",events[4]!.at);
++it("准备人员时间来自提交，节点显示服务端实例中的真实操作者",async()=>{
++ const events=[{action:"CREATE",actor_id:"creator",at:"2026-09-01T01:00:00Z"},{action:"SUBMIT",actor_id:"submitter",at:"2026-09-02T02:00:00Z"},{action:"COMPLETE",actor_id:"closer",at:"2026-09-05T05:00:00Z"}].map((event,index)=>({...event,version:String(index+1),reason:""}));
++ const table_flows=[{instance_id:"completed-items",table_name:"items",release_type:"STANDARD",template_code:"saved_flow",template_name:"已保存的核对流程",template_version:"1",association_version:"1",instantiated_at:order.created_at,node_list:[{code:"review",type:"APPROVAL",name:"已保存审批",required_role:"TABLE_APPROVER",state:"COMPLETED",actor_id:"instance-reviewer",at:"2026-09-03T03:00:00Z"},{code:"publish",type:"PUBLICATION",name:"已保存发布",required_role:"PUBLISHER",state:"COMPLETED",actor_id:"instance-publisher",at:"2026-09-04T04:00:00Z"},{code:"finish",type:"COMPLETION",name:"已保存完结",required_role:"PUBLISHER",state:"COMPLETED",actor_id:"closer",at:"2026-09-05T05:00:00Z"}]}];
++ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{submitter:"提交人","instance-reviewer":"实例审批人","instance-publisher":"实例发布人",closer:"完结人"}}):json({...order,state:"COMPLETED",table_flows,history:events,allowed_actions:[]}))));
++ mount(`/configuration/release-orders/${id}`);const stage=await screen.findByRole("region",{name:"发布阶段"});
++ expect(await within(stage).findByText("提交人")).toBeVisible();expect(stage.querySelector("time")).toHaveAttribute("datetime",events[1]!.at);expect(within(stage).queryByText("creator")).not.toBeInTheDocument();
++ const nodes=screen.getByRole("list",{name:"items 流程节点"});
++ expect(within(nodes).getByText("实例审批人")).toBeVisible();expect(within(nodes).getByText("实例发布人")).toBeVisible();
++ const last=within(nodes).getAllByRole("listitem")[2]!;expect(within(last).getByText("完结人")).toBeVisible();expect(last.querySelector("time")).toHaveAttribute("datetime",events[2]!.at);
+  expect(within(screen.getByRole("region",{name:"操作历史"})).getByText("完结了发布单")).toBeVisible();
+ });
+ 
+@@ -1193,7 +1230,7 @@ it("VIEWER 成员按服务端资格确认表范围，部分批准不能显示整
+  await waitFor(()=>expect(writes).toHaveLength(1));
+  expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"2",reason:"只确认负责表",confirmed_tables:["items"],expected_approval_revision:"scope-1"});
+  await waitFor(()=>expect(screen.getByRole("region",{name:"逐表审批进度"})).toHaveTextContent("已通过 1 / 2 表"));
+- expect(within(screen.getByRole("list",{name:"发布阶段"})).queryByText("已批准")).not.toBeInTheDocument();
++ expect(within(screen.getByRole("region",{name:"发布阶段"})).getByRole("heading",{name:"待审批"})).toBeVisible();
+ });
+ 
+ it("审批资格改变而单据版本不变时保留原范围，明确审阅后才扩展范围", async () => {
+diff --git a/web/src/features/release-orders/ReleaseOrdersPage.tsx b/web/src/features/release-orders/ReleaseOrdersPage.tsx
+index 3b4b1b0..313b432 100644
+--- a/web/src/features/release-orders/ReleaseOrdersPage.tsx
++++ b/web/src/features/release-orders/ReleaseOrdersPage.tsx
+@@ -19,6 +19,7 @@ import {useAccountRole} from "../accounts/roles";
+ import {useToast} from "../../components/ui/Toast";
+ import {ReleaseTime} from "./ReleaseTime";
+ import {ReleaseProgress} from "./ReleaseProgress";
++import {ReleaseFlows,ReleasePhase} from "./ReleaseFlows";
+ import {ReleaseApprovals} from "./ReleaseApprovals";
+ import {ReleaseHistory} from "./ReleaseHistory";
+ import {RollbackReason} from "./RollbackReason";
+@@ -78,7 +79,8 @@ function ReleaseDetail({id}:{id:string}){
+  const approver=[...order.history].reverse().find(event=>event.action==="APPROVE");
+  return <CurrentFieldDisplayProvider tableNames={releaseTables(order)}><div className="release-detail min-w-0"><nav aria-label="发布单位置" className="text-xs text-muted-foreground">配置管理 / 发布单 / <span aria-current="page">详情</span></nav><div><Link className="underline underline-offset-4" to="/configuration/release-orders">返回发布单列表</Link></div>
+  {query.isError&&<ErrorState error={query.error} onRetry={()=>void query.refetch()}/>}
+- <ReleaseProgress order={order} people={names}/>
++ {order.state==="ROLLED_BACK"?<ReleaseProgress order={order} people={names}/>:<ReleasePhase order={order} people={names}/>}
++ {order.missing_flow_tables.length>0&&<section aria-label="流程配置未完成" className="release-panel min-w-0"><h2 className="text-lg font-semibold text-warning">流程配置未完成，暂不能提交审批</h2><p className="mt-2">以下表尚未保存常规流程。请管理员检查常规模板与表关联；配置修复后，再保存草稿补齐缺失流程。已有表流程保持不变。</p><ul className="my-3 grid gap-1 break-all font-mono">{order.missing_flow_tables.map(table=><li key={table}>{table}</li>)}</ul>{canEdit&&(order.allowed_actions.includes("edit")||retained("edit"))&&<Button disabled={requestPending} onClick={()=>setEditing(true)}>保存草稿以补齐流程</Button>}</section>}
+  <div className="release-detail-overview">
+   <section className="release-panel min-w-0" aria-label="基本信息"><h2 className="text-xl font-semibold break-all">{order.title}</h2><p className="mt-2 mb-6 text-muted-foreground break-all">{releaseTables(order).join("、")||"暂无明细表"} · {releaseStateLabels[order.state]}</p>
+    <dl className="release-info"><div><dt>发布单号</dt><dd className="font-mono break-all">{order.id}<Button variant="ghost" className="ml-1" onClick={async()=>{try{await navigator.clipboard.writeText(order.id);setCopyError(false);showToast("已复制发布单号")}catch{setCopyError(true)}}}>复制发布单号</Button>{copyError&&<p role="alert">复制失败，请选择单号手动复制。</p>}</dd></div><div><dt>申请人</dt><dd><ReleasePerson id={order.applicant_id} name={names[order.applicant_id]}/></dd></div><div><dt>创建时间</dt><dd><ReleaseTime value={order.created_at}/></dd></div><div><dt>最近审批人</dt><dd>{approver?<ReleasePerson id={approver.actor_id} name={names[approver.actor_id]}/>:"尚无批准记录"}</dd></div><div><dt>发布单版本</dt><dd>{order.version}</dd></div>{publication&&<div><dt>发布人</dt><dd><ReleasePerson id={publication.actor_id} name={names[publication.actor_id]}/></dd></div>}</dl>
+@@ -88,7 +90,7 @@ function ReleaseDetail({id}:{id:string}){
+  {peopleFailure&&<section className="inline-alert mb-4 min-w-0 flex-wrap" role="alert"><div><strong>人员姓名读取失败，当前仅显示永久账号 ID。</strong><span>{peopleFailure.message}</span><span>错误代码：{peopleCode}</span>{peopleFailure.requestId&&<span>请求编号：{peopleFailure.requestId}</span>}</div><Button variant="secondary" disabled={people.isFetching} onClick={()=>void people.refetch()}>{people.isFetching?"正在读取人员姓名…":"重新读取人员姓名"}</Button></section>}
+  {order.frozen_digest&&<p className="mb-4">提交内容已冻结，审批和发布以这份差异为准。</p>}{order.copied_from_id&&<p className="mb-4">{order.history[0]?.action==="REPREPARE"?"重新准备自":"复制自"} <Link to={`/configuration/release-orders/${order.copied_from_id}`}>{order.copied_from_id}</Link></p>}
+ 
+- <ReleaseApprovals order={order} people={names}/><ReleaseReview order={order} people={names}/>{order.state==="ROLLED_BACK"&&<RollbackReason order={order} people={names}/>}<ReleaseHistory order={order} people={names}/>
++ <ReleaseFlows order={order} people={names}/><ReleaseApprovals order={order} people={names}/><ReleaseReview order={order} people={names}/>{order.state==="ROLLED_BACK"&&<RollbackReason order={order} people={names}/>}<ReleaseHistory order={order} people={names}/>
+  {editing&&<ReleaseDraftEditor order={order} onClose={()=>setEditing(false)}/>}
+  {action&&<ReleaseActionDialog order={order} action={action} onClose={()=>setAction(undefined)}/>}
+  {quickRollback&&<QuickRollbackDialog order={order} onClose={()=>setQuickRollback(false)}/>}
+diff --git a/web/src/features/release-orders/ReleaseProgress.tsx b/web/src/features/release-orders/ReleaseProgress.tsx
+index 92282bd..6be8418 100644
+--- a/web/src/features/release-orders/ReleaseProgress.tsx
++++ b/web/src/features/release-orders/ReleaseProgress.tsx
+@@ -3,6 +3,8 @@ import {ReleaseTime} from "./ReleaseTime";
+ import {Check,Minus} from "lucide-react";
+ import type {ReleaseHeader} from "../../api/release-orders";
+ 
++// Temporary rollback-only presentation until #106. Forward releases display
++// persisted per-table instances; this must never serve missing configuration.
+ export function ReleaseProgress({order,people={}}:{order:ReleaseHeader;people?:Record<string,string>}){
+  const cancelled=order.state==="CANCELLED",rejected=order.state==="REJECTED",rolledBack=order.state==="ROLLED_BACK";
+  const terminated=cancelled||rejected||rolledBack;
+diff --git a/web/src/test/UnsavedChanges.test.tsx b/web/src/test/UnsavedChanges.test.tsx
+index f88972f..7529cc1 100644
+--- a/web/src/test/UnsavedChanges.test.tsx
++++ b/web/src/test/UnsavedChanges.test.tsx
+@@ -13,7 +13,7 @@ import { testAdminIdentity, withAdminSession } from "./account-session";
+ const audit = { creator: "fixture", modifier: "fixture", created_at: "2026-09-07T00:00:00Z", updated_at: "2026-09-07T00:00:00Z" };
+ const query = { ...audit, code: "query_v1", name: "查询基线", description: "说明", type_code: "page_query", default_order_field: "id", default_order_direction: "DESC", default_page_size: 20, max_page_size: 200, status: "DRAFT" };
+ const mutation = { ...audit, code: "mutation_v1", name: "变更基线", description: "说明", type_code: "single_table_mutation", allow_add: true, allow_modify: true, allow_delete: true, create_operator_field: null, create_time_field: null, modify_operator_field: null, modify_time_field: null, status: "DRAFT" };
+-const assignment = { ...audit, table_name: "items", query_policy_code: "query_v1", mutation_policy_code: "mutation_v1", enabled: true };
++const assignment = { ...audit, version: "1", table_name: "items", query_policy_code: "query_v1", mutation_policy_code: "mutation_v1", enabled: true };
+ const columns = [{ name: "id", type: "uint64", nullable: false }, { name: "name", type: "string", nullable: false }, { name: "note", type: "string", nullable: true }] as const;
+ const row = { id: "1", name: "original", note: null };
+ const savedDraft={id:"12345678123456781234567812345678",title:"items 配置变更",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{table_name:"items",operation:"MODIFY",id:"1",expected_record_version:"0",content:{name:"originalchanged"},before:row,fields:[]}]};
+diff --git a/web/src/test/release-fixture.ts b/web/src/test/release-fixture.ts
+index 2e7ab9b..79ffb56 100644
+--- a/web/src/test/release-fixture.ts
++++ b/web/src/test/release-fixture.ts
+@@ -10,7 +10,7 @@ export function releaseFixture(value:unknown):unknown {
+  const tables=[...new Set(items.map(item=>item.table_name))];
+  const context="approval_context" in value?value.approval_context:{revision:"fixture-approval-1",tables:tables.map(table_name=>({table_name,mode:"ROLE",reason:"审批角色成员",can_approve:true})),approvable_tables:tables};
+  const approvals="approvals" in value?value.approvals:tables.map(table_name=>({table_name,roles:[],state:"state" in value&&["APPROVED","SUCCEEDED","COMPLETED","ROLLED_BACK"].includes(String(value.state))?"APPROVED":"PENDING"}));
+- return {...value,approvals,approval_context:context,items,table_names:[...new Set(items.map(item=>item.table_name))],item_count:items.length,operation_counts,executions};
++ return {release_type:"STANDARD",table_flows:[],missing_flow_tables:[],...value,approvals,approval_context:context,items,table_names:[...new Set(items.map(item=>item.table_name))],item_count:items.length,operation_counts,executions};
+ }
+ 
+ // In-memory HTTP fixture router: a normal GET serves only its header. Detail
+diff --git a/web/e2e/release-instances.cjs b/web/e2e/release-instances.cjs
+new file mode 100644
+index 0000000..27dcc48
+--- /dev/null
++++ b/web/e2e/release-instances.cjs
+@@ -0,0 +1,149 @@
++// Real browser -> same-origin Web/Admin -> isolated policy_alpha/policy_beta MySQL fixture.
++const assert = require('node:assert/strict');
++const {randomUUID} = require('node:crypto');
++const {writeFile, access} = require('node:fs/promises');
++const {join} = require('node:path');
++const {chromium} = require('playwright');
++const {authenticatedRequest} = require('./local-account.cjs');
++const {createFixtureApprovalRole, bindFixtureApprovalRoles} = require('./table-approval-fixture.cjs');
++const origin = process.env.RCC_WEB_URL, output = process.env.RCC_E2E_OUTPUT;
++assert.ok(origin && output, 'RCC_WEB_URL and a fresh RCC_E2E_OUTPUT directory are required');
++const tables = ['policy_alpha', 'policy_beta'];
++const checks = [], snapshots = {}, errors = [];
++const button = (page, name) => page.getByRole('button', {name, exact:true});
++const api = async (context, method, path, data, status=200) => {
++ const response = await authenticatedRequest(context, origin, path, {method, data, headers:{'Idempotency-Key':randomUUID()}});
++ assert.equal(response.status(), status, `${method} ${path}: ${await response.text()}`);
++ return response.json();
++};
++const shot = async (page, name) => {
++ const path=join(output,name);
++ await assert.rejects(access(path), 'browser evidence must not overwrite an earlier run');
++ await page.screenshot({path, fullPage:true, animations:'disabled'});
++};
++const standard = (code, name, prefix) => ({code, name, description:'实例隔离浏览器验收', type:'STANDARD', node_list:[
++ {code:'review',type:'APPROVAL',name:`${prefix}负责人核对`,required_role:'TABLE_APPROVER'},
++ {code:'publish',type:'PUBLICATION',name:`${prefix}整单发布`,required_role:'PUBLISHER'},
++ {code:'finish',type:'COMPLETION',name:`${prefix}结果完结`,required_role:'PUBLISHER'},
++]});
++
++(async()=>{
++ const browser=await chromium.launch(process.env.RCC_BROWSER_EXECUTABLE?{executablePath:process.env.RCC_BROWSER_EXECUTABLE,headless:true}:{channel:'chrome',headless:true});
++ let page;
++ try {
++  const admin=await browser.newContext({viewport:{width:1440,height:1000}});
++  page=await admin.newPage();page.setDefaultTimeout(20000);page.on('pageerror',error=>errors.push(error.message));
++  await page.goto(origin+'/login');await page.getByLabel('用户名').fill('template.browser.admin');await page.getByLabel('密码',{exact:true}).fill('template browser password long enough');await button(page,'登录').click();await page.waitForURL(url=>!url.pathname.endsWith('/login'));
++  await api(admin,'POST','/api/v1/query-policies',{code:'flow_browser_query_v1',name:'流程实例查询',description:'',type_code:'page_query',default_order_field:'id',default_order_direction:'ASC',default_page_size:20,max_page_size:200},201);
++  await api(admin,'POST','/api/v1/query-policies/flow_browser_query_v1/activate');
++  await api(admin,'POST','/api/v1/mutation-policies',{code:'flow_browser_mutation_v1',name:'流程实例变更',description:'',type_code:'single_table_mutation',allow_add:true,allow_modify:true,allow_delete:true},201);
++  await api(admin,'POST','/api/v1/mutation-policies/flow_browser_mutation_v1/activate');
++  for(const table of tables){await api(admin,'POST','/api/v1/table-policies',{table_name:table,query_policy_code:'flow_browser_query_v1',mutation_policy_code:'flow_browser_mutation_v1'},201);await api(admin,'POST',`/api/v1/table-policies/${table}/enable`,{expected_version:'1'});}
++  const definitions=[standard('flow_alpha_v1','资金配置负责人核对及整单结果确认流程','资金'),standard('flow_beta_v1','渠道负责人独立复核与整单发布流程','渠道'),standard('flow_replacement_v1','新的关联流程','新配置')];
++  const templates=[];for(const definition of definitions)templates.push(await api(admin,'POST','/api/v1/release-templates',definition,201));
++  const associate=async(table,code,enabled=true)=>{
++   const associations=(await api(admin,'GET',`/api/v1/table-policies/${table}/release-templates`)).associations;
++   const current=associations.find(item=>item.type==='STANDARD');
++   return api(admin,'PUT',`/api/v1/table-policies/${table}/release-templates/STANDARD`,{template_code:code,enabled,expected_version:current?.version??'0'});
++  };
++  for(const [index,table] of tables.entries())await associate(table,definitions[index].code);
++  const reviewers=[];
++  for(let index=0;index<2;index++){
++   const context=await browser.newContext({viewport:{width:1440,height:1000}});
++   const csrf=(await(await context.request.get(origin+'/api/v1/auth/csrf')).json()).csrf_token;
++   const response=await context.request.post(origin+'/api/v1/auth/register',{headers:{Origin:origin,'X-CSRF-Token':csrf},data:{username:`flow.reviewer.${index}`,email:`flow.reviewer.${index}@example.invalid`,password:'flow browser reviewer password long enough',display_name:index?'渠道复核人':'资金复核人'}});
++   assert.equal(response.status(),201);const identity=await response.json();
++   const role=await createFixtureApprovalRole(admin,origin,index?'渠道审核角色':'资金审核角色',[identity.account.id],[tables[index]]);
++   const surface=await context.newPage();surface.setDefaultTimeout(20000);surface.on('pageerror',error=>errors.push(error.message));
++   reviewers.push({context,page:surface,identity,role});
++  }
++  await page.goto(origin+'/configuration/release-orders');await button(page,'新建草稿').click();await page.getByLabel('发布单标题',{exact:true}).fill('两张表保留各自流程与审批事实');await button(page,'创建空草稿').click();await page.getByRole('heading',{name:'两张表保留各自流程与审批事实',exact:true}).waitFor();
++  const id=new URL(page.url()).pathname.split('/').at(-1), path=`/api/v1/release-orders/${id}`;
++  for(const table of tables){
++   await page.getByRole('link',{name:'添加明细',exact:true}).click();await page.getByLabel('Managed Table',{exact:true}).selectOption(table);await button(page,'新增记录').click();
++   for(const field of ['id','value']){await page.getByLabel(`包含 ${field}`,{exact:true}).check();await page.getByLabel(`${field} 值`,{exact:true}).fill(field==='id'?'11':`${table} saved value`);}
++   await button(page,'查看 Change Set').click();assert.equal(await page.getByLabel('保存到草稿',{exact:true}).inputValue(),id);await button(page,'确认并保存草稿').click();await page.getByRole('heading',{name:'两张表保留各自流程与审批事实',exact:true}).waitFor();
++  }
++  const saved=await api(admin,'GET',path);snapshots.saved=saved.table_flows;
++  assert.equal(saved.release_type,'STANDARD');assert.deepEqual(saved.missing_flow_tables,[]);assert.equal(saved.table_flows.length,2);
++  for(const [index,table] of tables.entries()){
++   assert.equal(saved.table_flows.find(flow=>flow.table_name===table).template_code,definitions[index].code);
++   await page.getByRole('list',{name:`${table} 流程节点`,exact:true}).getByText(definitions[index].node_list[0].name,{exact:true}).waitFor();
++  }
++  const readOnlyWrites=[];
++  const observeRead=request=>{if(new URL(request.url()).pathname===path&&request.method()!=='GET')readOnlyWrites.push(request.method());};
++  page.on('request',observeRead);await page.reload();await page.getByRole('region',{name:'逐表发布流程',exact:true}).waitFor();
++  assert.deepEqual((await api(admin,'GET',path)).table_flows,saved.table_flows);assert.deepEqual(readOnlyWrites,[]);page.off('request',observeRead);
++  await shot(page,'different-table-flows-desktop.png');
++  checks.push('AC-009: real Web creates a two-table draft; distinct persisted templates render and refresh performs no write');
++
++  await api(admin,'PUT',`/api/v1/release-templates/${definitions[0].code}`,{...definitions[0],name:'源模板已经更新',node_list:definitions[0].node_list.map(node=>({...node,name:`新定义${node.name}`})),expected_version:templates[0].version});
++  await api(admin,'POST',`/api/v1/release-templates/${definitions[0].code}/disable`,{expected_version:'2'});
++  await associate(tables[0],definitions[2].code);
++  await page.reload();await page.getByRole('list',{name:`${tables[0]} 流程节点`,exact:true}).getByText('资金负责人核对',{exact:true}).waitFor();
++  assert.deepEqual((await api(admin,'GET',path)).table_flows,saved.table_flows);
++  checks.push('AC-010: editing/disabling source template and switching association leave the saved draft instance intact');
++
++  await associate(tables[1],definitions[1].code,false);
++  const incomplete=await api(admin,'POST','/api/v1/release-orders',{title:'配置补齐后明确保存的双表草稿',items:tables.map(table_name=>({table_name,operation:'ADD',content:{id:'12',value:'explicit repair'}}))},201);
++  const repairPath=`/api/v1/release-orders/${incomplete.id}`;assert.deepEqual(incomplete.missing_flow_tables,[tables[1]]);assert.equal(incomplete.table_flows.length,1);assert.equal(incomplete.table_flows[0].template_code,definitions[2].code);
++  const blocked=await api(admin,'POST',repairPath+'/submit',{expected_version:incomplete.version},409);assert.equal(blocked.error.code,'release_flow_incomplete');
++  await page.setViewportSize({width:390,height:844});await page.goto(origin+'/configuration/release-orders/'+incomplete.id);
++  await page.getByRole('region',{name:'流程配置未完成',exact:true}).waitFor();assert.equal(await button(page,'提交审批').count(),0);assert.equal(await page.getByRole('list',{name:`${tables[1]} 流程节点`,exact:true}).count(),0);
++  await shot(page,'missing-flow-mobile.png');
++  await associate(tables[1],definitions[1].code,true);await page.reload();await page.getByRole('region',{name:'流程配置未完成',exact:true}).waitFor();
++  assert.deepEqual((await api(admin,'GET',repairPath)).missing_flow_tables,[tables[1]],'reading silently filled missing instance');
++  await button(page,'保存草稿以补齐流程').focus();await page.keyboard.press('Enter');await page.getByRole('heading',{name:'编辑多表草稿',exact:true}).waitFor();
++  const originalWrites=[];let loseOnce=true;
++  await page.route(`**${repairPath}`,async route=>{
++   if(route.request().method()!=='PUT')return route.continue();
++   originalWrites.push({body:route.request().postData(),key:route.request().headers()['idempotency-key']});
++   if(!loseOnce)return route.continue();loseOnce=false;
++   const response=await route.fetch();assert.equal(response.status(),200);await route.abort('connectionreset');
++  });
++  await button(page,'保存草稿修改').click();await page.getByText('Admin 连接或响应传输中断。',{exact:true}).waitFor();assert.equal(originalWrites.length,1);
++  assert.deepEqual(JSON.parse(originalWrites[0].body),{title:incomplete.title,expected_version:incomplete.version,changes:{upserts:[],delete_detail_ids:[]}});
++  page.once('dialog',dialog=>dialog.accept());await page.reload();await page.getByRole('heading',{name:incomplete.title,exact:true}).waitFor();
++  await button(page,'编辑草稿').click();await button(page,'保存草稿修改').click();await page.getByRole('heading',{name:'编辑多表草稿',exact:true}).waitFor({state:'hidden'});
++  assert.equal(originalWrites.length,2);assert.deepEqual(originalWrites[0],originalWrites[1]);await page.unroute(`**${repairPath}`);
++  const repaired=await api(admin,'GET',repairPath);snapshots.repaired=repaired.table_flows;
++  assert.deepEqual(repaired.missing_flow_tables,[]);assert.deepEqual(repaired.table_flows.find(flow=>flow.table_name===tables[0]),incomplete.table_flows[0]);assert.equal(repaired.table_flows.length,2);
++  await page.getByRole('list',{name:`${tables[1]} 流程节点`,exact:true}).getByText('渠道负责人核对',{exact:true}).waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
++  await shot(page,'repaired-flows-mobile.png');
++  snapshots.manual_replay={same_key:true,same_body:true,original_version:incomplete.version,stored_version:repaired.version};
++  checks.push('AC-010/023/025: 390px missing-flow block; GET stays read-only after repair; explicit unchanged save fills only missing instance; committed lost response survives refresh and exact manual replay');
++
++  await page.setViewportSize({width:1440,height:1000});await page.goto(origin+'/configuration/release-orders/'+id);
++  await page.getByRole('region',{name:'提交审批安排',exact:true}).getByText('当前分配：资金审核角色',{exact:true}).waitFor();
++  await button(page,'提交审批').click();await button(page,'确认提交审批').click();await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'待审批',exact:true}).waitFor();
++  let submitted=await api(admin,'GET',path);snapshots.submitted=submitted.table_flows;
++  assert.deepEqual(submitted.table_flows.map(flow=>flow.instance_id),saved.table_flows.map(flow=>flow.instance_id));
++  assert.deepEqual(submitted.table_flows.map(flow=>flow.node_list.map(node=>node.state)),[['ACTIVE','PENDING','PENDING'],['ACTIVE','PENDING','PENDING']]);
++  await bindFixtureApprovalRoles(admin,origin,tables[0],[reviewers[1].role.id]);await page.reload();
++  await page.getByRole('region',{name:'逐表审批进度',exact:true}).getByText('提交时分配：资金审核角色',{exact:true}).waitFor();
++  for(const [index,reviewer] of reviewers.entries()){
++   const review=reviewer.page;await review.goto(origin+'/configuration/release-orders/'+id);await button(review,'批准发布单').click();
++   const scope=review.getByRole('region',{name:'本次审批范围',exact:true});await scope.getByText(tables[index],{exact:true}).waitFor();assert.equal(await scope.getByText(tables[1-index],{exact:true}).count(),0);
++   await review.getByLabel('审批意见',{exact:true}).fill(index?'渠道独立核对完成':'资金独立核对完成');await button(review,'确认批准').click();await review.getByRole('dialog',{name:'批准发布单',exact:true}).waitFor({state:'hidden'});await page.reload();
++   await page.getByRole('region',{name:'逐表审批进度',exact:true}).getByRole('heading',{name:`已通过 ${index+1} / 2 表`,exact:true}).waitFor();
++   const current=await api(admin,'GET',path);
++   if(index===0){
++    assert.equal(current.state,'PENDING_APPROVAL');assert.deepEqual(current.table_flows.map(flow=>flow.node_list.map(node=>node.state)),[['COMPLETED','PENDING','PENDING'],['ACTIVE','PENDING','PENDING']]);
++    await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'待审批',exact:true}).waitFor();assert.equal(await button(page,'执行发布').count(),0);snapshots.partial_approval=current.table_flows;
++    await shot(page,'partial-approval-desktop.png');
++   }else{
++    assert.equal(current.state,'APPROVED');assert.deepEqual(current.table_flows.map(flow=>flow.node_list.map(node=>node.state)),[['COMPLETED','ACTIVE','PENDING'],['COMPLETED','ACTIVE','PENDING']]);
++    await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'待执行发布',exact:true}).waitFor();snapshots.all_approved=current.table_flows;
++   }
++  }
++  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await shot(page,'all-approved-mobile.png');
++  await button(page,'执行发布').click();await button(page,'确认发布到数据库').click();await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'数据库已发布，待人工完结',exact:true}).waitFor();
++  const published=await api(admin,'GET',path);assert.deepEqual(published.table_flows.map(flow=>flow.node_list.map(node=>node.state)),[['COMPLETED','COMPLETED','ACTIVE'],['COMPLETED','COMPLETED','ACTIVE']]);
++  await button(page,'完结发布单').click();await button(page,'确认完结').click();await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'已完结',exact:true}).waitFor();
++  const completed=await api(admin,'GET',path);snapshots.completed=completed.table_flows;assert.ok(completed.table_flows.every(flow=>flow.node_list.every(node=>node.state==='COMPLETED'&&node.actor_id&&node.at)));
++  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await shot(page,'completed-flows-mobile.png');
++  checks.push('AC-014: frozen table roles survive later assignment change; independent partial/all approvals drive real nodes; whole-order publication and completion retain actual actors');
++  assert.deepEqual(errors,[]);
++  const evidence={order_id:id,repair_order_id:incomplete.id,checks,snapshots};await writeFile(join(output,'release-instances-browser-evidence.json'),JSON.stringify(evidence,null,2),{flag:'wx'});process.stdout.write(JSON.stringify({checks,order_id:id,repair_order_id:incomplete.id}));
++ }catch(error){if(page){await shot(page,'failure.png');await writeFile(join(output,'failure.txt'),String(error),{flag:'wx'});}throw error;}finally{await browser.close();}
++})().catch(error=>{console.error(error);process.exitCode=1;});
+diff --git a/web/src/features/release-orders/ReleaseFlows.tsx b/web/src/features/release-orders/ReleaseFlows.tsx
+new file mode 100644
+index 0000000..75ed771
+--- /dev/null
++++ b/web/src/features/release-orders/ReleaseFlows.tsx
+@@ -0,0 +1,32 @@
++import type {ReleaseHeader} from "../../api/release-orders";
++import {ReleasePerson} from "./ReleasePerson";
++import {ReleaseTime} from "./ReleaseTime";
++
++const phases={DRAFT:"准备中",PENDING_APPROVAL:"待审批",APPROVED:"待执行发布",SUCCEEDED:"数据库已发布，待人工完结",COMPLETED:"已完结",REJECTED:"已拒绝，整单终止",CANCELLED:"已取消",ROLLED_BACK:"已回滚"};
++const nodeStates={PENDING:"待开始",ACTIVE:"进行中",COMPLETED:"已完成",REJECTED:"已拒绝",STOPPED:"已终止"};
++const nodeTypes={APPROVAL:"审批",PUBLICATION:"发布",COMPLETION:"完结"};
++
++export function ReleasePhase({order,people={}}:{order:ReleaseHeader;people?:Record<string,string>}){
++ const submitted=order.history.find(event=>event.action==="SUBMIT");
++ return <section className="release-panel min-w-0" aria-label="发布阶段">
++  <p className="text-xs text-muted-foreground">常规发布 · 整单阶段</p>
++  <h2 className="mt-2 text-lg font-semibold">{phases[order.state]}</h2>
++  {submitted&&<div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs"><span>准备完成于提交</span><ReleasePerson id={submitted.actor_id} name={people[submitted.actor_id]}/><ReleaseTime value={submitted.at}/></div>}
++ </section>;
++}
++
++export function ReleaseFlows({order,people={}}:{order:ReleaseHeader;people?:Record<string,string>}){
++ return <section className="release-panel min-w-0" aria-label="逐表发布流程">
++  <h2 className="text-lg font-semibold">逐表发布流程</h2>
++  <p className="mt-2 text-muted-foreground">各表使用保存时的流程。全部表审批通过后，整单统一发布。</p>
++  {order.table_flows.length===0&&order.missing_flow_tables.length===0&&<p className="mt-4">添加明细并保存草稿后显示各表流程。</p>}
++  <div className="divide-y">{order.table_flows.map(flow=><section key={flow.instance_id} aria-label={`${flow.table_name} 发布流程`} className="min-w-0 py-5 last:pb-0">
++   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2"><h3 className="font-semibold font-mono break-all">{flow.table_name}</h3><p className="break-all">{flow.template_name}</p></div>
++   <ol aria-label={`${flow.table_name} 流程节点`} className="mt-4 grid gap-5 min-[760px]:grid-cols-3">{flow.node_list.map((node,index)=><li key={node.code} aria-current={node.state==="ACTIVE"?"step":undefined} className="flex min-w-0 items-start gap-3">
++    <span aria-hidden="true" className={`release-step-icon ${node.state==="COMPLETED"?"bg-success-soft text-success":node.state==="ACTIVE"?"bg-primary text-primary-foreground":""}`}>{index+1}</span>
++    <div className="min-w-0 break-all"><h4 className="font-medium">{node.name}</h4><p className="mt-1 text-xs text-muted-foreground">{nodeTypes[node.type]} · {node.required_role==="TABLE_APPROVER"?"按表审批资格":"发布权限"}</p><p className={`mt-2 ${node.state==="COMPLETED"?"text-success":node.state==="REJECTED"?"text-destructive":"text-muted-foreground"}`}>{nodeStates[node.state]}</p>{node.actor_id&&<div className="mt-2 text-xs"><ReleasePerson id={node.actor_id} name={people[node.actor_id]}/></div>}{node.at&&<div className="mt-1 text-xs"><ReleaseTime value={node.at}/></div>}</div>
++   </li>)}</ol>
++   <details className="mt-4 min-w-0 text-xs text-muted-foreground"><summary className="w-fit cursor-pointer rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">查看实例来源与版本</summary><dl className="mt-3 grid gap-2 break-all"><div><dt>流程实例</dt><dd className="font-mono">{flow.instance_id}</dd></div><div><dt>来源模板</dt><dd className="font-mono">{flow.template_code} · 版本 {flow.template_version}</dd></div><div><dt>表关联版本</dt><dd>{flow.association_version}</dd></div><div><dt>实例保存时间</dt><dd><ReleaseTime value={flow.instantiated_at}/></dd></div></dl></details>
++  </section>)}</div>
++ </section>;
++}

@@ -59,18 +59,18 @@ func TestMultitablePublicationPreservesGlobalOrderAndOriginalResults(t *testing.
 	conflict := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"actual generated identity","items":[{"table_name":"m_release_generated","operation":"MODIFY","id":"1","expected_record_version":"1","content":{"label":"blocked"}}]}`, "multitable-generated-conflict")
 	assertIntegrationErrorCode(t, conflict, 409, "release_target_conflict")
 	deliveryExec(t, db, `ALTER TABLE a_release_children MODIFY label VARCHAR(81)`)
-	changedSchema := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, "")
+	changedSchema := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1)))
 	assertIntegrationErrorCode(t, changedSchema, 409, "release_frozen_changed")
 	if !strings.Contains(changedSchema.Body.String(), `"item_index":2`) {
 		t.Fatalf("restoration failure must use reverse position: %s", changedSchema.Body.String())
 	}
 	deliveryExec(t, db, `ALTER TABLE a_release_children MODIFY label VARCHAR(80)`)
 	var preview quickPreviewResponse
-	previewResponse := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, "")
+	previewResponse := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1)))
 	if previewResponse.Code != 200 || json.Unmarshal(previewResponse.Body.Bytes(), &preview) != nil {
 		t.Fatalf("preview: %s", previewResponse.Body)
 	}
-	restored := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, ""), "multitable-rollback"), 200)
+	restored := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, ""), "multitable-rollback"), 200)
 	if restored.ID != published.ID || restored.State != "ROLLED_BACK" || !reflect.DeepEqual(applicationItems(restored), applicationItems(published)) || !reflect.DeepEqual(executionCommands(restored, "PUBLICATION"), executionCommands(published, "PUBLICATION")) {
 		t.Fatal("original facts changed")
 	}
@@ -150,12 +150,12 @@ func TestMultitableThousandPagedDetailsExecuteAsOneOrder(t *testing.T) {
 		}
 	}
 	var preview quickPreviewResponse
-	response := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", fmt.Sprintf(`{"expected_version":%q}`, published.Version), "")
+	response := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", fmt.Sprintf(`{"expected_version":%q}`, published.Version), fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1)))
 	if response.Code != 200 || json.Unmarshal(response.Body.Bytes(), &preview) != nil {
 		t.Fatalf("preview %d %.500s", response.Code, response.Body.String())
 	}
 	started = time.Now()
-	restored := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody(published.Version, preview.Digest, ""), "thousand-multi-rollback"), 200)
+	restored := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, ""), "thousand-multi-rollback"), 200)
 	t.Logf("1000 multitable rollback %s", time.Since(started))
 	if len(executionCommands(restored, "ROLLBACK")) != 1000 || !reflect.DeepEqual(applicationItems(restored), applicationItems(published)) {
 		t.Fatal("incomplete inverse")
@@ -306,12 +306,12 @@ func TestMultitableLargeValuesThroughHTTPLifecycle(t *testing.T) {
 			t.Fatal("large actual result truncated")
 		}
 	}
-	previewResponse := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, "")
+	previewResponse := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1)))
 	var preview quickPreviewResponse
 	if previewResponse.Code != 200 || json.Unmarshal(previewResponse.Body.Bytes(), &preview) != nil {
 		t.Fatalf("large preview: status %d, %.500s", previewResponse.Code, previewResponse.Body.String())
 	}
-	restored := releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, ""), "large-multitable-rollback")
+	restored := releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, ""), "large-multitable-rollback")
 	if restored.Code != 200 {
 		t.Fatalf("large restore: status %d, %.500s", restored.Code, restored.Body.String())
 	}

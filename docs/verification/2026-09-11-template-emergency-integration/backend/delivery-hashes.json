@@ -1,0 +1,30 @@
+{
+  "source_file": "admin/cmd/admin/release_history_delivery_integration_test.go",
+  "source_sha256": "4e36a698fb90fc6b0f57df5c4fa43ca4e7792f973ad58bb50262548381767973",
+  "evidence_files": {
+    "docs/verification/2026-09-11-template-emergency-integration/backend/01-http-matrix-input.json": "97407687ab36d8b3c10d705e030fe4af65e10f25cc9cd3d927c0fafd5aae8b71",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/01-http-matrix.json": "9e244f1a2c827850a0ed20ee302abc4281b85877c4cb5e37362ac56ea720952c",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/01-http-matrix.log": "1f9b9a3fd11ae31a22f1fe15742b6cb94cdd303680f188ba47b9337e5a924af4",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/02-go-contracts-input.json": "97407687ab36d8b3c10d705e030fe4af65e10f25cc9cd3d927c0fafd5aae8b71",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/02-go-contracts.json": "1f0295dc5635425d3cfb73bfbd88c5cdde3c4c55d86f87708df4f4ea709a5cf8",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/02-go-contracts.log": "60e32b28b4206d6c043921f1455365c55396ee87186f6c5feeb068806cc63ed1",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/03-admin-compile-input.json": "97407687ab36d8b3c10d705e030fe4af65e10f25cc9cd3d927c0fafd5aae8b71",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/03-admin-compile.json": "51927682c0c9f18a5c46d4fa667c0e28637f433d25606d9b7a885c8bcba07b44",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/03-admin-compile.log": "c221f871a8acacee7280b955be033e25dc560574402915f5512a866df31cb3b9",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/04-history-isolated-red-input.json": "97407687ab36d8b3c10d705e030fe4af65e10f25cc9cd3d927c0fafd5aae8b71",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/04-history-isolated-red.json": "3576f9c67839aacc9a0e635b25cd1471feccdfeba75451fa71965b2391f6d5b4",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/04-history-isolated-red.log": "1b4e1607250c526722e160e4a2f1c437d1db6019d7ae6cfa0091fa4cb93e9109",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/05-history-sql-delta-red-input.json": "31938e857738ef140327f333ac161d7e85f296c53df5a366379d5748bda0481d",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/05-history-sql-delta-red.json": "c290bd2b5a3c671c21c0e2c28ce44f5fe1a91ea53305c9a743afa092d04e6509",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/05-history-sql-delta-red.log": "4e02bbce521c9f821409f2ce8dca7cdce0017b435357ae9293396376a8a69771",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/06-history-verified-append-green-input.json": "73beb7c25ac0348306d1a6b74db638f7649857772f908bb7dc2409deed9bf4be",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/06-history-verified-append-green.json": "3e298c2e7a497320f1d04646c0eec99c21a5408bc071f5d350b26c952cd0da05",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/06-history-verified-append-green.log": "a77a85bf9350878cb0804ff03e62bef8e5beb94f38ff17a5e252832e1f281aed",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/README.md": "b9d04216793c4c1b8804902922c370b673b90fc9bbff2c38398d3e7d721f5c03",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/cleanup.txt": "9d20b127567745b5841a11eed594a6bfe92101db6700b9553ce8c251a7fb2ef9",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/effective-results.json": "5704a96d89a93a62cc2c73292d48038ec99e7bb8cd822c1f29292785f498b08c",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/final-source-applicability.json": "a6a88af986f5104fff9aae5d2004aca643b3e479eb78833bda2c883e25c1f02b",
+    "docs/verification/2026-09-11-template-emergency-integration/backend/fixture-change.patch": "f4444cf936ba89f71a39cd0034c2367849451fc822c84b912bf473c819e18d6c"
+  },
+  "self_excluded": "delivery-hashes.json"
+}

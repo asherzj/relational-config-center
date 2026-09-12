@@ -1,0 +1,42 @@
+PASS TEXT and JSON browser ADD, MODIFY, SQL byte comparison, readback and reopened editor
+PASS multiline TEXT query uses the exact browser input without removing LF
+PASS SQL NULL, JSON null literal and string, empty and omitted values stay distinct
+PASS uint64 auto ID 9007199254740993 survives browser create, query, release MODIFY and reopen
+PASS uint64 auto ID 9223372036854775808 survives browser create, query, release MODIFY and reopen
+PASS uint64 auto ID 18446744073709551614 survives browser create, query, release MODIFY and reopen
+PASS ambiguous auto ID zero is rejected while omitted ID publishes the actual generated identity
+PASS non-auto default ID stage4_default_id_constant requires explicit identity before publication
+PASS non-auto default ID stage4_default_id_expression requires explicit identity before publication
+PASS identity review: explicit numeric ID returns the stored canonical identity
+PASS identity matrix: signed integer publishes a canonical stored key
+PASS identity matrix: decimal equal value publishes a canonical stored key
+PASS identity matrix: decimal rounding publishes a canonical stored key
+PASS identity matrix: CHAR trailing spaces publishes a canonical stored key
+PASS identity matrix: VARCHAR trailing spaces publishes a canonical stored key
+PASS identity matrix: VARCHAR Unicode and URI delimiters publishes a canonical stored key
+PASS identity matrix: ENUM case normalization is rejected before draft creation
+PASS identity matrix: TIME equal value publishes a canonical stored key
+PASS identity matrix: TIME rounding publishes a canonical stored key
+PASS identity matrix: DATETIME equal value publishes a canonical stored key
+PASS identity matrix: DATETIME rounding publishes a canonical stored key
+PASS identity matrix: TIMESTAMP equal value publishes a canonical stored key
+PASS identity matrix: TIMESTAMP rounding publishes a canonical stored key
+PASS identity matrix: FLOAT exact publishes a canonical stored key
+PASS identity matrix: FLOAT precision boundary publishes a canonical stored key
+PASS identity matrix: DOUBLE publishes a canonical stored key
+PASS identity matrix: DATE publishes a canonical stored key
+PASS identity preflight read denial prevents INSERT and preserves the draft
+PASS publication capability gate rejects a nontransactional table before business DML
+PASS JSON identity "" publishes without path reinterpretation
+PASS JSON identity "." publishes without path reinterpretation
+PASS JSON identity ".." publishes without path reinterpretation
+PASS JSON identity "键/值 %2F?#" publishes without path reinterpretation
+PASS CRLF and standalone CR stay protected through unrelated writes and explicit normalization
+PASS raw CR clipboard selection is preserved in record and query inputs before conversion
+PASS ordinary expression defaults allow explicit values and omission defaults
+PASS Auto Fill records the publisher identity and one UTC database time
+PASS stored_value remains rejected as a real generated column
+PASS virtual_value remains rejected as a real generated column
+PASS generated fields calculate on omitted ADD and stay unwritable on release MODIFY
+PASS VARCHAR length is editable rejection with rollback and corrected browser retry
+PASS TINYINT range is editable rejection with rollback and corrected browser retry

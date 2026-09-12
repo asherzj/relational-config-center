@@ -1,0 +1,36 @@
+{
+  "owned_created_containers": [
+    "07b75e141b4d",
+    "c2deeeec87d4",
+    "1f42ffa4021a",
+    "e01be8b193f1",
+    "60f69fcb6201",
+    "f852d842de1e",
+    "0ac082b48865",
+    "a616439a17a4",
+    "63dbe9b14718",
+    "d6e97e5d73a2",
+    "4c1d0c2c51aa",
+    "7399941e9613",
+    "3c15bc95367b",
+    "a502323291aa",
+    "c2f3898026cf",
+    "5adcf4bdb37f",
+    "cbc88ed57018",
+    "656f802bb530",
+    "168a1757f622",
+    "d3c7bcd1f257",
+    "5b61c255cb8e",
+    "d77a753fe026"
+  ],
+  "owned_count": 22,
+  "all_owned_logged_terminated": true,
+  "owned_present_in_final_docker_ps": [],
+  "unrelated_container_ids_left_untouched": [
+    "67e5b54b417d",
+    "6c438898d17c",
+    "c004dd82ce81",
+    "cbe798ef0f66"
+  ],
+  "docker_snapshot": "mysql-cleanup.json"
+}

@@ -1,0 +1,28 @@
+{
+  "method": "PUT",
+  "path": "/api/v1/release-orders/dd03ec248748be95e28e27aeb8297cbe",
+  "request": {
+    "title": "batch_browser_items 配置变更",
+    "expected_version": "2",
+    "changes": {
+      "upserts": [
+        {
+          "detail_id": "713f9d15e26c890ab9f77ff50192f86e",
+          "table_name": "batch_browser_items",
+          "operation": "MODIFY",
+          "id": "1",
+          "expected_record_version": "0",
+          "content": {
+            "code": "seed-one",
+            "label": "published mixed label"
+          }
+        }
+      ],
+      "delete_detail_ids": [
+        "e92929429c62b9ea97abf0808b3dcc0f"
+      ]
+    }
+  },
+  "status": 200,
+  "response": "{\"emergency_reason\":\"\",\"release_type\":\"STANDARD\",\"rollback_table_flows\":[],\"table_flows\":[{\"instance_id\":\"fa47736e4938d72ab965fd41294bf40f\",\"table_name\":\"batch_browser_items\",\"release_type\":\"STANDARD\",\"template_code\":\"default_standard_v1\",\"template_name\":\"默认常规发布\",\"template_version\":\"1\",\"association_version\":\"1\",\"instantiated_at\":\"2026-09-11T10:26:35.589607Z\",\"node_list\":[{\"code\":\"approval\",\"type\":\"APPROVAL\",\"name\":\"按表审批\",\"required_role\":\"TABLE_APPROVER\",\"state\":\"PENDING\"},{\"code\":\"publication\",\"type\":\"PUBLICATION\",\"name\":\"发布\",\"required_role\":\"PUBLISHER\",\"state\":\"PENDING\"},{\"code\":\"completion\",\"type\":\"COMPLETION\",\"name\":\"完结\",\"required_role\":\"PUBLISHER\",\"state\":\"PENDING\"}]}],\"missing_flow_tables\":[],\"approvals\":[{\"table_name\":\"batch_browser_items\",\"roles\":[{\"id\":\"23a5ab9c-4fa2-4aaa-8c33-a97c1d4582e3\",\"name\":\"Batch review 4b1133d4-868c-41c9-ae07-26ebd408af77\"}],\"state\":\"PENDING\"}],\"approval_context\":{\"revision\":\"f93508c83ea3b62c6dbe235f5fbe1a41503343664da84ec062a59ae730a7131d\",\"tables\":[{\"table_name\":\"batch_browser_items\",\"mode\":\"ROLE\",\"reason\":\"由提交时审批角色的当前合格成员处理\",\"can_approve\":false}],\"approvable_tables\":[]},\"table_names\":[\"batch_browser_items\"],\"title\":\"batch_browser_items 配置变更\",\"executions\":[],\"id\":\"dd03ec248748be95e28e27aeb8297cbe\",\"applicant_id\":\"c8afd296-4e28-4b26-b59f-daa81987ef5a\",\"state\":\"DRAFT\",\"version\":\"3\",\"items\":[{\"table_name\":\"batch_browser_items\",\"detail_id\":\"713f9d15e26c890ab9f77ff50192f86e\",\"operation\":\"MODIFY\",\"id\":\"1\",\"expected_record_version\":\"0\",\"content\":{\"code\":\"seed-one\",\"label\":\"published mixed label\"},\"before\":{\"code\":\"seed-one\",\"id\":\"1\",\"label\":\"original one\"},\"fields\":[{\"nullable\":false,\"editable\":false,\"name\":\"id\",\"type\":\"uint64\",\"before_state\":\"value\",\"before\":\"1\",\"proposed_state\":\"omitted\",\"proposed\":null},{\"nullable\":false,\"editable\":true,\"name\":\"code\",\"type\":\"string\",\"before_state\":\"value\",\"before\":\"seed-one\",\"proposed_state\":\"value\",\"proposed\":\"seed-one\"},{\"nullable\":false,\"editable\":true,\"name\":\"label\",\"type\":\"string\",\"before_state\":\"value\",\"before\":\"original one\",\"proposed_state\":\"value\",\"proposed\":\"published mixed label\"}]},{\"table_name\":\"batch_browser_items\",\"detail_id\":\"ab4ce804391b1285b717b08ab70d689e\",\"operation\":\"DELETE\",\"id\":\"2\",\"expected_record_version\":\"0\",\"content\":{},\"before\":{\"code\":\"seed-two\",\"id\":\"2\",\"label\":\"original two\"},\"fields\":[{\"nullable\":false,\"editable\":false,\"name\":\"id\",\"type\":\"uint64\",\"before_state\":\"value\",\"before\":\"2\",\"proposed_state\":\"absent\",\"proposed\":null},{\"nullable\":false,\"editable\":false,\"name\":\"code\",\"type\":\"string\",\"before_state\":\"value\",\"before\":\"seed-two\",\"proposed_state\":\"absent\",\"proposed\":null},{\"nullable\":false,\"editable\":false,\"name\":\"label\",\"type\":\"string\",\"before_state\":\"value\",\"before\":\"original two\",\"proposed_state\":\"absent\",\"proposed\":null}]}],\"history\":[{\"action\":\"CREATE\",\"actor_id\":\"c8afd296-4e28-4b26-b59f-daa81987ef5a\",\"at\":\"2026-09-11T10:26:35.589607Z\",\"version\":\"1\",\"reason\":\"\"},{\"action\":\"EDIT\",\"actor_id\":\"c8afd296-4e28-4b26-b59f-daa81987ef5a\",\"at\":\"2026-09-11T10:26:36.024382Z\",\"version\":\"2\",\"reason\":\"\"},{\"action\":\"EDIT\",\"actor_id\":\"c8afd296-4e28-4b26-b59f-daa81987ef5a\",\"at\":\"2026-09-11T10:26:36.285855Z\",\"version\":\"3\",\"reason\":\"\"}],\"created_at\":\"2026-09-11T10:26:35.589607Z\",\"updated_at\":\"2026-09-11T10:26:36.285855Z\",\"item_count\":2,\"operation_counts\":{\"DELETE\":1,\"MODIFY\":1},\"allowed_actions\":[\"edit\",\"submit\",\"cancel\"]}"
+}

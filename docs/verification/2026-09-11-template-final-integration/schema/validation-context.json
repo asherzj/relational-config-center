@@ -1,0 +1,15 @@
+{
+  "worktree": "/private/tmp/rcc-template-notification-integration",
+  "head_at_validation": "aec58942f01143c1a579aaf2a885141bf5a263c9",
+  "formal_release": "eb55e841e80345cfef7733b8c560d6037256cd2c",
+  "current_migration_version": 11,
+  "historical_baseline_version": 5,
+  "go_version": "go version go1.27.0 darwin/arm64",
+  "database": "mysql:8.4, separate sequential Testcontainers servers; database rcc_test created by startIntegrationMySQL",
+  "environment": {
+    "TESTCONTAINERS_RYUK_DISABLED": "true",
+    "DOCKER_HOST": "unix:///Users/asher/.colima/default/docker.sock",
+    "GOCACHE": "/private/tmp/rcc-go-cache"
+  },
+  "scope": "Migration, historical adoption/cutover, current readiness, and account historical upgrade only; no #104 implementation."
+}

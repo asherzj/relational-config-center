@@ -1,0 +1,1 @@
+{"ready":false,"completed":20,"pageErrorCount":15,"nativeErrorCount":0,"failure":{"name":"AssertionError","message":"No page errors during the restored workspace -> draft catalog transition\n\n15 !== 0\n"}}

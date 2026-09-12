@@ -1,0 +1,2 @@
+direct Admin without session: 401
+Web same-origin proxy without session: 401

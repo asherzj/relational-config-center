@@ -1,0 +1,63 @@
+//go:build integration
+
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"regexp"
+	"testing"
+)
+
+// Temporary artifact generator. The public migration command and readiness
+// acceptance test independently validate the resulting cumulative manifests.
+func TestGenerateIntegratedTemplateManifests(t *testing.T) {
+	_, driver := startIntegrationMySQL(t)
+	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 7), driver, "current", "up")
+	config := *driver
+	config.MultiStatements = true
+	config.Params = map[string]string{"charset": "utf8mb4"}
+	db := deliveryDB(t, &config)
+	root := "../../internal/infrastructure/mysql/migrations/"
+	prior, err := os.ReadFile(root + "00007_schema.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var manifest map[string]string
+	if err := json.Unmarshal(prior, &manifest); err != nil {
+		t.Fatal(err)
+	}
+	for _, stage := range []struct {
+		version int
+		sql     string
+		table   string
+	}{
+		{8, "00008_release_templates.sql", "rcc_release_templates"},
+		{9, "00009_table_release_templates.sql", "rcc_table_release_templates"},
+	} {
+		ddl, err := os.ReadFile(root + stage.sql)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := db.Exec(string(ddl)); err != nil {
+			t.Fatal(err)
+		}
+		manifest[stage.table] = ""
+		for name := range manifest {
+			var table, definition string
+			if err := db.QueryRow("SHOW CREATE TABLE `"+name+"`").Scan(&table, &definition); err != nil {
+				t.Fatal(err)
+			}
+			manifest[name] = regexp.MustCompile(` AUTO_INCREMENT=[0-9]+`).ReplaceAllString(definition, "")
+		}
+		encoded, err := json.MarshalIndent(manifest, "", "  ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(root+fmt.Sprintf("%05d_schema.json", stage.version), append(encoded, '\n'), 0644); err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("captured actual MySQL cumulative manifest %d: %d control tables", stage.version, len(manifest))
+	}
+}

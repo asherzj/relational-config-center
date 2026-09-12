@@ -1,0 +1,26 @@
+=== RUN   TestRollbackFlowBrowserSystemPath
+2026/09/11 17:12:05 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 184a74638496316ecef7ca34e4b79d21e9fe0e7315bee4acdcc4221b7facf262
+  Test ProcessID: 96c598cf-e356-4e50-b685-09b5a98be769
+2026/09/11 17:12:05 🐳 Creating container for image mysql:8.4
+2026/09/11 17:12:05 ✅ Container created: 2104be4e2e7c
+2026/09/11 17:12:05 🐳 Starting container: 2104be4e2e7c
+2026/09/11 17:12:05 ✅ Container started: 2104be4e2e7c
+2026/09/11 17:12:05 ⏳ Waiting for container id 2104be4e2e7c image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 17:12:11 🔔 Container is ready: 2104be4e2e7c
+    release_rollback_flow_browser_integration_test.go:8: isolated browser target: MySQL localhost:48246/rcc_test, Admin http://127.0.0.1:65178 pid=66813, Vite http://127.0.0.1:65175 pid=66824; evidence /private/tmp/rcc-issue-105-emergency-rollback/docs/verification/2026-09-11-emergency-rollback/browser/10-history-context-final
+    release_rollback_flow_browser_integration_test.go:8: browser → Vite proxy → Admin → MySQL: [AC-019/023: committed preview response loss survives close/reload, manual original-key replay, template edits, and a fresh-key reopen with unchanged persisted per-table emergency instances AC-020: keyboard confirmation with an empty reason reverses both tables once, ends the original order, records real restoration actors, stops completion nodes without a fictitious completion, and supports later reason correction AC-021: the real applicant result notification opens the same original order and persisted per-table restoration details, without a pending approval AC-023/024: historical preview replay acknowledges the original successful save after completion or rollback, while authoritative header reads keep both terminal orders ineligible for another recovery]
+2026/09/11 17:12:38 🐳 Stopping container: 2104be4e2e7c
+2026/09/11 17:12:40 ✅ Container stopped: 2104be4e2e7c
+2026/09/11 17:12:40 🐳 Terminating container: 2104be4e2e7c
+2026/09/11 17:12:40 🚫 Container terminated: 2104be4e2e7c
+--- PASS: TestRollbackFlowBrowserSystemPath (35.30s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	36.436s

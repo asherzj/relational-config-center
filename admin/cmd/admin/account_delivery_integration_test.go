@@ -501,6 +501,7 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	if got := baselineDataSnapshot(t, owner); got != preservedBeforeBaseline {
 		t.Fatal("baseline changed historical account, session, policy or business rows")
 	}
+	beforeUpgrade := preTemplateDataSnapshot(t, owner)
 	requireSchemaMigrationState(t, schemaMigrate, driver, "current", "up")
 	requireSchemaMigrationState(t, schemaMigrate, &freshDriver, "current", "up")
 	// Historical contraction omitted descriptive table comments. Compare every
@@ -543,12 +544,12 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
 	if controlSchema(owner) != controlSchema(fresh) {
 		t.Fatal("complete current control schema differs after formal upgrade")
 	}
-	preservedAfterUpgrade := baselineDataSnapshot(t, owner)
+	preservedAfterUpgrade := preTemplateDataSnapshot(t, owner)
 	for _, table := range []string{"rcc_approval_notifications", "rcc_approval_role_members", "rcc_approval_role_references", "rcc_approval_role_requests", "rcc_approval_roles", "rcc_table_approval_assignments", "rcc_table_approval_requests"} {
 		// Only the exact empty additive tables may differ; no role or receipt is fabricated.
 		preservedAfterUpgrade = strings.Replace(preservedAfterUpgrade, table+":\n", "", 1)
 	}
-	if preservedAfterUpgrade != preservedBeforeBaseline {
+	if preservedAfterUpgrade != beforeUpgrade {
 		t.Fatal("formal current upgrade changed retained historical data")
 	}
 	p := accountProcessCommand(t, binary, driver)

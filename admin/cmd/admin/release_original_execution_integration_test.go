@@ -26,13 +26,13 @@ func TestOriginalOrderRollbackPreservesApplicationAndBothExecutions(t *testing.T
 	actor := registerAccount(t, app, "original.publisher", "original.publisher@example.com", "correct horse battery staple")
 	grantReleaseRole(t, app, actor, `["PUBLISHER"]`, "1", "original-publisher")
 	preview := readQuickPreview(t, app, actor, path, "4")
-	body := quickRollbackBody("4", preview.Digest, "")
+	body := quickRollbackBody(preview.ExpectedVersion, preview.Digest, "")
 	response := releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, "original-rollback")
 	restored := rollbackOrderResponse(t, response, 200)
-	if restored.ID != published.ID || restored.State != "ROLLED_BACK" || restored.Version != "5" || restored.ApplicantID != published.ApplicantID || restored.Title != published.Title || !reflect.DeepEqual(applicationItems(restored), applicationItems(published)) || !reflect.DeepEqual(executionCommands(restored, "PUBLICATION"), executionCommands(published, "PUBLICATION")) {
+	if restored.ID != published.ID || restored.State != "ROLLED_BACK" || restored.Version != "6" || restored.ApplicantID != published.ApplicantID || restored.Title != published.Title || !reflect.DeepEqual(applicationItems(restored), applicationItems(published)) || !reflect.DeepEqual(executionCommands(restored, "PUBLICATION"), executionCommands(published, "PUBLICATION")) {
 		t.Fatal("rollback replaced the application or created another order", restored)
 	}
-	if len(restored.History) != len(published.History)+1 || !reflect.DeepEqual(restored.History[:len(published.History)], published.History) {
+	if len(restored.History) != len(published.History)+2 || !reflect.DeepEqual(restored.History[:len(published.History)], published.History) {
 		t.Fatal("application or approval history overwritten")
 	}
 	var result domain.ReleaseOrder
@@ -88,5 +88,5 @@ func TestOriginalOrderRollbackPreservesApplicationAndBothExecutions(t *testing.T
 		`SELECT COUNT(*) FROM rcc_refresh_notifications`: 2,
 		`SELECT COUNT(*) FROM rcc_release_targets`:       0,
 	})
-	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("5", preview.Digest, ""), "original-repeat"), 422, "release_state_invalid")
+	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("6", preview.Digest, ""), "original-repeat"), 422, "release_state_invalid")
 }

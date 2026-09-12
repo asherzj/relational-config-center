@@ -1,0 +1,43 @@
+=== RUN   TestApprovalNotificationsSubmitAggregatesCurrentRecipients
+2026/09/11 06:35:03 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 530c6b5163074f646dbb292c8c82c30d879182f4af8168a0784720217d127405
+  Test ProcessID: c32d2c51-3ec3-4767-8a0f-d5dc541dc9b0
+2026/09/11 06:35:03 🐳 Creating container for image mysql:8.4
+2026/09/11 06:35:03 ✅ Container created: 2ed56aa936a0
+2026/09/11 06:35:03 🐳 Starting container: 2ed56aa936a0
+2026/09/11 06:35:03 ✅ Container started: 2ed56aa936a0
+2026/09/11 06:35:03 ⏳ Waiting for container id 2ed56aa936a0 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 06:35:10 🔔 Container is ready: 2ed56aa936a0
+{"request_id":"rcc-161e0ff1d7344e29bff2171120ad76eb","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-2bc9d80e83c7d1633864278747147a36","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":46}
+{"request_id":"rcc-0f8b22578746e8f34ad768676573753a","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-ac01de9f8978db57b49ce0d0c5141c93","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":56}
+{"request_id":"rcc-3174f6911d289e44d86e50b91f43bb74","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-af89c0304573e9d79a3961b851264972","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":45}
+{"request_id":"rcc-d3f91018d71604db74779c4c814d9c13","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-8234899db00abd4eab27d166d0e38ded","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":45}
+{"request_id":"rcc-9050dd57976ca650be3b9aba6c3a130c","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":13}
+{"request_id":"rcc-9da121f85f10052a885b221820790b1e","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":12}
+{"request_id":"rcc-9173f3acea3cb921d92367476f412494","method":"GET","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":3}
+{"request_id":"rcc-b598c6f32cad55057cd9caf34fca10e9","method":"PUT","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":21}
+{"request_id":"rcc-475835d8aec45b7d65c35a518a779632","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":34}
+{"request_id":"rcc-149baffd711924201383088e4b7918a1","method":"GET","path":"/api/v1/approval-notifications","status":200,"duration_ms":2}
+{"request_id":"rcc-f8fab6bb779e9c4fa9d4f16a91a3f993","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":80}
+{"request_id":"rcc-ecdfe0c3fcda24f5835f15270eb67a50","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":15}
+{"request_id":"rcc-d62a1587f9cb080f11e7005a98e79c0d","method":"GET","path":"/api/v1/approval-notifications","status":200,"duration_ms":2}
+{"request_id":"rcc-7b824b21247bac7f27d4833121a119e2","method":"GET","path":"/api/v1/approval-notifications","status":200,"duration_ms":1}
+{"request_id":"rcc-6c91b627f4268758a3fa380eb789b5e9","method":"GET","path":"/api/v1/approval-notifications","status":200,"duration_ms":1}
+2026/09/11 06:35:11 🐳 Stopping container: 2ed56aa936a0
+2026/09/11 06:35:12 ✅ Container stopped: 2ed56aa936a0
+2026/09/11 06:35:12 🐳 Terminating container: 2ed56aa936a0
+2026/09/11 06:35:12 🚫 Container terminated: 2ed56aa936a0
+--- PASS: TestApprovalNotificationsSubmitAggregatesCurrentRecipients (9.03s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	9.722s

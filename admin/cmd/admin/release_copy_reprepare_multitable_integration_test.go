@@ -269,6 +269,8 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
 		contenderResponses <- accountRequestFrom(app, "POST", "/api/v1/release-orders", contenderBody, applicantCookies, applicantCSRF, "192.0.2.1:1234", map[string]string{"Idempotency-Key": "reprepare-multi-contender"})
 	}()
 	deadline = time.Now().Add(3 * time.Second)
+	// Release writes serialize current authorization before reading targets. The
+	// contender must wait there until the transfer transaction publishes its new owner.
 	for {
 		var waiting, contenderConnection int64
 		if err := ownerDB.QueryRowContext(ctx, `SELECT COUNT(*),COALESCE(MAX(waiter.PROCESSLIST_ID),0) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks requested ON requested.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID JOIN performance_schema.data_locks blocking ON blocking.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID JOIN performance_schema.threads waiter ON waiter.THREAD_ID=requested.THREAD_ID JOIN performance_schema.threads blocker ON blocker.THREAD_ID=blocking.THREAD_ID WHERE requested.OBJECT_SCHEMA=DATABASE() AND requested.OBJECT_NAME='rcc_auth_control_lock' AND requested.INDEX_NAME='PRIMARY' AND blocking.OBJECT_SCHEMA=requested.OBJECT_SCHEMA AND blocking.OBJECT_NAME=requested.OBJECT_NAME AND blocker.PROCESSLIST_ID=?`, reprepareConnection).Scan(&waiting, &contenderConnection); err != nil {

@@ -1,0 +1,31 @@
+=== RUN   TestTableApprovalBrowserSystemPath
+2026/09/11 04:18:15 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 889d275c99d9d3d4cfe88d799afdc7e0ea5cf40ef7d8043445d6ffcfd6daec24
+  Test ProcessID: aff0fb49-19fe-41f4-97db-2768fe400128
+2026/09/11 04:18:15 🐳 Creating container for image mysql:8.4
+2026/09/11 04:18:15 ✅ Container created: 99e29e43f936
+2026/09/11 04:18:15 🐳 Starting container: 99e29e43f936
+2026/09/11 04:18:15 ✅ Container started: 99e29e43f936
+2026/09/11 04:18:15 ⏳ Waiting for container id 99e29e43f936 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 04:18:22 🔔 Container is ready: 99e29e43f936
+    table_approval_browser_integration_test.go:72: table approval browser: PASS 管理员从正式表目录以键盘配置两个表的独立审批角色
+        PASS 390px 表分配冲突保留空选择，查看最新后明确重选保存
+        PASS VIEWER 成员只批准商品表，页面显示真实部分进度，ADMIN 无通用越权
+        PASS 两个独立角色都通过后，申请人执行真实多表发布
+        PASS 成员变化返回真实范围冲突，刷新保留意见和原范围，390px 键盘明确批准最新两表
+        PASS 空快照不受后来改绑影响，独立 ADMIN 默认接手并保留真实资格来源
+        {"engine":"chromium","checks":["管理员从正式表目录以键盘配置两个表的独立审批角色","390px 表分配冲突保留空选择，查看最新后明确重选保存","VIEWER 成员只批准商品表，页面显示真实部分进度，ADMIN 无通用越权","两个独立角色都通过后，申请人执行真实多表发布","成员变化返回真实范围冲突，刷新保留意见和原范围，390px 键盘明确批准最新两表","空快照不受后来改绑影响，独立 ADMIN 默认接手并保留真实资格来源"],"errors":[]}
+2026/09/11 04:18:47 🐳 Stopping container: 99e29e43f936
+2026/09/11 04:18:48 ✅ Container stopped: 99e29e43f936
+2026/09/11 04:18:48 🐳 Terminating container: 99e29e43f936
+2026/09/11 04:18:48 🚫 Container terminated: 99e29e43f936
+--- PASS: TestTableApprovalBrowserSystemPath (33.28s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	34.471s

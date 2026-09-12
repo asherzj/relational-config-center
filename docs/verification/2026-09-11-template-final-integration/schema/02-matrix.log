@@ -1,0 +1,680 @@
+=== RUN   TestAccountUpgradeFromLegacyMatchesFreshSchema
+2026/09/11 15:19:37 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 7327eb03f815cb911ca0e6814280eed245df20f47d5ef8753dd88007ca97bc68
+  Test ProcessID: 996b3906-176a-42e9-a104-cadc09d40b09
+2026/09/11 15:19:37 🐳 Creating container for image mysql:8.4
+2026/09/11 15:19:37 ✅ Container created: cefa6b3906c3
+2026/09/11 15:19:37 🐳 Starting container: cefa6b3906c3
+2026/09/11 15:19:37 ✅ Container started: cefa6b3906c3
+2026/09/11 15:19:37 ⏳ Waiting for container id cefa6b3906c3 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:19:43 🔔 Container is ready: cefa6b3906c3
+2026/09/11 15:19:54 🐳 Stopping container: cefa6b3906c3
+2026/09/11 15:19:56 ✅ Container stopped: cefa6b3906c3
+2026/09/11 15:19:56 🐳 Terminating container: cefa6b3906c3
+2026/09/11 15:19:56 🚫 Container terminated: cefa6b3906c3
+--- PASS: TestAccountUpgradeFromLegacyMatchesFreshSchema (19.15s)
+=== RUN   TestApprovalNotificationsSchemaUpgradeReadinessAndProtection
+2026/09/11 15:19:58 🐳 Creating container for image mysql:8.4
+2026/09/11 15:19:58 ✅ Container created: c27bbff043e5
+2026/09/11 15:19:58 🐳 Starting container: c27bbff043e5
+2026/09/11 15:19:58 ✅ Container started: c27bbff043e5
+2026/09/11 15:19:58 ⏳ Waiting for container id c27bbff043e5 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:20:04 🔔 Container is ready: c27bbff043e5
+    approval_notifications_schema_integration_test.go:48: actual MySQL 8.4 notification DDL:
+        CREATE TABLE `rcc_approval_notifications` (
+          `account_id` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+          `order_id` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+          `sequence` bigint unsigned NOT NULL DEFAULT '0',
+          `pending` tinyint(1) NOT NULL DEFAULT '0',
+          `pending_sequence` bigint unsigned NOT NULL DEFAULT '0',
+          `result_sequence` bigint unsigned NOT NULL DEFAULT '0',
+          `read_sequence` bigint unsigned NOT NULL DEFAULT '0',
+          PRIMARY KEY (`account_id`,`order_id`),
+          KEY `ix_approval_notification_order` (`order_id`),
+          CONSTRAINT `fk_approval_notification_account` FOREIGN KEY (`account_id`) REFERENCES `rcc_accounts` (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+{"request_id":"rcc-65c91f701b8dc1584f325c1086a4db2c","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-1e064fa3aa29e6ed837a7a313f3e92f0","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-3820c629a9f4999e7a5d5aa66f0db153","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-7b3cc605cb9fd79c26d9da4931977200","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":54}
+{"request_id":"rcc-862932d6a60750fc0de5ab23893e8a5d","method":"GET","path":"/api/v1/database-tables","status":200,"duration_ms":3}
+{"request_id":"rcc-a1066473b0c5a96d02a8caf33dd39876","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":3}
+{"request_id":"rcc-0731c58f6c61630cfffb7be217a7b910","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-e6957cf743875a3aa33e3886616bfc0b","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":5}
+2026/09/11 15:20:13 🐳 Stopping container: c27bbff043e5
+2026/09/11 15:20:14 ✅ Container stopped: c27bbff043e5
+2026/09/11 15:20:14 🐳 Terminating container: c27bbff043e5
+2026/09/11 15:20:14 🚫 Container terminated: c27bbff043e5
+--- PASS: TestApprovalNotificationsSchemaUpgradeReadinessAndProtection (18.62s)
+=== RUN   TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade
+2026/09/11 15:20:15 🐳 Creating container for image mysql:8.4
+2026/09/11 15:20:15 ✅ Container created: de4966c5fa46
+2026/09/11 15:20:15 🐳 Starting container: de4966c5fa46
+2026/09/11 15:20:15 ✅ Container started: de4966c5fa46
+2026/09/11 15:20:15 ⏳ Waiting for container id de4966c5fa46 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:20:22 🔔 Container is ready: de4966c5fa46
+2026/09/11 15:20:30 🐳 Stopping container: de4966c5fa46
+2026/09/11 15:20:32 ✅ Container stopped: de4966c5fa46
+2026/09/11 15:20:32 🐳 Terminating container: de4966c5fa46
+2026/09/11 15:20:32 🚫 Container terminated: de4966c5fa46
+--- PASS: TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade (17.90s)
+=== RUN   TestLegacyApproverFormalCutover
+2026/09/11 15:20:35 🐳 Creating container for image mysql:8.4
+2026/09/11 15:20:35 ✅ Container created: 9ad7c02f9152
+2026/09/11 15:20:35 🐳 Starting container: 9ad7c02f9152
+2026/09/11 15:20:35 ✅ Container started: 9ad7c02f9152
+2026/09/11 15:20:35 ⏳ Waiting for container id 9ad7c02f9152 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:20:43 🔔 Container is ready: 9ad7c02f9152
+    legacy_approver_cutover_integration_test.go:59: cutover changed immutable history, request result/digest/actor, session, notification, role membership, old order or business facts
+2026/09/11 15:20:47 🐳 Stopping container: 9ad7c02f9152
+2026/09/11 15:20:48 ✅ Container stopped: 9ad7c02f9152
+2026/09/11 15:20:48 🐳 Terminating container: 9ad7c02f9152
+2026/09/11 15:20:48 🚫 Container terminated: 9ad7c02f9152
+--- FAIL: TestLegacyApproverFormalCutover (15.33s)
+=== RUN   TestLegacyApproverCurrentInputRejectsRetiredGrants
+2026/09/11 15:20:48 🐳 Creating container for image mysql:8.4
+2026/09/11 15:20:48 ✅ Container created: 159c456e7ada
+2026/09/11 15:20:48 🐳 Starting container: 159c456e7ada
+2026/09/11 15:20:48 ✅ Container started: 159c456e7ada
+2026/09/11 15:20:48 ⏳ Waiting for container id 159c456e7ada image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:20:54 🔔 Container is ready: 159c456e7ada
+{"request_id":"rcc-6204e6d915c8639532af31f4108f36e8","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":9}
+{"request_id":"rcc-ee4c75c91abad25442b3741a4efbb495","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":46}
+{"request_id":"rcc-b6c8305ae8d586884373d9caa5941515","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-d6bfbcb783432a616584848c7be8ca76","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":47}
+{"request_id":"rcc-1b0b071021a347f1d425016cb38f6eee","method":"PUT","path":"/api/v1/account-roles/:id","status":422,"duration_ms":1}
+{"request_id":"rcc-02f729eb75422096bd63ca8bfef5caa3","method":"PUT","path":"/api/v1/account-roles/:id","status":422,"duration_ms":1}
+{"request_id":"rcc-34d85a8a35a637f2c49a908f56a49e6c","method":"PUT","path":"/api/v1/account-roles/:id","status":422,"duration_ms":0}
+2026/09/11 15:20:57 🐳 Stopping container: 159c456e7ada
+2026/09/11 15:20:58 ✅ Container stopped: 159c456e7ada
+2026/09/11 15:20:58 🐳 Terminating container: 159c456e7ada
+2026/09/11 15:20:58 🚫 Container terminated: 159c456e7ada
+--- PASS: TestLegacyApproverCurrentInputRejectsRetiredGrants (10.86s)
+=== RUN   TestLegacyApproverCutoverRecovery
+2026/09/11 15:21:00 🐳 Creating container for image mysql:8.4
+2026/09/11 15:21:00 ✅ Container created: e823a8918451
+2026/09/11 15:21:00 🐳 Starting container: e823a8918451
+2026/09/11 15:21:00 ✅ Container started: e823a8918451
+2026/09/11 15:21:00 ⏳ Waiting for container id e823a8918451 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:21:06 🔔 Container is ready: e823a8918451
+=== RUN   TestLegacyApproverCutoverRecovery/statement_rollback
+    legacy_approver_cutover_integration_test.go:222: migration [recover]: want current, got {"state":"pending","current":9,"required":11,"pending":[10,11],"attempt_id":9,"attempt_version":9,"attempt_digest":"eed4452727632706db385216eebb802052d5226806922de35c85d04894a654e6","attempt_operation":"up"}
+         (<nil>)
+=== RUN   TestLegacyApproverCutoverRecovery/data_committed_before_goose
+    legacy_approver_cutover_integration_test.go:222: migration [recover]: want current, got {"state":"pending","current":9,"required":11,"pending":[10,11],"attempt_id":9,"attempt_version":9,"attempt_digest":"eed4452727632706db385216eebb802052d5226806922de35c85d04894a654e6","attempt_operation":"up"}
+         (<nil>)
+=== RUN   TestLegacyApproverCutoverRecovery/goose_committed_before_confirmation
+    legacy_approver_cutover_integration_test.go:222: migration [recover]: want current, got {"state":"pending","current":9,"required":11,"pending":[10,11],"attempt_id":9,"attempt_version":9,"attempt_digest":"eed4452727632706db385216eebb802052d5226806922de35c85d04894a654e6","attempt_operation":"up"}
+         (<nil>)
+2026/09/11 15:21:14 🐳 Stopping container: e823a8918451
+2026/09/11 15:21:15 ✅ Container stopped: e823a8918451
+2026/09/11 15:21:15 🐳 Terminating container: e823a8918451
+2026/09/11 15:21:15 🚫 Container terminated: e823a8918451
+--- FAIL: TestLegacyApproverCutoverRecovery (16.54s)
+    --- FAIL: TestLegacyApproverCutoverRecovery/statement_rollback (3.85s)
+    --- FAIL: TestLegacyApproverCutoverRecovery/data_committed_before_goose (1.60s)
+    --- FAIL: TestLegacyApproverCutoverRecovery/goose_committed_before_confirmation (1.71s)
+=== RUN   TestLegacyApproverInvalidDataAndMaintenanceBoundary
+2026/09/11 15:21:16 🐳 Creating container for image mysql:8.4
+2026/09/11 15:21:16 ✅ Container created: c3741842ab83
+2026/09/11 15:21:16 🐳 Starting container: c3741842ab83
+2026/09/11 15:21:17 ✅ Container started: c3741842ab83
+2026/09/11 15:21:17 ⏳ Waiting for container id c3741842ab83 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:21:23 🔔 Container is ready: c3741842ab83
+    legacy_approver_cutover_integration_test.go:289: migration [recover]: want current, got {"state":"pending","current":9,"required":11,"pending":[10,11],"attempt_id":9,"attempt_version":9,"attempt_digest":"eed4452727632706db385216eebb802052d5226806922de35c85d04894a654e6","attempt_operation":"up"}
+         (<nil>)
+2026/09/11 15:21:28 🐳 Stopping container: c3741842ab83
+2026/09/11 15:21:29 ✅ Container stopped: c3741842ab83
+2026/09/11 15:21:29 🐳 Terminating container: c3741842ab83
+2026/09/11 15:21:29 🚫 Container terminated: c3741842ab83
+--- FAIL: TestLegacyApproverInvalidDataAndMaintenanceBoundary (14.31s)
+=== RUN   TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval
+2026/09/11 15:21:29 🐳 Creating container for image mysql:8.4
+2026/09/11 15:21:29 ✅ Container created: acb6d733e18d
+2026/09/11 15:21:29 🐳 Starting container: acb6d733e18d
+2026/09/11 15:21:29 ✅ Container started: acb6d733e18d
+2026/09/11 15:21:29 ⏳ Waiting for container id acb6d733e18d image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:21:36 🔔 Container is ready: acb6d733e18d
+{"request_id":"rcc-3c0595a337df41ed15b5ee3cf6fa6216","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-890c64745477b0b1581b290b02a6f7cd","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":46}
+{"request_id":"rcc-dcd2a6bf03f2445a4795fdcce580cd5b","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":8}
+{"request_id":"rcc-1d7fa3a8c46a76bf74b5ea139b6c5671","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":54}
+{"request_id":"rcc-80abb6df82979c9d3a921c9e30e5aaf6","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-b721911e8b090b1a68f84e8e7749d8b1","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":8}
+{"request_id":"rcc-c66c2a04f948725cd30b60a5c354003f","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":4}
+{"request_id":"rcc-19091f5203c031d52bcd97698adddfdf","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-00aad2cc4bbcbf434415b09a44089840","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":13}
+{"request_id":"rcc-3f8001fc2dfef22d48df594d218c7fd4","method":"GET","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":3}
+{"request_id":"rcc-883f2666f2e278a3e25ca317927035db","method":"PUT","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":16}
+{"request_id":"rcc-04c9ec35ef5c7316deed9646c737d283","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":34}
+{"request_id":"rcc-d62b31848c7f1f5fedba753fe3bd1998","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":68}
+{"request_id":"rcc-aa27db8dcb8d99a361f9b57292038e62","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":7}
+{"request_id":"rcc-bc15c2d7da4894ca1c25f56c14bced72","method":"POST","path":"/api/v1/release-orders/:id/approve","status":200,"duration_ms":29}
+{"request_id":"rcc-4840c9d8cd997a7acecefec20c7ebf31","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":39}
+{"request_id":"rcc-1730efc7ccab6263662ba7166cd769d4","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":64}
+{"request_id":"rcc-7072afbb7e9b38cd763bf393094c90a4","method":"GET","path":"/api/v1/approval-notifications","status":200,"duration_ms":1}
+{"request_id":"rcc-745f3858ce9cc1f168fcb2a7ae487065","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":7}
+    legacy_approver_cutover_integration_test.go:380: Error 1146 (42S02): Table 'cutover_live_v8.rcc_release_templates' doesn't exist
+2026/09/11 15:21:43 🐳 Stopping container: acb6d733e18d
+2026/09/11 15:21:46 ✅ Container stopped: acb6d733e18d
+2026/09/11 15:21:46 🐳 Terminating container: acb6d733e18d
+2026/09/11 15:21:46 🚫 Container terminated: acb6d733e18d
+--- FAIL: TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval (16.88s)
+=== RUN   TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory
+2026/09/11 15:21:47 🐳 Creating container for image mysql:8.4
+2026/09/11 15:21:47 ✅ Container created: 954c07b0b41e
+2026/09/11 15:21:47 🐳 Starting container: 954c07b0b41e
+2026/09/11 15:21:47 ✅ Container started: 954c07b0b41e
+2026/09/11 15:21:47 ⏳ Waiting for container id 954c07b0b41e image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:21:54 🔔 Container is ready: 954c07b0b41e
+    schema_baseline_integration_test.go:126: explicit upgrade changed historical control or business data
+2026/09/11 15:21:56 🐳 Stopping container: 954c07b0b41e
+2026/09/11 15:21:58 ✅ Container stopped: 954c07b0b41e
+2026/09/11 15:21:58 🐳 Terminating container: 954c07b0b41e
+2026/09/11 15:21:58 🚫 Container terminated: 954c07b0b41e
+--- FAIL: TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory (11.64s)
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites
+2026/09/11 15:21:59 🐳 Creating container for image mysql:8.4
+2026/09/11 15:21:59 ✅ Container created: 476fb8309edf
+2026/09/11 15:21:59 🐳 Starting container: 476fb8309edf
+2026/09/11 15:21:59 ✅ Container started: 476fb8309edf
+2026/09/11 15:21:59 ⏳ Waiting for container id 476fb8309edf image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:22:06 🔔 Container is ready: 476fb8309edf
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/missing_table
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/missing_column
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/extra_column
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/type
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/default
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/default_containing_table_option_text
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/index
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/check
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/foreign_key
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/engine
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/empty_roles
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/unknown_role
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/zero_role_version
+=== RUN   TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/required_metadata
+2026/09/11 15:22:08 🐳 Stopping container: 476fb8309edf
+2026/09/11 15:22:09 ✅ Container stopped: 476fb8309edf
+2026/09/11 15:22:09 🐳 Terminating container: 476fb8309edf
+2026/09/11 15:22:09 🚫 Container terminated: 476fb8309edf
+--- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites (11.11s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/missing_table (0.85s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/missing_column (0.12s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/extra_column (0.09s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/type (0.11s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/default (0.09s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/default_containing_table_option_text (0.09s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/index (0.11s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/check (0.10s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/foreign_key (0.09s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/engine (0.08s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/empty_roles (0.10s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/unknown_role (0.10s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/zero_role_version (0.11s)
+    --- PASS: TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites/required_metadata (0.10s)
+=== RUN   TestSchemaBaselineRecoversUnconfirmedRegistration
+2026/09/11 15:22:09 🐳 Creating container for image mysql:8.4
+2026/09/11 15:22:09 ✅ Container created: f21b91a0e7a5
+2026/09/11 15:22:09 🐳 Starting container: f21b91a0e7a5
+2026/09/11 15:22:10 ✅ Container started: f21b91a0e7a5
+2026/09/11 15:22:10 ⏳ Waiting for container id f21b91a0e7a5 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:22:16 🔔 Container is ready: f21b91a0e7a5
+2026/09/11 15:22:22 🐳 Stopping container: f21b91a0e7a5
+2026/09/11 15:22:23 ✅ Container stopped: f21b91a0e7a5
+2026/09/11 15:22:23 🐳 Terminating container: f21b91a0e7a5
+2026/09/11 15:22:23 🚫 Container terminated: f21b91a0e7a5
+--- PASS: TestSchemaBaselineRecoversUnconfirmedRegistration (14.55s)
+=== RUN   TestSchemaBaselineReleaseUpgradesT1AndRecoversPartialAuditRename
+2026/09/11 15:22:25 🐳 Creating container for image mysql:8.4
+2026/09/11 15:22:25 ✅ Container created: c456888c2875
+2026/09/11 15:22:25 🐳 Starting container: c456888c2875
+2026/09/11 15:22:26 ✅ Container started: c456888c2875
+2026/09/11 15:22:26 ⏳ Waiting for container id c456888c2875 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:22:32 🔔 Container is ready: c456888c2875
+2026/09/11 15:22:34 🐳 Stopping container: c456888c2875
+2026/09/11 15:22:35 ✅ Container stopped: c456888c2875
+2026/09/11 15:22:35 🐳 Terminating container: c456888c2875
+2026/09/11 15:22:35 🚫 Container terminated: c456888c2875
+--- PASS: TestSchemaBaselineReleaseUpgradesT1AndRecoversPartialAuditRename (11.72s)
+=== RUN   TestSchemaBaselineRecoversBeforeAttemptWasRecorded
+2026/09/11 15:22:36 🐳 Creating container for image mysql:8.4
+2026/09/11 15:22:36 ✅ Container created: 6338dfbde939
+2026/09/11 15:22:36 🐳 Starting container: 6338dfbde939
+2026/09/11 15:22:36 ✅ Container started: 6338dfbde939
+2026/09/11 15:22:36 ⏳ Waiting for container id 6338dfbde939 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:22:43 🔔 Container is ready: 6338dfbde939
+2026/09/11 15:22:44 🐳 Stopping container: 6338dfbde939
+2026/09/11 15:22:46 ✅ Container stopped: 6338dfbde939
+2026/09/11 15:22:46 🐳 Terminating container: 6338dfbde939
+2026/09/11 15:22:46 🚫 Container terminated: 6338dfbde939
+--- PASS: TestSchemaBaselineRecoversBeforeAttemptWasRecorded (10.43s)
+=== RUN   TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix
+2026/09/11 15:22:46 🐳 Creating container for image mysql:8.4
+2026/09/11 15:22:46 ✅ Container created: 8aa019fc89ca
+2026/09/11 15:22:46 🐳 Starting container: 8aa019fc89ca
+2026/09/11 15:22:46 ✅ Container started: 8aa019fc89ca
+2026/09/11 15:22:46 ⏳ Waiting for container id 8aa019fc89ca image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:22:53 🔔 Container is ready: 8aa019fc89ca
+2026/09/11 15:22:54 🐳 Stopping container: 8aa019fc89ca
+2026/09/11 15:22:56 ✅ Container stopped: 8aa019fc89ca
+2026/09/11 15:22:56 🐳 Terminating container: 8aa019fc89ca
+2026/09/11 15:22:56 🚫 Container terminated: 8aa019fc89ca
+--- PASS: TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix (9.99s)
+=== RUN   TestSchemaBaselineProcessInterruptionRetainsUnconfirmedState
+2026/09/11 15:22:56 🐳 Creating container for image mysql:8.4
+2026/09/11 15:22:56 ✅ Container created: 4c5bdc8cc8fc
+2026/09/11 15:22:56 🐳 Starting container: 4c5bdc8cc8fc
+2026/09/11 15:22:56 ✅ Container started: 4c5bdc8cc8fc
+2026/09/11 15:22:56 ⏳ Waiting for container id 4c5bdc8cc8fc image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:23:03 🔔 Container is ready: 4c5bdc8cc8fc
+2026/09/11 15:23:07 🐳 Stopping container: 4c5bdc8cc8fc
+2026/09/11 15:23:08 ✅ Container stopped: 4c5bdc8cc8fc
+2026/09/11 15:23:08 🐳 Terminating container: 4c5bdc8cc8fc
+2026/09/11 15:23:08 🚫 Container terminated: 4c5bdc8cc8fc
+--- PASS: TestSchemaBaselineProcessInterruptionRetainsUnconfirmedState (12.59s)
+=== RUN   TestSchemaBaselineUsesTransactionalVersionLedger
+2026/09/11 15:23:09 🐳 Creating container for image mysql:8.4
+2026/09/11 15:23:09 ✅ Container created: 89a478443c0a
+2026/09/11 15:23:09 🐳 Starting container: 89a478443c0a
+2026/09/11 15:23:09 ✅ Container started: 89a478443c0a
+2026/09/11 15:23:09 ⏳ Waiting for container id 89a478443c0a image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:23:15 🔔 Container is ready: 89a478443c0a
+2026/09/11 15:23:16 🐳 Stopping container: 89a478443c0a
+2026/09/11 15:23:17 ✅ Container stopped: 89a478443c0a
+2026/09/11 15:23:17 🐳 Terminating container: 89a478443c0a
+2026/09/11 15:23:17 🚫 Container terminated: 89a478443c0a
+--- PASS: TestSchemaBaselineUsesTransactionalVersionLedger (8.75s)
+=== RUN   TestSchemaBaselineRefusesToRecreateLostConfirmedHistory
+2026/09/11 15:23:17 🐳 Creating container for image mysql:8.4
+2026/09/11 15:23:17 ✅ Container created: c2d931d01fca
+2026/09/11 15:23:17 🐳 Starting container: c2d931d01fca
+2026/09/11 15:23:18 ✅ Container started: c2d931d01fca
+2026/09/11 15:23:18 ⏳ Waiting for container id c2d931d01fca image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:23:24 🔔 Container is ready: c2d931d01fca
+2026/09/11 15:23:25 🐳 Stopping container: c2d931d01fca
+2026/09/11 15:23:26 ✅ Container stopped: c2d931d01fca
+2026/09/11 15:23:26 🐳 Terminating container: c2d931d01fca
+2026/09/11 15:23:26 🚫 Container terminated: c2d931d01fca
+--- PASS: TestSchemaBaselineRefusesToRecreateLostConfirmedHistory (9.33s)
+=== RUN   TestBaselineGooseInstallationMatchesFrozenAdoptionStructure
+2026/09/11 15:23:26 🐳 Creating container for image mysql:8.4
+2026/09/11 15:23:26 ✅ Container created: 26b5e520956a
+2026/09/11 15:23:26 🐳 Starting container: 26b5e520956a
+2026/09/11 15:23:26 ✅ Container started: 26b5e520956a
+2026/09/11 15:23:26 ⏳ Waiting for container id 26b5e520956a image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:23:33 🔔 Container is ready: 26b5e520956a
+2026/09/11 15:23:36 🐳 Stopping container: 26b5e520956a
+2026/09/11 15:23:37 ✅ Container stopped: 26b5e520956a
+2026/09/11 15:23:37 🐳 Terminating container: 26b5e520956a
+2026/09/11 15:23:37 🚫 Container terminated: 26b5e520956a
+--- PASS: TestBaselineGooseInstallationMatchesFrozenAdoptionStructure (10.87s)
+=== RUN   TestSchemaMigrationAddsFieldPoliciesWithoutChangingPublishedState
+2026/09/11 15:23:39 🐳 Creating container for image mysql:8.4
+2026/09/11 15:23:39 ✅ Container created: f1c5fcff0dd7
+2026/09/11 15:23:39 🐳 Starting container: f1c5fcff0dd7
+2026/09/11 15:23:39 ✅ Container started: f1c5fcff0dd7
+2026/09/11 15:23:39 ⏳ Waiting for container id f1c5fcff0dd7 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:23:46 🔔 Container is ready: f1c5fcff0dd7
+2026/09/11 15:23:54 🐳 Stopping container: f1c5fcff0dd7
+2026/09/11 15:23:55 ✅ Container stopped: f1c5fcff0dd7
+2026/09/11 15:23:55 🐳 Terminating container: f1c5fcff0dd7
+2026/09/11 15:23:55 🚫 Container terminated: f1c5fcff0dd7
+--- PASS: TestSchemaMigrationAddsFieldPoliciesWithoutChangingPublishedState (17.72s)
+=== RUN   TestSchemaMigrationInitializesEmptyDatabase
+2026/09/11 15:23:55 🐳 Creating container for image mysql:8.4
+2026/09/11 15:23:55 ✅ Container created: fcdab71420fc
+2026/09/11 15:23:55 🐳 Starting container: fcdab71420fc
+2026/09/11 15:23:56 ✅ Container started: fcdab71420fc
+2026/09/11 15:23:56 ⏳ Waiting for container id fcdab71420fc image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:24:02 🔔 Container is ready: fcdab71420fc
+2026/09/11 15:24:04 🐳 Stopping container: fcdab71420fc
+2026/09/11 15:24:05 ✅ Container stopped: fcdab71420fc
+2026/09/11 15:24:05 🐳 Terminating container: fcdab71420fc
+2026/09/11 15:24:05 🚫 Container terminated: fcdab71420fc
+--- PASS: TestSchemaMigrationInitializesEmptyDatabase (10.32s)
+=== RUN   TestSchemaMigrationConcurrentInitialization
+2026/09/11 15:24:06 🐳 Creating container for image mysql:8.4
+2026/09/11 15:24:06 ✅ Container created: f40ee4741c55
+2026/09/11 15:24:06 🐳 Starting container: f40ee4741c55
+2026/09/11 15:24:06 ✅ Container started: f40ee4741c55
+2026/09/11 15:24:06 ⏳ Waiting for container id f40ee4741c55 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:24:12 🔔 Container is ready: f40ee4741c55
+2026/09/11 15:24:14 🐳 Stopping container: f40ee4741c55
+2026/09/11 15:24:15 ✅ Container stopped: f40ee4741c55
+2026/09/11 15:24:15 🐳 Terminating container: f40ee4741c55
+2026/09/11 15:24:15 🚫 Container terminated: f40ee4741c55
+--- PASS: TestSchemaMigrationConcurrentInitialization (10.11s)
+=== RUN   TestSchemaMigrationWaitsForMaintenanceLockWithDeadline
+2026/09/11 15:24:16 🐳 Creating container for image mysql:8.4
+2026/09/11 15:24:16 ✅ Container created: 01dfbd5afb56
+2026/09/11 15:24:16 🐳 Starting container: 01dfbd5afb56
+2026/09/11 15:24:16 ✅ Container started: 01dfbd5afb56
+2026/09/11 15:24:16 ⏳ Waiting for container id 01dfbd5afb56 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:24:22 🔔 Container is ready: 01dfbd5afb56
+2026/09/11 15:24:24 🐳 Stopping container: 01dfbd5afb56
+2026/09/11 15:24:26 ✅ Container stopped: 01dfbd5afb56
+2026/09/11 15:24:26 🐳 Terminating container: 01dfbd5afb56
+2026/09/11 15:24:26 🚫 Container terminated: 01dfbd5afb56
+--- PASS: TestSchemaMigrationWaitsForMaintenanceLockWithDeadline (10.57s)
+=== RUN   TestSchemaMigrationPartialDDLRequiresExplicitRecovery
+2026/09/11 15:24:26 🐳 Creating container for image mysql:8.4
+2026/09/11 15:24:26 ✅ Container created: 5ca1fcb92c5a
+2026/09/11 15:24:26 🐳 Starting container: 5ca1fcb92c5a
+2026/09/11 15:24:27 ✅ Container started: 5ca1fcb92c5a
+2026/09/11 15:24:27 ⏳ Waiting for container id 5ca1fcb92c5a image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:24:33 🔔 Container is ready: 5ca1fcb92c5a
+2026/09/11 15:24:37 🐳 Stopping container: 5ca1fcb92c5a
+2026/09/11 15:24:38 ✅ Container stopped: 5ca1fcb92c5a
+2026/09/11 15:24:38 🐳 Terminating container: 5ca1fcb92c5a
+2026/09/11 15:24:38 🚫 Container terminated: 5ca1fcb92c5a
+--- PASS: TestSchemaMigrationPartialDDLRequiresExplicitRecovery (12.40s)
+=== RUN   TestSchemaMigrationUpgradesToNextRelease
+2026/09/11 15:24:40 🐳 Creating container for image mysql:8.4
+2026/09/11 15:24:40 ✅ Container created: 8ca1a6b198db
+2026/09/11 15:24:40 🐳 Starting container: 8ca1a6b198db
+2026/09/11 15:24:40 ✅ Container started: 8ca1a6b198db
+2026/09/11 15:24:40 ⏳ Waiting for container id 8ca1a6b198db image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:24:46 🔔 Container is ready: 8ca1a6b198db
+2026/09/11 15:24:52 🐳 Stopping container: 8ca1a6b198db
+2026/09/11 15:24:53 ✅ Container stopped: 8ca1a6b198db
+2026/09/11 15:24:53 🐳 Terminating container: 8ca1a6b198db
+2026/09/11 15:24:53 🚫 Container terminated: 8ca1a6b198db
+--- PASS: TestSchemaMigrationUpgradesToNextRelease (14.27s)
+=== RUN   TestReleaseTemplateSchemaMigrationUpgradesVersionFive
+2026/09/11 15:24:54 🐳 Creating container for image mysql:8.4
+2026/09/11 15:24:54 ✅ Container created: e6292d23240b
+2026/09/11 15:24:54 🐳 Starting container: e6292d23240b
+2026/09/11 15:24:54 ✅ Container started: e6292d23240b
+2026/09/11 15:24:54 ⏳ Waiting for container id e6292d23240b image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:25:00 🔔 Container is ready: e6292d23240b
+2026/09/11 15:25:05 🐳 Stopping container: e6292d23240b
+2026/09/11 15:25:07 ✅ Container stopped: e6292d23240b
+2026/09/11 15:25:07 🐳 Terminating container: e6292d23240b
+2026/09/11 15:25:07 🚫 Container terminated: e6292d23240b
+--- PASS: TestReleaseTemplateSchemaMigrationUpgradesVersionFive (14.25s)
+=== RUN   TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery
+2026/09/11 15:25:08 🐳 Creating container for image mysql:8.4
+2026/09/11 15:25:08 ✅ Container created: cbccb0a9bee3
+2026/09/11 15:25:08 🐳 Starting container: cbccb0a9bee3
+2026/09/11 15:25:08 ✅ Container started: cbccb0a9bee3
+2026/09/11 15:25:08 ⏳ Waiting for container id cbccb0a9bee3 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:25:15 🔔 Container is ready: cbccb0a9bee3
+2026/09/11 15:25:18 🐳 Stopping container: cbccb0a9bee3
+2026/09/11 15:25:19 ✅ Container stopped: cbccb0a9bee3
+2026/09/11 15:25:19 🐳 Terminating container: cbccb0a9bee3
+2026/09/11 15:25:19 🚫 Container terminated: cbccb0a9bee3
+--- PASS: TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery (12.31s)
+=== RUN   TestSchemaMigrationRecoversInterruptedBootstrap
+2026/09/11 15:25:20 🐳 Creating container for image mysql:8.4
+2026/09/11 15:25:20 ✅ Container created: 76cdac4aab92
+2026/09/11 15:25:20 🐳 Starting container: 76cdac4aab92
+2026/09/11 15:25:20 ✅ Container started: 76cdac4aab92
+2026/09/11 15:25:20 ⏳ Waiting for container id 76cdac4aab92 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:25:26 🔔 Container is ready: 76cdac4aab92
+2026/09/11 15:25:28 🐳 Stopping container: 76cdac4aab92
+2026/09/11 15:25:29 ✅ Container stopped: 76cdac4aab92
+2026/09/11 15:25:29 🐳 Terminating container: 76cdac4aab92
+2026/09/11 15:25:29 🚫 Container terminated: 76cdac4aab92
+--- PASS: TestSchemaMigrationRecoversInterruptedBootstrap (10.31s)
+=== RUN   TestSchemaMigrationProcessInterruptionRequiresSameReleaseRecovery
+2026/09/11 15:25:32 🐳 Creating container for image mysql:8.4
+2026/09/11 15:25:32 ✅ Container created: 31b4b12233e7
+2026/09/11 15:25:32 🐳 Starting container: 31b4b12233e7
+2026/09/11 15:25:32 ✅ Container started: 31b4b12233e7
+2026/09/11 15:25:32 ⏳ Waiting for container id 31b4b12233e7 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:25:38 🔔 Container is ready: 31b4b12233e7
+2026/09/11 15:25:48 🐳 Stopping container: 31b4b12233e7
+2026/09/11 15:25:50 ✅ Container stopped: 31b4b12233e7
+2026/09/11 15:25:50 🐳 Terminating container: 31b4b12233e7
+2026/09/11 15:25:50 🚫 Container terminated: 31b4b12233e7
+--- PASS: TestSchemaMigrationProcessInterruptionRequiresSameReleaseRecovery (20.15s)
+=== RUN   TestSchemaMigrationRejectsIncompleteVersionHistory
+2026/09/11 15:25:51 🐳 Creating container for image mysql:8.4
+2026/09/11 15:25:51 ✅ Container created: 7d4f794df156
+2026/09/11 15:25:51 🐳 Starting container: 7d4f794df156
+2026/09/11 15:25:51 ✅ Container started: 7d4f794df156
+2026/09/11 15:25:51 ⏳ Waiting for container id 7d4f794df156 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:25:57 🔔 Container is ready: 7d4f794df156
+2026/09/11 15:25:59 🐳 Stopping container: 7d4f794df156
+2026/09/11 15:26:00 ✅ Container stopped: 7d4f794df156
+2026/09/11 15:26:00 🐳 Terminating container: 7d4f794df156
+2026/09/11 15:26:00 🚫 Container terminated: 7d4f794df156
+--- PASS: TestSchemaMigrationRejectsIncompleteVersionHistory (10.89s)
+=== RUN   TestSchemaMigrationRecoversMissingZeroVersion
+2026/09/11 15:26:01 🐳 Creating container for image mysql:8.4
+2026/09/11 15:26:01 ✅ Container created: 6a9273bc99a2
+2026/09/11 15:26:01 🐳 Starting container: 6a9273bc99a2
+2026/09/11 15:26:01 ✅ Container started: 6a9273bc99a2
+2026/09/11 15:26:01 ⏳ Waiting for container id 6a9273bc99a2 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:26:08 🔔 Container is ready: 6a9273bc99a2
+2026/09/11 15:26:09 🐳 Stopping container: 6a9273bc99a2
+2026/09/11 15:26:11 ✅ Container stopped: 6a9273bc99a2
+2026/09/11 15:26:11 🐳 Terminating container: 6a9273bc99a2
+2026/09/11 15:26:11 🚫 Container terminated: 6a9273bc99a2
+--- PASS: TestSchemaMigrationRecoversMissingZeroVersion (10.49s)
+=== RUN   TestSchemaMigrationConnectionDeadlineAndSafeDiagnostics
+--- PASS: TestSchemaMigrationConnectionDeadlineAndSafeDiagnostics (2.24s)
+=== RUN   TestSchemaMigrationLeavesUnmanagedDatabaseUntouched
+2026/09/11 15:26:14 🐳 Creating container for image mysql:8.4
+2026/09/11 15:26:14 ✅ Container created: 1da7fb6e6240
+2026/09/11 15:26:14 🐳 Starting container: 1da7fb6e6240
+2026/09/11 15:26:14 ✅ Container started: 1da7fb6e6240
+2026/09/11 15:26:14 ⏳ Waiting for container id 1da7fb6e6240 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:26:20 🔔 Container is ready: 1da7fb6e6240
+2026/09/11 15:26:21 🐳 Stopping container: 1da7fb6e6240
+2026/09/11 15:26:22 ✅ Container stopped: 1da7fb6e6240
+2026/09/11 15:26:22 🐳 Terminating container: 1da7fb6e6240
+2026/09/11 15:26:22 🚫 Container terminated: 1da7fb6e6240
+--- PASS: TestSchemaMigrationLeavesUnmanagedDatabaseUntouched (9.31s)
+=== RUN   TestSchemaReadinessRejectsUnmanagedStartup
+2026/09/11 15:26:23 🐳 Creating container for image mysql:8.4
+2026/09/11 15:26:23 ✅ Container created: 4bfdf8abef02
+2026/09/11 15:26:23 🐳 Starting container: 4bfdf8abef02
+2026/09/11 15:26:23 ✅ Container started: 4bfdf8abef02
+2026/09/11 15:26:23 ⏳ Waiting for container id 4bfdf8abef02 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:26:30 🔔 Container is ready: 4bfdf8abef02
+2026/09/11 15:26:33 🐳 Stopping container: 4bfdf8abef02
+2026/09/11 15:26:34 ✅ Container stopped: 4bfdf8abef02
+2026/09/11 15:26:34 🐳 Terminating container: 4bfdf8abef02
+2026/09/11 15:26:34 🚫 Container terminated: 4bfdf8abef02
+--- PASS: TestSchemaReadinessRejectsUnmanagedStartup (11.78s)
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly
+2026/09/11 15:26:34 🐳 Creating container for image mysql:8.4
+2026/09/11 15:26:34 ✅ Container created: 310ef534000a
+2026/09/11 15:26:34 🐳 Starting container: 310ef534000a
+2026/09/11 15:26:34 ✅ Container started: 310ef534000a
+2026/09/11 15:26:34 ⏳ Waiting for container id 310ef534000a image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:26:41 🔔 Container is ready: 310ef534000a
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_approval_notifications
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_release_templates
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_check
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_default_emergency_template
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_unique_key
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_check
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unenforced_check
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_engine
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/empty_roles
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown_role
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_4
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_12
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_20
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_31
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/zero_role_version
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_engine
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_column
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/older_unconfirmed_attempt
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_required_metadata
+2026/09/11 15:26:52 🐳 Stopping container: 310ef534000a
+2026/09/11 15:26:53 ✅ Container stopped: 310ef534000a
+2026/09/11 15:26:53 🐳 Terminating container: 310ef534000a
+2026/09/11 15:26:53 🚫 Container terminated: 310ef534000a
+--- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly (19.05s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged (0.15s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead (0.15s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown (0.14s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest (0.16s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column (0.22s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default (0.18s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index (0.21s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy (0.25s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_approval_notifications (0.17s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_release_templates (0.24s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key (0.29s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_check (0.29s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_default_emergency_template (0.27s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_unique_key (0.27s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_check (0.26s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unenforced_check (0.22s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_engine (0.20s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/empty_roles (0.27s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown_role (0.25s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_4 (0.30s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_12 (0.39s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_20 (0.28s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/retired_role_31 (0.40s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/zero_role_version (0.33s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_engine (0.21s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_column (0.20s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/older_unconfirmed_attempt (0.20s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_required_metadata (0.36s)
+=== RUN   TestSchemaReadinessRejectsKnownOldRelease
+2026/09/11 15:26:53 🐳 Creating container for image mysql:8.4
+2026/09/11 15:26:53 ✅ Container created: 16ed0d594ac8
+2026/09/11 15:26:53 🐳 Starting container: 16ed0d594ac8
+2026/09/11 15:26:54 ✅ Container started: 16ed0d594ac8
+2026/09/11 15:26:54 ⏳ Waiting for container id 16ed0d594ac8 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:27:00 🔔 Container is ready: 16ed0d594ac8
+    schema_readiness_integration_test.go:182: Error 3730 (HY000): Cannot drop table 'rcc_release_templates' referenced by a foreign key constraint 'fk_table_release_template_type' on table 'rcc_table_release_templates'.
+2026/09/11 15:27:07 🐳 Stopping container: 16ed0d594ac8
+2026/09/11 15:27:08 ✅ Container stopped: 16ed0d594ac8
+2026/09/11 15:27:08 🐳 Terminating container: 16ed0d594ac8
+2026/09/11 15:27:08 🚫 Container terminated: 16ed0d594ac8
+--- FAIL: TestSchemaReadinessRejectsKnownOldRelease (14.20s)
+=== RUN   TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts
+2026/09/11 15:27:10 🐳 Creating container for image mysql:8.4
+2026/09/11 15:27:10 ✅ Container created: 4accf79995ad
+2026/09/11 15:27:10 🐳 Starting container: 4accf79995ad
+2026/09/11 15:27:11 ✅ Container started: 4accf79995ad
+2026/09/11 15:27:11 ⏳ Waiting for container id 4accf79995ad image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:27:17 🔔 Container is ready: 4accf79995ad
+    schema_release_details_integration_test.go:38: additive interruption: migration_failed: inspect actual schema before retrying; DDL may have committed
+    schema_release_details_integration_test.go:59: ownership interruption: migration_failed: inspect actual schema before retrying; DDL may have committed
+2026/09/11 15:27:21 🐳 Stopping container: 4accf79995ad
+2026/09/11 15:27:22 ✅ Container stopped: 4accf79995ad
+2026/09/11 15:27:22 🐳 Terminating container: 4accf79995ad
+2026/09/11 15:27:22 🚫 Container terminated: 4accf79995ad
+--- PASS: TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts (14.70s)
+=== RUN   TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts
+2026/09/11 15:27:24 🐳 Creating container for image mysql:8.4
+2026/09/11 15:27:24 ✅ Container created: defe97893cc8
+2026/09/11 15:27:24 🐳 Starting container: defe97893cc8
+2026/09/11 15:27:24 ✅ Container started: defe97893cc8
+2026/09/11 15:27:24 ⏳ Waiting for container id defe97893cc8 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:27:31 🔔 Container is ready: defe97893cc8
+{"request_id":"rcc-ce298134b095b4174a347c602b1b058a","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":8}
+{"request_id":"rcc-54acf2771052e255b5ffb353f70abd33","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":48}
+{"request_id":"rcc-6bd3e4a7c1d289a4ae06ae1f4469f45f","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-d69a735a409372e34c89430d1e4117f1","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":56}
+{"request_id":"rcc-8153726aa3b118bd25444c88f5f4f0da","method":"GET","path":"/api/v1/database-tables","status":200,"duration_ms":4}
+{"request_id":"rcc-99d0324b1d5d2d23ce5da21f4f29a453","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":3}
+{"request_id":"rcc-7a3758cd5e4d107ffe07bd9e9779b48f","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-8206a1e5e2c5bee48ffe5cc677c1b62b","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":5}
+{"request_id":"rcc-5b14a3dd34430179e0e64f31a6e8f0e2","method":"GET","path":"/api/v1/database-tables/:table_name","status":404,"duration_ms":2}
+{"request_id":"rcc-3c22dafa102e1a0177c4cafbaa991614","method":"POST","path":"/api/v1/tables/:table_name/query","status":403,"duration_ms":0}
+{"request_id":"rcc-b1054b235f2aa3a3a8c3c59a36e962d1","method":"POST","path":"/api/v1/release-orders","status":403,"duration_ms":4}
+2026/09/11 15:27:41 🐳 Stopping container: defe97893cc8
+2026/09/11 15:27:42 ✅ Container stopped: defe97893cc8
+2026/09/11 15:27:42 🐳 Terminating container: defe97893cc8
+2026/09/11 15:27:42 🚫 Container terminated: defe97893cc8
+--- PASS: TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts (19.80s)
+=== RUN   TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections
+2026/09/11 15:27:43 🐳 Creating container for image mysql:8.4
+2026/09/11 15:27:43 ✅ Container created: 1252ad910977
+2026/09/11 15:27:43 🐳 Starting container: 1252ad910977
+2026/09/11 15:27:44 ✅ Container started: 1252ad910977
+2026/09/11 15:27:44 ⏳ Waiting for container id 1252ad910977 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:27:50 🔔 Container is ready: 1252ad910977
+2026/09/11 15:27:54 🐳 Stopping container: 1252ad910977
+2026/09/11 15:27:55 ✅ Container stopped: 1252ad910977
+2026/09/11 15:27:55 🐳 Terminating container: 1252ad910977
+2026/09/11 15:27:55 🚫 Container terminated: 1252ad910977
+--- PASS: TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections (13.05s)
+=== RUN   TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly
+2026/09/11 15:27:55 🐳 Creating container for image mysql:8.4
+2026/09/11 15:27:55 ✅ Container created: 64dbd2056803
+2026/09/11 15:27:55 🐳 Starting container: 64dbd2056803
+2026/09/11 15:27:55 ✅ Container started: 64dbd2056803
+2026/09/11 15:27:55 ⏳ Waiting for container id 64dbd2056803 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:28:01 🔔 Container is ready: 64dbd2056803
+=== RUN   TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_role
+=== RUN   TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_node_type
+=== RUN   TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/duplicate_node_code
+2026/09/11 15:28:08 🐳 Stopping container: 64dbd2056803
+2026/09/11 15:28:09 ✅ Container stopped: 64dbd2056803
+2026/09/11 15:28:09 🐳 Terminating container: 64dbd2056803
+2026/09/11 15:28:09 🚫 Container terminated: 64dbd2056803
+--- PASS: TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly (13.70s)
+    --- PASS: TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_role (0.09s)
+    --- PASS: TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_node_type (0.09s)
+    --- PASS: TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/duplicate_node_code (0.09s)
+=== RUN   TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults
+2026/09/11 15:28:10 🐳 Creating container for image mysql:8.4
+2026/09/11 15:28:10 ✅ Container created: ae5c3126ec74
+2026/09/11 15:28:10 🐳 Starting container: ae5c3126ec74
+2026/09/11 15:28:10 ✅ Container started: ae5c3126ec74
+2026/09/11 15:28:10 ⏳ Waiting for container id ae5c3126ec74 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:28:16 🔔 Container is ready: ae5c3126ec74
+=== RUN   TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults/disabled
+=== RUN   TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults/deleted
+2026/09/11 15:28:21 🐳 Stopping container: ae5c3126ec74
+2026/09/11 15:28:23 ✅ Container stopped: ae5c3126ec74
+2026/09/11 15:28:23 🐳 Terminating container: ae5c3126ec74
+2026/09/11 15:28:23 🚫 Container terminated: ae5c3126ec74
+--- PASS: TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults (14.04s)
+    --- PASS: TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults/disabled (3.17s)
+    --- PASS: TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults/deleted (1.78s)
+=== RUN   TestTableReleaseSchemaRecoveryKeepsExistingSelections
+2026/09/11 15:28:24 🐳 Creating container for image mysql:8.4
+2026/09/11 15:28:24 ✅ Container created: 354a86208144
+2026/09/11 15:28:24 🐳 Starting container: 354a86208144
+2026/09/11 15:28:24 ✅ Container started: 354a86208144
+2026/09/11 15:28:24 ⏳ Waiting for container id 354a86208144 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:28:31 🔔 Container is ready: 354a86208144
+2026/09/11 15:28:34 🐳 Stopping container: 354a86208144
+2026/09/11 15:28:35 ✅ Container stopped: 354a86208144
+2026/09/11 15:28:35 🐳 Terminating container: 354a86208144
+2026/09/11 15:28:35 🚫 Container terminated: 354a86208144
+--- PASS: TestTableReleaseSchemaRecoveryKeepsExistingSelections (12.36s)
+=== RUN   TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness
+2026/09/11 15:28:35 🐳 Creating container for image mysql:8.4
+2026/09/11 15:28:35 ✅ Container created: 793bc8b9ad98
+2026/09/11 15:28:35 🐳 Starting container: 793bc8b9ad98
+2026/09/11 15:28:35 ✅ Container started: 793bc8b9ad98
+2026/09/11 15:28:35 ⏳ Waiting for container id 793bc8b9ad98 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:28:41 🔔 Container is ready: 793bc8b9ad98
+    template_approval_schema_integration_test.go:31: template upgrade changed published role, membership, assignment, request, audit or business facts
+2026/09/11 15:28:47 🐳 Stopping container: 793bc8b9ad98
+2026/09/11 15:28:48 ✅ Container stopped: 793bc8b9ad98
+2026/09/11 15:28:48 🐳 Terminating container: 793bc8b9ad98
+2026/09/11 15:28:48 🚫 Container terminated: 793bc8b9ad98
+--- FAIL: TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness (12.65s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	552.684s
+FAIL

@@ -1,0 +1,426 @@
+{
+  "required_count": 12,
+  "effective_passed": 12,
+  "rows": [
+    {
+      "test": "TestAccountBrowserSystemPath",
+      "attempts": [
+        {
+          "attempt": "01",
+          "source": "source-11.json",
+          "status": "FAIL",
+          "duration": "12.23s",
+          "log": "raw/browser-TestAccountBrowserSystemPath-01.log",
+          "output": null,
+          "subtests": [],
+          "requested_output": "go-browser/TestAccountBrowserSystemPath-01",
+          "note": "Directory was not created; raw log contains the original provisioning failure."
+        },
+        {
+          "attempt": "02",
+          "source": "source-12.json",
+          "status": "PASS",
+          "duration": "233.27s",
+          "log": "raw/browser-TestAccountBrowserSystemPath-02.log",
+          "output": "go-browser/TestAccountBrowserSystemPath-02",
+          "subtests": [
+            {
+              "name": "TestAccountBrowserSystemPath/unsaved-changes.cjs",
+              "status": "PASS"
+            },
+            {
+              "name": "TestAccountBrowserSystemPath/rule-clarity.cjs",
+              "status": "PASS"
+            },
+            {
+              "name": "TestAccountBrowserSystemPath/release-drafts.cjs",
+              "status": "PASS"
+            },
+            {
+              "name": "TestAccountBrowserSystemPath/release-approvals.cjs",
+              "status": "PASS"
+            },
+            {
+              "name": "TestAccountBrowserSystemPath/release-batches.cjs",
+              "status": "PASS"
+            },
+            {
+              "name": "TestAccountBrowserSystemPath/release-rollbacks.cjs",
+              "status": "PASS"
+            },
+            {
+              "name": "TestAccountBrowserSystemPath/draft-targets.cjs",
+              "status": "PASS"
+            },
+            {
+              "name": "TestAccountBrowserSystemPath/release-multitable.cjs",
+              "status": "PASS"
+            },
+            {
+              "name": "TestAccountBrowserSystemPath/release-rollback-reason.cjs",
+              "status": "PASS"
+            },
+            {
+              "name": "TestAccountBrowserSystemPath/field-policies.cjs",
+              "status": "PASS"
+            },
+            {
+              "name": "TestAccountBrowserSystemPath/field-inputs.cjs",
+              "status": "PASS"
+            },
+            {
+              "name": "TestAccountBrowserSystemPath/combined-query.cjs",
+              "status": "PASS"
+            },
+            {
+              "name": "TestAccountBrowserSystemPath/field-recovery.cjs",
+              "status": "PASS"
+            },
+            {
+              "name": "TestAccountBrowserSystemPath/field-display.cjs",
+              "status": "PASS"
+            }
+          ]
+        }
+      ],
+      "effective": {
+        "attempt": "02",
+        "source": "source-12.json",
+        "status": "PASS",
+        "duration": "233.27s",
+        "log": "raw/browser-TestAccountBrowserSystemPath-02.log",
+        "output": "go-browser/TestAccountBrowserSystemPath-02",
+        "subtests": [
+          {
+            "name": "TestAccountBrowserSystemPath/unsaved-changes.cjs",
+            "status": "PASS"
+          },
+          {
+            "name": "TestAccountBrowserSystemPath/rule-clarity.cjs",
+            "status": "PASS"
+          },
+          {
+            "name": "TestAccountBrowserSystemPath/release-drafts.cjs",
+            "status": "PASS"
+          },
+          {
+            "name": "TestAccountBrowserSystemPath/release-approvals.cjs",
+            "status": "PASS"
+          },
+          {
+            "name": "TestAccountBrowserSystemPath/release-batches.cjs",
+            "status": "PASS"
+          },
+          {
+            "name": "TestAccountBrowserSystemPath/release-rollbacks.cjs",
+            "status": "PASS"
+          },
+          {
+            "name": "TestAccountBrowserSystemPath/draft-targets.cjs",
+            "status": "PASS"
+          },
+          {
+            "name": "TestAccountBrowserSystemPath/release-multitable.cjs",
+            "status": "PASS"
+          },
+          {
+            "name": "TestAccountBrowserSystemPath/release-rollback-reason.cjs",
+            "status": "PASS"
+          },
+          {
+            "name": "TestAccountBrowserSystemPath/field-policies.cjs",
+            "status": "PASS"
+          },
+          {
+            "name": "TestAccountBrowserSystemPath/field-inputs.cjs",
+            "status": "PASS"
+          },
+          {
+            "name": "TestAccountBrowserSystemPath/combined-query.cjs",
+            "status": "PASS"
+          },
+          {
+            "name": "TestAccountBrowserSystemPath/field-recovery.cjs",
+            "status": "PASS"
+          },
+          {
+            "name": "TestAccountBrowserSystemPath/field-display.cjs",
+            "status": "PASS"
+          }
+        ]
+      }
+    },
+    {
+      "test": "TestApprovalRoleBrowserSystemPath",
+      "attempts": [
+        {
+          "attempt": "01",
+          "source": "source-11.json",
+          "status": "PASS",
+          "duration": "45.35s",
+          "log": "raw/browser-TestApprovalRoleBrowserSystemPath-01.log",
+          "output": "go-browser/TestApprovalRoleBrowserSystemPath-01",
+          "subtests": []
+        }
+      ],
+      "effective": {
+        "attempt": "01",
+        "source": "source-11.json",
+        "status": "PASS",
+        "duration": "45.35s",
+        "log": "raw/browser-TestApprovalRoleBrowserSystemPath-01.log",
+        "output": "go-browser/TestApprovalRoleBrowserSystemPath-01",
+        "subtests": []
+      }
+    },
+    {
+      "test": "TestTableApprovalBrowserSystemPath",
+      "attempts": [
+        {
+          "attempt": "01",
+          "source": "source-11.json",
+          "status": "PASS",
+          "duration": "36.10s",
+          "log": "raw/browser-TestTableApprovalBrowserSystemPath-01.log",
+          "output": "go-browser/TestTableApprovalBrowserSystemPath-01",
+          "subtests": []
+        }
+      ],
+      "effective": {
+        "attempt": "01",
+        "source": "source-11.json",
+        "status": "PASS",
+        "duration": "36.10s",
+        "log": "raw/browser-TestTableApprovalBrowserSystemPath-01.log",
+        "output": "go-browser/TestTableApprovalBrowserSystemPath-01",
+        "subtests": []
+      }
+    },
+    {
+      "test": "TestReleaseTemplateBrowserSystemPath",
+      "attempts": [
+        {
+          "attempt": "01",
+          "source": "source-11.json",
+          "status": "PASS",
+          "duration": "23.42s",
+          "log": "raw/browser-TestReleaseTemplateBrowserSystemPath-01.log",
+          "output": "go-browser/TestReleaseTemplateBrowserSystemPath-01",
+          "subtests": []
+        }
+      ],
+      "effective": {
+        "attempt": "01",
+        "source": "source-11.json",
+        "status": "PASS",
+        "duration": "23.42s",
+        "log": "raw/browser-TestReleaseTemplateBrowserSystemPath-01.log",
+        "output": "go-browser/TestReleaseTemplateBrowserSystemPath-01",
+        "subtests": []
+      }
+    },
+    {
+      "test": "TestTableReleaseTemplateBrowserSystemPath",
+      "attempts": [
+        {
+          "attempt": "01",
+          "source": "source-11.json",
+          "status": "PASS",
+          "duration": "22.57s",
+          "log": "raw/browser-TestTableReleaseTemplateBrowserSystemPath-01.log",
+          "output": "go-browser/TestTableReleaseTemplateBrowserSystemPath-01",
+          "subtests": []
+        }
+      ],
+      "effective": {
+        "attempt": "01",
+        "source": "source-11.json",
+        "status": "PASS",
+        "duration": "22.57s",
+        "log": "raw/browser-TestTableReleaseTemplateBrowserSystemPath-01.log",
+        "output": "go-browser/TestTableReleaseTemplateBrowserSystemPath-01",
+        "subtests": []
+      }
+    },
+    {
+      "test": "TestReleaseFlowBrowserSystemPath",
+      "attempts": [
+        {
+          "attempt": "01",
+          "source": "source-10.json",
+          "status": "FAIL",
+          "duration": "55.24s",
+          "log": "raw/browser-TestReleaseFlowBrowserSystemPath-01.log",
+          "output": "go-browser/TestReleaseFlowBrowserSystemPath-01",
+          "subtests": []
+        },
+        {
+          "attempt": "02",
+          "source": "source-11.json",
+          "status": "PASS",
+          "duration": "34.64s",
+          "log": "raw/browser-TestReleaseFlowBrowserSystemPath-02.log",
+          "output": "go-browser/TestReleaseFlowBrowserSystemPath-02",
+          "subtests": []
+        }
+      ],
+      "effective": {
+        "attempt": "02",
+        "source": "source-11.json",
+        "status": "PASS",
+        "duration": "34.64s",
+        "log": "raw/browser-TestReleaseFlowBrowserSystemPath-02.log",
+        "output": "go-browser/TestReleaseFlowBrowserSystemPath-02",
+        "subtests": []
+      }
+    },
+    {
+      "test": "TestReleaseEmergencyBrowserSystemPath",
+      "attempts": [
+        {
+          "attempt": "01",
+          "source": "source-11.json",
+          "status": "PASS",
+          "duration": "32.93s",
+          "log": "raw/browser-TestReleaseEmergencyBrowserSystemPath-01.log",
+          "output": "go-browser/TestReleaseEmergencyBrowserSystemPath-01",
+          "subtests": []
+        }
+      ],
+      "effective": {
+        "attempt": "01",
+        "source": "source-11.json",
+        "status": "PASS",
+        "duration": "32.93s",
+        "log": "raw/browser-TestReleaseEmergencyBrowserSystemPath-01.log",
+        "output": "go-browser/TestReleaseEmergencyBrowserSystemPath-01",
+        "subtests": []
+      }
+    },
+    {
+      "test": "TestNotificationCenterBrowserSystemPath",
+      "attempts": [
+        {
+          "attempt": "01",
+          "source": "source-11.json",
+          "status": "PASS",
+          "duration": "27.57s",
+          "log": "raw/browser-TestNotificationCenterBrowserSystemPath-01.log",
+          "output": "go-browser/TestNotificationCenterBrowserSystemPath-01",
+          "subtests": []
+        }
+      ],
+      "effective": {
+        "attempt": "01",
+        "source": "source-11.json",
+        "status": "PASS",
+        "duration": "27.57s",
+        "log": "raw/browser-TestNotificationCenterBrowserSystemPath-01.log",
+        "output": "go-browser/TestNotificationCenterBrowserSystemPath-01",
+        "subtests": []
+      }
+    },
+    {
+      "test": "TestApprovalNotificationsBrowserSystemPath",
+      "attempts": [
+        {
+          "attempt": "01",
+          "source": "source-11.json",
+          "status": "PASS",
+          "duration": "21.00s",
+          "log": "raw/browser-TestApprovalNotificationsBrowserSystemPath-01.log",
+          "output": "go-browser/TestApprovalNotificationsBrowserSystemPath-01",
+          "subtests": []
+        }
+      ],
+      "effective": {
+        "attempt": "01",
+        "source": "source-11.json",
+        "status": "PASS",
+        "duration": "21.00s",
+        "log": "raw/browser-TestApprovalNotificationsBrowserSystemPath-01.log",
+        "output": "go-browser/TestApprovalNotificationsBrowserSystemPath-01",
+        "subtests": []
+      }
+    },
+    {
+      "test": "TestReleaseNotificationsBrowserSystemPath",
+      "attempts": [
+        {
+          "attempt": "01",
+          "source": "source-11.json",
+          "status": "PASS",
+          "duration": "38.47s",
+          "log": "raw/browser-TestReleaseNotificationsBrowserSystemPath-01.log",
+          "output": "go-browser/TestReleaseNotificationsBrowserSystemPath-01",
+          "subtests": []
+        }
+      ],
+      "effective": {
+        "attempt": "01",
+        "source": "source-11.json",
+        "status": "PASS",
+        "duration": "38.47s",
+        "log": "raw/browser-TestReleaseNotificationsBrowserSystemPath-01.log",
+        "output": "go-browser/TestReleaseNotificationsBrowserSystemPath-01",
+        "subtests": []
+      }
+    },
+    {
+      "test": "TestApprovalFinalBrowserSystemPath",
+      "attempts": [
+        {
+          "attempt": "01",
+          "source": "source-11.json",
+          "status": "FAIL",
+          "duration": "24.54s",
+          "log": "raw/browser-TestApprovalFinalBrowserSystemPath-01.log",
+          "output": "go-browser/TestApprovalFinalBrowserSystemPath-01",
+          "subtests": []
+        },
+        {
+          "attempt": "02",
+          "source": "source-12.json",
+          "status": "PASS",
+          "duration": "33.36s",
+          "log": "raw/browser-TestApprovalFinalBrowserSystemPath-02.log",
+          "output": "go-browser/TestApprovalFinalBrowserSystemPath-02",
+          "subtests": []
+        }
+      ],
+      "effective": {
+        "attempt": "02",
+        "source": "source-12.json",
+        "status": "PASS",
+        "duration": "33.36s",
+        "log": "raw/browser-TestApprovalFinalBrowserSystemPath-02.log",
+        "output": "go-browser/TestApprovalFinalBrowserSystemPath-02",
+        "subtests": []
+      }
+    },
+    {
+      "test": "TestRollbackFlowBrowserSystemPath",
+      "attempts": [
+        {
+          "attempt": "01",
+          "source": "source-11.json",
+          "status": "PASS",
+          "duration": "34.66s",
+          "log": "raw/browser-TestRollbackFlowBrowserSystemPath-01.log",
+          "output": "go-browser/TestRollbackFlowBrowserSystemPath-01",
+          "subtests": []
+        }
+      ],
+      "effective": {
+        "attempt": "01",
+        "source": "source-11.json",
+        "status": "PASS",
+        "duration": "34.66s",
+        "log": "raw/browser-TestRollbackFlowBrowserSystemPath-01.log",
+        "output": "go-browser/TestRollbackFlowBrowserSystemPath-01",
+        "subtests": []
+      }
+    }
+  ],
+  "note": "Every independent target has a fresh isolated service run and unique output directory. Original failed attempts remain failed; Account01 output-parent ENOENT occurred before any browser business check."
+}

@@ -1,0 +1,558 @@
+$ docker compose build
+time="2026-09-11T02:27:29+08:00" level=warning msg="Docker Compose requires buildx plugin to be installed"
+ Image rcc-goose-ed25989ff113-schema-migrate Building 
+ Image rcc-goose-ed25989ff113-schema-migrate Building 
+Sending build context to Docker daemon  524.4kB
+Sending build context to Docker daemon  1.006MB
+
+Step 1/14 : FROM golang:1.27-alpine AS build
+ ---> 4c9fe60190a2
+Step 2/14 : WORKDIR /src/admin
+ ---> Using cache
+ ---> abd178090ee7
+Step 3/14 : COPY admin/go.mod admin/go.sum ./
+ ---> Using cache
+ ---> 2d275e7f579e
+Step 4/14 : RUN go mod download
+ ---> Using cache
+ ---> 908b312e6501
+Step 5/14 : COPY admin/ ./
+ ---> 10b9d4825b3d
+Step 6/14 : RUN CGO_ENABLED=0 go build -trimpath -o /out/admin ./cmd/admin     && CGO_ENABLED=0 go build -trimpath -o /out/account-maintain ./cmd/account-maintain     && CGO_ENABLED=0 go build -trimpath -o /out/policy-migrate ./cmd/policy-migrate     && CGO_ENABLED=0 go build -trimpath -o /out/schema-migrate ./cmd/schema-migrate
+ ---> Running in 18e57d906809
+ ---> Removed intermediate container 18e57d906809
+ ---> 5108b94f297a
+Step 7/14 : FROM alpine:3.23 AS runtime
+ ---> fd791d74b689
+Step 8/14 : RUN apk add --no-cache ca-certificates     && addgroup -S admin     && adduser -S -G admin admin
+ ---> Using cache
+ ---> 96e929c85637
+Step 9/14 : USER admin
+ ---> Using cache
+ ---> 90a8fea2e6f7
+Step 10/14 : FROM runtime AS migration
+ ---> 90a8fea2e6f7
+Step 11/14 : COPY --from=build /out/schema-migrate /usr/local/bin/schema-migrate
+ ---> 7e54843bb4b5
+Step 12/14 : ENTRYPOINT ["/usr/local/bin/schema-migrate"]
+ ---> Running in f5f39f40e74c
+ ---> Removed intermediate container f5f39f40e74c
+ ---> c218599e8090
+Step 13/14 : CMD ["up"]
+ ---> Running in 9a7da3486594
+ ---> Removed intermediate container 9a7da3486594
+ ---> 621b966785ca
+Step 14/14 : LABEL com.docker.compose.image.builder=classic
+ ---> Running in 852e5f26d90b
+ ---> Removed intermediate container 852e5f26d90b
+ ---> 241354ebb8bb
+Successfully built 241354ebb8bb
+Successfully tagged rcc-goose-ed25989ff113-schema-migrate:latest
+ Image rcc-goose-ed25989ff113-schema-migrate Built 
+ Image rcc-goose-ed25989ff113-schema-migrate Built 
+ Image rcc-goose-ed25989ff113-admin Building 
+ Image rcc-goose-ed25989ff113-admin Building 
+Sending build context to Docker daemon  524.4kB
+Sending build context to Docker daemon  1.006MB
+
+Step 1/20 : FROM golang:1.27-alpine AS build
+ ---> 4c9fe60190a2
+Step 2/20 : WORKDIR /src/admin
+ ---> Using cache
+ ---> abd178090ee7
+Step 3/20 : COPY admin/go.mod admin/go.sum ./
+ ---> Using cache
+ ---> 2d275e7f579e
+Step 4/20 : RUN go mod download
+ ---> Using cache
+ ---> 908b312e6501
+Step 5/20 : COPY admin/ ./
+ ---> Using cache
+ ---> 10b9d4825b3d
+Step 6/20 : RUN CGO_ENABLED=0 go build -trimpath -o /out/admin ./cmd/admin     && CGO_ENABLED=0 go build -trimpath -o /out/account-maintain ./cmd/account-maintain     && CGO_ENABLED=0 go build -trimpath -o /out/policy-migrate ./cmd/policy-migrate     && CGO_ENABLED=0 go build -trimpath -o /out/schema-migrate ./cmd/schema-migrate
+ ---> Using cache
+ ---> 5108b94f297a
+Step 7/20 : FROM alpine:3.23 AS runtime
+ ---> fd791d74b689
+Step 8/20 : RUN apk add --no-cache ca-certificates     && addgroup -S admin     && adduser -S -G admin admin
+ ---> Using cache
+ ---> 96e929c85637
+Step 9/20 : USER admin
+ ---> Using cache
+ ---> 90a8fea2e6f7
+Step 10/20 : FROM runtime AS migration
+ ---> 90a8fea2e6f7
+Step 11/20 : COPY --from=build /out/schema-migrate /usr/local/bin/schema-migrate
+ ---> Using cache
+ ---> 7e54843bb4b5
+Step 12/20 : ENTRYPOINT ["/usr/local/bin/schema-migrate"]
+ ---> Using cache
+ ---> c218599e8090
+Step 13/20 : CMD ["up"]
+ ---> Using cache
+ ---> 621b966785ca
+Step 14/20 : FROM runtime AS admin
+ ---> 90a8fea2e6f7
+Step 15/20 : COPY --from=build /out/admin /usr/local/bin/admin
+ ---> b1fcef5368e8
+Step 16/20 : COPY --from=build /out/account-maintain /usr/local/bin/account-maintain
+ ---> fad6793d66cb
+Step 17/20 : COPY --from=build /out/policy-migrate /usr/local/bin/policy-migrate
+ ---> 531d98a92a03
+Step 18/20 : EXPOSE 8080
+ ---> Running in 0d17f548551a
+ ---> Removed intermediate container 0d17f548551a
+ ---> 9b27d168528a
+Step 19/20 : ENTRYPOINT ["/usr/local/bin/admin"]
+ ---> Running in 3e12b85b4ba7
+ ---> Removed intermediate container 3e12b85b4ba7
+ ---> e678e1466f6c
+Step 20/20 : LABEL com.docker.compose.image.builder=classic
+ ---> Running in 960e4359912a
+ ---> Removed intermediate container 960e4359912a
+ ---> 06afba10bcf4
+Successfully built 06afba10bcf4
+Successfully tagged rcc-goose-ed25989ff113-admin:latest
+ Image rcc-goose-ed25989ff113-admin Built 
+ Image rcc-goose-ed25989ff113-admin Built 
+
+$ docker compose up -d
+ Network rcc-goose-ed25989ff113_default Creating 
+ Volume rcc-goose-ed25989ff113_mysql-data Creating 
+ Volume rcc-goose-ed25989ff113_mysql-data Creating 
+ Network rcc-goose-ed25989ff113_default Creating 
+ Volume rcc-goose-ed25989ff113_mysql-data Created 
+ Volume rcc-goose-ed25989ff113_mysql-data Created 
+ Network rcc-goose-ed25989ff113_default Created 
+ Network rcc-goose-ed25989ff113_default Created 
+ Container rcc-goose-ed25989ff113-mysql-1 Creating 
+ Container rcc-goose-ed25989ff113-mysql-1 Created 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Creating 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Created 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Creating 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Created 
+ Container rcc-goose-ed25989ff113-admin-1 Creating 
+ Container rcc-goose-ed25989ff113-admin-1 Created 
+ Container rcc-goose-ed25989ff113-mysql-1 Starting 
+ Container rcc-goose-ed25989ff113-mysql-1 Started 
+ Container rcc-goose-ed25989ff113-mysql-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-1 Healthy 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Starting 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Started 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Waiting 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Exited 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Starting 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Started 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Exited 
+ Container rcc-goose-ed25989ff113-mysql-1 Healthy 
+ Container rcc-goose-ed25989ff113-admin-1 Starting 
+ Container rcc-goose-ed25989ff113-admin-1 Started 
+
+$ docker compose port admin 8080
+127.0.0.1:32806
+
+$ docker compose ps --all --quiet
+7decfc433e6e7da319736d0001228566e23bdef8994c3ec8204647db1ad91a71
+b1d0b316ddce94b838e8d468f376eb8c12dcdadd3736aed70a3945ff4a5a29bc
+8daf94041f900e2b8885a0f61210a1712e37f5fa1614128f3601d0d474c866fe
+f285059375a2a6ae72a6d7348923962d6e7cdbfe187a473f3fe4a62813acd1f2
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+3
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+17	preserved through deployment
+compose-account	31	4	7
+1	account-welcome	Your account is ready.
+2	payment-received	Payment received successfully.
+3	maintenance-window	Scheduled maintenance starts soon.
+0	1
+1	1
+2	1
+3	1
+4	1
+5	1
+6	1
+
+$ docker compose down
+ Container rcc-goose-ed25989ff113-admin-1 Stopping 
+ Container rcc-goose-ed25989ff113-admin-1 Stopped 
+ Container rcc-goose-ed25989ff113-admin-1 Removing 
+ Container rcc-goose-ed25989ff113-admin-1 Removed 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Stopping 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Stopped 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Removing 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Removed 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Stopping 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Stopped 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Removing 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Removed 
+ Container rcc-goose-ed25989ff113-mysql-1 Stopping 
+ Container rcc-goose-ed25989ff113-mysql-1 Stopped 
+ Container rcc-goose-ed25989ff113-mysql-1 Removing 
+ Container rcc-goose-ed25989ff113-mysql-1 Removed 
+ Network rcc-goose-ed25989ff113_default Removing 
+ Network rcc-goose-ed25989ff113_default Removed 
+
+$ docker compose up -d
+ Network rcc-goose-ed25989ff113_default Creating 
+ Network rcc-goose-ed25989ff113_default Creating 
+ Network rcc-goose-ed25989ff113_default Created 
+ Network rcc-goose-ed25989ff113_default Created 
+ Container rcc-goose-ed25989ff113-mysql-1 Creating 
+ Container rcc-goose-ed25989ff113-mysql-1 Created 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Creating 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Created 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Creating 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Created 
+ Container rcc-goose-ed25989ff113-admin-1 Creating 
+ Container rcc-goose-ed25989ff113-admin-1 Created 
+ Container rcc-goose-ed25989ff113-mysql-1 Starting 
+ Container rcc-goose-ed25989ff113-mysql-1 Started 
+ Container rcc-goose-ed25989ff113-mysql-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-1 Healthy 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Starting 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Started 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Waiting 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Exited 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Starting 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Started 
+ Container rcc-goose-ed25989ff113-mysql-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Exited 
+ Container rcc-goose-ed25989ff113-mysql-1 Healthy 
+ Container rcc-goose-ed25989ff113-admin-1 Starting 
+ Container rcc-goose-ed25989ff113-admin-1 Started 
+
+$ docker compose port admin 8080
+127.0.0.1:32808
+
+$ docker compose ps --all --quiet
+ab4d7c504b37d7bec9db9181e308c8ff5662151c06a20918464cb601df41dd76
+228d237b38e36808acde79393bb7d807855545ce20e87e81c98eb0d85fac1ab8
+7b9c07c8c6b5975586993567543d6d6245e116c53cfdc4040e9188119b4ca7b0
+73eb23dae1f58ec0b37b3199e2720b16aaace9b62566a196537ba6df07364907
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+3
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+17	preserved through deployment
+compose-account	31	4	7
+1	account-welcome	Your account is ready.
+2	payment-received	Payment received successfully.
+3	maintenance-window	Scheduled maintenance starts soon.
+0	1
+1	1
+2	1
+3	1
+4	1
+5	1
+6	1
+
+$ docker compose down --volumes
+ Container rcc-goose-ed25989ff113-admin-1 Stopping 
+ Container rcc-goose-ed25989ff113-admin-1 Stopped 
+ Container rcc-goose-ed25989ff113-admin-1 Removing 
+ Container rcc-goose-ed25989ff113-admin-1 Removed 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Stopping 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Stopped 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Removing 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Removed 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Stopping 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Stopped 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Removing 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Removed 
+ Container rcc-goose-ed25989ff113-mysql-1 Stopping 
+ Container rcc-goose-ed25989ff113-mysql-1 Stopped 
+ Container rcc-goose-ed25989ff113-mysql-1 Removing 
+ Container rcc-goose-ed25989ff113-mysql-1 Removed 
+ Network rcc-goose-ed25989ff113_default Removing 
+ Volume rcc-goose-ed25989ff113_mysql-data Removing 
+ Volume rcc-goose-ed25989ff113_mysql-data Removed 
+ Network rcc-goose-ed25989ff113_default Removed 
+
+$ docker compose up -d --wait mysql
+ Network rcc-goose-ed25989ff113_default Creating 
+ Network rcc-goose-ed25989ff113_default Creating 
+ Volume rcc-goose-ed25989ff113_mysql-data Creating 
+ Volume rcc-goose-ed25989ff113_mysql-data Creating 
+ Volume rcc-goose-ed25989ff113_mysql-data Created 
+ Volume rcc-goose-ed25989ff113_mysql-data Created 
+ Network rcc-goose-ed25989ff113_default Created 
+ Network rcc-goose-ed25989ff113_default Created 
+ Container rcc-goose-ed25989ff113-mysql-1 Creating 
+ Container rcc-goose-ed25989ff113-mysql-1 Created 
+ Container rcc-goose-ed25989ff113-mysql-1 Starting 
+ Container rcc-goose-ed25989ff113-mysql-1 Started 
+ Container rcc-goose-ed25989ff113-mysql-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-1 Healthy 
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+
+$ docker compose up -d
+ Container rcc-goose-ed25989ff113-mysql-1 Running 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Creating 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Created 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Creating 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Created 
+ Container rcc-goose-ed25989ff113-admin-1 Creating 
+ Container rcc-goose-ed25989ff113-admin-1 Created 
+ Container rcc-goose-ed25989ff113-mysql-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-1 Healthy 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Starting 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Started 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Waiting 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Error service "schema-migrate" didn't complete successfully: exit 1
+service "schema-migrate" didn't complete successfully: exit 1
+
+$ docker compose ps --all --quiet
+f33665b02e69d60c3f75b3b13cf91dde0f836b4436e415dc8dcfdefe98d98325
+a1232f0df613f9e47ae09675b0729b57124ffa4749a04fa4801a6156c70a8cd5
+28808a99f1a698cb7cbfe88f72bbd4678da1ec6138851af8489964a9fb48fff3
+5549df1a8bd844b6ad158d29d3fe2b4d3c13d1959b5cc861a6a42f3a87d3afc5
+
+$ docker compose logs schema-migrate
+schema-migrate-1  | baseline_required: existing control tables require verified baseline adoption
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+0
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+unmanaged retained
+
+$ docker compose run --rm schema-migrate baseline
+ Container rcc-goose-ed25989ff113-mysql-1 Running 
+ Container rcc-goose-ed25989ff113-mysql-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-1 Healthy 
+ Container rcc-goose-ed25989ff113-schema-migrate-run-4d9642ec43f7 Creating 
+ Container rcc-goose-ed25989ff113-schema-migrate-run-4d9642ec43f7 Created 
+{"state":"pending","current":5,"required":6,"pending":[6],"attempt_id":1,"attempt_version":5,"attempt_digest":"9e1cc534b08b76d1bb262c8b934f6fbc923ddfc233c9b9941bba44a29fa15de3","attempt_operation":"baseline"}
+
+$ docker compose up -d
+ Container rcc-goose-ed25989ff113-mysql-1 Running 
+ Container rcc-goose-ed25989ff113-mysql-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-1 Healthy 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Starting 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Started 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Waiting 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Exited 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Starting 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Started 
+ Container rcc-goose-ed25989ff113-mysql-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Exited 
+ Container rcc-goose-ed25989ff113-mysql-1 Healthy 
+ Container rcc-goose-ed25989ff113-admin-1 Starting 
+ Container rcc-goose-ed25989ff113-admin-1 Started 
+
+$ docker compose port admin 8080
+127.0.0.1:32810
+
+$ docker compose ps --all --quiet
+f33665b02e69d60c3f75b3b13cf91dde0f836b4436e415dc8dcfdefe98d98325
+a1232f0df613f9e47ae09675b0729b57124ffa4749a04fa4801a6156c70a8cd5
+28808a99f1a698cb7cbfe88f72bbd4678da1ec6138851af8489964a9fb48fff3
+5549df1a8bd844b6ad158d29d3fe2b4d3c13d1959b5cc861a6a42f3a87d3afc5
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+3
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+17	unmanaged retained
+1	account-welcome	Your account is ready.
+2	payment-received	Payment received successfully.
+3	maintenance-window	Scheduled maintenance starts soon.
+0	1
+1	1
+2	1
+3	1
+4	1
+5	1
+6	1
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+2
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+1	5	9e1cc534b08b76d1bb262c8b934f6fbc923ddfc233c9b9941bba44a29fa15de3	BASELINED	0	2026-09-10 18:28:47.150431	2026-09-10 18:28:47.167805
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+1
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+1	5	9e1cc534b08b76d1bb262c8b934f6fbc923ddfc233c9b9941bba44a29fa15de3	BASELINED	0	2026-09-10 18:28:47.150431	2026-09-10 18:28:47.167805
+
+$ docker compose down
+ Container rcc-goose-ed25989ff113-admin-1 Stopping 
+ Container rcc-goose-ed25989ff113-admin-1 Stopped 
+ Container rcc-goose-ed25989ff113-admin-1 Removing 
+ Container rcc-goose-ed25989ff113-admin-1 Removed 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Stopping 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Stopped 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Removing 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Removed 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Stopping 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Stopped 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Removing 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Removed 
+ Container rcc-goose-ed25989ff113-mysql-1 Stopping 
+ Container rcc-goose-ed25989ff113-mysql-1 Stopped 
+ Container rcc-goose-ed25989ff113-mysql-1 Removing 
+ Container rcc-goose-ed25989ff113-mysql-1 Removed 
+ Network rcc-goose-ed25989ff113_default Removing 
+ Network rcc-goose-ed25989ff113_default Removed 
+
+$ docker compose up -d
+ Network rcc-goose-ed25989ff113_default Creating 
+ Network rcc-goose-ed25989ff113_default Creating 
+ Network rcc-goose-ed25989ff113_default Created 
+ Network rcc-goose-ed25989ff113_default Created 
+ Container rcc-goose-ed25989ff113-mysql-1 Creating 
+ Container rcc-goose-ed25989ff113-mysql-1 Created 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Creating 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Created 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Creating 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Created 
+ Container rcc-goose-ed25989ff113-admin-1 Creating 
+ Container rcc-goose-ed25989ff113-admin-1 Created 
+ Container rcc-goose-ed25989ff113-mysql-1 Starting 
+ Container rcc-goose-ed25989ff113-mysql-1 Started 
+ Container rcc-goose-ed25989ff113-mysql-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-1 Healthy 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Starting 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Started 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Waiting 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Error service "schema-migrate" didn't complete successfully: exit 1
+service "schema-migrate" didn't complete successfully: exit 1
+
+$ docker compose ps --all --quiet
+5bab565aa0c7451d372e5cb0c7a1dc1949685d5e9dc5444dd035861ad92c89ee
+f7bea8f2e4e600888fb3566b9677c5c8093ce761ad15f25096b2469ea8dd650b
+ca1941abe1c8dc2d6e6977c332ed2d64218451a8599804c17ef5024d2bbf28df
+a9bb2577dbc6b4a7d62d2a8ef6ec3e938fa3a9d37b902049bd9c6743155d8940
+
+$ docker compose logs schema-migrate
+schema-migrate-1  | recovery_required: inspect status and actual schema, then explicitly run recover
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+17	unmanaged retained
+1	account-welcome	Your account is ready.
+2	payment-received	Payment received successfully.
+3	maintenance-window	Scheduled maintenance starts soon.
+0	1
+1	1
+2	1
+3	1
+4	1
+5	1
+6	1
+
+$ docker compose run --rm schema-migrate recover
+ Container rcc-goose-ed25989ff113-mysql-1 Running 
+ Container rcc-goose-ed25989ff113-mysql-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-1 Healthy 
+ Container rcc-goose-ed25989ff113-schema-migrate-run-163035fb5c76 Creating 
+ Container rcc-goose-ed25989ff113-schema-migrate-run-163035fb5c76 Created 
+{"state":"current","current":6,"required":6,"pending":[],"attempt_id":2,"attempt_version":6,"attempt_digest":"cb6ed3e72b739dd8735dfaf39de5abc4e4f996bc3c061bfd0f00b750457dfc60","attempt_operation":"up"}
+
+$ docker compose up -d
+ Container rcc-goose-ed25989ff113-mysql-1 Running 
+ Container rcc-goose-ed25989ff113-mysql-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-1 Healthy 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Starting 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Started 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Waiting 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Exited 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Starting 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Started 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-1 Waiting 
+ Container rcc-goose-ed25989ff113-mysql-1 Healthy 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Exited 
+ Container rcc-goose-ed25989ff113-admin-1 Starting 
+ Container rcc-goose-ed25989ff113-admin-1 Started 
+
+$ docker compose port admin 8080
+127.0.0.1:32812
+
+$ docker compose ps --all --quiet
+5bab565aa0c7451d372e5cb0c7a1dc1949685d5e9dc5444dd035861ad92c89ee
+f7bea8f2e4e600888fb3566b9677c5c8093ce761ad15f25096b2469ea8dd650b
+ca1941abe1c8dc2d6e6977c332ed2d64218451a8599804c17ef5024d2bbf28df
+a9bb2577dbc6b4a7d62d2a8ef6ec3e938fa3a9d37b902049bd9c6743155d8940
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+3
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+17	unmanaged retained
+1	account-welcome	Your account is ready.
+2	payment-received	Payment received successfully.
+3	maintenance-window	Scheduled maintenance starts soon.
+0	1
+1	1
+2	1
+3	1
+4	1
+5	1
+6	1
+
+$ docker compose exec -T mysql sh -ec MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --skip-column-names -uroot "$MYSQL_DATABASE"
+1	5	9e1cc534b08b76d1bb262c8b934f6fbc923ddfc233c9b9941bba44a29fa15de3	BASELINED	0	2026-09-10 18:28:47.150431	2026-09-10 18:28:47.167805
+
+$ docker compose logs --no-color
+schema-migrate-1  | recovery_required: inspect status and actual schema, then explicitly run recover
+schema-migrate-1  | {"state":"current","current":6,"required":6,"pending":[],"attempt_id":2,"attempt_version":6,"attempt_digest":"cb6ed3e72b739dd8735dfaf39de5abc4e4f996bc3c061bfd0f00b750457dfc60","attempt_operation":"up"}
+mysql-1           | 2026-09-10 18:28:52+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.4.11-1.el9 started.
+mysql-1           | 2026-09-10 18:28:52+00:00 [Note] [Entrypoint]: Switching to dedicated user 'mysql'
+mysql-1           | 2026-09-10 18:28:52+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.4.11-1.el9 started.
+mysql-1           | '/var/lib/mysql/mysql.sock' -> '/var/run/mysqld/mysqld.sock'
+mysql-1           | 2026-09-10T18:28:52.364012Z 0 [System] [MY-015015] [Server] MySQL Server - start.
+mysql-1           | 2026-09-10T18:28:52.524456Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.4.11) starting as process 1
+mysql-1           | 2026-09-10T18:28:52.527713Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+mysql-1           | 2026-09-10T18:28:52.624515Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+mysql-1           | 2026-09-10T18:28:52.753018Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+mysql-1           | 2026-09-10T18:28:52.753040Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+mysql-1           | 2026-09-10T18:28:52.754780Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+mysql-1           | 2026-09-10T18:28:52.765436Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Bind-address: '::' port: 33060, socket: /var/run/mysqld/mysqlx.sock
+mysql-1           | 2026-09-10T18:28:52.765480Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.4.11'  socket: '/var/run/mysqld/mysqld.sock'  port: 3306  MySQL Community Server - GPL.
+
+$ docker compose down --volumes --remove-orphans
+ Container rcc-goose-ed25989ff113-admin-1 Stopping 
+ Container rcc-goose-ed25989ff113-admin-1 Stopped 
+ Container rcc-goose-ed25989ff113-admin-1 Removing 
+ Container rcc-goose-ed25989ff113-admin-1 Removed 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Stopping 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Stopped 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Removing 
+ Container rcc-goose-ed25989ff113-mysql-local-fixture-1 Removed 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Stopping 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Stopped 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Removing 
+ Container rcc-goose-ed25989ff113-schema-migrate-1 Removed 
+ Container rcc-goose-ed25989ff113-mysql-1 Stopping 
+ Container rcc-goose-ed25989ff113-mysql-1 Stopped 
+ Container rcc-goose-ed25989ff113-mysql-1 Removing 
+ Container rcc-goose-ed25989ff113-mysql-1 Removed 
+ Volume rcc-goose-ed25989ff113_mysql-data Removing 
+ Network rcc-goose-ed25989ff113_default Removing 
+ Volume rcc-goose-ed25989ff113_mysql-data Removed 
+ Network rcc-goose-ed25989ff113_default Removed 
+

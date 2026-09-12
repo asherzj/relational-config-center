@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
@@ -237,7 +238,10 @@ func TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite(t *testing.T
 	deliveryExec(t, owner, "CREATE DATABASE fresh_catalog CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
 	rootDriver.DBName = "fresh_catalog"
 	freshDatabase := deliveryDB(t, &rootDriver)
-	initializeCurrentIntegrationSchema(t, ctx, &rootDriver)
+	// This historical expand/contract path ends at the released pre-Goose
+	// catalog. Compare it with the same formal prefix; later upgrades are
+	// covered by the complete schema migration and baseline tests.
+	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 5), &rootDriver, "current", "up")
 
 	upgradedSignature := policyCatalogSchemaSignature(t, ctx, database)
 	freshSignature := policyCatalogSchemaSignature(t, ctx, freshDatabase)
@@ -833,8 +837,30 @@ func assertIntegrationErrorCode(t *testing.T, response *httptest.ResponseRecorde
 	}
 }
 
+var policyRequestSequence atomic.Uint64
+
 func policyIntegrationRequest(t *testing.T, app *adminApplication, method, path, body string) *httptest.ResponseRecorder {
 	t.Helper()
 	session := integrationAdminSession(t, app)
-	return accountRequest(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session))
+	headers := map[string]string{}
+	if strings.HasPrefix(path, "/api/v1/table-policies") && (method == http.MethodPost || method == http.MethodPut) {
+		headers["Idempotency-Key"] = fmt.Sprintf("policy-test-%d", policyRequestSequence.Add(1))
+		if path != "/api/v1/table-policies" {
+			target := strings.TrimSuffix(strings.TrimSuffix(path, "/enable"), "/disable")
+			current := accountRequest(app, http.MethodGet, target, "", session.Result().Cookies(), "")
+			var snapshot struct {
+				Version string `json:"version"`
+			}
+			_ = json.Unmarshal(current.Body.Bytes(), &snapshot)
+			if snapshot.Version == "" {
+				snapshot.Version = "1"
+			}
+			if body == "" {
+				body = `{"expected_version":"` + snapshot.Version + `"}`
+			} else if !strings.Contains(body, `"expected_version"`) {
+				body = strings.TrimSuffix(body, "}") + `,"expected_version":"` + snapshot.Version + `"}`
+			}
+		}
+	}
+	return accountRequestFrom(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session), "192.0.2.1:1234", headers)
 }

@@ -1,0 +1,11 @@
+{
+  "admin/internal/domain/release_template.go": "e0511d10b563807d6e1a502e429a15382d4988dbebb44f9e9d64488892928860",
+  "admin/internal/application/release_template.go": "1a9791128e0f39cc1d8d8844c272268f9c03b4ad0ab9e8a5cdf6e4a5697b35bb",
+  "admin/internal/application/release_template_test.go": "4d5ee8df1b9f39adced6aa4d07676e6832ebf500dbac6a47eec2993e4b5ceede",
+  "admin/internal/infrastructure/mysql/release_templates.go": "3e74ec2054fe1fd16742fe9d4d2d9567750cbfa6b9617687429ed97daa685e7a",
+  "admin/internal/infrastructure/mysql/schema_migration_validation.go": "e1812d8af0e5c857cc42d7d35beb6e8fd01965909d647799f619aafc5eb4d0b3",
+  "admin/internal/interfaces/http/release_templates.go": "b01d9f1f465a6ca57d3338af104c249933dafd9a6eabb435490e92127bd417ef",
+  "admin/cmd/admin/release_template_integration_test.go": "0b10adf8c8dacaa56dde68279ffea90f0b68afac9253d7a0d660cb6c944f53ea",
+  "admin/internal/infrastructure/mysql/migrations/00008_release_templates.sql": "93baf3f8dc7b37cfa10ebbad260db49e24da8b386ff6efe64a702c9ce1366223",
+  "admin/internal/infrastructure/mysql/migrations/00008_schema.json": "d96af644b6d3dd98438287698cb929ca787f51130faff22117d9bad865c75dd2"
+}

@@ -51,6 +51,7 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = db.Close() })
 	assignRelationalMutationPolicy(t, app, "response_loss_mutation_v1", true, true, true, true)
+	bindFlowTemplate(t, app, "mutation_snapshot_items", "default_standard_v1", true)
 	server := httptest.NewServer(app.Handler())
 	t.Cleanup(server.Close)
 	jar, err := cookiejar.New(nil)
@@ -285,7 +286,12 @@ func TestConcurrentAccountsOwnTheirBusinessChanges(t *testing.T) {
 			session := sessions[i]
 			actor := accountID(t, session)
 			request := func(method, path, body string, status int) *httptest.ResponseRecorder {
-				response := accountRequest(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session))
+				var response *httptest.ResponseRecorder
+				if strings.HasPrefix(path, "/api/v1/table-policies") && method != "GET" {
+					response = accountRequestFrom(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session), "192.0.2.1:1234", map[string]string{"Idempotency-Key": fmt.Sprintf("actor-policy-%d", policyRequestSequence.Add(1))})
+				} else {
+					response = accountRequest(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session))
+				}
 				if response.Code != status {
 					t.Fatalf("%s %s: %d %s", method, path, response.Code, response.Body.String())
 				}
@@ -314,8 +320,9 @@ func TestConcurrentAccountsOwnTheirBusinessChanges(t *testing.T) {
 			path := "/api/v1/table-policies"
 			body := tablePolicyCodePayload(table, q, m)
 			checkActor(request("POST", path, body, 201))
-			checkActor(request("PUT", path+"/"+table, body, 200))
-			checkActor(request("POST", path+"/"+table+"/enable", "", 200))
+			checkActor(request("PUT", path+"/"+table, strings.TrimSuffix(body, "}")+`,"expected_version":"1"}`, 200))
+			checkActor(request("POST", path+"/"+table+"/enable", `{"expected_version":"2"}`, 200))
+			bindFlowTemplate(t, app, table, "default_standard_v1", true)
 			publish := func(input, key string) domain.ReleaseOrder {
 				path := approveActorPublication(t, app, session, sessions[1-i], input, key)
 				response := releaseActorRequest(t, app, session, "POST", path+"/execute", `{"expected_version":"3"}`, key+"-execute")
@@ -349,7 +356,7 @@ func TestConcurrentAccountsOwnTheirBusinessChanges(t *testing.T) {
 			if len(data.Rows) != 1 || data.Rows[0]["creator"] == nil || *data.Rows[0]["creator"] != actor || data.Rows[0]["modifier"] == nil || *data.Rows[0]["modifier"] != actor {
 				t.Fatalf("row attribution: %s", result.Body.String())
 			}
-			checkActor(request("POST", path+"/"+table+"/disable", "", 200))
+			checkActor(request("POST", path+"/"+table+"/disable", `{"expected_version":"3"}`, 200))
 		})
 	}
 }
@@ -374,6 +381,12 @@ func TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory(t *testing.T)
 	session := registerAccount(t, app, "history.user", "history@example.com", "correct horse battery staple")
 	grantTestAdministrator(t, app, session)
 	request := func(method, path, body string) *httptest.ResponseRecorder {
+		if strings.HasPrefix(path, "/api/v1/table-policies") && method != "GET" {
+			if strings.HasSuffix(path, "/enable") || strings.HasSuffix(path, "/disable") {
+				body = `{"expected_version":"1"}`
+			}
+			return accountRequestFrom(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session), "192.0.2.1:1234", map[string]string{"Idempotency-Key": fmt.Sprintf("business-policy-%d", policyRequestSequence.Add(1))})
+		}
 		return accountRequest(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session))
 	}
 	query := `{"code":"history_query_v1","name":"History","type_code":"page_query","default_order_field":"id","default_order_direction":"ASC","default_page_size":20,"max_page_size":100}`
@@ -390,6 +403,7 @@ func TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory(t *testing.T)
 			t.Fatalf("setup %s: %d %s", step.path, response.Code, response.Body.String())
 		}
 	}
+	bindFlowTemplate(t, app, "actor_history", "default_standard_v1", true)
 	input := `{"items":[{"content":{"value":"must not commit"},"operation":"ADD","table_name":"actor_history"}],"title":"集成测试发布单"}`
 	reviewer := publicationFixtureReviewer(t, app)
 	for i, definition := range []string{"VARCHAR(12)", "CHAR(35)", "ENUM('legacy-admin','aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa')"} {
@@ -489,6 +503,7 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
 	}
 	t.Cleanup(func() { _ = owner.Close() })
 	assignRelationalMutationPolicy(t, app, "inflight_mutation_v1", true, true, true, true)
+	bindFlowTemplate(t, app, "mutation_snapshot_items", "default_standard_v1", true)
 	session := registerAccount(t, app, "inflight.user", "inflight@example.com", "correct horse battery staple")
 	grantTestAdministrator(t, app, session)
 	actor := accountID(t, session)
@@ -590,13 +605,19 @@ func TestAccountControlTablesCannotBeDiscoveredOrManaged(t *testing.T) {
 	session := registerAccount(t, app, "control.user", "control@example.com", "correct horse battery staple")
 	grantTestAdministrator(t, app, session)
 	request := func(method, path, body string) *httptest.ResponseRecorder {
+		if strings.HasPrefix(path, "/api/v1/table-policies") && method != "GET" {
+			if strings.HasSuffix(path, "/enable") || strings.HasSuffix(path, "/disable") {
+				body = `{"expected_version":"1"}`
+			}
+			return accountRequestFrom(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session), "192.0.2.1:1234", map[string]string{"Idempotency-Key": fmt.Sprintf("business-policy-%d", policyRequestSequence.Add(1))})
+		}
 		return accountRequest(app, method, path, body, session.Result().Cookies(), sessionCSRF(t, session))
 	}
 	discovered := request("GET", "/api/v1/database-tables", "")
 	if discovered.Code != 200 || strings.Contains(discovered.Body.String(), "rcc_") {
 		t.Fatalf("control table discovered: %d %s", discovered.Code, discovered.Body.String())
 	}
-	for _, table := range []string{"rcc_accounts", "rcc_login_sessions", "rcc_preauth_credentials", "rcc_auth_rate_limits", "rcc_auth_control_lock", "rcc_account_role_history", "rcc_record_versions", "rcc_release_orders", "rcc_release_details", "rcc_release_executions", "rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_table_publications", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_goose_db_version", "rcc_schema_migration_attempts", "rcc_approval_roles", "rcc_approval_role_members", "rcc_approval_role_requests", "rcc_approval_role_references", "rcc_future_control", "RCC_ACCOUNTS"} {
+	for _, table := range []string{"rcc_accounts", "rcc_login_sessions", "rcc_preauth_credentials", "rcc_auth_rate_limits", "rcc_auth_control_lock", "rcc_account_role_history", "rcc_record_versions", "rcc_release_orders", "rcc_release_details", "rcc_release_executions", "rcc_release_requests", "rcc_release_targets", "rcc_release_table_references", "rcc_table_publications", "rcc_publication_commands", "rcc_refresh_notifications", "rcc_goose_db_version", "rcc_schema_migration_attempts", "rcc_future_control", "rcc_release_templates", "rcc_table_release_templates", "RCC_ACCOUNTS", "rcc_approval_roles", "rcc_approval_role_members", "rcc_approval_role_requests", "rcc_approval_role_references", "rcc_table_approval_assignments", "rcc_table_approval_requests"} {
 		if response := request("GET", "/api/v1/database-tables/"+table, ""); response.Code != 404 {
 			t.Fatalf("control detail %s: %d %s", table, response.Code, response.Body.String())
 		}
@@ -604,7 +625,7 @@ func TestAccountControlTablesCannotBeDiscoveredOrManaged(t *testing.T) {
 			{"POST", "/api/v1/table-policies", tablePolicyCodePayload(table, "unused_query_v1", "unused_mutation_v1")},
 			{"GET", "/api/v1/table-policies/" + table, ""},
 			{"PUT", "/api/v1/table-policies/" + table, tablePolicyCodePayload(table, "unused_query_v1", "unused_mutation_v1")},
-			{"POST", "/api/v1/table-policies/" + table + "/enable", ""}, {"POST", "/api/v1/table-policies/" + table + "/disable", ""},
+			{"POST", "/api/v1/table-policies/" + table + "/enable", `{"expected_version":"1"}`}, {"POST", "/api/v1/table-policies/" + table + "/disable", `{"expected_version":"1"}`},
 			{"POST", "/api/v1/tables/" + table + "/query", `{}`},
 			{"POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","items":[{"table_name":%q,"operation":"ADD","content":{}}]}`, table)},
 			{"POST", "/api/v1/release-orders", fmt.Sprintf(`{"title":"集成测试发布单","items":[{"table_name":%q,"operation":"MODIFY","id":"1","expected_record_version":"0","content":{}}]}`, table)},

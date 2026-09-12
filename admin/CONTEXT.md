@@ -84,8 +84,32 @@ _Avoid_: SQL, GORM query
 A complete field-by-field comparison of one proposed ADD, MODIFY, or DELETE against a Managed Table row, used to review the intended change before authorizing it for publication.
 _Avoid_: Release, revision, audit record
 
+**Release Type（发布方式）**:
+A predefined category of release workflow shared by one or more Release Templates. Standard database publication includes approval, while emergency publication records the applicant’s required reason and awaits manual execution by a current publisher without approval; the category does not identify one particular template.
+_Avoid_: Release Template Code, deployment environment, rollback order
+
+**Release Template（发布流程模板）**:
+A reusable, named configuration of an ordered release workflow, identified by a stable unique code and one immutable Release Type. It contains Release Node Definitions rather than the progress or results of a particular Release Order. An emergency template must remain available; a standard template may be disabled.
+_Avoid_: Release Order, Release Execution, individual node, SQL template
+
+**Table Release Template（表发布模板关联）**:
+The single selection of a Release Template for one Table Policy and one Release Type. Standard associations may be disabled; an emergency association remains valid while its table is managed and can be replaced without an unavailable interval.
+_Avoid_: Release Node Definition, Release Order instance, per-node configuration
+
+**Release Node Definition（发布节点定义）**:
+One named step within a Release Template, using a predefined workflow capability and its allowed authority parameters. Its code is unique within that template, and its position follows the sequence allowed by the template's Release Type.
+_Avoid_: Release Execution, workflow progress, arbitrary script, database row change
+
+**Release Table Flow（逐表流程实例）**:
+The workflow acknowledged for one involved Managed Table when a Release Order draft or its restoration preview is saved, retaining its selected Release Type and ordered node definitions. Later template changes or table reassignment do not replace that saved workflow; a restoration flow belongs to the original order, always uses emergency publication and retains no additional approval or completion requirement.
+_Avoid_: Release Template, Approval Assignment Snapshot, whole-order template
+
+**Release Node Instance（发布节点实例）**:
+One step in a Release Table Flow, retaining the acknowledged definition and the progress recorded through actual table decisions or whole-order publication and completion. Any attributed person and time belong to the action that produced that progress.
+_Avoid_: Release Node Definition, current approval eligibility, inferred completion
+
 **Release Order（发布单）**:
-The authoritative record of an ordered collection of proposed changes across Managed Tables in one Managed Data Source and its progression through approval, publication, completion, cancellation, or rollback. It associates the frozen application with its applicant, change details, execution results, and operation history.
+The authoritative record of an ordered collection of proposed changes across Managed Tables in one Managed Data Source and its progression through approval, publication, completion, cancellation, or rollback. It associates the frozen application with its applicant, per-table flows, change details, execution results, and operation history.
 _Avoid_: Change Set, deployment, notification task
 
 **Release Change Detail（发布单变更明细）**:
@@ -110,7 +134,7 @@ _Avoid_: Approval of an individual record, publication, approval of another tabl
 
 **Approval Assignment Snapshot（审批分配快照）**:
 The role identities and names assigned to review each involved Managed Table when a Release Order is submitted, including an explicitly empty assignment. Membership and eligibility remain current, while later table reassignment does not replace the snapshot or invalidate decisions already completed lawfully.
-_Avoid_: Policy Snapshot, frozen membership, current table assignment
+_Avoid_: Policy Snapshot, Release Table Flow, frozen membership, current table assignment
 
 **Record Version（记录并发版本）**:
 The monotonically advancing concurrency identity of one configuration record, used to reject changes based on an older record state, including after deletion and recreation of the same record identity.
@@ -125,7 +149,7 @@ The publication progress of one Managed Table, advanced when a change set is com
 _Avoid_: Record Version, Release Order Version, cache refresh time
 
 **Quick Rollback（快速回滚）**:
-The whole-order emergency reversal of a successful ordinary publication before Release Completion, authorized by a current publisher after reviewing the restoration intent, without new approval. It retains the original Active Targets throughout restoration and ends the original order on success, with the actual reversal recorded as its rollback Release Execution.
+The whole-order emergency reversal of a successful standard or emergency publication before Release Completion, authorized by a current publisher after reviewing the restoration intent, without new approval. It retains the original Active Targets throughout restoration and ends the original order on success, with the actual reversal recorded as its rollback Release Execution.
 _Avoid_: Rollback Release Order, partial restore, history deletion, forced overwrite
 
 **Rollback Reason（回滚原因）**:
@@ -137,7 +161,7 @@ The explicit end of a successful ordinary publication's protected recovery perio
 _Avoid_: Publication, cancellation, delivery confirmation
 
 **Reprepared Release Order（重新准备发布单）**:
-A new editable Release Order that replaces an approved but unpublished ordinary Release Order after its original applicant or an administrator reviews the current configuration. The replacement belongs to the person who performs the operation and must receive a fresh independent approval; cancelling the source, creating the replacement, transferring still-needed Active Targets and acquiring any additional targets, and linking both histories form one atomic change.
+A new editable Release Order that replaces an approved standard or pending-publication emergency Release Order after its original applicant or an administrator reviews the current configuration. The replacement belongs to the person who performs the operation and must be submitted again with a fresh independent approval for standard publication or a new reason for emergency publication; cancelling the source, creating the replacement, transferring still-needed Active Targets and acquiring any additional targets, and linking both histories form one atomic change.
 _Avoid_: Editing an approval, approval reuse, quick rollback
 
 **Active Target（在途目标）**:
@@ -174,6 +198,7 @@ _Avoid_: Published configuration, delivery receipt, cache version
 
 ## Related documents
 
+- [Release Template decision](../docs/adr/0027-configure-release-workflows-with-stable-templates.md): stable template identity, constrained nodes, and lifecycle boundaries.
 - [Multi-table draft targets and execution decision](../docs/adr/0025-multitable-drafts-reserve-targets-and-record-executions.md): the accepted model for multi-table orders, draft reservations, and original-order rollback.
 - [Table approval roles and default reviewers](../docs/adr/0026-authorize-approval-by-table-roles.md): the accepted approval responsibility and eligibility model.
 - [Admin technical baseline](../docs/admin-v1-technical-baseline.md): database selection and Managed Table schema requirements.

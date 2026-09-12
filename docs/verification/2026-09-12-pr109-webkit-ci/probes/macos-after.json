@@ -1,0 +1,3676 @@
+{
+  "ready": true,
+  "iterations": 20,
+  "completed": 20,
+  "browserVersion": "26.5",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "pageErrorCount": 0,
+  "nativeErrorCount": 0,
+  "errors": [],
+  "timeline": [
+    {
+      "at": 1789170317765,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170317794,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170317825,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170317826,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170317868,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170317869,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170317869,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170317869,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170317869,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170317889,
+      "event": "reload.start",
+      "iteration": 0
+    },
+    {
+      "at": 1789170317891,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170317893,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170317894,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170317929,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170317931,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170317935,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170317954,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170317954,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170317963,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170317963,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170317963,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170317963,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170317964,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170317981,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170317983,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170317985,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170317985,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170318023,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318027,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170318044,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170318044,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170318054,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170318063,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318065,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318065,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170318101,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318118,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170318127,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170318127,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170318136,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170318136,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170318136,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170318136,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170318136,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170318144,
+      "event": "reload.start",
+      "iteration": 1
+    },
+    {
+      "at": 1789170318148,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318150,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318150,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170318183,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170318185,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318188,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170318202,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170318202,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170318212,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170318212,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170318212,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170318212,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170318213,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170318227,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170318232,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318234,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318235,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170318270,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318280,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170318290,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170318290,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170318309,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170318311,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318315,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318315,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170318353,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318365,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170318374,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170318374,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170318384,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170318384,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170318384,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170318384,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170318384,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170318395,
+      "event": "reload.start",
+      "iteration": 2
+    },
+    {
+      "at": 1789170318399,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318401,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318402,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170318434,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170318436,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318438,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170318453,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170318453,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170318465,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170318465,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170318465,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170318465,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170318466,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170318484,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170318486,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318488,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318488,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170318526,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318527,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170318543,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170318543,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170318552,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170318556,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318559,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318559,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170318595,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318619,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170318639,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170318639,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170318648,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170318648,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170318648,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170318648,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170318648,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170318688,
+      "event": "reload.start",
+      "iteration": 3
+    },
+    {
+      "at": 1789170318691,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318693,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318693,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170318729,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170318732,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318743,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170318752,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170318753,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170318762,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170318762,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170318763,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170318763,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170318763,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170318776,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170318779,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318781,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318781,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170318820,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318831,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170318840,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170318840,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170318857,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170318859,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318861,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318861,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170318900,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318912,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170318922,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170318922,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170318932,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170318932,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170318932,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170318932,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170318933,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170318941,
+      "event": "reload.start",
+      "iteration": 4
+    },
+    {
+      "at": 1789170318947,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318949,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318949,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170318987,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170318987,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170318990,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170319000,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170319000,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170319017,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170319017,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170319018,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170319018,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170319018,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170319038,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170319040,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319042,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319042,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170319096,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319098,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170319114,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170319114,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170319122,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170319128,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319131,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319134,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170319177,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319179,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170319190,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170319190,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170319207,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170319208,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170319208,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170319208,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170319208,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170319232,
+      "event": "reload.start",
+      "iteration": 5
+    },
+    {
+      "at": 1789170319234,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319236,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319236,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170319268,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170319270,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319272,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170319286,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170319286,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170319298,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170319298,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170319298,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170319298,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170319298,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170319317,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170319319,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319321,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319321,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170319358,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319359,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170319368,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170319368,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170319386,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170319390,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319393,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319393,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170319428,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319430,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170319444,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170319445,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170319454,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170319455,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170319455,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170319455,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170319456,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170319474,
+      "event": "reload.start",
+      "iteration": 6
+    },
+    {
+      "at": 1789170319475,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319477,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319478,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170319510,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170319513,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319543,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170319551,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170319551,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170319558,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170319558,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170319559,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170319559,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170319559,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170319566,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170319570,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319572,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319573,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170319608,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319610,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170319624,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170319625,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170319634,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170319637,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319639,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319639,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170319672,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319674,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170319688,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170319688,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170319699,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170319699,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170319699,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170319699,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170319699,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170319720,
+      "event": "reload.start",
+      "iteration": 7
+    },
+    {
+      "at": 1789170319722,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319724,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319724,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170319755,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170319756,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319758,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170319766,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170319766,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170319783,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170319783,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170319783,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170319783,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170319784,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170319805,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170319806,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319808,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319808,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170319843,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319844,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170319859,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170319859,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170319869,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170319873,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319875,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319875,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170319907,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319909,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170319917,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170319917,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170319935,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170319935,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170319935,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170319935,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170319936,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170319957,
+      "event": "reload.start",
+      "iteration": 8
+    },
+    {
+      "at": 1789170319958,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319961,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319961,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170319993,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170319995,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170319997,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170320005,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170320005,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170320023,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170320023,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170320023,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170320023,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170320023,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170320050,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170320052,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320054,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320054,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170320087,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320089,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170320103,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170320104,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170320114,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170320116,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320120,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320120,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170320179,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320183,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170320197,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170320197,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170320204,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170320205,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170320205,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170320205,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170320206,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170320213,
+      "event": "reload.start",
+      "iteration": 9
+    },
+    {
+      "at": 1789170320216,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320218,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320218,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170320252,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170320253,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320255,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170320269,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170320269,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170320281,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170320281,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170320281,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170320281,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170320281,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170320300,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170320302,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320304,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320304,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170320336,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320338,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170320352,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170320352,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170320362,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170320366,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320369,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320369,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170320404,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320405,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170320414,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170320414,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170320433,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170320433,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170320433,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170320433,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170320433,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170320452,
+      "event": "reload.start",
+      "iteration": 10
+    },
+    {
+      "at": 1789170320453,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320456,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320456,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170320491,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170320493,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320495,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170320505,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170320505,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170320523,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170320523,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170320523,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170320523,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170320523,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170320542,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170320544,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320549,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320549,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170320590,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320615,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170320623,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170320623,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170320639,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170320641,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320643,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320643,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170320681,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320683,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170320698,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170320698,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170320708,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170320708,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170320708,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170320708,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170320709,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170320732,
+      "event": "reload.start",
+      "iteration": 11
+    },
+    {
+      "at": 1789170320733,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320736,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320736,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170320768,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170320769,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320771,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170320780,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170320780,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170320797,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170320797,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170320797,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170320797,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170320797,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170320830,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170320832,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320835,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320835,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170320874,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320886,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170320895,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170320895,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170320914,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170320916,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320918,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320918,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170320956,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170320960,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170320976,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170320976,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170320985,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170320985,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170320985,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170320985,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170320985,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170320997,
+      "event": "reload.start",
+      "iteration": 12
+    },
+    {
+      "at": 1789170321000,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321002,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321002,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170321036,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170321038,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321050,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170321060,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170321060,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170321069,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170321069,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170321069,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170321069,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170321069,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170321082,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170321084,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321086,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321086,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170321123,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321125,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170321139,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170321140,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170321152,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170321155,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321157,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321158,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170321195,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321211,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170321231,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170321232,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170321240,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170321240,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170321240,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170321241,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170321241,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170321287,
+      "event": "reload.start",
+      "iteration": 13
+    },
+    {
+      "at": 1789170321289,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321291,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321291,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170321324,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170321326,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321328,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170321336,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170321336,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170321353,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170321353,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170321353,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170321353,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170321353,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170321374,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170321376,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321378,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321378,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170321413,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321415,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170321429,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170321429,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170321437,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170321443,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321447,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321447,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170321481,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321482,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170321490,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170321490,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170321507,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170321507,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170321507,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170321507,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170321508,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170321532,
+      "event": "reload.start",
+      "iteration": 14
+    },
+    {
+      "at": 1789170321533,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321536,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321536,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170321568,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170321569,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321571,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170321579,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170321579,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170321594,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170321594,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170321594,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170321594,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170321594,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170321601,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170321604,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321606,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321607,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170321640,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321657,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170321680,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170321680,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170321699,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170321701,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321704,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321704,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170321737,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321739,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170321752,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170321752,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170321764,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170321764,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170321764,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170321765,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170321765,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170321783,
+      "event": "reload.start",
+      "iteration": 15
+    },
+    {
+      "at": 1789170321785,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321787,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321787,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170321818,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170321819,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321821,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170321835,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170321836,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170321846,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170321846,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170321846,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170321846,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170321846,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170321865,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170321866,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321868,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321869,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170321901,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321903,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170321917,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170321917,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170321928,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170321932,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321934,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321935,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170321967,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170321969,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170321983,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170321983,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170321994,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170321994,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170321994,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170321994,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170321995,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170322008,
+      "event": "reload.start",
+      "iteration": 16
+    },
+    {
+      "at": 1789170322010,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322015,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322015,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170322046,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170322049,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322080,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170322088,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170322088,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170322096,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170322096,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170322097,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170322097,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170322097,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170322103,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170322105,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322107,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322107,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170322141,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322142,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170322151,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170322151,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170322167,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170322169,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322172,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322172,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170322205,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322207,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170322222,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170322222,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170322234,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170322235,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170322235,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170322235,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170322235,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170322255,
+      "event": "reload.start",
+      "iteration": 17
+    },
+    {
+      "at": 1789170322257,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322259,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322259,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170322289,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170322290,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322292,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170322306,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170322306,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170322316,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170322317,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170322317,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170322317,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170322317,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170322336,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170322338,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322340,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322341,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170322376,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322378,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170322385,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170322385,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170322402,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170322404,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322406,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322407,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170322439,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322442,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170322462,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170322463,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170322474,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170322474,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170322474,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170322474,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170322474,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170322497,
+      "event": "reload.start",
+      "iteration": 18
+    },
+    {
+      "at": 1789170322499,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322501,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322502,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170322535,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170322536,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322538,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170322545,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170322546,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170322562,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170322562,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170322562,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170322562,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170322562,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170322584,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170322585,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322587,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322587,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170322619,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322621,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170322634,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170322634,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170322643,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170322647,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322649,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322649,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170322682,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322684,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170322692,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170322692,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170322708,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170322709,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170322709,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170322709,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170322709,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170322733,
+      "event": "reload.start",
+      "iteration": 19
+    },
+    {
+      "at": 1789170322735,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322737,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322737,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170322768,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170322770,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322772,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170322785,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170322786,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170322796,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170322796,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170322796,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170322796,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170322798,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170322817,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170322819,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322821,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322822,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170322864,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170322886,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170322893,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170322894,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170322910,
+      "event": "second-navigation.ready"
+    }
+  ],
+  "failure": null
+}

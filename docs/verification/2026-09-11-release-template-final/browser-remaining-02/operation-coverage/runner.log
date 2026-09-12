@@ -1,0 +1,20 @@
+Error: Command failed: /var/folders/ll/6l3vq9q97v5c58_9s5nzqyv00000gn/T//rcc-browser-runtime.jKXd8W/account-maintain grant-admin --id 67dbfb4c-52fe-46ce-9f14-1bcfeb1f7eae
+schema_not_ready: complete schema-migrate up/recover before grant-admin
+
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at checkExecSyncError (node:child_process:942:11)
+    at execFileSync (node:child_process:978:15)
+    at registerFixtureAccount (/private/tmp/rcc-issue-106-release-template-final/web/e2e/local-account.cjs:72:3)
+    at async /private/tmp/rcc-issue-106-release-template-final/web/e2e/operation-coverage.cjs:134:15 {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 73 63 68 65 6d 61 5f 6e 6f 74 5f 72 65 61 64 79 3a 20 63 6f 6d 70 6c 65 74 65 20 73 63 68 65 6d 61 2d 6d 69 67 72 61 74 65 20 75 70 2f 72 65 63 6f 76 ... 22 more bytes>
+  ],
+  pid: 72995,
+  stdout: <Buffer >,
+  stderr: <Buffer 73 63 68 65 6d 61 5f 6e 6f 74 5f 72 65 61 64 79 3a 20 63 6f 6d 70 6c 65 74 65 20 73 63 68 65 6d 61 2d 6d 69 67 72 61 74 65 20 75 70 2f 72 65 63 6f 76 ... 22 more bytes>
+}

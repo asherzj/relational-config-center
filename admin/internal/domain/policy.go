@@ -15,6 +15,7 @@ var (
 // Storage identity stays internal; audit metadata is part of the management
 // projection exposed with the accepted created_at/updated_at names.
 type TablePolicy struct {
+	Version            uint64
 	ConcurrencyKey     []string
 	QueryPolicyCode    string
 	MutationPolicyCode string

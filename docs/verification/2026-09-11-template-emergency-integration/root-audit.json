@@ -1,0 +1,31 @@
+{
+  "backend_effective_pass": 52,
+  "backend_evidence_hashes_match": 23,
+  "inherited_git_blobs_unchanged": {
+    "e7e19b022fc606c137fdf8df1899caf9a5702bb1": 1472,
+    "f545adf24aadd34ee39afb2643a4819aee54c986": 1256
+  },
+  "formal_migration_paths_unchanged": [
+    "admin/internal/infrastructure/mysql/migrations/00001_control_baseline.sql",
+    "admin/internal/infrastructure/mysql/migrations/00001_schema.json",
+    "admin/internal/infrastructure/mysql/migrations/00002_policy_audit_timestamps.sql",
+    "admin/internal/infrastructure/mysql/migrations/00002_schema.json",
+    "admin/internal/infrastructure/mysql/migrations/00003_schema.json",
+    "admin/internal/infrastructure/mysql/migrations/00003_table_field_policies.sql",
+    "admin/internal/infrastructure/mysql/migrations/00004_release_details_and_targets.sql",
+    "admin/internal/infrastructure/mysql/migrations/00004_schema.json",
+    "admin/internal/infrastructure/mysql/migrations/00005_release_execution_ownership.sql",
+    "admin/internal/infrastructure/mysql/migrations/00005_schema.json",
+    "admin/internal/infrastructure/mysql/migrations/00006_approval_roles.sql",
+    "admin/internal/infrastructure/mysql/migrations/00006_schema.json",
+    "admin/internal/infrastructure/mysql/migrations/00007_schema.json",
+    "admin/internal/infrastructure/mysql/migrations/00007_table_approvals.sql",
+    "admin/internal/infrastructure/mysql/migrations/00008_approval_notifications.sql",
+    "admin/internal/infrastructure/mysql/migrations/00008_schema.json",
+    "admin/internal/infrastructure/mysql/migrations/00009_retire_global_approver.sql",
+    "admin/internal/infrastructure/mysql/migrations/00009_schema.json"
+  ],
+  "browser_unique_effective_pass": 6,
+  "browser_narrow_repair_evidence_hashes_match": 37,
+  "account_fixture_source_match": "769258acbf5d0344bdc09e1a9936632e46b71774a4b20f95862b637f8850a8db"
+}

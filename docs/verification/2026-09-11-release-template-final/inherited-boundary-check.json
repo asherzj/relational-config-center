@@ -1,0 +1,6 @@
+{
+  "base": "0edb62afde567242e7c734d37d20b834aa0df983",
+  "checked_files": 2183,
+  "mismatches": [],
+  "note": "Final raw-byte Git blob recheck after all acceptance runs; all inherited verification and migration SQL/JSON remain unchanged. New106 artifacts excluded."
+}

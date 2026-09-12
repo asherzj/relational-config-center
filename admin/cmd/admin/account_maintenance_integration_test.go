@@ -242,7 +242,7 @@ func TestAccountMaintenanceIndependentConnectionAndAtomicFailures(t *testing.T) 
 	id := accountID(t, current)
 	// The normal Admin must fail here, but maintenance needs only its control
 	// tables and MYSQL_* configuration, without HTTP origin or a login session.
-	if _, err := f.db.Exec("DROP TABLE rcc_table_policies"); err != nil {
+	if _, err := f.db.Exec("RENAME TABLE rcc_table_policies TO unavailable_table_policies"); err != nil {
 		t.Fatal(err)
 	}
 	if app, err := newApplication(context.Background(), f.settings); err == nil {

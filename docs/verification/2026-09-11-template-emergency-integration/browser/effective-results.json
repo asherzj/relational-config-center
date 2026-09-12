@@ -1,0 +1,213 @@
+{
+  "unique_browser_paths": 6,
+  "effective_results": [
+    {
+      "command": [
+        "go",
+        "test",
+        "-tags=integration,browser",
+        "./cmd/admin",
+        "-run",
+        "^TestReleaseFlowBrowserSystemPath$",
+        "-count=1",
+        "-v",
+        "-timeout=8m"
+      ],
+      "cwd": "/private/tmp/rcc-template-notification-integration/admin",
+      "output": "/private/tmp/rcc-template-notification-integration/docs/verification/2026-09-11-template-emergency-integration/browser/01-instances",
+      "started_unix": 1789113399.851286,
+      "duration_seconds": 42.5095739364624,
+      "exit_code": 0,
+      "source_changed": [],
+      "created_containers": [
+        "a052d0e40526"
+      ],
+      "terminated_containers": [
+        "a052d0e40526"
+      ],
+      "cleanup_inspection": [
+        {
+          "id": "a052d0e40526",
+          "inspect_exit": 1,
+          "stdout": "\n",
+          "stderr": "error: no such object: a052d0e40526\n"
+        }
+      ],
+      "browser": "chromium / installed Chrome channel (default)"
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "-tags=integration,browser",
+        "./cmd/admin",
+        "-run",
+        "^TestReleaseEmergencyBrowserSystemPath$",
+        "-count=1",
+        "-v",
+        "-timeout=8m"
+      ],
+      "cwd": "/private/tmp/rcc-template-notification-integration/admin",
+      "output": "/private/tmp/rcc-template-notification-integration/docs/verification/2026-09-11-template-emergency-integration/browser/02-emergency",
+      "started_unix": 1789113442.40767,
+      "duration_seconds": 38.055402994155884,
+      "exit_code": 0,
+      "source_changed": [],
+      "created_containers": [
+        "ec9937f9072f"
+      ],
+      "terminated_containers": [
+        "ec9937f9072f"
+      ],
+      "cleanup_inspection": [
+        {
+          "id": "ec9937f9072f",
+          "inspect_exit": 1,
+          "stdout": "\n",
+          "stderr": "error: no such object: ec9937f9072f\n"
+        }
+      ],
+      "browser": "chromium / installed Chrome channel (default)"
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "-tags=integration,browser",
+        "./cmd/admin",
+        "-run",
+        "^TestNotificationCenterBrowserSystemPath$",
+        "-count=1",
+        "-v",
+        "-timeout=8m"
+      ],
+      "cwd": "/private/tmp/rcc-template-notification-integration/admin",
+      "output": "/private/tmp/rcc-template-notification-integration/docs/verification/2026-09-11-template-emergency-integration/browser/03-notification-center",
+      "started_unix": 1789113480.51124,
+      "duration_seconds": 31.17875099182129,
+      "exit_code": 0,
+      "source_changed": [],
+      "created_containers": [
+        "fcfb6a429df1"
+      ],
+      "terminated_containers": [
+        "fcfb6a429df1"
+      ],
+      "cleanup_inspection": [
+        {
+          "id": "fcfb6a429df1",
+          "inspect_exit": 1,
+          "stdout": "\n",
+          "stderr": "error: no such object: fcfb6a429df1\n"
+        }
+      ],
+      "browser": "chromium / installed Chrome channel (default)"
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "-tags=integration,browser",
+        "./cmd/admin",
+        "-run",
+        "^TestReleaseNotificationsBrowserSystemPath$",
+        "-count=1",
+        "-v",
+        "-timeout=8m"
+      ],
+      "cwd": "/private/tmp/rcc-template-notification-integration/admin",
+      "output": "/private/tmp/rcc-template-notification-integration/docs/verification/2026-09-11-template-emergency-integration/browser/04-release-notifications",
+      "started_unix": 1789113511.738828,
+      "duration_seconds": 44.30245900154114,
+      "exit_code": 0,
+      "source_changed": [],
+      "created_containers": [
+        "3dc3153a35d5"
+      ],
+      "terminated_containers": [
+        "3dc3153a35d5"
+      ],
+      "cleanup_inspection": [
+        {
+          "id": "3dc3153a35d5",
+          "inspect_exit": 1,
+          "stdout": "\n",
+          "stderr": "error: no such object: 3dc3153a35d5\n"
+        }
+      ],
+      "browser": "chromium / installed Chrome channel (default)"
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "-tags=integration,browser",
+        "./cmd/admin",
+        "-run",
+        "^TestApprovalNotificationsBrowserSystemPath$",
+        "-count=1",
+        "-v",
+        "-timeout=8m"
+      ],
+      "cwd": "/private/tmp/rcc-template-notification-integration/admin",
+      "output": "/private/tmp/rcc-template-notification-integration/docs/verification/2026-09-11-template-emergency-integration/browser/05-approval-notifications",
+      "started_unix": 1789113556.090971,
+      "duration_seconds": 23.35651397705078,
+      "exit_code": 0,
+      "source_changed": [],
+      "created_containers": [
+        "c4fcc25698fa"
+      ],
+      "terminated_containers": [
+        "c4fcc25698fa"
+      ],
+      "cleanup_inspection": [
+        {
+          "id": "c4fcc25698fa",
+          "inspect_exit": 1,
+          "stdout": "\n",
+          "stderr": "error: no such object: c4fcc25698fa\n"
+        }
+      ],
+      "browser": "chromium / installed Chrome channel (default)"
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "-tags=integration,browser",
+        "./cmd/admin",
+        "-run",
+        "^TestAccountBrowserSystemPath$/^release-approvals\\.cjs$",
+        "-count=1",
+        "-v",
+        "-timeout=8m"
+      ],
+      "cwd": "/private/tmp/rcc-template-notification-integration/admin",
+      "output": "/private/tmp/rcc-template-notification-integration/docs/verification/2026-09-11-template-emergency-integration/browser/07-release-approvals",
+      "started_unix": 1789113818.5077178,
+      "duration_seconds": 69.44378519058228,
+      "exit_code": 0,
+      "source_changed": [],
+      "created_containers": [
+        "88894c069f9c"
+      ],
+      "terminated_containers": [
+        "88894c069f9c"
+      ],
+      "cleanup_inspection": [
+        {
+          "id": "88894c069f9c",
+          "inspect_exit": 1,
+          "stdout": "\n",
+          "stderr": "error: no such object: 88894c069f9c\n"
+        }
+      ],
+      "browser": "chromium / installed Chrome channel (default)"
+    }
+  ],
+  "initial_failed_path": "06-release-approvals",
+  "diagnosis": "06a-fixture-diagnosis",
+  "scope": "Six affected paths only; account bootstrap and selected release-approvals subtest share one path, not full account suite.",
+  "applicability": "Only account_browser_integration_test.go late setup changed; first five paths never invoke it. No production, Web script or migration changes after the initial runs."
+}

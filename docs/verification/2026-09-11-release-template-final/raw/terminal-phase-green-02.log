@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-106-release-template-final/web
+
+
+ Test Files  1 passed (1)
+      Tests  9 passed | 88 skipped (97)
+   Start at  17:31:21
+   Duration  2.11s (transform 546ms, setup 193ms, import 837ms, tests 641ms, environment 346ms)
+

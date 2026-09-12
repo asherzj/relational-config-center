@@ -1,0 +1,18 @@
+{
+  "web/DESIGN.md": "2117f9e47545403d4144d2ad347dcafea3021b57244bb44048c70f352e0b5db5",
+  "web/e2e/release-rollback-reason.cjs": "86844f4e542912496971b299034e31cf428e7785c69dde0cf0e357ee81f3941f",
+  "web/e2e/release-rollbacks.cjs": "a70da7483625974455aa5f300693d8413f5c85dd8babcc153d84f78c7248ff7b",
+  "web/src/api/release-orders.test.ts": "e9d1eb4cb1553cb3443b5c7f0fadca7a38e499668e65c8670189cfc6a1b0741b",
+  "web/src/api/release-orders.ts": "3c9e2511d6969340aa38d7ac2abb52ea441e7933d828fb9f2191b1c4d4e34743",
+  "web/src/features/notifications/ApprovalNotifications.test.tsx": "f004d5cb005c59be5fabf541ef354e6752c0915a4ad7775175ae531028d9d906",
+  "web/src/features/release-orders/QuickRollbackDialog.tsx": "2194fb371a03b9744d2c983faa7b7221c17cd601e1197fad813d31c377734495",
+  "web/src/features/release-orders/ReleaseFlows.tsx": "7d411b758b7ece07e86457b539b7fdd8510e07cab4d074f6b3fb1f5a328f2ed5",
+  "web/src/features/release-orders/ReleaseHistory.tsx": "110b2659743994461570a84aa72395f887b21d8b33887baf98c86c2d302c17da",
+  "web/src/features/release-orders/ReleaseOrdersPage.test.tsx": "1fc7e4a73273625597268c5be6ff178df3e74b83b6860b8f08607b8204e258e6",
+  "web/src/features/release-orders/ReleaseOrdersPage.tsx": "df2b989d5d88c11a1234b05a14190d87592dfd5828b91ebd5b39ef97a3693b2e",
+  "web/src/features/release-orders/ReleaseRequestReview.tsx": "620f0d833d88b74401573d9e151257621af715aafcdd8c908c5b971ab4ec3df3",
+  "web/src/features/release-orders/release-journal.ts": "43d4e2e453efa7c6b6db32c03f8d223e0f6ce49672a1d36f0ed0e8bdf0069c56",
+  "web/src/features/release-orders/useReleaseWrite.ts": "8b0866988ee6f85e1656be99f7e5bf354eb8a47376d089749b6473d378d8928f",
+  "web/src/test/release-fixture.ts": "361e986c5dadde5bf2fd7bb34ae1d714bcc048a7edd5ba766eeb6a4149c0da11",
+  "web/e2e/release-rollback-flows.cjs": "605fff8d9f107befce81ae036f5e529974116ffaaad423cf37489f2d5bb83d2d"
+}

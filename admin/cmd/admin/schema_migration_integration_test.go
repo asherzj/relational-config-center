@@ -374,7 +374,7 @@ func TestSchemaMigrationUpgradesToNextRelease(t *testing.T) {
 		t.Fatalf("duplicate migration replayed: %q %v", value, err)
 	}
 	requireSchemaMigrationState(t, first, driver, "incompatible", "status")
-	_, freshDriver := startIntegrationMySQL(t)
+	freshDriver := createSchemaComparisonDatabase(t, driver)
 	requireSchemaMigrationState(t, next, freshDriver, "current", "up")
 	freshDB, err := sql.Open("mysql", freshDriver.FormatDSN())
 	if err != nil {
@@ -401,6 +401,68 @@ func TestSchemaMigrationUpgradesToNextRelease(t *testing.T) {
 	if err := rows.Err(); err != nil {
 		t.Fatal(err)
 	}
+}
+
+// Compare independent schemas within one disposable MySQL server so migration
+// integration tests never need two concurrent containers.
+func createSchemaComparisonDatabase(t *testing.T, driver *mysqldriver.Config) *mysqldriver.Config {
+	t.Helper()
+	owner := *driver
+	owner.User = "root"
+	root := deliveryDB(t, &owner)
+	deliveryExec(t, root, `CREATE DATABASE schema_comparison CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci`)
+	owner.DBName = "schema_comparison"
+	owner.Params = map[string]string{"charset": "utf8mb4"}
+	return &owner
+}
+
+func TestReleaseTemplateSchemaMigrationUpgradesVersionFive(t *testing.T) {
+	previous, current := buildSchemaMigrationReleaseAt(t, 5), buildSchemaMigrationCommand(t)
+	_, driver := startIntegrationMySQL(t)
+	requireSchemaMigrationState(t, previous, driver, "current", "up")
+	db, err := sql.Open("mysql", driver.FormatDSN())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`CREATE TABLE business_marker(id int PRIMARY KEY,note varchar(20) NOT NULL)`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`INSERT INTO business_marker VALUES(1,'preserved')`); err != nil {
+		t.Fatal(err)
+	}
+	requireSchemaMigrationState(t, current, driver, "pending", "status")
+	requireSchemaMigrationState(t, current, driver, "current", "up")
+	var marker string
+	if err := db.QueryRow(`SELECT note FROM business_marker WHERE id=1`).Scan(&marker); err != nil || marker != "preserved" {
+		t.Fatalf("upgrade changed business data: %q %v", marker, err)
+	}
+	var templates, emergency int
+	if err := db.QueryRow(`SELECT COUNT(*),SUM(release_type='EMERGENCY' AND enabled=1) FROM rcc_release_templates`).Scan(&templates, &emergency); err != nil || templates != 2 || emergency != 1 {
+		t.Fatalf("release template defaults: templates=%d emergency=%d err=%v", templates, emergency, err)
+	}
+	var templateVersion int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version WHERE version_id=10 AND is_applied=1`).Scan(&templateVersion); err != nil || templateVersion != 1 {
+		t.Fatalf("candidate release template migration missing: %d %v", templateVersion, err)
+	}
+	rootConfig := *driver
+	rootConfig.User = "root"
+	root, err := sql.Open("mysql", rootConfig.FormatDSN())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer root.Close()
+	if _, err := root.Exec(`CREATE USER 'release_template_reader'@'%' IDENTIFIED BY 'rcc_password'`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := root.Exec(`GRANT SELECT ON rcc_test.* TO 'release_template_reader'@'%'`); err != nil {
+		t.Fatal(err)
+	}
+	reader := *driver
+	reader.User = "release_template_reader"
+	process := accountProcessCommand(t, buildIntegrationAdmin(t), &reader)
+	process.ready(t)
+	process.stop(t)
 }
 
 func TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery(t *testing.T) {

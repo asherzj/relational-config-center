@@ -1,0 +1,60 @@
+{
+  "spec": 100,
+  "tickets": [
+    {
+      "key": "T1",
+      "number": 101,
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "high",
+      "blocked_by": []
+    },
+    {
+      "key": "T2",
+      "number": 102,
+      "model": "gpt-6-astra",
+      "reasoning_effort": "high",
+      "blocked_by": [
+        101
+      ]
+    },
+    {
+      "key": "T3",
+      "number": 103,
+      "model": "gpt-6-astra",
+      "reasoning_effort": "xhigh",
+      "blocked_by": [
+        102,
+        94
+      ]
+    },
+    {
+      "key": "T4",
+      "number": 104,
+      "model": "gpt-6-astra",
+      "reasoning_effort": "high",
+      "blocked_by": [
+        103
+      ]
+    },
+    {
+      "key": "T5",
+      "number": 105,
+      "model": "gpt-6-astra",
+      "reasoning_effort": "xhigh",
+      "blocked_by": [
+        104,
+        97
+      ]
+    },
+    {
+      "key": "T6",
+      "number": 106,
+      "model": "gpt-6-astra",
+      "reasoning_effort": "high",
+      "blocked_by": [
+        105,
+        98
+      ]
+    }
+  ]
+}

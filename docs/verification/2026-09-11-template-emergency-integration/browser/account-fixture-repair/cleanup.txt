@@ -1,0 +1,8 @@
+Read-only docker ps after 07 (2026-09-11 Asia/Shanghai); original preview containers untouched:
+f4e91bfe4ff1 rcc-main-preview-admin 127.0.0.1:8081->8080/tcp rcc-main-preview-admin-1
+18b51e6f8509 mysql:8.4 127.0.0.1:3306->3306/tcp, 33060/tcp deploy-mysql-1
+
+06a: 3afee6be7e60 terminated; exact docker inspect exit 1, no such object (06a-fixture-diagnosis.json).
+07: 88894c069f9c terminated; exact docker inspect exit 1, no such object (07-release-approvals.json).
+Go cleanup kills/waits the Vite proxy and stops/waits Admin; browser scripts close their contexts/browser.
+DB returned to root after final check; no running test session.

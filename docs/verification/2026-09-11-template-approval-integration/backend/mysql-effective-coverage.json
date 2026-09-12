@@ -1,0 +1,122 @@
+{
+  "status": "complete_by_affected_rechecks",
+  "top_level_planned": 19,
+  "top_level_passed": 19,
+  "not_a_single_green_19_test_batch": true,
+  "batch_reconciliation": [
+    {
+      "result": "mysql-selected-result.json",
+      "meaning": "Docker provider was unavailable without explicit Colima environment; no business assertions ran."
+    },
+    {
+      "result": "mysql-selected-recheck-result.json",
+      "meaning": "17 passed and 2 failed; the failures are retained."
+    },
+    {
+      "result": "mysql-fixture-diagnostic-result.json",
+      "meaning": "Revocation passed after real-lock fixture correction; history failed with field-level diagnostics, exclusively ApprovalContext."
+    },
+    {
+      "result": "mysql-history-recheck-result.json",
+      "meaning": "History passed after separating current eligibility from immutable facts."
+    }
+  ],
+  "source_reuse": "Only the two failed test bodies changed after the 19-test batch. All production Go/SQL/manifests and other tests remained byte-identical; see mysql-final-source-manifest.json. The revocation body is unchanged since its passing diagnostic run.",
+  "tests": [
+    {
+      "test": "TestApprovalRoleMembershipPersistsWithoutGrantingAccountRoles",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 9.65
+    },
+    {
+      "test": "TestReleaseSubmitRequiresIndependentApprover",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 8.67
+    },
+    {
+      "test": "TestTableApprovalPartialProgressAndFinalApproval",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 8.65
+    },
+    {
+      "test": "TestTableApprovalSnapshotMembershipFallbackAndHistory",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 9.65
+    },
+    {
+      "test": "TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 8.6
+    },
+    {
+      "test": "TestTableApprovalQualificationChangesSerializeWithDecisions",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 11.58
+    },
+    {
+      "test": "TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 8.61
+    },
+    {
+      "test": "TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 8.57
+    },
+    {
+      "test": "TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 9.36
+    },
+    {
+      "test": "TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 8.65
+    },
+    {
+      "test": "TestTableReleaseTemplateHTTPCurrentAuthorizationAndRequiredRequestIdentity",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 8.66
+    },
+    {
+      "test": "TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 8.64
+    },
+    {
+      "test": "TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 9.69
+    },
+    {
+      "test": "TestBusinessAPIsRequireSessionAndCSRF",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 8.64
+    },
+    {
+      "test": "TestConcurrentAccountsOwnTheirBusinessChanges",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 8.31
+    },
+    {
+      "test": "TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 9.76
+    },
+    {
+      "test": "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish",
+      "evidence": "mysql-fixture-diagnostic.jsonl",
+      "elapsed_seconds": 9.16
+    },
+    {
+      "test": "TestAccountControlTablesCannotBeDiscoveredOrManaged",
+      "evidence": "mysql-selected-recheck.jsonl",
+      "elapsed_seconds": 8.69
+    },
+    {
+      "test": "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges",
+      "evidence": "mysql-history-recheck.jsonl",
+      "elapsed_seconds": 13.71
+    }
+  ]
+}

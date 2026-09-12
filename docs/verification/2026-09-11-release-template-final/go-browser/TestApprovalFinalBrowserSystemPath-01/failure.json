@@ -1,0 +1,14 @@
+{
+  "error": "AssertionError [ERR_ASSERTION]: POST /api/v1/table-policies/multitable_browser_a/enable: {\"error\":{\"code\":\"invalid_table_policy_request\",\"message\":\"original request key and observed version are required\",\"request_id\":\"rcc-d80b1f2d48ae9d3db8e46173850381d9\"}}\n\n422 !== 200\n\n    at approvalFixtureRequest (/private/tmp/rcc-issue-106-release-template-final/web/e2e/table-approval-fixture.cjs:7:10)\n    at async /private/tmp/rcc-issue-106-release-template-final/web/e2e/approval-final.cjs:46:208",
+  "checks": [
+    "正式v8旧APPROVER升级为VIEWER；当前选项退出，历史含义和版本仍可读"
+  ],
+  "errors": [],
+  "geometry": [
+    {
+      "name": "current-roles-and-permanent-history",
+      "viewport": 1440,
+      "document": 1440
+    }
+  ]
+}

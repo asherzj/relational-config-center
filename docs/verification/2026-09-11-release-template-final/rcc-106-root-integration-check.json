@@ -1,0 +1,16 @@
+{
+  "expected_from_original_inventory": 431,
+  "exact_identity_set_matches": true,
+  "effective_PASS_cross_checked_to_original_package_logs": 431,
+  "logs": [
+    "raw/business-flow-fixture-recheck.log",
+    "raw/foreign-key-fault-recheck.log",
+    "raw/http-error-fixture-recheck.log",
+    "raw/identity-flow-fixture-recheck.log",
+    "raw/mixed-batch-summary-recheck.log",
+    "raw/mutation-catalog-fixture-recheck.log",
+    "raw/mysql-full.log",
+    "raw/mysql-unfinished-admin-02.log"
+  ],
+  "result_index_sha256": "30380469d29078840b939a35d4ba2b5e0b27e9f56d5c7fc69aa631c398e3c847"
+}

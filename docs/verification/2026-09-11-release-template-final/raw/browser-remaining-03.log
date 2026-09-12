@@ -1,0 +1,201 @@
+Installing pinned Web dependencies and required Playwright browsers...
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+Done in 442ms using pnpm v10.28.2
+Building the Web preview artifact...
+
+> @relational-config-center/web@0.0.0 build /private/tmp/rcc-issue-106-release-template-final/web
+> tsc --noEmit && vite build
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 2158 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                             0.74 kB │ gzip:   0.40 kB
+dist/assets/index-D9Rwu6Cy.css             86.46 kB │ gzip:  16.70 kB
+dist/assets/rolldown-runtime-CbXtAM7H.js    0.58 kB │ gzip:   0.36 kB
+dist/assets/react-DXf84zf0.js             189.60 kB │ gzip:  59.62 kB
+dist/assets/vendor-B5DI7EYn.js            359.58 kB │ gzip: 112.44 kB
+dist/assets/index-BODSflcK.js             364.92 kB │ gzip:  99.95 kB
+
+✓ built in 282ms
+Verifying timeout cleanup against a TERM-resistant descendant...
+✔ kills the process group when its leader exits on TERM (1256.56325ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1317.704959
+Starting disposable MySQL 8.4 container rcc-browser-1789120293-73719-mysql...
+Building and applying the current Goose control schema...
+{"state":"current","current":11,"required":11,"pending":[],"attempt_id":11,"attempt_version":11,"attempt_digest":"2e51f69bd9fc53e0de693a6e28fa26e547fb640740c9210b830b6f820c182963","attempt_operation":"up"}
+Loading deploy/mysql/local-fixture/002-notification-templates.sql...
+Granting the disposable Admin account publication metadata access...
+Building and starting Admin on a dynamic loopback port...
+Starting Web preview on a different dynamic loopback port...
+{"files":["docs/verification/fixtures/stage1_acceptance.sql","web/e2e/fixtures/stage1-policies.sql","admin/cmd/admin/testdata/014-batch-browser.sql","admin/cmd/admin/testdata/015-draft-targets-browser.sql","admin/cmd/admin/testdata/016-multitable-browser.sql","web/e2e/fixtures/release-rollbacks.sql","web/e2e/fixtures/field-display.sql"],"added":["field_display_browser_items","stage1_acceptance_items","stage1_rollback_chromium_items","stage1_rollback_firefox_items","stage1_rollback_webkit_items"],"associations":[{"created_at":"2026-09-11T09:51:57.465Z","creator":"7afc5a7f-24c4-403b-b0d7-486113216eb6","enabled":true,"modifier":"7afc5a7f-24c4-403b-b0d7-486113216eb6","table_name":"field_display_browser_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:51:57.465Z","version":"1"},{"created_at":"2026-09-11T09:51:57.479Z","creator":"7afc5a7f-24c4-403b-b0d7-486113216eb6","enabled":true,"modifier":"7afc5a7f-24c4-403b-b0d7-486113216eb6","table_name":"field_display_browser_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:51:57.479Z","version":"1"},{"created_at":"2026-09-11T09:51:57.499Z","creator":"7afc5a7f-24c4-403b-b0d7-486113216eb6","enabled":true,"modifier":"7afc5a7f-24c4-403b-b0d7-486113216eb6","table_name":"stage1_acceptance_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:51:57.499Z","version":"1"},{"created_at":"2026-09-11T09:51:57.51Z","creator":"7afc5a7f-24c4-403b-b0d7-486113216eb6","enabled":true,"modifier":"7afc5a7f-24c4-403b-b0d7-486113216eb6","table_name":"stage1_acceptance_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:51:57.51Z","version":"1"},{"created_at":"2026-09-11T09:51:57.535Z","creator":"7afc5a7f-24c4-403b-b0d7-486113216eb6","enabled":true,"modifier":"7afc5a7f-24c4-403b-b0d7-486113216eb6","table_name":"stage1_rollback_chromium_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:51:57.535Z","version":"1"},{"created_at":"2026-09-11T09:51:57.548Z","creator":"7afc5a7f-24c4-403b-b0d7-486113216eb6","enabled":true,"modifier":"7afc5a7f-24c4-403b-b0d7-486113216eb6","table_name":"stage1_rollback_chromium_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:51:57.548Z","version":"1"},{"created_at":"2026-09-11T09:51:57.565Z","creator":"7afc5a7f-24c4-403b-b0d7-486113216eb6","enabled":true,"modifier":"7afc5a7f-24c4-403b-b0d7-486113216eb6","table_name":"stage1_rollback_firefox_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:51:57.565Z","version":"1"},{"created_at":"2026-09-11T09:51:57.577Z","creator":"7afc5a7f-24c4-403b-b0d7-486113216eb6","enabled":true,"modifier":"7afc5a7f-24c4-403b-b0d7-486113216eb6","table_name":"stage1_rollback_firefox_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:51:57.577Z","version":"1"},{"created_at":"2026-09-11T09:51:57.597Z","creator":"7afc5a7f-24c4-403b-b0d7-486113216eb6","enabled":true,"modifier":"7afc5a7f-24c4-403b-b0d7-486113216eb6","table_name":"stage1_rollback_webkit_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:51:57.597Z","version":"1"},{"created_at":"2026-09-11T09:51:57.609Z","creator":"7afc5a7f-24c4-403b-b0d7-486113216eb6","enabled":true,"modifier":"7afc5a7f-24c4-403b-b0d7-486113216eb6","table_name":"stage1_rollback_webkit_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:51:57.609Z","version":"1"}]}
+Running operation-coverage...
+PASS browser creates a complete Mutation Draft through Admin {"http":{"page":"page-1","method":"POST","path":"/api/v1/mutation-policies","status":201,"requestId":"rcc-203e2ff6fe6147d19b5c2caba2236251","body":{"code":"stage3_ui_mutation_v1","name":"Stage 3 UI mutation draft","description":"Created by the real browser with initially denied operations","type_code":"single_table_mutation","allow_add":false,"allow_modify":false,"allow_delete":false,"create_operator_field":null,"create_time_field":null,"modify_operator_field":null,"modify_time_field":null}},"sql":"0|0|0|NULL|NULL|NULL|NULL"}
+PASS permission conflict is retained and blocks the HTTP write {}
+PASS unsafe Auto Fill column is retained and blocks the HTTP write {}
+PASS case-insensitive id Auto Fill target is retained and blocks the HTTP write {}
+PASS exact duplicate Auto Fill columns block the HTTP write {}
+PASS case-insensitive duplicate Auto Fill columns block the HTTP write {}
+PASS Mutation Draft PUT survives close and reopen with all execution fields {"http":{"page":"page-1","method":"PUT","path":"/api/v1/mutation-policies/stage3_ui_mutation_v1","status":200,"requestId":"rcc-e03e0caa7f081ed9a23a728e7fc2e818","body":{"code":"stage3_ui_mutation_v1","name":"Stage 3 UI mutation updated","description":"All three grants and all four Auto Fill slots saved by PUT","type_code":"single_table_mutation","allow_add":true,"allow_modify":true,"allow_delete":true,"create_operator_field":"created_by","create_time_field":"created_at","modify_operator_field":"updated_by","modify_time_field":"updated_at"}},"sql":"Stage 3 UI mutation updated|All three grants and all four Auto Fill slots saved by PUT|1|1|1|created_by|created_at|updated_by|updated_at|DRAFT"}
+PASS Mutation Draft is deleted by the visible UI command {"http":{"page":"page-1","method":"DELETE","path":"/api/v1/mutation-policies/stage3_ui_mutation_v1","status":204,"requestId":"rcc-bffe30c45b4eb67bd54fdbdecb168bdd","body":null},"sqlCount":0}
+PASS query Active metadata saves without changing execution fields {"http":{"page":"page-2","method":"PATCH","path":"/api/v1/query-policies/stage3_query_existing_v1/metadata","status":200,"requestId":"rcc-f8331f10c2f9ad6bc181995ef27ad2b5","body":{"name":"Stage 3 query renamed","description":"Stage 3 query metadata only"}},"executionBeforeAfter":"page_query|id|DESC|20|200|ACTIVE"}
+PASS mutation Active metadata saves without changing execution fields {"http":{"page":"page-3","method":"PATCH","path":"/api/v1/mutation-policies/stage3_mutation_existing_v1/metadata","status":200,"requestId":"rcc-8c165a272ecc1b29d83c494f850afc7d","body":{"name":"Stage 3 mutation renamed","description":"Stage 3 mutation metadata only"}},"executionBeforeAfter":"single_table_mutation|1|1|1|created_by|created_at|updated_by|updated_at|ACTIVE"}
+PASS query is deprecated through the real lifecycle UI {"http":{"page":"page-4","method":"POST","path":"/api/v1/query-policies/stage3_query_existing_v1/deprecate","status":200,"requestId":"rcc-7bc1b4ec121f309a0f821acaa47cf207","body":null},"status":"DEPRECATED"}
+PASS mutation is deprecated through the real lifecycle UI {"http":{"page":"page-5","method":"POST","path":"/api/v1/mutation-policies/stage3_mutation_existing_v1/deprecate","status":200,"requestId":"rcc-b9c0f964876bd976b396e86dca41e530","body":null},"status":"DEPRECATED"}
+PASS query Deprecated metadata saves without changing execution fields {"http":{"page":"page-6","method":"PATCH","path":"/api/v1/query-policies/stage3_query_existing_v1/metadata","status":200,"requestId":"rcc-81d3cd3657a75ffc66b083f9137b8db7","body":{"name":"Stage 3 query Deprecated renamed","description":"Stage 3 query Deprecated metadata only"}},"executionBeforeAfter":"page_query|id|DESC|20|200|DEPRECATED"}
+PASS mutation Deprecated metadata saves without changing execution fields {"http":{"page":"page-7","method":"PATCH","path":"/api/v1/mutation-policies/stage3_mutation_existing_v1/metadata","status":200,"requestId":"rcc-36416a5f15b504243b1175502730108f","body":{"name":"Stage 3 mutation Deprecated renamed","description":"Stage 3 mutation Deprecated metadata only"}},"executionBeforeAfter":"single_table_mutation|1|1|1|created_by|created_at|updated_by|updated_at|DEPRECATED"}
+PASS existing assignment keeps querying and publishes through a release order with Deprecated definitions {"query":{"page":"page-8","method":"POST","path":"/api/v1/tables/stage3_active_items/query","status":200,"requestId":"rcc-4554943a7795700693411d737ff958db","body":{"conditions":[],"page_number":1}},"releaseOrder":"6a2c02410feb4da44b821fff6b987979","sql":"DeprecatedStillRuns|2e9bde14-4585-4aa5-8870-21fcb1f13251|2e9bde14-4585-4aa5-8870-21fcb1f13251"}
+PASS new assignment choices include only Active definitions {"queryOptions":["stage3_query_full_v1"],"mutationOptions":["stage3_mutation_denied_v1","stage3_mutation_full_v1"]}
+PASS Table Policy Catalog filters full loaded data without writes {"cases":["table/trim/case","query code","mutation code","modifier","no match","clear"],"writeCount":0}
+PASS direct field filter submits only entered AND conditions and preserves input after collapse/query {"http":{"page":"page-11","method":"POST","path":"/api/v1/tables/stage3_active_items/query","status":200,"requestId":"rcc-60dfaf2add1072b2fba4215a92884c72","body":{"conditions":[{"field":"name","operator":"exact","value":"Stage3Alpha"}],"page_number":1}},"sqlCount":1}
+PASS all three unauthorized operation controls stay visible, disabled, and explained {}
+PASS real Table Policy replacement governs the next UI capability and release publication {"replacement":{"page":"page-13","method":"PUT","path":"/api/v1/table-policies/stage3_denied_items","status":200,"requestId":"rcc-9fa1fb98967baaccb62a0c1b3ebcac2d","body":{"table_name":"stage3_denied_items","query_policy_code":"stage3_query_full_v1","mutation_policy_code":"stage3_mutation_full_v1","concurrency_key":[],"expected_version":"1"}},"releaseOrder":"8546b044d6ec41f52edfaba25f25ac73","sqlCount":1}
+Running complex-fields...
+PASS TEXT and JSON browser ADD, MODIFY, SQL byte comparison, readback and reopened editor
+PASS multiline TEXT query uses the exact browser input without removing LF
+PASS SQL NULL, JSON null literal and string, empty and omitted values stay distinct
+PASS uint64 auto ID 9007199254740993 survives browser create, query, release MODIFY and reopen
+PASS uint64 auto ID 9223372036854775808 survives browser create, query, release MODIFY and reopen
+PASS uint64 auto ID 18446744073709551614 survives browser create, query, release MODIFY and reopen
+PASS ambiguous auto ID zero is rejected while omitted ID publishes the actual generated identity
+PASS non-auto default ID stage4_default_id_constant requires explicit identity before publication
+PASS non-auto default ID stage4_default_id_expression requires explicit identity before publication
+PASS identity review: explicit numeric ID returns the stored canonical identity
+PASS identity matrix: signed integer publishes a canonical stored key
+PASS identity matrix: decimal equal value publishes a canonical stored key
+PASS identity matrix: decimal rounding publishes a canonical stored key
+PASS identity matrix: CHAR trailing spaces publishes a canonical stored key
+PASS identity matrix: VARCHAR trailing spaces publishes a canonical stored key
+PASS identity matrix: VARCHAR Unicode and URI delimiters publishes a canonical stored key
+PASS identity matrix: ENUM case normalization is rejected before draft creation
+PASS identity matrix: TIME equal value publishes a canonical stored key
+PASS identity matrix: TIME rounding publishes a canonical stored key
+PASS identity matrix: DATETIME equal value publishes a canonical stored key
+PASS identity matrix: DATETIME rounding publishes a canonical stored key
+PASS identity matrix: TIMESTAMP equal value publishes a canonical stored key
+PASS identity matrix: TIMESTAMP rounding publishes a canonical stored key
+PASS identity matrix: FLOAT exact publishes a canonical stored key
+PASS identity matrix: FLOAT precision boundary publishes a canonical stored key
+PASS identity matrix: DOUBLE publishes a canonical stored key
+PASS identity matrix: DATE publishes a canonical stored key
+PASS identity preflight read denial prevents INSERT and preserves the draft
+PASS publication capability gate rejects a nontransactional table before business DML
+PASS JSON identity "" publishes without path reinterpretation
+PASS JSON identity "." publishes without path reinterpretation
+PASS JSON identity ".." publishes without path reinterpretation
+PASS JSON identity "键/值 %2F?#" publishes without path reinterpretation
+PASS CRLF and standalone CR stay protected through unrelated writes and explicit normalization
+PASS raw CR clipboard selection is preserved in record and query inputs before conversion
+PASS ordinary expression defaults allow explicit values and omission defaults
+PASS Auto Fill records the publisher identity and one UTC database time
+PASS stored_value remains rejected as a real generated column
+PASS virtual_value remains rejected as a real generated column
+PASS generated fields calculate on omitted ADD and stay unwritable on release MODIFY
+PASS VARCHAR length is editable rejection with rollback and corrected browser retry
+PASS TINYINT range is editable rejection with rollback and corrected browser retry
+Running browser-accessibility (chromium)...
+PASS drawer background is inert and actual Shift+Tab/Tab loops inside the drawer {"inert":true,"focusStayedInTopModal":true,"bodyClasses":["modal-open"],"rootLocked":true,"focusProbe":"programmatic HTMLElement.focus used only for native inert","keyboardPath":["Shift+Tab skips appended hidden/disabled fixtures -> 取消","Tab -> 关闭","focus-loss fixture then real Tab -> 关闭"]}
+PASS native back cancel/confirm and forward preserve the intended history entry {"unloadProbe":{"defaultPrevented":true,"dispatchReturned":false,"fixture":"cancelable browser event; no user-agent prompt"},"lowerDrawerInertWhilePromptOpen":true,"focusRestoredToDrawer":true}
+PASS 320px long drawer scroll keeps the action footer reachable {"viewport":"320x568 CSS pixels","documentOverflow":0,"optionalIdIncluded":false,"actualMouseWheel":{"before":668,"after":1028},"surfaces":[{"selector":".drawer","metrics":{"left":0,"right":320,"width":320,"clientWidth":320,"scrollWidth":320,"innerWidth":320}},{"selector":".drawer-header","metrics":{"left":0,"right":320,"width":320,"clientWidth":320,"scrollWidth":320,"innerWidth":320}},{"selector":".drawer-body","metrics":{"left":0,"right":320,"width":320,"clientWidth":320,"scrollWidth":320,"innerWidth":320}},{"selector":".drawer-footer","metrics":{"left":0,"right":320,"width":320,"clientWidth":320,"scrollWidth":320,"innerWidth":320}}],"noteRect":{"left":20,"right":300,"top":12.375,"bottom":102.375,"width":280,"height":90,"innerWidth":320,"innerHeight":568},"footerActions":[{"action":"取消","rect":{"left":20,"right":156,"top":512.5,"bottom":548.5,"width":136,"height":36,"innerWidth":320,"innerHeight":568}},{"action":"查看 Change Set","rect":{"left":164,"right":300,"top":512.5,"bottom":548.5,"width":136,"height":36,"innerWidth":320,"innerHeight":568}}]}
+PASS 320px Change Set owns horizontal/vertical overflow and keeps actions reachable {"keyboardPath":["Shift+Tab -> 确认并保存草稿","Tab -> 变更字段对比，可横向滚动","Tab -> 发布单标题","Tab -> 选择已有草稿"],"documentOverflow":0,"scrolling":{"horizontal":{"client":288,"total":600,"offset":312},"vertical":{"client":87,"total":700,"offset":613}},"footerActions":[{"action":"放弃本次编辑","rect":{"left":32,"right":155.5,"top":455,"bottom":491,"width":123.5,"height":36,"innerWidth":320,"innerHeight":568}},{"action":"返回修改","rect":{"left":164.5,"right":288,"top":455,"bottom":491,"width":123.5,"height":36,"innerWidth":320,"innerHeight":568}},{"action":"确认并保存草稿","rect":{"left":32,"right":288,"top":500,"bottom":536,"width":256,"height":36,"innerWidth":320,"innerHeight":568}}]}
+PASS only the top nested leave dialog handles Tab/Escape and focus returns to Change Set {"lowerChangeSetInert":true,"bodyRemainedLocked":true}
+PASS real MySQL rejection freezes raw CR; a copied draft requires explicit LF conversion before editing {"status":422,"rejectedOrder":"09fdc7b63d5359f960e4387cfd8193cc","rawHex":"7072656669782d6368726f6d69756d0d0a7365636f6e640d7461696c","submittedHex":"7072656669782d6368726f6d69756d0d0a7365636f6e640d7461696c","clipboardBoundary":"synthetic paste Event with injected DataTransfer; no OS clipboard access"}
+PASS 390px unknown release-draft recovery replays one intent and then publishes it {"faultEvidence":{"actualStatus":201,"requestId":"rcc-f212234e6ebae622146d45226b06b218","injectedStatus":503},"releaseDraftRequests":2,"replayedOriginalBodyAndKey":true,"releaseOrder":"15247989a22c6eff78ca051f0b60e2af","sqlRows":1,"faultBoundary":"Playwright API response fault injection after route.fetch durably created the release draft","documentOverflow":0}
+Running browser-accessibility (firefox)...
+PASS drawer background is inert and actual Shift+Tab/Tab loops inside the drawer {"inert":true,"focusStayedInTopModal":true,"bodyClasses":["modal-open"],"rootLocked":true,"focusProbe":"programmatic HTMLElement.focus used only for native inert","keyboardPath":["Shift+Tab skips appended hidden/disabled fixtures -> 取消","Tab -> 关闭","focus-loss fixture then real Tab -> 关闭"]}
+PASS native back cancel/confirm and forward preserve the intended history entry {"unloadProbe":{"defaultPrevented":true,"dispatchReturned":false,"fixture":"cancelable browser event; no user-agent prompt"},"lowerDrawerInertWhilePromptOpen":true,"focusRestoredToDrawer":true}
+PASS 320px long drawer scroll keeps the action footer reachable {"viewport":"320x568 CSS pixels","documentOverflow":0,"optionalIdIncluded":false,"actualMouseWheel":{"before":668,"after":993},"surfaces":[{"selector":".drawer","metrics":{"left":0,"right":320,"width":320,"clientWidth":320,"scrollWidth":320,"innerWidth":320}},{"selector":".drawer-header","metrics":{"left":0,"right":320,"width":320,"clientWidth":320,"scrollWidth":320,"innerWidth":320}},{"selector":".drawer-body","metrics":{"left":0,"right":320,"width":320,"clientWidth":320,"scrollWidth":320,"innerWidth":320}},{"selector":".drawer-footer","metrics":{"left":0,"right":320,"width":320,"clientWidth":320,"scrollWidth":320,"innerWidth":320}}],"noteRect":{"left":20,"right":300,"top":47.399993896484375,"bottom":137.39999389648438,"width":280,"height":90,"innerWidth":320,"innerHeight":568},"footerActions":[{"action":"取消","rect":{"left":20,"right":156,"top":512.5,"bottom":548.5,"width":136,"height":36,"innerWidth":320,"innerHeight":568}},{"action":"查看 Change Set","rect":{"left":164,"right":300,"top":512.5,"bottom":548.5,"width":136,"height":36,"innerWidth":320,"innerHeight":568}}]}
+PASS 320px Change Set owns horizontal/vertical overflow and keeps actions reachable {"keyboardPath":["Shift+Tab -> 确认并保存草稿","Tab -> 变更字段对比，可横向滚动","Tab -> 发布单标题","Tab -> 选择已有草稿"],"documentOverflow":0,"scrolling":{"horizontal":{"client":288,"total":600,"offset":312},"vertical":{"client":87,"total":700,"offset":613}},"footerActions":[{"action":"放弃本次编辑","rect":{"left":32,"right":155.5,"top":455,"bottom":491,"width":123.5,"height":36,"innerWidth":320,"innerHeight":568}},{"action":"返回修改","rect":{"left":164.5,"right":288,"top":455,"bottom":491,"width":123.5,"height":36,"innerWidth":320,"innerHeight":568}},{"action":"确认并保存草稿","rect":{"left":32,"right":288,"top":500,"bottom":536,"width":256,"height":36,"innerWidth":320,"innerHeight":568}}]}
+PASS only the top nested leave dialog handles Tab/Escape and focus returns to Change Set {"lowerChangeSetInert":true,"bodyRemainedLocked":true}
+PASS real MySQL rejection freezes raw CR; a copied draft requires explicit LF conversion before editing {"status":422,"rejectedOrder":"046b6492582433caedb1a34e83f631df","rawHex":"7072656669782d66697265666f780d0a7365636f6e640d7461696c","submittedHex":"7072656669782d66697265666f780d0a7365636f6e640d7461696c","clipboardBoundary":"synthetic paste Event with injected DataTransfer; no OS clipboard access"}
+PASS 390px unknown release-draft recovery replays one intent and then publishes it {"faultEvidence":{"actualStatus":201,"requestId":"rcc-dc44d123b9846bbb362022ce9783447c","injectedStatus":503},"releaseDraftRequests":2,"replayedOriginalBodyAndKey":true,"releaseOrder":"299307088c19fc031fe73a2c2d923f36","sqlRows":1,"faultBoundary":"Playwright API response fault injection after route.fetch durably created the release draft","documentOverflow":0}
+Running browser-accessibility (webkit)...
+PASS drawer background is inert and actual Shift+Tab/Tab loops inside the drawer {"inert":true,"focusStayedInTopModal":true,"bodyClasses":["modal-open"],"rootLocked":true,"focusProbe":"programmatic HTMLElement.focus used only for native inert","keyboardPath":["Shift+Tab skips appended hidden/disabled fixtures -> 取消","Tab -> 关闭","focus-loss fixture then real Tab -> 关闭"]}
+PASS native back cancel/confirm and forward preserve the intended history entry {"unloadProbe":{"defaultPrevented":true,"dispatchReturned":false,"fixture":"cancelable browser event; no user-agent prompt"},"lowerDrawerInertWhilePromptOpen":true,"focusRestoredToDrawer":true}
+PASS 320px long drawer scroll keeps the action footer reachable {"viewport":"320x568 CSS pixels","documentOverflow":0,"optionalIdIncluded":false,"actualMouseWheel":{"before":668,"after":1028},"surfaces":[{"selector":".drawer","metrics":{"left":0,"right":320,"width":320,"clientWidth":320,"scrollWidth":320,"innerWidth":320}},{"selector":".drawer-header","metrics":{"left":0,"right":320,"width":320,"clientWidth":320,"scrollWidth":320,"innerWidth":320}},{"selector":".drawer-body","metrics":{"left":0,"right":320,"width":320,"clientWidth":320,"scrollWidth":320,"innerWidth":320}},{"selector":".drawer-footer","metrics":{"left":0,"right":320,"width":320,"clientWidth":320,"scrollWidth":320,"innerWidth":320}}],"noteRect":{"left":20,"right":300,"top":12.3125,"bottom":102.3125,"width":280,"height":90,"innerWidth":320,"innerHeight":568},"footerActions":[{"action":"取消","rect":{"left":20,"right":156,"top":512.5,"bottom":548.5,"width":136,"height":36,"innerWidth":320,"innerHeight":568}},{"action":"查看 Change Set","rect":{"left":164,"right":300,"top":512.5,"bottom":548.5,"width":136,"height":36,"innerWidth":320,"innerHeight":568}}]}
+PASS 320px Change Set owns horizontal/vertical overflow and keeps actions reachable {"keyboardPath":["Shift+Tab -> 确认并保存草稿","Tab -> 变更字段对比，可横向滚动","Tab -> 发布单标题","Tab -> 选择已有草稿"],"documentOverflow":0,"scrolling":{"horizontal":{"client":288,"total":600,"offset":312},"vertical":{"client":87,"total":700,"offset":613}},"footerActions":[{"action":"放弃本次编辑","rect":{"left":32,"right":155.5,"top":455,"bottom":491,"width":123.5,"height":36,"innerWidth":320,"innerHeight":568}},{"action":"返回修改","rect":{"left":164.5,"right":288,"top":455,"bottom":491,"width":123.5,"height":36,"innerWidth":320,"innerHeight":568}},{"action":"确认并保存草稿","rect":{"left":32,"right":288,"top":500,"bottom":536,"width":256,"height":36,"innerWidth":320,"innerHeight":568}}]}
+PASS only the top nested leave dialog handles Tab/Escape and focus returns to Change Set {"lowerChangeSetInert":true,"bodyRemainedLocked":true}
+PASS real MySQL rejection freezes raw CR; a copied draft requires explicit LF conversion before editing {"status":422,"rejectedOrder":"81740d66fd255bc976c3945210947ff8","rawHex":"7072656669782d7765626b69740d0a7365636f6e640d7461696c","submittedHex":"7072656669782d7765626b69740d0a7365636f6e640d7461696c","clipboardBoundary":"synthetic paste Event with injected DataTransfer; no OS clipboard access"}
+PASS 390px unknown release-draft recovery replays one intent and then publishes it {"faultEvidence":{"actualStatus":201,"requestId":"rcc-42f92e7166cb3f2e3281880b28fc502e","injectedStatus":503},"releaseDraftRequests":2,"replayedOriginalBodyAndKey":true,"releaseOrder":"1597ee715245db961e0deb706574415f","sqlRows":1,"faultBoundary":"Playwright API response fault injection after route.fetch durably created the release draft","documentOverflow":0}
+Running release drafts...
+PASS EDITOR saves from data page; lost response survives refresh and original-key retry
+PASS durable detail reload retains server diff; business row and version remain unchanged
+PASS two real windows retain input on CAS conflict and require explicit reconstruction
+PASS unknown edit rejected after concurrent change survives two refreshes and explicitly rebuilds original intent
+PASS cancelled drafts remain searchable with permanent applicant and history on narrow screens
+PASS current VIEWER can read release history without edit/cancel actions
+{"checks":["EDITOR saves from data page; lost response survives refresh and original-key retry","durable detail reload retains server diff; business row and version remain unchanged","two real windows retain input on CAS conflict and require explicit reconstruction","unknown edit rejected after concurrent change survives two refreshes and explicitly rebuilds original intent","cancelled drafts remain searchable with permanent applicant and history on narrow screens","current VIEWER can read release history without edit/cancel actions"]}
+Running release approvals...
+PASS people lookup failure falls back to permanent IDs with diagnostics and an independent retry
+PASS EDITOR submits and sees frozen read-only differences with no self-approval action
+PASS Approval-role member rejects with a required reason; applicant explicitly reads and confirms a new draft without inherited approval
+PASS Approval-role member recovers a committed lost approval response after refresh using original key and state version
+PASS partial MODIFY hides omitted fields by default, restores their distinct state in full view and retains requested changes and generated fields
+PASS detail presents saved table flows and whole-order phase, long title/value/IDs, copy feedback and keyboard folding on desktop and 390px
+PASS pre-dispatch unknown reprepare keeps APPROVED and preserves original request while current-state actions follow present roles across close and reload
+PASS applicant reviews current configuration and recovers one atomic replacement across pre-dispatch and post-commit loss with the same body and key
+PASS applicant cancels an approved order; history survives refresh and actual business data remains unchanged on narrow viewport
+{"checks":["people lookup failure falls back to permanent IDs with diagnostics and an independent retry","EDITOR submits and sees frozen read-only differences with no self-approval action","Approval-role member rejects with a required reason; applicant explicitly reads and confirms a new draft without inherited approval","Approval-role member recovers a committed lost approval response after refresh using original key and state version","partial MODIFY hides omitted fields by default, restores their distinct state in full view and retains requested changes and generated fields","detail presents saved table flows and whole-order phase, long title/value/IDs, copy feedback and keyboard folding on desktop and 390px","pre-dispatch unknown reprepare keeps APPROVED and preserves original request while current-state actions follow present roles across close and reload","applicant reviews current configuration and recovers one atomic replacement across pre-dispatch and post-commit loss with the same body and key","applicant cancels an approved order; history survives refresh and actual business data remains unchanged on narrow viewport"]}
+Running release batches...
+PASS data-page MODIFY creates a draft; detail link preselects its table and destination; two explicit row selections append DELETEs without touching data
+PASS detail editor removes a selected later item and edits a retained item; a new ADD appends to the same mixed draft
+PASS independent VIEWER table-role member approves all mixed items; EDITOR/PUBLISHER recovers a genuinely committed lost execute response after refresh with the original key and no duplicate rows/history
+PASS 1000-item detail shows the complete count and paging reaches the actual final item on desktop and 390px mobile
+PASS UI submission, independent approval and execution publish all 1000 items; all actual IDs match real queried rows and result paging reaches item 1000 on desktop/mobile
+{"checks":["data-page MODIFY creates a draft; detail link preselects its table and destination; two explicit row selections append DELETEs without touching data","detail editor removes a selected later item and edits a retained item; a new ADD appends to the same mixed draft","independent VIEWER table-role member approves all mixed items; EDITOR/PUBLISHER recovers a genuinely committed lost execute response after refresh with the original key and no duplicate rows/history","1000-item detail shows the complete count and paging reaches the actual final item on desktop and 390px mobile","UI submission, independent approval and execution publish all 1000 items; all actual IDs match real queried rows and result paging reaches item 1000 on desktop/mobile"]}
+Running publication and rollback (chromium)...
+PASS separate EDITOR, VIEWER table-role member and PUBLISHER accounts complete the forward publication
+PASS completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration
+PASS completion permanently closes both rollback entry points
+PASS quick rollback is publisher-only, reviews actual current and restoration values, has no mandatory reason and cancels without writes on desktop and 390px
+PASS the original detail switches preserved application, actual publication and actual rollback
+PASS quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish the original order
+PASS a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends
+{"checks":["separate EDITOR, VIEWER table-role member and PUBLISHER accounts complete the forward publication","completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration","completion permanently closes both rollback entry points","quick rollback is publisher-only, reviews actual current and restoration values, has no mandatory reason and cancels without writes on desktop and 390px","the original detail switches preserved application, actual publication and actual rollback","quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish the original order","a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends"]}
+Running session, conflict and unknown recovery (chromium)...
+{"run_suffix":"2abf25817a61","account_id":"341d2c0e-c44e-41ea-981c-dc64b5caaf1f","username":"browser.user.2abf25817a61","member_username":"roles.member.2abf25817a61","template_key":"browser_system_2abf25817a61","checks":["record version conflict preserves input","explicit latest read and baseline rebuild","registration defaults VIEWER","maintenance ADMIN bootstrap","UI combination grant","390px role catalog and drawer","role history with permanent actor","original member session refresh","refresh","reopen","dirty navigation protection","same-account Change Set recovery after session loss","hidden drawer keyboard isolation","draft submit independent approval and publisher execution","unknown execute result reload and original-key recovery","final row defaults and permanent actor fields","refresh notification remains NOT_CONNECTED","no direct record write request","HTTP Cookie","storage/URL secrecy","logout rejection"]}Running publication and rollback (firefox)...
+PASS separate EDITOR, VIEWER table-role member and PUBLISHER accounts complete the forward publication
+PASS completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration
+PASS completion permanently closes both rollback entry points
+PASS quick rollback is publisher-only, reviews actual current and restoration values, has no mandatory reason and cancels without writes on desktop and 390px
+PASS the original detail switches preserved application, actual publication and actual rollback
+PASS quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish the original order
+PASS a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends
+{"checks":["separate EDITOR, VIEWER table-role member and PUBLISHER accounts complete the forward publication","completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration","completion permanently closes both rollback entry points","quick rollback is publisher-only, reviews actual current and restoration values, has no mandatory reason and cancels without writes on desktop and 390px","the original detail switches preserved application, actual publication and actual rollback","quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish the original order","a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends"]}
+Running session, conflict and unknown recovery (firefox)...
+{"run_suffix":"574ef5605565","account_id":"91716e32-c7f1-4094-aa43-d5dd319d0851","username":"browser.user.574ef5605565","member_username":"roles.member.574ef5605565","template_key":"browser_system_574ef5605565","checks":["record version conflict preserves input","explicit latest read and baseline rebuild","registration defaults VIEWER","maintenance ADMIN bootstrap","UI combination grant","390px role catalog and drawer","role history with permanent actor","original member session refresh","refresh","reopen","dirty navigation protection","same-account Change Set recovery after session loss","hidden drawer keyboard isolation","draft submit independent approval and publisher execution","unknown execute result reload and original-key recovery","final row defaults and permanent actor fields","refresh notification remains NOT_CONNECTED","no direct record write request","HTTP Cookie","storage/URL secrecy","logout rejection"]}Running publication and rollback (webkit)...
+PASS separate EDITOR, VIEWER table-role member and PUBLISHER accounts complete the forward publication
+PASS completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration
+PASS completion permanently closes both rollback entry points
+PASS quick rollback is publisher-only, reviews actual current and restoration values, has no mandatory reason and cancels without writes on desktop and 390px
+PASS the original detail switches preserved application, actual publication and actual rollback
+PASS quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish the original order
+PASS a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends
+{"checks":["separate EDITOR, VIEWER table-role member and PUBLISHER accounts complete the forward publication","completion confirms release and closing quick rollback, cancellation does not write, repeated clicks and lost response restore the original request without changing configuration","completion permanently closes both rollback entry points","quick rollback is publisher-only, reviews actual current and restoration values, has no mandatory reason and cancels without writes on desktop and 390px","the original detail switches preserved application, actual publication and actual rollback","quick rollback commits once without approval; lost response and reload recover the same preview digest, reason and key, record the actual publisher and finish the original order","a real competing completion rejects an already reviewed quick rollback, preserves its reason and prevents rebuilding after the original order ends"]}
+Running session, conflict and unknown recovery (webkit)...
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.check: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for getByLabel('包含 template_key', { exact: true })[22m
+
+    at /private/tmp/rcc-issue-106-release-template-final/web/e2e/accounts.mjs:215:59 {
+  log: [ "  - waiting for getByLabel('包含 template_key', { exact: true })" ],
+  name: 'TimeoutError'
+}
+
+Node.js v24.19.0
+artifact directory: /private/tmp/rcc-issue-106-release-template-final/docs/verification/2026-09-11-release-template-final/browser-remaining-03
+make: *** [test-browser-acceptance] Error 1

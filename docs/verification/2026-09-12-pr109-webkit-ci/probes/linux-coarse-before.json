@@ -1,0 +1,296 @@
+{
+  "errors": [
+    {
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:37113/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:37113/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:37113/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:37113/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:37113/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:37113/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:37113/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:37113/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:37113/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:37113/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:37113/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:37113/assets/react-DXf84zf0.js:1:9462)"
+    }
+  ],
+  "timeline": [
+    {
+      "at": 1789169940041,
+      "type": "reload.start",
+      "iteration": 0
+    },
+    {
+      "at": 1789169940045,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940055,
+      "type": "session.start"
+    },
+    {
+      "at": 1789169940056,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789169940058,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940061,
+      "type": "failed",
+      "url": "http://127.0.0.1:37113/api/v1/auth/session",
+      "failure": {
+        "errorText": "Load request cancelled"
+      }
+    },
+    {
+      "at": 1789169940073,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940080,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789169940124,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789169940125,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940136,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940152,
+      "type": "pageerror",
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:37113/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:37113/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:37113/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "at": 1789169940160,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940160,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789169940207,
+      "type": "reload.start",
+      "iteration": 1
+    },
+    {
+      "at": 1789169940207,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940212,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940217,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940218,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789169940258,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789169940258,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940262,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940265,
+      "type": "pageerror",
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:37113/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:37113/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:37113/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "at": 1789169940266,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940267,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789169940314,
+      "type": "reload.start",
+      "iteration": 2
+    },
+    {
+      "at": 1789169940315,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940316,
+      "type": "session.start"
+    },
+    {
+      "at": 1789169940317,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789169940318,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940320,
+      "type": "failed",
+      "url": "http://127.0.0.1:37113/api/v1/auth/session",
+      "failure": {
+        "errorText": "Load request cancelled"
+      }
+    },
+    {
+      "at": 1789169940322,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940322,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789169940367,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789169940368,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940373,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940375,
+      "type": "pageerror",
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:37113/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:37113/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:37113/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "at": 1789169940375,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940375,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789169940417,
+      "type": "reload.start",
+      "iteration": 3
+    },
+    {
+      "at": 1789169940418,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940421,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940422,
+      "type": "pageerror",
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:37113/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:37113/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:37113/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:37113/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:37113/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "at": 1789169940423,
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940424,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789169940465,
+      "type": "reload.end"
+    },
+    {
+      "at": 1789169940466,
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940468,
+      "type": "session.start"
+    },
+    {
+      "at": 1789169940468,
+      "type": "session.respond"
+    },
+    {
+      "at": 1789169940471,
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789169940471,
+      "type": "failed",
+      "url": "http://127.0.0.1:37113/api/v1/auth/session",
+      "failure": {
+        "errorText": "Load request cancelled"
+      }
+    },
+    {
+      "at": 1789169940522,
+      "type": "failed",
+      "url": "http://127.0.0.1:37113/configuration/managed-data",
+      "failure": {
+        "errorText": "WebKit encountered an internal error"
+      }
+    }
+  ]
+}

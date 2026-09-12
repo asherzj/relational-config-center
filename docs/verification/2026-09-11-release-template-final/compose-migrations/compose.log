@@ -1,0 +1,381 @@
+$ docker compose build
+time="2026-09-11T18:30:09+08:00" level=warning msg="Docker Compose requires buildx plugin to be installed"
+ Image rcc-goose-d28c02a4e3cc-schema-migrate Building 
+ Image rcc-goose-d28c02a4e3cc-schema-migrate Building 
+Sending build context to Docker daemon  524.4kB
+Sending build context to Docker daemon  3.146MB
+Sending build context to Docker daemon  6.293MB
+Sending build context to Docker daemon  8.915MB
+Sending build context to Docker daemon  12.06MB
+Sending build context to Docker daemon  15.21MB
+Sending build context to Docker daemon  18.35MB
+Sending build context to Docker daemon  20.45MB
+Sending build context to Docker daemon   23.6MB
+Sending build context to Docker daemon  25.17MB
+Sending build context to Docker daemon  29.37MB
+Sending build context to Docker daemon  33.05MB
+Sending build context to Docker daemon  37.77MB
+Sending build context to Docker daemon  41.98MB
+Sending build context to Docker daemon  45.12MB
+Sending build context to Docker daemon  48.28MB
+Sending build context to Docker daemon  53.01MB
+Sending build context to Docker daemon  57.21MB
+Sending build context to Docker daemon  61.41MB
+Sending build context to Docker daemon  65.62MB
+Sending build context to Docker daemon  68.76MB
+Sending build context to Docker daemon  71.91MB
+Sending build context to Docker daemon  75.05MB
+Sending build context to Docker daemon   78.2MB
+Sending build context to Docker daemon  81.35MB
+Sending build context to Docker daemon  86.08MB
+Sending build context to Docker daemon  90.81MB
+Sending build context to Docker daemon  95.54MB
+Sending build context to Docker daemon  99.21MB
+Sending build context to Docker daemon  102.4MB
+Sending build context to Docker daemon  105.5MB
+Sending build context to Docker daemon  107.6MB
+Sending build context to Docker daemon  110.7MB
+Sending build context to Docker daemon  113.9MB
+Sending build context to Docker daemon    117MB
+Sending build context to Docker daemon  120.2MB
+Sending build context to Docker daemon  122.8MB
+Sending build context to Docker daemon    126MB
+Sending build context to Docker daemon  128.6MB
+Sending build context to Docker daemon  131.2MB
+Sending build context to Docker daemon  134.3MB
+Sending build context to Docker daemon  137.5MB
+Sending build context to Docker daemon  140.6MB
+Sending build context to Docker daemon  143.8MB
+Sending build context to Docker daemon  146.4MB
+Sending build context to Docker daemon    149MB
+Sending build context to Docker daemon  151.7MB
+Sending build context to Docker daemon  154.8MB
+Sending build context to Docker daemon  157.9MB
+Sending build context to Docker daemon  161.1MB
+Sending build context to Docker daemon  164.2MB
+Sending build context to Docker daemon  167.4MB
+Sending build context to Docker daemon  170.5MB
+Sending build context to Docker daemon  173.7MB
+Sending build context to Docker daemon  176.8MB
+Sending build context to Docker daemon    180MB
+Sending build context to Docker daemon  183.7MB
+Sending build context to Docker daemon  188.9MB
+Sending build context to Docker daemon  193.1MB
+Sending build context to Docker daemon  197.3MB
+Sending build context to Docker daemon    202MB
+Sending build context to Docker daemon  206.2MB
+Sending build context to Docker daemon  208.9MB
+Sending build context to Docker daemon    211MB
+Sending build context to Docker daemon  213.6MB
+Sending build context to Docker daemon  216.2MB
+Sending build context to Docker daemon  219.4MB
+Sending build context to Docker daemon  222.5MB
+Sending build context to Docker daemon  225.6MB
+Sending build context to Docker daemon  228.3MB
+Sending build context to Docker daemon  230.9MB
+Sending build context to Docker daemon    234MB
+Sending build context to Docker daemon  237.2MB
+Sending build context to Docker daemon  240.3MB
+Sending build context to Docker daemon  243.5MB
+Sending build context to Docker daemon  245.6MB
+Sending build context to Docker daemon  246.6MB
+Sending build context to Docker daemon  246.7MB
+
+Step 1/14 : FROM golang:1.27-alpine AS build
+ ---> 4c9fe60190a2
+Step 2/14 : WORKDIR /src/admin
+ ---> Using cache
+ ---> abd178090ee7
+Step 3/14 : COPY admin/go.mod admin/go.sum ./
+ ---> Using cache
+ ---> 2d275e7f579e
+Step 4/14 : RUN go mod download
+ ---> Using cache
+ ---> 908b312e6501
+Step 5/14 : COPY admin/ ./
+ ---> b6ae08eed277
+Step 6/14 : RUN CGO_ENABLED=0 go build -trimpath -o /out/admin ./cmd/admin     && CGO_ENABLED=0 go build -trimpath -o /out/account-maintain ./cmd/account-maintain     && CGO_ENABLED=0 go build -trimpath -o /out/policy-migrate ./cmd/policy-migrate     && CGO_ENABLED=0 go build -trimpath -o /out/schema-migrate ./cmd/schema-migrate
+ ---> Running in 13ede97dbfe8
+ ---> Removed intermediate container 13ede97dbfe8
+ ---> 1537495fefcd
+Step 7/14 : FROM alpine:3.23 AS runtime
+ ---> fd791d74b689
+Step 8/14 : RUN apk add --no-cache ca-certificates     && addgroup -S admin     && adduser -S -G admin admin
+ ---> Running in 31f0da9c74df
+(1/1) Installing ca-certificates (20260611-r0)
+Executing busybox-1.37.0-r30.trigger
+Executing ca-certificates-20260611-r0.trigger
+OK: 8744 KiB in 17 packages
+ ---> Removed intermediate container 31f0da9c74df
+ ---> 26833a289df3
+Step 9/14 : USER admin
+ ---> Running in 9c119bbfe384
+ ---> Removed intermediate container 9c119bbfe384
+ ---> b1a4578d51a3
+Step 10/14 : FROM runtime AS migration
+ ---> b1a4578d51a3
+Step 11/14 : COPY --from=build /out/schema-migrate /usr/local/bin/schema-migrate
+ ---> 5ad7b579ca5d
+Step 12/14 : ENTRYPOINT ["/usr/local/bin/schema-migrate"]
+ ---> Running in 984e31c56ad2
+ ---> Removed intermediate container 984e31c56ad2
+ ---> 349a492a8828
+Step 13/14 : CMD ["up"]
+ ---> Running in e37fb0f3b70f
+ ---> Removed intermediate container e37fb0f3b70f
+ ---> 06265f8c8f55
+Step 14/14 : LABEL com.docker.compose.image.builder=classic
+ ---> Running in 6351b33821f4
+ ---> Removed intermediate container 6351b33821f4
+ ---> 348bf625d690
+Successfully built 348bf625d690
+Successfully tagged rcc-goose-d28c02a4e3cc-schema-migrate:latest
+ Image rcc-goose-d28c02a4e3cc-schema-migrate Built 
+ Image rcc-goose-d28c02a4e3cc-schema-migrate Built 
+ Image rcc-goose-d28c02a4e3cc-admin Building 
+ Image rcc-goose-d28c02a4e3cc-admin Building 
+Sending build context to Docker daemon  524.4kB
+Sending build context to Docker daemon  3.146MB
+Sending build context to Docker daemon  6.293MB
+Sending build context to Docker daemon  8.915MB
+Sending build context to Docker daemon  11.01MB
+Sending build context to Docker daemon  13.11MB
+Sending build context to Docker daemon  16.26MB
+Sending build context to Docker daemon   19.4MB
+Sending build context to Docker daemon   21.5MB
+Sending build context to Docker daemon  24.65MB
+Sending build context to Docker daemon  27.28MB
+Sending build context to Docker daemon     32MB
+Sending build context to Docker daemon  35.68MB
+Sending build context to Docker daemon  40.93MB
+Sending build context to Docker daemon  44.08MB
+Sending build context to Docker daemon  47.22MB
+Sending build context to Docker daemon  51.96MB
+Sending build context to Docker daemon  56.16MB
+Sending build context to Docker daemon  60.36MB
+Sending build context to Docker daemon  64.57MB
+Sending build context to Docker daemon  67.71MB
+Sending build context to Docker daemon  70.86MB
+Sending build context to Docker daemon  74.01MB
+Sending build context to Docker daemon  77.15MB
+Sending build context to Docker daemon   80.3MB
+Sending build context to Docker daemon   84.5MB
+Sending build context to Docker daemon  89.23MB
+Sending build context to Docker daemon  93.43MB
+Sending build context to Docker daemon  97.64MB
+Sending build context to Docker daemon  100.3MB
+Sending build context to Docker daemon  103.4MB
+Sending build context to Docker daemon    106MB
+Sending build context to Docker daemon  108.7MB
+Sending build context to Docker daemon  111.3MB
+Sending build context to Docker daemon  114.4MB
+Sending build context to Docker daemon  117.6MB
+Sending build context to Docker daemon  120.7MB
+Sending build context to Docker daemon  123.3MB
+Sending build context to Docker daemon    126MB
+Sending build context to Docker daemon  128.6MB
+Sending build context to Docker daemon  131.2MB
+Sending build context to Docker daemon  134.3MB
+Sending build context to Docker daemon  137.5MB
+Sending build context to Docker daemon  140.6MB
+Sending build context to Docker daemon  143.3MB
+Sending build context to Docker daemon  145.9MB
+Sending build context to Docker daemon  148.5MB
+Sending build context to Docker daemon  151.1MB
+Sending build context to Docker daemon  154.3MB
+Sending build context to Docker daemon  157.4MB
+Sending build context to Docker daemon  160.6MB
+Sending build context to Docker daemon  163.7MB
+Sending build context to Docker daemon  166.9MB
+Sending build context to Docker daemon    170MB
+Sending build context to Docker daemon  173.2MB
+Sending build context to Docker daemon  176.3MB
+Sending build context to Docker daemon  179.4MB
+Sending build context to Docker daemon  182.6MB
+Sending build context to Docker daemon  187.9MB
+Sending build context to Docker daemon  192.1MB
+Sending build context to Docker daemon  196.3MB
+Sending build context to Docker daemon  200.5MB
+Sending build context to Docker daemon  204.1MB
+Sending build context to Docker daemon  207.8MB
+Sending build context to Docker daemon  209.4MB
+Sending build context to Docker daemon  211.5MB
+Sending build context to Docker daemon  213.6MB
+Sending build context to Docker daemon  215.7MB
+Sending build context to Docker daemon  218.8MB
+Sending build context to Docker daemon    222MB
+Sending build context to Docker daemon  225.1MB
+Sending build context to Docker daemon  227.7MB
+Sending build context to Docker daemon  230.4MB
+Sending build context to Docker daemon  233.5MB
+Sending build context to Docker daemon  236.7MB
+Sending build context to Docker daemon  239.8MB
+Sending build context to Docker daemon    243MB
+Sending build context to Docker daemon  245.6MB
+Sending build context to Docker daemon  246.6MB
+Sending build context to Docker daemon  246.7MB
+
+Step 1/20 : FROM golang:1.27-alpine AS build
+ ---> 4c9fe60190a2
+Step 2/20 : WORKDIR /src/admin
+ ---> Using cache
+ ---> abd178090ee7
+Step 3/20 : COPY admin/go.mod admin/go.sum ./
+ ---> Using cache
+ ---> 2d275e7f579e
+Step 4/20 : RUN go mod download
+ ---> Using cache
+ ---> 908b312e6501
+Step 5/20 : COPY admin/ ./
+ ---> Using cache
+ ---> b6ae08eed277
+Step 6/20 : RUN CGO_ENABLED=0 go build -trimpath -o /out/admin ./cmd/admin     && CGO_ENABLED=0 go build -trimpath -o /out/account-maintain ./cmd/account-maintain     && CGO_ENABLED=0 go build -trimpath -o /out/policy-migrate ./cmd/policy-migrate     && CGO_ENABLED=0 go build -trimpath -o /out/schema-migrate ./cmd/schema-migrate
+ ---> Using cache
+ ---> 1537495fefcd
+Step 7/20 : FROM alpine:3.23 AS runtime
+ ---> fd791d74b689
+Step 8/20 : RUN apk add --no-cache ca-certificates     && addgroup -S admin     && adduser -S -G admin admin
+ ---> Using cache
+ ---> 26833a289df3
+Step 9/20 : USER admin
+ ---> Using cache
+ ---> b1a4578d51a3
+Step 10/20 : FROM runtime AS migration
+ ---> b1a4578d51a3
+Step 11/20 : COPY --from=build /out/schema-migrate /usr/local/bin/schema-migrate
+ ---> Using cache
+ ---> 5ad7b579ca5d
+Step 12/20 : ENTRYPOINT ["/usr/local/bin/schema-migrate"]
+ ---> Using cache
+ ---> 349a492a8828
+Step 13/20 : CMD ["up"]
+ ---> Using cache
+ ---> 06265f8c8f55
+Step 14/20 : FROM runtime AS admin
+ ---> b1a4578d51a3
+Step 15/20 : COPY --from=build /out/admin /usr/local/bin/admin
+ ---> e0b9ac36abad
+Step 16/20 : COPY --from=build /out/account-maintain /usr/local/bin/account-maintain
+ ---> bdb77659c969
+Step 17/20 : COPY --from=build /out/policy-migrate /usr/local/bin/policy-migrate
+ ---> ae8a44f1eb5f
+Step 18/20 : EXPOSE 8080
+ ---> Running in b0b179317922
+ ---> Removed intermediate container b0b179317922
+ ---> bd0d5a2dac58
+Step 19/20 : ENTRYPOINT ["/usr/local/bin/admin"]
+ ---> Running in c8b0c0b8475e
+ ---> Removed intermediate container c8b0c0b8475e
+ ---> 38e1a103933f
+Step 20/20 : LABEL com.docker.compose.image.builder=classic
+ ---> Running in bb17da1235b0
+ ---> Removed intermediate container bb17da1235b0
+ ---> 83842feb870b
+Successfully built 83842feb870b
+Successfully tagged rcc-goose-d28c02a4e3cc-admin:latest
+ Image rcc-goose-d28c02a4e3cc-admin Built 
+ Image rcc-goose-d28c02a4e3cc-admin Built 
+
+$ docker compose up -d
+ Network rcc-goose-d28c02a4e3cc_default Creating 
+ Volume rcc-goose-d28c02a4e3cc_mysql-data Creating 
+ Volume rcc-goose-d28c02a4e3cc_mysql-data Creating 
+ Network rcc-goose-d28c02a4e3cc_default Creating 
+ Volume rcc-goose-d28c02a4e3cc_mysql-data Created 
+ Volume rcc-goose-d28c02a4e3cc_mysql-data Created 
+ Network rcc-goose-d28c02a4e3cc_default Created 
+ Network rcc-goose-d28c02a4e3cc_default Created 
+ Container rcc-goose-d28c02a4e3cc-mysql-1 Creating 
+ Container rcc-goose-d28c02a4e3cc-mysql-1 Created 
+ Container rcc-goose-d28c02a4e3cc-schema-migrate-1 Creating 
+ Container rcc-goose-d28c02a4e3cc-schema-migrate-1 Created 
+ Container rcc-goose-d28c02a4e3cc-mysql-local-fixture-1 Creating 
+ Container rcc-goose-d28c02a4e3cc-mysql-local-fixture-1 Created 
+ Container rcc-goose-d28c02a4e3cc-admin-1 Creating 
+ Container rcc-goose-d28c02a4e3cc-admin-1 Created 
+ Container rcc-goose-d28c02a4e3cc-mysql-1 Starting 
+ Container rcc-goose-d28c02a4e3cc-mysql-1 Started 
+ Container rcc-goose-d28c02a4e3cc-mysql-1 Waiting 
+ Container rcc-goose-d28c02a4e3cc-mysql-1 Healthy 
+ Container rcc-goose-d28c02a4e3cc-schema-migrate-1 Starting 
+ Container rcc-goose-d28c02a4e3cc-schema-migrate-1 Started 
+ Container rcc-goose-d28c02a4e3cc-schema-migrate-1 Waiting 
+ Container rcc-goose-d28c02a4e3cc-schema-migrate-1 Exited 
+ Container rcc-goose-d28c02a4e3cc-mysql-local-fixture-1 Starting 
+ Container rcc-goose-d28c02a4e3cc-mysql-local-fixture-1 Started 
+ Container rcc-goose-d28c02a4e3cc-mysql-1 Waiting 
+ Container rcc-goose-d28c02a4e3cc-mysql-local-fixture-1 Waiting 
+ Container rcc-goose-d28c02a4e3cc-mysql-local-fixture-1 Error service "mysql-local-fixture" didn't complete successfully: exit 1
+ Container rcc-goose-d28c02a4e3cc-mysql-1 Healthy 
+service "mysql-local-fixture" didn't complete successfully: exit 1
+
+$ docker compose logs --no-color
+schema-migrate-1  | {"state":"current","current":11,"required":11,"pending":[],"attempt_id":11,"attempt_version":11,"attempt_digest":"2e51f69bd9fc53e0de693a6e28fa26e547fb640740c9210b830b6f820c182963","attempt_operation":"up"}
+mysql-1           | 2026-09-11 10:31:28+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.4.11-1.el9 started.
+mysql-1           | 2026-09-11 10:31:29+00:00 [Note] [Entrypoint]: Switching to dedicated user 'mysql'
+mysql-1           | 2026-09-11 10:31:29+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.4.11-1.el9 started.
+mysql-1           | 2026-09-11 10:31:29+00:00 [Note] [Entrypoint]: Initializing database files
+mysql-1           | 2026-09-11T10:31:29.162959Z 0 [System] [MY-015017] [Server] MySQL Server Initialization - start.
+mysql-1           | 2026-09-11T10:31:29.163701Z 0 [System] [MY-013169] [Server] /usr/sbin/mysqld (mysqld 8.4.11) initializing of server in progress as process 79
+mysql-1           | 2026-09-11T10:31:29.167854Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+mysql-1           | 2026-09-11T10:31:29.274949Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+mysql-1           | 2026-09-11T10:31:29.960246Z 6 [Warning] [MY-010453] [Server] root@localhost is created with an empty password ! Please consider switching off the --initialize-insecure option.
+mysql-1           | 2026-09-11T10:31:31.883117Z 0 [System] [MY-015018] [Server] MySQL Server Initialization - end.
+mysql-1           | 2026-09-11 10:31:31+00:00 [Note] [Entrypoint]: Database files initialized
+mysql-1           | 2026-09-11 10:31:31+00:00 [Note] [Entrypoint]: Starting temporary server
+mysql-1           | 2026-09-11T10:31:31.914153Z 0 [System] [MY-015015] [Server] MySQL Server - start.
+mysql-1           | 2026-09-11T10:31:32.074415Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.4.11) starting as process 124
+mysql-1           | 2026-09-11T10:31:32.083232Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+mysql-1           | 2026-09-11T10:31:32.168636Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+mysql-local-fixture-1  | /bin/sh: line 1: /local-fixture/002-notification-templates.sql: No such file or directory
+mysql-1                | 2026-09-11T10:31:32.331828Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+mysql-1                | 2026-09-11T10:31:32.331895Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+mysql-1                | 2026-09-11T10:31:32.333265Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+mysql-1                | 2026-09-11T10:31:32.342032Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.4.11'  socket: '/var/run/mysqld/mysqld.sock'  port: 0  MySQL Community Server - GPL.
+mysql-1                | 2026-09-11T10:31:32.342149Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Socket: /var/run/mysqld/mysqlx.sock
+mysql-1                | 2026-09-11 10:31:32+00:00 [Note] [Entrypoint]: Temporary server started.
+mysql-1                | '/var/lib/mysql/mysql.sock' -> '/var/run/mysqld/mysqld.sock'
+mysql-1                | 2026-09-11 10:31:33+00:00 [Note] [Entrypoint]: Creating database rcc
+mysql-1                | 2026-09-11 10:31:33+00:00 [Note] [Entrypoint]: Creating user rcc_admin
+mysql-1                | 2026-09-11 10:31:33+00:00 [Note] [Entrypoint]: Giving user rcc_admin access to schema rcc
+mysql-1                | 
+mysql-1                | 2026-09-11 10:31:33+00:00 [Note] [Entrypoint]: Stopping temporary server
+mysql-1                | 2026-09-11T10:31:33.400567Z 13 [System] [MY-013172] [Server] Received SHUTDOWN from user root. Shutting down mysqld (Version: 8.4.11).
+mysql-1                | 2026-09-11T10:31:34.743002Z 0 [System] [MY-010910] [Server] /usr/sbin/mysqld: Shutdown complete (mysqld 8.4.11)  MySQL Community Server - GPL.
+mysql-1                | 2026-09-11T10:31:34.743022Z 0 [System] [MY-015016] [Server] MySQL Server - end.
+mysql-1                | 2026-09-11 10:31:35+00:00 [Note] [Entrypoint]: Temporary server stopped
+mysql-1                | 
+mysql-1                | 2026-09-11 10:31:35+00:00 [Note] [Entrypoint]: MySQL init process done. Ready for start up.
+mysql-1                | 
+mysql-1                | 2026-09-11T10:31:35.415135Z 0 [System] [MY-015015] [Server] MySQL Server - start.
+mysql-1                | 2026-09-11T10:31:35.569418Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.4.11) starting as process 1
+mysql-1                | 2026-09-11T10:31:35.572829Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+mysql-1                | 2026-09-11T10:31:35.702262Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+mysql-1                | 2026-09-11T10:31:35.705796Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+mysql-1                | 2026-09-11T10:31:35.705797Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+mysql-1                | 2026-09-11T10:31:35.705804Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+mysql-1                | 2026-09-11T10:31:35.705809Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Bind-address: '::' port: 33060, socket: /var/run/mysqld/mysqlx.sock
+mysql-1                | 2026-09-11T10:31:35.705810Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.4.11'  socket: '/var/run/mysqld/mysqld.sock'  port: 3306  MySQL Community Server - GPL.
+
+$ docker compose down --volumes --remove-orphans
+ Container rcc-goose-d28c02a4e3cc-admin-1 Stopping 
+ Container rcc-goose-d28c02a4e3cc-admin-1 Stopped 
+ Container rcc-goose-d28c02a4e3cc-admin-1 Removing 
+ Container rcc-goose-d28c02a4e3cc-admin-1 Removed 
+ Container rcc-goose-d28c02a4e3cc-mysql-local-fixture-1 Stopping 
+ Container rcc-goose-d28c02a4e3cc-mysql-local-fixture-1 Stopped 
+ Container rcc-goose-d28c02a4e3cc-mysql-local-fixture-1 Removing 
+ Container rcc-goose-d28c02a4e3cc-mysql-local-fixture-1 Removed 
+ Container rcc-goose-d28c02a4e3cc-schema-migrate-1 Stopping 
+ Container rcc-goose-d28c02a4e3cc-schema-migrate-1 Stopped 
+ Container rcc-goose-d28c02a4e3cc-schema-migrate-1 Removing 
+ Container rcc-goose-d28c02a4e3cc-schema-migrate-1 Removed 
+ Container rcc-goose-d28c02a4e3cc-mysql-1 Stopping 
+ Container rcc-goose-d28c02a4e3cc-mysql-1 Stopped 
+ Container rcc-goose-d28c02a4e3cc-mysql-1 Removing 
+ Container rcc-goose-d28c02a4e3cc-mysql-1 Removed 
+ Volume rcc-goose-d28c02a4e3cc_mysql-data Removing 
+ Network rcc-goose-d28c02a4e3cc_default Removing 
+ Volume rcc-goose-d28c02a4e3cc_mysql-data Removed 
+ Network rcc-goose-d28c02a4e3cc_default Removed 
+

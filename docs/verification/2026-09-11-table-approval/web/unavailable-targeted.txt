@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-94-table-approval/web
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 71 skipped (73)
+   Start at  04:37:33
+   Duration  2.77s (transform 500ms, setup 234ms, import 803ms, tests 881ms, environment 668ms)
+

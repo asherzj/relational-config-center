@@ -1,0 +1,44 @@
+{
+  "backend/15-final-http-source-sha256.json": {
+    "inputs": 236,
+    "changed_since_run": [
+      "admin/CONTEXT.md",
+      "admin/cmd/admin/account_browser_integration_test.go",
+      "admin/cmd/admin/business_auth_integration_test.go",
+      "admin/cmd/admin/release_copy_reprepare_multitable_integration_test.go",
+      "admin/cmd/admin/release_quick_rollback_integration_test.go",
+      "admin/internal/application/quick_rollback.go"
+    ]
+  },
+  "backend/18-regression-recheck-source-sha256.json": {
+    "inputs": 236,
+    "changed_since_run": [
+      "admin/CONTEXT.md",
+      "admin/cmd/admin/account_browser_integration_test.go",
+      "admin/cmd/admin/release_quick_rollback_integration_test.go",
+      "admin/internal/application/quick_rollback.go"
+    ]
+  },
+  "backend/20-rollback-flow-source-sha256.json": {
+    "inputs": 236,
+    "changed_since_run": []
+  },
+  "browser/20-final-system-path-source-sha256.json": {
+    "inputs": 432,
+    "changed_since_run": [
+      "admin/cmd/admin/account_browser_integration_test.go",
+      "admin/cmd/admin/release_quick_rollback_integration_test.go",
+      "admin/internal/application/quick_rollback.go",
+      "web/e2e/draft-targets.cjs",
+      "web/e2e/field-display.cjs",
+      "web/e2e/release-batches.cjs",
+      "web/e2e/release-multitable.cjs",
+      "web/e2e/release-rollbacks.cjs",
+      "web/e2e/table-approvals.cjs"
+    ]
+  },
+  "browser/22-regression-source-sha256.json": {
+    "inputs": 432,
+    "changed_since_run": []
+  }
+}

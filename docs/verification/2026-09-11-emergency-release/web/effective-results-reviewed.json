@@ -1,0 +1,33 @@
+{
+  "scope": "429 unique effective Web tests after review fixes; not one all-green full-suite invocation",
+  "previous_checkpoint": "effective-results-final.json",
+  "previous_effective_unique": 426,
+  "review_regression": {
+    "log": "review-fixes/33-release-orders-p2-regression.log",
+    "passed": 93,
+    "failed": 0,
+    "previous_same_scope": 90,
+    "added_unique": 3
+  },
+  "shared_consumer_regression": {
+    "log": "38-managed-data-review-regression.log",
+    "metadata": "38-managed-data-review-regression.json",
+    "passed": 11,
+    "failed": 0,
+    "already_counted": true
+  },
+  "effective_unique_passed": 429,
+  "effective_failed": 0,
+  "typecheck": "review-fixes/34-web-p2-typecheck.log",
+  "build": "review-fixes/35-web-p2-build.log",
+  "input_applicability": "Review changes are confined to ReleaseRequestReview, ReleaseActionDialog, NewDraftDialog, ReleaseOrdersPage and its tests. The complete release page/API scope passed in 33; ManagedDataPage reuses ReleaseConflictReview and its complete 11-test file passed in 38. Other prior passing scopes are unchanged. Browser results are tracked separately.",
+  "original_failures_preserved": [
+    "helper/19-web-full-suite.log",
+    "helper/20-unrelated-managed-data-isolated.log",
+    "review-fixes/25-submit-type-conflict-red.log",
+    "review-fixes/27-emergency-copy-reprepare-copy-red.log",
+    "review-fixes/28-emergency-copy-reprepare-copy-green.log",
+    "review-fixes/29-emergency-success-feedback-red.log",
+    "review-fixes/31-emergency-hide-approver-red.log"
+  ]
+}

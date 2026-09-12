@@ -1,0 +1,16 @@
+{
+  "backend": {
+    "entries": 9,
+    "mismatches": []
+  },
+  "migration": {
+    "entries": 5,
+    "mismatches": []
+  },
+  "web/src/features/release-templates/ReleaseTemplatesPage.tsx": {
+    "match": true
+  },
+  "web/src/features/release-templates/ReleaseTemplatesPage.test.tsx": {
+    "match": true
+  }
+}

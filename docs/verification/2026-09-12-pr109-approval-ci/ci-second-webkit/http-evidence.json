@@ -1,0 +1,145 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policies",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-policies",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policy-types",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/query-policies/notification_page_query_v1",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mutation-policy-types",
+    "status": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/tables/field_display_browser_items/query",
+    "status": 200,
+    "body": {
+      "conditions": [],
+      "page_number": 1
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/field_display_browser_items",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/field_display_browser_items",
+    "status": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/release-orders",
+    "status": 201,
+    "body": {
+      "items": [
+        {
+          "table_name": "field_display_browser_items",
+          "operation": "ADD",
+          "content": {
+            "name": "stage5_webkit_invalid",
+            "note": "prefix-webkit\r\nsecond\rtail",
+            "state": "invalid-state"
+          }
+        }
+      ],
+      "title": "field_display_browser_items 配置变更"
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/approval-notifications",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/6702646716bffadf9a521e6bba694f32",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/6702646716bffadf9a521e6bba694f32/details",
+    "status": 409
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/table-field-policies/field_display_browser_items",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/release-orders/6702646716bffadf9a521e6bba694f32/people",
+    "status": 200
+  }
+]

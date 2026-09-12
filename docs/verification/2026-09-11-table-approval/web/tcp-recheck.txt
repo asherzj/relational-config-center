@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-94-table-approval/web
+> vitest run src/api/client-stream.test.ts
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-94-table-approval/web
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  04:03:46
+   Duration  382ms (transform 59ms, setup 203ms, import 19ms, tests 54ms, environment 0ms)
+

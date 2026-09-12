@@ -1,0 +1,130 @@
+{
+  "docs/verification/2026-09-11-release-instances/backend/12-current-authorization-red.log": {
+    "sha256": "0315e0c056efcf6cce10b6d0b51ccf6eaf68b898010621f7d1b92d092ca94533",
+    "bytes": 16757
+  },
+  "docs/verification/2026-09-11-release-instances/backend/13-current-authorization-green.log": {
+    "sha256": "0669cf55bfeacd168c08be7d44b03ce91ed5d44f44a07306c36b947e1f9b5385",
+    "bytes": 7143
+  },
+  "docs/verification/2026-09-11-release-instances/backend/15-final-http.jsonl": {
+    "sha256": "eb0feb7b52b18783ba5c56e3a1ce6b479ed3a730fd92533ef32f16945f0e5b70",
+    "bytes": 400086
+  },
+  "docs/verification/2026-09-11-release-instances/backend/17-process-and-boundaries-recheck.log": {
+    "sha256": "28a5d1be7b3330cc8c95f4ef5411cd66709823bacbc23fc915abc1ea1b8e0fc1",
+    "bytes": 73
+  },
+  "docs/verification/2026-09-11-release-instances/backend/18-regression-recheck.jsonl": {
+    "sha256": "88467371409fc9cf70aa08296906a820a7904e5086ed10cd989b50f90918cea8",
+    "bytes": 37767
+  },
+  "docs/verification/2026-09-11-release-instances/web/16-save-feedback-red.log": {
+    "sha256": "073093cda65f75ae87e979ed3927f246b4082288da6f7025bdad7c0a1d5c23b2",
+    "bytes": 16173
+  },
+  "docs/verification/2026-09-11-release-instances/web/17-save-feedback-green.log": {
+    "sha256": "f6d8e18c863e99a1e08a185806b89672aa90afae436d688dfcd30f0b10049ede",
+    "bytes": 453
+  },
+  "docs/verification/2026-09-11-release-instances/web/18-feedback-affected-regression.log": {
+    "sha256": "7f33466ae96a257951a802c46c1f667f2032ff24a168707fba95bc805297f922",
+    "bytes": 243
+  },
+  "docs/verification/2026-09-11-release-instances/web/19-final-typecheck.log": {
+    "sha256": "2015a0d00fa44b874702f1c17af198fe7a44daae1f4ccf23a3952c6d4fbbdd4a",
+    "bytes": 114
+  },
+  "docs/verification/2026-09-11-release-instances/web/20-final-build.log": {
+    "sha256": "4b5c58733830ec95a338f16b4325c61a2d8ff5766a0a73a176c10725102f47a9",
+    "bytes": 723
+  },
+  "docs/verification/2026-09-11-release-instances/web/web-change-snapshot.patch": {
+    "sha256": "2cdbc4933fc7715931d8cd507940e4525eb1295edc3294c1c7b55005bf0482d8",
+    "bytes": 66011
+  },
+  "docs/verification/2026-09-11-release-instances/browser/19-system-path.log": {
+    "sha256": "f40f74c7336bd974d216da0dd79b6925c81a91f04810c251a9c3d477371b4c4b",
+    "bytes": 2049
+  },
+  "docs/verification/2026-09-11-release-instances/browser/20-final-system-path.log": {
+    "sha256": "8c9cf8dbb9fd1c742e105ffd11e051ed490aee04770627b9af516dea76b4bc53",
+    "bytes": 2094
+  },
+  "docs/verification/2026-09-11-release-instances/backend/19-rollback-flow-red.exit": {
+    "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "bytes": 2
+  },
+  "docs/verification/2026-09-11-release-instances/backend/19-rollback-flow-red.log": {
+    "sha256": "f8b69ca9bac8f4dafc7f5b595a8aedf0425d60c3f95b2b856f667857aee6ad02",
+    "bytes": 5251
+  },
+  "docs/verification/2026-09-11-release-instances/backend/20-rollback-flow-green.jsonl": {
+    "sha256": "922b6de94efabea7eff52a574ad32ba609f5aec2ae532912a64424724b80c622",
+    "bytes": 100509
+  },
+  "docs/verification/2026-09-11-release-instances/backend/20-rollback-flow-green.exit": {
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "bytes": 2
+  },
+  "docs/verification/2026-09-11-release-instances/backend/21-rollback-caller-regression.exit": {
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "bytes": 2
+  },
+  "docs/verification/2026-09-11-release-instances/backend/21-rollback-caller-regression.jsonl": {
+    "sha256": "b96cda28b52f0b40a24741baf75da4c05da4e8646c8a2142cdd5ae7640d9ccd1",
+    "bytes": 51462
+  },
+  "docs/verification/2026-09-11-release-instances/browser/22-regression.log": {
+    "sha256": "454e155d9da62fb92f7fae190052225ab32b02930aef31c69e528b4e00dfba3a",
+    "bytes": 18393
+  },
+  "docs/verification/2026-09-11-release-instances/browser/22-regression.exit": {
+    "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "bytes": 2
+  },
+  "docs/verification/2026-09-11-release-instances/browser/23-regression-recheck.log": {
+    "sha256": "d804076242ea34b55eb1597c67f0154cbf6b65846704aaf6d486f6d76df488d9",
+    "bytes": 3408
+  },
+  "docs/verification/2026-09-11-release-instances/browser/23-regression-recheck.exit": {
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "bytes": 2
+  },
+  "docs/verification/2026-09-11-release-instances/browser/24-table-approvals.exit": {
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "bytes": 2
+  },
+  "docs/verification/2026-09-11-release-instances/browser/24-table-approvals.log": {
+    "sha256": "9583fe4262baa955264be52a7a6cc70dfecd34f4a05be3a401d23b8b00349801",
+    "bytes": 2824
+  },
+  "docs/verification/2026-09-11-release-instances/README.md": {
+    "sha256": "1f2876e0fa14fa0088ba841815c2767618c8a4a63aee4ca01cdc38c7e2d948cc",
+    "bytes": 12336
+  },
+  "docs/verification/2026-09-11-release-instances/final-review-source-v3-sha256.json": {
+    "sha256": "c7fed6a4b7ea63bb9823ebfa7edb4c82e9a644347b7ed323bd0e63c8dd42f651",
+    "bytes": 4977
+  },
+  "docs/verification/2026-09-11-release-instances/final-input-applicability.json": {
+    "sha256": "76a23305fef85150587e6301b9b7ad1babb9a70afaa3f3e92ae12c50081d7c4d",
+    "bytes": 2446
+  },
+  "docs/verification/2026-09-11-release-instances/backend/effective-final-http-results.json": {
+    "sha256": "993998551ebf18792dc47737107fd2f3da17ef144f38e38443b4bd6d1d01b530",
+    "bytes": 9603
+  },
+  "docs/verification/2026-09-11-release-instances/browser/effective-browser-results.json": {
+    "sha256": "23472e379205e86d99b1eac9e5d1cb0769c5b8c85b36dd6f81547139a51671fb",
+    "bytes": 7608
+  },
+  "docs/verification/2026-09-11-release-instances/browser/table-approvals/result.json": {
+    "sha256": "eb8cb20fb5b10bb965b5b4e0b4faea1026516fc62873f4ada872e4075a316d47",
+    "bytes": 899
+  },
+  "docs/verification/2026-09-11-release-instances/browser/legacy-02/release-rollbacks.cjs/release-quick-rollback-result-mobile.png": {
+    "sha256": "4a9ee932585163055010270751c652f28152c58e0c1da14c0cfcf3a1b36c50dd",
+    "bytes": 356726
+  }
+}

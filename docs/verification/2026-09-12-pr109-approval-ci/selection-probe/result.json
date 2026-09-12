@@ -1,0 +1,588 @@
+{
+  "ok": false,
+  "engine": "webkit",
+  "attempts": [
+    {
+      "iteration": 0,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 381
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 381
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 398
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 398
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 144
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 144
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 156
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 156
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 116
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 117
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 134
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 134
+        }
+      ]
+    },
+    {
+      "iteration": 3,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 144
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 144
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 160
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 160
+        }
+      ]
+    },
+    {
+      "iteration": 4,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 122
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 123
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 140
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 140
+        }
+      ]
+    },
+    {
+      "iteration": 5,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 124
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 124
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 136
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 136
+        }
+      ]
+    },
+    {
+      "iteration": 6,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 179
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 179
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 184
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 184
+        }
+      ]
+    },
+    {
+      "iteration": 7,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 184
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 184
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 207
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 207
+        }
+      ]
+    },
+    {
+      "iteration": 8,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 132
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 133
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 145
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 145
+        }
+      ]
+    },
+    {
+      "iteration": 9,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 147
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 147
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 167
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 167
+        }
+      ]
+    },
+    {
+      "iteration": 10,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 210
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 210
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 216
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 216
+        }
+      ]
+    },
+    {
+      "iteration": 11,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 185
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 185
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 189
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 190
+        }
+      ]
+    },
+    {
+      "iteration": 12,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 138
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 139
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 145
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 145
+        }
+      ]
+    },
+    {
+      "iteration": 13,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 159
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 159
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 161
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 161
+        }
+      ]
+    },
+    {
+      "iteration": 14,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 176
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 176
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 181
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 181
+        }
+      ]
+    },
+    {
+      "iteration": 15,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 166
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 166
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 173
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 173
+        }
+      ]
+    },
+    {
+      "iteration": 16,
+      "selected": [
+        "stage1_acceptance_items"
+      ],
+      "value": "stage1_acceptance_items",
+      "title": "新增 stage1_acceptance_items 记录",
+      "requests": [
+        "http://127.0.0.1:63374/api/v1/tables/field_display_browser_items/query",
+        "http://127.0.0.1:63374/api/v1/tables/stage1_acceptance_items/query"
+      ],
+      "events": [
+        {
+          "type": "input",
+          "value": "stage1_acceptance_items",
+          "at": 202
+        },
+        {
+          "type": "change",
+          "value": "stage1_acceptance_items",
+          "at": 202
+        },
+        {
+          "type": "later-input",
+          "value": "stage1_acceptance_items",
+          "at": 207
+        },
+        {
+          "type": "later-change",
+          "value": "stage1_acceptance_items",
+          "at": 207
+        }
+      ]
+    }
+  ],
+  "failure": {
+    "name": "Error",
+    "message": "locator.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: /^新增 .* 记录$/ }).getByRole('button', { name: '关闭', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button aria-label=\"关闭\" data-slot=\"button\" data-size=\"default\" data-variant=\"ghost\" class=\"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class…>…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not stable\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not stable\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is not stable\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n"
+  }
+}

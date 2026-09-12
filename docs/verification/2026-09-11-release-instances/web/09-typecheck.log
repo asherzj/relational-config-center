@@ -1,0 +1,11 @@
+
+> @relational-config-center/web@0.0.0 typecheck /private/tmp/rcc-issue-103-release-instances/web
+> tsc --noEmit
+
+src/features/release-orders/ReleaseOrdersPage.test.tsx(64,107): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'exact' does not exist in type 'ByRoleOptions'.
+src/features/release-orders/ReleaseOrdersPage.test.tsx(69,66): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'exact' does not exist in type 'ByRoleOptions'.
+ ELIFECYCLE  Command failed with exit code 1.

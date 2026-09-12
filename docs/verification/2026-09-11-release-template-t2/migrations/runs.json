@@ -1,0 +1,186 @@
+[
+  {
+    "log": "01-association-red.log",
+    "exit": 1,
+    "top_level_tests": [
+      "TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections"
+    ],
+    "passed": [],
+    "failed": [
+      "TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections"
+    ]
+  },
+  {
+    "log": "02-generate-manifest.log",
+    "exit": 0,
+    "top_level_tests": [
+      "TestGenerateAssociationManifest"
+    ],
+    "passed": [
+      "TestGenerateAssociationManifest"
+    ],
+    "failed": []
+  },
+  {
+    "log": "03-association-green.log",
+    "exit": 0,
+    "top_level_tests": [
+      "TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections"
+    ],
+    "passed": [
+      "TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections"
+    ],
+    "failed": []
+  },
+  {
+    "log": "04-ready-red.log",
+    "exit": 1,
+    "top_level_tests": [
+      "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly"
+    ],
+    "passed": [],
+    "failed": [
+      "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly"
+    ]
+  },
+  {
+    "log": "05-ready-green.log",
+    "exit": 0,
+    "top_level_tests": [
+      "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly"
+    ],
+    "passed": [
+      "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly"
+    ],
+    "failed": []
+  },
+  {
+    "log": "06-node-ready-red.log",
+    "exit": 1,
+    "top_level_tests": [
+      "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly",
+      "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_role",
+      "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_node_type",
+      "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/duplicate_node_code"
+    ],
+    "passed": [],
+    "failed": [
+      "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly"
+    ]
+  },
+  {
+    "log": "07-association-schema-full.log",
+    "exit": 0,
+    "top_level_tests": [
+      "TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections",
+      "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly",
+      "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_role",
+      "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/wrong_node_type",
+      "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly/duplicate_node_code",
+      "TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults",
+      "TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults/disabled",
+      "TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults/deleted",
+      "TestTableReleaseSchemaRecoveryKeepsExistingSelections"
+    ],
+    "passed": [
+      "TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections",
+      "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly",
+      "TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults",
+      "TestTableReleaseSchemaRecoveryKeepsExistingSelections"
+    ],
+    "failed": []
+  },
+  {
+    "log": "08-prior-callers.log",
+    "exit": 1,
+    "top_level_tests": [
+      "TestAccountUpgradeFromLegacyMatchesFreshSchema",
+      "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_release_templates",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_check",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_default_emergency_template",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_unique_key",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_check",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unenforced_check",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_engine",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/empty_roles",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown_role",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/zero_role_version",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_engine",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_column",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/older_unconfirmed_attempt",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_required_metadata"
+    ],
+    "passed": [],
+    "failed": [
+      "TestAccountUpgradeFromLegacyMatchesFreshSchema",
+      "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly"
+    ]
+  },
+  {
+    "log": "09-prior-callers-green.log",
+    "exit": 0,
+    "top_level_tests": [
+      "TestAccountUpgradeFromLegacyMatchesFreshSchema",
+      "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_release_templates",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_check",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_default_emergency_template",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_unique_key",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_check",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unenforced_check",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_engine",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/empty_roles",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown_role",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/zero_role_version",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_engine",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_column",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/older_unconfirmed_attempt",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_required_metadata"
+    ],
+    "passed": [
+      "TestAccountUpgradeFromLegacyMatchesFreshSchema",
+      "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory",
+      "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly"
+    ],
+    "failed": []
+  },
+  {
+    "log": "10-current-next-recovery.log",
+    "exit": 0,
+    "top_level_tests": [
+      "TestSchemaMigrationInitializesEmptyDatabase",
+      "TestSchemaMigrationPartialDDLRequiresExplicitRecovery",
+      "TestSchemaMigrationUpgradesToNextRelease",
+      "TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery"
+    ],
+    "passed": [
+      "TestSchemaMigrationInitializesEmptyDatabase",
+      "TestSchemaMigrationPartialDDLRequiresExplicitRecovery",
+      "TestSchemaMigrationUpgradesToNextRelease",
+      "TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery"
+    ],
+    "failed": []
+  }
+]

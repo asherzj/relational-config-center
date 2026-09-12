@@ -1,0 +1,5 @@
+spec source10→source12 独立只读增量报告转录
+
+新增0项，未解决源码问题0项。取消仍满足必填原因和真实终止事实；approval-final未绕过版本保护或增加默认执行兜底。
+
+固定 /tmp/rcc106-review-source12；manifest 7b2d518616a643c7ebe75b49bb287ba2410f18cb7f82f931623060292aa8e6ec；diff e7988d3e2bd264f1a16f7f8ffd4da24e68aa2d98e1fc329b062f285867e9e963。完整SQL、Account浏览器、Compose与最终索引仍待，不作整体放行。

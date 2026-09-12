@@ -1,0 +1,1 @@
+{"admin_origin":"http://127.0.0.1:65178","admin_pid":66813,"isolated":true,"mysql_address":"localhost:48246","mysql_database":"rcc_test","mysql_image":"mysql:8.4","script":"release-rollback-flows.cjs","started_at":"2026-09-11T09:12:16.129457Z","test":"TestRollbackFlowBrowserSystemPath","test_pid":66796,"vite_pid":66824,"web_origin":"http://127.0.0.1:65175"}

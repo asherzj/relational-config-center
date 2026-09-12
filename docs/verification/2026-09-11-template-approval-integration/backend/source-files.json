@@ -1,0 +1,26 @@
+{
+  "ours": "7eb9dd36affe16739d8e8b178afdd9977d4976a3",
+  "theirs": "2612bb354ef71d42e193648564b9f30bd9281eb4",
+  "files": [
+    {
+      "path": "admin/cmd/admin/application.go",
+      "sha256": "d6d97c469708688106611d7d552845ce0306db8a35dc08068f0d286d693aad24"
+    },
+    {
+      "path": "admin/cmd/admin/business_auth_integration_test.go",
+      "sha256": "5d7705751d275c2b33ed683299af82cc4cfad0bd32d28bf26ba028be2e9adf98"
+    },
+    {
+      "path": "admin/cmd/admin/release_history_delivery_integration_test.go",
+      "sha256": "6c40040e151ea0d074f7ff8fccdb59fd9121e1b6a4d768524926f7a4c31c4570"
+    },
+    {
+      "path": "admin/internal/interfaces/http/router.go",
+      "sha256": "a8e834eff83e3adeb5f0c7f1e3c7a470f8244d1e1c7ef3978da67476b1014ee6"
+    },
+    {
+      "path": "admin/internal/interfaces/http/security.go",
+      "sha256": "f74193f72487eacaf73e90e5cbac624f117ce2f94f2aacd71c457a1aeb7f5705"
+    }
+  ]
+}

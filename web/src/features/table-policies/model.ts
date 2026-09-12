@@ -13,6 +13,7 @@ export type DatabaseTable = {
 };
 
 export type TablePolicy = {
+  version: string;
   concurrencyKey?: string[];
   tableName: string;
   queryPolicyCode: string;

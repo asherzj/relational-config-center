@@ -50,7 +50,7 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 	snapshot := func() string {
 		return baselineDataSnapshot(t, db) + baselineRows(t, db, `SELECT * FROM rcc_goose_db_version ORDER BY id`) + baselineRows(t, db, `SELECT * FROM rcc_schema_migration_attempts ORDER BY id`)
 	}
-	assertReadiness := func(want int) {
+	assertReadiness := func(t *testing.T, want int) {
 		t.Helper()
 		before := snapshot()
 		status, _, body := p.request(t, "GET", "/health/ready", "", nil, "")
@@ -61,7 +61,7 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 			t.Fatal("readiness wrote control or business data")
 		}
 	}
-	assertReadiness(200)
+	assertReadiness(t, 200)
 	for _, fault := range []struct{ name, apply, restore string }{
 		{"unmanaged", `RENAME TABLE rcc_goose_db_version TO held_versions, rcc_schema_migration_attempts TO held_attempts`, `RENAME TABLE held_versions TO rcc_goose_db_version, held_attempts TO rcc_schema_migration_attempts`},
 		{"ahead", fmt.Sprintf(`UPDATE rcc_goose_db_version SET version_id=99 WHERE version_id=%d`, currentVersion), fmt.Sprintf(`UPDATE rcc_goose_db_version SET version_id=%d WHERE version_id=99`, currentVersion)},
@@ -71,6 +71,11 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 		{"wrong_default", `ALTER TABLE rcc_accounts ALTER COLUMN enabled SET DEFAULT 0`, `ALTER TABLE rcc_accounts ALTER COLUMN enabled SET DEFAULT 1`},
 		{"missing_index", `ALTER TABLE rcc_query_policies DROP INDEX idx_query_policy_status_type`, `ALTER TABLE rcc_query_policies ADD KEY idx_query_policy_status_type(status,type_code)`},
 		{"missing_field_policy", `RENAME TABLE rcc_table_field_policies TO held_field_policies`, `RENAME TABLE held_field_policies TO rcc_table_field_policies`},
+		{"missing_approval_notifications", `RENAME TABLE rcc_approval_notifications TO held_approval_notifications`, `RENAME TABLE held_approval_notifications TO rcc_approval_notifications`},
+		{"missing_release_templates", `RENAME TABLE rcc_release_templates TO held_release_templates`, `RENAME TABLE held_release_templates TO rcc_release_templates`},
+		{"release_template_unique_key", `ALTER TABLE rcc_release_templates DROP INDEX uk_release_template_code`, `ALTER TABLE rcc_release_templates DROP INDEX uk_release_template_id_type, DROP INDEX idx_release_template_type_enabled, ADD UNIQUE KEY uk_release_template_code(code), ADD UNIQUE KEY uk_release_template_id_type(id,release_type), ADD KEY idx_release_template_type_enabled(release_type,enabled)`},
+		{"release_template_check", `ALTER TABLE rcc_release_templates ALTER CHECK chk_release_template_monitors NOT ENFORCED`, `ALTER TABLE rcc_release_templates ALTER CHECK chk_release_template_monitors ENFORCED`},
+		{"missing_default_emergency_template", `UPDATE rcc_release_templates SET code='held_emergency' WHERE code='default_emergency_v1'`, `UPDATE rcc_release_templates SET code='default_emergency_v1' WHERE code='held_emergency'`},
 		{"field_policy_unique_key", `ALTER TABLE rcc_table_field_policies DROP INDEX uk_table_field`, `ALTER TABLE rcc_table_field_policies ADD UNIQUE KEY uk_table_field(table_name,field_name)`},
 		{"field_policy_check", `ALTER TABLE rcc_table_field_policies ALTER CHECK chk_field_policy_flags NOT ENFORCED`, `ALTER TABLE rcc_table_field_policies ALTER CHECK chk_field_policy_flags ENFORCED`},
 		{"unenforced_check", `ALTER TABLE rcc_query_policies ALTER CHECK chk_query_policy_max_page_size NOT ENFORCED`, `ALTER TABLE rcc_query_policies ALTER CHECK chk_query_policy_max_page_size ENFORCED`},
@@ -94,6 +99,12 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 					t.Fatal(err)
 				}
 			}
+			var templateTable, templateDefinition string
+			if fault.name == "release_template_unique_key" {
+				if err := db.QueryRow("SHOW CREATE TABLE rcc_release_templates").Scan(&templateTable, &templateDefinition); err != nil {
+					t.Fatal(err)
+				}
+			}
 			deliveryExec(t, db, fault.apply)
 			before := baselineDataSnapshot(t, db)
 			rejected := accountProcessCommand(t, binary, &reader)
@@ -105,22 +116,43 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
 			if before != baselineDataSnapshot(t, db) {
 				t.Fatal("rejected startup/readiness changed rows")
 			}
+			if fault.name == "release_template_unique_key" {
+				// Keep the referenced composite identity indexed throughout restoration.
+				deliveryExec(t, db, `ALTER TABLE rcc_release_templates ADD UNIQUE KEY restore_template_identity(id,release_type)`)
+			}
 			if fault.restore != "" {
 				deliveryExec(t, db, fault.restore)
 			} else {
 				deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET release_digest=? WHERE target_version=?`, digest, currentVersion)
 			}
-			assertReadiness(200)
+			if fault.name == "release_template_unique_key" {
+				deliveryExec(t, db, `ALTER TABLE rcc_release_templates DROP INDEX restore_template_identity`)
+			}
+			// Candidate 11 stores ASCII-column CHECK literals as ASCII after its
+			// identity-index ALTER. Restore the same current-release definition.
+			if fault.name == "release_template_unique_key" || fault.name == "release_template_check" {
+				deliveryExec(t, db, `ALTER TABLE rcc_release_templates DROP CHECK chk_emergency_template_enabled, DROP CHECK chk_release_template_type, ADD CONSTRAINT chk_emergency_template_enabled CHECK (release_type <> _ascii'EMERGENCY' OR enabled=1), ADD CONSTRAINT chk_release_template_type CHECK (release_type IN (_ascii'STANDARD',_ascii'EMERGENCY'))`)
+			}
+			if fault.name == "release_template_unique_key" {
+				var restoredDefinition string
+				if err := db.QueryRow("SHOW CREATE TABLE rcc_release_templates").Scan(&templateTable, &restoredDefinition); err != nil {
+					t.Fatal(err)
+				}
+				if restoredDefinition != templateDefinition {
+					t.Fatalf("fault restoration changed template structure:\nbefore:\n%s\nafter:\n%s", templateDefinition, restoredDefinition)
+				}
+			}
+			assertReadiness(t, 200)
 		})
 	}
 	deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET state='RUNNING',finished_at=NULL WHERE target_version=?`, currentVersion)
-	assertReadiness(503)
+	assertReadiness(t, 503)
 	requireSchemaStartupRejected(t, accountProcessCommand(t, binary, &reader))
 	if output, err := schemaMigrationCommand(migration, driver, "up").CombinedOutput(); err == nil {
 		t.Fatalf("deployment retried unconfirmed migration: %s", output)
 	}
 	requireSchemaMigrationState(t, migration, driver, "current", "recover")
-	assertReadiness(200)
+	assertReadiness(t, 200)
 	p.stop(t)
 }
 
@@ -145,22 +177,19 @@ func TestSchemaReadinessRejectsKnownOldRelease(t *testing.T) {
 	p := accountProcessCommand(t, binary, driver)
 	p.ready(t)
 
-	// Restore the known old test state while this process is still running.
-	db := deliveryDB(t, driver)
-	deliveryExec(t, db, `DROP TABLE rcc_table_field_policies,rcc_release_details,rcc_release_executions,rcc_release_table_references`)
-	deliveryExec(t, db, `ALTER TABLE rcc_table_policies DROP COLUMN concurrency_key`)
-	deliveryExec(t, db, "DROP TABLE rcc_publication_commands")
-	deliveryExec(t, db, "CREATE TABLE `rcc_publication_commands` (\n  `table_name` varbinary(256) NOT NULL,\n  `sequence` bigint unsigned NOT NULL,\n  `order_id` varbinary(32) NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`table_name`,`sequence`),\n  KEY `publication_order` (`order_id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci")
-	deliveryExec(t, db, "DROP TABLE rcc_refresh_notifications")
-	deliveryExec(t, db, "CREATE TABLE `rcc_refresh_notifications` (\n  `order_id` varbinary(32) NOT NULL,\n  `table_name` varbinary(256) NOT NULL,\n  `table_version` bigint unsigned NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`order_id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci")
-	deliveryExec(t, db, "DROP TABLE rcc_release_orders")
-	deliveryExec(t, db, "CREATE TABLE `rcc_release_orders` (\n  `id` varbinary(32) NOT NULL,\n  `table_name` varbinary(256) NOT NULL,\n  `applicant_id` varbinary(36) NOT NULL,\n  `state` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `version` bigint unsigned NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`id`),\n  KEY `release_table` (`table_name`,`id`),\n  KEY `release_applicant` (`applicant_id`,`id`),\n  KEY `release_state` (`state`,`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci")
-
-	for _, table := range []string{"rcc_query_policies", "rcc_mutation_policies", "rcc_table_policies"} {
-		deliveryExec(t, db, "ALTER TABLE "+table+" RENAME COLUMN created_at TO gmt_created, RENAME COLUMN updated_at TO gmt_modified")
+	// This empty database belongs exclusively to the Testcontainer created at
+	// the start of this test. Reinstall the real published v1 while Admin stays
+	// alive, rather than manufacturing old ledger rows or old table definitions.
+	if driver.DBName != "rcc_test" {
+		t.Fatal("refusing to rebuild a database outside this test fixture")
 	}
-	deliveryExec(t, db, `DELETE FROM rcc_goose_db_version WHERE version_id>1`)
-	deliveryExec(t, db, `DELETE FROM rcc_schema_migration_attempts WHERE target_version>1`)
+	owner := *driver
+	owner.User, owner.DBName = "root", ""
+	db := deliveryDB(t, &owner)
+	t.Log("reinstalling empty Testcontainers database rcc_test through formal v1 schema-migrate")
+	deliveryExec(t, db, `DROP DATABASE rcc_test`)
+	deliveryExec(t, db, `CREATE DATABASE rcc_test CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci`)
+	requireSchemaMigrationState(t, buildPreviousSchemaMigrationRelease(t), driver, "current", "up")
 	status, _, body := p.request(t, "GET", "/health/ready", "", nil, "")
 	if status != 503 {
 		t.Fatalf("running process accepted old release: %d %s", status, body)

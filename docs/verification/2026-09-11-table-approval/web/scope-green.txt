@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-94-table-approval/web
+> vitest run src/features/release-orders/ReleaseOrdersPage.test.tsx -t '审批资格改变而'
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-94-table-approval/web
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 70 skipped (71)
+   Start at  03:47:33
+   Duration  2.66s (transform 642ms, setup 249ms, import 969ms, tests 700ms, environment 634ms)
+

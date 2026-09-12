@@ -1,0 +1,26 @@
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly
+2026/09/11 11:32:01 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 32d273cca784b765b3388c66497f80ba91c352ddc485aee4439c6c8ad07d8c31
+  Test ProcessID: dbcf726f-280b-4317-9315-2021e1a806f1
+2026/09/11 11:32:01 🐳 Creating container for image mysql:8.4
+2026/09/11 11:32:01 ✅ Container created: 5e69c5b826d7
+2026/09/11 11:32:01 🐳 Starting container: 5e69c5b826d7
+2026/09/11 11:32:01 ✅ Container started: 5e69c5b826d7
+2026/09/11 11:32:01 ⏳ Waiting for container id 5e69c5b826d7 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 11:32:08 🔔 Container is ready: 5e69c5b826d7
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_approval_notifications
+2026/09/11 11:32:13 🐳 Stopping container: 5e69c5b826d7
+2026/09/11 11:32:15 ✅ Container stopped: 5e69c5b826d7
+2026/09/11 11:32:15 🐳 Terminating container: 5e69c5b826d7
+2026/09/11 11:32:15 🚫 Container terminated: 5e69c5b826d7
+--- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly (13.67s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_approval_notifications (0.17s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	14.422s

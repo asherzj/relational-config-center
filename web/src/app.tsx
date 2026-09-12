@@ -11,6 +11,7 @@ import { QueryPoliciesPage } from "./features/query-policies/QueryPoliciesPage";
 import { MutationPoliciesPage } from "./features/mutation-policies/MutationPoliciesPage";
 import { TablePoliciesPage } from "./features/table-policies/TablePoliciesPage";
 import { ManagedDataPage } from "./features/managed-data/ManagedDataPage";
+import { ReleaseTemplatesPage } from "./features/release-templates/ReleaseTemplatesPage";
 
 export function AppRoutes() {
   return (
@@ -29,6 +30,8 @@ export function AppRoutes() {
         <Route path="platform/mutation-policies/:code" element={<MutationPoliciesPage />} />
         <Route path="platform/table-policies" element={<TablePoliciesPage />} />
         <Route path="platform/table-policies/:tableName" element={<TablePoliciesPage />} />
+        <Route path="platform/release-templates" element={<ReleaseTemplatesPage />} />
+        <Route path="platform/release-templates/:code" element={<ReleaseTemplatesPage />} />
         <Route path="configuration/release-orders" element={<ReleaseOrdersPage />} />
         <Route path="configuration/notifications" element={<NotificationsPage />} />
         <Route path="configuration/notifications/:id" element={<NotificationsPage />} />

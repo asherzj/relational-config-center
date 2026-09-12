@@ -1,0 +1,24 @@
+{
+  "source": "source-12.json",
+  "source_manifest_sha256": "7b2d518616a643c7ebe75b49bb287ba2410f18cb7f82f931623060292aa8e6ec",
+  "mirror": "/Users/asher/.codex/visualizations/2026/09/09/01a08513-8713-7161-b464-e2f807ea99dd/rcc-106-compose-source12",
+  "verified_files": 666,
+  "mismatches": [],
+  "reason": "Colima bind mount shares HOME, not /private/tmp",
+  "bind_inputs": {
+    "deploy/docker-compose.yml": "dddc6d8511e9084dd4ad74ad4ba85cc3f5dc3f1d21167355cf3548f3ca30ecf6"
+  },
+  "cleanup": "only own source mirror removed after successful official Compose cleanup",
+  "bind_mounts": [
+    {
+      "service": "mysql-local-fixture",
+      "type": "bind",
+      "source": "/Users/asher/.codex/visualizations/2026/09/09/01a08513-8713-7161-b464-e2f807ea99dd/rcc-106-compose-source12/deploy/mysql/local-fixture",
+      "target": "/local-fixture",
+      "read_only": true,
+      "bind": {}
+    }
+  ],
+  "post_run_verified_files": 666,
+  "post_run_mismatches": []
+}

@@ -36,7 +36,8 @@ const button = (page, name) => page.getByRole('button', { name, exact: true });
     await api(admin.context, base, 'POST', `/api/v1/mutation-policies/${mutation}/activate`, {});
     for (const table of tables) {
       await api(admin.context, base, 'POST', '/api/v1/table-policies', { table_name: table, query_policy_code: 'notification_page_query_v1', mutation_policy_code: mutation }, 201);
-      await api(admin.context, base, 'POST', `/api/v1/table-policies/${table}/enable`, {});
+      await api(admin.context, base, 'POST', `/api/v1/table-policies/${table}/enable`, { expected_version: "1" });
+      await api(admin.context, base, 'PUT', `/api/v1/table-policies/${table}/release-templates/STANDARD`, {template_code:'default_standard_v1',enabled:true,expected_version:'0'});
     }
     const opsRole = await createRole(admin.context, base, '商品运营审批角色 · 长名称验证多人分工', [ops.identity.accountID]);
     const priceRole = await createRole(admin.context, base, '财务价格审批', [finance.identity.accountID]);
@@ -125,7 +126,7 @@ const button = (page, name) => page.getByRole('button', { name, exact: true });
     await ops.page.getByLabel('审批意见', { exact: true }).fill('商品表已核对，价格表交给财务');
     await button(ops.page, '确认批准').click();
     await ops.page.getByRole('region', { name: '逐表审批进度', exact: true }).getByRole('heading', { name: '已通过 1 / 2 表', exact: true }).waitFor();
-    assert.equal(await ops.page.getByRole('list', { name: '发布阶段', exact: true }).getByText('已批准', { exact: true }).count(), 0);
+    await ops.page.getByRole('region', { name: '发布阶段', exact: true }).getByRole('heading', { name: '待审批', exact: true }).waitFor();
     await shot(ops.page, 'table-approval-partial-desktop.png');
     await applicant.page.reload(); assert.equal(await button(applicant.page, '执行发布').count(), 0);
     await admin.page.goto(`${base}/configuration/release-orders/${order.id}`); assert.equal(await button(admin.page, '批准发布单').count(), 0);

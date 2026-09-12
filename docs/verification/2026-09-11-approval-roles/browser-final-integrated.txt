@@ -1,0 +1,25 @@
+=== RUN   TestApprovalRoleBrowserSystemPath
+2026/09/11 02:21:44 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: f75c0d0fe8dc98d2f23bb6d6d91bd486d0702ffee5752dafa12661ea715653bc
+  Test ProcessID: 1efc8fe6-939a-4d38-8e24-62826e76a0ec
+2026/09/11 02:21:44 🐳 Creating container for image mysql:8.4
+2026/09/11 02:21:44 ✅ Container created: a84ec8f3ea5d
+2026/09/11 02:21:44 🐳 Starting container: a84ec8f3ea5d
+2026/09/11 02:21:44 ✅ Container started: a84ec8f3ea5d
+2026/09/11 02:21:44 ⏳ Waiting for container id a84ec8f3ea5d image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 02:21:51 🔔 Container is ready: a84ec8f3ea5d
+    approval_roles_browser_integration_test.go:76: approval role browser: {"checks":["empty state, searchable real member selection, keyboard form order, unsaved close protection and real save","role directory read failure retains the last successful list and offers a working retry","390px role catalog scrolls with arrow keys while its edit action remains visible","personnel read failure retains cached search results and selected identities, then retries successfully","reload preserves role identity and members; removing one member saves through public API","real database rollback returns definite failure, preserves editable inputs and allows a corrected save","stale version rejects overwrite, preserves input, exposes current content and requires explicit save","lost committed response preserves exact original key/body; explicit retry returns original result at 390px","an undelivered uncertain request that later conflicts can return to latest-content review without losing input","real missing-cookie interruption hides protected inputs, same-account login preserves input and members, mobile keyboard can disable and save","enable restoration and unreferenced deletion with cancel-first keyboard confirmation","revocation preserves draft and disables save; switching real accounts discards private draft"],"errors":[]}
+2026/09/11 02:22:30 🐳 Stopping container: a84ec8f3ea5d
+2026/09/11 02:22:31 ✅ Container stopped: a84ec8f3ea5d
+2026/09/11 02:22:31 🐳 Terminating container: a84ec8f3ea5d
+2026/09/11 02:22:32 🚫 Container terminated: a84ec8f3ea5d
+--- PASS: TestApprovalRoleBrowserSystemPath (47.28s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	47.937s

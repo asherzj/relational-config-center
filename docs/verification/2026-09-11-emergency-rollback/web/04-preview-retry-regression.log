@@ -1,0 +1,31 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-105-emergency-rollback/web
+> vitest run src/features/release-orders/ReleaseOrdersPage.test.tsx -t '恢复预览|快速回滚'
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-105-emergency-rollback/web
+
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx (91 tests | 1 failed | 82 skipped) 2513ms
+   × 快速回滚先保存整单恢复预览，取消无恢复写入且无需必填原因 158ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/release-orders/ReleaseOrdersPage.test.tsx > 快速回滚先保存整单恢复预览，取消无恢复写入且无需必填原因
+TypeError: resolvePreview is not a function
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx:1034:2
+    1032|  expect(screen.getByRole("button",{name:"确认整单快速回滚"})).toBeDisabled();
+    1033|  expect(screen.getByText("正在保存整单恢复预览…")).toBeVisible();
+    1034|  resolvePreview(json({order_id:id,expected_version:"4",release_type:"E…
+       |  ^
+    1035|  expect(await screen.findByText("本次恢复涉及全部 1 项，无需再次审批。成功后原单标记已回滚，释放目标记录…
+    1036|  expect(screen.getByRole("columnheader",{name:"当前值"})).toBeVisible();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 passed | 82 skipped (91)
+   Start at  16:25:52
+   Duration  4.65s (transform 625ms, setup 263ms, import 926ms, tests 2.51s, environment 832ms)
+
+ ELIFECYCLE  Command failed with exit code 1.

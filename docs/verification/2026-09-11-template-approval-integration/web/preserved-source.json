@@ -1,0 +1,52 @@
+{
+  "web/src/features/table-policies/TablePolicyDrawer.tsx": {
+    "reference": "7eb9dd36affe16739d8e8b178afdd9977d4976a3",
+    "sha256": "e4c476671442c1ea3008a5af51819050eb2e824f303c21a139124406f296cfdd",
+    "byte_identical": true
+  },
+  "web/src/features/table-policies/TableReleaseTemplatesDrawer.tsx": {
+    "reference": "7eb9dd36affe16739d8e8b178afdd9977d4976a3",
+    "sha256": "ab75832189717f5d8f9a4a6d970dfa588088110b7dfa3dd57b3646a397959703",
+    "byte_identical": true
+  },
+  "web/src/features/table-policies/queries.ts": {
+    "reference": "7eb9dd36affe16739d8e8b178afdd9977d4976a3",
+    "sha256": "b03c2f4432e32ad2a391b3587333cac755d0491f05b0619bcae1525515907ad5",
+    "byte_identical": true
+  },
+  "web/src/api/table-policies.ts": {
+    "reference": "7eb9dd36affe16739d8e8b178afdd9977d4976a3",
+    "sha256": "a0b1a1840526760ebfc7b3d37a498e1184ec5bbc5e673e22122b0d5b7841452b",
+    "byte_identical": true
+  },
+  "web/src/features/approval-roles/ApprovalRolesPage.tsx": {
+    "reference": "2612bb354ef71d42e193648564b9f30bd9281eb4",
+    "sha256": "d989e2c8978a49355a65e2bf761e9e0795f109217e716e83aa1913d68ab7defe",
+    "byte_identical": true
+  },
+  "web/src/features/table-policies/TableApprovalDrawer.tsx": {
+    "reference": "2612bb354ef71d42e193648564b9f30bd9281eb4",
+    "sha256": "1f1a23babcf03ba26fb9d40b22849c59c7db69860d0feec1f8502cfe856c303a",
+    "byte_identical": true
+  },
+  "web/src/features/release-orders/ReleaseActionDialog.tsx": {
+    "reference": "2612bb354ef71d42e193648564b9f30bd9281eb4",
+    "sha256": "340be99b490ffbe4c960597da2f65faa56f963c3191916e8a8ec094f7eb42973",
+    "byte_identical": true
+  },
+  "web/src/features/release-orders/ReleaseApprovals.tsx": {
+    "reference": "2612bb354ef71d42e193648564b9f30bd9281eb4",
+    "sha256": "ebbfcab385a108bdd13195da0fa7a2c5c1cb78f2c646cd179431611bbcfc60b7",
+    "byte_identical": true
+  },
+  "web/src/features/release-orders/release-journal.ts": {
+    "reference": "2612bb354ef71d42e193648564b9f30bd9281eb4",
+    "sha256": "3b9241178757e24c1e7a4ccc774abeca7f2f6b4b2fc50ba4fe8982fc35cb8920",
+    "byte_identical": true
+  },
+  "web/src/features/release-orders/useReleaseWrite.ts": {
+    "reference": "2612bb354ef71d42e193648564b9f30bd9281eb4",
+    "sha256": "3c78dfa3da44979b7b258b622b62318193fb0acc5cb343f7171220c5204e70ff",
+    "byte_identical": true
+  }
+}

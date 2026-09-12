@@ -1,0 +1,108 @@
+=== RUN   TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade
+2026/09/11 04:19:22 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: bee62a0e8559ab05d20cea059cecb4b4bb165e9e3454338bf29c87e49e9e7e1e
+  Test ProcessID: 0eda6bc0-b786-40db-a5ba-e8b1f676409a
+2026/09/11 04:19:22 🐳 Creating container for image mysql:8.4
+2026/09/11 04:19:22 ✅ Container created: da61e46641ec
+2026/09/11 04:19:22 🐳 Starting container: da61e46641ec
+2026/09/11 04:19:22 ✅ Container started: da61e46641ec
+2026/09/11 04:19:22 ⏳ Waiting for container id da61e46641ec image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 04:19:28 🔔 Container is ready: da61e46641ec
+2026/09/11 04:19:36 🐳 Stopping container: da61e46641ec
+2026/09/11 04:19:37 ✅ Container stopped: da61e46641ec
+2026/09/11 04:19:37 🐳 Terminating container: da61e46641ec
+2026/09/11 04:19:37 🚫 Container terminated: da61e46641ec
+--- PASS: TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade (16.32s)
+=== RUN   TestSchemaMigrationUpgradesToNextRelease
+2026/09/11 04:19:38 🐳 Creating container for image mysql:8.4
+2026/09/11 04:19:38 ✅ Container created: 071ad2033f59
+2026/09/11 04:19:38 🐳 Starting container: 071ad2033f59
+2026/09/11 04:19:39 ✅ Container started: 071ad2033f59
+2026/09/11 04:19:39 ⏳ Waiting for container id 071ad2033f59 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 04:19:45 🔔 Container is ready: 071ad2033f59
+2026/09/11 04:19:48 🐳 Creating container for image mysql:8.4
+2026/09/11 04:19:48 ✅ Container created: 33ad8d3b0ec6
+2026/09/11 04:19:48 🐳 Starting container: 33ad8d3b0ec6
+2026/09/11 04:19:48 ✅ Container started: 33ad8d3b0ec6
+2026/09/11 04:19:48 ⏳ Waiting for container id 33ad8d3b0ec6 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 04:19:54 🔔 Container is ready: 33ad8d3b0ec6
+2026/09/11 04:19:55 🐳 Stopping container: 33ad8d3b0ec6
+2026/09/11 04:19:57 ✅ Container stopped: 33ad8d3b0ec6
+2026/09/11 04:19:57 🐳 Terminating container: 33ad8d3b0ec6
+2026/09/11 04:19:57 🚫 Container terminated: 33ad8d3b0ec6
+2026/09/11 04:19:57 🐳 Stopping container: 071ad2033f59
+2026/09/11 04:19:58 ✅ Container stopped: 071ad2033f59
+2026/09/11 04:19:58 🐳 Terminating container: 071ad2033f59
+2026/09/11 04:19:58 🚫 Container terminated: 071ad2033f59
+--- PASS: TestSchemaMigrationUpgradesToNextRelease (21.19s)
+=== RUN   TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery
+2026/09/11 04:20:00 🐳 Creating container for image mysql:8.4
+2026/09/11 04:20:00 ✅ Container created: 13d4e3311c0b
+2026/09/11 04:20:00 🐳 Starting container: 13d4e3311c0b
+2026/09/11 04:20:01 ✅ Container started: 13d4e3311c0b
+2026/09/11 04:20:01 ⏳ Waiting for container id 13d4e3311c0b image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 04:20:07 🔔 Container is ready: 13d4e3311c0b
+2026/09/11 04:20:10 🐳 Stopping container: 13d4e3311c0b
+2026/09/11 04:20:11 ✅ Container stopped: 13d4e3311c0b
+2026/09/11 04:20:11 🐳 Terminating container: 13d4e3311c0b
+2026/09/11 04:20:11 🚫 Container terminated: 13d4e3311c0b
+--- PASS: TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery (12.95s)
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly
+2026/09/11 04:20:11 🐳 Creating container for image mysql:8.4
+2026/09/11 04:20:11 ✅ Container created: dcbc86a696d3
+2026/09/11 04:20:11 🐳 Starting container: dcbc86a696d3
+2026/09/11 04:20:11 ✅ Container started: dcbc86a696d3
+2026/09/11 04:20:11 ⏳ Waiting for container id dcbc86a696d3 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 04:20:18 🔔 Container is ready: dcbc86a696d3
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_unique_key
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_check
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unenforced_check
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_engine
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/empty_roles
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown_role
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/zero_role_version
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_engine
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_column
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/older_unconfirmed_attempt
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_required_metadata
+2026/09/11 04:20:26 🐳 Stopping container: dcbc86a696d3
+2026/09/11 04:20:28 ✅ Container stopped: dcbc86a696d3
+2026/09/11 04:20:28 🐳 Terminating container: dcbc86a696d3
+2026/09/11 04:20:28 🚫 Container terminated: dcbc86a696d3
+--- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly (16.70s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged (0.15s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead (0.13s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown (0.13s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest (0.15s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column (0.21s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default (0.17s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index (0.21s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy (0.25s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_unique_key (0.24s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_check (0.25s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unenforced_check (0.22s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_engine (0.20s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/empty_roles (0.26s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown_role (0.24s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/zero_role_version (0.24s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_engine (0.16s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_column (0.15s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/older_unconfirmed_attempt (0.15s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_required_metadata (0.24s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	67.892s

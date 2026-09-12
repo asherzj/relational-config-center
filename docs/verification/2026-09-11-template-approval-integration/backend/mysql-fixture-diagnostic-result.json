@@ -1,0 +1,33 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-tags",
+    "integration",
+    "-run",
+    "^(TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish|TestReleaseHistorySurvivesExecutableRestartAndExternalChanges)$",
+    "-count=1",
+    "-parallel=1",
+    "-p=1",
+    "-timeout=5m",
+    "-json",
+    "./cmd/admin"
+  ],
+  "environment": {
+    "TESTCONTAINERS_RYUK_DISABLED": "true",
+    "DOCKER_HOST": "unix:///Users/asher/.colima/default/docker.sock",
+    "GOCACHE": "/private/tmp/rcc-go-cache"
+  },
+  "exit_code": 1,
+  "elapsed_seconds": 28.278,
+  "expected_tests": [
+    "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish",
+    "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges"
+  ],
+  "passed_top_level": [
+    "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish"
+  ],
+  "failed_top_level": [
+    "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges"
+  ]
+}

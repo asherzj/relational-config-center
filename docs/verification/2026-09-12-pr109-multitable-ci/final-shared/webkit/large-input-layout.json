@@ -1,0 +1,16 @@
+{
+  "engine": "webkit",
+  "control": {
+    "tag": "TEXTAREA",
+    "type": "textarea",
+    "maxLength": -1
+  },
+  "characters": 3145728,
+  "layout": {
+    "width": 249.15625,
+    "height": 420,
+    "scrollHeight": 4194336,
+    "documentHeight": 1114,
+    "viewportHeight": 1000
+  }
+}

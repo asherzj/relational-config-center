@@ -352,13 +352,6 @@ MYSQL_USER=rcc_admin MYSQL_PASSWORD="$mysql_password" MYSQL_TLS_MODE=false \
   run_logged 300 "$artifact_root/schema-migrate.log" "$runtime_dir/schema-migrate" up
 
 load_sql "$repo_root/deploy/mysql/local-fixture/002-notification-templates.sql"
-load_sql "$repo_root/docs/verification/fixtures/stage1_acceptance.sql"
-load_sql "$repo_root/web/e2e/fixtures/stage1-policies.sql"
-load_sql "$repo_root/admin/cmd/admin/testdata/014-batch-browser.sql"
-load_sql "$repo_root/admin/cmd/admin/testdata/015-draft-targets-browser.sql"
-load_sql "$repo_root/admin/cmd/admin/testdata/016-multitable-browser.sql"
-load_sql "$repo_root/web/e2e/fixtures/release-rollbacks.sql"
-load_sql "$repo_root/web/e2e/fixtures/field-display.sql"
 
 printf 'Granting the disposable Admin account publication metadata access...\n'
 run_timeout 30 docker exec --interactive "$mysql_container" sh -c \
@@ -384,7 +377,6 @@ capture_fixture_rows() {
       ) FROM stage1_acceptance_items ORDER BY id;"' > "$target"
 }
 
-capture_fixture_rows "$artifact_root/fixture-before.tsv"
 
 admin_port=$(free_port)
 web_port=$(free_port)
@@ -397,6 +389,7 @@ run_logged 300 "$artifact_root/admin-build.log" \
   go -C "$repo_root/admin" build -o "$runtime_dir/admin" ./cmd/admin
 run_logged 300 "$artifact_root/account-maintain-build.log" \
   go -C "$repo_root/admin" build -o "$runtime_dir/account-maintain" ./cmd/account-maintain
+start_admin() {
 ADMIN_HTTP_ADDR="127.0.0.1:$admin_port" \
 ADMIN_PUBLIC_ORIGIN="$web_url" \
 ADMIN_ALLOW_LOCAL_HTTP=true \
@@ -409,9 +402,12 @@ MYSQL_PASSWORD="$mysql_password" \
 MYSQL_TLS_MODE=false \
 RCC_TIMEOUT_KILL_GRACE_MS=1000 \
   node "$repo_root/scripts/run-with-timeout.cjs" 2400 "$runtime_dir/admin" \
-  > "$artifact_root/admin.log" 2>&1 &
+  > "$1" 2>&1 &
 admin_pid=$!
-wait_for_http Admin "$admin_url/health/ready" "$admin_pid" "$artifact_root/admin.log"
+}
+start_admin "$artifact_root/admin-initial.log"
+wait_for_http Admin "$admin_url/health/ready" "$admin_pid" "$artifact_root/admin-initial.log"
+curl --fail --silent "$admin_url/health/ready" > "$artifact_root/initial-readiness.json"
 
 printf 'Starting Web preview on a different dynamic loopback port...\n'
 RCC_ADMIN_URL="$admin_url" \
@@ -422,6 +418,22 @@ RCC_TIMEOUT_KILL_GRACE_MS=1000 \
   > "$artifact_root/web.log" 2>&1 &
 web_pid=$!
 wait_for_http Web "$web_url/platform/query-policies" "$web_pid" "$artifact_root/web.log"
+
+# The initial valid deployment creates the setup administrator before loading
+# unchanged late fixtures. Only public catalog writes add their associations.
+RCC_PLAYWRIGHT_MODULE="$repo_root/web/node_modules/playwright" RCC_WEB_URL="$web_url" \
+  RCC_E2E_ISOLATED=1 RCC_E2E_MYSQL_CONTAINER="$mysql_container" \
+  RCC_ACCOUNT_MAINTAIN="$runtime_dir/account-maintain" \
+  MYSQL_HOST=127.0.0.1 MYSQL_PORT="$mysql_port" MYSQL_DATABASE=rcc MYSQL_USER=rcc_admin MYSQL_PASSWORD="$mysql_password" MYSQL_TLS_MODE=false \
+  run_logged 120 "$artifact_root/fixture-release-setup.log" node "$repo_root/web/e2e/prepare-release-fixtures.cjs"
+curl --fail --silent "$admin_url/health/ready" > "$artifact_root/configured-readiness.json"
+capture_fixture_rows "$artifact_root/fixture-before.tsv"
+kill "$admin_pid"
+wait "$admin_pid" || true
+admin_pid=""
+start_admin "$artifact_root/admin.log"
+wait_for_http Admin "$admin_url/health/ready" "$admin_pid" "$artifact_root/admin.log"
+curl --fail --silent "$admin_url/health/ready" > "$artifact_root/restarted-readiness.json"
 
 direct_status=$(curl --silent --show-error --max-time 5 --output /dev/null --write-out '%{http_code}' \
   "$admin_url/api/v1/query-policies")

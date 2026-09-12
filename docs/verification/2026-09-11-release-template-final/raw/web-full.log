@@ -1,0 +1,1201 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-106-release-template-final/web
+> vitest run
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-106-release-template-final/web
+
+ ❯ src/api/client-stream.test.ts (1 test | 1 failed) 10003ms
+   × retains received HTTP status and Request ID after a real TCP response body interruption 10003ms
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx (97 tests | 1 failed) 40557ms
+   × 原执行旧键重放返回已发布快照后仍重新读取当前已回滚详情 684ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/client-stream.test.ts > retains received HTTP status and Request ID after a real TCP response body interruption
+Error: Test timed out in 10000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/api/client-stream.test.ts:6:1
+      4| import { request } from "./client";
+      5|
+      6| it("retains received HTTP status and Request ID after a real TCP respo…
+       | ^
+      7|   let writes = 0;
+      8|   const server = createServer((req, res) => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/features/release-orders/ReleaseOrdersPage.test.tsx > 原执行旧键重放返回已发布快照后仍重新读取当前已回滚详情
+TestingLibraryElementError: Unable to find an accessible element with the role "list" and name "发布阶段"
+
+Here are the accessible roles:
+
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"app-header"[39m
+    [33minert[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "发布单页头":
+  [36m<header[39m
+    [33maria-label[39m=[32m"发布单页头"[39m
+    [33mclass[39m=[32m"min-w-0"[39m
+    [33minert[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"drawer-header"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "打开导航":
+  [36m<button[39m
+    [33maria-controls[39m=[32m"primary-navigation"[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"打开导航"[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 button size-9 shrink-0 p-0 icon-button mobile-menu"[39m
+    [33mdata-size[39m=[32m"default"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdata-variant[39m=[32m"ghost"[39m
+  [36m/>[39m
+
+  Name "关闭导航":
+  [36m<button[39m
+    [33maria-label[39m=[32m"关闭导航"[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 button size-9 shrink-0 p-0 icon-button"[39m
+    [33mdata-size[39m=[32m"default"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdata-variant[39m=[32m"ghost"[39m
+  [36m/>[39m
+
+  Name "刷新通知":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 py-2 has-[>svg]:px-3 button h-8 px-0 text-xs"[39m
+    [33mdata-size[39m=[32m"default"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdata-variant[39m=[32m"ghost"[39m
+  [36m/>[39m
+
+  Name "本地账号入口":
+  [36m<button[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-label[39m=[32m"本地账号入口"[39m
+    [33mclass[39m=[32m"inline-flex shrink-0 items-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-9 px-4 py-2 has-[>svg]:px-3 button operator w-full justify-start"[39m
+    [33mdata-size[39m=[32m"default"[39m
+    [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mdata-variant[39m=[32m"ghost"[39m
+    [33mid[39m=[32m"radix-_r_ah_"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "执行发布":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 button"[39m
+    [33mdata-size[39m=[32m"default"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdata-variant[39m=[32m"default"[39m
+    [33mdisabled[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "查看账号 ab09850e的账号信息":
+  [36m<button[39m
+    [33maria-controls[39m=[32m"_r_aj_"[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"查看账号 ab09850e的账号信息"[39m
+    [33mclass[39m=[32m"inline-flex shrink-0 items-center rounded-md text-sm transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 button h-auto max-w-full justify-start gap-1.5 whitespace-normal px-1 py-0.5 text-left font-normal"[39m
+    [33mdata-size[39m=[32m"default"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdata-variant[39m=[32m"ghost"[39m
+  [36m/>[39m
+
+  Name "复制发布单号":
+  [36m<button[39m
+    [33maria-label[39m=[32m"复制发布单号"[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 button shrink-0 p-0 icon-button size-7"[39m
+    [33mdata-size[39m=[32m"default"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdata-variant[39m=[32m"ghost"[39m
+  [36m/>[39m
+
+  Name "重新读取人员姓名":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 button"[39m
+    [33mdata-size[39m=[32m"default"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdata-variant[39m=[32m"outline"[39m
+  [36m/>[39m
+
+  Name "查看账号 ab09850e的账号信息":
+  [36m<button[39m
+    [33maria-controls[39m=[32m"_r_ak_"[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"查看账号 ab09850e的账号信息"[39m
+    [33mclass[39m=[32m"inline-flex shrink-0 items-center rounded-md text-sm transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 button h-auto max-w-full justify-start gap-1.5 whitespace-normal px-1 py-0.5 text-left font-normal"[39m
+    [33mdata-size[39m=[32m"default"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdata-variant[39m=[32m"ghost"[39m
+  [36m/>[39m
+
+  Name "查看账号 ab09850e的账号信息":
+  [36m<button[39m
+    [33maria-controls[39m=[32m"_r_al_"[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"查看账号 ab09850e的账号信息"[39m
+    [33mclass[39m=[32m"inline-flex shrink-0 items-center rounded-md text-sm transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 button h-auto max-w-full justify-start gap-1.5 whitespace-normal px-1 py-0.5 text-left font-normal"[39m
+    [33mdata-size[39m=[32m"default"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdata-variant[39m=[32m"ghost"[39m
+  [36m/>[39m
+
+  Name "关闭抽屉":
+  [36m<button[39m
+    [33maria-label[39m=[32m"关闭抽屉"[39m
+    [33mclass[39m=[32m"drawer-backdrop"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "关闭":
+  [36m<button[39m
+    [33maria-label[39m=[32m"关闭"[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 button size-9 shrink-0 p-0 icon-button"[39m
+    [33mdata-size[39m=[32m"default"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdata-variant[39m=[32m"ghost"[39m
+  [36m/>[39m
+
+  Name "关闭":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 button"[39m
+    [33mdata-size[39m=[32m"default"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdata-variant[39m=[32m"outline"[39m
+    [33mdisabled[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "正在处理…":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 button"[39m
+    [33mdata-size[39m=[32m"default"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdata-variant[39m=[32m"default"[39m
+    [33mdisabled[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  strong:
+
+  Name "":
+  [36m<strong />[39m
+
+  Name "":
+  [36m<strong />[39m
+
+  Name "":
+  [36m<strong />[39m
+
+  Name "":
+  [36m<strong />[39m
+
+  Name "":
+  [36m<strong[39m
+    [33mclass[39m=[32m"min-w-0 break-all font-medium text-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<strong />[39m
+
+  Name "":
+  [36m<strong />[39m
+
+  Name "":
+  [36m<strong[39m
+    [33mclass[39m=[32m"min-w-0 break-all font-medium text-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<strong[39m
+    [33mclass[39m=[32m"min-w-0 break-all font-medium text-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<strong />[39m
+
+  --------------------------------------------------
+  complementary:
+
+  Name "主导航":
+  [36m<aside[39m
+    [33maria-label[39m=[32m"主导航"[39m
+    [33mclass[39m=[32m"sidebar "[39m
+    [33mid[39m=[32m"primary-navigation"[39m
+    [33minert[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  navigation:
+
+  Name "":
+  [36m<nav />[39m
+
+  --------------------------------------------------
+  region:
+
+  Name "配置管理":
+  [36m<section[39m
+    [33maria-labelledby[39m=[32m"configuration-navigation-title"[39m
+    [33mclass[39m=[32m"nav-group"[39m
+  [36m/>[39m
+
+  Name "表配置管理":
+  [36m<section[39m
+    [33maria-labelledby[39m=[32m"table-navigation-title"[39m
+    [33mclass[39m=[32m"nav-group"[39m
+  [36m/>[39m
+
+  Name "平台人员管理":
+  [36m<section[39m
+    [33maria-labelledby[39m=[32m"people-navigation-title"[39m
+    [33mclass[39m=[32m"nav-group"[39m
+  [36m/>[39m
+
+  Name "个人审批通知":
+  [36m<section[39m
+    [33maria-label[39m=[32m"个人审批通知"[39m
+    [33maria-live[39m=[32m"polite"[39m
+    [33mclass[39m=[32m"mx-3 mb-4 space-y-2 rounded-lg border p-3 text-xs"[39m
+  [36m/>[39m
+
+  Name "发布阶段":
+  [36m<section[39m
+    [33maria-label[39m=[32m"发布阶段"[39m
+    [33mclass[39m=[32m"release-panel min-w-0"[39m
+    [33minert[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "逐表发布流程":
+  [36m<section[39m
+    [33maria-label[39m=[32m"逐表发布流程"[39m
+    [33mclass[39m=[32m"release-panel min-w-0"[39m
+    [33minert[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "逐表审批进度":
+  [36m<section[39m
+    [33maria-label[39m=[32m"逐表审批进度"[39m
+    [33mclass[39m=[32m"release-panel min-w-0"[39m
+    [33minert[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "发布单审阅":
+  [36m<section[39m
+    [33maria-label[39m=[32m"发布单审阅"[39m
+    [33mclass[39m=[32m"release-panel min-w-0"[39m
+    [33minert[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "变更内容":
+  [36m<section[39m
+    [33maria-label[39m=[32m"变更内容"[39m
+    [33mclass[39m=[32m"min-w-0"[39m
+  [36m/>[39m
+
+  Name "明细 1":
+  [36m<section[39m
+    [33maria-label[39m=[32m"明细 1"[39m
+  [36m/>[39m
+
+  Name "明细 1 字段对比，可横向滚动":
+  [36m<div[39m
+    [33maria-label[39m=[32m"明细 1 字段对比，可横向滚动"[39m
+    [33mclass[39m=[32m"relative w-full overflow-x-auto release-diff-scroll"[39m
+    [33mdata-slot[39m=[32m"table-container"[39m
+    [33mrole[39m=[32m"region"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "回滚原因":
+  [36m<section[39m
+    [33maria-label[39m=[32m"回滚原因"[39m
+    [33mclass[39m=[32m"release-panel"[39m
+    [33minert[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "操作历史":
+  [36m<section[39m
+    [33maria-label[39m=[32m"操作历史"[39m
+    [33mclass[39m=[32m"release-panel"[39m
+    [33minert[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "变更内容":
+  [36m<section[39m
+    [33maria-label[39m=[32m"变更内容"[39m
+    [33mclass[39m=[32m"min-w-0"[39m
+  [36m/>[39m
+
+  Name "明细 1":
+  [36m<section[39m
+    [33maria-label[39m=[32m"明细 1"[39m
+  [36m/>[39m
+
+  Name "明细 1 字段对比，可横向滚动":
+  [36m<div[39m
+    [33maria-label[39m=[32m"明细 1 字段对比，可横向滚动"[39m
+    [33mclass[39m=[32m"relative w-full overflow-x-auto release-diff-scroll"[39m
+    [33mdata-slot[39m=[32m"table-container"[39m
+    [33mrole[39m=[32m"region"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "操作通知 alt+T":
+  [36m<section[39m
+    [33maria-atomic[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"操作通知 alt+T"[39m
+    [33maria-live[39m=[32m"polite"[39m
+    [33maria-relevant[39m=[32m"additions text"[39m
+    [33mdata-react-aria-top-layer[39m=[32m"true"[39m
+    [33minert[39m=[32m""[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "统一变更入口":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/configuration/managed-data"[39m
+  [36m/>[39m
+
+  Name "发布单":
+  [36m<a[39m
+    [33maria-current[39m=[32m"page"[39m
+    [33mclass[39m=[32m"active"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/configuration/release-orders"[39m
+  [36m/>[39m
+
+  Name "通知中心":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/configuration/notifications"[39m
+  [36m/>[39m
+
+  Name "查询规则定义":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/platform/query-policies"[39m
+  [36m/>[39m
+
+  Name "变更规则定义":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/platform/mutation-policies"[39m
+  [36m/>[39m
+
+  Name "表规则分配":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/platform/table-policies"[39m
+  [36m/>[39m
+
+  Name "发布流程模板":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/platform/release-templates"[39m
+  [36m/>[39m
+
+  Name "角色管理":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/platform/approval-roles"[39m
+  [36m/>[39m
+
+  Name "账号角色":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/platform/account-roles"[39m
+  [36m/>[39m
+
+  Name "个人未读 0":
+  [36m<a[39m
+    [33mclass[39m=[32m"block font-medium underline underline-offset-4"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/configuration/notifications?view=all&unread=true"[39m
+  [36m/>[39m
+
+  Name "返回发布单列表":
+  [36m<a[39m
+    [33mclass[39m=[32m"mb-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/configuration/release-orders"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "个人待审批数":
+  [36m<p[39m
+    [33maria-label[39m=[32m"个人待审批数"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-xs text-muted-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mt-2 text-muted-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mt-4"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mt-2 mb-4 text-muted-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mt-2"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-muted-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mb-3 text-xs text-muted-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mb-4 text-muted-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mb-3"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-muted-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mb-3 text-xs text-muted-foreground break-all"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mt-2 whitespace-pre-wrap break-all"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mt-3 text-xs text-muted-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"font-medium"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-xs text-muted-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"font-medium"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-xs text-muted-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm text-muted-foreground sr-only"[39m
+    [33mdata-slot[39m=[32m"sheet-description"[39m
+    [33mid[39m=[32m"radix-_r_ao_"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mb-3"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-muted-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mb-3 text-xs text-muted-foreground break-all"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  none:
+
+  Name "":
+  [36m<div[39m
+    [33mclass[39m=[32m"shrink-0 bg-border data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px"[39m
+    [33mdata-orientation[39m=[32m"horizontal"[39m
+    [33mdata-slot[39m=[32m"separator"[39m
+    [33mrole[39m=[32m"none"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  main:
+
+  Name "":
+  [36m<main[39m
+    [33mclass[39m=[32m"workspace"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "更新渠道展示名称":
+  [36m<h1[39m
+    [33mclass[39m=[32m"min-w-0 break-all text-2xl font-semibold"[39m
+  [36m/>[39m
+
+  Name "已回滚":
+  [36m<h2[39m
+    [33mclass[39m=[32m"mt-2 text-lg font-semibold"[39m
+  [36m/>[39m
+
+  Name "逐表发布流程":
+  [36m<h2[39m
+    [33mclass[39m=[32m"text-lg font-semibold"[39m
+  [36m/>[39m
+
+  Name "已通过 1 / 1 表":
+  [36m<h2[39m
+    [33mclass[39m=[32m"text-lg font-semibold"[39m
+  [36m/>[39m
+
+  Name "items":
+  [36m<h3[39m
+    [33mclass[39m=[32m"font-semibold font-mono"[39m
+  [36m/>[39m
+
+  Name "变更内容":
+  [36m<h2[39m
+    [33mclass[39m=[32m"text-lg font-semibold"[39m
+  [36m/>[39m
+
+  Name "回滚原因":
+  [36m<h2[39m
+    [33mclass[39m=[32m"text-lg font-semibold"[39m
+  [36m/>[39m
+
+  Name "操作历史":
+  [36m<h2[39m
+    [33mclass[39m=[32m"text-lg font-semibold"[39m
+  [36m/>[39m
+
+  Name "执行发布":
+  [36m<h2[39m
+    [33mclass[39m=[32m"text-foreground text-xl font-semibold"[39m
+    [33mdata-slot[39m=[32m"sheet-title"[39m
+    [33mid[39m=[32m"radix-_r_an_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  group:
+
+  Name "发布操作":
+  [36m<div[39m
+    [33maria-label[39m=[32m"发布操作"[39m
+    [33mclass[39m=[32m"flex max-w-full flex-wrap items-center gap-2 sm:pt-6"[39m
+    [33mrole[39m=[32m"group"[39m
+  [36m/>[39m
+
+  Name "基本信息":
+  [36m<details[39m
+    [33maria-label[39m=[32m"基本信息"[39m
+    [33mclass[39m=[32m"group mt-4 border-t border-border pt-3"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<details[39m
+    [33mclass[39m=[32m"release-diff-item mb-3 min-w-0 rounded-lg border"[39m
+    [33mopen[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<details[39m
+    [33mclass[39m=[32m"my-2"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<details[39m
+    [33mclass[39m=[32m"release-diff-item mb-3 min-w-0 rounded-lg border"[39m
+    [33mopen[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  term:
+
+  Name "":
+  [36m<dt[39m
+    [33mclass[39m=[32m"shrink-0 text-xs text-muted-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<dt[39m
+    [33mclass[39m=[32m"text-xs text-muted-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<dt[39m
+    [33mclass[39m=[32m"text-xs text-muted-foreground"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<dt />[39m
+
+  Name "":
+  [36m<dt />[39m
+
+  Name "":
+  [36m<dt />[39m
+
+  Name "":
+  [36m<dt />[39m
+
+  Name "":
+  [36m<dt />[39m
+
+  --------------------------------------------------
+  definition:
+
+  Name "":
+  [36m<dd[39m
+    [33mclass[39m=[32m"min-w-0"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<dd />[39m
+
+  Name "":
+  [36m<dd />[39m
+
+  Name "":
+  [36m<dd[39m
+    [33mclass[39m=[32m"flex min-w-0 flex-wrap items-center gap-1"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<dd />[39m
+
+  Name "":
+  [36m<dd />[39m
+
+  Name "":
+  [36m<dd[39m
+    [33mclass[39m=[32m"break-all"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<dd />[39m
+
+  --------------------------------------------------
+  time:
+
+  Name "2026-09-07T08:00:00Z":
+  [36m<time[39m
+    [33mclass[39m=[32m"break-words"[39m
+    [33mdatetime[39m=[32m"2026-09-07T08:00:00Z"[39m
+    [33mtitle[39m=[32m"2026-09-07T08:00:00Z"[39m
+  [36m/>[39m
+
+  Name "2026-09-08T09:00:00Z":
+  [36m<time[39m
+    [33mclass[39m=[32m"break-words"[39m
+    [33mdatetime[39m=[32m"2026-09-08T09:00:00Z"[39m
+    [33mtitle[39m=[32m"2026-09-08T09:00:00Z"[39m
+  [36m/>[39m
+
+  Name "2026-09-07T08:00:00Z":
+  [36m<time[39m
+    [33mclass[39m=[32m"break-words"[39m
+    [33mdatetime[39m=[32m"2026-09-07T08:00:00Z"[39m
+    [33mtitle[39m=[32m"2026-09-07T08:00:00Z"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  status:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mt-3 text-sm"[39m
+    [33mrole[39m=[32m"status"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  alert:
+
+  Name "":
+  [36m<section[39m
+    [33mclass[39m=[32m"inline-alert mb-4 min-w-0 flex-wrap"[39m
+    [33minert[39m=[32m""[39m
+    [33mrole[39m=[32m"alert"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  list:
+
+  Name "":
+  [36m<ul[39m
+    [33mclass[39m=[32m"grid divide-y"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<ol[39m
+    [33mclass[39m=[32m"grid gap-4"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  listitem:
+
+  Name "":
+  [36m<li[39m
+    [33mclass[39m=[32m"min-w-0 py-4 first:pt-0 last:pb-0 break-all"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<li[39m
+    [33mclass[39m=[32m"border-b pb-4 last:border-0 last:pb-0 break-all"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<li[39m
+    [33mclass[39m=[32m"border-b pb-4 last:border-0 last:pb-0 break-all"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  checkbox:
+
+  Name "只显示有变化的字段":
+  [36m<button[39m
+    [33maria-checked[39m=[32m"true"[39m
+    [33mclass[39m=[32m"peer size-4 shrink-0 rounded-[4px] border border-input shadow-xs transition-shadow outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:bg-input/30 dark:aria-invalid:ring-destructive/40 dark:data-[state=checked]:bg-primary"[39m
+    [33mdata-slot[39m=[32m"checkbox"[39m
+    [33mdata-state[39m=[32m"checked"[39m
+    [33mrole[39m=[32m"checkbox"[39m
+    [33mtype[39m=[32m"button"[39m
+    [33mvalue[39m=[32m"on"[39m
+  [36m/>[39m
+
+  Name "只显示有变化的字段":
+  [36m<button[39m
+    [33maria-checked[39m=[32m"true"[39m
+    [33mclass[39m=[32m"peer size-4 shrink-0 rounded-[4px] border border-input shadow-xs transition-shadow outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:bg-input/30 dark:aria-invalid:ring-destructive/40 dark:data-[state=checked]:bg-primary"[39m
+    [33mdata-slot[39m=[32m"checkbox"[39m
+    [33mdata-state[39m=[32m"checked"[39m
+    [33mrole[39m=[32m"checkbox"[39m
+    [33mtype[39m=[32m"button"[39m
+    [33mvalue[39m=[32m"on"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  table:
+
+  Name "":
+  [36m<table[39m
+    [33mclass[39m=[32m"w-full caption-bottom text-sm min-w-[560px] table-fixed"[39m
+    [33mdata-slot[39m=[32m"table"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<table[39m
+    [33mclass[39m=[32m"w-full caption-bottom text-sm min-w-[560px] table-fixed"[39m
+    [33mdata-slot[39m=[32m"table"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  rowgroup:
+
+  Name "":
+  [36m<thead[39m
+    [33mclass[39m=[32m"[&_tr]:border-b"[39m
+    [33mdata-slot[39m=[32m"table-header"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<tbody[39m
+    [33mclass[39m=[32m"[&_tr:last-child]:border-0"[39m
+    [33mdata-slot[39m=[32m"table-body"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<thead[39m
+    [33mclass[39m=[32m"[&_tr]:border-b"[39m
+    [33mdata-slot[39m=[32m"table-header"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<tbody[39m
+    [33mclass[39m=[32m"[&_tr:last-child]:border-0"[39m
+    [33mdata-slot[39m=[32m"table-body"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  row:
+
+  Name "字段 服务器原值 申请值":
+  [36m<tr[39m
+    [33mclass[39m=[32m"border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted"[39m
+    [33mdata-slot[39m=[32m"table-row"[39m
+  [36m/>[39m
+
+  Name "labelstring 值original 值proposal":
+  [36m<tr[39m
+    [33mclass[39m=[32m"border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted"[39m
+    [33mdata-slot[39m=[32m"table-row"[39m
+  [36m/>[39m
+
+  Name "字段 服务器原值 申请值":
+  [36m<tr[39m
+    [33mclass[39m=[32m"border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted"[39m
+    [33mdata-slot[39m=[32m"table-row"[39m
+  [36m/>[39m
+
+  Name "labelstring 值original 值proposal":
+  [36m<tr[39m
+    [33mclass[39m=[32m"border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted"[39m
+    [33mdata-slot[39m=[32m"table-row"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  columnheader:
+
+  Name "字段":
+  [36m<th[39m
+    [33mclass[39m=[32m"h-11 px-5 text-left align-middle text-xs font-medium whitespace-nowrap text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] w-1/4"[39m
+    [33mdata-slot[39m=[32m"table-head"[39m
+  [36m/>[39m
+
+  Name "服务器原值":
+  [36m<th[39m
+    [33mclass[39m=[32m"h-11 px-5 text-left align-middle text-xs font-medium whitespace-nowrap text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"[39m
+    [33mdata-slot[39m=[32m"table-head"[39m
+  [36m/>[39m
+
+  Name "申请值":
+  [36m<th[39m
+    [33mclass[39m=[32m"h-11 px-5 text-left align-middle text-xs font-medium whitespace-nowrap text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"[39m
+    [33mdata-slot[39m=[32m"table-head"[39m
+  [36m/>[39m
+
+  Name "字段":
+  [36m<th[39m
+    [33mclass[39m=[32m"h-11 px-5 text-left align-middle text-xs font-medium whitespace-nowrap text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] w-1/4"[39m
+    [33mdata-slot[39m=[32m"table-head"[39m
+  [36m/>[39m
+
+  Name "服务器原值":
+  [36m<th[39m
+    [33mclass[39m=[32m"h-11 px-5 text-left align-middle text-xs font-medium whitespace-nowrap text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"[39m
+    [33mdata-slot[39m=[32m"table-head"[39m
+  [36m/>[39m
+
+  Name "申请值":
+  [36m<th[39m
+    [33mclass[39m=[32m"h-11 px-5 text-left align-middle text-xs font-medium whitespace-nowrap text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"[39m
+    [33mdata-slot[39m=[32m"table-head"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  rowheader:
+
+  Name "labelstring":
+  [36m<th[39m
+    [33mclass[39m=[32m"h-11 px-5 text-left align-middle text-xs font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] whitespace-normal break-all"[39m
+    [33mdata-slot[39m=[32m"table-head"[39m
+    [33mscope[39m=[32m"row"[39m
+  [36m/>[39m
+
+  Name "labelstring":
+  [36m<th[39m
+    [33mclass[39m=[32m"h-11 px-5 text-left align-middle text-xs font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] whitespace-normal break-all"[39m
+    [33mdata-slot[39m=[32m"table-head"[39m
+    [33mscope[39m=[32m"row"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  cell:
+
+  Name "值original":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-5 py-4 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] align-top font-mono release-diff-before"[39m
+    [33mdata-slot[39m=[32m"table-cell"[39m
+  [36m/>[39m
+
+  Name "值proposal":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-5 py-4 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] align-top font-mono release-diff-after"[39m
+    [33mdata-slot[39m=[32m"table-cell"[39m
+  [36m/>[39m
+
+  Name "值original":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-5 py-4 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] align-top font-mono release-diff-before"[39m
+    [33mdata-slot[39m=[32m"table-cell"[39m
+  [36m/>[39m
+
+  Name "值proposal":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-5 py-4 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] align-top font-mono release-diff-after"[39m
+    [33mdata-slot[39m=[32m"table-cell"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  dialog:
+
+  Name "执行发布":
+  [36m<div[39m
+    [33maria-describedby[39m=[32m"radix-_r_ao_"[39m
+    [33maria-labelledby[39m=[32m"radix-_r_an_"[39m
+    [33maria-modal[39m=[32m"true"[39m
+    [33mclass[39m=[32m"fixed z-50 flex-col shadow-lg transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:animate-in data-[state=open]:duration-500 inset-y-0 right-0 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right drawer grid h-dvh w-full min-w-0 max-w-full grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 border-0 bg-card p-0 sm:max-w-[640px]"[39m
+    [33mdata-modal-surface[39m=[32m"true"[39m
+    [33mdata-slot[39m=[32m"sheet-content"[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mid[39m=[32m"radix-_r_am_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  contentinfo:
+
+  Name "":
+  [36m<footer[39m
+    [33mclass[39m=[32m"drawer-footer"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mclass[39m=[32m"modal-open"[39m
+[36m>[39m
+  [36m<span[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"outline: none; opacity: 0; position: fixed; pointer-events: none;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33mclass[39m=[32m"protected-workspace"[39m
+      [33mdata-session-status[39m=[32m"ready"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"app-shell"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"app-header"[39m
+          [33minert[39m=[32m""[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"brand"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-controls[39m=[32m"primary-navigation"[39m
+              [33maria-expanded[39m=[32m"false"[39m
+              [33maria-label[39m=[32m"打开导航"[39m
+              [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 button size-9 shrink-0 p-0 icon-button mobile-menu"[39m
+              [33mdata-size[39m=[32m"default"[39m
+              [33mdata-slot[39m=[32m"button"[39m
+              [33mdata-variant[39m=[32m"ghost"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-menu"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"20"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"20"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M4 5h16"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M4 12h16"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M4 19h16"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"brand-mark"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-database"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"20"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"1.8"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"20"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<ellipse[39m
+                  [33mcx[39m=[32m"12"[39m
+                  [33mcy[39m=[32m"5"[39m
+                  [33mrx[39m=[32m"9"[39m
+                  [33mry[39m=[32m"3"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 5V19A9 3 0 0 0 21 19V5"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 12A9 3 0 0 0 21 12"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</span>[39m
+            [36m<strong>[39m
+              [0m关系型配置中心[0m
+            [36m</strong>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"header-breadcrumb"[39m
+          [36m>[39m
+            [36m<span>[39m
+              [0m工作空间[0m
+            [36m</span>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-chevron-right"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"14"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"14"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m9 18 6-6-6-6"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [36m<strong>[39m
+              [0m配置管理[0m
+            [36m</strong>[39m
+          [36m</div>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3 border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground header-status"[39m
+            [33mdata-slot[39m=[32m"badge"[39m
+            [33mdata-variant[39m=[32m"outline"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-database"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"14"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"14"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<ellipse[39m
+                [33mcx[39m=[32m"12"[39m
+                [33mcy[39m=[32m"5"[39m
+                [33mrx[39m=[32m"9"[39m
+                [33mry[39m=[32m"3"[39m...
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx:548:98
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯⎯ Uncaught Exception ⎯⎯⎯⎯⎯
+Error: listen EPERM: operation not permitted 127.0.0.1
+ ❯ Server.setupListenHandle [as _listen2] node:net:2145:21
+ ❯ listenInCluster node:net:2224:12
+ ❯ node:net:2448:7
+ ❯ processTicksAndRejections node:internal/process/task_queues:90:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'EPERM', errno: -1, syscall: 'listen', address: '127.0.0.1' }
+This error originated in "src/api/client-stream.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "retains received HTTP status and Request ID after a real TCP response body interruption". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  2 failed | 40 passed (42)
+      Tests  2 failed | 478 passed (480)
+     Errors  1 error
+   Start at  17:36:55
+   Duration  43.00s (transform 4.68s, setup 9.16s, import 15.56s, tests 165.66s, environment 20.93s)
+
+ ELIFECYCLE  Command failed with exit code 1.

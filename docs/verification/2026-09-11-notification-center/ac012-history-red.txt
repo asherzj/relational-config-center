@@ -1,0 +1,38 @@
+=== RUN   TestNotificationCenterHistoricalSubmissionAndDirectoryFailure
+2026/09/11 05:31:29 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: fbe6049afa0300b6064946b27d1c39912fab9da0a08feb97ea583faf2754dbef
+  Test ProcessID: ea35d4f3-d37f-4dcf-830d-c33945735bd2
+2026/09/11 05:31:29 🐳 Creating container for image mysql:8.4
+2026/09/11 05:31:29 ✅ Container created: c1f240f703f5
+2026/09/11 05:31:29 🐳 Starting container: c1f240f703f5
+2026/09/11 05:31:29 ✅ Container started: c1f240f703f5
+2026/09/11 05:31:29 ⏳ Waiting for container id c1f240f703f5 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:31:36 🔔 Container is ready: c1f240f703f5
+{"request_id":"rcc-4d05cab94a373573d634649bb3aef079","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-a4dc1ebfa7e40b42df4989791769691d","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-9ff1e8e7edd692109b9559077ffc5dbc","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-b27201a065870151ceac858f45709962","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":53}
+{"request_id":"rcc-877c4ec45abbccd76c18f0333aea8271","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-8e9807e2c1de1ae1590d5b88a01d97de","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":44}
+{"request_id":"rcc-45f6ea0fb5c117612ad00acd32b159da","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":13}
+{"request_id":"rcc-684acb62bdf2b5a071f3927d59109c52","method":"GET","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":3}
+{"request_id":"rcc-8f58a976e013dbb60304714a6a6a0d5c","method":"PUT","path":"/api/v1/table-policies/:table_name/approval-roles","status":200,"duration_ms":15}
+{"request_id":"rcc-ab5952ad110543e4638a9d2efad50bd7","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":28}
+{"request_id":"rcc-9ee8de7c30f26181ef4e665fe0458ac4","method":"POST","path":"/api/v1/release-orders/:id/submit","status":200,"duration_ms":60}
+{"request_id":"rcc-f21df55b4209282a320150dc913bebe2","method":"GET","path":"/api/v1/release-orders","status":503,"duration_ms":2}
+    notification_center_integration_test.go:208: notification list: 503 {"error":{"code":"release_unavailable","message":"release order storage is unavailable","request_id":"rcc-f21df55b4209282a320150dc913bebe2"}}
+2026/09/11 05:31:38 🐳 Stopping container: c1f240f703f5
+2026/09/11 05:31:39 ✅ Container stopped: c1f240f703f5
+2026/09/11 05:31:39 🐳 Terminating container: c1f240f703f5
+2026/09/11 05:31:39 🚫 Container terminated: c1f240f703f5
+--- FAIL: TestNotificationCenterHistoricalSubmissionAndDirectoryFailure (9.71s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	10.586s
+FAIL

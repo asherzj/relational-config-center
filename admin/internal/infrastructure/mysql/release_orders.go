@@ -128,21 +128,9 @@ func (s *releaseOrderSession) SaveReleaseOrder(ctx context.Context, order domain
 	return s.saveReleaseDetails(ctx, order, previousCount)
 }
 func (s *releaseOrderSession) BeginReleaseRequest(ctx context.Context, actor, operation, key string, digest []byte) (*domain.ReleaseOrder, error) {
-	if err := s.available(); err != nil {
+	result, err := s.beginReleaseRequestValue(ctx, actor, operation, key, digest)
+	if err != nil || result == nil {
 		return nil, err
-	}
-	if err := s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_requests(actor_id,operation,request_key,digest,result) VALUES(?,?,?,?,NULL) ON DUPLICATE KEY UPDATE request_key=request_key`, actor, operation, key, digest).Error; err != nil {
-		return nil, application.ErrReleaseUnavailable
-	}
-	var storedDigest, result []byte
-	if err := s.database.WithContext(ctx).Raw(`SELECT digest,result FROM rcc_release_requests WHERE actor_id=? AND operation=? AND request_key=? FOR UPDATE`, actor, operation, key).Row().Scan(&storedDigest, &result); err != nil {
-		return nil, application.ErrReleaseUnavailable
-	}
-	if !bytes.Equal(storedDigest, digest) {
-		return nil, application.ErrReleaseIdempotencyConflict
-	}
-	if result == nil {
-		return nil, nil
 	}
 	var order domain.ReleaseOrder
 	if json.Unmarshal(result, &order) != nil {
@@ -167,6 +155,52 @@ func (s *releaseOrderSession) BeginReleaseRequest(ctx context.Context, actor, op
 	}
 	return &order, nil
 }
+func (s *releaseOrderSession) beginReleaseRequestValue(ctx context.Context, actor, operation, key string, digest []byte) ([]byte, error) {
+	if err := s.available(); err != nil {
+		return nil, err
+	}
+	if err := s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_requests(actor_id,operation,request_key,digest,result) VALUES(?,?,?,?,NULL) ON DUPLICATE KEY UPDATE request_key=request_key`, actor, operation, key, digest).Error; err != nil {
+		return nil, application.ErrReleaseUnavailable
+	}
+	var storedDigest, result []byte
+	if err := s.database.WithContext(ctx).Raw(`SELECT digest,result FROM rcc_release_requests WHERE actor_id=? AND operation=? AND request_key=? FOR UPDATE`, actor, operation, key).Row().Scan(&storedDigest, &result); err != nil {
+		return nil, application.ErrReleaseUnavailable
+	}
+	if !bytes.Equal(storedDigest, digest) {
+		return nil, application.ErrReleaseIdempotencyConflict
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return result, nil
+}
+
+func (s *releaseOrderSession) BeginRollbackPreviewRequest(ctx context.Context, actor, operation, key string, digest []byte) (*domain.QuickRollbackPreview, error) {
+	result, err := s.beginReleaseRequestValue(ctx, actor, operation, key, digest)
+	if err != nil || result == nil {
+		return nil, err
+	}
+	var preview domain.QuickRollbackPreview
+	if json.Unmarshal(result, &preview) != nil || preview.OrderID == "" || len(preview.TableFlows) == 0 {
+		return nil, application.ErrReleaseUnavailable
+	}
+	return &preview, nil
+}
+
+func (s *releaseOrderSession) CompleteRollbackPreviewRequest(ctx context.Context, actor, operation, key string, preview domain.QuickRollbackPreview) error {
+	if err := s.available(); err != nil {
+		return err
+	}
+	encoded, err := json.Marshal(preview)
+	if err != nil {
+		return application.ErrReleaseUnavailable
+	}
+	if err = s.database.WithContext(ctx).Exec(`UPDATE rcc_release_requests SET result=? WHERE actor_id=? AND operation=? AND request_key=?`, encoded, actor, operation, key).Error; err != nil {
+		return application.ErrReleaseUnavailable
+	}
+	return nil
+}
+
 func (s *releaseOrderSession) CompleteReleaseRequest(ctx context.Context, actor, operation, key string, order domain.ReleaseOrder) error {
 	if err := s.available(); err != nil {
 		return err

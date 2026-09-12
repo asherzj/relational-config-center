@@ -1,0 +1,5 @@
+$ go test ./internal/application ./internal/domain
+ok  	github.com/asherzj/relational-config-center/admin/internal/application	0.451s
+ok  	github.com/asherzj/relational-config-center/admin/internal/domain	0.880s
+
+exit_code=0

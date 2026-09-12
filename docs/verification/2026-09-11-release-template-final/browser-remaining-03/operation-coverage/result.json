@@ -1,0 +1,278 @@
+{
+  "ok": true,
+  "base": "http://127.0.0.1:59817",
+  "browser": "151.0.7922.34",
+  "passed": [
+    "browser creates a complete Mutation Draft through Admin",
+    "permission conflict is retained and blocks the HTTP write",
+    "unsafe Auto Fill column is retained and blocks the HTTP write",
+    "case-insensitive id Auto Fill target is retained and blocks the HTTP write",
+    "exact duplicate Auto Fill columns block the HTTP write",
+    "case-insensitive duplicate Auto Fill columns block the HTTP write",
+    "Mutation Draft PUT survives close and reopen with all execution fields",
+    "Mutation Draft is deleted by the visible UI command",
+    "query Active metadata saves without changing execution fields",
+    "mutation Active metadata saves without changing execution fields",
+    "query is deprecated through the real lifecycle UI",
+    "mutation is deprecated through the real lifecycle UI",
+    "query Deprecated metadata saves without changing execution fields",
+    "mutation Deprecated metadata saves without changing execution fields",
+    "existing assignment keeps querying and publishes through a release order with Deprecated definitions",
+    "new assignment choices include only Active definitions",
+    "Table Policy Catalog filters full loaded data without writes",
+    "direct field filter submits only entered AND conditions and preserves input after collapse/query",
+    "all three unauthorized operation controls stay visible, disabled, and explained",
+    "real Table Policy replacement governs the next UI capability and release publication"
+  ],
+  "evidence": [
+    {
+      "case": "browser creates a complete Mutation Draft through Admin",
+      "http": {
+        "page": "page-1",
+        "method": "POST",
+        "path": "/api/v1/mutation-policies",
+        "status": 201,
+        "requestId": "rcc-203e2ff6fe6147d19b5c2caba2236251",
+        "body": {
+          "code": "stage3_ui_mutation_v1",
+          "name": "Stage 3 UI mutation draft",
+          "description": "Created by the real browser with initially denied operations",
+          "type_code": "single_table_mutation",
+          "allow_add": false,
+          "allow_modify": false,
+          "allow_delete": false,
+          "create_operator_field": null,
+          "create_time_field": null,
+          "modify_operator_field": null,
+          "modify_time_field": null
+        }
+      },
+      "sql": "0|0|0|NULL|NULL|NULL|NULL"
+    },
+    {
+      "case": "permission conflict is retained and blocks the HTTP write"
+    },
+    {
+      "case": "unsafe Auto Fill column is retained and blocks the HTTP write"
+    },
+    {
+      "case": "case-insensitive id Auto Fill target is retained and blocks the HTTP write"
+    },
+    {
+      "case": "exact duplicate Auto Fill columns block the HTTP write"
+    },
+    {
+      "case": "case-insensitive duplicate Auto Fill columns block the HTTP write"
+    },
+    {
+      "case": "Mutation Draft PUT survives close and reopen with all execution fields",
+      "http": {
+        "page": "page-1",
+        "method": "PUT",
+        "path": "/api/v1/mutation-policies/stage3_ui_mutation_v1",
+        "status": 200,
+        "requestId": "rcc-e03e0caa7f081ed9a23a728e7fc2e818",
+        "body": {
+          "code": "stage3_ui_mutation_v1",
+          "name": "Stage 3 UI mutation updated",
+          "description": "All three grants and all four Auto Fill slots saved by PUT",
+          "type_code": "single_table_mutation",
+          "allow_add": true,
+          "allow_modify": true,
+          "allow_delete": true,
+          "create_operator_field": "created_by",
+          "create_time_field": "created_at",
+          "modify_operator_field": "updated_by",
+          "modify_time_field": "updated_at"
+        }
+      },
+      "sql": "Stage 3 UI mutation updated|All three grants and all four Auto Fill slots saved by PUT|1|1|1|created_by|created_at|updated_by|updated_at|DRAFT"
+    },
+    {
+      "case": "Mutation Draft is deleted by the visible UI command",
+      "http": {
+        "page": "page-1",
+        "method": "DELETE",
+        "path": "/api/v1/mutation-policies/stage3_ui_mutation_v1",
+        "status": 204,
+        "requestId": "rcc-bffe30c45b4eb67bd54fdbdecb168bdd",
+        "body": null
+      },
+      "sqlCount": 0
+    },
+    {
+      "case": "query Active metadata saves without changing execution fields",
+      "http": {
+        "page": "page-2",
+        "method": "PATCH",
+        "path": "/api/v1/query-policies/stage3_query_existing_v1/metadata",
+        "status": 200,
+        "requestId": "rcc-f8331f10c2f9ad6bc181995ef27ad2b5",
+        "body": {
+          "name": "Stage 3 query renamed",
+          "description": "Stage 3 query metadata only"
+        }
+      },
+      "executionBeforeAfter": "page_query|id|DESC|20|200|ACTIVE"
+    },
+    {
+      "case": "mutation Active metadata saves without changing execution fields",
+      "http": {
+        "page": "page-3",
+        "method": "PATCH",
+        "path": "/api/v1/mutation-policies/stage3_mutation_existing_v1/metadata",
+        "status": 200,
+        "requestId": "rcc-8c165a272ecc1b29d83c494f850afc7d",
+        "body": {
+          "name": "Stage 3 mutation renamed",
+          "description": "Stage 3 mutation metadata only"
+        }
+      },
+      "executionBeforeAfter": "single_table_mutation|1|1|1|created_by|created_at|updated_by|updated_at|ACTIVE"
+    },
+    {
+      "case": "query is deprecated through the real lifecycle UI",
+      "http": {
+        "page": "page-4",
+        "method": "POST",
+        "path": "/api/v1/query-policies/stage3_query_existing_v1/deprecate",
+        "status": 200,
+        "requestId": "rcc-7bc1b4ec121f309a0f821acaa47cf207",
+        "body": null
+      },
+      "status": "DEPRECATED"
+    },
+    {
+      "case": "mutation is deprecated through the real lifecycle UI",
+      "http": {
+        "page": "page-5",
+        "method": "POST",
+        "path": "/api/v1/mutation-policies/stage3_mutation_existing_v1/deprecate",
+        "status": 200,
+        "requestId": "rcc-b9c0f964876bd976b396e86dca41e530",
+        "body": null
+      },
+      "status": "DEPRECATED"
+    },
+    {
+      "case": "query Deprecated metadata saves without changing execution fields",
+      "http": {
+        "page": "page-6",
+        "method": "PATCH",
+        "path": "/api/v1/query-policies/stage3_query_existing_v1/metadata",
+        "status": 200,
+        "requestId": "rcc-81d3cd3657a75ffc66b083f9137b8db7",
+        "body": {
+          "name": "Stage 3 query Deprecated renamed",
+          "description": "Stage 3 query Deprecated metadata only"
+        }
+      },
+      "executionBeforeAfter": "page_query|id|DESC|20|200|DEPRECATED"
+    },
+    {
+      "case": "mutation Deprecated metadata saves without changing execution fields",
+      "http": {
+        "page": "page-7",
+        "method": "PATCH",
+        "path": "/api/v1/mutation-policies/stage3_mutation_existing_v1/metadata",
+        "status": 200,
+        "requestId": "rcc-36416a5f15b504243b1175502730108f",
+        "body": {
+          "name": "Stage 3 mutation Deprecated renamed",
+          "description": "Stage 3 mutation Deprecated metadata only"
+        }
+      },
+      "executionBeforeAfter": "single_table_mutation|1|1|1|created_by|created_at|updated_by|updated_at|DEPRECATED"
+    },
+    {
+      "case": "existing assignment keeps querying and publishes through a release order with Deprecated definitions",
+      "query": {
+        "page": "page-8",
+        "method": "POST",
+        "path": "/api/v1/tables/stage3_active_items/query",
+        "status": 200,
+        "requestId": "rcc-4554943a7795700693411d737ff958db",
+        "body": {
+          "conditions": [],
+          "page_number": 1
+        }
+      },
+      "releaseOrder": "6a2c02410feb4da44b821fff6b987979",
+      "sql": "DeprecatedStillRuns|2e9bde14-4585-4aa5-8870-21fcb1f13251|2e9bde14-4585-4aa5-8870-21fcb1f13251"
+    },
+    {
+      "case": "new assignment choices include only Active definitions",
+      "queryOptions": [
+        "stage3_query_full_v1"
+      ],
+      "mutationOptions": [
+        "stage3_mutation_denied_v1",
+        "stage3_mutation_full_v1"
+      ]
+    },
+    {
+      "case": "Table Policy Catalog filters full loaded data without writes",
+      "cases": [
+        "table/trim/case",
+        "query code",
+        "mutation code",
+        "modifier",
+        "no match",
+        "clear"
+      ],
+      "writeCount": 0
+    },
+    {
+      "case": "direct field filter submits only entered AND conditions and preserves input after collapse/query",
+      "http": {
+        "page": "page-11",
+        "method": "POST",
+        "path": "/api/v1/tables/stage3_active_items/query",
+        "status": 200,
+        "requestId": "rcc-60dfaf2add1072b2fba4215a92884c72",
+        "body": {
+          "conditions": [
+            {
+              "field": "name",
+              "operator": "exact",
+              "value": "Stage3Alpha"
+            }
+          ],
+          "page_number": 1
+        }
+      },
+      "sqlCount": 1
+    },
+    {
+      "case": "all three unauthorized operation controls stay visible, disabled, and explained"
+    },
+    {
+      "case": "real Table Policy replacement governs the next UI capability and release publication",
+      "replacement": {
+        "page": "page-13",
+        "method": "PUT",
+        "path": "/api/v1/table-policies/stage3_denied_items",
+        "status": 200,
+        "requestId": "rcc-9fa1fb98967baaccb62a0c1b3ebcac2d",
+        "body": {
+          "table_name": "stage3_denied_items",
+          "query_policy_code": "stage3_query_full_v1",
+          "mutation_policy_code": "stage3_mutation_full_v1",
+          "concurrency_key": [],
+          "expected_version": "1"
+        }
+      },
+      "releaseOrder": "8546b044d6ec41f52edfaba25f25ac73",
+      "sqlCount": 1
+    }
+  ],
+  "pageErrors": [],
+  "cleanup": {
+    "fixtureRowsEqual": true,
+    "tablePolicies": 0,
+    "queryPolicies": 0,
+    "mutationPolicies": 0,
+    "physicalTables": 0
+  },
+  "failure": null
+}

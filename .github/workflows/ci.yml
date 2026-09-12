@@ -73,13 +73,20 @@ jobs:
       - name: Run unit tests
         run: make test
 
+      - name: Test MySQL integration runner
+        run: make test-integration-runner
+
       - name: Build all modules
         run: make build
 
   mysql-integration:
-    name: MySQL 8.4 integration
+    name: MySQL 8.4 integration (${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
     timeout-minutes: 70
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -96,7 +103,19 @@ jobs:
         run: docker info
 
       - name: Run MySQL 8.4 integration tests without cache
+        env:
+          RCC_INTEGRATION_SHARD: ${{ matrix.shard }}
+          RCC_INTEGRATION_ARTIFACTS: ${{ runner.temp }}/rcc-mysql-integration
         run: make test-integration
+
+      - name: Upload MySQL integration evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: mysql-integration-${{ matrix.shard }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/rcc-mysql-integration
+          if-no-files-found: error
+          retention-days: 14
 
   browser-acceptance:
     name: Browser acceptance

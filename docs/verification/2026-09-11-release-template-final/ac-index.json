@@ -1,0 +1,1341 @@
+{
+  "purpose": "Per-AC final implementation acceptance applicability; all current named integration and browser evidence passed. Commit/push/remote/Notion/close106 remain root post-gate actions.",
+  "verified_dependency_baseline": "0edb62afde567242e7c734d37d20b834aa0df983",
+  "rows": [
+    {
+      "ac": "AC-001",
+      "primary_issue": 101,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/101",
+      "delivery_commit": "8b79faa3b720f7e2a6837aa43ba7952b0ee76028",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-release-template-t1/README.md",
+      "spec_row": "| AC-001 | ADMIN 与普通账号 | 打开模板目录并尝试新建、编辑 | ADMIN 可维护；普通账号无管理资格且直接调用管理接口也被拒绝；审计身份来自实际登录账号 | HTTP 授权集成＋浏览器管理入口 | 契约/集成、系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseTemplateHTTPRejectsNonAdministratorManagement",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.54s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseTemplateHTTPChecksCurrentAuthorizationBeforeReplayingAllWrites",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.86s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseTemplateBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-002",
+      "primary_issue": 101,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/101",
+      "delivery_commit": "8b79faa3b720f7e2a6837aa43ba7952b0ee76028",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-release-template-t1/README.md",
+      "spec_row": "| AC-002 | 同一应急类型的两个不同编码模板 | 保存并重新读取模板 | 两份模板均存在；类型不唯一、编码唯一；重名编码拒绝且不覆盖已有记录 | HTTP＋真实 MySQL | 契约/集成 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseTemplateHTTPMaintainsMultipleTypesWithIdempotencyAndVersions",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.85s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseTemplateBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-003",
+      "primary_issue": 101,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/101",
+      "delivery_commit": "8b79faa3b720f7e2a6837aa43ba7952b0ee76028",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-release-template-t1/README.md",
+      "spec_row": "| AC-003 | 常规、应急及非法节点配置 | 保存模板 | 只接受常规的审批→发布→完结或应急的发布→完结；重复节点编码、未知类型、无效权限参数及类型不匹配被拒绝；监控为空 | 节点规则模块＋HTTP 集成 | 模块验收、契约/集成 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseTemplateHTTPProtectsEmergencyAndRejectsInvalidNodes",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.51s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseTemplateBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-004",
+      "primary_issue": 101,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/101",
+      "delivery_commit": "8b79faa3b720f7e2a6837aa43ba7952b0ee76028",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-release-template-t1/README.md",
+      "spec_row": "| AC-004 | 已存在的应急模板和常规模板 | 尝试停用、删除或无效修改 | 应急模板不能因此不可用；常规可停用；非法修改被拒绝且保留原有效定义 | HTTP＋真实 MySQL | 契约/集成 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseTemplateHTTPProtectsEmergencyAndRejectsInvalidNodes",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.51s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseTemplateHTTPStandardDeletionKeepsReadOnlyReadiness",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "8.82s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseTemplateBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-005",
+      "primary_issue": 101,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/101",
+      "delivery_commit": "8b79faa3b720f7e2a6837aa43ba7952b0ee76028",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-release-template-t1/README.md",
+      "spec_row": "| AC-005 | 两个管理员持有同一模板的旧版本 | 先后保存不同内容并重推原创建请求 | 第二份过时编辑被拒绝且页面保留输入；同请求重推不产生第二份模板，不同内容复用同一请求身份被拒绝 | HTTP 并发/幂等＋浏览器输入保留 | 契约/集成、系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseTemplateHTTPReplaysCommittedReplacementAfterLaterChanges",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "12.43s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseTemplateHTTPConcurrentRequestsRetainOneResultAndRejectStaleAdministrator",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "8.77s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseTemplateHTTPRequiresRequestIdentityAndRejectsChangedTargets",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "8.53s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseTemplateBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-006",
+      "primary_issue": 102,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/102",
+      "delivery_commit": "7eb9dd36affe16739d8e8b178afdd9977d4976a3",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-release-template-t2/README.md",
+      "spec_row": "| AC-006 | 多个同类型模板及两张受管表 | 为每张表选择常规和应急关联并重新读取 | 每表每类型仅一条关联；不同表可复用或绑定不同模板；错误类型或会造成悬空引用的变更拒绝，申请人不直接挑选任意模板 | HTTP＋浏览器表设置 | 契约/集成、系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable",
+          "effective": {
+            "log": "raw/mysql-unfinished-admin-02.log",
+            "status": "PASS",
+            "duration": "7.64s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin",
+          "effective": {
+            "log": "raw/mysql-unfinished-admin-02.log",
+            "status": "PASS",
+            "duration": "8.73s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestTableReleaseTemplateBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-007",
+      "primary_issue": 102,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/102",
+      "delivery_commit": "7eb9dd36affe16739d8e8b178afdd9977d4976a3",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-release-template-t2/README.md",
+      "spec_row": "| AC-007 | 现有受管表、新的禁用表规则及有效默认模板 | 初始化或使新表成为受管表 | 每张受管表同时具备有效应急关联；初始化默认常规、应急模板各一份且不限制创建更多模板；失败不能留下受管但无应急关联的表 | 真实 MySQL 初始化/启用竞争 | 契约/集成 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections",
+          "effective": {
+            "log": "raw/mysql-unfinished-admin-02.log",
+            "status": "PASS",
+            "duration": "12.91s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure",
+          "effective": {
+            "log": "raw/mysql-unfinished-admin-02.log",
+            "status": "PASS",
+            "duration": "8.84s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency",
+          "effective": {
+            "log": "raw/mysql-unfinished-admin-02.log",
+            "status": "PASS",
+            "duration": "8.52s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestTableReleaseTemplateBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-008",
+      "primary_issue": 102,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/102",
+      "delivery_commit": "7eb9dd36affe16739d8e8b178afdd9977d4976a3",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-release-template-t2/README.md",
+      "spec_row": "| AC-008 | 有效应急关联、可替换模板及并发管理员 | 禁用、解绑、删除或切换应急关联 | 关闭应急方式的操作被拒绝；合法切换整体完成，过时编辑被拒绝，不能观察到先解绑再绑定的空窗；允许按既有规则停用整张表规则 | HTTP＋真实 MySQL 并发 | 契约/集成 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable",
+          "effective": {
+            "log": "raw/mysql-unfinished-admin-02.log",
+            "status": "PASS",
+            "duration": "7.64s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay",
+          "effective": {
+            "log": "raw/mysql-unfinished-admin-02.log",
+            "status": "PASS",
+            "duration": "8.57s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestTableReleaseTemplateBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-009",
+      "primary_issue": 103,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/103",
+      "delivery_commit": "e2564842e72e96b6ffb1e86708978b11dd8a651b",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-release-instances/README.md",
+      "spec_row": "| AC-009 | 同单涉及两张绑定不同模板的表 | 保存常规草稿并首次查看流程、刷新页面 | 展示前各表的节点实例已经保存，类型统一为常规；各表名称与节点可查看，刷新不重新实例化，不取第一张表模板冒充整单流程 | HTTP 重读＋浏览器多表详情 | 契约/集成、系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseFlowAC009PersistsIndependentTablesBeforeFirstRead",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.12s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseFlowBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-010",
+      "primary_issue": 103,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/103",
+      "delivery_commit": "e2564842e72e96b6ffb1e86708978b11dd8a651b",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-release-instances/README.md",
+      "spec_row": "| AC-010 | 已实例化的常规草稿和其源模板 | 修改或停用源模板、切换表关联，再刷新并提交草稿 | 旧草稿保留原节点并可提交；新实例取当前有效关联；新实例遇常规配置缺失时可保存未完成流程的草稿，但不可提交；管理员补齐配置后，用户再次保存草稿补齐缺失实例，其他已有表实例保持不变 | HTTP＋浏览器新旧实例对照 | 契约/集成、系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseFlowAC010MissingConfigurationRequiresExplicitSave",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.82s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseFlowBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-011",
+      "primary_issue": 103,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/103",
+      "delivery_commit": "e2564842e72e96b6ffb1e86708978b11dd8a651b",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-release-instances/README.md",
+      "spec_row": "| AC-011 | 已有多表流程实例的草稿 | 编辑同表内容、加入新表、移除某表最后一条明细再重新加入 | 同表编辑不刷新节点；新表展示前生成自己的实例；移除表不再参与当前流程，重新加入按当前关联生成；草稿内容、版本及占用仍满足多表基线 | HTTP＋真实 MySQL 草稿集成 | 契约/集成 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseFlowAC011DraftEditsPreserveAndReplaceOnlyParticipatingTables",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "8.84s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseFlowBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-012",
+      "primary_issue": 104,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/104",
+      "delivery_commit": "f545adf24aadd34ee39afb2643a4819aee54c986",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-emergency-release/README.md",
+      "spec_row": "| AC-012 | 可切换方式的正向草稿及两个编辑窗口 | 改选应急或常规、模拟保存失败或与提交竞争 | 成功后所选方式与各表实例整体一致；失败保留原已保存内容及输入；过时操作拒绝；提交后的方式不能切换 | HTTP 竞争＋浏览器切换 | 契约/集成、系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseEmergencyAC012SwitchReplacesWholeDraft",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.94s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseEmergencyAC012SwitchAndSubmitCompetition",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.65s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseEmergencyBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-013",
+      "primary_issue": 103,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/103",
+      "delivery_commit": "e2564842e72e96b6ffb1e86708978b11dd8a651b",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-release-instances/README.md",
+      "spec_row": "| AC-013 | 已取消、拒绝或满足重新准备条件的源单 | 复制或重新准备 | 新单按当前关联重新实例化，不继承源单审批；现有明细、身份、占用转移与原子失败规则保留，后续按新单选定方式提交 | HTTP＋真实 MySQL 派生流程 | 契约/集成 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseFlowAC013DerivedDraftUsesCurrentConfiguration",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.99s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseFlowBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-014",
+      "primary_issue": 103,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/103",
+      "delivery_commit": "e2564842e72e96b6ffb1e86708978b11dd8a651b",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-release-instances/README.md",
+      "spec_row": "| AC-014 | 常规多表实例及按表审批角色配置 | 修改模板或表审批分配后提交，并由各表合格人员审批 | 节点保持展示时实例；审批分配按正式表审批能力在提交时冻结、成员资格实时；所有表通过才可发布，申请人不能自审，旧全局 APPROVER 不提供旁路 | HTTP＋真实 MySQL 授权＋浏览器表级进度 | 契约/集成、系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestLegacyApproverFormalCutover",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "17.13s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestLegacyApproverCurrentInputRejectsRetiredGrants",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "8.65s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "14.99s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseFlowAC014SeparatesInstancesFromSubmissionApprovals",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.74s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseFlowBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-015",
+      "primary_issue": 104,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/104",
+      "delivery_commit": "f545adf24aadd34ee39afb2643a4819aee54c986",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-emergency-release/README.md",
+      "spec_row": "| AC-015 | EDITOR 的应急草稿 | 不填原因或填写原因后提交 | 空原因拒绝并保留输入；有效提交进入真实待发布，不写业务数据，不产生审批人、批准事件或待审批事实 | HTTP＋浏览器应急提交 | 契约/集成、系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseEmergencyAC015SubmitNeedsReasonAndDoesNotPublish",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "8.64s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseEmergencyReasonOnlyAcceptedBySubmit",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.76s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseEmergencyBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-016",
+      "primary_issue": 104,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/104",
+      "delivery_commit": "f545adf24aadd34ee39afb2643a4819aee54c986",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-emergency-release/README.md",
+      "spec_row": "| AC-016 | 待发布应急单及不同当前权限的账号 | 尝试执行，包括有发布权限的原申请人 | 当前发布人员可手动执行，申请人有发布权限也可执行；仅编辑权限拒绝；权限变化即时生效，不靠旧节点配置放行 | HTTP 权限集成 | 契约/集成 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseEmergencyAC016PublisherPermissionIsCurrent",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "8.49s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseFlowCurrentAuthorizationAfterWaitingForMaintenance",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "11.05s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseEmergencyBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-017",
+      "primary_issue": 104,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/104",
+      "delivery_commit": "f545adf24aadd34ee39afb2643a4819aee54c986",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-emergency-release/README.md",
+      "spec_row": "| AC-017 | 已允许发布的多表常规或应急单及冻结顺序 | 执行发布 | 整单按既有顺序一次生效，实际结果和相关版本、执行记录、占用、通知及请求结果一致；成功待人工完结，不按每表分别发布 | 真实 MySQL 多表事务＋浏览器结果 | 契约/集成、系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseMixedBatchPublication",
+          "effective": {
+            "log": "raw/mixed-batch-summary-recheck.log",
+            "status": "PASS",
+            "duration": "10.50s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseEmergencyAC017AC018WholeOrderExecutionAndCompletion",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "8.59s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseEmergencyBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-018",
+      "primary_issue": 104,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/104",
+      "delivery_commit": "f545adf24aadd34ee39afb2643a4819aee54c986",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-emergency-release/README.md",
+      "spec_row": "| AC-018 | 正向发布成功的常规或应急单 | 人工完结，或另一单尝试修改占用目标 | 完结前保留目标保护与回滚入口；完结释放占用且不写业务值，此后禁止回滚，不虚构下游已接收 | HTTP 生命周期＋真实 MySQL | 契约/集成 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseCompletionPermanentlyClosesRollbackWindow",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.83s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseCompletionReleasesWithoutRepublishing",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.86s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseCompletionRolesConcurrencyAndReplay",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.50s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseEmergencyAC017AC018WholeOrderExecutionAndCompletion",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "8.59s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseEmergencyBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-019",
+      "primary_issue": 105,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/105",
+      "delivery_commit": "0edb62afde567242e7c734d37d20b834aa0df983",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-emergency-rollback/verification.md",
+      "spec_row": "| AC-019 | 待完结原单及各表当前应急关联 | 打开恢复预览并查看流程 | 在原单保存并展示各表应急流程实例，固定应急、无常规切换或独立回滚单；实例与其源模板后续变更隔离 | HTTP＋浏览器原单恢复预览 | 契约/集成、系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestRollbackFlowPreviewDoesNotExtendRecoveryOrFreezeBusinessValues",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.12s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestRollbackFlowAC019PersistsCurrentEmergencyInstancesBeforeDisplay",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "11.16s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestRollbackFlowBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-020",
+      "primary_issue": 105,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/105",
+      "delivery_commit": "0edb62afde567242e7c734d37d20b834aa0df983",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-emergency-rollback/verification.md",
+      "spec_row": "| AC-020 | 当前发布人员及可回滚原单 | 确认整单回滚，或尝试回滚已完结/已回滚单 | 可回滚原单倒序整体恢复，成功直接结束并释放占用；无需审批或事前必填原因，不追加人工完结；不可回滚状态拒绝，原因事后补填沿用既有规则 | 真实 MySQL 回滚＋浏览器原单结果 | 契约/集成、系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseCompletionPermanentlyClosesRollbackWindow",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.83s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "11.86s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestRollbackFlowAC020EndsOriginalAndRecordsOnlyTrueExecution",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.07s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestRollbackFlowBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-021",
+      "primary_issue": 105,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/105",
+      "delivery_commit": "0edb62afde567242e7c734d37d20b834aa0df983",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-emergency-rollback/verification.md",
+      "spec_row": "| AC-021 | 常规和应急单及已接通的通知中心 | 提交、批准、发布、完结和回滚后查看通知 | 常规沿用按表审批待办；应急不产生审批待办或假处理记录，申请/结果通知按真实参与人生成，自己的动作不提醒自己；结果提醒与业务共同保存 | HTTP 通知集成＋浏览器通知跳转 | 契约/集成、系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseEmergencyPendingConsumersAndDerivedDrafts",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.86s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseNotificationsPersistenceFailuresPreserveAllFacts",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "13.22s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseNotificationsLostResponsesRecoverOriginalFacts",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "11.14s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseNotificationsCommitUnknownRecoversEveryLifecycle",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "12.93s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseNotificationsTerminalCompetitionHasOneResult",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "12.18s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseNotificationsDisabledParticipantsRetainOutcomes",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "13.49s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseNotificationsPublicationUsesActualParticipants",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "12.58s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseNotificationsTerminalResultsPreserveOwnUnread",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "12.72s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseNotificationsReprepareCancelsSourceAtomically",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.93s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestRollbackFlowAC021EmergencyCancellationUsesRealSubmission",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "8.80s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestApprovalNotificationsBrowserSystemPath",
+        "TestReleaseNotificationsBrowserSystemPath",
+        "TestRollbackFlowBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-022",
+      "primary_issue": 103,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/103",
+      "delivery_commit": "e2564842e72e96b6ffb1e86708978b11dd8a651b",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-release-instances/README.md",
+      "spec_row": "| AC-022 | 管理员正在切换关联或修改模板，用户同时实例化 | 并发保存并重读实例 | 得到完整旧版或完整新版的类型、模板与节点，不能混合；同请求重推返回已保存实例，不因模板更新生成另一实例 | 真实 MySQL 并发/幂等 | 契约/集成 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.05s"
+          }
+        }
+      ],
+      "current_browser_targets": []
+    },
+    {
+      "ac": "AC-023",
+      "primary_issue": 104,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/104",
+      "delivery_commit": "f545adf24aadd34ee39afb2643a4819aee54c986",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-emergency-release/README.md",
+      "spec_row": "| AC-023 | 模板读取不可用、实例保存失败或响应丢失 | 创建/切换流程后读取详情或重推原操作 | 真实错误不伪装配置缺失；不得临时拼造默认流程执行；未提交则原状态不变，已提交则重推返回原结果；无自动重试或独立结果确认入口 | HTTP＋依赖故障与丢响应集成、浏览器重推 | 契约/集成、系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseEmergencyAC023SwitchFailureAndOriginalResults",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "7.61s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseFlowStorageFailuresKeepDraftAndOriginalResultAtomic",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.78s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestRollbackFlowPreviewStorageFailuresKeepOriginalAtomic",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "12.14s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.78s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseFlowBrowserSystemPath",
+        "TestReleaseEmergencyBrowserSystemPath",
+        "TestRollbackFlowBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-024",
+      "primary_issue": 105,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/105",
+      "delivery_commit": "0edb62afde567242e7c734d37d20b834aa0df983",
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": "docs/verification/2026-09-11-emergency-rollback/verification.md",
+      "spec_row": "| AC-024 | 发布/回滚遇数据冲突、业务约束、事务故障，或与完结竞争 | 执行或安全重推原操作 | 无部分生效、重复版本或成功记录；超时不伪装确定失败，竞争只有合法终态；失败历史与结果提醒遵循正式执行能力 | 真实 MySQL 故障/竞争，复用依赖证据并补模板路径 | 契约/集成 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "11.86s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.73s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestQuickRollbackConstraintFailureRollsBackEarlierItems",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.95s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestRollbackFlowPreviewStorageFailuresKeepOriginalAtomic",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "12.14s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestRollbackFlowBrowserSystemPath"
+      ]
+    },
+    {
+      "ac": "AC-025",
+      "primary_issue": 106,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/106",
+      "delivery_commit": null,
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": null,
+      "spec_row": "| AC-025 | 模板编辑、表关联、多表流程、应急与回滚页面 | 在桌面和390px用键盘操作，触发会话失效、错误和未保存退出 | 标签、焦点、认证遮罩和输入保护有效；长名称可读、操作可达、无整页横向溢出；节点状态来自真实实例与事件，取消/拒绝/回滚不伪装正常全部完成 | 真实浏览器＋视觉核对 | 系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+          "test": "TestReleaseWorkflowPublicRoutes",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "0.00s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestAccountBrowserSystemPath",
+        "TestApprovalRoleBrowserSystemPath",
+        "TestTableApprovalBrowserSystemPath",
+        "TestReleaseTemplateBrowserSystemPath",
+        "TestTableReleaseTemplateBrowserSystemPath",
+        "TestReleaseFlowBrowserSystemPath",
+        "TestReleaseEmergencyBrowserSystemPath",
+        "TestNotificationCenterBrowserSystemPath",
+        "TestApprovalNotificationsBrowserSystemPath",
+        "TestReleaseNotificationsBrowserSystemPath",
+        "TestApprovalFinalBrowserSystemPath",
+        "TestRollbackFlowBrowserSystemPath"
+      ],
+      "additional_evidence": [
+        "raw/terminal-phase-red.log",
+        "raw/terminal-phase-green-02.log",
+        "raw/web-failure-recheck.log",
+        "browser-matrix.json",
+        "visual-inspection.json",
+        "go-browser/TestReleaseFlowBrowserSystemPath-02/release-instances-browser-evidence.json"
+      ]
+    },
+    {
+      "ac": "AC-026",
+      "primary_issue": 106,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/106",
+      "delivery_commit": null,
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": null,
+      "spec_row": "| AC-026 | 新数据库和已有正式结构，且不需要旧发布单数据兼容 | 执行正式升级/启动并访问模板管理和发布路径 | 仅新增两张配置表并按需扩展现有实例存储；Goose 为唯一迁移来源；初始化、向前升级和只读就绪检查可用，无自动数据删除或旧流程兼容兜底 | 真实 MySQL 正式迁移/启动＋结构检查 | 契约/集成 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "15.35s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.22s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaBaselineRecoversUnconfirmedRegistration",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "13.16s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaBaselineReleaseUpgradesT1AndRecoversPartialAuditRename",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "11.54s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaBaselineRecoversBeforeAttemptWasRecorded",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.19s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.13s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaBaselineProcessInterruptionRetainsUnconfirmedState",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "12.03s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaBaselineUsesTransactionalVersionLedger",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.03s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaBaselineRefusesToRecreateLostConfirmedHistory",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.11s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaMigrationAddsFieldPoliciesWithoutChangingPublishedState",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "17.70s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaMigrationInitializesEmptyDatabase",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "8.99s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaMigrationConcurrentInitialization",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.92s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaMigrationWaitsForMaintenanceLockWithDeadline",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "8.92s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaMigrationPartialDDLRequiresExplicitRecovery",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "11.07s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaMigrationUpgradesToNextRelease",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "14.07s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseTemplateSchemaMigrationUpgradesVersionFive",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "14.54s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "12.04s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaMigrationRecoversInterruptedBootstrap",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.14s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaMigrationProcessInterruptionRequiresSameReleaseRecovery",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "20.01s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaMigrationRejectsIncompleteVersionHistory",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.68s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaMigrationRecoversMissingZeroVersion",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.15s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaMigrationConnectionDeadlineAndSafeDiagnostics",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "1.31s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaMigrationLeavesUnmanagedDatabaseUntouched",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "8.19s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaReadinessRejectsUnmanagedStartup",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.80s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "17.29s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestSchemaReadinessRejectsKnownOldRelease",
+          "effective": {
+            "log": "raw/mysql-unfinished-admin-02.log",
+            "status": "PASS",
+            "duration": "18.61s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections",
+          "effective": {
+            "log": "raw/mysql-unfinished-admin-02.log",
+            "status": "PASS",
+            "duration": "12.91s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly",
+          "effective": {
+            "log": "raw/mysql-unfinished-admin-02.log",
+            "status": "PASS",
+            "duration": "12.48s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults",
+          "effective": {
+            "log": "raw/mysql-unfinished-admin-02.log",
+            "status": "PASS",
+            "duration": "12.81s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestTableReleaseSchemaRecoveryKeepsExistingSelections",
+          "effective": {
+            "log": "raw/mysql-unfinished-admin-02.log",
+            "status": "PASS",
+            "duration": "11.98s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness",
+          "effective": {
+            "log": "raw/mysql-unfinished-admin-02.log",
+            "status": "PASS",
+            "duration": "18.74s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestTemplateApprovalSchemaRecoversCatalogSeedFromFormalNine",
+          "effective": {
+            "log": "raw/mysql-unfinished-admin-02.log",
+            "status": "PASS",
+            "duration": "14.03s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestReleaseTemplateBrowserSystemPath",
+        "TestTableReleaseTemplateBrowserSystemPath"
+      ],
+      "additional_evidence": [
+        "inherited-boundary-check.json",
+        "browser-runner-integrity.json",
+        "compose-migrations-02/results.json"
+      ],
+      "scope_note": "Formal current11 new-install/upgrade/read-only/partial-recovery checks are separate from the historical Contract+016 equivalence at prefix5; immutable1..11 SQL/manifests are retained."
+    },
+    {
+      "ac": "AC-027",
+      "primary_issue": 106,
+      "issue_url": "https://github.com/asherzj/relational-config-center/issues/106",
+      "delivery_commit": null,
+      "state": "implementation acceptance passed; root delivery gate pending",
+      "evidence_index": null,
+      "spec_row": "| AC-027 | 全部切片已接入及旧固定流程残留候选 | 运行关键端到端路径并检查正式契约 | 无旧全局审批旁路、独立回滚单或硬编码节点兜底；每项 AC 有证据，临时结构已退出，文档及项目记录同步 | 公开契约/依赖检查＋系统验收索引 | 契约/集成、系统关键路径 |",
+      "applicability": "Original primary delivery remains immutable. Current product contracts are retained; this ticket reruns the named public/real-MySQL tests and relevant browser paths. Unchanged detailed module evidence remains attributable to the primary issue, alongside this run of all Go/Web module tests. The final effective execution status is authoritative, never the original issue status alone.",
+      "current_integration": [
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestLegacyApproverFormalCutover",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "17.13s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestLegacyApproverCurrentInputRejectsRetiredGrants",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "8.65s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseCompletionPermanentlyClosesRollbackWindow",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.83s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestReleaseFlowAC010MissingConfigurationRequiresExplicitSave",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "9.82s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+          "test": "TestRollbackFlowAC020EndsOriginalAndRecordsOnlyTrueExecution",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "10.07s"
+          }
+        },
+        {
+          "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+          "test": "TestReleaseWorkflowPublicRoutes",
+          "effective": {
+            "log": "raw/mysql-full.log",
+            "status": "PASS",
+            "duration": "0.00s"
+          }
+        }
+      ],
+      "current_browser_targets": [
+        "TestApprovalFinalBrowserSystemPath",
+        "TestRollbackFlowBrowserSystemPath",
+        "TestReleaseFlowBrowserSystemPath"
+      ],
+      "additional_evidence": [
+        "browser-matrix.json",
+        "integration-results.json",
+        "inherited-boundary-check.json",
+        "reviews/"
+      ],
+      "project_record": "Root owns the post-gate commit/push/remote verification and Notion overall update before announcing feature completion or closing106. Parent100 remains open."
+    }
+  ],
+  "final_integration_evidence": "docs/verification/2026-09-11-template-emergency-integration/README.md",
+  "remaining": "106 owns final3 plus final whole-feature applicability and full suites; parent100 not automatically closed"
+}

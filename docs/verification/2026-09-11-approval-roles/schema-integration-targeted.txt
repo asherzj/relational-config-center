@@ -1,0 +1,41 @@
+=== RUN   TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade
+2026/09/11 02:24:10 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 5b55ff9c0e19c4556a4902fb2fc6e3fa53518d169beed5dd21b1a3f7b062fc24
+  Test ProcessID: da0e11c2-3297-4e63-af99-e1645131e3c0
+2026/09/11 02:24:10 🐳 Creating container for image mysql:8.4
+2026/09/11 02:24:10 ✅ Container created: a185af137c01
+2026/09/11 02:24:10 🐳 Starting container: a185af137c01
+2026/09/11 02:24:10 ✅ Container started: a185af137c01
+2026/09/11 02:24:10 ⏳ Waiting for container id a185af137c01 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 02:24:17 🔔 Container is ready: a185af137c01
+2026/09/11 02:24:23 🐳 Stopping container: a185af137c01
+2026/09/11 02:24:24 ✅ Container stopped: a185af137c01
+2026/09/11 02:24:24 🐳 Terminating container: a185af137c01
+2026/09/11 02:24:24 🚫 Container terminated: a185af137c01
+--- PASS: TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade (14.50s)
+=== RUN   TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts
+2026/09/11 02:24:26 🐳 Creating container for image mysql:8.4
+2026/09/11 02:24:26 ✅ Container created: 79686d14b6e5
+2026/09/11 02:24:26 🐳 Starting container: 79686d14b6e5
+2026/09/11 02:24:27 ✅ Container started: 79686d14b6e5
+2026/09/11 02:24:27 ⏳ Waiting for container id 79686d14b6e5 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 02:24:33 🔔 Container is ready: 79686d14b6e5
+    schema_release_details_integration_test.go:38: additive interruption: migration_failed: inspect actual schema before retrying; DDL may have committed
+    schema_release_details_integration_test.go:59: ownership interruption: migration_failed: inspect actual schema before retrying; DDL may have committed
+    schema_release_details_integration_test.go:71: migration [recover]: want current, got {"state":"pending","current":5,"required":6,"pending":[6],"attempt_id":5,"attempt_version":5,"attempt_digest":"9e1cc534b08b76d1bb262c8b934f6fbc923ddfc233c9b9941bba44a29fa15de3","attempt_operation":"up"}
+         (<nil>)
+2026/09/11 02:24:36 🐳 Stopping container: 79686d14b6e5
+2026/09/11 02:24:37 ✅ Container stopped: 79686d14b6e5
+2026/09/11 02:24:37 🐳 Terminating container: 79686d14b6e5
+2026/09/11 02:24:37 🚫 Container terminated: 79686d14b6e5
+--- FAIL: TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts (13.05s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	28.643s
+FAIL

@@ -1,0 +1,11 @@
+{
+  "base_commit": "4092bd08db134b5282914556f60ec7f07b534091",
+  "sha256": {
+    ".github/workflows/ci.yml": "f38f592727e1b1961c7942571df3fb191046a93367bb488bcbc1a7a4047d54bb",
+    "Makefile": "fab3e070d50378dba2c227373e77443ba1ff835386285b26ebe03ca08578116a",
+    "README.md": "6b105f01e974eaaed63750b3c5dc4e32232c12b41336601ce0d59428d573888e",
+    "docs/schema-migrations.md": "b00e5fecd0648bd640d0ba0941971d9707e39e3da1a94a2e190c0621f0e3ff5a",
+    "scripts/mysql_integration.py": "8ab4607667c9a78caf6d24766b40fec33c71b6ad0b0ae25590d1423f146ed2dc",
+    "scripts/tests/test_mysql_integration.py": "114ce71c0c4f97ab546e2c2a48a610f25fb5043d1d4164e2392cc6e11d57eddc"
+  }
+}

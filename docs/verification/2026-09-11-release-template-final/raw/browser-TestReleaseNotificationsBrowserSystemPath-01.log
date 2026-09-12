@@ -1,0 +1,29 @@
+=== RUN   TestReleaseNotificationsBrowserSystemPath
+2026/09/11 18:20:49 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 918f78c9d9ce15e4a222a532db581d1aa9437758ad0ee3a8b80331cae133d893
+  Test ProcessID: b8eb6bba-eee5-46d2-8ddf-e5ecb9239b88
+2026/09/11 18:20:49 🐳 Creating container for image mysql:8.4
+2026/09/11 18:20:49 ✅ Container created: 26699a5a1135
+2026/09/11 18:20:49 🐳 Starting container: 26699a5a1135
+2026/09/11 18:20:49 ✅ Container started: 26699a5a1135
+2026/09/11 18:20:49 ⏳ Waiting for container id 26699a5a1135 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 18:20:56 🔔 Container is ready: 26699a5a1135
+    notification_center_browser_integration_test.go:84: notification center browser: PASS 发布真实提交后丢响应，原 UI 原键原正文重推一次；申请人和撤权审批者各聚合一项，兼任发布的审批者不提醒自己，桌面与 390px 键盘跳转核对实际结果并 ACK
+        PASS 独立发布者完结并重推，申请人及两位历史审批者收到完结结果；不改配置、不重复执行或下游刷新记录，已处理视图与已读返回正确
+        PASS 原单快速回滚丢响应后原操作重推，真实两表只恢复一次；申请人与撤权审批者收到原单结果，键盘切换持久化发布和恢复值，真实回滚操作者无自身提醒
+        PASS 管理员重新准备真实提交后丢响应，原键原正文重推只生成一个替代草稿；取消仅提醒原申请人，新草稿未提交零待办零提醒，手机可读旧单关联
+        {"checks":["发布真实提交后丢响应，原 UI 原键原正文重推一次；申请人和撤权审批者各聚合一项，兼任发布的审批者不提醒自己，桌面与 390px 键盘跳转核对实际结果并 ACK","独立发布者完结并重推，申请人及两位历史审批者收到完结结果；不改配置、不重复执行或下游刷新记录，已处理视图与已读返回正确","原单快速回滚丢响应后原操作重推，真实两表只恢复一次；申请人与撤权审批者收到原单结果，键盘切换持久化发布和恢复值，真实回滚操作者无自身提醒","管理员重新准备真实提交后丢响应，原键原正文重推只生成一个替代草稿；取消仅提醒原申请人，新草稿未提交零待办零提醒，手机可读旧单关联"],"acknowledgements":14,"replayed_operations":["执行发布","完结发布单","快速回滚","重新准备"],"errors":[]}
+2026/09/11 18:21:26 🐳 Stopping container: 26699a5a1135
+2026/09/11 18:21:27 ✅ Container stopped: 26699a5a1135
+2026/09/11 18:21:27 🐳 Terminating container: 26699a5a1135
+2026/09/11 18:21:27 🚫 Container terminated: 26699a5a1135
+--- PASS: TestReleaseNotificationsBrowserSystemPath (38.47s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	39.116s

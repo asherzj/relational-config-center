@@ -1,0 +1,8 @@
+{
+  "browser": "151.0.7922.34",
+  "checks": [
+    "1440px: current configured fields render directly; hidden query field absent; two entered fields AND-match Gamma; collapse and post-query input preserved; keyboard focus reachable",
+    "390px: select labels submit actual codes and custom IN value; three real matches; local scroll and query action reachable without document overflow; querying never changes options"
+  ],
+  "errors": []
+}

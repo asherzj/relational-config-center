@@ -1,0 +1,6 @@
+release-instances.cjs EXIT_CODE=0
+release-emergency.cjs EXIT_CODE=0
+notification-center.cjs EXIT_CODE=0
+release-notifications.cjs EXIT_CODE=0
+approval-notifications.cjs EXIT_CODE=0
+release-approvals.cjs EXIT_CODE=0

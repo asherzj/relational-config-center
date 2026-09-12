@@ -1,0 +1,4 @@
+# github.com/asherzj/relational-config-center/admin/cmd/admin [github.com/asherzj/relational-config-center/admin/cmd/admin.test]
+cmd/admin/release_quick_rollback_integration_test.go:222:2: undefined: original
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin [build failed]
+FAIL

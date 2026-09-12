@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/asherzj/relational-config-center/admin/internal/domain"
 )
 
 var schemaAutoIncrement = regexp.MustCompile(` AUTO_INCREMENT=[0-9]+`)
@@ -104,6 +106,53 @@ func checkControlSchema(ctx context.Context, db schemaQuerier, version int64, re
 		if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM rcc_accounts WHERE `+invalid).Scan(&invalidRoles); err != nil || invalidRoles != 0 {
 			return errors.New("schema_mismatch: account roles and role versions must remain valid")
 		}
+	}
+	if expected["rcc_release_templates"] != "" && !recovering {
+		// Standard templates may be disabled or deleted through their normal
+		// lifecycle. Only the required emergency template must remain available.
+		var emergencyDefaults int
+		if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM rcc_release_templates WHERE code='default_emergency_v1' AND release_type='EMERGENCY' AND enabled=1 AND JSON_LENGTH(node_list)=2 AND JSON_LENGTH(monitor_list)=0`).Scan(&emergencyDefaults); err != nil || emergencyDefaults != 1 {
+			return errors.New("schema_mismatch: required emergency release template must remain valid")
+		}
+		if err := checkRequiredEmergencyTemplateNodes(ctx, db, expected["rcc_table_release_templates"] != ""); err != nil {
+			return err
+		}
+	}
+	if expected["rcc_table_release_templates"] != "" && !recovering {
+		var unavailable int
+		if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM rcc_table_policies p
+LEFT JOIN rcc_table_release_templates a ON a.table_policy_id=p.id AND a.release_type='EMERGENCY'
+LEFT JOIN rcc_release_templates t ON t.id=a.template_id AND t.release_type='EMERGENCY' AND t.enabled=1
+WHERE p.enabled=1 AND (a.id IS NULL OR a.enabled<>1 OR t.id IS NULL OR JSON_LENGTH(t.node_list)<>2 OR JSON_LENGTH(t.monitor_list)<>0)`).Scan(&unavailable); err != nil || unavailable != 0 {
+			return errors.New("schema_mismatch: managed table emergency release association must remain valid")
+		}
+	}
+	return nil
+}
+
+func checkRequiredEmergencyTemplateNodes(ctx context.Context, db schemaQuerier, associations bool) error {
+	selection := "t.code='default_emergency_v1'"
+	if associations {
+		selection += ` OR EXISTS(SELECT 1 FROM rcc_table_release_templates a JOIN rcc_table_policies p ON p.id=a.table_policy_id WHERE a.template_id=t.id AND a.release_type='EMERGENCY' AND a.enabled=1 AND p.enabled=1)`
+	}
+	rows, err := db.QueryContext(ctx, "SELECT t.node_list,t.monitor_list FROM rcc_release_templates t WHERE t.release_type='EMERGENCY' AND ("+selection+")")
+	if err != nil {
+		return errors.New("schema_unavailable: cannot inspect emergency release template nodes")
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var nodeJSON, monitorJSON []byte
+		var nodes []domain.ReleaseTemplateNode
+		var monitors []string
+		if err := rows.Scan(&nodeJSON, &monitorJSON); err != nil {
+			return errors.New("schema_unavailable: cannot inspect emergency release template nodes")
+		}
+		if json.Unmarshal(nodeJSON, &nodes) != nil || json.Unmarshal(monitorJSON, &monitors) != nil || len(monitors) != 0 || domain.ValidateReleaseTemplateNodes(domain.ReleaseTypeEmergency, nodes) != nil {
+			return errors.New("schema_mismatch: required emergency release template nodes must remain valid")
+		}
+	}
+	if rows.Err() != nil {
+		return errors.New("schema_unavailable: cannot inspect emergency release template nodes")
 	}
 	return nil
 }

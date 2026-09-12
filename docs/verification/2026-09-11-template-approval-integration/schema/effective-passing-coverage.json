@@ -1,0 +1,16 @@
+{
+  "TestAccountUpgradeFromLegacyMatchesFreshSchema": "03-integrated-schema-acceptance.log",
+  "TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade": "03-integrated-schema-acceptance.log",
+  "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory": "03-integrated-schema-acceptance.log",
+  "TestSchemaMigrationInitializesEmptyDatabase": "03-integrated-schema-acceptance.log",
+  "TestSchemaMigrationPartialDDLRequiresExplicitRecovery": "03-integrated-schema-acceptance.log",
+  "TestSchemaMigrationUpgradesToNextRelease": "03-integrated-schema-acceptance.log",
+  "TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery": "03-integrated-schema-acceptance.log",
+  "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly": "03-integrated-schema-acceptance.log",
+  "TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts": "03-integrated-schema-acceptance.log",
+  "TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections": "03-integrated-schema-acceptance.log",
+  "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly": "03-integrated-schema-acceptance.log",
+  "TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults": "03-integrated-schema-acceptance.log",
+  "TestTableReleaseSchemaRecoveryKeepsExistingSelections": "03-integrated-schema-acceptance.log",
+  "TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness": "03-integrated-schema-acceptance.log"
+}

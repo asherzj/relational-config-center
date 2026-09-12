@@ -1,0 +1,6 @@
+PASS 1440x1000 administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration
+PASS 1440x1000 keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally
+PASS 1440x1000 required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions
+PASS 390x844 administrator configures named required text and static/custom select; option Tab labels, unsaved Escape and entry focus restoration
+PASS 390x844 keyboard submits static plus custom IN with a second AND field; collapse retains inputs and long mobile filters scroll locally
+PASS 390x844 required error links and focuses its control; custom draft survives exit; Change Set and durable review retain real values with keyboard scroll/focus rings and reachable actions

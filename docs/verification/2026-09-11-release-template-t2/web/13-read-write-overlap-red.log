@@ -1,0 +1,29 @@
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-102-table-release-templates/web
+
+ ❯ src/features/table-policies/TablePoliciesPage.test.tsx (15 tests | 1 failed | 14 skipped) 524ms
+     × recovers a state-command version conflict without treating cached data as a successful refresh 523ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/table-policies/TablePoliciesPage.test.tsx > 表规则分配页面 > recovers a state-command version conflict without treating cached data as a successful refresh
+Error: expect(element).toBeDisabled()
+
+Received element is not disabled:
+  <button
+  class="inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40 h-9 px-4 py-2 has-[>svg]:px-3 button"
+  data-size="default"
+  data-slot="button"
+  data-variant="destructive"
+/>
+ ❯ src/features/table-policies/TablePoliciesPage.test.tsx:249:154
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 14 skipped (15)
+   Start at  07:32:15
+   Duration  2.50s (transform 579ms, setup 252ms, import 946ms, tests 524ms, environment 659ms)
+

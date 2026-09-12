@@ -257,6 +257,7 @@ func liveColumnType(dataType, columnType string) domain.ColumnType {
 }
 
 type policyRecord struct {
+	Version            uint64             `gorm:"column:version;default:1"`
 	ConcurrencyKey     concurrencyColumns `gorm:"column:concurrency_key"`
 	ID                 uint64             `gorm:"column:id;primaryKey"`
 	Table              string             `gorm:"column:table_name"`
@@ -284,14 +285,16 @@ func (adapter *Adapter) Create(ctx context.Context, policy domain.TablePolicy, o
 		MutationPolicyCode: policy.MutationPolicyCode, ConcurrencyKey: policy.ConcurrencyKey, Enabled: false,
 		Creator: operator, Modifier: operator,
 	}
-	if err := adapter.gorm.WithContext(ctx).Create(&record).Error; err != nil {
-		var mysqlError *driver.MySQLError
-		if errors.As(err, &mysqlError) && mysqlError.Number == 1062 {
-			return domain.ErrTablePolicyExists
+	return adapter.gorm.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&record).Error; err != nil {
+			var mysqlError *driver.MySQLError
+			if errors.As(err, &mysqlError) && mysqlError.Number == 1062 {
+				return domain.ErrTablePolicyExists
+			}
+			return fmt.Errorf("create Table Policy: %w", err)
 		}
-		return fmt.Errorf("create Table Policy: %w", err)
-	}
-	return nil
+		return ensureEmergencyTableReleaseTemplate(tx, record, operator)
+	})
 }
 
 // CreateWithActivePolicyCodes locks both selected definitions and rechecks
@@ -319,7 +322,7 @@ func (adapter *Adapter) CreateWithActivePolicyCodes(ctx context.Context, policy 
 			}
 			return fmt.Errorf("create Table Policy: %w", err)
 		}
-		return nil
+		return ensureEmergencyTableReleaseTemplate(transaction, record, operator)
 	})
 }
 
@@ -382,21 +385,32 @@ func activeAssignmentDefinitions(transaction *gorm.DB, queryCode, mutationCode s
 }
 
 func (adapter *Adapter) SetEnabled(ctx context.Context, tableName string, enabled bool, operator string) (domain.TablePolicy, error) {
-	result := adapter.gorm.WithContext(ctx).Model(&policyRecord{}).
-		Where("table_name = ?", tableName).
-		Updates(map[string]any{"enabled": enabled, "modifier": operator})
-	if result.Error != nil {
-		return domain.TablePolicy{}, fmt.Errorf("set Table Policy state: %w", result.Error)
-	}
-	if result.RowsAffected == 0 {
-		return domain.TablePolicy{}, domain.ErrTablePolicyNotFound
-	}
-	return adapter.Get(ctx, tableName)
+	var saved domain.TablePolicy
+	err := adapter.gorm.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var current policyRecord
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("table_name=?", tableName).Take(&current).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+			return domain.ErrTablePolicyNotFound
+		} else if err != nil {
+			return err
+		}
+		if enabled {
+			if err := ensureEmergencyTableReleaseTemplate(tx, current, operator); err != nil {
+				return err
+			}
+		}
+		if err := tx.Model(&current).Updates(map[string]any{"enabled": enabled, "modifier": operator, "version": gorm.Expr("version + 1")}).Error; err != nil {
+			return err
+		}
+		var err error
+		saved, err = adapter.getTablePolicy(ctx, tx, tableName)
+		return err
+	})
+	return saved, err
 }
 
 func (record policyRecord) policy() domain.TablePolicy {
 	return domain.TablePolicy{
-		QueryPolicyCode: record.QueryPolicyCode, MutationPolicyCode: record.MutationPolicyCode, ConcurrencyKey: []string(record.ConcurrencyKey),
+		Version: record.Version, QueryPolicyCode: record.QueryPolicyCode, MutationPolicyCode: record.MutationPolicyCode, ConcurrencyKey: []string(record.ConcurrencyKey),
 		TableName: record.Table, Enabled: record.Enabled, Creator: record.Creator,
 		Modifier: record.Modifier, CreatedAt: record.CreatedAt, UpdatedAt: record.UpdatedAt,
 	}
@@ -1152,6 +1166,7 @@ var _ application.QuerySnapshotExecutor = (*Adapter)(nil)
 var _ domain.TablePolicyCatalog = (*Adapter)(nil)
 var _ domain.QueryPolicyCatalog = (*Adapter)(nil)
 var _ domain.MutationPolicyCatalog = (*Adapter)(nil)
+var _ domain.ReleaseTemplateCatalog = (*Adapter)(nil)
 
 func liveTextCapacity(dataType string, capacity sql.NullInt64) uint64 {
 	switch strings.ToLower(dataType) {

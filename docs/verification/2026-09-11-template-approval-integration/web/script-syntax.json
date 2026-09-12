@@ -1,0 +1,263 @@
+[
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/accounts.mjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/approval-roles.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/auth-boundary.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/browser-accessibility.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/combined-query.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/complex-fields.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/draft-targets.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/field-display.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/field-inputs.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/field-interactions.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/field-policies.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/field-recovery.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/local-account.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/operation-coverage.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/release-approvals.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/release-batches.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/release-detail-pages.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/release-drafts.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/release-multitable.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/release-original-action.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/release-rollback-reason.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/release-rollbacks.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/release-templates.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/rule-clarity.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/table-approval-fixture.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/table-approvals.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/table-release-templates.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/unsaved-changes.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/e2e/write-recovery.cjs"
+    ],
+    "exit": 0,
+    "output": ""
+  }
+]

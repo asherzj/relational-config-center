@@ -1,0 +1,66 @@
+running 5 item(s) in example.com/fixture/a
+{"Time":"2026-09-12T08:43:28.092357+08:00","Action":"start","Package":"example.com/fixture/a"}
+{"Time":"2026-09-12T08:43:28.518448+08:00","Action":"run","Package":"example.com/fixture/a","Test":"TestShared"}
+{"Time":"2026-09-12T08:43:28.51849+08:00","Action":"output","Package":"example.com/fixture/a","Test":"TestShared","Output":"=== RUN   TestShared\n"}
+{"Time":"2026-09-12T08:43:28.51852+08:00","Action":"output","Package":"example.com/fixture/a","Test":"TestShared","Output":"--- PASS: TestShared (0.00s)\n"}
+{"Time":"2026-09-12T08:43:28.518522+08:00","Action":"pass","Package":"example.com/fixture/a","Test":"TestShared","Elapsed":0}
+{"Time":"2026-09-12T08:43:28.518526+08:00","Action":"run","Package":"example.com/fixture/a","Test":"Test容量"}
+{"Time":"2026-09-12T08:43:28.518529+08:00","Action":"output","Package":"example.com/fixture/a","Test":"Test容量","Output":"=== RUN   Test容量\n"}
+{"Time":"2026-09-12T08:43:28.518536+08:00","Action":"output","Package":"example.com/fixture/a","Test":"Test容量","Output":"--- PASS: Test容量 (0.00s)\n"}
+{"Time":"2026-09-12T08:43:28.518537+08:00","Action":"pass","Package":"example.com/fixture/a","Test":"Test容量","Elapsed":0}
+{"Time":"2026-09-12T08:43:28.518539+08:00","Action":"run","Package":"example.com/fixture/a","Test":"TestNested"}
+{"Time":"2026-09-12T08:43:28.51854+08:00","Action":"output","Package":"example.com/fixture/a","Test":"TestNested","Output":"=== RUN   TestNested\n"}
+{"Time":"2026-09-12T08:43:28.518542+08:00","Action":"run","Package":"example.com/fixture/a","Test":"TestNested/child"}
+{"Time":"2026-09-12T08:43:28.518543+08:00","Action":"output","Package":"example.com/fixture/a","Test":"TestNested/child","Output":"=== RUN   TestNested/child\n"}
+{"Time":"2026-09-12T08:43:28.518548+08:00","Action":"output","Package":"example.com/fixture/a","Test":"TestNested/child","Output":"--- PASS: TestNested/child (0.00s)\n"}
+{"Time":"2026-09-12T08:43:28.518549+08:00","Action":"pass","Package":"example.com/fixture/a","Test":"TestNested/child","Elapsed":0}
+{"Time":"2026-09-12T08:43:28.518551+08:00","Action":"output","Package":"example.com/fixture/a","Test":"TestNested","Output":"--- PASS: TestNested (0.00s)\n"}
+{"Time":"2026-09-12T08:43:28.518552+08:00","Action":"pass","Package":"example.com/fixture/a","Test":"TestNested","Elapsed":0}
+{"Time":"2026-09-12T08:43:28.518555+08:00","Action":"run","Package":"example.com/fixture/a","Test":"FuzzEcho"}
+{"Time":"2026-09-12T08:43:28.518556+08:00","Action":"output","Package":"example.com/fixture/a","Test":"FuzzEcho","Output":"=== RUN   FuzzEcho\n"}
+{"Time":"2026-09-12T08:43:28.51862+08:00","Action":"run","Package":"example.com/fixture/a","Test":"FuzzEcho/seed#0"}
+{"Time":"2026-09-12T08:43:28.518642+08:00","Action":"output","Package":"example.com/fixture/a","Test":"FuzzEcho/seed#0","Output":"=== RUN   FuzzEcho/seed#0\n"}
+{"Time":"2026-09-12T08:43:28.518704+08:00","Action":"output","Package":"example.com/fixture/a","Test":"FuzzEcho/seed#0","Output":"--- PASS: FuzzEcho/seed#0 (0.00s)\n"}
+{"Time":"2026-09-12T08:43:28.518709+08:00","Action":"pass","Package":"example.com/fixture/a","Test":"FuzzEcho/seed#0","Elapsed":0}
+{"Time":"2026-09-12T08:43:28.518711+08:00","Action":"output","Package":"example.com/fixture/a","Test":"FuzzEcho","Output":"--- PASS: FuzzEcho (0.00s)\n"}
+{"Time":"2026-09-12T08:43:28.518713+08:00","Action":"pass","Package":"example.com/fixture/a","Test":"FuzzEcho","Elapsed":0}
+{"Time":"2026-09-12T08:43:28.518715+08:00","Action":"run","Package":"example.com/fixture/a","Test":"Example"}
+{"Time":"2026-09-12T08:43:28.518716+08:00","Action":"output","Package":"example.com/fixture/a","Test":"Example","Output":"=== RUN   Example\n"}
+{"Time":"2026-09-12T08:43:28.518746+08:00","Action":"output","Package":"example.com/fixture/a","Test":"Example","Output":"--- PASS: Example (0.00s)\n"}
+{"Time":"2026-09-12T08:43:28.51875+08:00","Action":"pass","Package":"example.com/fixture/a","Test":"Example","Elapsed":0}
+{"Time":"2026-09-12T08:43:28.51876+08:00","Action":"output","Package":"example.com/fixture/a","Output":"PASS\n"}
+{"Time":"2026-09-12T08:43:28.519245+08:00","Action":"output","Package":"example.com/fixture/a","Output":"ok  \texample.com/fixture/a\t0.427s\n"}
+{"Time":"2026-09-12T08:43:28.51927+08:00","Action":"pass","Package":"example.com/fixture/a","Elapsed":0.427}
+running 1 item(s) in example.com/fixture/b
+{"Time":"2026-09-12T08:43:28.714701+08:00","Action":"start","Package":"example.com/fixture/b"}
+{"Time":"2026-09-12T08:43:29.15074+08:00","Action":"run","Package":"example.com/fixture/b","Test":"TestShared"}
+{"Time":"2026-09-12T08:43:29.15083+08:00","Action":"output","Package":"example.com/fixture/b","Test":"TestShared","Output":"=== RUN   TestShared\n"}
+{"Time":"2026-09-12T08:43:29.150885+08:00","Action":"output","Package":"example.com/fixture/b","Test":"TestShared","Output":"--- PASS: TestShared (0.00s)\n"}
+{"Time":"2026-09-12T08:43:29.150892+08:00","Action":"pass","Package":"example.com/fixture/b","Test":"TestShared","Elapsed":0}
+{"Time":"2026-09-12T08:43:29.150897+08:00","Action":"output","Package":"example.com/fixture/b","Output":"PASS\n"}
+{"Time":"2026-09-12T08:43:29.151693+08:00","Action":"output","Package":"example.com/fixture/b","Output":"ok  \texample.com/fixture/b\t0.437s\n"}
+{"Time":"2026-09-12T08:43:29.151725+08:00","Action":"pass","Package":"example.com/fixture/b","Elapsed":0.437}
+running 1 item(s) in example.com/fixture/c
+{"Time":"2026-09-12T08:43:29.388974+08:00","Action":"start","Package":"example.com/fixture/c"}
+{"Time":"2026-09-12T08:43:29.966031+08:00","Action":"run","Package":"example.com/fixture/c","Test":"TestFails"}
+{"Time":"2026-09-12T08:43:29.966139+08:00","Action":"output","Package":"example.com/fixture/c","Test":"TestFails","Output":"=== RUN   TestFails\n"}
+{"Time":"2026-09-12T08:43:29.966185+08:00","Action":"output","Package":"example.com/fixture/c","Test":"TestFails","Output":"    c_test.go:3: expected\n"}
+{"Time":"2026-09-12T08:43:29.966193+08:00","Action":"output","Package":"example.com/fixture/c","Test":"TestFails","Output":"--- FAIL: TestFails (0.00s)\n"}
+{"Time":"2026-09-12T08:43:29.966196+08:00","Action":"fail","Package":"example.com/fixture/c","Test":"TestFails","Elapsed":0}
+{"Time":"2026-09-12T08:43:29.966203+08:00","Action":"output","Package":"example.com/fixture/c","Output":"FAIL\n"}
+{"Time":"2026-09-12T08:43:29.967056+08:00","Action":"output","Package":"example.com/fixture/c","Output":"FAIL\texample.com/fixture/c\t0.578s\n"}
+{"Time":"2026-09-12T08:43:29.967095+08:00","Action":"fail","Package":"example.com/fixture/c","Elapsed":0.578}
+running 1 item(s) in example.com/fixture/d
+{"Time":"2026-09-12T08:43:30.200606+08:00","Action":"start","Package":"example.com/fixture/d"}
+{"Time":"2026-09-12T08:43:30.740149+08:00","Action":"run","Package":"example.com/fixture/d","Test":"TestStillRuns"}
+{"Time":"2026-09-12T08:43:30.740209+08:00","Action":"output","Package":"example.com/fixture/d","Test":"TestStillRuns","Output":"=== RUN   TestStillRuns\n"}
+{"Time":"2026-09-12T08:43:30.740234+08:00","Action":"output","Package":"example.com/fixture/d","Test":"TestStillRuns","Output":"--- PASS: TestStillRuns (0.00s)\n"}
+{"Time":"2026-09-12T08:43:30.740241+08:00","Action":"pass","Package":"example.com/fixture/d","Test":"TestStillRuns","Elapsed":0}
+{"Time":"2026-09-12T08:43:30.740249+08:00","Action":"output","Package":"example.com/fixture/d","Output":"PASS\n"}
+{"Time":"2026-09-12T08:43:30.741086+08:00","Action":"output","Package":"example.com/fixture/d","Output":"ok  \texample.com/fixture/d\t0.540s\n"}
+{"Time":"2026-09-12T08:43:30.741155+08:00","Action":"pass","Package":"example.com/fixture/d","Elapsed":0.541}
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 7.599s
+
+OK

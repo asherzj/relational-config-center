@@ -1,0 +1,17 @@
+
+> @relational-config-center/web@0.0.0 build /private/tmp/rcc-issue-93-approval-role-management/web
+> tsc --noEmit && vite build
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 2137 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                             0.74 kB │ gzip:   0.40 kB
+dist/assets/index-XGP1tTVY.css             82.40 kB │ gzip:  16.07 kB
+dist/assets/rolldown-runtime-CbXtAM7H.js    0.58 kB │ gzip:   0.36 kB
+dist/assets/react-DXf84zf0.js             189.60 kB │ gzip:  59.62 kB
+dist/assets/index-ByvDcL-B.js             278.58 kB │ gzip:  75.78 kB
+dist/assets/vendor-3vmtJGbk.js            355.27 kB │ gzip: 111.08 kB
+
+✓ built in 956ms

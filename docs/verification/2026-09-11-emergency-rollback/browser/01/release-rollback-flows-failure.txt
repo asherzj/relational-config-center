@@ -1,0 +1,6 @@
+locator.click: Timeout 20000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('button', { name: '执行发布', exact: true })[22m
+
+    at publish (/private/tmp/rcc-issue-105-emergency-rollback/web/e2e/release-rollback-flows.cjs:99:98)
+    at async /private/tmp/rcc-issue-105-emergency-rollback/web/e2e/release-rollback-flows.cjs:137:17

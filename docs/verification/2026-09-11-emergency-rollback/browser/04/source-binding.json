@@ -1,0 +1,8 @@
+{
+  "snapshot": "reviews/source-04.json",
+  "diff_sha256": "d38786c2f51a1fdd595e5b1e44052139cce7d531f75a78bbc0be64b526100e9b",
+  "during_run_source_changed": false,
+  "post_run_hash_mismatches": [],
+  "result": "PASS",
+  "raw_log": "backend/25-browser-fourth.log"
+}

@@ -17,7 +17,7 @@ import (
 
 // AC-021: the formal upgrade contracts current grants, never historical facts.
 func TestLegacyApproverFormalCutover(t *testing.T) {
-	previous, current := buildSchemaMigrationReleaseAt(t, 8), buildSchemaMigrationCommand(t)
+	previous, current := buildSchemaMigrationReleaseAt(t, 8), buildSchemaMigrationReleaseAt(t, 9)
 	_, driver := startIntegrationMySQL(t)
 	requireSchemaMigrationState(t, previous, driver, "current", "up")
 	owner := *driver
@@ -80,6 +80,11 @@ func TestLegacyApproverFormalCutover(t *testing.T) {
 	requireSchemaMigrationState(t, current, driver, "current", "up")
 	if baselineDataSnapshot(t, db) != before {
 		t.Fatal("repeated upgrade changed account or unrelated facts")
+	}
+	beforeTemplates := preTemplateDataSnapshot(t, db)
+	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), driver, "current", "up")
+	if preTemplateDataSnapshot(t, db) != beforeTemplates {
+		t.Fatal("template upgrade changed contracted roles or historical facts")
 	}
 	process := accountProcessCommand(t, buildIntegrationAdmin(t), driver)
 	process.ready(t)
@@ -167,7 +172,7 @@ func cutoverPreservedSnapshot(t *testing.T, db *sql.DB) string {
 // AC-022: data failure and both durable bookkeeping boundaries require explicit
 // recovery; repeated execution never advances a contracted account twice.
 func TestLegacyApproverCutoverRecovery(t *testing.T) {
-	previous, current := buildSchemaMigrationReleaseAt(t, 8), buildSchemaMigrationCommand(t)
+	previous, current := buildSchemaMigrationReleaseAt(t, 8), buildSchemaMigrationReleaseAt(t, 9)
 	_, driver := startIntegrationMySQL(t)
 	owner := *driver
 	owner.User = "root"
@@ -228,6 +233,11 @@ func TestLegacyApproverCutoverRecovery(t *testing.T) {
 			if fault.applied && baselineDataSnapshot(t, target) != after {
 				t.Fatal("recovery rewrote already-committed data")
 			}
+			beforeTemplates := preTemplateDataSnapshot(t, target)
+			requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), &isolated, "current", "up")
+			if preTemplateDataSnapshot(t, target) != beforeTemplates {
+				t.Fatal("template upgrade rewrote recovered cutover facts")
+			}
 		})
 	}
 }
@@ -286,7 +296,12 @@ func TestLegacyApproverInvalidDataAndMaintenanceBoundary(t *testing.T) {
 	// Explicit fixture repair establishes a recoverable positive version; recovery
 	// itself does not invent or reset an overflowed version.
 	deliveryExec(t, db, `UPDATE rcc_accounts SET role_version=7`)
-	requireSchemaMigrationState(t, current, driver, "current", "recover")
+	requireSchemaMigrationState(t, current, driver, "pending", "recover")
+	beforeTemplates := preTemplateDataSnapshot(t, db)
+	requireSchemaMigrationState(t, current, driver, "current", "up")
+	if preTemplateDataSnapshot(t, db) != beforeTemplates {
+		t.Fatal("template upgrade changed recovered role facts")
+	}
 	if output, err := command("grant-admin").CombinedOutput(); err != nil {
 		t.Fatalf("current maintenance cannot grant: %v %s", err, output)
 	}
@@ -295,7 +310,7 @@ func TestLegacyApproverInvalidDataAndMaintenanceBoundary(t *testing.T) {
 		t.Fatalf("current grant lost viewer or duplicated cutover: %d %d %v", roles, version, err)
 	}
 	next := buildNextSchemaMigrationRelease(t)
-	deliveryExec(t, db, `CREATE TRIGGER future_cutover_fault BEFORE INSERT ON rcc_goose_db_version FOR EACH ROW BEGIN IF NEW.version_id=10 THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='future ledger failure'; END IF; END`)
+	deliveryExec(t, db, fmt.Sprintf(`CREATE TRIGGER future_cutover_fault BEFORE INSERT ON rcc_goose_db_version FOR EACH ROW BEGIN IF NEW.version_id=%d THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='future ledger failure'; END IF; END`, currentTestSchemaVersion(t)+1))
 	if _, err := schemaMigrationCommand(next, driver, "up").CombinedOutput(); err == nil {
 		t.Fatal("future fault did not fire")
 	}
@@ -313,10 +328,10 @@ func TestLegacyApproverInvalidDataAndMaintenanceBoundary(t *testing.T) {
 
 }
 
-// v8 and v9 have identical business/control structures. Build valid approval
-// facts via public HTTP, copy that fixture into an explicitly installed v8
-// database, then set its historical current grant. The copied database has its
-// own authentic v8 migration ledger; no current ledger is downgraded or edited.
+// Build valid approval facts via public HTTP and copy only the tables and
+// columns present in an explicitly installed v8 database. Its authentic ledger
+// is never downgraded or edited. Verify the fixed 8→9 role cutover independently;
+// formal 10/11 subsequently create the template structures needed by current HTTP.
 func TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval(t *testing.T) {
 	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
 	app, err := newApplication(ctx, integrationConfig(driver))
@@ -346,7 +361,7 @@ func TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval(t 
 	previous.DBName = "cutover_live_v8"
 	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 8), &previous, "current", "up")
 	target := deliveryDB(t, &previous)
-	rows, err := db.Query(`SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE' AND table_name NOT IN ('rcc_goose_db_version','rcc_schema_migration_attempts') ORDER BY table_name`)
+	rows, err := db.Query(`SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE' AND table_name NOT IN ('rcc_goose_db_version','rcc_schema_migration_attempts','rcc_release_templates','rcc_table_release_templates') ORDER BY table_name`)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -381,7 +396,7 @@ func TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval(t 
 		}
 		// Generated business columns recompute from the copied real inputs; MySQL
 		// rejects even an empty INSERT SELECT that explicitly assigns them.
-		columns, err := db.Query(`SELECT column_name FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND generation_expression='' ORDER BY ordinal_position`, table)
+		columns, err := target.Query(`SELECT column_name FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND generation_expression='' ORDER BY ordinal_position`, table)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -409,9 +424,14 @@ func TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval(t 
 	deliveryExec(t, target, `UPDATE rcc_accounts SET roles=4 WHERE id=?`, accountID(t, member))
 	deliveryExec(t, target, `UPDATE rcc_accounts SET roles=20 WHERE id=?`, accountID(t, admin))
 	preserved := cutoverPreservedSnapshot(t, target)
-	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), &previous, "current", "up")
+	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 9), &previous, "current", "up")
 	if cutoverPreservedSnapshot(t, target) != preserved {
 		t.Fatal("cutover rewrote actual approval/request/notification facts")
+	}
+	beforeTemplates := preTemplateDataSnapshot(t, target)
+	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), &previous, "current", "up")
+	if preTemplateDataSnapshot(t, target) != beforeTemplates {
+		t.Fatal("template upgrade changed live responsibility, completed approval or notification facts")
 	}
 	upgraded, err := newApplication(ctx, integrationConfig(&previous))
 	if err != nil {

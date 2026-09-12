@@ -1,0 +1,123 @@
+--- a/web/e2e/click-diagnostics.cjs
++++ b/web/e2e/click-diagnostics.cjs
+@@ -0,0 +1,71 @@
++async function diagnosticDeadline(operation) {
++  let timer;
++  try {
++    return await Promise.race([operation, new Promise((_, reject) => {
++      timer = setTimeout(() => reject(new Error('diagnostic operation exceeded 2000 ms')), 2000);
++    })]);
++  } finally { clearTimeout(timer); }
++}
++
++async function stopProbe(probe) {
++  const observation = await diagnosticDeadline(probe.evaluate(value => value.stop()))
++    .catch(error => ({ samplingError: String(error) }));
++  await diagnosticDeadline(probe.dispose()).catch(error => { observation.disposeError = String(error); });
++  return observation;
++}
++
++// Observe the existing click without changing its timeout or actionability checks.
++async function clickWithDiagnostics(locator, observations) {
++  let probe, setupError;
++  const pendingProbe = locator.evaluateHandle(element => {
++    const started = performance.now();
++    const samples = [];
++    let frames = 0, lastFrame = started, maxFrameGap = 0, frame;
++    const tick = now => {
++      frames++;
++      maxFrameGap = Math.max(maxFrameGap, now - lastFrame);
++      lastFrame = now;
++      frame = requestAnimationFrame(tick);
++    };
++    const sample = () => {
++      if (samples.length >= 250) return;
++      const surface = element.closest('[role="dialog"]');
++      samples.push({
++        elapsedMs: performance.now() - started,
++        visibility: document.visibilityState, hasFocus: document.hasFocus(),
++        connected: element.isConnected, rect: element.getBoundingClientRect().toJSON(),
++        surfaceTransform: surface ? getComputedStyle(surface).transform : null,
++        animations: (surface?.getAnimations() || []).map(animation => ({
++          name: animation.animationName, state: animation.playState, time: animation.currentTime,
++        })),
++        frames, maxFrameGapMs: maxFrameGap,
++      });
++    };
++    sample();
++    const timer = setInterval(sample, 100);
++    frame = requestAnimationFrame(tick);
++    return { stop() {
++      clearInterval(timer); cancelAnimationFrame(frame); sample();
++      return { samples, frames, maxFrameGapMs: maxFrameGap, lastFrameAgeMs: performance.now() - lastFrame };
++    } };
++  }, undefined, { timeout: 2000 });
++  try { probe = await diagnosticDeadline(pendingProbe); } catch (error) {
++    setupError = String(error);
++    // A renderer can answer after our deadline; clean up that late observer too.
++    pendingProbe.then(stopProbe).catch(() => {});
++  }
++  const started = Date.now();
++  let failure = null;
++  try {
++    await locator.click();
++  } catch (error) {
++    failure = { name: error.name, message: error.message };
++    throw error;
++  } finally {
++    const observation = probe
++      ? await stopProbe(probe)
++      : { setupError };
++    observations.push({ locator: locator.toString(), elapsedMs: Date.now() - started, failure, ...observation });
++  }
++}
++module.exports = { clickWithDiagnostics, diagnosticDeadline };
+--- a/web/e2e/release-multitable.cjs
++++ b/web/e2e/release-multitable.cjs
+@@ -1,3 +1,4 @@
++const { clickWithDiagnostics, diagnosticDeadline } = require('./click-diagnostics.cjs');
+ const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
+ const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
+ const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
+@@ -16,7 +17,7 @@
+ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_name:item.table_name,operation:item.operation,...(item.operation==='ADD'?{}:{id:item.id}),expected_record_version:item.expected_record_version,content:item.content}));
+ (async()=>{
+  const browser=await selectedBrowser(playwright).launch(browserOptions());
+- const checks=[],errors=[],evidence={checks};
++ const checks=[],errors=[],evidence={checks,click_diagnostics:[]};
+  const check=name=>{checks.push(name);console.log('PASS',name)};
+  const api=async(context,method,path,data,status=200)=>{
+   const response=await authenticatedRequest(context,base,path,{method,data,headers:{'Idempotency-Key':randomUUID()}});
+@@ -65,7 +66,7 @@
+   for(const table of tables){
+    await page.getByRole('link',{name:'添加变更',exact:true}).click();await page.getByLabel('Managed Table',{exact:true}).selectOption(table);
+    await button(page,'修改记录 1').click();await page.getByLabel('label 值',{exact:true}).fill(`${table} proposal`);assert.equal(await page.getByLabel('包含 label',{exact:true}).count(),0);
+-   await button(page,'查看 Change Set').click();assert.equal(await page.getByLabel('保存到草稿',{exact:true}).inputValue(),id);await button(page,'确认并保存草稿').click();await page.getByRole('heading',{name:'多表整单浏览器验收',exact:true}).waitFor();
++   await clickWithDiagnostics(button(page,'查看 Change Set'),evidence.click_diagnostics);assert.equal(await page.getByLabel('保存到草稿',{exact:true}).inputValue(),id);await button(page,'确认并保存草稿').click();await page.getByRole('heading',{name:'多表整单浏览器验收',exact:true}).waitFor();
+   }
+   let draft=await read(editor,path);assert.deepEqual(draft.items.map(item=>item.table_name),tables);assert.deepEqual(draft.items.map(item=>item.id),['1','1']);
+   const additional=Array.from({length:23},(_,index)=>({table_name:tables[index%2],operation:'MODIFY',id:String(2+Math.floor(index/2)),expected_record_version:'0',content:{label:`page-detail-${index+3}`}}));
+@@ -213,6 +214,22 @@
+   await largePage.goto(base+'/configuration/release-orders');try{await largePage.waitForFunction(()=>window.__rccIDBOpenCalls>0);await largePage.getByText(/浏览器无法读取原发布请求/).waitFor()}catch(error){if(output)writeFileSync(join(output,'storage-unavailable-diagnostic.json'),JSON.stringify(await largePage.evaluate(()=>({url:location.href,openCalls:window.__rccIDBOpenCalls,openFunction:String(indexedDB.open),body:document.body.innerText})),null,2));throw error};await largePage.getByRole('heading',{name:'发布单',exact:true}).waitFor();assert.equal(editWrites,0);
+   evidence.storage_unavailable=await largePage.evaluate(()=>({calls:window.__rccIDBOpenCalls,injected:indexedDB.open===IDBFactory.prototype.open&&indexedDB.open.name==='injectedUnavailableOpen'}));assert.ok(evidence.storage_unavailable.calls>0);assert.equal(evidence.storage_unavailable.injected,true);
+   check('持久化失败前零业务发送且保留输入，日志读取失败不阻断账号或无关只读页面');
+-  assert.deepEqual(errors,[]);if(output)writeFileSync(join(output,'result.json'),JSON.stringify(evidence,null,2));console.log(JSON.stringify(evidence));
++  evidence.page_errors=errors;assert.deepEqual(errors,[]);if(output)writeFileSync(join(output,'result.json'),JSON.stringify(evidence,null,2));console.log(JSON.stringify(evidence));
++ }catch(error){
++  evidence.failure={name:error.name,message:error.message,stack:error.stack};
++  evidence.page_errors=errors;
++  evidence.failure_pages=[];
++  if(output){try{
++   // Persist the original failure before best-effort renderer diagnostics.
++   writeFileSync(join(output,'result.json'),JSON.stringify(evidence,null,2));
++   for(const [index,surface] of browser.contexts().flatMap(context=>context.pages()).entries()){
++    const snapshot={index,url:surface.url()};
++    try{Object.assign(snapshot,await diagnosticDeadline(surface.locator('html').evaluate(()=>({visibility:document.visibilityState,hasFocus:document.hasFocus()}),undefined,{timeout:2000})));}catch(error){snapshot.stateError=String(error);}
++    try{await surface.screenshot({path:join(output,`failure-${index}.png`),timeout:5000});snapshot.screenshot=`failure-${index}.png`;}catch(error){snapshot.screenshotError=String(error);}
++    evidence.failure_pages.push(snapshot);
++    writeFileSync(join(output,'result.json'),JSON.stringify(evidence,null,2));
++   }
++  }catch(diagnosticError){console.error('Failed to save multitable diagnostics:',String(diagnosticError));}}
++  throw error;
+  }finally{await browser.close()}
+ })().catch(error=>{console.error(error);process.exitCode=1});

@@ -1,0 +1,18 @@
+case	selection	exit_status
+unsaved-changes.cjs@chromium	not-selected	
+rule-clarity.cjs@chromium	not-selected	
+write-recovery.cjs@chromium	not-selected	
+operation-coverage.cjs@chromium	selected	0
+complex-fields.cjs@chromium	selected	0
+browser-accessibility.cjs@chromium	selected	0
+browser-accessibility.cjs@firefox	selected	0
+browser-accessibility.cjs@webkit	selected	0
+release-drafts.cjs@chromium	selected	0
+release-approvals.cjs@chromium	selected	0
+release-batches.cjs@chromium	selected	0
+release-rollbacks.cjs@chromium	selected	0
+accounts.mjs@chromium	selected	0
+release-rollbacks.cjs@firefox	selected	0
+accounts.mjs@firefox	selected	0
+release-rollbacks.cjs@webkit	selected	0
+accounts.mjs@webkit	selected	1

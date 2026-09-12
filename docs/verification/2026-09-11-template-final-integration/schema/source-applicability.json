@@ -1,0 +1,25 @@
+{
+  "initial_to_rerun_changed_inputs": [
+    "admin/cmd/admin/legacy_approver_cutover_integration_test.go",
+    "admin/cmd/admin/schema_baseline_integration_test.go",
+    "admin/cmd/admin/schema_readiness_integration_test.go",
+    "admin/cmd/admin/template_approval_schema_integration_test.go"
+  ],
+  "production_and_migration_inputs_unchanged": true,
+  "rerun_inputs_equal_final_inputs": true,
+  "reuse_basis": "Initial go test compiled its tests before fixture-only edits. Dynamic schema/admin builds consume unchanged non-test sources. Every changed test body and every preTemplateDataSnapshot caller was rerun in 03. Other initial passing functions and their executed helpers remain unchanged. These results precede the separate #104 merge.",
+  "rerun_top_level_tests": [
+    "TestAccountUpgradeFromLegacyMatchesFreshSchema",
+    "TestLegacyApproverFormalCutover",
+    "TestLegacyApproverCurrentInputRejectsRetiredGrants",
+    "TestLegacyApproverCutoverRecovery",
+    "TestLegacyApproverInvalidDataAndMaintenanceBoundary",
+    "TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval",
+    "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory",
+    "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly",
+    "TestSchemaReadinessRejectsKnownOldRelease",
+    "TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts",
+    "TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness",
+    "TestTemplateApprovalSchemaRecoversCatalogSeedFromFormalNine"
+  ]
+}

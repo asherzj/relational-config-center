@@ -1,0 +1,4 @@
+
+> @relational-config-center/web@0.0.0 typecheck /private/tmp/rcc-release-template-approval-integration/web
+> tsc --noEmit
+

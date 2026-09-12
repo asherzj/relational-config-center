@@ -1,0 +1,45 @@
+=== RUN   TestReleaseEmergencyAC012SwitchReplacesWholeDraft
+2026/09/11 11:06:48 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 577b867e4234b5691e312c0768864a8a51a4fc4bef65a5075f47e10dd655f3a4
+  Test ProcessID: d6268aba-58ee-486c-872a-a86ecf70d794
+2026/09/11 11:06:48 🐳 Creating container for image mysql:8.4
+2026/09/11 11:06:48 ✅ Container created: 460e467c02fe
+2026/09/11 11:06:48 🐳 Starting container: 460e467c02fe
+2026/09/11 11:06:49 ✅ Container started: 460e467c02fe
+2026/09/11 11:06:49 ⏳ Waiting for container id 460e467c02fe image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 11:06:56 🔔 Container is ready: 460e467c02fe
+{"request_id":"rcc-fd0c1a6cb22580fbd4bbd21ad374b2d6","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-a5215b688b1bfd0de4d375749b66646f","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":45}
+{"request_id":"rcc-a14196688e4130333d2d7ffd7d0e198e","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-efebe366a3145c120dd2a98b7922221a","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":53}
+{"request_id":"rcc-c73fff77ddc8e4413e1eb53752c0e73c","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-856ce97c8ab989c200495718b79ad041","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":5}
+{"request_id":"rcc-c4b49ed4bb5f24e136d357c0d0f760d0","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":2}
+{"request_id":"rcc-35bd984aabfcdc776a6447c1fa8c90ac","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-73f28ddcbe6a3416577eb99f05729b81","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":15}
+{"request_id":"rcc-0c8b8de07de8d228b1a330b184acacab","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":12}
+{"request_id":"rcc-d6fb7571cc60b9f1acd5a46d05869231","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":13}
+{"request_id":"rcc-01d1bda5ad82f8868efc6584aca2cdd8","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":12}
+{"request_id":"rcc-7301ca522e5766b8fb10ac572b2646d0","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":6}
+{"request_id":"rcc-0f7ab33391c6e7637fcf6f4db2f272a2","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-0f668020f16582677114f53198f99391","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":7}
+{"request_id":"rcc-25704b82b47f16e669de509c964d3deb","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-270a6e44dd450c92d4686485473c2905","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":7}
+{"request_id":"rcc-cfcbc1f26021997b87c20c56722e165d","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":33}
+{"request_id":"rcc-2144c99e3ec8f6dc8c8a9970de472eff","method":"PUT","path":"/api/v1/release-orders/:id","status":400,"duration_ms":0}
+    release_emergency_integration_test.go:20: flow response: 400 {"error":{"code":"invalid_request","message":"request body must be valid JSON with only supported fields","request_id":"rcc-2144c99e3ec8f6dc8c8a9970de472eff"}}
+2026/09/11 11:06:57 🐳 Stopping container: 460e467c02fe
+2026/09/11 11:06:58 ✅ Container stopped: 460e467c02fe
+2026/09/11 11:06:58 🐳 Terminating container: 460e467c02fe
+2026/09/11 11:06:58 🚫 Container terminated: 460e467c02fe
+--- FAIL: TestReleaseEmergencyAC012SwitchReplacesWholeDraft (9.82s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	11.328s
+FAIL

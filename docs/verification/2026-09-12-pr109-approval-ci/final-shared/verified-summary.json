@@ -1,0 +1,125 @@
+[
+  {
+    "engine": "chromium",
+    "browserVersion": "151.0.7922.34",
+    "ok": true,
+    "checks": 7,
+    "pageErrors": [],
+    "unknownDraftWrites": [
+      {
+        "method": "POST",
+        "path": "/api/v1/release-orders",
+        "body": "{\"items\":[{\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"content\":{\"name\":\"stage5_chromium_unknown\"}}],\"title\":\"stage1_acceptance_items 配置变更\"}",
+        "key": "ea956987-cc76-43b9-a979-b0f3b0229b1b"
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/release-orders",
+        "body": "{\"items\":[{\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"content\":{\"name\":\"stage5_chromium_unknown\"}}],\"title\":\"stage1_acceptance_items 配置变更\"}",
+        "key": "ea956987-cc76-43b9-a979-b0f3b0229b1b"
+      }
+    ],
+    "bodyAndKeyEqual": true,
+    "recoveryCheck": {
+      "name": "390px unknown release-draft recovery replays one intent and then publishes it",
+      "evidence": {
+        "faultEvidence": {
+          "actualStatus": 201,
+          "requestId": "rcc-034f716646c41452dbcc2348a397b7fe",
+          "injectedStatus": 503
+        },
+        "releaseDraftRequests": 2,
+        "replayedOriginalBodyAndKey": true,
+        "releaseOrder": "a9b6b31735e9b046508bbd5da2922385",
+        "sqlRows": 1,
+        "faultBoundary": "Playwright API response fault injection after route.fetch durably created the release draft",
+        "documentOverflow": 0
+      }
+    },
+    "cleanup": {
+      "remainingRows": 0
+    }
+  },
+  {
+    "engine": "firefox",
+    "browserVersion": "153.0",
+    "ok": true,
+    "checks": 7,
+    "pageErrors": [],
+    "unknownDraftWrites": [
+      {
+        "method": "POST",
+        "path": "/api/v1/release-orders",
+        "body": "{\"items\":[{\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"content\":{\"name\":\"stage5_firefox_unknown\"}}],\"title\":\"stage1_acceptance_items 配置变更\"}",
+        "key": "7f461633-45b0-4c23-ad23-4745b0cecad2"
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/release-orders",
+        "body": "{\"items\":[{\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"content\":{\"name\":\"stage5_firefox_unknown\"}}],\"title\":\"stage1_acceptance_items 配置变更\"}",
+        "key": "7f461633-45b0-4c23-ad23-4745b0cecad2"
+      }
+    ],
+    "bodyAndKeyEqual": true,
+    "recoveryCheck": {
+      "name": "390px unknown release-draft recovery replays one intent and then publishes it",
+      "evidence": {
+        "faultEvidence": {
+          "actualStatus": 201,
+          "requestId": "rcc-d226701a11634420f0f0181cf11ab952",
+          "injectedStatus": 503
+        },
+        "releaseDraftRequests": 2,
+        "replayedOriginalBodyAndKey": true,
+        "releaseOrder": "237a73f3d730acbd898272261ec25148",
+        "sqlRows": 1,
+        "faultBoundary": "Playwright API response fault injection after route.fetch durably created the release draft",
+        "documentOverflow": 0
+      }
+    },
+    "cleanup": {
+      "remainingRows": 0
+    }
+  },
+  {
+    "engine": "webkit",
+    "browserVersion": "26.5",
+    "ok": true,
+    "checks": 7,
+    "pageErrors": [],
+    "unknownDraftWrites": [
+      {
+        "method": "POST",
+        "path": "/api/v1/release-orders",
+        "body": "{\"items\":[{\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"content\":{\"name\":\"stage5_webkit_unknown\"}}],\"title\":\"stage1_acceptance_items 配置变更\"}",
+        "key": "77aeb474-febd-4d92-9ecd-e9a6587cf0b4"
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/release-orders",
+        "body": "{\"items\":[{\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"content\":{\"name\":\"stage5_webkit_unknown\"}}],\"title\":\"stage1_acceptance_items 配置变更\"}",
+        "key": "77aeb474-febd-4d92-9ecd-e9a6587cf0b4"
+      }
+    ],
+    "bodyAndKeyEqual": true,
+    "recoveryCheck": {
+      "name": "390px unknown release-draft recovery replays one intent and then publishes it",
+      "evidence": {
+        "faultEvidence": {
+          "actualStatus": 201,
+          "requestId": "rcc-01add80b4561348e6eb4d466eaa9e9df",
+          "injectedStatus": 503
+        },
+        "releaseDraftRequests": 2,
+        "replayedOriginalBodyAndKey": true,
+        "releaseOrder": "292de1849690b30cfb3fb3965ffce552",
+        "sqlRows": 1,
+        "faultBoundary": "Playwright API response fault injection after route.fetch durably created the release draft",
+        "documentOverflow": 0
+      }
+    },
+    "cleanup": {
+      "remainingRows": 0
+    }
+  }
+]

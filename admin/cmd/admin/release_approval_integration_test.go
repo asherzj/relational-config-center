@@ -843,6 +843,7 @@ func TestReleaseFreezeMetadataCaseInsensitiveNames(t *testing.T) {
 		t.Fatalf("uppercase policy assignment: %d %s", assigned.Code, assigned.Body.String())
 	}
 	setPolicyAssignmentEnabled(t, app, "MUTATION_ADD_ITEMS", true)
+	bindFlowTemplate(t, app, "mutation_add_items", "default_standard_v1", true)
 	configurePublicationReviewer(t, app, publicationFixtureReviewer(t, app), "mutation_add_items")
 	duplicateAliases := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"same physical target","items":[{"table_name":"MUTATION_ADD_ITEMS","operation":"ADD","content":{"id":"99","code":"upper","label":"upper"}},{"table_name":"mutation_add_items","operation":"ADD","content":{"id":"99","code":"lower","label":"lower"}}]}`, "case-alias-duplicate")
 	assertIntegrationErrorCode(t, duplicateAliases, 422, "release_duplicate_target")

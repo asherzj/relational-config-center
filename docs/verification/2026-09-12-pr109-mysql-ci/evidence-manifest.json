@@ -1,0 +1,17 @@
+{
+  "sha256": {
+    "README.md": "03a4c780fb1b620ccfefcb624d9e3d18b6a5c9c54e5586c3981b1ad944ee0408",
+    "assignment-comparison.json": "9395b6f6f8deb3c8a889719f1a5aa0c8c5d06cecc571d2db00acb39612bc600e",
+    "go-unit-sandbox.log": "0343648522e1689d13f66a9f6be1869fc2f78f9dfd6ab0fe97e0ce18eba6e076",
+    "go-unit.log": "9d1d609ff306b895d6bee29c61bfeb0e8582d0ed24de1e1014e8664bc4023336",
+    "independent-expected-shards.json": "d8e299088d35f69ef75606c152cf3067e8bb80edc60cba7249ff2169b829cbe4",
+    "independent-inventory.json": "e467b3d7515d9be091b202c665c4ac2034b66e1238f558e208490d005f66c4a3",
+    "initial-ci-final.json": "fd3003b005448273eef827bd915b2c7126c569cb8b44131a690c7c596ecc5262",
+    "initial-ci-mysql.log": "564d6586e59540ee8563309ff922e5cf72b763d431fd34e7e01db8a2eb617b99",
+    "runner-assignment.json": "c83138cfa8466086b04238e316d380c45cd117936a1409323fda49c0b84fa454",
+    "runner-inventory-result.json": "18f7dd8ebe333b151d043ec92b88de2a3877ef1637795f3bb5be3f3f92d0cefb",
+    "runner-inventory.jsonl": "505bd5860df6a8557f5cc598d2b1b5b8bfb5a1e4ae601e506a65b0df7bc387ff",
+    "runner-tests.log": "5b7c8b494577dfebc796e1451177112fa3624f8b87803f709781c094bd4c43f9",
+    "targeted-schema-baseline.jsonl": "c010947c83eab2331e0e317ab164e0f7ac401be24caff9c3408a92ae0fcc4301"
+  }
+}

@@ -1,0 +1,463 @@
+diff --git a/admin/cmd/admin/account_delivery_integration_test.go b/admin/cmd/admin/account_delivery_integration_test.go
+index ffd3a7b..8d45c3d 100644
+--- a/admin/cmd/admin/account_delivery_integration_test.go
++++ b/admin/cmd/admin/account_delivery_integration_test.go
+@@ -479,6 +479,20 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
+ 	freshDriver := ownerDriver
+ 	freshDriver.DBName = "fresh_accounts"
+ 	fresh := deliveryDB(t, &freshDriver)
++	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, historicalTestSchemaVersion), &freshDriver, "current", "up")
++	preservedBeforeBaseline := baselineDataSnapshot(t, owner)
++	if policyCatalogSchemaSignature(t, t.Context(), owner) != policyCatalogSchemaSignature(t, t.Context(), fresh) {
++		t.Fatal("historical Policy structure differs from fresh installation")
++	}
++	requireSchemaMigrationState(t, schemaMigrate, driver, "pending", "baseline")
++	if got := baselineDataSnapshot(t, owner); got != preservedBeforeBaseline {
++		t.Fatal("baseline changed historical account, session, policy or business rows")
++	}
++	beforeUpgrade := preTemplateDataSnapshot(t, owner)
++	requireSchemaMigrationState(t, schemaMigrate, driver, "current", "up")
++	if got := preTemplateDataSnapshot(t, owner); got != beforeUpgrade {
++		t.Fatal("explicit upgrade changed historical account, session, policy or business rows")
++	}
+ 	requireSchemaMigrationState(t, schemaMigrate, &freshDriver, "current", "up")
+ 	for _, query := range []string{
+ 		`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_TYPE,IS_NULLABLE,COALESCE(COLUMN_DEFAULT,'<null>'),COALESCE(COLLATION_NAME,''),EXTRA FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('rcc_accounts','rcc_login_sessions','rcc_preauth_credentials','rcc_auth_rate_limits','rcc_auth_control_lock','rcc_account_role_history','rcc_record_versions','rcc_release_orders','rcc_release_requests','rcc_release_details','rcc_release_executions','rcc_release_targets','rcc_release_table_references','rcc_table_publications','rcc_publication_commands','rcc_refresh_notifications','rcc_table_field_policies') ORDER BY TABLE_NAME,ORDINAL_POSITION`,
+@@ -491,18 +505,6 @@ func TestAccountUpgradeFromLegacyMatchesFreshSchema(t *testing.T) {
+ 			t.Fatalf("fresh/upgrade metadata mismatch:\n%s\n%s", upgraded, installed)
+ 		}
+ 	}
+-	preservedBeforeBaseline := baselineDataSnapshot(t, owner)
+-	if policyCatalogSchemaSignature(t, t.Context(), owner) != policyCatalogSchemaSignature(t, t.Context(), fresh) {
+-		t.Fatal("historical Policy structure differs from fresh installation")
+-	}
+-	requireSchemaMigrationState(t, schemaMigrate, driver, "pending", "baseline")
+-	if got := baselineDataSnapshot(t, owner); got != preservedBeforeBaseline {
+-		t.Fatal("baseline changed historical account, session, policy or business rows")
+-	}
+-	requireSchemaMigrationState(t, schemaMigrate, driver, "current", "up")
+-	if got := baselineDataSnapshot(t, owner, "rcc_release_templates"); got != preservedBeforeBaseline {
+-		t.Fatal("explicit upgrade changed historical account, session, policy or business rows")
+-	}
+ 	p := accountProcessCommand(t, binary, driver)
+ 	p.ready(t)
+ 	oldCookies := []*http.Cookie{{Name: "rcc-session-dev", Value: oldToken}}
+diff --git a/admin/cmd/admin/schema_baseline_integration_test.go b/admin/cmd/admin/schema_baseline_integration_test.go
+index 10facba..6b6b48d 100644
+--- a/admin/cmd/admin/schema_baseline_integration_test.go
++++ b/admin/cmd/admin/schema_baseline_integration_test.go
+@@ -26,6 +26,14 @@ import (
+ const historicalTestSchemaVersion int64 = 5
+ const historicalTestMigrationCount int64 = 5
+ 
++// Compare every pre-template column while later migrations add their own tables
++// and the table-policy control version. Historical business bytes stay exact.
++func preTemplateDataSnapshot(t *testing.T, db *sql.DB) string {
++	t.Helper()
++	return baselineDataSnapshot(t, db, "rcc_release_templates", "rcc_table_release_templates", "rcc_table_policies") +
++		baselineRows(t, db, `SELECT id,table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier,created_at,updated_at,concurrency_key FROM rcc_table_policies ORDER BY id`)
++}
++
+ // MySQL image init scripts use the client's default charset. Apply historical
+ // 014 through an explicit UTF-8 connection so its Chinese comments stay exact.
+ func startHistoricalBaselineMySQL(t *testing.T, scripts ...string) (context.Context, *mysqldriver.Config) {
+@@ -106,12 +114,13 @@ func TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory(t *testing.T
+ 		t.Fatalf("baseline executed a later migration: %d %v", templateTables, err)
+ 	}
+ 	requireSchemaMigrationState(t, binary, driver, "pending", "status")
++	beforeUpgrade := preTemplateDataSnapshot(t, db)
+ 	requireSchemaMigrationState(t, binary, driver, "current", "up")
+-	if got := baselineDataSnapshot(t, db, "rcc_release_templates"); got != dataBefore {
++	if got := preTemplateDataSnapshot(t, db); got != beforeUpgrade {
+ 		t.Fatal("explicit upgrade changed historical control or business data")
+ 	}
+-	if err := db.QueryRow(`SELECT GROUP_CONCAT(version_id ORDER BY id) FROM rcc_goose_db_version`).Scan(&versions); err != nil || versions != "0,1,2,3,4,5,8" {
+-		t.Fatalf("explicit upgrade must append candidate migration 8 once: %s %v", versions, err)
++	if err := db.QueryRow(`SELECT GROUP_CONCAT(version_id ORDER BY id) FROM rcc_goose_db_version`).Scan(&versions); err != nil || versions != "0,1,2,3,4,5,8,9" {
++		t.Fatalf("explicit upgrade must append candidate migrations 8 and 9 once: %s %v", versions, err)
+ 	}
+ 	app, err := newApplication(ctx, integrationConfig(driver))
+ 	if err != nil {
+diff --git a/admin/cmd/admin/schema_migration_integration_test.go b/admin/cmd/admin/schema_migration_integration_test.go
+index 442d97f..20a1703 100644
+--- a/admin/cmd/admin/schema_migration_integration_test.go
++++ b/admin/cmd/admin/schema_migration_integration_test.go
+@@ -20,7 +20,7 @@ import (
+ 	mysqldriver "github.com/go-sql-driver/mysql"
+ )
+ 
+-const currentTestSchemaVersion int64 = 8
++const currentTestSchemaVersion int64 = 9
+ 
+ // A second isolated release uses the unchanged public command and adds an
+ // embedded migration. No production test hook or arbitrary-SQL CLI is needed.
+diff --git a/admin/cmd/admin/schema_readiness_integration_test.go b/admin/cmd/admin/schema_readiness_integration_test.go
+index 95b3b4d..8bfff33 100644
+--- a/admin/cmd/admin/schema_readiness_integration_test.go
++++ b/admin/cmd/admin/schema_readiness_integration_test.go
+@@ -71,7 +71,7 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
+ 		{"missing_index", `ALTER TABLE rcc_query_policies DROP INDEX idx_query_policy_status_type`, `ALTER TABLE rcc_query_policies ADD KEY idx_query_policy_status_type(status,type_code)`},
+ 		{"missing_field_policy", `RENAME TABLE rcc_table_field_policies TO held_field_policies`, `RENAME TABLE held_field_policies TO rcc_table_field_policies`},
+ 		{"missing_release_templates", `RENAME TABLE rcc_release_templates TO held_release_templates`, `RENAME TABLE held_release_templates TO rcc_release_templates`},
+-		{"release_template_unique_key", `ALTER TABLE rcc_release_templates DROP INDEX uk_release_template_code`, `ALTER TABLE rcc_release_templates DROP INDEX idx_release_template_type_enabled, ADD UNIQUE KEY uk_release_template_code(code), ADD KEY idx_release_template_type_enabled(release_type,enabled)`},
++		{"release_template_unique_key", `ALTER TABLE rcc_release_templates DROP INDEX uk_release_template_code`, `ALTER TABLE rcc_release_templates DROP INDEX uk_release_template_id_type, DROP INDEX idx_release_template_type_enabled, ADD UNIQUE KEY uk_release_template_code(code), ADD UNIQUE KEY uk_release_template_id_type(id,release_type), ADD KEY idx_release_template_type_enabled(release_type,enabled)`},
+ 		{"release_template_check", `ALTER TABLE rcc_release_templates ALTER CHECK chk_release_template_monitors NOT ENFORCED`, `ALTER TABLE rcc_release_templates ALTER CHECK chk_release_template_monitors ENFORCED`},
+ 		{"missing_default_emergency_template", `UPDATE rcc_release_templates SET code='held_emergency' WHERE code='default_emergency_v1'`, `UPDATE rcc_release_templates SET code='default_emergency_v1' WHERE code='held_emergency'`},
+ 		{"field_policy_unique_key", `ALTER TABLE rcc_table_field_policies DROP INDEX uk_table_field`, `ALTER TABLE rcc_table_field_policies ADD UNIQUE KEY uk_table_field(table_name,field_name)`},
+@@ -110,15 +110,22 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
+ 			if before != baselineDataSnapshot(t, db) {
+ 				t.Fatal("rejected startup/readiness changed rows")
+ 			}
++			if fault.name == "release_template_unique_key" {
++				// Keep the referenced composite identity indexed throughout restoration.
++				deliveryExec(t, db, `ALTER TABLE rcc_release_templates ADD UNIQUE KEY restore_template_identity(id,release_type)`)
++			}
+ 			if fault.restore != "" {
+ 				deliveryExec(t, db, fault.restore)
+ 			} else {
+ 				deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET release_digest=? WHERE target_version=?`, digest, currentTestSchemaVersion)
+ 			}
+-			// MySQL reserializes ASCII-column CHECK literals while rebuilding an
+-			// index; restore the original UTF-8 expressions as well as the index.
++			if fault.name == "release_template_unique_key" {
++				deliveryExec(t, db, `ALTER TABLE rcc_release_templates DROP INDEX restore_template_identity`)
++			}
++			// Candidate 9 stores ASCII-column CHECK literals as ASCII after its
++			// identity-index ALTER. Restore the same current-release definition.
+ 			if fault.name == "release_template_unique_key" || fault.name == "release_template_check" {
+-				deliveryExec(t, db, `ALTER TABLE rcc_release_templates DROP CHECK chk_emergency_template_enabled, DROP CHECK chk_release_template_type, ADD CONSTRAINT chk_emergency_template_enabled CHECK (release_type <> _utf8mb4'EMERGENCY' OR enabled=1), ADD CONSTRAINT chk_release_template_type CHECK (release_type IN (_utf8mb4'STANDARD',_utf8mb4'EMERGENCY'))`)
++				deliveryExec(t, db, `ALTER TABLE rcc_release_templates DROP CHECK chk_emergency_template_enabled, DROP CHECK chk_release_template_type, ADD CONSTRAINT chk_emergency_template_enabled CHECK (release_type <> _ascii'EMERGENCY' OR enabled=1), ADD CONSTRAINT chk_release_template_type CHECK (release_type IN (_ascii'STANDARD',_ascii'EMERGENCY'))`)
+ 			}
+ 			if fault.name == "release_template_unique_key" {
+ 				var restoredDefinition string
+diff --git a/admin/internal/infrastructure/mysql/schema_migration_validation.go b/admin/internal/infrastructure/mysql/schema_migration_validation.go
+index 0a41300..0bc77e2 100644
+--- a/admin/internal/infrastructure/mysql/schema_migration_validation.go
++++ b/admin/internal/infrastructure/mysql/schema_migration_validation.go
+@@ -8,6 +8,8 @@ import (
+ 	"regexp"
+ 	"sort"
+ 	"strings"
++
++	"github.com/asherzj/relational-config-center/admin/internal/domain"
+ )
+ 
+ var schemaAutoIncrement = regexp.MustCompile(` AUTO_INCREMENT=[0-9]+`)
+@@ -99,13 +101,52 @@ func checkControlSchema(ctx context.Context, db schemaQuerier, version int64, re
+ 			return errors.New("schema_mismatch: account roles and role versions must remain valid")
+ 		}
+ 	}
+-	if version >= 8 && !recovering {
++	if expected["rcc_release_templates"] != "" && !recovering {
+ 		// Standard templates may be disabled or deleted through their normal
+ 		// lifecycle. Only the required emergency template must remain available.
+ 		var emergencyDefaults int
+ 		if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM rcc_release_templates WHERE code='default_emergency_v1' AND release_type='EMERGENCY' AND enabled=1 AND JSON_LENGTH(node_list)=2 AND JSON_LENGTH(monitor_list)=0`).Scan(&emergencyDefaults); err != nil || emergencyDefaults != 1 {
+ 			return errors.New("schema_mismatch: required emergency release template must remain valid")
+ 		}
++		if err := checkRequiredEmergencyTemplateNodes(ctx, db, expected["rcc_table_release_templates"] != ""); err != nil {
++			return err
++		}
++	}
++	if expected["rcc_table_release_templates"] != "" && !recovering {
++		var unavailable int
++		if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM rcc_table_policies p
++LEFT JOIN rcc_table_release_templates a ON a.table_policy_id=p.id AND a.release_type='EMERGENCY'
++LEFT JOIN rcc_release_templates t ON t.id=a.template_id AND t.release_type='EMERGENCY' AND t.enabled=1
++WHERE p.enabled=1 AND (a.id IS NULL OR a.enabled<>1 OR t.id IS NULL OR JSON_LENGTH(t.node_list)<>2 OR JSON_LENGTH(t.monitor_list)<>0)`).Scan(&unavailable); err != nil || unavailable != 0 {
++			return errors.New("schema_mismatch: managed table emergency release association must remain valid")
++		}
++	}
++	return nil
++}
++
++func checkRequiredEmergencyTemplateNodes(ctx context.Context, db schemaQuerier, associations bool) error {
++	selection := "t.code='default_emergency_v1'"
++	if associations {
++		selection += ` OR EXISTS(SELECT 1 FROM rcc_table_release_templates a JOIN rcc_table_policies p ON p.id=a.table_policy_id WHERE a.template_id=t.id AND a.release_type='EMERGENCY' AND a.enabled=1 AND p.enabled=1)`
++	}
++	rows, err := db.QueryContext(ctx, "SELECT t.node_list,t.monitor_list FROM rcc_release_templates t WHERE t.release_type='EMERGENCY' AND ("+selection+")")
++	if err != nil {
++		return errors.New("schema_unavailable: cannot inspect emergency release template nodes")
++	}
++	defer rows.Close()
++	for rows.Next() {
++		var nodeJSON, monitorJSON []byte
++		var nodes []domain.ReleaseTemplateNode
++		var monitors []string
++		if err := rows.Scan(&nodeJSON, &monitorJSON); err != nil {
++			return errors.New("schema_unavailable: cannot inspect emergency release template nodes")
++		}
++		if json.Unmarshal(nodeJSON, &nodes) != nil || json.Unmarshal(monitorJSON, &monitors) != nil || len(monitors) != 0 || domain.ValidateReleaseTemplateNodes(domain.ReleaseTypeEmergency, nodes) != nil {
++			return errors.New("schema_mismatch: required emergency release template nodes must remain valid")
++		}
++	}
++	if rows.Err() != nil {
++		return errors.New("schema_unavailable: cannot inspect emergency release template nodes")
+ 	}
+ 	return nil
+ }
+diff --git a/admin/internal/infrastructure/mysql/migrations/00009_table_release_templates.sql b/admin/internal/infrastructure/mysql/migrations/00009_table_release_templates.sql
+new file mode 100644
+index 0000000..03a9cd1
+--- /dev/null
++++ b/admin/internal/infrastructure/mysql/migrations/00009_table_release_templates.sql
+@@ -0,0 +1,44 @@
++-- +goose NO TRANSACTION
++-- +goose Up
++-- Each existing-table change is one atomic ALTER. Recovery accepts the old or
++-- target table definition, never a partially specified constraint set.
++SET @rcc_table_template_ddl = IF(EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='rcc_table_policies' AND column_name='version'), 'DO 0', 'ALTER TABLE rcc_table_policies ADD COLUMN version BIGINT UNSIGNED NOT NULL DEFAULT 1, ADD CONSTRAINT chk_table_policy_version CHECK (version > 0)');
++PREPARE rcc_table_template_statement FROM @rcc_table_template_ddl;
++EXECUTE rcc_table_template_statement;
++DEALLOCATE PREPARE rcc_table_template_statement;
++SET @rcc_table_template_ddl = IF(EXISTS(SELECT 1 FROM information_schema.statistics WHERE table_schema=DATABASE() AND table_name='rcc_release_templates' AND index_name='uk_release_template_id_type'), 'DO 0', 'ALTER TABLE rcc_release_templates ADD UNIQUE KEY uk_release_template_id_type(id,release_type)');
++PREPARE rcc_table_template_statement FROM @rcc_table_template_ddl;
++EXECUTE rcc_table_template_statement;
++DEALLOCATE PREPARE rcc_table_template_statement;
++SET @rcc_table_template_ddl = NULL;
++
++CREATE TABLE IF NOT EXISTS rcc_table_release_templates (
++  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
++  table_policy_id BIGINT UNSIGNED NOT NULL,
++  release_type VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
++  template_id BIGINT UNSIGNED NOT NULL,
++  enabled TINYINT(1) NOT NULL DEFAULT 1,
++  version BIGINT UNSIGNED NOT NULL DEFAULT 1,
++  creator VARCHAR(64) NOT NULL,
++  modifier VARCHAR(64) NOT NULL,
++  created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
++  updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
++  PRIMARY KEY (id),
++  UNIQUE KEY uk_table_release_type (table_policy_id, release_type),
++  KEY idx_table_release_template_type (template_id, release_type),
++  CONSTRAINT fk_table_release_policy FOREIGN KEY (table_policy_id) REFERENCES rcc_table_policies(id) ON DELETE RESTRICT ON UPDATE RESTRICT,
++  CONSTRAINT fk_table_release_template_type FOREIGN KEY (template_id, release_type) REFERENCES rcc_release_templates(id, release_type) ON DELETE RESTRICT ON UPDATE RESTRICT,
++  CONSTRAINT chk_table_release_type CHECK (release_type IN ('STANDARD', 'EMERGENCY')),
++  CONSTRAINT chk_table_release_enabled CHECK (enabled IN (0, 1)),
++  CONSTRAINT chk_table_release_emergency_enabled CHECK (release_type <> 'EMERGENCY' OR enabled = 1),
++  CONSTRAINT chk_table_release_version CHECK (version > 0)
++) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Table Release Template Associations';
++
++-- Fill missing associations only. A deliberately disabled or deleted standard
++-- default is not re-created or re-enabled by upgrading this configuration.
++INSERT INTO rcc_table_release_templates(table_policy_id,release_type,template_id,enabled,version,creator,modifier)
++SELECT p.id,t.release_type,t.id,1,1,'system:migration','system:migration'
++FROM rcc_table_policies p
++JOIN rcc_release_templates t ON (t.code='default_standard_v1' AND t.release_type='STANDARD' OR t.code='default_emergency_v1' AND t.release_type='EMERGENCY') AND t.enabled=1
++LEFT JOIN rcc_table_release_templates existing ON existing.table_policy_id=p.id AND existing.release_type=t.release_type
++WHERE existing.id IS NULL;
+diff --git a/admin/internal/infrastructure/mysql/migrations/00009_schema.json b/admin/internal/infrastructure/mysql/migrations/00009_schema.json
+new file mode 100644
+index 0000000..3ebac4d
+--- /dev/null
++++ b/admin/internal/infrastructure/mysql/migrations/00009_schema.json
+@@ -0,0 +1,24 @@
++{
++  "rcc_account_role_history": "CREATE TABLE `rcc_account_role_history` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `actor_kind` varchar(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `actor_id` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `account_id` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `before_roles` tinyint unsigned NOT NULL,\n  `after_roles` tinyint unsigned NOT NULL,\n  `version` bigint unsigned NOT NULL,\n  `request_key` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `request_digest` char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `result` json NOT NULL,\n  `created_at` datetime(6) NOT NULL,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `uq_rcc_role_request` (`actor_id`,`request_key`),\n  KEY `ix_rcc_role_history` (`account_id`,`id`),\n  CONSTRAINT `fk_rcc_role_history_account` FOREIGN KEY (`account_id`) REFERENCES `rcc_accounts` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_accounts": "CREATE TABLE `rcc_accounts` (\n  `id` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `username` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `email` varchar(254) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `display_name` varchar(64) NOT NULL,\n  `password_hash` varchar(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `enabled` tinyint(1) NOT NULL DEFAULT '1',\n  `password_version` bigint unsigned NOT NULL DEFAULT '1',\n  `session_version` bigint unsigned NOT NULL DEFAULT '1',\n  `roles` tinyint unsigned NOT NULL DEFAULT '1',\n  `role_version` bigint unsigned NOT NULL DEFAULT '1',\n  `created_at` datetime(6) NOT NULL,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `uq_rcc_accounts_username` (`username`),\n  UNIQUE KEY `uq_rcc_accounts_email` (`email`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_auth_control_lock": "CREATE TABLE `rcc_auth_control_lock` (\n  `id` int NOT NULL,\n  PRIMARY KEY (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_auth_rate_limits": "CREATE TABLE `rcc_auth_rate_limits` (\n  `bucket_key` varchar(80) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `attempts` int unsigned NOT NULL,\n  `in_flight` int unsigned NOT NULL DEFAULT '0',\n  `expires_at` datetime(6) NOT NULL,\n  PRIMARY KEY (`bucket_key`),\n  KEY `ix_rcc_rate_expiry` (`expires_at`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_login_sessions": "CREATE TABLE `rcc_login_sessions` (\n  `token_hash` char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `account_id` char(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `csrf_hash` char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `password_version` bigint unsigned NOT NULL,\n  `session_version` bigint unsigned NOT NULL,\n  `created_at` datetime(6) NOT NULL,\n  `last_active_at` datetime(6) NOT NULL,\n  `expires_at` datetime(6) NOT NULL,\n  PRIMARY KEY (`token_hash`),\n  KEY `ix_rcc_sessions_account` (`account_id`),\n  KEY `ix_rcc_sessions_expiry` (`expires_at`),\n  CONSTRAINT `fk_rcc_sessions_account` FOREIGN KEY (`account_id`) REFERENCES `rcc_accounts` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_mutation_policies": "CREATE TABLE `rcc_mutation_policies` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `code` varchar(100) NOT NULL,\n  `name` varchar(100) NOT NULL,\n  `description` varchar(500) NOT NULL DEFAULT '',\n  `type_code` varchar(64) NOT NULL,\n  `allow_add` tinyint(1) NOT NULL DEFAULT '0',\n  `allow_modify` tinyint(1) NOT NULL DEFAULT '0',\n  `allow_delete` tinyint(1) NOT NULL DEFAULT '0',\n  `create_operator_field` varchar(64) DEFAULT NULL,\n  `create_time_field` varchar(64) DEFAULT NULL,\n  `modify_operator_field` varchar(64) DEFAULT NULL,\n  `modify_time_field` varchar(64) DEFAULT NULL,\n  `status` varchar(16) NOT NULL DEFAULT 'DRAFT',\n  `creator` varchar(64) NOT NULL,\n  `modifier` varchar(64) NOT NULL,\n  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `uk_mutation_policy_code` (`code`),\n  KEY `idx_mutation_policy_status_type` (`status`,`type_code`),\n  CONSTRAINT `chk_mutation_policy_capabilities` CHECK (((`allow_add` in (0,1)) and (`allow_modify` in (0,1)) and (`allow_delete` in (0,1)))),\n  CONSTRAINT `chk_mutation_policy_code` CHECK (regexp_like(`code`,_utf8mb4'^[a-z][a-z0-9_]*_v[1-9][0-9]*$')),\n  CONSTRAINT `chk_mutation_policy_distinct_fields` CHECK ((((`create_operator_field` is null) or (`create_time_field` is null) or (`create_operator_field` \u003c\u003e `create_time_field`)) and ((`create_operator_field` is null) or (`modify_operator_field` is null) or (`create_operator_field` \u003c\u003e `modify_operator_field`)) and ((`create_operator_field` is null) or (`modify_time_field` is null) or (`create_operator_field` \u003c\u003e `modify_time_field`)) and ((`create_time_field` is null) or (`modify_operator_field` is null) or (`create_time_field` \u003c\u003e `modify_operator_field`)) and ((`create_time_field` is null) or (`modify_time_field` is null) or (`create_time_field` \u003c\u003e `modify_time_field`)) and ((`modify_operator_field` is null) or (`modify_time_field` is null) or (`modify_operator_field` \u003c\u003e `modify_time_field`)))),\n  CONSTRAINT `chk_mutation_policy_safe_fields` CHECK ((((`create_operator_field` is null) or ((`create_operator_field` \u003c\u003e _utf8mb4'id') and regexp_like(`create_operator_field`,_utf8mb4'^[A-Za-z_][A-Za-z0-9_]*$'))) and ((`create_time_field` is null) or ((`create_time_field` \u003c\u003e _utf8mb4'id') and regexp_like(`create_time_field`,_utf8mb4'^[A-Za-z_][A-Za-z0-9_]*$'))) and ((`modify_operator_field` is null) or ((`modify_operator_field` \u003c\u003e _utf8mb4'id') and regexp_like(`modify_operator_field`,_utf8mb4'^[A-Za-z_][A-Za-z0-9_]*$'))) and ((`modify_time_field` is null) or ((`modify_time_field` \u003c\u003e _utf8mb4'id') and regexp_like(`modify_time_field`,_utf8mb4'^[A-Za-z_][A-Za-z0-9_]*$'))))),\n  CONSTRAINT `chk_mutation_policy_slot_capabilities` CHECK ((((`allow_add` = 1) or ((`create_operator_field` is null) and (`create_time_field` is null))) and ((`allow_add` = 1) or (`allow_modify` = 1) or ((`modify_operator_field` is null) and (`modify_time_field` is null))))),\n  CONSTRAINT `chk_mutation_policy_status` CHECK ((`status` in (_utf8mb4'DRAFT',_utf8mb4'ACTIVE',_utf8mb4'DEPRECATED')))\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Mutation Policy Catalog'",
++  "rcc_preauth_credentials": "CREATE TABLE `rcc_preauth_credentials` (\n  `token_hash` char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `csrf_hash` char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `expires_at` datetime(6) NOT NULL,\n  PRIMARY KEY (`token_hash`),\n  KEY `ix_rcc_preauth_expiry` (`expires_at`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_publication_commands": "CREATE TABLE `rcc_publication_commands` (\n  `table_name` varbinary(256) NOT NULL,\n  `sequence` bigint unsigned NOT NULL,\n  `order_id` varbinary(32) NOT NULL,\n  `execution_id` varbinary(64) NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`table_name`,`sequence`),\n  KEY `publication_order` (`order_id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_query_policies": "CREATE TABLE `rcc_query_policies` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `code` varchar(100) NOT NULL,\n  `name` varchar(100) NOT NULL,\n  `description` varchar(500) NOT NULL DEFAULT '',\n  `type_code` varchar(64) NOT NULL,\n  `default_order_field` varchar(64) NOT NULL,\n  `default_order_direction` varchar(8) NOT NULL,\n  `default_page_size` int NOT NULL,\n  `max_page_size` int NOT NULL,\n  `status` varchar(16) NOT NULL DEFAULT 'DRAFT',\n  `creator` varchar(64) NOT NULL,\n  `modifier` varchar(64) NOT NULL,\n  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `uk_query_policy_code` (`code`),\n  KEY `idx_query_policy_status_type` (`status`,`type_code`),\n  CONSTRAINT `chk_query_policy_code` CHECK (regexp_like(`code`,_utf8mb4'^[a-z][a-z0-9_]*_v[1-9][0-9]*$')),\n  CONSTRAINT `chk_query_policy_max_page_size` CHECK ((`max_page_size` \u003c= 200)),\n  CONSTRAINT `chk_query_policy_order_direction` CHECK ((`default_order_direction` in (_utf8mb4'ASC',_utf8mb4'DESC'))),\n  CONSTRAINT `chk_query_policy_order_field` CHECK (regexp_like(`default_order_field`,_utf8mb4'^[A-Za-z_][A-Za-z0-9_]*$')),\n  CONSTRAINT `chk_query_policy_page_size_order` CHECK ((`default_page_size` \u003c= `max_page_size`)),\n  CONSTRAINT `chk_query_policy_positive_page_sizes` CHECK (((`default_page_size` \u003e 0) and (`max_page_size` \u003e 0))),\n  CONSTRAINT `chk_query_policy_status` CHECK ((`status` in (_utf8mb4'DRAFT',_utf8mb4'ACTIVE',_utf8mb4'DEPRECATED')))\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Query Policy Catalog'",
++  "rcc_record_versions": "CREATE TABLE `rcc_record_versions` (\n  `table_name` varbinary(256) NOT NULL,\n  `record_key` varbinary(32) NOT NULL,\n  `lock_version` bigint unsigned NOT NULL,\n  PRIMARY KEY (`table_name`,`record_key`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_refresh_notifications": "CREATE TABLE `rcc_refresh_notifications` (\n  `order_id` varbinary(32) NOT NULL,\n  `execution_id` varbinary(64) NOT NULL,\n  `table_name` varbinary(256) NOT NULL,\n  `table_version` bigint unsigned NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`execution_id`,`table_name`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_release_details": "CREATE TABLE `rcc_release_details` (\n  `order_id` varbinary(32) NOT NULL,\n  `position` int unsigned NOT NULL,\n  `table_name` varbinary(256) NOT NULL,\n  `application` json NOT NULL,\n  `publication` json DEFAULT NULL,\n  `rollback` json DEFAULT NULL,\n  PRIMARY KEY (`order_id`,`position`),\n  KEY `release_detail_table` (`table_name`,`order_id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_release_executions": "CREATE TABLE `rcc_release_executions` (\n  `order_id` varbinary(32) NOT NULL,\n  `kind` varchar(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `execution_id` varbinary(64) NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`order_id`,`kind`),\n  CONSTRAINT `release_execution_kind` CHECK ((`kind` in (_utf8mb4'PUBLICATION',_utf8mb4'ROLLBACK')))\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_release_orders": "CREATE TABLE `rcc_release_orders` (\n  `id` varbinary(32) NOT NULL,\n  `applicant_id` varbinary(36) NOT NULL,\n  `state` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `version` bigint unsigned NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`id`),\n  KEY `release_applicant` (`applicant_id`,`id`),\n  KEY `release_state` (`state`,`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_release_requests": "CREATE TABLE `rcc_release_requests` (\n  `actor_id` varbinary(36) NOT NULL,\n  `operation` varbinary(96) NOT NULL,\n  `request_key` varbinary(64) NOT NULL,\n  `digest` binary(32) NOT NULL,\n  `result` json DEFAULT NULL,\n  PRIMARY KEY (`actor_id`,`operation`,`request_key`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_release_table_references": "CREATE TABLE `rcc_release_table_references` (\n  `table_name` varbinary(256) NOT NULL,\n  `order_id` varbinary(32) NOT NULL,\n  PRIMARY KEY (`table_name`,`order_id`),\n  KEY `release_reference_order` (`order_id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_release_targets": "CREATE TABLE `rcc_release_targets` (\n  `table_name` varbinary(256) NOT NULL,\n  `record_key` binary(32) NOT NULL,\n  `order_id` varbinary(32) NOT NULL,\n  PRIMARY KEY (`table_name`,`record_key`),\n  KEY `release_target_order` (`order_id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_release_templates": "CREATE TABLE `rcc_release_templates` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `code` varchar(100) NOT NULL,\n  `name` varchar(100) NOT NULL,\n  `description` varchar(500) NOT NULL DEFAULT '',\n  `release_type` varchar(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `node_list` json NOT NULL,\n  `monitor_list` json NOT NULL,\n  `enabled` tinyint(1) NOT NULL DEFAULT '1',\n  `version` bigint unsigned NOT NULL DEFAULT '1',\n  `creator` varchar(64) NOT NULL,\n  `modifier` varchar(64) NOT NULL,\n  `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),\n  `updated_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `uk_release_template_code` (`code`),\n  UNIQUE KEY `uk_release_template_id_type` (`id`,`release_type`),\n  KEY `idx_release_template_type_enabled` (`release_type`,`enabled`),\n  CONSTRAINT `chk_emergency_template_enabled` CHECK (((`release_type` \u003c\u003e _ascii'EMERGENCY') or (`enabled` = 1))),\n  CONSTRAINT `chk_release_template_enabled` CHECK ((`enabled` in (0,1))),\n  CONSTRAINT `chk_release_template_monitors` CHECK (((json_type(`monitor_list`) = _utf8mb4'ARRAY') and (json_length(`monitor_list`) = 0))),\n  CONSTRAINT `chk_release_template_nodes` CHECK ((json_type(`node_list`) = _utf8mb4'ARRAY')),\n  CONSTRAINT `chk_release_template_type` CHECK ((`release_type` in (_ascii'STANDARD',_ascii'EMERGENCY'))),\n  CONSTRAINT `chk_release_template_version` CHECK ((`version` \u003e 0))\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Release Template Catalog'",
++  "rcc_table_field_policies": "CREATE TABLE `rcc_table_field_policies` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `table_name` varchar(64) NOT NULL COMMENT '真实业务表名',\n  `field_name` varchar(64) NOT NULL COMMENT '真实数据库字段名',\n  `display_name` varchar(200) NOT NULL COMMENT '字段显示名称',\n  `description` varchar(500) NOT NULL DEFAULT '' COMMENT '字段说明',\n  `is_visible` tinyint(1) NOT NULL DEFAULT '1',\n  `display_order` int unsigned NOT NULL DEFAULT '0',\n  `is_queryable` tinyint(1) NOT NULL DEFAULT '1',\n  `query_operators` json DEFAULT NULL COMMENT '显式运算符；NULL不推导',\n  `ui_type` varchar(32) NOT NULL DEFAULT 'text',\n  `ui_options` json DEFAULT NULL,\n  `editable_on_add` tinyint(1) NOT NULL DEFAULT '1',\n  `editable_on_modify` tinyint(1) NOT NULL DEFAULT '1',\n  `is_required` tinyint(1) NOT NULL DEFAULT '0',\n  `default_value` json DEFAULT NULL COMMENT 'SQL NULL为未配置；JSON null为显式空值',\n  `enabled` tinyint(1) NOT NULL DEFAULT '1',\n  `creator` varchar(64) NOT NULL,\n  `modifier` varchar(64) NOT NULL,\n  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `uk_table_field` (`table_name`,`field_name`),\n  KEY `idx_field_display` (`table_name`,`enabled`,`display_order`),\n  CONSTRAINT `chk_field_policy_flags` CHECK (((`is_visible` in (0,1)) and (`is_queryable` in (0,1)) and (`editable_on_add` in (0,1)) and (`editable_on_modify` in (0,1)) and (`is_required` in (0,1)) and (`enabled` in (0,1))))\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='表字段规则'",
++  "rcc_table_policies": "CREATE TABLE `rcc_table_policies` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `table_name` varchar(64) NOT NULL,\n  `query_policy_code` varchar(100) NOT NULL,\n  `mutation_policy_code` varchar(100) NOT NULL,\n  `enabled` tinyint(1) NOT NULL DEFAULT '0',\n  `creator` varchar(64) NOT NULL,\n  `modifier` varchar(64) NOT NULL,\n  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  `concurrency_key` json NOT NULL DEFAULT (json_array()),\n  `version` bigint unsigned NOT NULL DEFAULT '1',\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `uk_table_name` (`table_name`),\n  KEY `idx_table_policy_query_code` (`query_policy_code`),\n  KEY `idx_table_policy_mutation_code` (`mutation_policy_code`),\n  CONSTRAINT `chk_table_policy_enabled` CHECK ((`enabled` in (0,1))),\n  CONSTRAINT `chk_table_policy_version` CHECK ((`version` \u003e 0))\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Table Policy Catalog'",
++  "rcc_table_publications": "CREATE TABLE `rcc_table_publications` (\n  `table_name` varbinary(256) NOT NULL,\n  `table_version` bigint unsigned NOT NULL,\n  `command_cursor` bigint unsigned NOT NULL,\n  PRIMARY KEY (`table_name`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
++  "rcc_table_release_templates": "CREATE TABLE `rcc_table_release_templates` (\n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,\n  `table_policy_id` bigint unsigned NOT NULL,\n  `release_type` varchar(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `template_id` bigint unsigned NOT NULL,\n  `enabled` tinyint(1) NOT NULL DEFAULT '1',\n  `version` bigint unsigned NOT NULL DEFAULT '1',\n  `creator` varchar(64) NOT NULL,\n  `modifier` varchar(64) NOT NULL,\n  `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),\n  `updated_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `uk_table_release_type` (`table_policy_id`,`release_type`),\n  KEY `idx_table_release_template_type` (`template_id`,`release_type`),\n  CONSTRAINT `fk_table_release_policy` FOREIGN KEY (`table_policy_id`) REFERENCES `rcc_table_policies` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,\n  CONSTRAINT `fk_table_release_template_type` FOREIGN KEY (`template_id`, `release_type`) REFERENCES `rcc_release_templates` (`id`, `release_type`) ON DELETE RESTRICT ON UPDATE RESTRICT,\n  CONSTRAINT `chk_table_release_emergency_enabled` CHECK (((`release_type` \u003c\u003e _utf8mb4'EMERGENCY') or (`enabled` = 1))),\n  CONSTRAINT `chk_table_release_enabled` CHECK ((`enabled` in (0,1))),\n  CONSTRAINT `chk_table_release_type` CHECK ((`release_type` in (_utf8mb4'STANDARD',_utf8mb4'EMERGENCY'))),\n  CONSTRAINT `chk_table_release_version` CHECK ((`version` \u003e 0))\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Table Release Template Associations'"
++}
+diff --git a/admin/cmd/admin/table_release_schema_integration_test.go b/admin/cmd/admin/table_release_schema_integration_test.go
+new file mode 100644
+index 0000000..9998530
+--- /dev/null
++++ b/admin/cmd/admin/table_release_schema_integration_test.go
+@@ -0,0 +1,178 @@
++//go:build integration
++
++package main
++
++import (
++	"regexp"
++	"strings"
++	"testing"
++)
++
++func TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections(t *testing.T) {
++	previous, current := buildSchemaMigrationReleaseAt(t, 5), buildSchemaMigrationCommand(t)
++	_, driver := startIntegrationMySQL(t)
++	requireSchemaMigrationState(t, previous, driver, "current", "up")
++	db := deliveryDB(t, driver)
++	deliveryExec(t, db, `CREATE TABLE association_business_marker(id INT PRIMARY KEY,note VARCHAR(30))`)
++	deliveryExec(t, db, `INSERT INTO association_business_marker VALUES(1,'preserved')`)
++	deliveryExec(t, db, `INSERT INTO rcc_table_policies(id,table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier) VALUES(101,'association_business_marker','query','mutation',1,'original-admin','original-admin'),(102,'disabled_business','query','mutation',0,'original-admin','original-admin')`)
++	before := baselineRows(t, db, `SELECT id,table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier,created_at,updated_at,concurrency_key FROM rcc_table_policies ORDER BY id`)
++	requireSchemaMigrationState(t, current, driver, "current", "up")
++	var associations int
++	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_table_release_templates`).Scan(&associations); err != nil || associations != 4 {
++		t.Fatalf("both existing table rules need default associations: count=%d err=%v", associations, err)
++	}
++	if got := baselineRows(t, db, `SELECT id,table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier,created_at,updated_at,concurrency_key FROM rcc_table_policies ORDER BY id`); got != before {
++		t.Fatal("migration changed existing table rule configuration or audit")
++	}
++	var marker string
++	if err := db.QueryRow(`SELECT note FROM association_business_marker WHERE id=1`).Scan(&marker); err != nil || marker != "preserved" {
++		t.Fatalf("business data changed: %q %v", marker, err)
++	}
++	deliveryExec(t, db, `INSERT INTO rcc_release_templates(code,name,description,release_type,node_list,monitor_list,enabled,creator,modifier) SELECT 'chosen_emergency_v1','Chosen emergency',description,release_type,node_list,monitor_list,1,'admin-choice','admin-choice' FROM rcc_release_templates WHERE code='default_emergency_v1'`)
++	deliveryExec(t, db, `UPDATE rcc_table_release_templates SET template_id=(SELECT id FROM rcc_release_templates WHERE code='chosen_emergency_v1'),version=2,modifier='admin-choice' WHERE table_policy_id=101 AND release_type='EMERGENCY'`)
++	deliveryExec(t, db, `UPDATE rcc_table_release_templates SET enabled=0,version=2,modifier='admin-choice' WHERE table_policy_id=101 AND release_type='STANDARD'`)
++	selected := baselineDataSnapshot(t, db)
++	requireSchemaMigrationState(t, current, driver, "current", "up")
++	if got := baselineDataSnapshot(t, db); got != selected {
++		t.Fatal("repeated upgrade replaced administrator template selections or audit")
++	}
++	fresh := createSchemaComparisonDatabase(t, driver)
++	requireSchemaMigrationState(t, current, fresh, "current", "up")
++	freshDB := deliveryDB(t, fresh)
++	counter := regexp.MustCompile(` AUTO_INCREMENT=[0-9]+`)
++	for _, name := range []string{"rcc_table_policies", "rcc_release_templates", "rcc_table_release_templates"} {
++		var table, upgraded, installed string
++		if err := db.QueryRow("SHOW CREATE TABLE `"+name+"`").Scan(&table, &upgraded); err != nil {
++			t.Fatal(err)
++		}
++		if err := freshDB.QueryRow("SHOW CREATE TABLE `"+name+"`").Scan(&table, &installed); err != nil {
++			t.Fatal(err)
++		}
++		if counter.ReplaceAllString(upgraded, "") != counter.ReplaceAllString(installed, "") {
++			t.Fatalf("fresh and upgraded association structure differs for %s", name)
++		}
++	}
++}
++
++func TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly(t *testing.T) {
++	_, driver := startCurrentIntegrationMySQL(t)
++	owner := *driver
++	owner.User = "root"
++	db := deliveryDB(t, &owner)
++	deliveryExec(t, db, `INSERT INTO rcc_table_policies(id,table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier) VALUES(501,'managed_marker','query','mutation',1,'admin','admin')`)
++	deliveryExec(t, db, `INSERT INTO rcc_release_templates(code,name,description,release_type,node_list,monitor_list,enabled,creator,modifier) SELECT 'readiness_emergency_v1','Readiness custom',description,release_type,node_list,monitor_list,1,'admin','admin' FROM rcc_release_templates WHERE code='default_emergency_v1'`)
++	deliveryExec(t, db, `INSERT INTO rcc_table_release_templates(table_policy_id,release_type,template_id,creator,modifier) SELECT 501,'EMERGENCY',id,'admin','admin' FROM rcc_release_templates WHERE code='readiness_emergency_v1'`)
++	deliveryExec(t, db, `CREATE USER 'association_reader'@'%' IDENTIFIED BY 'rcc_password'`)
++	deliveryExec(t, db, `GRANT SELECT ON rcc_test.* TO 'association_reader'@'%'`)
++	reader := *driver
++	reader.User = "association_reader"
++	p := accountProcessCommand(t, buildIntegrationAdmin(t), &reader)
++	p.ready(t)
++	var nodes string
++	if err := db.QueryRow(`SELECT node_list FROM rcc_release_templates WHERE code='readiness_emergency_v1'`).Scan(&nodes); err != nil {
++		t.Fatal(err)
++	}
++	for _, fault := range []struct{ name, statement string }{
++		{"wrong_role", `UPDATE rcc_release_templates SET node_list=JSON_SET(node_list,'$[0].required_role','EDITOR') WHERE code='readiness_emergency_v1'`},
++		{"wrong_node_type", `UPDATE rcc_release_templates SET node_list=JSON_SET(node_list,'$[0].type','APPROVAL') WHERE code='readiness_emergency_v1'`},
++		{"duplicate_node_code", `UPDATE rcc_release_templates SET node_list=JSON_SET(node_list,'$[1].code',JSON_UNQUOTE(JSON_EXTRACT(node_list,'$[0].code'))) WHERE code='readiness_emergency_v1'`},
++	} {
++		t.Run(fault.name, func(t *testing.T) {
++			deliveryExec(t, db, fault.statement)
++			t.Cleanup(func() {
++				deliveryExec(t, db, `UPDATE rcc_release_templates SET node_list=? WHERE code='readiness_emergency_v1'`, nodes)
++			})
++			before := baselineDataSnapshot(t, db)
++			if status, _, body := p.request(t, "GET", "/health/ready", "", nil, ""); status != 503 {
++				t.Fatalf("invalid referenced emergency nodes must reject readiness: %d %s", status, body)
++			}
++			if got := baselineDataSnapshot(t, db); got != before {
++				t.Fatal("invalid-node readiness check changed persisted data")
++			}
++		})
++	}
++	deliveryExec(t, db, `DELETE FROM rcc_table_release_templates WHERE table_policy_id=501`)
++	before := baselineDataSnapshot(t, db)
++	status, _, body := p.request(t, "GET", "/health/ready", "", nil, "")
++	if status != 503 {
++		t.Fatalf("managed table without emergency association must not be ready: %d %s", status, body)
++	}
++	if got := baselineDataSnapshot(t, db); got != before {
++		t.Fatal("readiness repaired or changed stored state")
++	}
++	requireSchemaStartupRejected(t, accountProcessCommand(t, buildIntegrationAdmin(t), &reader))
++	deliveryExec(t, db, `UPDATE rcc_table_policies SET enabled=0 WHERE id=501`)
++	if status, _, body := p.request(t, "GET", "/health/ready", "", nil, ""); status != 200 {
++		t.Fatalf("an unmanaged disabled table must not prevent readiness: %d %s", status, body)
++	}
++}
++
++func TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults(t *testing.T) {
++	previous, current := buildSchemaMigrationReleaseAt(t, 8), buildSchemaMigrationCommand(t)
++	_, driver := startIntegrationMySQL(t)
++	owner := *driver
++	owner.User = "root"
++	db := deliveryDB(t, &owner)
++	for _, mode := range []string{"disabled", "deleted"} {
++		t.Run(mode, func(t *testing.T) {
++			name := "standard_" + mode
++			deliveryExec(t, db, "CREATE DATABASE `"+name+"` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
++			target := owner
++			target.DBName = name
++			requireSchemaMigrationState(t, previous, &target, "current", "up")
++			old := deliveryDB(t, &target)
++			deliveryExec(t, old, `INSERT INTO rcc_table_policies(table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier) VALUES('managed_table','query','mutation',1,'admin','admin')`)
++			if mode == "disabled" {
++				deliveryExec(t, old, `UPDATE rcc_release_templates SET enabled=0,version=2,modifier='choice' WHERE code='default_standard_v1'`)
++			} else {
++				deliveryExec(t, old, `DELETE FROM rcc_release_templates WHERE code='default_standard_v1'`)
++			}
++			before := baselineRows(t, old, `SELECT * FROM rcc_release_templates ORDER BY id`)
++			requireSchemaMigrationState(t, current, &target, "current", "up")
++			if got := baselineRows(t, old, `SELECT * FROM rcc_release_templates ORDER BY id`); got != before {
++				t.Fatal("upgrade restored or re-enabled an intentionally unavailable standard default")
++			}
++			var count, emergency int
++			if err := old.QueryRow(`SELECT COUNT(*),SUM(release_type='EMERGENCY' AND enabled=1) FROM rcc_table_release_templates`).Scan(&count, &emergency); err != nil || count != 1 || emergency != 1 {
++				t.Fatalf("only emergency association should be initialized: %d/%d %v", count, emergency, err)
++			}
++		})
++	}
++}
++
++func TestTableReleaseSchemaRecoveryKeepsExistingSelections(t *testing.T) {
++	previous, current := buildSchemaMigrationReleaseAt(t, 8), buildSchemaMigrationCommand(t)
++	_, driver := startIntegrationMySQL(t)
++	requireSchemaMigrationState(t, previous, driver, "current", "up")
++	owner := *driver
++	owner.User = "root"
++	db := deliveryDB(t, &owner)
++	deliveryExec(t, db, `INSERT INTO rcc_table_policies(id,table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier) VALUES(701,'recovery_table','query','mutation',1,'admin','admin')`)
++	deliveryExec(t, db, `CREATE USER 'association_migrator'@'%' IDENTIFIED BY 'rcc_password'`)
++	deliveryExec(t, db, `GRANT SELECT,CREATE,ALTER,INDEX,REFERENCES ON rcc_test.* TO 'association_migrator'@'%'`)
++	deliveryExec(t, db, `GRANT INSERT,UPDATE ON rcc_test.rcc_goose_db_version TO 'association_migrator'@'%'`)
++	deliveryExec(t, db, `GRANT INSERT,UPDATE ON rcc_test.rcc_schema_migration_attempts TO 'association_migrator'@'%'`)
++	limited := *driver
++	limited.User = "association_migrator"
++	output, err := schemaMigrationCommand(current, &limited, "up").CombinedOutput()
++	if err == nil || !strings.Contains(string(output), "migration_failed") {
++		t.Fatalf("association seed without INSERT must leave recoverable failure: %v %s", err, output)
++	}
++	requireSchemaMigrationState(t, current, &limited, "recovery_required", "status")
++	if output, err := schemaMigrationCommand(current, &limited, "up").CombinedOutput(); err == nil || !strings.Contains(string(output), "recovery_required") {
++		t.Fatalf("ordinary retry unexpectedly repeated incomplete migration: %v %s", err, output)
++	}
++	deliveryExec(t, db, `INSERT INTO rcc_release_templates(code,name,description,release_type,node_list,monitor_list,enabled,creator,modifier) SELECT 'recovered_emergency_v1','Recovered choice',description,release_type,node_list,monitor_list,1,'admin-choice','admin-choice' FROM rcc_release_templates WHERE code='default_emergency_v1'`)
++	deliveryExec(t, db, `INSERT INTO rcc_table_release_templates(table_policy_id,release_type,template_id,enabled,version,creator,modifier) SELECT 701,release_type,id,1,7,'admin-choice','admin-choice' FROM rcc_release_templates WHERE code='recovered_emergency_v1'`)
++	chosen := baselineRows(t, db, `SELECT * FROM rcc_table_release_templates WHERE release_type='EMERGENCY' ORDER BY id`)
++	deliveryExec(t, db, `GRANT INSERT ON rcc_test.rcc_table_release_templates TO 'association_migrator'@'%'`)
++	requireSchemaMigrationState(t, current, &limited, "current", "recover")
++	if got := baselineRows(t, db, `SELECT * FROM rcc_table_release_templates WHERE release_type='EMERGENCY' ORDER BY id`); got != chosen {
++		t.Fatal("recovery overwrote the chosen emergency template, version or audit")
++	}
++	var count int
++	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_table_release_templates WHERE table_policy_id=701`).Scan(&count); err != nil || count != 2 {
++		t.Fatalf("recovery did not fill only the missing standard association: %d %v", count, err)
++	}
++}

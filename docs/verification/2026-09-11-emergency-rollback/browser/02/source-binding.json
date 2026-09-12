@@ -1,0 +1,11 @@
+{
+  "snapshot": "source-02.json",
+  "during_run_source_changed": false,
+  "after_run_change": {
+    "web/e2e/release-rollback-flows.cjs": {
+      "before": "4989f9d97c111afb8310e81cdce8d5331ea90f6bf283312ce172c6db6d6fdba4",
+      "after": "73d0392f9c819ed9daccb64688396e5a0cc564faa401583d9e8e8f4db0ee2a43"
+    }
+  },
+  "failure": "layout sampled during finite CSS entrance/viewport animation; stable failure screenshot fits 390x844; run incomplete"
+}

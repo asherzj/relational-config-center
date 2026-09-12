@@ -1,0 +1,2167 @@
+{
+  "shard_count": 4,
+  "total": 431,
+  "counts": {
+    "1": 108,
+    "2": 108,
+    "3": 108,
+    "4": 107
+  },
+  "items": [
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAccountControlTablesCannotBeDiscoveredOrManaged"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAccountMaintenanceResetDisabledAccountPreservesDraftDestruction"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAccountProcessHTTPSCookiesAndSensitiveMaterials"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAccountRoleUpgradePreservesAccountsAndGrants"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAdminExternalProcessServesHealthAndEnforcesAuthDefault"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAdminProcessRejectsInvalidConfiguration"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalNotificationsApprovalProgressAndTerminalResults"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalNotificationsObservedDetailBoundsLateAcknowledgement"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalNotificationsSchemaUpgradeReadinessAndProtection"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalRoleMembershipPersistsWithoutGrantingAccountRoles"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestCombinedQueryAC016RealFieldsCapacityAndAtomicConfiguration"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestCurrentSchemaEntryPointsDoNotRestoreRetiredInitialization"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestDraftAllTargetTypesReleaseOnEveryTerminalAction"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestDraftKeyEligibilityDefaultsAndAutoIDReferences"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestDraftSubmitRejectsChangedTargetIdentity"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestExternalDDLRaceFailsSafelyWithoutStorageDetails"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestFieldPolicyAC020MigrationPreservesExistingData"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestHealthDistinguishesRunningProcessFromRequiredInfrastructure"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLegacyPolicyPreflightRejectsUnsupportedAutoFillWithoutPartialRewrite"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountCurrentAndAllSessionRevocation"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountHTTPSCookiesAndPreauthExpiry"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountNormalizedUniquenessAndAtomicRegistration"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountRateLimitsAcrossIPsAndWindows"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountStoredSecretsAndAbsoluteExpiry"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalManagedTableFixtureRejectsIncompatibleExistingTableWithoutAssignment"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMultitableDerivedDraftRequiresExactDetailIdentity"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMultitableReprepareTransfersChangedTargetsAtomically"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationAddFailsClosedWhenPolicyCatalogIsUnavailable"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyDeleteFailsClosedBeforeExecution"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyDeleteMapsMissingRowsToNotFound"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyPatchAutoFillUsesModifySlotsAndRejectsManagedInput"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyPatchRollsBackDatabaseFailures"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyReturnsARequiredNonAutoIncrementID"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestNotificationCenterFiltersBeforePaginationAndProtectsIdentity"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPolicyAuditMigrationRejectsAmbiguousOrMissingColumnsBeforeDDL"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationActionCompetitionAndTableOrder"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationFloatValuesAndIdentityRoundTrip"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationRejectsImplicitWritesAndAuditSpoofing"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationSessionLocksHiddenForeignKeyDDL"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQueryFailsClosedWhenPolicyCatalogIsUnavailable"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQueryPolicyEnforcesLimitsAndRequestSortWithoutCorrection"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQueryPolicyQuotesManagedTableNameAsIdentifier"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQuerySnapshotSessionCannotBeReusedAfterTransaction"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQuickRollbackRejectsUnversionedExternalChangesBeforePreviewAndExecution"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRecordVersionAddDeleteRecreateAndRollback"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRecordVersionLosslessMaintenanceFloor"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRecordVersionSchemaReadinessAndRestartableMigration"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseBatchCopyInvalidItemIsLocated"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseBatchEdgeIndependentUniqueConflict"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseBatchEdgeStaleMemberRollsBack"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseBatchLargeHistoryCanApproveAndCancel"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseCompletionProtectsActualAndDeletedIDs"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseCompletionRolesConcurrencyAndReplay"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseDraftDiffAndServerBaseline"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseDraftRejectsLossySnapshotAndRetainsSavedSchema"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseDraftTitleEditCASAndFreeze"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseEmergencyAC012SwitchReplacesWholeDraft"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseEmergencyAC023SwitchFailureAndOriginalResults"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseFailureAuditPreservesConcurrentCancellation"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseFlowAC011DraftEditsPreserveAndReplaceOnlyParticipatingTables"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseFlowCurrentAuthorizationAfterWaitingForMaintenance"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseFreezeMetadataVisibility"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseMixedBatchPublication"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseNotificationsPersistenceFailuresPreserveAllFacts"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseNotificationsTerminalResultsPreserveOwnUnread"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseReprepareFailureKeepsApprovedOrderAndTarget"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseResetPreservesRecordsAndContinuesPublication"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseRollbackRestoresStoredTimeDuration"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseSubmitRequiresIndependentApprover"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseTemplateHTTPConcurrentRequestsRetainOneResultAndRejectStaleAdministrator"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseTemplateHTTPRejectsNonAdministratorManagement"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseTemplateHTTPRequiresRequestIdentityAndRejectsChangedTargets"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseThousandItemsThroughExecutable"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRoleChangeIsAuditedAndIdempotent"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRollbackFlowAC020EndsOriginalAndRecordsOnlyTrueExecution"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRollbackFlowPreviewReplayUsesCurrentAccountAndRoles"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaBaselineRefusesToRecreateLostConfirmedHistory"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaMigrationAddsFieldPoliciesWithoutChangingPublishedState"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaMigrationInitializesEmptyDatabase"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaMigrationRecoversInterruptedBootstrap"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaMigrationWaitsForMaintenanceLockWithDeadline"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestStartupRequiresTheProtectedPolicyCatalog"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableApprovalFallbackMatrixAndEmptySnapshot"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTablePolicyCreationPersistsDisabledCodeReferencesForHTTPInspection"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "name": "TestMutationPolicyDraftWithUnknownTypeCanBeCompletedBeforeActivation"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "name": "TestPolicySnapshotResolverFailsClosedBeforeExecution"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "name": "TestQueryPolicyLifecycleAndAssignmentRules"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/domain",
+      "name": "TestCanonicalRowFixedLosslessValues"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestExplicitIdentityAutoResultBelongsToThisInsert"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestExplicitIdentityRejectsNontransactionalTableBeforeWriting"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestLegacyBackfillNormalizesDefaultsAndProducesStableTechnologyNeutralCodes"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestPublicationRejectsIdentityCreatedAfterApproval"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestAPIBodyLimitRejectsOversizedJSONWithStableError"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestAPIRequestIDAcceptsOnlyTightlyValidatedValues"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestHTTPDependsOnApplicationRatherThanDomainOrInfrastructure"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestRecoveryRedactsPanics"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestReleaseWorkflowPublicRoutes"
+    },
+    {
+      "shard": 1,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/platform/config",
+      "name": "TestLoadRequiresNoDeploymentIdentity"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAccountMaintenanceCorrectEmailPreservesOwnershipAndSessions"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAccountMaintenanceResetPasswordRevokesEverySession"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAccountProcessRequiresCompleteAuthenticationSchema"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAccountUpgradeFromLegacyMatchesFreshSchema"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAdminExternalProcessWaitsForIncompleteRequestHeadersOnShutdown"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAdminProcessRejectsRemovedAuthenticationConfiguration"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalNotificationsConcurrentLateReadPreservesNewEvents"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalNotificationsOwnActionsPreserveEarlierResultsAndTruthfulPending"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalNotificationsSubmitAggregatesCurrentRecipients"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalRoleRetriesKeepOriginalResultAndRejectChangedIntent"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAssignedDeprecatedPolicyDefinitionsRemainQueryable"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestCurrentSessionUsesRolePermissionMatrix"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestDraftConcurrencyKeyDatabaseEquality"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestDraftReservationsBeginOnSaveAndEndOnCancel"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestDraftTargetReplacementRollsBackOnPersistenceFailure"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestFieldPolicyAC001RoundTrip"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestFieldPolicyDatabaseFailureRollsBackWholeReplacement"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestInFlightQueryKeepsOnePolicySnapshotWhileReplacementAffectsNextRequest"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLegacyApproverCutoverRecovery"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountCSRFAndServiceFailure"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountDatabaseLockTimeoutIs504"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountLoginAfterLogout"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountPasswordChangeRevokesAllSessions"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountRegistrationCreatesCurrentIdentity"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountSuccessClearsFailureCountAndIPLimit"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalManagedTableFixtureRejectsLifecycleConflictsWithoutReactivation"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMultitableDraftWaitsForAllGuardsBeforeAnySnapshot"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMultitableThousandPagedDetailsExecuteAsOneOrder"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyAddsRowAndReturnsJSONStringID"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyDeleteFailsClosedForInvalidCurrentPolicyAndLiveTable"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyDeleteRollsBackDatabaseFailures"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyPatchFailsClosedForCurrentPolicyAndSchema"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyPatchUsesLatestPolicyAndLiveSchema"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyReturnsExplicitAutoIncrementID"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestNotificationCenterRejectsIncompatibleHistoryAndDirectoryFailure"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestOriginalOrderRollbackPreservesApplicationAndBothExecutions"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationAtomicPersistenceFailures"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationFrozenChangesAndDescriptions"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationRejectsUnknownNonAutoIncrementIdentity"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationStoredRowsAreVerifiedBeforeReadOrReplay"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQueryPolicyAppliesMembershipNullAndEmptyStringSemantics"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQueryPolicyHTTPLifecyclePersistsAndFailsClosed"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQueryPolicyRejectsEveryUnsupportedFullRowType"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQuickRollbackCanTerminateAtAcceptedPublicationCapacity"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQuickRollbackPreviewShowsWholeRestorationWithoutWritingBusinessData"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQuickRollbackRequiresItsOriginalRetainedTargets"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRecordVersionCompareAndSwap"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRecordVersionMySQLPrimaryKeyEquivalence"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRecordVersionSnapshotAndIndependentResources"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRelationalMutationPolicyIsSoleAuthorizationSourceAndDeprecatedExecutes"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseBatchDuplicateIdentityDoesNotReplaceDraft"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseBatchEdgeMidwayConstraintRollback"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseBatchExistingEnumPrimaryKeys"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseCompletionAtPublicationCapacityClosesRollbackWindow"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseCompletionReleasesWithoutRepublishing"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseDraftCASCancelAndIdempotency"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseDraftKnownAddUpdateRequiresOriginalBaseline"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseDraftReplayUsesCurrentActionsAndRejectsChangedDigest"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseDraftTitlePersistsAndReloads"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseEmergencyAC015SubmitNeedsReasonAndDoesNotPublish"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseEmergencyPendingConsumersAndDerivedDrafts"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseFailureHistoryUnavailableDoesNotLeaveBusinessWrites"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseFlowAC013DerivedDraftUsesCurrentConfiguration"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseFlowStorageFailuresKeepDraftAndOriginalResultAtomic"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseFreezeTracksExecutionSemantics"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseNotificationsCommitUnknownRecoversEveryLifecycle"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseNotificationsPublicationUsesActualParticipants"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleasePeopleResolveCurrentNamesWithoutAccountAdmin"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseReprepareReplacesApprovedOrderWithEditableDraft"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseResetRefusesUnverifiedTargetsAndSchema"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseRollbackUnwindsUniqueValueDependencies"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseSubmitRevalidatesBaselineAndRules"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseTemplateHTTPControlTableRejectsGenericManagement"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseTemplateHTTPReplaysCommittedReplacementAfterLaterChanges"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseTemplateHTTPResultStorageFailureRollsBackEveryWrite"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseWorkflowAtomicityAndCompetition"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRoleChangeRaceAndAuditFailureDoNotLeavePartialGrants"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRollbackFlowAC021EmergencyCancellationUsesRealSubmission"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRollbackFlowPreviewStorageFailuresKeepOriginalAtomic"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaBaselineProcessInterruptionRetainsUnconfirmedState"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaBaselineRejectsIncompatibleControlStructureWithoutWrites"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaMigrationLeavesUnmanagedDatabaseUntouched"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaMigrationRecoversMissingZeroVersion"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableApprovalAccountAvailabilityAndDurableHistory"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableApprovalPartialProgressAndFinalApproval"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableApprovalScopeConcurrencyAndRejection"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTablePolicyCreationRejectsPrincipalFailuresWithoutPartialPersistence"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTemplateApprovalSchemaRecoversCatalogSeedFromFormalNine"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "name": "TestMutationPolicyLifecycleAndAssignmentRules"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "name": "TestQueryPolicyActivationValidatesRegisteredTypeAndSafetyLimits"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "name": "TestReleaseTemplateManagementAcceptsOnlyExecutableNodeSequences"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/domain",
+      "name": "TestCurrentAndHistoricalAccountRoleContracts"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestExplicitIdentityKeepsEngineStableUntilInsertTransactionEnds"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestExplicitIdentityReturnedAutoIDMustRemainSchemaAddressable"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestLegacyBackfillReportsLiteralArbitraryAndNonMirroredRules"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestValidContractionPolicyCodeRejectsTechnologyPrefixes"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestAPIDoesNotOfferCrossOriginCredentialAccess"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestAPIUnknownRoutesUseTheSafeErrorEnvelope"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestMutationPolicyResponseUsesTypedRelationalFieldsAndCatalogAuditNames"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestReleaseDetailCapacityRouteContract"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestRemovedMutationRoutesCannotBeRevivedByEncodedIdentity"
+    },
+    {
+      "shard": 2,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/platform/config",
+      "name": "TestLocalAccountOriginAndLimitsConfiguration"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAccountMaintenanceDisableAndEnableDoNotReviveSessions"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAccountProcessCapacityNeverEvictsValidState"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAccountProcessRestartPreservesSessionsAndRateWindows"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAdminExternalProcessForcesShutdownAtConfiguredBoundAndStillClosesApplication"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAdminHTTPCompositionCannotRunSchemaMaintenance"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAdminProcessRejectsUnavailableRequiredDatabase"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalNotificationsFailuresRollbackBusinessAndReadProgress"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalNotificationsQualificationChangesAcrossEveryEntry"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalRoleAuthorizationValidationAndConcurrentEdits"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalRoleSchemaPreservesFrozenBaselineAndRecoversUpgrade"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestBaselineGooseInstallationMatchesFrozenAdoptionStructure"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestConcurrentAccountsOwnTheirBusinessChanges"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestDatabaseTableDetailReturnsLiveMetadataAndStableNotFoundError"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestDraftConcurrencyKeyProtectsValuesAndDefinition"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestDraftSaveAndKeyDefinitionRaceCannotBypassReferences"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestEnabledTablePolicyQueriesExactRowsWithPolicyDefaults"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestFieldPolicyAC002InvalidConfigurationIsAtomic"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestFieldPolicyDefaultsNumericOptionsAndAudit"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLastEnabledAdministratorCannotBeRemovedOrDisabled"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLegacyApproverFormalCutover"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountCancelledLoginReleasesReservation"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountFailuresAndCredentialBoundaries"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountLoginSettlementFailurePreservesPreviousSession"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountPersistedSessionDeadlines"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountRegistrationRateLimit"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountSuccessfulLoginPreservesOutstandingReservations"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMaintainerBootstrapsAdministratorAndAssignsRoles"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMultitableLargeValuesThroughHTTPLifecycle"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationAddFailsClosedAndUsesTheLatestPolicySnapshot"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyAutoFillUsesAccountOperatorAndDatabaseTimeAndRejectsManagedInput"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyDeleteFailsClosedForStaleAutoFillSchemaRules"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyHTTPLifecyclePersistsRelationalRulesAndFailsClosed"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyPatchMapsUniqueKeyConflictsAndRollsBack"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyPatchesOnlySubmittedFieldsWithJSONStringSemantics"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyUsesDefaultsAndNullabilityAndRejectsInvalidInputFields"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestNotificationCenterSubmittedViewsExcludeUnsubmittedDrafts"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPolicyMigrationRunsWithoutAccountSchemaOrHTTPConfiguration"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationCommitUnknownSurvivesExecutableRestart"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationIdentityCanonicalAndDelete"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationRejectsUntrackedCascade"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationSupportsTargetRowTrigger"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQueryPolicyAppliesOpenAndClosedRanges"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQueryPolicyMapsDatabaseTimeoutToSafeGatewayTimeout"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQueryPolicyReturnsEverySupportedLiveTypeAsLosslessJSONString"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQuickRollbackCompetesWithCompletionAndOtherRollbacks"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRecordVersionControlStorageFailureRollsBackBusinessWrites"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRecordVersionRealConcurrentWriters"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRegisteredAccountIsViewer"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseApprovalCurrentRolesAndHistory"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseBatchEdgeAutoIncrementAndIndependentRequests"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseBatchEdgeOverlappingSubmissions"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseBatchExpandedResultsExceedFormerBudget"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseCompletionPermanentlyClosesRollbackWindow"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseCompletionRequiresTrustedPublicationOnReadAndReplay"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseDraftConcurrentAndAtomicStorage"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseDraftMissingIdentityAndTombstone"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseDraftSaveAndReload"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseDraftTitleUnicodeValidation"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseEmergencyAC016PublisherPermissionIsCurrent"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseEmergencyReasonOnlyAcceptedBySubmit"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseFlowAC009PersistsIndependentTablesBeforeFirstRead"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseFlowAC014SeparatesInstancesFromSubmissionApprovals"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseFreezeMetadataCaseInsensitiveNames"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseHeaderAndDetailPagesRequireOneWholeOrderVersion"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseNotificationsDisabledParticipantsRetainOutcomes"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseNotificationsReprepareCancelsSourceAtomically"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleasePublicationAddsFinalRow"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseReprepareRequiresCurrentApplicantEditorOrAdmin"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseRollbackRestoresBusinessFieldsWithNewAudit"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseTargetsCompeteAndCancelReleases"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseTemplateHTTPMaintainsMultipleTypesWithIdempotencyAndVersions"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseTemplateHTTPReplaysDeletionWithoutDeletingRecreatedTemplate"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseTemplateHTTPStandardDeletionKeepsReadOnlyReadiness"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseWritesRequireExplicitTableOnEveryDetail"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRoleChangesAndAccountMaintenanceAreConcurrentSafe"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRollbackFlowCurrentAuthorizationAfterWaitingForMaintenance"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaBaselineRecoversBeforeAttemptWasRecorded"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaBaselineReleaseUpgradesT1AndRecoversPartialAuditRename"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaMigrationConcurrentInitialization"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaMigrationPartialDDLRequiresExplicitRecovery"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaMigrationRejectsIncompleteVersionHistory"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaReadinessRejectsKnownOldRelease"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableApprovalAssignmentRetainsReferenceAndOtherPolicy"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableApprovalQualificationChangesSerializeWithDecisions"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableApprovalSnapshotMembershipFallbackAndHistory"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableReleaseSchemaRecoveryKeepsExistingSelections"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableReleaseTemplateHTTPCurrentAuthorizationAndRequiredRequestIdentity"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "name": "TestMutationPolicyActivationValidatesTypeAutoFillAndAuthorization"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "name": "TestMutationPolicyTableValidationRejectsMissingGeneratedAndTypeIncompatibleTargets"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "name": "TestQueryPolicyCodeIsVersionedLowerCaseAndTechnologyNeutral"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "name": "TestTransactionalManagedTableQueryLoadsAndExecutesCompleteRelationalSnapshotPerRequest"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/domain",
+      "name": "TestRegistrationFieldBoundaries"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestExplicitIdentityNeverReturnsExistingRowAfterTriggerChangesKey"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestIndependentReleaseDetailGrowthDoesNotLockIndexGaps"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestMutationStorageValueErrorsAreEditableButOtherDatabaseFailuresRemainUnavailable"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestAPIAccessLogIsStructuredAndRedactsRequestDetails"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestDomainDoesNotContainORMMappings"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestQueryPolicyResponseUsesCatalogAuditFieldNames"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestReleaseDraftSessionCannotWriteBusinessRows"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestSharedBusinessServicesDoNotStoreRequestIdentity"
+    },
+    {
+      "shard": 3,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/platform/config",
+      "name": "TestMaintenanceConfigNeedsOnlyMySQL"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAccountMaintenanceIndependentConnectionAndAtomicFailures"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAccountProcessDatabaseFailuresRemain503And504"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAccountProcessStopAllowsPendingRequestHeader"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAdminExternalProcessHandlesSIGINTAndSIGTERMGracefully"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAdminProcessHelper"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestAdminProcessServesUnauthenticatedLiveness"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalNotificationsLostHTTPResponsesRecoverOriginalFacts"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalNotificationsQualificationFailureRollsBackEveryEntry"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalRoleFailedRequestRecordRollsBackMembersAndVersion"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestApprovalRoleUnreferencedLifecycle"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestBusinessAPIsRequireSessionAndCSRF"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestConfirmedReleaseFailureHistoryPreservesOriginalRetry"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestDatabaseTableListDiscoversOnlyOrdinaryBaseTables"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestDraftIncrementalEditsReplaceTargetsAtomically"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestDraftSharedKeyReferencesReleaseOnlyAfterLastDetail"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestExactQueryUsesANDValidatedSortAndPreservesAnEmptyRequestedPage"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestFieldPolicyAC009AC018KeepDatabaseDefaultsAndExecutionBoundary"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestFieldPolicyReadDistinguishesDisabledSchemaDriftAndFailure"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLegacyApproverCurrentInputRejectsRetiredGrants"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLegacyApproverInvalidDataAndMaintenanceBoundary"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountConcurrentSessionsActivityAndExpiry"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountHTTPFieldContract"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountMaintenanceAuthorizesBeforeInputs"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountProfileChangesAffectOnlyCurrentAccount"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalAccountSecurityChangesWinAgainstVerifiedLogin"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestLocalManagedTableFixtureIsIdempotentAndImmediatelyUsable"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMultitableCopyCompetesForEveryTargetAndLinksBothOrders"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationAddFailsClosedForInvalidLivePolicyAndSchema"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyDeleteDefaultsToDeniedThenUsesTheCurrentReplacement"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyDeleteFailsClosedForUnsupportedLiveColumns"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyMapsMySQLUniqueKeyViolationsToConflict"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyPatchRejectsInvalidAndNonWritableFields"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestMutationPolicyRejectsMissingRequiredFieldsAndRollsBackDatabaseFailures"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestNotificationCenterCurrentEligibilityAndDurableHandledHistory"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestOldRecordWriteRoutesAreRemoved"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPolicyAuditMigrationPreservesDataAndIsRestartable"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPolicyReplacementAndDisableAffectTheNextQuery"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationFloatIdentityMaintenanceKeepsOldVersions"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationPublisherHistoryAndApprovalSurvivesRevocation"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestPublicationSessionCannotBeReusedAfterTransaction"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQueryFailsClosedWhenLiveSchemaBecomesInvalid"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQueryPolicyContainsTreatsWildcardsAndEscapeCharacterLiterally"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQueryPolicyParsesConditionValuesByLiveType"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQueryPolicySnapshotCorruptionFailsClosed"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQuickRollbackConstraintFailureRollsBackEarlierItems"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQuickRollbackRejectsDatabaseEffectsThatCannotRestoreOriginalValues"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrentRole"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRecordVersionLegacyBaseline"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRecordVersionRejectsNonTransactionalBusinessWrite"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOneSnapshot"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseAutoIncrementZeroIdentity"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseBatchEdgeDraftValidation"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseBatchEdgeRequestLimitsPreserveDraft"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseBatchLargeFieldDraftPreservesInput"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseCompletionPersistenceFailureIsAtomic"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseCompletionRetainsKnownTargets"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseDraftCurrentAuthorizationAndListing"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseDraftPreviewRebuildsMissingAddBaseline"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseDraftSchemaReadiness"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseEmergencyAC012SwitchAndSubmitCompetition"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseEmergencyAC017AC018WholeOrderExecutionAndCompletion"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseExecutionSchemaHoldsMetadataLock"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseFlowAC010MissingConfigurationRequiresExplicitSave"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseFreezeMetadataGrantNameIdentity"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseNotificationsLostResponsesRecoverOriginalFacts"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseNotificationsTerminalCompetitionHasOneResult"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseRejectedCopyRechecksBaseline"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseResetInterruptedTransactionRollsBackAndRetries"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseRollbackRestoresDeletedEnumIdentity"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseSubmitFreezesIntent"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseTemplateHTTPChecksCurrentAuthorizationBeforeReplayingAllWrites"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseTemplateHTTPProtectsEmergencyAndRejectsInvalidNodes"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseTemplateHTTPReplaysEnableAndDisableWithoutChangingLaterState"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestReleaseTemplateSchemaMigrationUpgradesVersionFive"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRollbackFlowAC019PersistsCurrentEmergencyInstancesBeforeDisplay"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestRollbackFlowPreviewDoesNotExtendRecoveryOrFreezeBusinessValues"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaBaselineRecoversUnconfirmedRegistration"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaBaselineUsesTransactionalVersionLedger"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaMigrationConnectionDeadlineAndSafeDiagnostics"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaMigrationProcessInterruptionRequiresSameReleaseRecovery"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaMigrationUpgradesToNextRelease"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestSchemaReadinessRejectsUnmanagedStartup"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableApprovalConcurrentFirstReferenceAndDelete"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTablePolicyCodeAssignmentsValidateActiveDefinitionsAndReplaceAtomically"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "name": "TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "name": "TestMutationPolicyDraftRejectsValuesBlockedByCatalogConstraints"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "name": "TestPolicySnapshotResolverAllowsAssignedDeprecatedDefinitions"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/application",
+      "name": "TestQueryPolicyDraftRejectsValuesBlockedByCatalogScalarConstraints"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/domain",
+      "name": "TestCanonicalRowDeletionAndInvalidRepresentations"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestDraftBaselineAndPublicationSerializeBeforeSnapshot"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestExplicitIdentityReadPermissionFailureAfterInsertRollsBack"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestLegacyBackfillMapsOnlyStandardAuditAutoFill"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "name": "TestPublicationJSONIdentityDoesNotUseURLPathSegments"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestAPIAccessLogUsesRouteTemplatesWithoutDynamicTableOrRowValues"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestAPIRejectsOldBearerCredentialsWhileHealthRemainsPublic"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestFieldPolicyErrorPreservesTimeoutContract"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestRawPathMutationRoutingPreservesAPIGuards"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "name": "TestReleaseNotificationReadsCannotAcquireWriteCapabilities"
+    },
+    {
+      "shard": 4,
+      "package": "github.com/asherzj/relational-config-center/admin/internal/platform/config",
+      "name": "TestLoadRejectsInvalidHTTPBindAddresses"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+^D[?25l
+ RUN  v4.1.11 /private/tmp/rcc-template-notification-integration/web
+
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx (78 tests | 1 failed) 25924ms
+   × 仅有审批角色的人填写意见批准冻结单据 306ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/release-orders/ReleaseOrdersPage.test.tsx > 仅有审批角色的人填写意见批准冻结单据
+Error: expect(element).toBeVisible()
+
+Received element is not visible:
+  <strong
+  class="min-w-0 break-all font-medium text-foreground"
+/>
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx:671:51
+    669|  await user.click(screen.getByRole("button",{name:"确认批准"}));
+    670|  expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisi…
+    671|  expect((await screen.findAllByText("首次审批人"))[0]).toBeVisible();expect…
+       |                                                   ^
+    672|  expect(writes).toHaveLength(1);expect(JSON.parse(String(writes[0]!.bo…
+    673| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 7 passed (8)
+      Tests  1 failed | 153 passed (154)
+   Start at  15:21:38
+   Duration  28.70s (transform 3.46s, setup 3.02s, import 5.99s, tests 42.21s, environment 7.37s)
+
+[?25h

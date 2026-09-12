@@ -1,0 +1,34 @@
+{
+  "engine": "webkit",
+  "control": {
+    "tag": "TEXTAREA",
+    "type": "textarea",
+    "maxLength": -1
+  },
+  "effective_ui_type": "textarea",
+  "expected": {
+    "characters": 3145728,
+    "bytes": 9437184,
+    "sha256": "64a3eb3c8ae9994b9148f5e367cd1f1819f2fc532c61a9500f1d7a408ac561c2"
+  },
+  "input": {
+    "characters": 3145728,
+    "bytes": 9437184,
+    "sha256": "64a3eb3c8ae9994b9148f5e367cd1f1819f2fc532c61a9500f1d7a408ac561c2"
+  },
+  "captured_body": {
+    "characters": 3145858,
+    "bytes": 9437328,
+    "sha256": "e91ba8a934c8a0e775ca2ee557ac00615c7ad9e2a80b3c2a60d3f5f9cfa90a11"
+  },
+  "captured_payload": {
+    "characters": 3145728,
+    "bytes": 9437184,
+    "sha256": "64a3eb3c8ae9994b9148f5e367cd1f1819f2fc532c61a9500f1d7a408ac561c2"
+  },
+  "saved_payload": {
+    "characters": 3145728,
+    "bytes": 9437184,
+    "sha256": "64a3eb3c8ae9994b9148f5e367cd1f1819f2fc532c61a9500f1d7a408ac561c2"
+  }
+}

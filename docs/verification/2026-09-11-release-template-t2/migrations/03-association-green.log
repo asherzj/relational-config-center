@@ -1,0 +1,24 @@
+=== RUN   TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections
+2026/09/11 06:57:46 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: cdcec4619053a37e360d69c2a6f2c64baa955dfd5b6a6442f52163449fd33c86
+  Test ProcessID: 82eeade7-e9ef-400b-b091-62350410c01c
+2026/09/11 06:57:46 🐳 Creating container for image mysql:8.4
+2026/09/11 06:57:46 ✅ Container created: 40a0693a454e
+2026/09/11 06:57:46 🐳 Starting container: 40a0693a454e
+2026/09/11 06:57:46 ✅ Container started: 40a0693a454e
+2026/09/11 06:57:46 ⏳ Waiting for container id 40a0693a454e image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 06:57:52 🔔 Container is ready: 40a0693a454e
+2026/09/11 06:57:54 🐳 Stopping container: 40a0693a454e
+2026/09/11 06:57:55 ✅ Container stopped: 40a0693a454e
+2026/09/11 06:57:55 🐳 Terminating container: 40a0693a454e
+2026/09/11 06:57:55 🚫 Container terminated: 40a0693a454e
+--- PASS: TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections (11.08s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	11.945s

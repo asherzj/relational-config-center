@@ -1,0 +1,953 @@
+diff --git a/admin/cmd/admin/release_batch_integration_test.go b/admin/cmd/admin/release_batch_integration_test.go
+index 925a744..ed1986c 100644
+--- a/admin/cmd/admin/release_batch_integration_test.go
++++ b/admin/cmd/admin/release_batch_integration_test.go
+@@ -217,7 +217,7 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
+ 	if json.Unmarshal(previewBytes, &preview) != nil || len(preview.Items) != 1000 {
+ 		t.Fatal("incomplete restoration preview")
+ 	}
+-	body := quickRollbackBody("4", preview.Digest, "")
++	body := quickRollbackBody(preview.ExpectedVersion, preview.Digest, "")
+ 	restored := request(path+"/quick-rollback", body, "thousand-restore", cookies, csrf)
+ 	var reverse domain.ReleaseOrder
+ 	if json.Unmarshal(restored, &reverse) != nil || reverse.State != "ROLLED_BACK" || reverse.ID != order.ID || singleExecutionTableVersion(reverse.Executions[1]) != "2" || len(executionCommands(reverse, "ROLLBACK")) != 1000 {
+diff --git a/admin/cmd/admin/release_completion_integration_test.go b/admin/cmd/admin/release_completion_integration_test.go
+index b8290b2..860580a 100644
+--- a/admin/cmd/admin/release_completion_integration_test.go
++++ b/admin/cmd/admin/release_completion_integration_test.go
+@@ -41,9 +41,9 @@ func TestReleaseCompletionPermanentlyClosesRollbackWindow(t *testing.T) {
+ 	actor := integrationAdminSession(t, app)
+ 	preview := readQuickPreview(t, app, actor, path, "4")
+ 	completePublicationFixture(t, app, path, "closed-complete")
+-	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"5"}`, ""), 422, "release_state_invalid")
+-	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody("5", preview.Digest, ""), "closed-rollback"), 422, "release_state_invalid")
+-	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/rollback", `{"expected_version":"5","reason":"old path"}`, "closed-legacy"), 404, "route_not_found")
++	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"6"}`, fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1))), 422, "release_state_invalid")
++	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody("6", preview.Digest, ""), "closed-rollback"), 422, "release_state_invalid")
++	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/rollback", `{"expected_version":"6","reason":"old path"}`, "closed-legacy"), 404, "route_not_found")
+ 	row, version := recordVersionRow(t, app, "mutation_add_items", "100")
+ 	if *row["label"] != "published" || version != "1" {
+ 		t.Fatal("closed window altered configuration")
+@@ -273,5 +273,5 @@ func TestReleaseCompletionAtPublicationCapacityClosesRollbackWindow(t *testing.T
+ 	if replay.Code != 200 || replay.Body.String() != response.Body.String() {
+ 		t.Fatal("capacity completion lost original result")
+ 	}
+-	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback/preview", fmt.Sprintf(`{"expected_version":%q}`, completed.Version), ""), 422, "release_state_invalid")
++	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback/preview", fmt.Sprintf(`{"expected_version":%q}`, completed.Version), fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1))), 422, "release_state_invalid")
+ }
+diff --git a/admin/cmd/admin/release_emergency_integration_test.go b/admin/cmd/admin/release_emergency_integration_test.go
+index 3ff398a..f809438 100644
+--- a/admin/cmd/admin/release_emergency_integration_test.go
++++ b/admin/cmd/admin/release_emergency_integration_test.go
+@@ -203,11 +203,11 @@ func TestReleaseEmergencyAC017AC018WholeOrderExecutionAndCompletion(t *testing.T
+ 	}
+ 	contender := `{"title":"保护中的目标","release_type":"EMERGENCY","items":[{"table_name":"emergency_children","operation":"MODIFY","id":"1","expected_record_version":"1","content":{"label":"later"}}]}`
+ 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", contender, "emergency-target-after-publication"), 409, "release_target_conflict")
+-	preview := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"3"}`, "")
++	preview := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"3"}`, fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1)))
+ 	if preview.Code != 200 {
+ 		t.Fatal("protected rollback entrance disappeared", preview.Body)
+ 	}
+-	completed := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/complete", `{"expected_version":"3"}`, "emergency-whole-complete"), 200)
++	completed := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/complete", `{"expected_version":"4"}`, "emergency-whole-complete"), 200)
+ 	if completed.State != "COMPLETED" || len(completed.Executions) != 1 {
+ 		t.Fatal("completion invented execution", completed)
+ 	}
+@@ -220,14 +220,14 @@ func TestReleaseEmergencyAC017AC018WholeOrderExecutionAndCompletion(t *testing.T
+ 			t.Fatal("completion lacks actual actor/time", flow)
+ 		}
+ 	}
+-	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, ""), 422, "release_state_invalid")
++	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"5"}`, fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1))), 422, "release_state_invalid")
+ 	flowResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", contender, "emergency-target-after-publication"), 201)
+ 	old := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"2"}`, "emergency-whole-execute"), 200)
+ 	if old.State != "SUCCEEDED" || old.Version != "3" || !reflect.DeepEqual(old.Executions, published.Executions) {
+ 		t.Fatal("original result lost", old)
+ 	}
+ 	current := flowResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
+-	if current.State != "COMPLETED" || current.Version != "4" {
++	if current.State != "COMPLETED" || current.Version != "5" {
+ 		t.Fatal("historical replay changed current", current)
+ 	}
+ }
+diff --git a/admin/cmd/admin/release_history_delivery_integration_test.go b/admin/cmd/admin/release_history_delivery_integration_test.go
+index 0a797e2..f51adf7 100644
+--- a/admin/cmd/admin/release_history_delivery_integration_test.go
++++ b/admin/cmd/admin/release_history_delivery_integration_test.go
+@@ -134,12 +134,12 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
+ 	forward = action(editor, forward, "submit", "")
+ 	forward = action(reviewer, forward, "approve", "正向批准意见")
+ 	forward = action(publisher, forward, "execute", "")
+-	previewBytes := request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback/preview", `{"expected_version":"4"}`, "", 200)
++	previewBytes := request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback/preview", `{"expected_version":"4"}`, "history-preview", 200)
+ 	var preview quickPreviewResponse
+ 	if json.Unmarshal(previewBytes, &preview) != nil {
+ 		t.Fatal("preview decode")
+ 	}
+-	forward = decode(request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback", quickRollbackBody("4", preview.Digest, "事后可选原因"), "history-restore", 200))
++	forward = decode(request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, "事后可选原因"), "history-restore", 200))
+ 	if forward.State != "ROLLED_BACK" || len(forward.Executions) < 2 || len(forward.Executions) != 2 {
+ 		t.Fatal("original rollback history missing")
+ 	}
+diff --git a/admin/cmd/admin/release_multitable_integration_test.go b/admin/cmd/admin/release_multitable_integration_test.go
+index e5de8f7..df3efa9 100644
+--- a/admin/cmd/admin/release_multitable_integration_test.go
++++ b/admin/cmd/admin/release_multitable_integration_test.go
+@@ -59,18 +59,18 @@ func TestMultitablePublicationPreservesGlobalOrderAndOriginalResults(t *testing.
+ 	conflict := releaseRequest(t, app, "POST", "/api/v1/release-orders", `{"title":"actual generated identity","items":[{"table_name":"m_release_generated","operation":"MODIFY","id":"1","expected_record_version":"1","content":{"label":"blocked"}}]}`, "multitable-generated-conflict")
+ 	assertIntegrationErrorCode(t, conflict, 409, "release_target_conflict")
+ 	deliveryExec(t, db, `ALTER TABLE a_release_children MODIFY label VARCHAR(81)`)
+-	changedSchema := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, "")
++	changedSchema := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1)))
+ 	assertIntegrationErrorCode(t, changedSchema, 409, "release_frozen_changed")
+ 	if !strings.Contains(changedSchema.Body.String(), `"item_index":2`) {
+ 		t.Fatalf("restoration failure must use reverse position: %s", changedSchema.Body.String())
+ 	}
+ 	deliveryExec(t, db, `ALTER TABLE a_release_children MODIFY label VARCHAR(80)`)
+ 	var preview quickPreviewResponse
+-	previewResponse := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, "")
++	previewResponse := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1)))
+ 	if previewResponse.Code != 200 || json.Unmarshal(previewResponse.Body.Bytes(), &preview) != nil {
+ 		t.Fatalf("preview: %s", previewResponse.Body)
+ 	}
+-	restored := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, ""), "multitable-rollback"), 200)
++	restored := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, ""), "multitable-rollback"), 200)
+ 	if restored.ID != published.ID || restored.State != "ROLLED_BACK" || !reflect.DeepEqual(applicationItems(restored), applicationItems(published)) || !reflect.DeepEqual(executionCommands(restored, "PUBLICATION"), executionCommands(published, "PUBLICATION")) {
+ 		t.Fatal("original facts changed")
+ 	}
+@@ -150,12 +150,12 @@ func TestMultitableThousandPagedDetailsExecuteAsOneOrder(t *testing.T) {
+ 		}
+ 	}
+ 	var preview quickPreviewResponse
+-	response := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", fmt.Sprintf(`{"expected_version":%q}`, published.Version), "")
++	response := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", fmt.Sprintf(`{"expected_version":%q}`, published.Version), fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1)))
+ 	if response.Code != 200 || json.Unmarshal(response.Body.Bytes(), &preview) != nil {
+ 		t.Fatalf("preview %d %.500s", response.Code, response.Body.String())
+ 	}
+ 	started = time.Now()
+-	restored := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody(published.Version, preview.Digest, ""), "thousand-multi-rollback"), 200)
++	restored := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, ""), "thousand-multi-rollback"), 200)
+ 	t.Logf("1000 multitable rollback %s", time.Since(started))
+ 	if len(executionCommands(restored, "ROLLBACK")) != 1000 || !reflect.DeepEqual(applicationItems(restored), applicationItems(published)) {
+ 		t.Fatal("incomplete inverse")
+@@ -306,12 +306,12 @@ func TestMultitableLargeValuesThroughHTTPLifecycle(t *testing.T) {
+ 			t.Fatal("large actual result truncated")
+ 		}
+ 	}
+-	previewResponse := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, "")
++	previewResponse := releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1)))
+ 	var preview quickPreviewResponse
+ 	if previewResponse.Code != 200 || json.Unmarshal(previewResponse.Body.Bytes(), &preview) != nil {
+ 		t.Fatalf("large preview: status %d, %.500s", previewResponse.Code, previewResponse.Body.String())
+ 	}
+-	restored := releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, ""), "large-multitable-rollback")
++	restored := releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, ""), "large-multitable-rollback")
+ 	if restored.Code != 200 {
+ 		t.Fatalf("large restore: status %d, %.500s", restored.Code, restored.Body.String())
+ 	}
+diff --git a/admin/cmd/admin/release_notifications_failures_integration_test.go b/admin/cmd/admin/release_notifications_failures_integration_test.go
+index df07cf3..ad7d561 100644
+--- a/admin/cmd/admin/release_notifications_failures_integration_test.go
++++ b/admin/cmd/admin/release_notifications_failures_integration_test.go
+@@ -29,7 +29,7 @@ func TestReleaseNotificationsPersistenceFailuresPreserveAllFacts(t *testing.T) {
+ 			}
+ 			if action == "quick-rollback" {
+ 				preview := readQuickPreview(t, app, publisher, path, "4")
+-				body = quickRollbackBody("4", preview.Digest, "原子恢复")
++				body = quickRollbackBody(preview.ExpectedVersion, preview.Digest, "原子恢复")
+ 			}
+ 			before := rollbackOrderResponse(t, releaseActorReadAllDetails(t, app, applicant, "GET", path, "", ""), 200)
+ 			facts := releaseNotificationFacts(t, db, before.ID)
+@@ -60,6 +60,7 @@ func TestReleaseNotificationsPersistenceFailuresPreserveAllFacts(t *testing.T) {
+ 				}
+ 			}
+ 			different := strings.Replace(body, `"expected_version":"3"`, `"expected_version":"999"`, 1)
++			different = strings.Replace(different, `"expected_version":"5"`, `"expected_version":"999"`, 1)
+ 			different = strings.Replace(different, `"expected_version":"4"`, `"expected_version":"999"`, 1)
+ 			assertIntegrationErrorCode(t, releaseActorRequest(t, app, publisher, "POST", path+"/"+action, different, "atomic-action-"+action), 409, "idempotency_conflict")
+ 			if !reflect.DeepEqual(savedFacts, releaseNotificationFacts(t, db, result.ID)) || readApprovalProgress(t, app, applicant, path) != applicantAfter || readApprovalProgress(t, app, reviewer, path) != reviewerAfter {
+@@ -224,7 +225,7 @@ func TestReleaseNotificationsTerminalCompetitionHasOneResult(t *testing.T) {
+ 			applicantBefore := readApprovalProgress(t, app, applicant, path)
+ 			reviewerBefore := readApprovalProgress(t, app, reviewer, path)
+ 			preview := readQuickPreview(t, app, publisher, path, "4")
+-			body := quickRollbackBody("4", preview.Digest, "竞争恢复")
++			body := quickRollbackBody(preview.ExpectedVersion, preview.Digest, "竞争恢复")
+ 			type result struct {
+ 				action, key, body string
+ 				response          *httptest.ResponseRecorder
+@@ -236,7 +237,7 @@ func TestReleaseNotificationsTerminalCompetitionHasOneResult(t *testing.T) {
+ 				action, key, request := "quick-rollback", fmt.Sprintf("race-result-%s-%d", mode, n), body
+ 				if n == 1 && mode == "complete" {
+ 					action = "complete"
+-					request = `{"expected_version":"4"}`
++					request = fmt.Sprintf(`{"expected_version":%q}`, preview.ExpectedVersion)
+ 				}
+ 				if n == 1 && mode == "rollback-same" {
+ 					key = "race-result-" + mode + "-0"
+@@ -267,7 +268,7 @@ func TestReleaseNotificationsTerminalCompetitionHasOneResult(t *testing.T) {
+ 			terminal := rollbackOrderResponse(t, winner.response, 200)
+ 			applicantAfter := assertReleaseNotificationAdvance(t, app, applicant, path, applicantBefore)
+ 			reviewerAfter := assertReleaseNotificationAdvance(t, app, reviewer, path, reviewerBefore)
+-			if terminal.Version != "5" || len(terminal.History) != 5 {
++			if terminal.Version != "6" || len(terminal.History) != 6 {
+ 				t.Fatal("duplicate workflow result")
+ 			}
+ 			executions, rows := 2, 0
+@@ -317,7 +318,7 @@ func TestReleaseNotificationsDisabledParticipantsRetainOutcomes(t *testing.T) {
+ 	}
+ 	rollbackOrderResponse(t, releaseActorRequest(t, app, publisher, "POST", completePath+"/complete", `{"expected_version":"4"}`, "disabled-complete"), 200)
+ 	preview := readQuickPreview(t, app, publisher, rollbackPath, "4")
+-	rollbackOrderResponse(t, releaseActorRequest(t, app, publisher, "POST", rollbackPath+"/quick-rollback", quickRollbackBody("4", preview.Digest, "停用参与人仍有历史"), "disabled-rollback"), 200)
++	rollbackOrderResponse(t, releaseActorRequest(t, app, publisher, "POST", rollbackPath+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, "停用参与人仍有历史"), "disabled-rollback"), 200)
+ 	f.run(t, "", "enable", "--id", accountID(t, reviewer))
+ 	reviewer = loginAccount(t, app, "lifecycle.reviewer", "correct horse battery staple")
+ 	for _, path := range []string{completePath, rollbackPath} {
+@@ -341,7 +342,7 @@ func prepareReleaseNotificationAction(t *testing.T, app *adminApplication, appli
+ 	}
+ 	if action == "quick-rollback" {
+ 		preview := readQuickPreview(t, app, publisher, path, "4")
+-		body = quickRollbackBody("4", preview.Digest, "transport recovery")
++		body = quickRollbackBody(preview.ExpectedVersion, preview.Digest, "transport recovery")
+ 	}
+ 	if action == "reprepare" {
+ 		source := rollbackOrderResponse(t, releaseActorReadAllDetails(t, app, applicant, "GET", path, "", ""), 200)
+diff --git a/admin/cmd/admin/release_notifications_integration_test.go b/admin/cmd/admin/release_notifications_integration_test.go
+index c8dfcf6..9d981b2 100644
+--- a/admin/cmd/admin/release_notifications_integration_test.go
++++ b/admin/cmd/admin/release_notifications_integration_test.go
+@@ -90,7 +90,7 @@ func TestReleaseNotificationsTerminalResultsPreserveOwnUnread(t *testing.T) {
+ 			body := `{"expected_version":"4"}`
+ 			if action == "quick-rollback" {
+ 				preview := readQuickPreview(t, app, reviewer, path, "4")
+-				body = quickRollbackBody("4", preview.Digest, "还原真实配置")
++				body = quickRollbackBody(preview.ExpectedVersion, preview.Digest, "还原真实配置")
+ 			}
+ 			response := releaseActorRequest(t, app, reviewer, "POST", path+"/"+action, body, "terminal-"+action)
+ 			terminal := rollbackOrderResponse(t, response, 200)
+@@ -109,7 +109,11 @@ func TestReleaseNotificationsTerminalResultsPreserveOwnUnread(t *testing.T) {
+ 				expectedState = "ROLLED_BACK"
+ 				expectedRows = 0
+ 			}
+-			if terminal.Version != "5" || terminal.State != expectedState || len(terminal.Executions) != expectedExecutions {
++			expectedVersion := "5"
++			if action == "quick-rollback" {
++				expectedVersion = "6"
++			}
++			if terminal.Version != expectedVersion || terminal.State != expectedState || len(terminal.Executions) != expectedExecutions {
+ 				t.Fatalf("terminal result: %+v", terminal)
+ 			}
+ 			for table, notice := range original.Executions[0].Notifications {
+diff --git a/admin/cmd/admin/release_original_execution_integration_test.go b/admin/cmd/admin/release_original_execution_integration_test.go
+index 6d062b3..a06c0f3 100644
+--- a/admin/cmd/admin/release_original_execution_integration_test.go
++++ b/admin/cmd/admin/release_original_execution_integration_test.go
+@@ -26,13 +26,13 @@ func TestOriginalOrderRollbackPreservesApplicationAndBothExecutions(t *testing.T
+ 	actor := registerAccount(t, app, "original.publisher", "original.publisher@example.com", "correct horse battery staple")
+ 	grantReleaseRole(t, app, actor, `["PUBLISHER"]`, "1", "original-publisher")
+ 	preview := readQuickPreview(t, app, actor, path, "4")
+-	body := quickRollbackBody("4", preview.Digest, "")
++	body := quickRollbackBody(preview.ExpectedVersion, preview.Digest, "")
+ 	response := releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, "original-rollback")
+ 	restored := rollbackOrderResponse(t, response, 200)
+-	if restored.ID != published.ID || restored.State != "ROLLED_BACK" || restored.Version != "5" || restored.ApplicantID != published.ApplicantID || restored.Title != published.Title || !reflect.DeepEqual(applicationItems(restored), applicationItems(published)) || !reflect.DeepEqual(executionCommands(restored, "PUBLICATION"), executionCommands(published, "PUBLICATION")) {
++	if restored.ID != published.ID || restored.State != "ROLLED_BACK" || restored.Version != "6" || restored.ApplicantID != published.ApplicantID || restored.Title != published.Title || !reflect.DeepEqual(applicationItems(restored), applicationItems(published)) || !reflect.DeepEqual(executionCommands(restored, "PUBLICATION"), executionCommands(published, "PUBLICATION")) {
+ 		t.Fatal("rollback replaced the application or created another order", restored)
+ 	}
+-	if len(restored.History) != len(published.History)+1 || !reflect.DeepEqual(restored.History[:len(published.History)], published.History) {
++	if len(restored.History) != len(published.History)+2 || !reflect.DeepEqual(restored.History[:len(published.History)], published.History) {
+ 		t.Fatal("application or approval history overwritten")
+ 	}
+ 	var result domain.ReleaseOrder
+@@ -88,5 +88,5 @@ func TestOriginalOrderRollbackPreservesApplicationAndBothExecutions(t *testing.T
+ 		`SELECT COUNT(*) FROM rcc_refresh_notifications`: 2,
+ 		`SELECT COUNT(*) FROM rcc_release_targets`:       0,
+ 	})
+-	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("5", preview.Digest, ""), "original-repeat"), 422, "release_state_invalid")
++	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("6", preview.Digest, ""), "original-repeat"), 422, "release_state_invalid")
+ }
+diff --git a/admin/cmd/admin/release_paged_reads_integration_test.go b/admin/cmd/admin/release_paged_reads_integration_test.go
+index ae04ff4..236190f 100644
+--- a/admin/cmd/admin/release_paged_reads_integration_test.go
++++ b/admin/cmd/admin/release_paged_reads_integration_test.go
+@@ -156,32 +156,32 @@ func TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder(t *testing.T)
+ 	t.Run("reject exchanged publication results on same table", func(t *testing.T) { corruptResult(t, "publication", "4", true) })
+ 	t.Run("reject publication without original detail identity", func(t *testing.T) { corruptResult(t, "publication", "4", false) })
+ 	preview := readQuickPreview(t, app, actor, path, "4")
+-	restored := rollbackOrderResponse(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, ""), "paged-rollback"), 200)
++	restored := rollbackOrderResponse(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, ""), "paged-rollback"), 200)
+ 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "GET", path+"/details?expected_version=4&offset=20&limit=20", "", ""), 409, "release_version_conflict")
+ 	header = readHeader()
+ 	if header.State != "ROLLED_BACK" || len(header.Executions) != 2 {
+ 		t.Fatal(header)
+ 	}
+-	first, last = readPage("5", 0), readPage("5", 20)
++	first, last = readPage("6", 0), readPage("6", 20)
+ 	for index, item := range append(first.Items, last.Items...) {
+ 		if item.DetailID != published.Items[index].DetailID || !reflect.DeepEqual(item.Publication, published.Items[index].Publication) || item.Rollback == nil || item.Rollback.ID != item.Publication.ID || item.Rollback.ExecutionID != restored.Executions[1].ID || item.Rollback.Operation != "DELETE" {
+ 			t.Fatal("restoration detached from original detail", index, item)
+ 		}
+ 	}
+-	t.Run("reject rollback without original detail identity", func(t *testing.T) { corruptResult(t, "rollback", "5", false) })
++	t.Run("reject rollback without original detail identity", func(t *testing.T) { corruptResult(t, "rollback", "6", false) })
+ 	replay := rollbackOrderResponse(t, releaseActorRequest(t, app, actor, "POST", path+"/execute", `{"expected_version":"3"}`, "paged-publication"), 200)
+ 	if replay.State != "SUCCEEDED" || len(replay.Executions) != 1 || replay.Items[20].Rollback != nil {
+ 		t.Fatal("original acknowledgement changed", replay)
+ 	}
+-	if current := readHeader(); current.State != "ROLLED_BACK" || current.Version != "5" {
++	if current := readHeader(); current.State != "ROLLED_BACK" || current.Version != "6" {
+ 		t.Fatal("old acknowledgement replaced current terminal state", current)
+ 	}
+ 	grantReleaseRole(t, app, actor, `["VIEWER"]`, "2", "paged-revoke-publisher")
+ 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/execute", `{"expected_version":"3"}`, "paged-publication"), 403, "permission_denied")
+-	if current := readHeader(); current.State != "ROLLED_BACK" || current.Version != "5" {
++	if current := readHeader(); current.State != "ROLLED_BACK" || current.Version != "6" {
+ 		t.Fatal(current)
+ 	}
+-	readPage("5", 20)
++	readPage("6", 20)
+ 	// The last page rejects an otherwise valid result from the wrong detail.
+ 	var encoded []byte
+ 	if err := db.QueryRow(`SELECT rollback FROM rcc_release_details WHERE order_id=? AND position=20`, published.ID).Scan(&encoded); err != nil {
+@@ -192,5 +192,5 @@ func TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder(t *testing.T)
+ 	if _, err := db.Exec(`UPDATE rcc_release_details SET rollback=? WHERE order_id=? AND position=20`, encoded, published.ID); err != nil {
+ 		t.Fatal(err)
+ 	}
+-	readPage("5", 20)
++	readPage("6", 20)
+ }
+diff --git a/admin/cmd/admin/release_quick_rollback_integration_test.go b/admin/cmd/admin/release_quick_rollback_integration_test.go
+index d1333f6..78cdab5 100644
+--- a/admin/cmd/admin/release_quick_rollback_integration_test.go
++++ b/admin/cmd/admin/release_quick_rollback_integration_test.go
+@@ -22,14 +22,14 @@ type quickPreviewResponse struct {
+ }
+ 
+ // #59 AC-004/015: read the complete actual restoration before confirming it.
+-func TestQuickRollbackPreviewShowsWholeRestorationWithoutWriting(t *testing.T) {
++func TestQuickRollbackPreviewShowsWholeRestorationWithoutWritingBusinessData(t *testing.T) {
+ 	app, _ := batchEdgeApplication(t, `INSERT INTO mutation_add_items(id,code,label) VALUES(10,'before-modify','old'),(20,'before-delete','retained')`)
+ 	enableMutationPolicy(t, app, "mutation_add_items", mutationPolicyFixture{AllowAdd: true, AllowModify: true, AllowDelete: true})
+ 	path := approvePublication(t, app, publicationFixtureReviewer(t, app), `{"items":[{"content":{"code":"new","label":"added"},"operation":"ADD","table_name":"mutation_add_items"},{"content":{"label":"published"},"expected_record_version":"0","id":"10","operation":"MODIFY","table_name":"mutation_add_items"},{"content":{},"expected_record_version":"0","id":"20","operation":"DELETE","table_name":"mutation_add_items"}],"title":"渠道紧急修正"}`, "quick-preview")
+ 	original := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "quick-preview-publish"), 200)
+ 	publisher := registerAccount(t, app, "quick.publisher", "quick.publisher@example.com", "correct horse battery staple")
+ 	grantReleaseRole(t, app, publisher, `["PUBLISHER"]`, "1", "quick-publisher-role")
+-	response := releaseActorRequest(t, app, publisher, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, "")
++	response := releaseActorRequest(t, app, publisher, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1)))
+ 	if response.Code != 200 {
+ 		t.Fatalf("preview: %d %s", response.Code, response.Body)
+ 	}
+@@ -37,7 +37,7 @@ func TestQuickRollbackPreviewShowsWholeRestorationWithoutWriting(t *testing.T) {
+ 	if err := json.Unmarshal(response.Body.Bytes(), &preview); err != nil {
+ 		t.Fatal(err)
+ 	}
+-	if preview.OrderID != original.ID || preview.ExpectedVersion != "4" || len(preview.Digest) != 64 || len(preview.Items) != 3 {
++	if preview.OrderID != original.ID || preview.ExpectedVersion != "5" || len(preview.Digest) != 64 || len(preview.Items) != 3 {
+ 		t.Fatal("preview did not identify the complete reviewed version", preview)
+ 	}
+ 	if preview.Items[0].Operation != "ADD" || *preview.Items[0].Content["label"] != "retained" || preview.Items[1].Operation != "MODIFY" || *preview.Items[1].Before["label"] != "published" || *preview.Items[1].Content["label"] != "old" || preview.Items[2].Operation != "DELETE" || string(*preview.Items[2].ID) != executionCommands(original, "PUBLICATION")[0].ID {
+@@ -49,8 +49,8 @@ func TestQuickRollbackPreviewShowsWholeRestorationWithoutWriting(t *testing.T) {
+ 		}
+ 	}
+ 	current := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
+-	if !reflect.DeepEqual(original, current) {
+-		t.Fatal("preview changed order or history")
++	if current.Version != "5" || len(current.History) != len(original.History)+1 || !reflect.DeepEqual(original.Items, current.Items) || !reflect.DeepEqual(original.Executions, current.Executions) {
++		t.Fatal("preview must save workflow without changing business results")
+ 	}
+ 	row, version := recordVersionRow(t, app, "mutation_add_items", "10")
+ 	if *row["label"] != "published" || version != "1" {
+@@ -68,7 +68,7 @@ func TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult(t *testing.
+ 	publisher := registerAccount(t, app, "quick.executor", "quick.executor@example.com", "correct horse battery staple")
+ 	grantReleaseRole(t, app, publisher, `["PUBLISHER"]`, "1", "quick-executor-role")
+ 	preview := readQuickPreview(t, app, publisher, path, "4")
+-	body := quickRollbackBody("4", preview.Digest, "恢复整单配置")
++	body := quickRollbackBody(preview.ExpectedVersion, preview.Digest, "恢复整单配置")
+ 	response := releaseActorRequest(t, app, publisher, "POST", path+"/quick-rollback", body, "quick-mixed-execute")
+ 	reverse := rollbackOrderResponse(t, response, 200)
+ 	if reverse.State != "ROLLED_BACK" || reverse.ID != original.ID || len(reverse.Executions) < 2 || reverse.Executions[1].ActorID != accountID(t, publisher) || reverse.ApplicantID != original.ApplicantID || singleExecutionTableVersion(reverse.Executions[1]) != "2" {
+@@ -85,7 +85,7 @@ func TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult(t *testing.
+ 	if !reflect.DeepEqual(current.TableFlows, reverse.TableFlows) {
+ 		t.Fatal("stopped forward nodes were not persisted")
+ 	}
+-	if !reflect.DeepEqual(applicationItems(current), applicationItems(original)) || !reflect.DeepEqual(executionCommands(current, "PUBLICATION"), executionCommands(original, "PUBLICATION")) || len(current.History) != len(original.History)+1 {
++	if !reflect.DeepEqual(applicationItems(current), applicationItems(original)) || !reflect.DeepEqual(executionCommands(current, "PUBLICATION"), executionCommands(original, "PUBLICATION")) || len(current.History) != len(original.History)+2 {
+ 		t.Fatal("original application overwritten")
+ 	}
+ 	event := current.History[len(current.History)-1]
+@@ -110,15 +110,15 @@ func TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult(t *testing.
+ 	if replay.Code != 200 || replay.Body.String() != response.Body.String() {
+ 		t.Fatal("original request did not replay its exact result", replay.Body)
+ 	}
+-	assertIntegrationErrorCode(t, releaseActorRequest(t, app, publisher, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, "changed reason"), "quick-mixed-execute"), 409, "idempotency_conflict")
++	assertIntegrationErrorCode(t, releaseActorRequest(t, app, publisher, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, "changed reason"), "quick-mixed-execute"), 409, "idempotency_conflict")
+ 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/rollback", `{}`, "quick-old-route"), 404, "route_not_found")
+ 	for _, action := range []string{"complete", "quick-rollback"} {
+-		invalid := `{"expected_version":"5","reason":"no reverse again"}`
++		invalid := `{"expected_version":"6","reason":"no reverse again"}`
+ 		if action == "complete" {
+-			invalid = `{"expected_version":"5"}`
++			invalid = `{"expected_version":"6"}`
+ 		}
+ 		if action == "quick-rollback" {
+-			invalid = quickRollbackBody("5", preview.Digest, "no reverse again")
++			invalid = quickRollbackBody("6", preview.Digest, "no reverse again")
+ 		}
+ 		assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+reverse.ID+"/"+action, invalid, "quick-terminal-"+action), 422, "release_state_invalid")
+ 	}
+@@ -129,7 +129,7 @@ func TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult(t *testing.
+ 
+ func readQuickPreview(t *testing.T, app *adminApplication, actor *httptest.ResponseRecorder, path, version string) quickPreviewResponse {
+ 	t.Helper()
+-	response := releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback/preview", fmt.Sprintf(`{"expected_version":%q}`, version), "")
++	response := releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback/preview", fmt.Sprintf(`{"expected_version":%q}`, version), fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1)))
+ 	if response.Code != 200 {
+ 		t.Fatalf("preview: %d %s", response.Code, response.Body)
+ 	}
+@@ -154,9 +154,10 @@ func TestQuickRollbackRejectsUnversionedExternalChangesBeforePreviewAndExecution
+ 	actor := registerAccount(t, app, "quick.external", "quick.external@example.com", "correct horse battery staple")
+ 	grantReleaseRole(t, app, actor, `["PUBLISHER"]`, "1", "quick-external-role")
+ 	preview := readQuickPreview(t, app, actor, path, "4")
++	original = rollbackOrderResponse(t, releaseActorReadAllDetails(t, app, actor, "GET", path, "", ""), 200)
+ 	deliveryExec(t, db, `UPDATE mutation_add_items SET label='external-newer' WHERE id=10`)
+-	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, ""), 409, "record_version_conflict")
+-	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, "restore"), "quick-external-execute"), 409, "record_version_conflict")
++	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback/preview", fmt.Sprintf(`{"expected_version":%q}`, preview.ExpectedVersion), fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1))), 409, "record_version_conflict")
++	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, "restore"), "quick-external-execute"), 409, "record_version_conflict")
+ 	current := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
+ 	assertReleaseFailureOnly(t, original, current, "QUICK_ROLLBACK_FAILED")
+ 	for _, id := range []string{"10", "20"} {
+@@ -182,8 +183,9 @@ func TestQuickRollbackRequiresItsOriginalRetainedTargets(t *testing.T) {
+ 	actor := registerAccount(t, app, "quick.target", "quick.target@example.com", "correct horse battery staple")
+ 	grantReleaseRole(t, app, actor, `["PUBLISHER"]`, "1", "quick-target-role")
+ 	preview := readQuickPreview(t, app, actor, path, "4")
++	original = rollbackOrderResponse(t, releaseActorReadAllDetails(t, app, actor, "GET", path, "", ""), 200)
+ 	deliveryExec(t, db, `DELETE FROM rcc_release_targets WHERE order_id=? LIMIT 1`, original.ID)
+-	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, "restore"), "quick-target-execute"), 409, "release_target_conflict")
++	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, "restore"), "quick-target-execute"), 409, "release_target_conflict")
+ 	current := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
+ 	assertReleaseFailureOnly(t, original, current, "QUICK_ROLLBACK_FAILED")
+ 	for _, id := range []string{"10", "20"} {
+@@ -204,7 +206,7 @@ func TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrent
+ 		if i > 0 {
+ 			grantReleaseRole(t, app, actor, roles, fmt.Sprint(i), fmt.Sprintf("quick-role-%d", i))
+ 		}
+-		assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, ""), 403, "permission_denied")
++		assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1))), 403, "permission_denied")
+ 		assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("4", strings.Repeat("a", 64), "restore"), "quick-role-deny"), 403, "permission_denied")
+ 		detail := releaseActorReadAllDetails(t, app, actor, "GET", path, "", "")
+ 		if strings.Contains(detail.Body.String(), `"quick-rollback"`) {
+@@ -217,12 +219,12 @@ func TestQuickRollbackUsesCurrentRolesAndRequiresReviewedVersionDigestAndCurrent
+ 	}
+ 	grantReleaseRole(t, app, actor, `["PUBLISHER"]`, "2", "quick-role-publisher")
+ 	preview := readQuickPreview(t, app, actor, path, "4")
+-	for i, body := range []string{quickRollbackBody("4", "", "reason"), quickRollbackBody("4", preview.Digest, strings.Repeat("界", 667)), `{"expected_version":"4","reason":"no preview"}`} {
++	for i, body := range []string{quickRollbackBody("4", "", "reason"), quickRollbackBody(preview.ExpectedVersion, preview.Digest, strings.Repeat("界", 667)), `{"expected_version":"4","reason":"no preview"}`} {
+ 		assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, fmt.Sprintf("quick-role-invalid-%d", i)), 422, "release_invalid")
+ 	}
+ 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("3", preview.Digest, "stale version"), "quick-role-stale"), 409, "release_version_conflict")
+-	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("4", strings.Repeat("a", 64), "unreviewed"), "quick-role-digest"), 409, "release_frozen_changed")
+-	body := quickRollbackBody("4", preview.Digest, "reviewed")
++	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, strings.Repeat("a", 64), "unreviewed"), "quick-role-digest"), 409, "release_frozen_changed")
++	body := quickRollbackBody(preview.ExpectedVersion, preview.Digest, "reviewed")
+ 	grantReleaseRole(t, app, actor, `["VIEWER"]`, "3", "quick-role-revoke")
+ 	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, "quick-role-execute"), 403, "permission_denied")
+ 	grantReleaseRole(t, app, actor, `["ADMIN"]`, "4", "quick-role-admin")
+@@ -248,7 +250,7 @@ func TestQuickRollbackCompetesWithCompletionAndOtherRollbacks(t *testing.T) {
+ 			path := approvePublication(t, app, reviewer, fmt.Sprintf(`{"title":"竞争终止","items":[{"table_name":"mutation_add_items","operation":"MODIFY","id":%q,"expected_record_version":"0","content":{"label":"published"}}]}`, id), "quick-race-"+mode)
+ 			rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "quick-race-publish-"+mode), 200)
+ 			preview := readQuickPreview(t, app, actor, path, "4")
+-			body := quickRollbackBody("4", preview.Digest, "restore once")
++			body := quickRollbackBody(preview.ExpectedVersion, preview.Digest, "restore once")
+ 			type outcome struct {
+ 				action, key, body string
+ 				response          *httptest.ResponseRecorder
+@@ -259,7 +261,7 @@ func TestQuickRollbackCompetesWithCompletionAndOtherRollbacks(t *testing.T) {
+ 			for n := 0; n < 2; n++ {
+ 				action, key, request := "quick-rollback", fmt.Sprintf("quick-race-%s-%d", mode, n), body
+ 				if n == 1 && mode == "complete" {
+-					action, request = "complete", `{"expected_version":"4"}`
++					action, request = "complete", fmt.Sprintf(`{"expected_version":%q}`, preview.ExpectedVersion)
+ 				}
+ 				if n == 1 && mode == "quick-same-key" {
+ 					key = "quick-race-" + mode + "-0"
+@@ -295,7 +297,7 @@ func TestQuickRollbackCompetesWithCompletionAndOtherRollbacks(t *testing.T) {
+ 				t.Fatal("winner result did not replay exactly")
+ 			}
+ 			original := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
+-			if original.Version != "5" || len(original.History) != 5 {
++			if original.Version != "6" || len(original.History) != 6 {
+ 				t.Fatal("duplicate terminal workflow result", original)
+ 			}
+ 			row, version := recordVersionRow(t, app, "mutation_add_items", id)
+@@ -321,7 +323,8 @@ func TestQuickRollbackPersistenceFailuresPreserveValuesVersionsHistoryAndTargets
+ 	actor := registerAccount(t, app, "quick.fault", "quick.fault@example.com", "correct horse battery staple")
+ 	grantReleaseRole(t, app, actor, `["PUBLISHER"]`, "1", "quick-fault-role")
+ 	preview := readQuickPreview(t, app, actor, path, "4")
+-	body := quickRollbackBody("4", preview.Digest, "restore atomically")
++	original = rollbackOrderResponse(t, releaseActorReadAllDetails(t, app, actor, "GET", path, "", ""), 200)
++	body := quickRollbackBody(preview.ExpectedVersion, preview.Digest, "restore atomically")
+ 	conflictBody := `{"items":[{"content":{"label":"next"},"expected_record_version":"1","id":"10","operation":"MODIFY","table_name":"mutation_add_items"},{"content":{"label":"next"},"expected_record_version":"1","id":"20","operation":"MODIFY","table_name":"mutation_add_items"}],"title":"目标仍保护"}`
+ 	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", conflictBody, "quick-fault-conflict"), 409, "release_target_conflict")
+ 
+@@ -380,10 +383,11 @@ func TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions(t *testing.T) {
+ 	original := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "quick-semantics-publish"), 200)
+ 	actor := integrationAdminSession(t, app)
+ 	preview := readQuickPreview(t, app, actor, path, "4")
++	original = rollbackOrderResponse(t, releaseActorReadAllDetails(t, app, actor, "GET", path, "", ""), 200)
+ 	reject := func(code string) {
+ 		t.Helper()
+-		assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback/preview", `{"expected_version":"4"}`, ""), 409, code)
+-		assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, "restore"), "quick-semantics-execute"), 409, code)
++		assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback/preview", fmt.Sprintf(`{"expected_version":%q}`, preview.ExpectedVersion), fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1))), 409, code)
++		assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, "restore"), "quick-semantics-execute"), 409, code)
+ 		current := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
+ 		assertReleaseFailureOnly(t, original, current, "QUICK_ROLLBACK_FAILED")
+ 		original = current
+@@ -402,7 +406,7 @@ func TestQuickRollbackRejectsChangedSchemaRulesAndRecordVersions(t *testing.T) {
+ 	if renamed.Code != 200 {
+ 		t.Fatal(renamed.Body)
+ 	}
+-	again := readQuickPreview(t, app, actor, path, "4")
++	again := readQuickPreview(t, app, actor, path, preview.ExpectedVersion)
+ 	if again.Digest != preview.Digest {
+ 		t.Fatal("display-only metadata changed restoration intent")
+ 	}
+@@ -421,9 +425,10 @@ func TestQuickRollbackConstraintFailureRollsBackEarlierItems(t *testing.T) {
+ 	original := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "quick-constraint-publish"), 200)
+ 	actor := integrationAdminSession(t, app)
+ 	preview := readQuickPreview(t, app, actor, path, "4")
++	original = rollbackOrderResponse(t, releaseActorReadAllDetails(t, app, actor, "GET", path, "", ""), 200)
+ 	// A disjoint external row now owns the deleted row's unique business value.
+ 	deliveryExec(t, db, `INSERT INTO mutation_add_items(id,code,label) VALUES(30,'constraint-restore','external')`)
+-	response := releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, "restore"), "quick-constraint-execute")
++	response := releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, "restore"), "quick-constraint-execute")
+ 	assertIntegrationErrorCode(t, response, 409, "duplicate_key")
+ 	batchEdgeIndex(t, response, 1)
+ 	row, version := recordVersionRow(t, app, "mutation_add_items", "10")
+@@ -464,7 +469,7 @@ func TestQuickRollbackCanTerminateAtAcceptedPublicationCapacity(t *testing.T) {
+ 	}
+ 	actor := integrationAdminSession(t, app)
+ 	preview := readQuickPreview(t, app, actor, path, stored.Version)
+-	body := quickRollbackBody(stored.Version, preview.Digest, strings.Repeat("界", 666))
++	body := quickRollbackBody(preview.ExpectedVersion, preview.Digest, strings.Repeat("界", 666))
+ 	response := releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", body, "quick-capacity-execute")
+ 	reverse := rollbackOrderResponse(t, response, 200)
+ 	original := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
+@@ -488,7 +493,8 @@ func TestQuickRollbackRejectsDatabaseEffectsThatCannotRestoreOriginalValues(t *t
+ 	original := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "quick-effect-publish"), 200)
+ 	actor := integrationAdminSession(t, app)
+ 	preview := readQuickPreview(t, app, actor, path, "4")
+-	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody("4", preview.Digest, "restore original"), "quick-effect-execute"), 422, "rollback_restore_mismatch")
++	original = rollbackOrderResponse(t, releaseActorReadAllDetails(t, app, actor, "GET", path, "", ""), 200)
++	assertIntegrationErrorCode(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, "restore original"), "quick-effect-execute"), 422, "rollback_restore_mismatch")
+ 	row, version := recordVersionRow(t, app, "mutation_add_items", "10")
+ 	if *row["label"] != "published" || *row["quantity"] != "11" || version != "1" {
+ 		t.Fatal("mismatched restore was committed", row, version)
+diff --git a/admin/cmd/admin/release_rollback_integration_test.go b/admin/cmd/admin/release_rollback_integration_test.go
+index bfea68b..2a44f16 100644
+--- a/admin/cmd/admin/release_rollback_integration_test.go
++++ b/admin/cmd/admin/release_rollback_integration_test.go
+@@ -81,7 +81,7 @@ func quickRestoreFixture(t *testing.T, app *adminApplication, path, key string)
+ 	actor := integrationAdminSession(t, app)
+ 	original := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
+ 	preview := readQuickPreview(t, app, actor, path, original.Version)
+-	return rollbackOrderResponse(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody(original.Version, preview.Digest, ""), key), 200)
++	return rollbackOrderResponse(t, releaseActorRequest(t, app, actor, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, ""), key), 200)
+ }
+ 
+ func TestReleaseRollbackUnwindsUniqueValueDependencies(t *testing.T) {
+@@ -160,7 +160,7 @@ func TestReleaseRollbackRestoresBusinessFieldsWithNewAudit(t *testing.T) {
+ 	}
+ 	publisher := registerAccount(t, app, "rollback.publisher", "rollback.publisher@example.com", "correct horse battery staple")
+ 	grantReleaseRole(t, app, publisher, `["PUBLISHER"]`, "1", "rollback-publisher-role")
+-	result := rollbackOrderResponse(t, releaseActorRequest(t, app, publisher, "POST", path+"/quick-rollback", quickRollbackBody("4", reverse.Digest, ""), "audit-restore"), 200)
++	result := rollbackOrderResponse(t, releaseActorRequest(t, app, publisher, "POST", path+"/quick-rollback", quickRollbackBody(reverse.ExpectedVersion, reverse.Digest, ""), "audit-restore"), 200)
+ 	for id, label := range map[string]string{"1": "original", "2": "deleted"} {
+ 		row, version := recordVersionRow(t, app, "rollback_audit", id)
+ 		if version != "2" || *row["label"] != label || len(*row["payload"]) != 200000 || *row["derived"] != label+":old" || *row["modifier"] != accountID(t, publisher) || *row["moment"] != "2020-03-04T05:06:07.123456Z" {
+diff --git a/admin/cmd/admin/release_rollback_reason_integration_test.go b/admin/cmd/admin/release_rollback_reason_integration_test.go
+index 84eed8f..5473b20 100644
+--- a/admin/cmd/admin/release_rollback_reason_integration_test.go
++++ b/admin/cmd/admin/release_rollback_reason_integration_test.go
+@@ -32,7 +32,7 @@ func TestRollbackReasonCanBeCorrectedByExecutorOrAdministrator(t *testing.T) {
+ 	approved := rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, reviewer, path, "independent review"), "reason-approve"), 200)
+ 	published := rollbackOrderResponse(t, releaseActorRequest(t, app, forwardPublisher, "POST", path+"/execute", `{"expected_version":"3"}`, "reason-publish"), 200)
+ 	preview := readQuickPreview(t, app, rollbackExecutor, path, published.Version)
+-	rolled := rollbackOrderResponse(t, releaseActorRequest(t, app, rollbackExecutor, "POST", path+"/quick-rollback", quickRollbackBody(published.Version, preview.Digest, ""), "reason-rollback"), 200)
++	rolled := rollbackOrderResponse(t, releaseActorRequest(t, app, rollbackExecutor, "POST", path+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, ""), "reason-rollback"), 200)
+ 	if submitted.ApplicantID != accountID(t, applicant) || approved.ApplicantID != accountID(t, applicant) || len(rolled.Executions) < 2 || rolled.Executions[1].ActorID != accountID(t, rollbackExecutor) || rolled.Executions[0].ActorID != accountID(t, forwardPublisher) {
+ 		t.Fatal("fixture identities did not remain distinct")
+ 	}
+diff --git a/admin/internal/application/quick_rollback.go b/admin/internal/application/quick_rollback.go
+index f6d037a..bbc847d 100644
+--- a/admin/internal/application/quick_rollback.go
++++ b/admin/internal/application/quick_rollback.go
+@@ -8,27 +8,67 @@ import (
+ 	"github.com/asherzj/relational-config-center/admin/internal/domain"
+ )
+ 
+-// QuickRollbackPreview is a whole-order restoration review, not a saved order
+-// or approval. The digest binds its current intent and execution semantics.
+-type QuickRollbackPreview struct {
+-	OrderID         string        `json:"order_id"`
+-	ExpectedVersion string        `json:"expected_version"`
+-	PreviewDigest   string        `json:"preview_digest"`
+-	Items           []ReleaseItem `json:"items"`
+-}
++type QuickRollbackPreview = domain.QuickRollbackPreview
+ 
+-func (r *ReleaseOrders) PreviewQuickRollback(ctx context.Context, id string, input SubmitReleaseInput) (QuickRollbackPreview, error) {
+-	if _, err := requireRole(ctx, RolePublisher); err != nil {
++func (r *ReleaseOrders) PreviewQuickRollback(ctx context.Context, id string, input SubmitReleaseInput, key string) (QuickRollbackPreview, error) {
++	actor, err := requireRole(ctx, RolePublisher)
++	if err != nil {
+ 		return QuickRollbackPreview{}, err
+ 	}
++	if !roleRequestKey.MatchString(key) {
++		return QuickRollbackPreview{}, ErrReleaseInvalid
++	}
+ 	var result QuickRollbackPreview
+-	err := r.store.ExecutePublication(ctx, func(s PublicationSession) error {
++	err = r.store.ExecutePublication(ctx, func(s PublicationSession) error {
++		if err := requireCurrentRollbackPublisher(ctx, s, actor); err != nil {
++			return err
++		}
++		operation := "quick-rollback-preview:" + id
++		previous, err := s.BeginRollbackPreviewRequest(ctx, actor, operation, key, releaseDigest(input))
++		if err != nil {
++			return err
++		}
++		if previous != nil {
++			result = *previous
++			return nil
++		}
+ 		original, err := s.GetReleaseOrder(ctx, id)
+ 		if err != nil {
+ 			return err
+ 		}
+-		result, _, err = r.prepareQuickRollback(ctx, s, original, input.ExpectedVersion)
+-		return err
++		// Validate current data before creating the first visible workflow. Actual
++		// restoration repeats this check; a saved node never freezes current data.
++		if _, _, err = r.prepareQuickRollback(ctx, s, original, input.ExpectedVersion); err != nil {
++			return err
++		}
++		if len(original.RollbackTableFlows) == 0 {
++			now, err := s.DatabaseTime(ctx)
++			if err != nil {
++				return err
++			}
++			if err = appendRelatedReleaseEvent(&original, actor, now.UTC().Format(time.RFC3339Nano), "PREVIEW_QUICK_ROLLBACK", "", ""); err != nil {
++				return err
++			}
++			recovery := ReleaseOrder{ReleaseType: domain.ReleaseTypeEmergency, TableNames: original.TableNames, UpdatedAt: original.UpdatedAt}
++			if err = saveDraftFlows(ctx, s, &recovery); err != nil {
++				return err
++			}
++			if !recovery.HasCompleteFlows() {
++				return ErrReleaseFlowIncomplete
++			}
++			original.RollbackTableFlows = recovery.TableFlows
++			for i := range original.RollbackTableFlows {
++				original.RollbackTableFlows[i].Nodes[0].State = "ACTIVE"
++			}
++			if err = s.SaveReleaseOrder(ctx, original, false); err != nil {
++				return err
++			}
++		}
++		result, _, err = r.prepareQuickRollback(ctx, s, original, original.Version)
++		if err != nil {
++			return err
++		}
++		return s.CompleteRollbackPreviewRequest(ctx, actor, operation, key, result)
+ 	})
+ 	return result, err
+ }
+@@ -63,7 +103,7 @@ func (r *ReleaseOrders) prepareQuickRollback(ctx context.Context, s PublicationS
+ 	if err != nil {
+ 		return fail(err)
+ 	}
+-	result := QuickRollbackPreview{OrderID: original.ID, ExpectedVersion: version, Items: items}
++	result := QuickRollbackPreview{OrderID: original.ID, ExpectedVersion: version, ReleaseType: domain.ReleaseTypeEmergency, TableFlows: original.RollbackTableFlows, Items: items}
+ 	result.PreviewDigest = hex.EncodeToString(releaseDigest(struct {
+ 		Preview   QuickRollbackPreview
+ 		Execution map[string]domain.ReleaseExecutionSnapshot
+@@ -89,6 +129,9 @@ func (r *ReleaseOrders) QuickRollback(ctx context.Context, id string, input Quic
+ 	}
+ 	var result ReleaseOrder
+ 	err = r.store.ExecutePublication(ctx, func(s PublicationSession) error {
++		if err := requireCurrentRollbackPublisher(ctx, s, actor); err != nil {
++			return err
++		}
+ 		operation := "quick-rollback:" + id
+ 		previous, err := s.BeginReleaseRequest(ctx, actor, operation, key, releaseDigest(input))
+ 		if err != nil {
+@@ -152,3 +195,14 @@ func (r *ReleaseOrders) QuickRollback(ctx context.Context, id string, input Quic
+ 	})
+ 	return result, r.recordExecutionFailure(ctx, releaseExecutionAttempt{OrderID: id, ActorID: actor, Operation: "quick-rollback", Key: key, ExpectedVersion: input.ExpectedVersion, Input: input}, err)
+ }
++
++// The transaction acquires the shared authorization lock before this read.
++// Authentication may have finished before a concurrent revocation committed.
++func requireCurrentRollbackPublisher(ctx context.Context, s ReleaseOrderSession, actor string) error {
++	current, err := s.CurrentReleaseAccount(ctx, actor)
++	if err != nil {
++		return err
++	}
++	_, err = requireRole((AuthenticatedOperator{accountID: actor, roles: current.Roles}).Bind(ctx), RolePublisher)
++	return err
++}
+diff --git a/admin/internal/application/release_flow.go b/admin/internal/application/release_flow.go
+index 709834d..69f7769 100644
+--- a/admin/internal/application/release_flow.go
++++ b/admin/internal/application/release_flow.go
+@@ -95,4 +95,20 @@ func advanceReleaseFlows(order *ReleaseOrder) {
+ 			}
+ 		}
+ 	}
++	// Restoration has one actual execution and ends the original order. The
++	// template's completion definition is retained, without inventing that action.
++	for fi := range order.RollbackTableFlows {
++		for ni := range order.RollbackTableFlows[fi].Nodes {
++			node := &order.RollbackTableFlows[fi].Nodes[ni]
++			node.State, node.ActorID, node.At = "PENDING", "", ""
++			if order.State == "SUCCEEDED" && node.Type == "PUBLICATION" {
++				node.State = "ACTIVE"
++			} else if order.State == "ROLLED_BACK" || order.State == "COMPLETED" {
++				node.State = "STOPPED"
++			}
++			if event, found := events["QUICK_ROLLBACK"]; found && node.Type == "PUBLICATION" {
++				node.State, node.ActorID, node.At = "COMPLETED", event.ActorID, event.At
++			}
++		}
++	}
+ }
+diff --git a/admin/internal/application/release_orders.go b/admin/internal/application/release_orders.go
+index 4c47881..f452a90 100644
+--- a/admin/internal/application/release_orders.go
++++ b/admin/internal/application/release_orders.go
+@@ -96,6 +96,8 @@ type ReleaseOrderSession interface {
+ 	SaveReleaseOrder(context.Context, domain.ReleaseOrder, bool) error
+ 	BeginReleaseRequest(context.Context, string, string, string, []byte) (*domain.ReleaseOrder, error)
+ 	CompleteReleaseRequest(context.Context, string, string, string, domain.ReleaseOrder) error
++	BeginRollbackPreviewRequest(context.Context, string, string, string, []byte) (*domain.QuickRollbackPreview, error)
++	CompleteRollbackPreviewRequest(context.Context, string, string, string, domain.QuickRollbackPreview) error
+ 	DatabaseTime(context.Context) (time.Time, error)
+ }
+ 
+@@ -871,7 +873,7 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
+ 		if err = s.SaveReleaseOrder(ctx, order, false); err != nil {
+ 			return err
+ 		}
+-		if action == "submit" || action == "approve" || action == "reject" || action == "execute" || action == "complete" || (action == "cancel" && len(order.Approvals) > 0) {
++		if action == "submit" || action == "approve" || action == "reject" || action == "execute" || action == "complete" || (action == "cancel" && slices.ContainsFunc(order.History, func(event domain.ReleaseEvent) bool { return event.Action == "SUBMIT" })) {
+ 			recipients := []string{}
+ 			if action == "execute" || action == "complete" {
+ 				recipients = releaseResultRecipients(order)
+diff --git a/admin/internal/domain/release_order.go b/admin/internal/domain/release_order.go
+index 083558a..20b71b6 100644
+--- a/admin/internal/domain/release_order.go
++++ b/admin/internal/domain/release_order.go
+@@ -43,26 +43,27 @@ type ReleaseEvent struct {
+ }
+ 
+ type ReleaseOrder struct {
+-	EmergencyReason   string                              `json:"emergency_reason"`
+-	ReleaseType       ReleaseType                         `json:"release_type"`
+-	TableFlows        []ReleaseTableFlow                  `json:"table_flows"`
+-	MissingFlowTables []string                            `json:"missing_flow_tables"`
+-	Approvals         []ReleaseTableApproval              `json:"approvals"`
+-	ApprovalContext   ReleaseApprovalContext              `json:"approval_context"`
+-	FrozenTables      map[string]ReleaseExecutionSnapshot `json:"frozen_tables,omitempty"`
+-	TableNames        []string                            `json:"table_names"`
+-	Title             string                              `json:"title"`
+-	Executions        []ReleaseExecution                  `json:"executions"`
+-	CopiedFromID      string                              `json:"copied_from_id,omitempty"`
+-	FrozenDigest      string                              `json:"frozen_digest,omitempty"`
+-	ID                string                              `json:"id"`
+-	ApplicantID       string                              `json:"applicant_id"`
+-	State             string                              `json:"state"`
+-	Version           string                              `json:"version"`
+-	Items             []ReleaseItem                       `json:"items"`
+-	History           []ReleaseEvent                      `json:"history"`
+-	CreatedAt         string                              `json:"created_at"`
+-	UpdatedAt         string                              `json:"updated_at"`
++	EmergencyReason    string                              `json:"emergency_reason"`
++	ReleaseType        ReleaseType                         `json:"release_type"`
++	RollbackTableFlows []ReleaseTableFlow                  `json:"rollback_table_flows"`
++	TableFlows         []ReleaseTableFlow                  `json:"table_flows"`
++	MissingFlowTables  []string                            `json:"missing_flow_tables"`
++	Approvals          []ReleaseTableApproval              `json:"approvals"`
++	ApprovalContext    ReleaseApprovalContext              `json:"approval_context"`
++	FrozenTables       map[string]ReleaseExecutionSnapshot `json:"frozen_tables,omitempty"`
++	TableNames         []string                            `json:"table_names"`
++	Title              string                              `json:"title"`
++	Executions         []ReleaseExecution                  `json:"executions"`
++	CopiedFromID       string                              `json:"copied_from_id,omitempty"`
++	FrozenDigest       string                              `json:"frozen_digest,omitempty"`
++	ID                 string                              `json:"id"`
++	ApplicantID        string                              `json:"applicant_id"`
++	State              string                              `json:"state"`
++	Version            string                              `json:"version"`
++	Items              []ReleaseItem                       `json:"items"`
++	History            []ReleaseEvent                      `json:"history"`
++	CreatedAt          string                              `json:"created_at"`
++	UpdatedAt          string                              `json:"updated_at"`
+ }
+ 
+ type RecordBaseline struct {
+@@ -147,27 +148,28 @@ func NewReleaseMutationSemantics(policy MutationPolicy) ReleaseMutationSemantics
+ // ReleaseOrderSummary carries bounded catalog information; complete intent and
+ // verified publication history are available through the order detail.
+ type ReleaseOrderSummary struct {
+-	Notification      ApprovalNotification   `json:"notification"`
+-	EmergencyReason   string                 `json:"emergency_reason"`
+-	ReleaseType       ReleaseType            `json:"release_type"`
+-	TableFlows        []ReleaseTableFlow     `json:"table_flows"`
+-	MissingFlowTables []string               `json:"missing_flow_tables"`
+-	Approvals         []ReleaseTableApproval `json:"approvals"`
+-	ApprovalContext   ReleaseApprovalContext `json:"approval_context"`
+-	TableNames        []string               `json:"table_names"`
+-	Title             string                 `json:"title"`
+-	ID                string                 `json:"id"`
+-	ApplicantID       string                 `json:"applicant_id"`
+-	State             string                 `json:"state"`
+-	Version           string                 `json:"version"`
+-	CreatedAt         string                 `json:"created_at"`
+-	UpdatedAt         string                 `json:"updated_at"`
+-	ItemCount         int                    `json:"item_count"`
+-	OperationCounts   map[string]int         `json:"operation_counts"`
++	Notification       ApprovalNotification   `json:"notification"`
++	EmergencyReason    string                 `json:"emergency_reason"`
++	ReleaseType        ReleaseType            `json:"release_type"`
++	RollbackTableFlows []ReleaseTableFlow     `json:"rollback_table_flows"`
++	TableFlows         []ReleaseTableFlow     `json:"table_flows"`
++	MissingFlowTables  []string               `json:"missing_flow_tables"`
++	Approvals          []ReleaseTableApproval `json:"approvals"`
++	ApprovalContext    ReleaseApprovalContext `json:"approval_context"`
++	TableNames         []string               `json:"table_names"`
++	Title              string                 `json:"title"`
++	ID                 string                 `json:"id"`
++	ApplicantID        string                 `json:"applicant_id"`
++	State              string                 `json:"state"`
++	Version            string                 `json:"version"`
++	CreatedAt          string                 `json:"created_at"`
++	UpdatedAt          string                 `json:"updated_at"`
++	ItemCount          int                    `json:"item_count"`
++	OperationCounts    map[string]int         `json:"operation_counts"`
+ }
+ 
+ func (order ReleaseOrder) Summary() ReleaseOrderSummary {
+-	result := ReleaseOrderSummary{EmergencyReason: order.EmergencyReason, ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext, TableNames: order.TableNames, Title: order.Title, ID: order.ID, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
++	result := ReleaseOrderSummary{RollbackTableFlows: order.RollbackTableFlows, EmergencyReason: order.EmergencyReason, ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext, TableNames: order.TableNames, Title: order.Title, ID: order.ID, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
+ 	for _, item := range order.Items {
+ 		result.OperationCounts[item.Operation]++
+ 	}
+diff --git a/admin/internal/domain/release_read.go b/admin/internal/domain/release_read.go
+index f4764bb..e1abe5d 100644
+--- a/admin/internal/domain/release_read.go
++++ b/admin/internal/domain/release_read.go
+@@ -12,7 +12,7 @@ type ReleaseHeader struct {
+ }
+ 
+ func (header ReleaseHeader) Workflow() ReleaseOrder {
+-	return ReleaseOrder{EmergencyReason: header.EmergencyReason, ReleaseType: header.ReleaseType, TableFlows: header.TableFlows, MissingFlowTables: header.MissingFlowTables, Approvals: header.Approvals, ApprovalContext: header.ApprovalContext, ID: header.ID, Title: header.Title, TableNames: header.TableNames, ApplicantID: header.ApplicantID, State: header.State, Version: header.Version, CreatedAt: header.CreatedAt, UpdatedAt: header.UpdatedAt, CopiedFromID: header.CopiedFromID, FrozenDigest: header.FrozenDigest, FrozenTables: header.FrozenTables, History: header.History, Executions: header.Executions}
++	return ReleaseOrder{RollbackTableFlows: header.RollbackTableFlows, EmergencyReason: header.EmergencyReason, ReleaseType: header.ReleaseType, TableFlows: header.TableFlows, MissingFlowTables: header.MissingFlowTables, Approvals: header.Approvals, ApprovalContext: header.ApprovalContext, ID: header.ID, Title: header.Title, TableNames: header.TableNames, ApplicantID: header.ApplicantID, State: header.State, Version: header.Version, CreatedAt: header.CreatedAt, UpdatedAt: header.UpdatedAt, CopiedFromID: header.CopiedFromID, FrozenDigest: header.FrozenDigest, FrozenTables: header.FrozenTables, History: header.History, Executions: header.Executions}
+ }
+ 
+ // Offset and NextOffset are zero-based original detail positions. Results stay
+diff --git a/admin/internal/infrastructure/mysql/release_orders.go b/admin/internal/infrastructure/mysql/release_orders.go
+index 4acf090..cded611 100644
+--- a/admin/internal/infrastructure/mysql/release_orders.go
++++ b/admin/internal/infrastructure/mysql/release_orders.go
+@@ -128,22 +128,10 @@ func (s *releaseOrderSession) SaveReleaseOrder(ctx context.Context, order domain
+ 	return s.saveReleaseDetails(ctx, order, previousCount)
+ }
+ func (s *releaseOrderSession) BeginReleaseRequest(ctx context.Context, actor, operation, key string, digest []byte) (*domain.ReleaseOrder, error) {
+-	if err := s.available(); err != nil {
++	result, err := s.beginReleaseRequestValue(ctx, actor, operation, key, digest)
++	if err != nil || result == nil {
+ 		return nil, err
+ 	}
+-	if err := s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_requests(actor_id,operation,request_key,digest,result) VALUES(?,?,?,?,NULL) ON DUPLICATE KEY UPDATE request_key=request_key`, actor, operation, key, digest).Error; err != nil {
+-		return nil, application.ErrReleaseUnavailable
+-	}
+-	var storedDigest, result []byte
+-	if err := s.database.WithContext(ctx).Raw(`SELECT digest,result FROM rcc_release_requests WHERE actor_id=? AND operation=? AND request_key=? FOR UPDATE`, actor, operation, key).Row().Scan(&storedDigest, &result); err != nil {
+-		return nil, application.ErrReleaseUnavailable
+-	}
+-	if !bytes.Equal(storedDigest, digest) {
+-		return nil, application.ErrReleaseIdempotencyConflict
+-	}
+-	if result == nil {
+-		return nil, nil
+-	}
+ 	var order domain.ReleaseOrder
+ 	if json.Unmarshal(result, &order) != nil {
+ 		return nil, application.ErrReleaseUnavailable
+@@ -167,6 +155,52 @@ func (s *releaseOrderSession) BeginReleaseRequest(ctx context.Context, actor, op
+ 	}
+ 	return &order, nil
+ }
++func (s *releaseOrderSession) beginReleaseRequestValue(ctx context.Context, actor, operation, key string, digest []byte) ([]byte, error) {
++	if err := s.available(); err != nil {
++		return nil, err
++	}
++	if err := s.database.WithContext(ctx).Exec(`INSERT INTO rcc_release_requests(actor_id,operation,request_key,digest,result) VALUES(?,?,?,?,NULL) ON DUPLICATE KEY UPDATE request_key=request_key`, actor, operation, key, digest).Error; err != nil {
++		return nil, application.ErrReleaseUnavailable
++	}
++	var storedDigest, result []byte
++	if err := s.database.WithContext(ctx).Raw(`SELECT digest,result FROM rcc_release_requests WHERE actor_id=? AND operation=? AND request_key=? FOR UPDATE`, actor, operation, key).Row().Scan(&storedDigest, &result); err != nil {
++		return nil, application.ErrReleaseUnavailable
++	}
++	if !bytes.Equal(storedDigest, digest) {
++		return nil, application.ErrReleaseIdempotencyConflict
++	}
++	if result == nil {
++		return nil, nil
++	}
++	return result, nil
++}
++
++func (s *releaseOrderSession) BeginRollbackPreviewRequest(ctx context.Context, actor, operation, key string, digest []byte) (*domain.QuickRollbackPreview, error) {
++	result, err := s.beginReleaseRequestValue(ctx, actor, operation, key, digest)
++	if err != nil || result == nil {
++		return nil, err
++	}
++	var preview domain.QuickRollbackPreview
++	if json.Unmarshal(result, &preview) != nil || preview.OrderID == "" || len(preview.TableFlows) == 0 {
++		return nil, application.ErrReleaseUnavailable
++	}
++	return &preview, nil
++}
++
++func (s *releaseOrderSession) CompleteRollbackPreviewRequest(ctx context.Context, actor, operation, key string, preview domain.QuickRollbackPreview) error {
++	if err := s.available(); err != nil {
++		return err
++	}
++	encoded, err := json.Marshal(preview)
++	if err != nil {
++		return application.ErrReleaseUnavailable
++	}
++	if err = s.database.WithContext(ctx).Exec(`UPDATE rcc_release_requests SET result=? WHERE actor_id=? AND operation=? AND request_key=?`, encoded, actor, operation, key).Error; err != nil {
++		return application.ErrReleaseUnavailable
++	}
++	return nil
++}
++
+ func (s *releaseOrderSession) CompleteReleaseRequest(ctx context.Context, actor, operation, key string, order domain.ReleaseOrder) error {
+ 	if err := s.available(); err != nil {
+ 		return err
+diff --git a/admin/internal/interfaces/http/release_orders.go b/admin/internal/interfaces/http/release_orders.go
+index 7f4f39f..4f940b7 100644
+--- a/admin/internal/interfaces/http/release_orders.go
++++ b/admin/internal/interfaces/http/release_orders.go
+@@ -162,7 +162,7 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
+ 			writeRequestDecodeError(c, err)
+ 			return
+ 		}
+-		preview, err := orders.PreviewQuickRollback(c.Request.Context(), c.Param("id"), input)
++		preview, err := orders.PreviewQuickRollback(c.Request.Context(), c.Param("id"), input, c.GetHeader("Idempotency-Key"))
+ 		if writeReleaseError(c, err) {
+ 			return
+ 		}

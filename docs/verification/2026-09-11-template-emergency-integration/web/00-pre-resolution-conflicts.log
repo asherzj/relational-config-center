@@ -1,0 +1,64 @@
+UU web/DESIGN.md
+A  web/e2e/release-emergency.cjs
+M  web/src/api/error-messages.ts
+UU web/src/api/release-orders.test.ts
+UU web/src/api/release-orders.ts
+UU web/src/features/managed-data/ManagedDataMutationPage.test.tsx
+M  web/src/features/managed-data/ManagedDataPage.test.tsx
+M  web/src/features/release-orders/NewDraftDialog.tsx
+M  web/src/features/release-orders/ReleaseActionDialog.tsx
+M  web/src/features/release-orders/ReleaseDraftEditor.tsx
+M  web/src/features/release-orders/ReleaseFlows.tsx
+M  web/src/features/release-orders/ReleaseHistory.tsx
+M  web/src/features/release-orders/ReleaseOrdersPage.test.tsx
+UU web/src/features/release-orders/ReleaseOrdersPage.tsx
+UU web/src/features/release-orders/ReleaseProgress.tsx
+M  web/src/features/release-orders/ReleaseRequestReview.tsx
+M  web/src/features/release-orders/useDraftDestination.tsx
+UU web/src/test/release-fixture.ts
+?? web/node_modules
+web/src/api/release-orders.ts:35:<<<<<<< HEAD
+web/src/api/release-orders.ts:37:=======
+web/src/api/release-orders.ts:39:>>>>>>> f545adf24aadd34ee39afb2643a4819aee54c986
+web/src/api/release-orders.test.ts:3:<<<<<<< HEAD
+web/src/api/release-orders.test.ts:5:=======
+web/src/api/release-orders.test.ts:7:>>>>>>> f545adf24aadd34ee39afb2643a4819aee54c986
+web/DESIGN.md:90:<<<<<<< HEAD
+web/DESIGN.md:91:=======
+web/DESIGN.md:94:>>>>>>> f545adf24aadd34ee39afb2643a4819aee54c986
+web/src/test/release-fixture.ts:13:<<<<<<< HEAD
+web/src/test/release-fixture.ts:15:=======
+web/src/test/release-fixture.ts:17:>>>>>>> f545adf24aadd34ee39afb2643a4819aee54c986
+web/src/features/managed-data/ManagedDataMutationPage.test.tsx:563:<<<<<<< HEAD
+web/src/features/managed-data/ManagedDataMutationPage.test.tsx:565:=======
+web/src/features/managed-data/ManagedDataMutationPage.test.tsx:567:>>>>>>> f545adf24aadd34ee39afb2643a4819aee54c986
+web/src/features/release-orders/ReleaseProgress.tsx:17:<<<<<<< HEAD
+web/src/features/release-orders/ReleaseProgress.tsx:21:=======
+web/src/features/release-orders/ReleaseProgress.tsx:25:>>>>>>> f545adf24aadd34ee39afb2643a4819aee54c986
+web/src/features/release-orders/ReleaseOrdersPage.tsx:139:<<<<<<< HEAD
+web/src/features/release-orders/ReleaseOrdersPage.tsx:141:=======
+web/src/features/release-orders/ReleaseOrdersPage.tsx:148:>>>>>>> f545adf24aadd34ee39afb2643a4819aee54c986
+web/src/features/release-orders/ReleaseOrdersPage.tsx:152:<<<<<<< HEAD
+web/src/features/release-orders/ReleaseOrdersPage.tsx:154:=======
+web/src/features/release-orders/ReleaseOrdersPage.tsx:156:>>>>>>> f545adf24aadd34ee39afb2643a4819aee54c986
+100644 48f09fdc25b8d0e063471fdbd25eff2f6627ebdd 1	web/DESIGN.md
+100644 b3381aeca281342e3ecffef479063362ecaffa48 2	web/DESIGN.md
+100644 887ad468054f6d4be79c758923ec84d9508d8f50 3	web/DESIGN.md
+100644 6230746d2a1c398baa70224bdd718665a172532d 1	web/src/api/release-orders.test.ts
+100644 15a73a8860988988f31031029c312d512654a6b7 2	web/src/api/release-orders.test.ts
+100644 5d77dc6c72ceb8ea8f3d1ee4ba3039c4c08c23c0 3	web/src/api/release-orders.test.ts
+100644 7a740ae12c2a3c21260553af8cb22270cdbfd5ea 1	web/src/api/release-orders.ts
+100644 1037c48dd6d63f9b267b0cccd1d190042f08cb6d 2	web/src/api/release-orders.ts
+100644 eb1d09c8f7a0416cf167f3412525f1a4cfaa96f7 3	web/src/api/release-orders.ts
+100644 bf2b20285f5bd871ab6ab14bc57747067a9ae546 1	web/src/features/managed-data/ManagedDataMutationPage.test.tsx
+100644 0949c85aa1d69230972820c8151679945abc6581 2	web/src/features/managed-data/ManagedDataMutationPage.test.tsx
+100644 3585d67896c132ef5db0dd6cabfde0a04e758f59 3	web/src/features/managed-data/ManagedDataMutationPage.test.tsx
+100644 313b4323745c46f2b12749fde03e57424ad3cf3f 1	web/src/features/release-orders/ReleaseOrdersPage.tsx
+100644 38f81b03a7dc177e9460e98264f192348e3d832c 2	web/src/features/release-orders/ReleaseOrdersPage.tsx
+100644 feba66d8ee18b90082ada9e803a123a0d7fcf6fd 3	web/src/features/release-orders/ReleaseOrdersPage.tsx
+100644 6be8418317c2a22c05af140ac0fd5a3e089f553b 1	web/src/features/release-orders/ReleaseProgress.tsx
+100644 86168d9af7a9c6f65a6c5a24c1616b9ecf4245db 2	web/src/features/release-orders/ReleaseProgress.tsx
+100644 c6a1a7cf516c21aae84dd698ef02b4a98c80a455 3	web/src/features/release-orders/ReleaseProgress.tsx
+100644 79ffb562fa0e9f780fb26e95b599503e0fab0695 1	web/src/test/release-fixture.ts
+100644 2a2ab48f261bdda0999fce1042b3294c7f2c4acd 2	web/src/test/release-fixture.ts
+100644 120f7e2a04f5a24b86c9ab5f805ab06a5b0d1932 3	web/src/test/release-fixture.ts

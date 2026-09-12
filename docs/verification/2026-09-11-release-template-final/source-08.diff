@@ -1,0 +1,907 @@
+diff --git a/README.md b/README.md
+index 3e667b0..6168a4e 100644
+--- a/README.md
++++ b/README.md
+@@ -74,6 +74,7 @@ go run ./admin/cmd/admin
+ cd web
+ pnpm install --frozen-lockfile
+ pnpm test:run
++pnpm test:dev
+ pnpm typecheck
+ pnpm build
+ 
+@@ -85,15 +86,15 @@ make test-integration
+ 
+ 集成测试使用 Testcontainers 和真实 MySQL 8.4；`make test-integration` 禁用 Go 测试缓存。正式入口先执行 Docker 健康检查，依赖不可用时命令失败；直接运行带 `integration` 标签的 Go 测试也会因缺失必需 Docker/MySQL 而失败。
+ 
+-整组集成测试的进程上限为 40 分钟，以容纳隔离 MySQL 容器启动时间的波动；CI 任务另有 45 分钟总上限。各请求、数据库等待和进程停止的独立超时仍由对应测试验证。
++整组集成测试的进程上限为 60 分钟，以容纳隔离 MySQL 容器启动时间的波动；CI 任务另有 70 分钟总上限。各请求、数据库等待和进程停止的独立超时仍由对应测试验证。
+ 
+ ## 持续集成
+ 
+-GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行四个检查：`Web`、`Go unit and build`、`MySQL 8.4 integration` 和 `Browser acceptance`。浏览器检查在 Linux runner 上使用 Playwright 的 Chromium、Firefox 和 WebKit；每个引擎单独写入 artifact 子目录。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
++GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行五个检查：`Web`、`Go unit and build`、`MySQL 8.4 integration`、`Browser acceptance` 和 `Goose Compose deployment`。浏览器检查在 Linux runner 上使用 Playwright 的 Chromium、Firefox 和 WebKit；每个引擎单独写入 artifact 子目录。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
+ 
+ 浏览器验收通过公开 Cookie 会话及 CSRF 流程进入管理台；未登录的 Admin 和 Web 代理都拒绝业务请求。临时账号、规则和业务数据只存在于本次创建的独立 MySQL 中，结束后连同数据库一起清理。
+ 
+-工作流当前只在推送到 `main` 和目标为 `main` 的 Pull Request 上运行这四个检查；推送到其他分支不会自动触发这套 CI。是否配置 branch protection、rulesets 或 required checks 由仓库设置决定，不能从本地文档推断为合并保证。
++工作流当前只在推送到 `main` 和目标为 `main` 的 Pull Request 上运行这五个检查；推送到其他分支不会自动触发这套 CI。是否配置 branch protection、rulesets 或 required checks 由仓库设置决定，不能从本地文档推断为合并保证。
+ 
+ 浏览器检查也可以在本地按套件或引擎运行。`all` 包含 `unsaved-changes`、`rule-clarity`、`write-recovery`、`operation-coverage`、`complex-fields`、`browser-accessibility`、`release-workflow` 和 `field-interactions`。正式发布套件实际执行草稿、独立审批、混合批量，以及按 `RCC_E2E_ENGINES` 逐引擎运行的正向/反向发布和会话、冲突、未知结果恢复；无障碍套件与完整字段流程套件也逐引擎运行，后者分别在桌面和390px验证管理员字段配置、组合查询、自定义值草稿和发布审阅。每次运行都应使用独立的空 artifact 目录：
+ 
+@@ -138,4 +139,4 @@ docs/    跨模块设计与项目文档
+ - Go package 使用简短、清晰的小写名称。
+ - 引入新能力时同步补充测试和文档。
+ 
+-记录并发保护、Admin/Web 请求迁移与数据库维护窗口见 [记录版本契约](docs/admin-record-versions.md)。发布草稿、独立审批、同表 1～1,000 项混合发布与审批回滚已接通，见[发布结果契约](docs/design-notes/publication-contract.md)。升级需依次迁移 010、011、012，并显式授予 TRIGGER 元数据与 PROCESS 权限；旧记录写路由已删除，分发尚未接入。完整操作与维护步骤见[发布单升级指南](docs/admin-release-upgrade.md)，逐项验收归属见[交付计划](docs/design-notes/release-order-ticket-plan.md)。
++记录并发保护、Admin/Web 请求迁移与数据库维护窗口见 [记录版本契约](docs/admin-record-versions.md)。发布流程模板、逐表关联和持久实例、多表合计 1～1,000 项混合发布已接通；常规按表审批，应急填写原因后待手动发布，两者均在待完结原单上支持免审批整单回滚，见[发布结果契约](docs/design-notes/publication-contract.md)。已纳入 Goose 的数据库通过 `schema-migrate up` 升级至 00011，新库使用同一入口；维护连接还需显式授予 TRIGGER 元数据与 PROCESS 权限；旧记录写路由已删除，分发尚未接入。完整操作与维护步骤见[发布单升级指南](docs/admin-release-upgrade.md)，逐项验收归属见[交付计划](docs/design-notes/release-order-ticket-plan.md)。
+diff --git a/admin/cmd/admin/account_maintenance_integration_test.go b/admin/cmd/admin/account_maintenance_integration_test.go
+index 3c60325..365bc6c 100644
+--- a/admin/cmd/admin/account_maintenance_integration_test.go
++++ b/admin/cmd/admin/account_maintenance_integration_test.go
+@@ -242,7 +242,7 @@ func TestAccountMaintenanceIndependentConnectionAndAtomicFailures(t *testing.T)
+ 	id := accountID(t, current)
+ 	// The normal Admin must fail here, but maintenance needs only its control
+ 	// tables and MYSQL_* configuration, without HTTP origin or a login session.
+-	if _, err := f.db.Exec("DROP TABLE rcc_table_policies"); err != nil {
++	if _, err := f.db.Exec("RENAME TABLE rcc_table_policies TO unavailable_table_policies"); err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	if app, err := newApplication(context.Background(), f.settings); err == nil {
+diff --git a/admin/cmd/admin/business_auth_integration_test.go b/admin/cmd/admin/business_auth_integration_test.go
+index 476f3de..df8c3ff 100644
+--- a/admin/cmd/admin/business_auth_integration_test.go
++++ b/admin/cmd/admin/business_auth_integration_test.go
+@@ -51,6 +51,7 @@ func TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost(t *testing.T) {
+ 	}
+ 	t.Cleanup(func() { _ = db.Close() })
+ 	assignRelationalMutationPolicy(t, app, "response_loss_mutation_v1", true, true, true, true)
++	bindFlowTemplate(t, app, "mutation_snapshot_items", "default_standard_v1", true)
+ 	server := httptest.NewServer(app.Handler())
+ 	t.Cleanup(server.Close)
+ 	jar, err := cookiejar.New(nil)
+@@ -321,6 +322,7 @@ func TestConcurrentAccountsOwnTheirBusinessChanges(t *testing.T) {
+ 			checkActor(request("POST", path, body, 201))
+ 			checkActor(request("PUT", path+"/"+table, strings.TrimSuffix(body, "}")+`,"expected_version":"1"}`, 200))
+ 			checkActor(request("POST", path+"/"+table+"/enable", `{"expected_version":"2"}`, 200))
++			bindFlowTemplate(t, app, table, "default_standard_v1", true)
+ 			publish := func(input, key string) domain.ReleaseOrder {
+ 				path := approveActorPublication(t, app, session, sessions[1-i], input, key)
+ 				response := releaseActorRequest(t, app, session, "POST", path+"/execute", `{"expected_version":"3"}`, key+"-execute")
+@@ -401,6 +403,7 @@ func TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory(t *testing.T)
+ 			t.Fatalf("setup %s: %d %s", step.path, response.Code, response.Body.String())
+ 		}
+ 	}
++	bindFlowTemplate(t, app, "actor_history", "default_standard_v1", true)
+ 	input := `{"items":[{"content":{"value":"must not commit"},"operation":"ADD","table_name":"actor_history"}],"title":"集成测试发布单"}`
+ 	reviewer := publicationFixtureReviewer(t, app)
+ 	for i, definition := range []string{"VARCHAR(12)", "CHAR(35)", "ENUM('legacy-admin','aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa')"} {
+diff --git a/admin/cmd/admin/discovery_integration_test.go b/admin/cmd/admin/discovery_integration_test.go
+index bf8d862..db3979e 100644
+--- a/admin/cmd/admin/discovery_integration_test.go
++++ b/admin/cmd/admin/discovery_integration_test.go
+@@ -121,7 +121,7 @@ func TestHealthDistinguishesRunningProcessFromRequiredInfrastructure(t *testing.
+ func TestStartupRequiresTheProtectedPolicyCatalog(t *testing.T) {
+ 	ctx, driverConfig := startCurrentIntegrationMySQL(t)
+ 	db := deliveryDB(t, driverConfig)
+-	deliveryExec(t, db, `DROP TABLE rcc_table_policies`)
++	deliveryExec(t, db, `RENAME TABLE rcc_table_policies TO unavailable_table_policies`)
+ 
+ 	app, err := newApplication(ctx, integrationConfig(driverConfig))
+ 	if err == nil {
+diff --git a/admin/cmd/admin/mutation_integration_test.go b/admin/cmd/admin/mutation_integration_test.go
+index 2cbc327..e1e5816 100644
+--- a/admin/cmd/admin/mutation_integration_test.go
++++ b/admin/cmd/admin/mutation_integration_test.go
+@@ -24,6 +24,7 @@ func TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOne
+ 	}
+ 	t.Cleanup(func() { _ = app.Close() })
+ 	assignRelationalMutationPolicy(t, app, "snapshot_full_mutation_v1", true, true, true, true)
++	bindFlowTemplate(t, app, "mutation_snapshot_items", "default_standard_v1", true)
+ 
+ 	database, err := sql.Open("mysql", driverConfig.FormatDSN())
+ 	if err != nil {
+@@ -80,6 +81,7 @@ func TestRelationalMutationPolicyIsSoleAuthorizationSourceAndDeprecatedExecutes(
+ 	}
+ 	t.Cleanup(func() { _ = app.Close() })
+ 	assignRelationalMutationPolicy(t, app, "snapshot_read_only_mutation_v1", false, false, false, false)
++	bindFlowTemplate(t, app, "mutation_snapshot_items", "default_standard_v1", true)
+ 
+ 	denied := publicationFixtureRequest(t, app, "ADD", "mutation_snapshot_items", "", `{"content":{"code":"read-only","label":"must-deny"}}`)
+ 	assertIntegrationErrorCode(t, denied, http.StatusForbidden, "mutation_not_allowed")
+@@ -102,6 +104,7 @@ func TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically(t *testing.T)
+ 	}
+ 	t.Cleanup(func() { _ = app.Close() })
+ 	assignRelationalMutationPolicy(t, app, "snapshot_rollback_mutation_v1", true, true, true, true)
++	bindFlowTemplate(t, app, "mutation_snapshot_items", "default_standard_v1", true)
+ 	database, err := sql.Open("mysql", driverConfig.FormatDSN())
+ 	if err != nil {
+ 		t.Fatalf("open verification database: %v", err)
+@@ -139,6 +142,7 @@ func TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically(t *testing.T)
+ func TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement(t *testing.T) {
+ 	app := startIntegrationApplication(t, "testdata/008-mutation-policy-snapshot-fixture.sql")
+ 	assignRelationalMutationPolicy(t, app, "snapshot_allowed_mutation_v1", true, false, false, true)
++	bindFlowTemplate(t, app, "mutation_snapshot_items", "default_standard_v1", true)
+ 	reviewer := publicationFixtureReviewer(t, app)
+ 	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"in-flight","label":"old-snapshot"},"operation":"ADD","table_name":"mutation_snapshot_items"}],"title":"集成测试发布单"}`, "policy-approved")
+ 	replaceRelationalMutationPolicy(t, app, "snapshot_denied_mutation_v2", false, false, false, false)
+@@ -644,6 +648,7 @@ func TestMutationPolicyPatchFailsClosedForCurrentPolicyAndSchema(t *testing.T) {
+ 	disabled := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", "1", `{"content":{"label":"disabled"}}`)
+ 	assertIntegrationErrorCode(t, disabled, http.StatusForbidden, "table_policy_disabled")
+ 	setPolicyAssignmentEnabled(t, app, "mutation_add_items", true)
++	bindFlowTemplate(t, app, "mutation_add_items", "default_standard_v1", true)
+ 	id := addMutationPatchFixtureRow(t, app, "patch-fail-closed", "original")
+ 
+ 	protected := versionedPublicationFixture(t, app, "MODIFY", "rcc_table_policies", "1", `{"content":{"modifier":"x"}}`)
+@@ -700,6 +705,7 @@ func TestMutationPolicyDeleteFailsClosedBeforeExecution(t *testing.T) {
+ 	disabled := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", "1", "")
+ 	assertIntegrationErrorCode(t, disabled, http.StatusForbidden, "table_policy_disabled")
+ 	setPolicyAssignmentEnabled(t, app, "mutation_add_items", true)
++	bindFlowTemplate(t, app, "mutation_add_items", "default_standard_v1", true)
+ 	id := addMutationPatchFixtureRow(t, app, "delete-invalid-id", "must remain")
+ 
+ 	invalidID := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", "not-an-integer", "")
+@@ -858,6 +864,7 @@ func TestMutationAddFailsClosedAndUsesTheLatestPolicySnapshot(t *testing.T) {
+ 	assertIntegrationErrorCode(t, forbidden, http.StatusForbidden, "mutation_not_allowed")
+ 
+ 	replacePolicyAssignment(t, app, "mutation_add_items", queryPolicyFixture{}, mutationPolicyFixture{AllowAdd: true})
++	bindFlowTemplate(t, app, "mutation_add_items", "default_standard_v1", true)
+ 	added := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"code":"current","label":"latest Policy"}}`)
+ 	if added.Code != http.StatusOK {
+ 		t.Fatalf("latest Policy Snapshot did not permit ADD: HTTP %d %s", added.Code, added.Body.String())
+@@ -914,7 +921,7 @@ func TestMutationAddFailsClosedWhenPolicyCatalogIsUnavailable(t *testing.T) {
+ 		t.Fatalf("open fixture database: %v", err)
+ 	}
+ 	t.Cleanup(func() { _ = database.Close() })
+-	if _, err := database.ExecContext(context.Background(), "DROP TABLE `rcc_table_policies`"); err != nil {
++	if _, err := database.ExecContext(context.Background(), "RENAME TABLE `rcc_table_policies` TO `unavailable_table_policies`"); err != nil {
+ 		t.Fatalf("make Policy Catalog unavailable: %v", err)
+ 	}
+ 
+diff --git a/admin/cmd/admin/policy_integration_test.go b/admin/cmd/admin/policy_integration_test.go
+index 226bfef..674ec8e 100644
+--- a/admin/cmd/admin/policy_integration_test.go
++++ b/admin/cmd/admin/policy_integration_test.go
+@@ -238,7 +238,10 @@ func TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite(t *testing.T
+ 	deliveryExec(t, owner, "CREATE DATABASE fresh_catalog CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
+ 	rootDriver.DBName = "fresh_catalog"
+ 	freshDatabase := deliveryDB(t, &rootDriver)
+-	initializeCurrentIntegrationSchema(t, ctx, &rootDriver)
++	// This historical expand/contract path ends at the released pre-Goose
++	// catalog. Compare it with the same formal prefix; later upgrades are
++	// covered by the complete schema migration and baseline tests.
++	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 5), &rootDriver, "current", "up")
+ 
+ 	upgradedSignature := policyCatalogSchemaSignature(t, ctx, database)
+ 	freshSignature := policyCatalogSchemaSignature(t, ctx, freshDatabase)
+diff --git a/admin/cmd/admin/query_integration_test.go b/admin/cmd/admin/query_integration_test.go
+index 2c2db4b..94531cb 100644
+--- a/admin/cmd/admin/query_integration_test.go
++++ b/admin/cmd/admin/query_integration_test.go
+@@ -543,7 +543,7 @@ func TestQueryFailsClosedWhenPolicyCatalogIsUnavailable(t *testing.T) {
+ 		t.Fatalf("open fixture database: %v", err)
+ 	}
+ 	t.Cleanup(func() { _ = database.Close() })
+-	if _, err := database.ExecContext(ctx, "DROP TABLE `rcc_table_policies`"); err != nil {
++	if _, err := database.ExecContext(ctx, "RENAME TABLE `rcc_table_policies` TO `unavailable_table_policies`"); err != nil {
+ 		t.Fatalf("make Policy Catalog unavailable: %v", err)
+ 	}
+ 
+diff --git a/docs/admin-release-approvals.md b/docs/admin-release-approvals.md
+index cbd2931..d3103d5 100644
+--- a/docs/admin-release-approvals.md
++++ b/docs/admin-release-approvals.md
+@@ -71,7 +71,7 @@
+ 
+ ## 升级与恢复
+ 
+-尚未接管且已有 007 本地账号结构的部署，在停写维护窗口完成适用历史迁移 008～017 及 Policy 收缩后，显式运行 `schema-migrate baseline` 并确认 current。015 建立原单明细/执行，016 增加管控键和表引用，017 删除主单默认表；这些步骤不转换旧发布单业务数据。已经纳入 Goose 的库使用 `schema-migrate up` 至当前构建包含的最新版本；新库同样只使用嵌入式 `up` 初始化。历史接管边界保持 00005，常规与应急流程实例使用现有主单文档，不新增 Schema 迁移。未确认操作按手册显式 `recover`，不能混用历史人工链和 Goose。Ready 只读核对完整版本前缀及每张控制表的完整定义。具体命令和历史边界见[迁移说明](../deploy/mysql/migrations/README.md)及[接管手册](schema-migrations.md)。
++尚未接管且已有 007 本地账号结构的部署，在停写维护窗口完成适用历史迁移 008～017 及 Policy 收缩后，显式运行 `schema-migrate baseline` 登记固定 1～5，再 `schema-migrate up` 并确认 current。015 建立原单明细/执行，016 增加管控键和表引用，017 删除主单默认表；这些步骤不转换旧发布单业务数据。已经纳入 Goose 的库使用 `schema-migrate up` 至当前构建包含的最新版本；新库同样只使用嵌入式 `up` 初始化。历史接管边界保持 00005，常规与应急流程实例使用现有主单文档，不新增 Schema 迁移。未确认操作按手册显式 `recover`，不能混用历史人工链和 Goose。Ready 只读核对完整版本前缀及每张控制表的完整定义。具体命令和历史边界见[迁移说明](../deploy/mysql/migrations/README.md)及[接管手册](schema-migrations.md)。
+ 
+ Web 将草稿和发布动作（含提交、批准、拒绝、取消、复制、重新准备、执行、完结、快速回滚）的原请求内容、键及账号在发送前通过单一 IndexedDB 事务持久保存。事务完成前不发送，同账号窗口同步存储状态而不自动重推；存储失败保留输入并只阻止发布写入。未知结果保持原键和完整正文；重新准备未知时同一账号恢复同一请求，只在服务端返回明确失败后才重新核对并生成新键。仅持有 VIEWER 全局权限的表角色成员也能恢复自己的审批请求，账号切换不会重放别人的请求。明确状态/记录/目标冲突后仍保留原意，读取最新状态与差异、显式确认后才生成新请求。普通草稿提交基线陈旧时须先明确更新草稿基线；回滚恢复基线不能更新。
+ 
+@@ -81,7 +81,7 @@ Web 将草稿和发布动作（含提交、批准、拒绝、取消、复制、
+ 
+ ## 详情审阅与原操作重推
+ 
+-正向常规与应急发布单详情分别展示整单阶段和已保存逐表流程。准备完成取真实 SUBMIT；各表节点使用自身实例的名称、状态、人员和时间，来源模板及版本可展开核对。部分表批准时整单仍待审批，普通发布成功仍为 SUCCEEDED 待人工完结。回滚结果继续按原单真实执行展示，当前不新增回滚模板实例；已有快速回滚在同一事务停止尚未完成的正向节点，`ROLLED_BACK` 页面暂保留旧总览。#105 负责接入原单回滚模板及其节点进度，#106 负责移除临时总览。历史默认倒序最近 5 条，可展开全部，姓名解析失败保持永久身份兜底。
++正向常规与应急发布单详情分别展示整单阶段和已保存逐表流程。准备完成取真实 SUBMIT；各表节点使用自身实例的名称、状态、人员和时间，来源模板及版本可展开核对。部分表批准时整单仍待审批，普通发布成功仍为 SUCCEEDED 待人工完结。原单恢复预览显式保存各表应急实例，回滚结果展示真实恢复发布节点与执行人；成功只终止尚未完成的正向和恢复完结节点，不补造人工完结。所有终态共用整单阶段与真实逐表实例展示，不使用固定四阶段总览或状态序数推断完成。历史默认倒序最近 5 条，可展开全部，姓名解析失败保持永久身份兜底。
+ 
+ 申请差异每页 20 项，初次仅展开首项，定位展开选中项。默认仅看变更过滤 MODIFY 中未提交（申请未写入）及状态和值均确定相同的字段，自动填写和数据库生成说明仍可见；完整视图分别表达 SQL NULL、JSON null、空字符串、未提交、不存在和发布时生成。申请筛选不承诺触发器执行后的实际值，最终结果仍取数据库发布结果。ADD/DELETE 保留完整字段。所有操作仍针对整单。成功初次默认可信实际发布结果，可切换申请差异；已回滚原单可分页读取原明细 `rollback` 的真实恢复结果，不从申请内容生成实际值。
+ 
+diff --git a/docs/admin-release-upgrade.md b/docs/admin-release-upgrade.md
+index 7b545bc..65e56db 100644
+--- a/docs/admin-release-upgrade.md
++++ b/docs/admin-release-upgrade.md
+@@ -1,16 +1,16 @@
+ # 发布单升级与操作指南
+ 
+-当前管理台在同一部署的一个 MySQL 数据库中提供全局账号角色、同一数据源多表合计 1～1,000 项混合发布、独立审批及原单内免审批回滚。配置新增、修改和删除只在发布事务成功后生效。规则目录由 ADMIN 直接维护；通知记录仅持久保存，状态为 `NOT_CONNECTED`，尚未接入 Server/Client 投递。
++当前管理台在同一部署的一个 MySQL 数据库中提供全局账号角色、同一数据源多表合计 1～1,000 项混合发布、常规按表审批、应急免审批待手动发布及原单内免审批回滚。配置新增、修改和删除只在发布事务成功后生效。规则目录由 ADMIN 直接维护；通知记录仅持久保存，状态为 `NOT_CONNECTED`，尚未接入 Server/Client 投递。
+ 
+ ## 维护窗口
+ 
+-以下历史人工步骤仅适用于尚未纳入 Goose、已经完成本地账号迁移 007 的存量部署。已接管库保持停写，直接按[迁移手册](schema-migrations.md)执行 `schema-migrate up` 至当前 00009；未确认操作先显式 recover。更早的规则目录升级先按[迁移说明](../deploy/mysql/migrations/README.md)完成适用的 001–005、013 和当前 Policy 收缩，007 只执行一次。新数据库使用最终 `schema-migrate up`，不重放这些旧安装迁移。
++以下历史人工步骤仅适用于尚未纳入 Goose、已经完成本地账号迁移 007 的存量部署。已接管库保持停写，直接按[迁移手册](schema-migrations.md)执行 `schema-migrate up` 至当前 00011；未确认操作先显式 recover。更早的规则目录升级先按[迁移说明](../deploy/mysql/migrations/README.md)完成适用的 001–005、013 和当前 Policy 收缩，007 只执行一次。新数据库使用最终 `schema-migrate up`，不重放这些旧安装迁移。
+ 
+ 1. 备份完整业务表和全部控制表，记录当前二进制、数据库版本、账号数量和受管表规则。如果旧版本采用 FLOAT 主键身份算法，先在旧 Admin 仍可用时按[浮点身份维护门禁](admin-record-versions.md#t5-浮点身份修订的升级门禁)取消受影响的旧在途单。随后关闭业务入口，等待在途请求结束并停止全部旧 Admin/Web、脚本及外部写库者。不能让旧版本与新版本同时写入。
+ 2. 用部署维护连接依次执行 008、009、010、011、012、013、014、015、016、017。013 统一规则目录审计时间列；014 新增字段规则；015 切换原单执行存储，016 建立草稿引用与管控键，017 删除主单默认表及对应索引；旧发布单历史不自动转换，已有旧历史时先按本文 015 小节确认环境切换方案。这些迁移不重写业务配置、账号身份或登录会话，不把旧配置伪造为发布历史。尚无显式记录版本的存量行从 `0` 开始；已有记录版本、占用、请求结果及发布历史全部保留。
+ 3. 按部署实际 MySQL 登录身份配置目标表/Schema 的显式 TRIGGER 元数据权限及全局 PROCESS 权限。PROCESS 用于识别跨 Schema 的隐式级联，详见[发布能力边界](design-notes/publication-contract.md)。权限不足不能作为“没有触发器或级联”的证明。
+ 4. 如果本次切换涉及旧 FLOAT 主键身份，确认第 1 步已取消受影响的旧在途单且全部写入者已停止，再按浮点身份维护门禁提高整表维护基线。保留旧 key 和历史；012 的重跑不会自动完成身份代际切换。
+-5. 完成所有适用的历史步骤：三类 Policy 审计列须完成 013、字段策略表须完成 014，旧 Table Policy 须通过当前 `policy-migrate` 的 preflight/backfill/contract。按[完整接管手册](schema-migrations.md#校验并接管现有库)运行 `schema-migrate baseline` 登记固定 1～5，再显式 `schema-migrate up` 至当前 00009，最后用 `schema-migrate status` 确认 `state=current` 且没有未确认操作；失败时保持维护窗口，不直接启动。接管不替代第 3～4 步权限及身份维护。
++5. 完成所有适用的历史步骤：三类 Policy 审计列须完成 013、字段策略表须完成 014，旧 Table Policy 须通过当前 `policy-migrate` 的 preflight/backfill/contract。按[完整接管手册](schema-migrations.md#校验并接管现有库)运行 `schema-migrate baseline` 登记固定 1～5，再显式 `schema-migrate up` 至当前 00011，最后用 `schema-migrate status` 确认 `state=current` 且没有未确认操作；失败时保持维护窗口，不直接启动。接管不替代第 3～4 步权限及身份维护。
+ 6. 启动新 Admin，检查 `/health/ready`。缺失或不兼容的账号、角色、记录版本及发布控制结构会阻止启动，并给出对应迁移指引。就绪不要求已有 ADMIN：首次通过 008 引入角色时，原先没有角色的存量账号初始化为 VIEWER；新注册账号默认 VIEWER。00009 只收缩旧 APPROVER 当前位，其他权限及会话保留，重复迁移不再推进版本。尚无 ADMIN 时使用维护命令明确选择首位管理员，再在管理台分配 EDITOR、PUBLISHER，并在角色管理中建立按表审批成员及表绑定；具体命令见[角色初始化](admin-account-roles.md)。重复授予既有管理员不会重复推进角色版本或记录授予事件。
+ 7. 切换 Web 和脚本，以独立账号验证查询、草稿、提交、审批、发布及回滚。确认旧 `POST /api/v1/tables/:table_name/rows` 以及 `PATCH`、`DELETE /api/v1/tables/:table_name/rows/:id` 均返回 `404 route_not_found`，再恢复入口。不要把旧请求静默转换成已发布或为其开放兼容开关。
+ 
+@@ -24,13 +24,13 @@
+ 
+ ## 操作与持久历史
+ 
+-编辑者在数据页确认差异后保存草稿，保存草稿时原子取得主键及已配置管控键目标，提交时冻结内容并重新核验占用；另一位审批人给出意见后，由发布者手动执行。任一记录、规则或 Schema 冲突使整单失败，保留输入、获批内容及占用。查看最新值不会自动接纳新版本；原申请人仍有 EDITOR 权限或 ADMIN 明确放弃已批准普通单的旧意图时，可核对最新配置后重新准备。操作在一个事务中取消旧单、释放旧目标并创建由实际操作者申请的关联草稿；新草稿继承标题且可编辑，须重新提交和独立审批。明确失败保留旧批准和占用。
++编辑者在数据页确认差异后保存草稿，保存草稿时原子取得主键及已配置管控键目标，提交时冻结内容并重新核验占用；常规由各表合格且非申请人的审批人通过后发布；应急提交必填原因，进入真实待发布，由当前发布者手动执行。任一记录、规则或 Schema 冲突使整单失败，保留输入、获批内容及占用。查看最新值不会自动接纳新版本；原申请人仍有 EDITOR 权限或 ADMIN 明确放弃已批准普通单的旧意图时，可核对最新配置后重新准备。操作在一个事务中取消旧单、释放旧目标并创建由实际操作者申请的关联草稿；新草稿继承标题且可编辑，常规须重新提交和独立审批，应急须重新提交原因。明确失败保留旧批准和占用。
+ 
+ 请求结果未知时保留原账号、原 `Idempotency-Key`、完整请求体及预期版本。刷新或重新登录后用原请求恢复；重新准备也不能重新读取后换正文或换键猜测结果。一次 404、401/403 或当前值查询不能证明原写入未提交。已保存的成功请求返回当时结果，当前单据可能后来已回滚，需另读当前详情。账号切换不重放另一账号的请求，当前角色仍约束重放权限。
+ 
+-DRAFT、PENDING_APPROVAL、APPROVED、SUCCEEDED、COMPLETED、REJECTED、CANCELLED、ROLLED_BACK 均作为持久历史保留。完整申请差异、意见、永久 Account ID、最终 Command 及两种成功执行不依赖当前业务表或账号显示资料；重启、账号改名/邮箱修正/停用以及后续规则或表结构变化不会重写归属。正式 HTTP 不提供物理删除发布历史或自动清理发布/幂等记录的接口。隔离开发／测试库可在停写并明确核对目标后执行[独立旧发布单重置](admin-release-reset.md)，不属于升级流程。
++DRAFT、PENDING_APPROVAL、PENDING_PUBLICATION、APPROVED、SUCCEEDED、COMPLETED、REJECTED、CANCELLED、ROLLED_BACK 均作为持久历史保留。完整申请差异、意见、永久 Account ID、最终 Command 及两种成功执行不依赖当前业务表或账号显示资料；重启、账号改名/邮箱修正/停用以及后续规则或表结构变化不会重写归属。正式 HTTP 不提供物理删除发布历史或自动清理发布/幂等记录的接口。隔离开发／测试库可在停写并明确核对目标后执行[独立旧发布单重置](admin-release-reset.md)，不属于升级流程。
+ 
+-详细契约：[草稿](admin-release-drafts.md)、[审批](admin-release-approvals.md)、[混合批量](admin-release-drafts.md)、[回滚](admin-release-rollbacks.md)、[记录版本](admin-record-versions.md)。Environment、跨数据源发布、模板编辑器、灰度、Worker、运行时投递及版本大盘仍属后续范围。
++详细契约：[草稿](admin-release-drafts.md)、[审批](admin-release-approvals.md)、[混合批量](admin-release-drafts.md)、[回滚](admin-release-rollbacks.md)、[记录版本](admin-record-versions.md)。Environment、跨数据源发布、灰度、Worker、运行时投递及版本大盘仍属后续范围。
+ 
+ ## 发布后的人工完结与快速回滚
+ 
+@@ -48,10 +48,16 @@ DRAFT、PENDING_APPROVAL、APPROVED、SUCCEEDED、COMPLETED、REJECTED、CANCELL
+ 
+ ## 字段交互管理升级
+ 
+-未接管库完成适用历史步骤至 017 后在停写窗口显式运行 `schema-migrate baseline` 后再 `schema-migrate up` 并确认 current，才部署配套 Admin/Web。已有 Goose 库使用 `schema-migrate up`，顺序应用至当前 00009；00003 是字段规则结构的发布版本。该迁移只新增表字段规则，不清理旧发布单、业务行或版本；Admin 使用只读完整结构及版本检查。详见[字段规则契约与升级说明](admin-field-policies.md)。
++未接管库完成适用历史步骤至 017 后在停写窗口显式运行 `schema-migrate baseline` 后再 `schema-migrate up` 并确认 current，才部署配套 Admin/Web。已有 Goose 库使用 `schema-migrate up`，顺序应用至当前 00011；00003 是字段规则结构的发布版本。该迁移只新增表字段规则，不清理旧发布单、业务行或版本；Admin 使用只读完整结构及版本检查。详见[字段规则契约与升级说明](admin-field-policies.md)。
+ 
+ ## Goose 00004 / 00005：可恢复的整张表迁移
+ 
+ 已发布的 00001～00003 及结构清单保持原样。00004 新增明细、执行和表引用，增加管控键与技术执行身份列；每个已有表只用原子 ALTER 从前版完整定义变为本版完整定义。00005 先为仍为空的旧技术身份补稳定的 `legacy:<order_id>`，再原子切换通知主键，最后原子删除主单默认表及索引。两版分别提供真实 MySQL SHOW CREATE 全表清单，避免“加列后、改键前”的中断结构既不属于前版也不属于目标版。
+ 
+-中断后普通 up 拒绝；明确 recover 只接受每张已有表处于前版或目标整张定义，新建表可以缺失。技术身份回填可以重试，保留同表多个历史通知；不转换旧发布单业务 JSON。baseline 要求当前完整结构，并登记整个版本前缀；Ready 全程只读，不能替代升级或恢复。
++中断后普通 up 拒绝；明确 recover 只接受每张已有表处于前版或目标整张定义，新建表可以缺失。技术身份回填可以重试，保留同表多个历史通知；不转换旧发布单业务 JSON。baseline 要求固定版本 00005 的完整结构，并登记 1～5；Ready 全程只读，不能替代升级或恢复。
++
++## 发布模板结构 00010/00011
++
++正式 00001～00009 保持原内容；00010 新增模板定义表，00011 新增表关联并扩展既有表规则版本。共增加两张配置表，逐表流程与应急恢复实例保存在原单文档中。新安装顺序执行 1～11；已在版本 9 的数据库显式 `up` 执行 10、11。首次初始化为既有表规则补齐缺失默认关联，重跑不覆盖管理员选择或恢复被停用、删除的常规模板；账号、会话、正常业务、其他配置与个人通知进度保留。
++
++MySQL DDL 可能部分提交。未确认状态阻止普通升级及 Admin 就绪；维护者核对实际结构与原发行摘要后显式 `recover`，再 `up` 余下版本。不能改账本、重排已用于保留环境的迁移、删除数据或增加旧流程兜底。历史接管仍固定 00005；旧发布单 JSON 原样保留，不自动兼容。新装、版本 9 升级、部分执行恢复与只读就绪的最终证据见[#106 验收记录](verification/2026-09-11-release-template-final/README.md)。
+diff --git a/docs/admin-table-release-templates.md b/docs/admin-table-release-templates.md
+index 4eb4bae..95f280b 100644
+--- a/docs/admin-table-release-templates.md
++++ b/docs/admin-table-release-templates.md
+@@ -1,6 +1,6 @@
+ # 表发布流程设置
+ 
+-管理员在表规则目录选择「发布流程」，为每种发布方式选择一个模板。不同表可以共享模板。此处维护后续实例的配置；常规草稿在显式保存时采用各表当前有效关联。修改配置不替换已有实例，缺失流程在配置修复后由申请人再次保存补齐，详见[发布草稿](admin-release-drafts.md#已保存的逐表流程)。应急执行与原单回滚模板尚未接入。
++管理员在表规则目录选择「发布流程」，为每种发布方式选择一个模板。不同表可以共享模板。此处维护后续实例的配置；常规草稿在显式保存时采用各表当前有效关联。修改配置不替换已有实例，缺失流程在配置修复后由申请人再次保存补齐，详见[发布草稿](admin-release-drafts.md#已保存的逐表流程)。正向应急草稿和待完结原单的恢复预览采用各表应急模板；恢复成功直接结束原单，不增加审批或人工完结。
+ 
+ `GET /api/v1/table-policies/{table_name}/release-templates` 返回 `associations`，每项包含 `table_name`、`type`、`template_code`、`template_name`、`template_enabled`、关联自身的 `enabled`、十进制字符串 `version` 以及 `creator/modifier/created_at/updated_at`。身份审计采用永久 Account ID。读取失败返回依赖错误，不当作空配置。
+ 
+@@ -20,4 +20,4 @@
+ 
+ 数据库只增加 `rcc_table_release_templates` 这一张关联配置表，连同 #101 的模板定义表共两张。每表规则每类型唯一，模板身份及类型由复合外键保护；配置节点保存在模板 `node_list`；发布单实例在现有主单文档中保留当时的有序节点，不另建配置表。新建表规则与默认应急关联同事务，启用校验或补齐应急关联；初始化为既有规则补缺失默认值，不覆盖管理员已选关联，也不恢复已停用或已删除的常规模板。
+ 
+-已集成基线包含外部交付 00006/00007 和本功能候选 00008/00009；候选仍仅用于一次性隔离验证。历史接管边界保持 00005，常规逐表流程实例不增加迁移版本。后续外部依赖接入时，仍按[候选迁移整合约定](design-notes/release-template-ticket-plan.md#并行开发的迁移整合责任)核对前缀、顺排未发行候选并从真实 MySQL 重建累计清单。Admin 就绪只读检查完整结构、发行记录及每个受管表的有效应急关联，不隐式修复。
++当前完整迁移前缀为 00001～00011：外部已交付 00001～00009 保持原字节，00010/00011 分别建立模板与表关联，累计清单来自真实 MySQL 的完整结构。候选编号整合已结束；早期隔离验证的编号不能作为当前升级输入。历史接管边界保持 00005，流程实例不增加迁移版本。正式维护步骤见[迁移手册](schema-migrations.md)；交付不代表已部署。Admin 就绪只读检查完整结构、发行记录及每个受管表的有效应急关联，不隐式修复。
+diff --git a/docs/adr/0019-require-release-orders-for-managed-record-changes.md b/docs/adr/0019-require-release-orders-for-managed-record-changes.md
+index 0c14ef8..2cd7b2d 100644
+--- a/docs/adr/0019-require-release-orders-for-managed-record-changes.md
++++ b/docs/adr/0019-require-release-orders-for-managed-record-changes.md
+@@ -10,4 +10,6 @@ status: accepted
+ 
+ 当前工作只交付管理台正式发布、取消、回滚及其持久化变更和通知记录，灰度、Server/Client 实际分发及版本大盘另期交付；历史开源候选规格中的代理身份头、Environment/Page Model 前置和完整运行时范围不得直接套用到这一期。
+ 
+-2026-09-09 已确认的后续 [ADR-0026](./0026-authorize-approval-by-table-roles.md) 将审批资格调整为表绑定的自定义审批角色，多表分别通过后才允许整单发布；当提交快照中的角色没有合格成员时，由 ADMIN 承担默认审批，成员恢复后退出未完成的默认审批资格。该调整尚未实现；禁止自审、真实人员归因和受控发布继续保留。
++2026-09-09 已确认的后续 [ADR-0026](./0026-authorize-approval-by-table-roles.md) 将审批资格调整为表绑定的自定义审批角色，多表分别通过后才允许整单发布；当提交快照中的角色没有合格成员时，由 ADMIN 承担默认审批，成员恢复后退出未完成的默认审批资格。该调整已通过按表审批与通知功能接入；禁止自审、真实人员归因和受控发布继续保留。
++
++[ADR-0027](./0027-configure-release-workflows-with-stable-templates.md) 增加应急发布：原因必填，免审批且仍需当前发布人员手动执行；常规继续遵循按表独立审批。所有记录写入仍经正式整单发布事务。
+diff --git a/docs/adr/0020-reapprove-rollback-and-reject-stale-publications.md b/docs/adr/0020-reapprove-rollback-and-reject-stale-publications.md
+index 38ea9f5..c65a9f7 100644
+--- a/docs/adr/0020-reapprove-rollback-and-reject-stale-publications.md
++++ b/docs/adr/0020-reapprove-rollback-and-reject-stale-publications.md
+@@ -6,7 +6,7 @@ status: accepted
+ 
+ 审批针对提交时冻结的表结构、变更规则和配置变更内容；执行时记录版本、表结构或规则执行语义已变化就拒绝发布，保留申请供重新确认。相比按当前值直接覆盖，这需要维护独立于业务表的记录并发版本并将其与业务变更一起提交，换取审批期间的修改不被旧申请静默覆盖；它取代 ADR-0016 对受管配置记录暂时接受 last-write-wins 的约定，不把规则目录的历史版本或并发保护纳入本期。
+ 
+-回滚创建有关联的反向发布单并重新经过他人审批，执行前再次验证原发布的结果未被后续修改；不得以回滚之名覆盖较新的配置。原发布及操作历史保留，回滚生成新的变更记录和发布版本；取消只终止尚未发布的意图，不能代替反向发布。当前实现已接通重新审批的反向发布，详见[回滚契约](../admin-release-rollbacks.md)；分支验证和上线授权仍分别记录。
++回滚创建有关联的反向发布单并重新经过他人审批，执行前再次验证原发布的结果未被后续修改；不得以回滚之名覆盖较新的配置。原发布及操作历史保留，回滚生成新的变更记录和发布版本；取消只终止尚未发布的意图，不能代替反向发布。当时实现接通重新审批的反向发布（已由下述 ADR-0025 替代），详见[回滚契约](../admin-release-rollbacks.md)；分支验证和上线授权仍分别记录。
+ 
+ [ADR-0023](./0023-keep-published-orders-open-for-quick-rollback.md) 增量调整发布后的完结与恢复时机：普通回滚只从已完结普通单申请，成功反向结果直接结束；待完结快速回滚的免审批例外由后续工单实现。
+ 
+diff --git a/docs/adr/0027-configure-release-workflows-with-stable-templates.md b/docs/adr/0027-configure-release-workflows-with-stable-templates.md
+index 2cc5783..74fb216 100644
+--- a/docs/adr/0027-configure-release-workflows-with-stable-templates.md
++++ b/docs/adr/0027-configure-release-workflows-with-stable-templates.md
+@@ -8,13 +8,13 @@ status: accepted
+ 
+ 模板直接保存有序的发布节点定义 JSON，不拆分第三张配置表。常规模板固定为按表审批、发布、完结，应急模板固定为发布、完结；节点编码在模板内唯一，节点能力、顺序及所需角色由发布方式约束。模板级监控列表当前固定为空，未引入监控节点配置。模板目录阶段仅声明按表审批能力；流程实例沿用正式表审批，不引入旧全局 APPROVER 授权。
+ 
+-应急模板始终可用，不能停用或删除，非法修改在写入前拒绝；服务就绪要求稳定编码 `default_emergency_v1` 的默认应急模板保持有效，同类型仍可存在多份模板。常规模板可以停用或删除，不构成就绪故障。模板管理的读取和写入均要求当前 ADMIN，审计保存永久 Account ID。#101 只交付模板目录、管理 API、正式 Web 表单和第一张模板定义表；模板与表规则的关联、发布单实例化及节点执行由后续工单接入。
++应急模板始终可用，不能停用或删除，非法修改在写入前拒绝；服务就绪要求稳定编码 `default_emergency_v1` 的默认应急模板保持有效，同类型仍可存在多份模板。常规模板可以停用或删除，不构成就绪故障。模板管理的读取和写入均要求当前 ADMIN，审计保存永久 Account ID。早期 #101 切片只交付模板目录、管理 API、正式 Web 表单和第一张模板定义表；模板与表规则的关联、发布单实例化及节点执行随后由 #102～#105 接入。
+ 
+ 完整范围见[父规格 #100](https://github.com/asherzj/relational-config-center/issues/100)与[T1 #101](https://github.com/asherzj/relational-config-center/issues/101)。
+ 
+ #102 增加第二张配置表，以表规则永久身份、发布方式和模板永久身份保存唯一关联；数据库复合外键保护类型一致与引用完整性，关联通过版本原子替换。既有规则初始化只补缺失关联，不覆盖管理员选择。新建表规则在同一事务创建默认应急关联，启用时确认或补齐有效应急关联；整张表规则仍可停用，常规关联可停用。应急可用性是配置不变量，数据库读取失败不会变成临时默认流程。
+ 
+-表规则创建、替换、启用和停用也采用持久原请求结果与可观察版本。这取代 ADR-0005 中表规则「不提供乐观锁、最后写入者获胜」的约定；两类规则一起校验替换、实时 Schema 校验与在途并发管控键保护保持原语义。当前 ADMIN 校验先于结果重推，原请求身份及正文与业务变更同事务保存，响应丢失由用户原操作手动重推。#102 只交付配置关联与管理，实例化及常规／应急执行仍由后续工单接入。
++表规则创建、替换、启用和停用也采用持久原请求结果与可观察版本。这取代 ADR-0005 中表规则「不提供乐观锁、最后写入者获胜」的约定；两类规则一起校验替换、实时 Schema 校验与在途并发管控键保护保持原语义。当前 ADMIN 校验先于结果重推，原请求身份及正文与业务变更同事务保存，响应丢失由用户原操作手动重推。早期 #102 切片只交付配置关联与管理，实例化及常规／应急执行随后由 #103～#105 接入。
+ 
+ 常规多表草稿在显式保存时，为新参与或尚缺流程的表持久化独立实例。每份实例保留来源模板、关联版本和完整有序节点；同表普通编辑保留已有实例，移除最后一条明细时移除该表当前实例，再次加入按当前配置生成。复制和重新准备为新单重新实例化。选择在展示前保存，是为了让用户已审阅的流程不随共享模板编辑、停用或关联切换而变化；详情读取及提交都不补建或替换实例。明确缺少常规配置的草稿可以保存，提交要求逐表实例完整；管理员修复配置后，由用户再次保存仅补齐缺失实例。
+ 
+@@ -23,3 +23,5 @@ status: accepted
+ 正向草稿明确改选发布方式时，才将所有参与表的节点实例与草稿变更整体重新保存；相同方式的普通编辑仍保留已有实例。应急提交保存必填原因并进入真实待发布 `PENDING_PUBLICATION`，不冻结审批责任或制造批准事实。发布资格按发布方式分别验证：常规需要各表真实批准，应急需要有效已保存流程及提交原因；两者均要求当前 PUBLISHER，申请人有该权限可自行执行。执行复用整单一次事务，成功保留占用并等待人工完结，完结释放占用且不再允许回滚。新的待发布状态也适用取消和重新准备；新草稿重新实例化、重新提交，不继承已提交原因。
+ 
+ 原单恢复预览也采用展示前显式保存：在仍待完结的原单中实例化每表当前应急模板，首次保存推进整单版本并留下真实预览历史，后续打开复用同一实例。完整预览原请求结果与节点、版本一起持久化，代价是预览成为需要版本和请求键保护的写操作；这让丢响应后能够原样重推，并防止模板后改替换已经审阅的流程。业务当前值仍在实际逆向执行时检查，实例不延长回滚期限。成功恢复直接令原单已回滚并释放占用，发布节点记录真实回滚执行，模板中的完结节点停止，不补造审批或人工完结。权限在事务取得授权锁后重新读取，预览和执行重放也适用当前权限。
++
++最终结构采用连续 Goose 00001～00011，保留外部已交付 1～9，模板与关联固定为 10/11；不再保留候选编号、固定流程总览或执行兜底。当前所有阶段都读取已保存实例及真实业务事实，取消、拒绝和回滚不被展示为普通完结。
+diff --git a/docs/design-notes/release-detail-compact.md b/docs/design-notes/release-detail-compact.md
+index 64b7b44..73c98b6 100644
+--- a/docs/design-notes/release-detail-compact.md
++++ b/docs/design-notes/release-detail-compact.md
+@@ -2,7 +2,7 @@
+ 
+ 设计依据：2026-09-11 用户提供的正式界面截图与六项调整要求；沿用 `web/DESIGN.md` 的中性灰、石墨主操作、shadcn 组件及现有发布单业务语义。实现基线为远程 main `56dff53`，在 `codex/swap-config-navigation` 隔离工作树内完成。
+ 
+-接入发布模板规格 #100 后，紧凑页头、人员展示和差异布局继续适用；正向流程展示按已保存的整单阶段和逐表实例更新，以下 AC-07 及布局说明已同步。原紧凑布局验收证据保持原时点内容，回滚旧总览的退出由 #106 负责。
++接入发布模板规格 #100 后，紧凑页头、人员展示和差异布局继续适用；正向流程展示按已保存的整单阶段和逐表实例更新，以下 AC-07 及布局说明已同步。原紧凑布局验收证据保持原时点内容，回滚旧总览已由 #106 删除，原单正向与应急恢复节点均按保存事实展示。
+ 
+ ## 验收要求
+ 
+@@ -14,7 +14,7 @@
+ | AC-04 | 人员默认显示名称，无名称时显示账号短标识；按需展开完整 UUID 并复制。实际人员、时间继续来自已记录事件。 | 键盘展开、完整值复制与失败回退、现有阶段事件测试。 |
+ | AC-05 | 页头右侧放当前状态允许的操作，草稿包含编辑和提交。黑色留给当前主操作；取消草稿进入更多操作且危险呈现，仍先确认。其他生命周期动作保留权限、写入互斥、未确认请求与原键重放。 | 草稿、审批、发布、完结、回滚及恢复现有测试；更多菜单和取消确认浏览器操作。 |
+ | AC-06 | “添加变更”位于“变更内容”工具栏，使用次级按钮；进入统一入口并携带当前草稿和表，写入中禁用。 | 链接参数、当前草稿追加路径与禁用状态。 |
+-| AC-07 | 正向发布显示真实整单阶段及保存的逐表模板节点，当前节点突出；不以固定四阶段替代实例。取消、拒绝、回滚不得伪装成正常完结。旧回滚总览暂留至 #106 退出。 | 各生命周期阶段测试；桌面、手机截图及长人员名换行。 |
++| AC-07 | 正向发布显示真实整单阶段及保存的逐表模板节点，当前节点突出；不以固定四阶段替代实例。取消、拒绝、回滚不得伪装成正常完结。原单回滚显示真实恢复发布节点，未发生的完结节点显示已终止，不推断完成或归因。 | 各生命周期阶段测试；桌面、手机截图及长人员名换行。 |
+ | AC-08 | 草稿仅显示“变更内容”，无单独申请切换按钮。实际发布结果存在时才显示“申请内容 / 实际发布结果”切换；恢复结果仅在有真实恢复执行时提供。筛选文案为“只显示有变化的字段”。 | 草稿及实际发布/回滚内容切换测试和浏览器操作。 |
+ | AC-09 | MODIFY 完整对比中，同值、同为 NULL、同为空串、未提交的字段均无红绿底色；实际变化仍以原值浅红、新值浅绿表达。自动填写/数据库生成保留待生成说明，不推断未来结果；新增和删除继续完整展示。 | 差异组件回归；真实申请中同值、NULL、未提交和变化字段的计算后背景色。 |
+ 
+diff --git a/docs/design-notes/release-template-ticket-plan.md b/docs/design-notes/release-template-ticket-plan.md
+index ab2036a..8771f9c 100644
+--- a/docs/design-notes/release-template-ticket-plan.md
++++ b/docs/design-notes/release-template-ticket-plan.md
+@@ -134,3 +134,7 @@
+ - T6 负责最终编号确定、候选状态退出、正式前缀升级与新安装等价、部分执行恢复、数据保留和只读就绪的整体验收。早期候选构建证据保留为历史，最终结论引用实际交付版本的证据。
+ 
+ 这项安排只解决并行开发的工程顺序，不改变业务依赖或降低每张工单的独立验收要求；已经发行或用于需要保留状态环境的迁移不可重编号。
++
++### 最终迁移前缀（#106）
++
++外部已交付前缀固定为 00001～00009，模板与表关联增量确定为 00010/00011。累计完整结构已由真实 MySQL 顺序执行生成，#106 沿用其原字节并验收正式前缀升级、新装等价及恢复；早期候选 8/9、9/10 只保留历史证据意义。候选编号整合结束，不代表授权部署或重写任何已用环境的账本。
+diff --git a/docs/schema-migrations.md b/docs/schema-migrations.md
+index cc1308a..7379e12 100644
+--- a/docs/schema-migrations.md
++++ b/docs/schema-migrations.md
+@@ -42,7 +42,7 @@ bin/admin/schema-migrate recover --timeout=5m --lock-timeout=10s
+ 
+ ## 校验并接管现有库
+ 
+-当前基线包括历史 013 审计列、014 字段规则及 015～017 的原单明细、执行、管控键、表引用和主单字段收敛。已发布 Goose 00001～00003 的 SQL 和清单保持不变；追加 00004/00005 分阶段完成整张表的可恢复变更。审批角色管理追加 `00006_approval_roles.sql` 和完整清单，建立角色、成员、幂等结果及永久引用结构。接管边界固定在已发布版本 5，不随后续功能迁移移动。表审批分配由 00007 增量提供；个人审批通知由 00008 增量及完整清单提供；00009 正式退出旧全局 APPROVER 当前存储值，结构清单与 00008 相同。本功能候选 00010/00011 建立发布模板与表关联，保留前序全部控制表；正式 00001～00009 SQL 与清单保持原字节。新库顺序执行本构建全部版本；已有 Goose 版本通过 `up` 升级。未接管库必须先达到固定版本 5 的完整结构，再显式 `baseline` 登记 1～5；本构建返回 `pending`，随后显式 `up` 执行本构建全部后续迁移。旧发布单业务 JSON 保留原样且不兼容读取；除明确收缩的当前角色及其角色版本外，账号、会话、规则、版本及通知保留，详见[发布升级](admin-release-upgrade.md)。
++当前基线包括历史 013 审计列、014 字段规则及 015～017 的原单明细、执行、管控键、表引用和主单字段收敛。已发布 Goose 00001～00003 的 SQL 和清单保持不变；追加 00004/00005 分阶段完成整张表的可恢复变更。审批角色管理追加 `00006_approval_roles.sql` 和完整清单，建立角色、成员、幂等结果及永久引用结构。接管边界固定在已发布版本 5，不随后续功能迁移移动。表审批分配由 00007 增量提供；个人审批通知由 00008 增量及完整清单提供；00009 正式退出旧全局 APPROVER 当前存储值，结构清单与 00008 相同。最终增量 00010/00011 建立发布模板与表关联，保留前序全部控制表；正式 00001～00009 SQL 与清单保持原字节。新库顺序执行本构建全部版本；已有 Goose 版本通过 `up` 升级。未接管库必须先达到固定版本 5 的完整结构，再显式 `baseline` 登记 1～5；本构建返回 `pending`，随后显式 `up` 执行本构建全部后续迁移。旧发布单业务 JSON 保留原样且不兼容读取；除明确收缩的当前角色及其角色版本外，账号、会话、规则、版本及通知保留，详见[发布升级](admin-release-upgrade.md)。
+ 
+ 1. 按维护窗口停止 Admin 和外部写入者并备份，用 `status` 确认状态。未接管库的 `up` 不会创建迁移账本或静默登记。
+ 2. 更旧库先按 [历史升级说明](../deploy/mysql/migrations/README.md) 执行合法的历史步骤：001～005、013、当前 `policy-migrate` 收缩，以及适用的 007～012 和 014～017。已执行过的脚本不应盲目重放；已有账号授权、维护基线和发布权限继续由原维护流程负责。
+@@ -108,7 +108,7 @@ Admin 的 `/health/ready` 成功为 200，异常为既有 `503 {"status":"not_re
+ 
+ 历史 `deploy/mysql/migrations/001`～`017` 及特殊 Policy 维护命令继续承担旧库升级职责。旧当前初始化入口已删除。`admin/cmd/admin/testdata/pre-goose-8b5cd859.sql` 是冻结的历史接管结构，配套数据来自 T2 的真实账号/审批/发布流程；仅用于旧库测试，不随新迁移演进。当前独立结构对照在该冻结快照上显式应用历史 014～017，再与 Goose 新装结果比较；冻结结构和配套业务数据本身不改写。
+ 
+-接入正式个人通知版本 00008 和旧审批授权退出版本 00009 后，尚未部署的模板候选顺排为 `00010_release_templates.sql` 和 `00011_table_release_templates.sql`，对应累计清单从真实 MySQL 重新生成；正式 00001～00009 原文件保持不变。早期 #101/#102 使用的候选 8/9，以及接入 #97 时的候选 9/10，仅是各时点的隔离验证证据，不是现有库升级输入，不能改写已经使用的迁移账本；详见[发布流程模板工单计划](design-notes/release-template-ticket-plan.md)。
++接入正式个人通知版本 00008 和旧审批授权退出版本 00009 后，模板最终增量确定为 `00010_release_templates.sql` 和 `00011_table_release_templates.sql`，对应累计清单从真实 MySQL 重新生成；候选编号整合已结束，交付不代表部署。正式 00001～00009 原文件保持不变。早期 #101/#102 使用的候选 8/9，以及接入 #97 时的候选 9/10，仅是各时点的隔离验证证据，不是现有库升级输入，不能改写已经使用的迁移账本；详见[发布流程模板工单计划](design-notes/release-template-ticket-plan.md)。
+ 
+ 参见 [ADR-0024](adr/0024-adopt-goose-at-a-verified-control-schema-baseline.md) 和 [完整规格](specs/goose-migrations/spec.md)。
+ 
+diff --git a/scripts/browser-acceptance.sh b/scripts/browser-acceptance.sh
+index ecd7d12..ad011d6 100755
+--- a/scripts/browser-acceptance.sh
++++ b/scripts/browser-acceptance.sh
+@@ -352,13 +352,6 @@ MYSQL_USER=rcc_admin MYSQL_PASSWORD="$mysql_password" MYSQL_TLS_MODE=false \
+   run_logged 300 "$artifact_root/schema-migrate.log" "$runtime_dir/schema-migrate" up
+ 
+ load_sql "$repo_root/deploy/mysql/local-fixture/002-notification-templates.sql"
+-load_sql "$repo_root/docs/verification/fixtures/stage1_acceptance.sql"
+-load_sql "$repo_root/web/e2e/fixtures/stage1-policies.sql"
+-load_sql "$repo_root/admin/cmd/admin/testdata/014-batch-browser.sql"
+-load_sql "$repo_root/admin/cmd/admin/testdata/015-draft-targets-browser.sql"
+-load_sql "$repo_root/admin/cmd/admin/testdata/016-multitable-browser.sql"
+-load_sql "$repo_root/web/e2e/fixtures/release-rollbacks.sql"
+-load_sql "$repo_root/web/e2e/fixtures/field-display.sql"
+ 
+ printf 'Granting the disposable Admin account publication metadata access...\n'
+ run_timeout 30 docker exec --interactive "$mysql_container" sh -c \
+@@ -384,7 +377,6 @@ capture_fixture_rows() {
+       ) FROM stage1_acceptance_items ORDER BY id;"' > "$target"
+ }
+ 
+-capture_fixture_rows "$artifact_root/fixture-before.tsv"
+ 
+ admin_port=$(free_port)
+ web_port=$(free_port)
+@@ -397,6 +389,7 @@ run_logged 300 "$artifact_root/admin-build.log" \
+   go -C "$repo_root/admin" build -o "$runtime_dir/admin" ./cmd/admin
+ run_logged 300 "$artifact_root/account-maintain-build.log" \
+   go -C "$repo_root/admin" build -o "$runtime_dir/account-maintain" ./cmd/account-maintain
++start_admin() {
+ ADMIN_HTTP_ADDR="127.0.0.1:$admin_port" \
+ ADMIN_PUBLIC_ORIGIN="$web_url" \
+ ADMIN_ALLOW_LOCAL_HTTP=true \
+@@ -409,9 +402,12 @@ MYSQL_PASSWORD="$mysql_password" \
+ MYSQL_TLS_MODE=false \
+ RCC_TIMEOUT_KILL_GRACE_MS=1000 \
+   node "$repo_root/scripts/run-with-timeout.cjs" 2400 "$runtime_dir/admin" \
+-  > "$artifact_root/admin.log" 2>&1 &
++  > "$1" 2>&1 &
+ admin_pid=$!
+-wait_for_http Admin "$admin_url/health/ready" "$admin_pid" "$artifact_root/admin.log"
++}
++start_admin "$artifact_root/admin-initial.log"
++wait_for_http Admin "$admin_url/health/ready" "$admin_pid" "$artifact_root/admin-initial.log"
++curl --fail --silent "$admin_url/health/ready" > "$artifact_root/initial-readiness.json"
+ 
+ printf 'Starting Web preview on a different dynamic loopback port...\n'
+ RCC_ADMIN_URL="$admin_url" \
+@@ -423,6 +419,22 @@ RCC_TIMEOUT_KILL_GRACE_MS=1000 \
+ web_pid=$!
+ wait_for_http Web "$web_url/platform/query-policies" "$web_pid" "$artifact_root/web.log"
+ 
++# The initial valid deployment creates the setup administrator before loading
++# unchanged late fixtures. Only public catalog writes add their associations.
++RCC_PLAYWRIGHT_MODULE="$repo_root/web/node_modules/playwright" RCC_WEB_URL="$web_url" \
++  RCC_E2E_ISOLATED=1 RCC_E2E_MYSQL_CONTAINER="$mysql_container" \
++  RCC_ACCOUNT_MAINTAIN="$runtime_dir/account-maintain" \
++  MYSQL_HOST=127.0.0.1 MYSQL_PORT="$mysql_port" MYSQL_DATABASE=rcc MYSQL_USER=rcc_admin MYSQL_PASSWORD="$mysql_password" MYSQL_TLS_MODE=false \
++  run_logged 120 "$artifact_root/fixture-release-setup.log" node "$repo_root/web/e2e/prepare-release-fixtures.cjs"
++curl --fail --silent "$admin_url/health/ready" > "$artifact_root/configured-readiness.json"
++capture_fixture_rows "$artifact_root/fixture-before.tsv"
++kill "$admin_pid"
++wait "$admin_pid" || true
++admin_pid=""
++start_admin "$artifact_root/admin.log"
++wait_for_http Admin "$admin_url/health/ready" "$admin_pid" "$artifact_root/admin.log"
++curl --fail --silent "$admin_url/health/ready" > "$artifact_root/restarted-readiness.json"
++
+ direct_status=$(curl --silent --show-error --max-time 5 --output /dev/null --write-out '%{http_code}' \
+   "$admin_url/api/v1/query-policies")
+ proxy_status=$(curl --silent --show-error --max-time 5 --output /dev/null --write-out '%{http_code}' \
+diff --git a/web/DESIGN.md b/web/DESIGN.md
+index 66f9ba5..76ae36c 100644
+--- a/web/DESIGN.md
++++ b/web/DESIGN.md
+@@ -82,7 +82,7 @@
+ - **修改记录**：以原记录填充全部可编辑字段，输入框默认可编辑，不提供字段包含勾选；提交全部可编辑字段，未改动的值保持原样，保留 NULL 与空字符串的区别。主键、数据库计算列和服务器自动填写字段仍不可编辑；打开表单本身不产生未保存修改。新增记录保留字段省略语义，用于数据库默认值和自增主键。
+ - **Change Set**：保留字段、原值、新值的完整对比；原值浅红、新值浅绿，并配明确列标题和差异文字。使用当前字段名称和静态选项名称辅助阅读，但不按 is_visible 隐藏本次变更，真实字段名与实际值始终可核对。标题、字段对比、草稿去向、底部操作分为四区；对比表独立滚动并支持键盘横向查看。草稿去向与标题/底栏对齐，字数放在标签右侧，已有草稿入口保持内容宽度，容量说明为辅助文字；展开选择器后桌面并列、窄屏单列，错误信息紧凑换行。取消、返回编辑、保存的顺序稳定，保存为主操作。
+ - **发布单列表**：每行右侧提供固定的“操作”列和“查看详情”入口，窄屏横向滚动时入口保持可见；标题也可进入详情。已提交单据显示真实已通过表数。
+-- **发布单详情**：以发布单业务标题作为唯一主标题，状态紧邻，保留一个返回列表入口；页头右侧集中当前操作，黑色仅突出当前主操作。申请人、创建时间、变更数紧凑展示；完整单号与邻近复制按钮、发布方式、应急原因、版本和复制/重新准备来源进入默认收起的基本信息。人员名称旁可按需展开、复制完整 UUID；缺少姓名时显示账号短标识并保留完整查看。取消草稿放入危险样式的更多操作，继续保留确认、权限和请求恢复保护。不显示常驻重新读取按钮；读取失败时在对应错误提示中提供重试。沿用灰色画布与石墨操作，依次呈现紧凑页头、整单阶段、逐表发布流程、变更内容、回滚原因、最近历史。整单阶段紧凑显示当前状态；正向常规与应急路径按各表已保存实例展示节点，逐表节点严格取实例的名称、顺序、状态、人员与时间，不从第一张表或当前模板推断。应急提交后进入待手动发布，由当前发布人员执行，成功后等待人工完结；应急单不显示审批安排、审批进度、审批事件或最近审批人。提交内容冻结提示不暗示应急单经过审批。取消、拒绝、回滚不显示为四步正常完成，快速回滚不伪造审批；已回滚原单继续使用临时整单阶段呈现，等待 #106 移除。已回滚原单显示当前可选原因和最近修改人／时间；真实回滚执行人或管理员可打开编辑窗口补填、修正或清空，每次修改继续显示在操作历史。桌面信息与操作并列，窄屏自然换行；长标题、展开的永久 ID 和人员姓名完整换行。页面验收约定见[发布单详情紧凑布局](../docs/design-notes/release-detail-compact.md)。
++- **发布单详情**：以发布单业务标题作为唯一主标题，状态紧邻，保留一个返回列表入口；页头右侧集中当前操作，黑色仅突出当前主操作。申请人、创建时间、变更数紧凑展示；完整单号与邻近复制按钮、发布方式、应急原因、版本和复制/重新准备来源进入默认收起的基本信息。人员名称旁可按需展开、复制完整 UUID；缺少姓名时显示账号短标识并保留完整查看。取消草稿放入危险样式的更多操作，继续保留确认、权限和请求恢复保护。不显示常驻重新读取按钮；读取失败时在对应错误提示中提供重试。沿用灰色画布与石墨操作，依次呈现紧凑页头、整单阶段、逐表发布流程、变更内容、回滚原因、最近历史。整单阶段紧凑显示当前状态；正向常规与应急路径按各表已保存实例展示节点，逐表节点严格取实例的名称、顺序、状态、人员与时间，不从第一张表或当前模板推断。应急提交后进入待手动发布，由当前发布人员执行，成功后等待人工完结；应急单不显示审批安排、审批进度、审批事件或最近审批人。提交内容冻结提示不暗示应急单经过审批。取消、拒绝、回滚不显示为四步正常完成，快速回滚不伪造审批；已回滚原单同样使用统一整单阶段，并展示已保存的正向和应急恢复实例。已回滚原单显示当前可选原因和最近修改人／时间；真实回滚执行人或管理员可打开编辑窗口补填、修正或清空，每次修改继续显示在操作历史。桌面信息与操作并列，窄屏自然换行；长标题、展开的永久 ID 和人员姓名完整换行。页面验收约定见[发布单详情紧凑布局](../docs/design-notes/release-detail-compact.md)。
+ - **发布单审阅**：标题统一为“变更内容”，草稿不显示单独申请切换按钮；存在实际发布结果时显示“申请内容 / 实际发布结果”切换，真实恢复执行存在时提供恢复结果。“添加变更”作为次级操作位于工具栏，进入统一变更入口并携带当前草稿。筛选名为“只显示有变化的字段”，初次默认开启、第一项展开；MODIFY 隐藏申请未提交及确定同值字段，自动填写和数据库生成说明保持可见；关闭过滤后相同值、同为 NULL、同为空字符串及未提交字段均不使用红绿底色，实际申请差异仍以原值浅红、新值浅绿显示，待生成字段保持说明与强调。完整视图区分未提交与 NULL，不推断实际发布结果。ADD/DELETE 保留全部字段。申请差异和实际 before/final 均使用每次查看时读取的当前字段名称与静态选项名称，但不按 is_visible 隐藏本次涉及字段；真实字段名与实际值始终可核对。实际结果只读取发布时持久化的 before/final，字段配置变更只改变显示，不改写历史内容，也不从当前业务行反推。字段配置缺失时回退原名原值，读取失败时保留历史并提供独立重试。每页 20 项，定位会展开目标项，分页不改变整单操作范围。字段表实际滚动容器显式提供中文名称、Tab焦点和焦点环，容器自身聚焦时可通过左右方向键查看完整对比；表内输入控件和组合快捷键保持各自行为。成功初次默认实际数据库结果，可切回申请差异或同一原单的实际恢复结果；未完结原单的快速回滚在恢复预览窗口中一次确认，原因选填，不新建回滚单；完结后不再提供回滚。历史默认最近五条倒序，可展开全部。
+ - **表审批角色**：管理员从表规则行内“审批角色”进入独立抽屉，角色可检索并完整分页；已选择项跨页保留，显示名称与永久 ID。空集合明确由已启用且非申请人的 ADMIN 默认审批。保存保护独立版本；冲突保留选择、先展示最新分配再明确保存；未知结果仅重推原请求，撤权禁用写入并保留内容。
+ - **通知中心**：默认“待我审批”，另有“我发起的、我已处理、全部审批”；视图、表名／单号／状态筛选和分页游标保存在 URL。服务端按当前身份筛选已提交发布单，每单一行，普通发布单列表继续承载草稿。列表显示真实审批进度，长标题、表名与账号 ID 换行，窄屏视图入口两列排列，表格独立滚动且右侧“查看详情”保持可见；表格容器可通过键盘聚焦和左右滚动。查看详情复用原发布单操作，返回保留原视图、筛选和分页，加载或读取失败时同样可返回。刷新保留当前页，失败显示错误并标明上次读取的结果。侧栏的个人未读入口链接“全部审批＋仅看未读”，独立显示真实未读与待审批计数；手机从导航菜单进入。列表按个人提醒标记“未读”，未读筛选与其他筛选共同保存在 URL。进入、返回和前台停留每 30 秒刷新，可手动刷新；后台及会话中断停止通知保护请求，恢复后重新读取，跨账号不沿用计数。读取失败保留最后已知列表和计数，首次失败不显示虚假的零。在前台成功展示详情后只确认该次已见通知进度，后台加载不会提前确认；已读不代表完成审批；快速返回列表后才完成的已读确认仍更新同账号的计数与列表。已读确认失败使用紧凑行内提示并保留未读，提供“重试标记已读”；刷新同一进度不自动重试，若确认时已有新变化，提示仍有未读并提供“读取最新进展”。
+@@ -152,3 +152,5 @@
+ 待完结原单的快速回滚窗口在显式打开时保存整单恢复预览，保存成功后按表展示服务端返回的应急模板来源、节点名称、顺序和真实状态；固定应急，无方式切换。详情通过正常主单读取展示已保存的恢复实例，源模板后续修改不改变已审阅实例。回滚按预览保存后版本执行，原因仍选填，成功直接结束并释放占用；恢复发布节点完成时显示真实执行人和时间，未发生人工完结的节点按服务端已终止状态呈现。
+ 
+ 预览保存也使用发布请求日志，在 IndexedDB 提交原目标、版本、正文和幂等键后才能发出。未知结果关闭或刷新后仅在快速回滚窗口通过“保存恢复预览”手动重推原包；当前发布权限控制重推，恢复权限后仍沿用原请求。确定冲突时保留原因输入，通过明确的“读取最新状态并重新保存恢复预览”建立新请求。任何历史成功响应均由正常主单重读核对当前状态与版本，不能令后来已完结或已回滚的主单重新允许恢复。
++
++所有发布单终态统一展示整单阶段，逐表节点保留服务端保存的真实状态。取消、拒绝、回滚不得根据阶段序数推断已发布或已完结；回滚保留正向已完成节点，正向及恢复中未发生的完结显示「已终止」，不显示虚构人员或时间。
+diff --git a/web/e2e/accounts.mjs b/web/e2e/accounts.mjs
+index d189aa9..0bea1fb 100644
+--- a/web/e2e/accounts.mjs
++++ b/web/e2e/accounts.mjs
+@@ -37,6 +37,18 @@ async function session(api) {
+   return response.json();
+ }
+ 
++async function selectNotificationTable(page) {
++  // The selected table's visible query configuration must be ready before
++  // opening a record drawer; a preceding table request may still be settling.
++  await page.waitForFunction(() => {
++    const button = Array.from(document.querySelectorAll('button')).find(element => element.textContent.trim() === '重新查询');
++    return button && !button.disabled;
++  });
++  assert.deepEqual(await page.getByLabel('Managed Table', { exact: true }).selectOption('notification_templates'), ['notification_templates']);
++  await page.getByLabel('筛选 template_key 值', { exact: true }).waitFor();
++  assert.equal(await page.getByLabel('Managed Table', { exact: true }).inputValue(), 'notification_templates');
++}
++
+ async function releaseState(page, state) {
+   await page.getByRole('heading', { name: 'notification_templates 配置变更', exact: true }).waitFor();
+   await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: new RegExp(`^${state}$`) }).waitFor();
+@@ -209,7 +221,7 @@ try {
+   page = await context.newPage();
+   await page.goto(`${origin}/configuration/managed-data`);
+   await page.getByRole('heading', { name: '统一变更入口' }).waitFor();
+-  await page.getByLabel('Managed Table', { exact: true }).selectOption('notification_templates');
++  await selectNotificationTable(page);
+   await page.getByRole('button', { name: '新增记录', exact: true }).click();
+   for (const [field, value] of Object.entries({ template_key: templateKey, channel: 'PUSH', body: 'browser initial configuration' })) {
+     await page.getByLabel(`包含 ${field}`, { exact: true }).check();
+@@ -279,7 +291,12 @@ try {
+   page.on('dialog', acceptReload);
+   await page.reload();
+   page.off('dialog', acceptReload);
++  // The reload already sees the committed publication. Wait for the repeated
++  // request itself, then the confirmation closing, before comparing packets.
++  const repeatedExecute = page.waitForResponse(response => new URL(response.url()).pathname === executePath && response.request().method() === 'POST');
+   await originalReleaseActions.repeatReleaseAction(page,'执行发布','确认发布到数据库');
++  assert.equal((await repeatedExecute).status(), 200);
++  await page.getByRole('button', { name: '确认发布到数据库', exact: true }).waitFor({ state: 'hidden' });
+   await releaseState(page, '已发布待完结');
+   await page.getByRole('heading', { name: '数据库发布结果', exact: true }).waitFor();
+   await page.getByRole('region', { name: '发布结果' }).getByText(/分发尚未接入/, { exact: false }).waitFor();
+@@ -315,7 +332,7 @@ try {
+   await releaseState(page, '已完结');
+ 
+   await page.goto(`${origin}/configuration/managed-data`);
+-  await page.getByLabel('Managed Table', { exact: true }).selectOption('notification_templates');
++  await selectNotificationTable(page);
+   const baseline = await page.evaluate(async key => {
+     const auth = await (await fetch('/api/v1/auth/session')).json();
+     const result = await (await fetch('/api/v1/tables/notification_templates/query', {
+@@ -453,7 +470,15 @@ try {
+     ],
+   }));
+ } catch (error) {
+-  if (process.env.RCC_E2E_OUTPUT && page && !page.isClosed()) await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'accounts-failure.png'), fullPage: true }).catch(() => {});
++  if (process.env.RCC_E2E_OUTPUT && page && !page.isClosed()) {
++    await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'accounts-failure.png'), fullPage: true }).catch(() => {});
++    const state = await page.evaluate(() => ({
++      url: location.href,
++      selectedTable: document.querySelector('select[aria-label="Managed Table"]')?.value,
++      dialogTitles: Array.from(document.querySelectorAll('[role="dialog"] h2, [role="alertdialog"] h2')).map(element => element.textContent),
++    })).catch(() => ({ url: page.url() }));
++    await writeFile(join(process.env.RCC_E2E_OUTPUT, 'accounts-failure-state.json'), JSON.stringify(state, null, 2));
++  }
+   throw error;
+ } finally {
+   await reviewerBrowser?.close();
+diff --git a/web/e2e/complex-fields.cjs b/web/e2e/complex-fields.cjs
+index 9a9e8cf..b4071fa 100644
+--- a/web/e2e/complex-fields.cjs
++++ b/web/e2e/complex-fields.cjs
+@@ -1,3 +1,4 @@
++const { configureFixtureReleaseTemplates } = require('./release-template-fixture.cjs');
+ const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
+ const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
+ const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
+@@ -284,7 +285,6 @@ function fixtureSQL() {
+     }
+   }
+   try {
+-    sql(fixtureSQL());
+     browser = await browserType.launch(browserOptions()); browserVersion = browser.version();
+     context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, timezoneId: 'America/Los_Angeles' });
+     approver = await browser.newContext({ viewport: { width: 1440, height: 1000 }, timezoneId: 'America/Los_Angeles' });
+@@ -292,6 +292,8 @@ function fixtureSQL() {
+     const applicantIdentity = await registerFixtureAccount(context, base);
+     const approverIdentity = await registerFixtureAccount(approver, base);
+     const publisherIdentity = await registerFixtureAccount(publisher, base);
++    sql(fixtureSQL());
++    await configureFixtureReleaseTemplates(context, base, tables);
+     await assignRoles(context, approverIdentity.accountID, ['VIEWER']);
+     await createFixtureApprovalRole(context, base, `Complex field review ${randomUUID()}`, [approverIdentity.accountID], tables);
+     await assignRoles(context, publisherIdentity.accountID, ['PUBLISHER']);
+@@ -698,7 +700,7 @@ function fixtureSQL() {
+   finally {
+     if (browser) await browser.close().catch(() => {});
+     try {
+-      sql(`DELETE FROM rcc_table_policies WHERE table_name IN (${tables.map((t) => `'${t}'`).join(',')}); DELETE FROM rcc_mutation_policies WHERE code IN ('stage4_plain_v1','stage4_auto_v1'); ${tables.map((t) => `DROP TABLE IF EXISTS ${t};`).join('\n')}`);
++      sql(`DELETE a FROM rcc_table_release_templates a JOIN rcc_table_policies p ON p.id=a.table_policy_id WHERE p.table_name IN (${tables.map((t) => `'${t}'`).join(',')}); DELETE FROM rcc_table_policies WHERE table_name IN (${tables.map((t) => `'${t}'`).join(',')}); DELETE FROM rcc_mutation_policies WHERE code IN ('stage4_plain_v1','stage4_auto_v1'); ${tables.map((t) => `DROP TABLE IF EXISTS ${t};`).join('\n')}`);
+       cleanup = { fixtureRowsEqual: before === fixtureRows(), remainingTables: sql(`SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN (${tables.map((t) => `'${t}'`).join(',')});`), remainingTablePolicies: sql(`SELECT COUNT(*) FROM rcc_table_policies WHERE table_name IN (${tables.map((t) => `'${t}'`).join(',')});`), remainingPolicies: sql("SELECT COUNT(*) FROM rcc_mutation_policies WHERE code IN ('stage4_plain_v1','stage4_auto_v1');") };
+       assert.deepEqual(cleanup, { fixtureRowsEqual: true, remainingTables: '0', remainingTablePolicies: '0', remainingPolicies: '0' });
+     } catch (error) { failures.push({ case: 'cleanup', message: error.message }); }
+diff --git a/web/e2e/operation-coverage.cjs b/web/e2e/operation-coverage.cjs
+index 28df155..7941c62 100644
+--- a/web/e2e/operation-coverage.cjs
++++ b/web/e2e/operation-coverage.cjs
+@@ -1,3 +1,4 @@
++const { configureFixtureReleaseTemplates } = require('./release-template-fixture.cjs');
+ const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
+ // Real Chromium -> production Web proxy -> Cookie-authenticated Admin -> isolated MySQL.
+ // SQL is used only to arrange disposable fixtures and to verify browser actions.
+@@ -128,12 +129,13 @@ function fixtureSQL() {
+     await page.getByRole('region', { name: 'Managed Data 查询结果' }).locator('tbody').waitFor();
+   }
+   try {
+-    sql(fixtureSQL());
+     browser = await selectedBrowser(playwright).launch(browserOptions());
+     context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+     account = await registerFixtureAccount(context, base);
+     approvalContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+     const reviewer = await registerFixtureAccount(approvalContext, base, { roles: ['VIEWER'] });
++    sql(fixtureSQL());
++    await configureFixtureReleaseTemplates(context, base, tables);
+     await createFixtureApprovalRole(context, base, `Operation review ${randomUUID()}`, [reviewer.accountID], ['stage3_active_items', 'stage3_denied_items']);
+     browserVersion = browser.version();
+ 
+@@ -402,7 +404,8 @@ function fixtureSQL() {
+   } finally {
+     if (browser) await browser.close().catch(() => {});
+     try {
+-      sql(`DELETE FROM rcc_table_policies WHERE table_name LIKE 'stage3\\_%';
++      sql(`DELETE a FROM rcc_table_release_templates a JOIN rcc_table_policies p ON p.id=a.table_policy_id WHERE p.table_name LIKE 'stage3\\_%';
++        DELETE FROM rcc_table_policies WHERE table_name LIKE 'stage3\\_%';
+         DELETE FROM rcc_query_policies WHERE code LIKE 'stage3\\_%';
+         DELETE FROM rcc_mutation_policies WHERE code LIKE 'stage3\\_%';
+         ${tables.map((name) => `DROP TABLE IF EXISTS ${name};`).join('\n')}`);
+diff --git a/web/e2e/release-instances.cjs b/web/e2e/release-instances.cjs
+index dfbefe1..fe285f1 100644
+--- a/web/e2e/release-instances.cjs
++++ b/web/e2e/release-instances.cjs
+@@ -150,6 +150,26 @@ const standard = (code, name, prefix) => ({code, name, description:'实例隔离
+   const completed=await api(admin,'GET',path);snapshots.completed=completed.table_flows;assert.ok(completed.table_flows.every(flow=>flow.node_list.every(node=>node.state==='COMPLETED'&&node.actor_id&&node.at)));
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await shot(page,'completed-flows-mobile.png');
+   checks.push('AC-014: frozen table roles survive later assignment change; independent partial/all approvals drive real nodes; whole-order publication and completion retain actual actors');
++  // Terminal orders retain saved node facts; their ordinal state cannot imply completion.
++  await page.goto(origin+'/configuration/release-orders/'+incomplete.id);
++  await button(page,'更多操作').click();await page.getByRole('menuitem',{name:'取消草稿',exact:true}).click();
++  await button(page,'确认取消草稿').focus();await page.keyboard.press('Enter');
++  await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'已取消',exact:true}).waitFor();
++  const cancelled=await api(admin,'GET',repairPath);snapshots.cancelled=cancelled.table_flows;
++  assert.ok(cancelled.table_flows.every(flow=>flow.node_list.every(node=>node.state==='STOPPED'&&!node.actor_id&&!node.at)));
++  for(const width of [1440,390]){await page.setViewportSize({width,height:width===390?844:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await shot(page,`cancelled-flows-${width}.png`);}
++  let rejected=await api(admin,'POST','/api/v1/release-orders',{title:'拒绝结束整单且不虚构发布与完结',items:tables.map(table_name=>({table_name,operation:'ADD',content:{id:'13',value:'must never publish'}}))},201);
++  const rejectPath=`/api/v1/release-orders/${rejected.id}`;
++  rejected=await api(admin,'POST',rejectPath+'/submit',{expected_version:rejected.version});
++  const rejectPage=reviewers[1].page;await rejectPage.goto(origin+'/configuration/release-orders/'+rejected.id);
++  await button(rejectPage,'拒绝发布单').click();await rejectPage.getByLabel('审批意见',{exact:true}).fill('整单拒绝，未发生发布或完结');
++  await button(rejectPage,'确认拒绝').focus();await rejectPage.keyboard.press('Enter');
++  await rejectPage.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'已拒绝，整单终止',exact:true}).waitFor();
++  rejected=await api(admin,'GET',rejectPath);snapshots.rejected=rejected.table_flows;
++  assert.ok(rejected.table_flows.every(flow=>flow.node_list[0].state==='REJECTED'&&flow.node_list[0].actor_id===reviewers[1].identity.account.id&&flow.node_list.slice(1).every(node=>node.state==='STOPPED'&&!node.actor_id&&!node.at)));
++  for(const width of [1440,390]){await rejectPage.setViewportSize({width,height:width===390?844:1000});assert.equal(await rejectPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await shot(rejectPage,`rejected-flows-${width}.png`);}
++  for(const surface of [page,rejectPage]){const flows=surface.getByRole('region',{name:'逐表发布流程',exact:true});assert.equal(await flows.getByText('已完成',{exact:true}).count(),0);assert.equal(await flows.getByText('已终止',{exact:true}).count(),surface===page?6:4);assert.equal(await button(surface,'执行发布').count(),0);assert.equal(await button(surface,'完结发布单').count(),0);}
++  checks.push('AC-025/027: keyboard cancellation and rejection terminate real saved nodes on desktop and 390px without inventing publication, completion, actors or timestamps');
+   assert.deepEqual(errors,[]);
+   const evidence={order_id:id,repair_order_id:incomplete.id,checks,snapshots};await writeFile(join(output,'release-instances-browser-evidence.json'),JSON.stringify(evidence,null,2),{flag:'wx'});process.stdout.write(JSON.stringify({checks,order_id:id,repair_order_id:incomplete.id}));
+  }catch(error){if(page){await shot(page,'failure.png');await writeFile(join(output,'failure.txt'),String(error),{flag:'wx'});}throw error;}finally{await browser.close();}
+diff --git a/web/e2e/release-rollback-flows.cjs b/web/e2e/release-rollback-flows.cjs
+index 501c62b..37fee48 100644
+--- a/web/e2e/release-rollback-flows.cjs
++++ b/web/e2e/release-rollback-flows.cjs
+@@ -165,6 +165,8 @@ const template = (code, name, prefix) => ({code,name,description:'原单应急
+   await button(page,'确认整单快速回滚').focus();await page.keyboard.press('Enter');const response=await rollbackResponse;assert.equal(response.status(),200,await response.text());
+   assert.deepEqual(response.request().postDataJSON(),{expected_version:fresh.expected_version,preview_digest:fresh.preview_digest,reason:''});requests.push({order_id:order.id,rollback:{body:response.request().postData(),key:response.request().headers()['idempotency-key']}});
+   await page.getByLabel('发布单状态',{exact:true}).filter({hasText:'已回滚'}).waitFor();await page.getByRole('dialog',{name:/^快速回滚 ·/}).waitFor({state:'hidden'});
++  await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'已回滚',exact:true}).waitFor();
++  assert.equal(await page.getByRole('list',{name:'发布阶段',exact:true}).count(),0);
+   const rolled=await read(order.id);assert.equal(rolled.id,order.id);assert.equal(rolled.state,'ROLLED_BACK');assert.equal(rolled.history.filter(event=>event.action==='COMPLETE').length,0);assert.equal(rolled.history.filter(event=>event.action==='QUICK_ROLLBACK').length,1);
+   for(const flow of rolled.rollback_table_flows){
+    assert.deepEqual(flow.node_list.map(node=>node.state),['COMPLETED','STOPPED']);assert.equal(flow.node_list[0].actor_id,publisher.accountID);assert.ok(flow.node_list[0].at);assert.ok(!flow.node_list[1].actor_id&&!flow.node_list[1].at);
+diff --git a/web/e2e/table-approvals.cjs b/web/e2e/table-approvals.cjs
+index 9cbf55a..fd43a6d 100644
+--- a/web/e2e/table-approvals.cjs
++++ b/web/e2e/table-approvals.cjs
+@@ -126,7 +126,7 @@ const button = (page, name) => page.getByRole('button', { name, exact: true });
+     await ops.page.getByLabel('审批意见', { exact: true }).fill('商品表已核对，价格表交给财务');
+     await button(ops.page, '确认批准').click();
+     await ops.page.getByRole('region', { name: '逐表审批进度', exact: true }).getByRole('heading', { name: '已通过 1 / 2 表', exact: true }).waitFor();
+-    assert.equal(await ops.page.getByRole('list', { name: '发布阶段', exact: true }).getByText('已批准', { exact: true }).count(), 0);
++    await ops.page.getByRole('region', { name: '发布阶段', exact: true }).getByRole('heading', { name: '待审批', exact: true }).waitFor();
+     await shot(ops.page, 'table-approval-partial-desktop.png');
+     await applicant.page.reload(); assert.equal(await button(applicant.page, '执行发布').count(), 0);
+     await admin.page.goto(`${base}/configuration/release-orders/${order.id}`); assert.equal(await button(admin.page, '批准发布单').count(), 0);
+diff --git a/web/e2e/write-recovery.cjs b/web/e2e/write-recovery.cjs
+index 4bd62fc..da940d6 100644
+--- a/web/e2e/write-recovery.cjs
++++ b/web/e2e/write-recovery.cjs
+@@ -498,7 +498,7 @@ async function waitDatabase() {
+     if (stopped) { docker('start', container); await waitDatabase(); }
+     if (browser) await browser.close();
+     for (const trigger of ['rcc_query_policies','rcc_mutation_policies','rcc_table_policies'].flatMap(entity => ['add','modify','delete'].map(suffix => `stage2_${entity}_${suffix}`))) sql(`DROP TRIGGER IF EXISTS ${trigger};`);
+-    sql(`UPDATE rcc_table_policies SET query_policy_code='notification_page_query_v1' WHERE table_name='${table}'; DELETE FROM ${table} WHERE name LIKE 'stage2_%'; DELETE FROM rcc_table_policies WHERE table_name='stage2_assignment_items'; DELETE FROM rcc_query_policies WHERE code LIKE 'stage2_%'; DELETE FROM rcc_mutation_policies WHERE code LIKE 'stage2_%'; DROP TABLE IF EXISTS stage2_assignment_items; DROP TABLE IF EXISTS stage2_write_audit;`);
++    sql(`UPDATE rcc_table_policies SET query_policy_code='notification_page_query_v1' WHERE table_name='${table}'; DELETE FROM ${table} WHERE name LIKE 'stage2_%'; DELETE a FROM rcc_table_release_templates a JOIN rcc_table_policies p ON p.id=a.table_policy_id WHERE p.table_name='stage2_assignment_items'; DELETE FROM rcc_table_policies WHERE table_name='stage2_assignment_items'; DELETE FROM rcc_query_policies WHERE code LIKE 'stage2_%'; DELETE FROM rcc_mutation_policies WHERE code LIKE 'stage2_%'; DROP TABLE IF EXISTS stage2_assignment_items; DROP TABLE IF EXISTS stage2_write_audit;`);
+     await fs.writeFile(`${output}/result.json`, JSON.stringify({ ok: !failure, passed, evidence, routeErrors, pageErrors, failure }, null, 2));
+   }
+   if (failure) { console.error(JSON.stringify(failure, null, 2)); process.exitCode = 1; }
+diff --git a/web/src/features/release-orders/ReleaseOrdersPage.test.tsx b/web/src/features/release-orders/ReleaseOrdersPage.test.tsx
+index 3c19208..487e414 100644
+--- a/web/src/features/release-orders/ReleaseOrdersPage.test.tsx
++++ b/web/src/features/release-orders/ReleaseOrdersPage.test.tsx
+@@ -545,7 +545,7 @@ it("原执行旧键重放返回已发布快照后仍重新读取当前已回滚
+  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(String(input).endsWith("/execute")){writes.push(init!);return json(published)}if(String(input)===`/api/v1/release-orders/${id}`)return json(current);return json({orders:[],next_cursor:""})})));
+  const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
+  await repeatOriginal(user,"执行发布","确认发布到数据库");
+- expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();expect(within(screen.getByRole("list",{name:"发布阶段"})).getByText("已回滚")).toBeVisible();
++ expect(await screen.findByRole("heading",{name:"更新渠道展示名称"})).toBeVisible();expect(within(screen.getByRole("region",{name:"发布阶段"})).getByText("已回滚")).toBeVisible();
+  await waitFor(()=>expect(writes).toHaveLength(1));expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBe("original-execute-key");await waitFor(()=>expect(pendingReleaseRequests(testAdminIdentity.account.id)).toHaveLength(0));
+ });
+ it("从列表的查看详情入口打开持久草稿，并取消后保留历史",async()=>{
+@@ -1366,17 +1366,25 @@ it("详情真实阶段与最近五条历史可展开，并复制真实单号",as
+ });
+ 
+ it.each([
+- ["DRAFT","准备中"],["PENDING_APPROVAL","待审批"],["APPROVED","待执行发布"],["SUCCEEDED","数据库已发布，待人工完结"],["COMPLETED","已完结"],["REJECTED","已拒绝，整单终止"],["CANCELLED","已取消"],
++ ["DRAFT","准备中"],["PENDING_APPROVAL","待审批"],["APPROVED","待执行发布"],["SUCCEEDED","数据库已发布，待人工完结"],["COMPLETED","已完结"],["REJECTED","已拒绝，整单终止"],["CANCELLED","已取消"],["ROLLED_BACK","已回滚"],
+ ])("%s 详情使用已保存整单阶段",async(state,phase)=>{
+  vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json({...order,state,allowed_actions:[]}))));
+  mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("region",{name:"发布阶段"}));
+  expect(stages.getByRole("heading",{name:phase})).toBeVisible();
+  expect(stages.queryByRole("list")).not.toBeInTheDocument();
+ });
+-it("原单快速回滚保留原批准阶段且不创建新的审批阶段",async()=>{
+- const current={...order,state:"ROLLED_BACK",allowed_actions:[],history:[...order.history,{...order.history[0]!,action:"APPROVE",actor_id:"original-approver"},{...order.history[0]!,action:"QUICK_ROLLBACK",actor_id:"actual-rollback"}]};
+- vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json(current))));
+- mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("list",{name:"发布阶段"}));expect(stages.getByText("已批准")).toBeVisible();expect(stages.getAllByRole("listitem")[1]).toHaveClass("is-complete");expect(stages.getByText("已回滚")).toBeVisible();
++it("原单回滚按真实实例保留批准和发布，终止未发生的完结且恢复不产生审批",async()=>{
++ const completed={state:"COMPLETED",actor_id:"original-approver",at:"2026-09-11T03:00:00Z"};
++ const flow={instance_id:"saved-forward",table_name:"items",release_type:"STANDARD",template_code:"saved_standard",template_name:"已审阅正向流程",template_version:"1",association_version:"1",instantiated_at:order.created_at,node_list:[{code:"review",type:"APPROVAL",name:"原表审批",required_role:"TABLE_APPROVER",...completed},{code:"publish",type:"PUBLICATION",name:"原整单发布",required_role:"PUBLISHER",...completed,actor_id:"original-publisher"},{code:"finish",type:"COMPLETION",name:"正向人工完结",required_role:"PUBLISHER",state:"STOPPED"}]};
++ const restoration={...flow,instance_id:"saved-restoration",release_type:"EMERGENCY",template_code:"saved_emergency",template_name:"已审阅恢复流程",node_list:[{code:"restore",type:"PUBLICATION",name:"整单逆序恢复",required_role:"PUBLISHER",...completed,actor_id:"actual-rollback"},{code:"finish",type:"COMPLETION",name:"恢复人工完结",required_role:"PUBLISHER",state:"STOPPED"}]};
++ const current={...order,state:"ROLLED_BACK",allowed_actions:[],table_flows:[flow],rollback_table_flows:[restoration]};
++ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{"original-approver":"原审批人","original-publisher":"原发布人","actual-rollback":"实际恢复人"}}):json(current))));
++ mount(`/configuration/release-orders/${id}`);const phase=await screen.findByRole("region",{name:"发布阶段"});
++ expect(within(phase).getByRole("heading",{name:"已回滚"})).toBeVisible();expect(within(phase).queryByRole("list")).not.toBeInTheDocument();
++ const forward=screen.getByRole("region",{name:"逐表发布流程"}),restore=screen.getByRole("region",{name:"逐表应急恢复流程"});
++ expect(within(forward).getAllByText("已完成")).toHaveLength(2);expect(await within(forward).findByText("原审批人")).toBeVisible();expect(within(forward).getByText("原发布人")).toBeVisible();
++ expect(within(restore).getAllByText("已完成")).toHaveLength(1);expect(within(restore).getByText("实际恢复人")).toBeVisible();expect(within(restore).queryByText(/按表审批资格/)).not.toBeInTheDocument();
++ for(const region of [forward,restore]){const stopped=within(region).getAllByRole("listitem").at(-1)!;expect(stopped).toHaveTextContent("已终止");expect(stopped.querySelector("time")).toBeNull();expect(within(region).queryByText("已完结")).not.toBeInTheDocument();}
+ });
+ it("准备人员时间来自提交，节点显示服务端实例中的真实操作者",async()=>{
+  const events=[{action:"CREATE",actor_id:"creator",at:"2026-09-01T01:00:00Z"},{action:"SUBMIT",actor_id:"submitter",at:"2026-09-02T02:00:00Z"},{action:"COMPLETE",actor_id:"closer",at:"2026-09-05T05:00:00Z"}].map((event,index)=>({...event,version:String(index+1),reason:""}));
+diff --git a/web/src/features/release-orders/ReleaseOrdersPage.tsx b/web/src/features/release-orders/ReleaseOrdersPage.tsx
+index a6c7e96..707ad8f 100644
+--- a/web/src/features/release-orders/ReleaseOrdersPage.tsx
++++ b/web/src/features/release-orders/ReleaseOrdersPage.tsx
+@@ -23,7 +23,6 @@ import {ErrorState,LoadingState} from "../../components/ui/Feedback";
+ import {useAccountRole} from "../accounts/roles";
+ import {useToast} from "../../components/ui/Toast";
+ import {ReleaseTime} from "./ReleaseTime";
+-import {ReleaseProgress} from "./ReleaseProgress";
+ import {ReleaseFlows,ReleasePhase} from "./ReleaseFlows";
+ import {ReleaseApprovals} from "./ReleaseApprovals";
+ import {ReleaseHistory} from "./ReleaseHistory";
+@@ -138,7 +137,7 @@ export function ReleaseDetail({id,listPath="/configuration/release-orders",listL
+   {order.allowed_actions.length===0&&!requests.some(item=>releaseRequestOrder(item)===id)&&<p className="mt-3 text-xs text-muted-foreground">当前状态和权限下没有可执行操作。</p>}
+  </header>
+  {order.missing_flow_tables.length>0&&<section aria-label="流程配置未完成" className="release-panel min-w-0"><h2 className="text-lg font-semibold text-warning">流程配置未完成，暂不能提交</h2><p className="mt-2">以下表尚未保存当前发布方式的流程。请管理员检查对应模板与表关联；配置修复后，再保存草稿补齐缺失流程。已有表流程保持不变。</p><ul className="my-3 grid gap-1 break-all font-mono">{order.missing_flow_tables.map(table=><li key={table}>{table}</li>)}</ul>{canEdit&&(order.allowed_actions.includes("edit")||retained("edit"))&&<Button disabled={requestPending} onClick={()=>setEditing(true)}>保存草稿以补齐流程</Button>}</section>}
+- {order.state==="ROLLED_BACK"?<ReleaseProgress order={order} people={names}/>:<ReleasePhase order={order} people={names}/>}
++ <ReleasePhase order={order} people={names}/>
+  {peopleFailure&&<section className="inline-alert mb-4 min-w-0 flex-wrap" role="alert"><div><strong>人员姓名读取失败，当前仅显示永久账号 ID。</strong><span>{peopleFailure.message}</span><span>错误代码：{peopleCode}</span>{peopleFailure.requestId&&<span>请求编号：{peopleFailure.requestId}</span>}</div><Button variant="secondary" disabled={people.isFetching} onClick={()=>void people.refetch()}>{people.isFetching?"正在读取人员姓名…":"重新读取人员姓名"}</Button></section>}
+  {order.frozen_digest&&<p className="text-sm text-muted-foreground">提交内容已冻结，后续发布以这份差异为准。</p>}
+ 
+diff --git a/web/src/features/release-orders/ReleaseProgress.tsx b/web/src/features/release-orders/ReleaseProgress.tsx
+deleted file mode 100644
+index 976015a..0000000
+--- a/web/src/features/release-orders/ReleaseProgress.tsx
++++ /dev/null
+@@ -1,20 +0,0 @@
+-import {ReleasePerson} from "./ReleasePerson";
+-import {ReleaseTime} from "./ReleaseTime";
+-import {Check,Minus} from "lucide-react";
+-import type {ReleaseHeader} from "../../api/release-orders";
+-
+-// Temporary rollback-only presentation until #106. Forward releases display
+-// persisted per-table instances; this must never serve missing configuration.
+-export function ReleaseProgress({order,people={}}:{order:ReleaseHeader;people?:Record<string,string>}){
+- const cancelled=order.state==="CANCELLED",rejected=order.state==="REJECTED",rolledBack=order.state==="ROLLED_BACK";
+- const terminated=cancelled||rejected||rolledBack;
+- const rank={DRAFT:0,PENDING_APPROVAL:1,PENDING_PUBLICATION:2,APPROVED:2,SUCCEEDED:3,COMPLETED:4,REJECTED:1,CANCELLED:0,ROLLED_BACK:3}[order.state];
+- const approved=order.approvals.length>0&&order.approvals.every(table=>table.state==="APPROVED");
+- const submitted=order.history.some(event=>event.action==="SUBMIT")||rank>=1&&!cancelled;
+- const latest=(...actions:string[])=>[...order.history].reverse().find(event=>actions.includes(event.action));
+- const events=[latest("SUBMIT"),approved||rejected?latest("APPROVE","REJECT"):undefined,latest("EXECUTE"),rolledBack?latest("ROLLED_BACK","QUICK_ROLLBACK"):cancelled?latest("CANCEL","REPREPARE"):rejected?latest("REJECT"):order.state==="COMPLETED"?latest("COMPLETE"):undefined];
+- const labels=["准备","审批","发布","完结"];
+- const descriptions=[submitted?"已准备":cancelled?"已取消":"准备中",order.release_type==="EMERGENCY"?(submitted?"无需审批":"待提交原因"):rejected?"已拒绝":approved?"已批准":cancelled?"已取消":rank===1?"待审批":"待提交",order.executions.some(execution=>execution.kind==="PUBLICATION")||rank>=3?"数据库已发布":terminated?"未发布":rank===2?"待执行":"待审批后发布",rolledBack?"已回滚":cancelled||rejected?"已终止":rank===4?"已完结":rank===3?"待人工完结":"待发布后完结"];
+- const completed=[submitted,order.release_type==="EMERGENCY"?false:approved,Boolean(order.executions.some(execution=>execution.kind==="PUBLICATION"))||rank>=3,order.state==="COMPLETED"];
+- return <ol aria-label="发布阶段" className="release-progress release-panel">{labels.map((label,index)=><li key={label} aria-current={!terminated&&rank===index?"step":undefined} className={completed[index]?"is-complete":!terminated&&rank===index?"is-current":""}><div className="release-step-heading"><span className="release-step-icon" aria-hidden="true">{completed[index]?<Check size={14}/>:terminated?<Minus size={14}/>:index+1}</span><strong>{label}</strong></div><div className="release-step-detail"><p>{descriptions[index]}</p>{events[index]&&<div className="release-step-meta"><ReleasePerson id={events[index]!.actor_id} name={people[events[index]!.actor_id]}/><p><ReleaseTime value={events[index]!.at}/></p></div>}</div></li>)}</ol>;
+-}
+diff --git a/web/src/styles.css b/web/src/styles.css
+index 3d2f487..3bb6ff7 100644
+--- a/web/src/styles.css
++++ b/web/src/styles.css
+@@ -637,18 +637,9 @@ input::placeholder, textarea::placeholder { color: var(--muted-foreground); opac
+ .release-info > div { min-width: 0; }
+ .release-info dt { margin-bottom: 8px; color: var(--muted-foreground); font-size: 12px; }
+ .release-info dd { min-width: 0; margin: 0; }
+-.release-progress { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; list-style: none; padding: 14px 20px; }
+-.release-progress li { min-width: 0; }
+-.release-step-heading { display: flex; align-items: center; gap: 8px; }
+-.release-progress li:not(:last-child) .release-step-heading::after { content: ""; height: 1px; flex: 1; margin-left: 4px; background: var(--border); }
+ .release-step-icon { display: flex; flex: 0 0 24px; align-items: center; justify-content: center; width: 24px; height: 24px; border: 1px solid var(--border); border-radius: 50%; color: var(--muted-foreground); font-size: 12px; }
+-.release-step-detail { margin-left: 32px; overflow-wrap: anywhere; }
+-.release-progress p { color: var(--muted-foreground); font-size: 12px; margin-top: 3px; }
+-.release-step-meta { margin-top: 6px; font-size: 12px; }
+-.release-progress .is-current .release-step-icon { color: var(--primary-foreground); background: var(--primary); border-color: var(--primary); }
+-.release-progress .is-complete .release-step-icon { color: var(--success); background: var(--success-soft); border-color: var(--success); }
+ .release-diff-item summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 8px; }
+-@media (max-width: 620px) { .release-panel { padding: 16px; } .release-info { grid-template-columns: minmax(0,1fr); } .release-progress { grid-template-columns: repeat(2,minmax(0,1fr)); padding: 12px; gap: 12px; } .release-step-heading { flex-wrap: wrap; gap: 4px; } .release-step-heading strong { font-size: 13px; } .release-progress li:not(:last-child) .release-step-heading::after { margin-left: 0; } .release-progress li:nth-child(2) .release-step-heading::after { display: none; } .release-step-detail { margin-left: 0; } }
++@media (max-width: 620px) { .release-panel { padding: 16px; } .release-info { grid-template-columns: minmax(0,1fr); } }
+ 
+ .release-diff-before { background: var(--danger-soft); }
+ .release-diff-after { background: var(--success-soft); }
+diff --git a/web/e2e/prepare-release-fixtures.cjs b/web/e2e/prepare-release-fixtures.cjs
+new file mode 100644
+index 0000000..3027580
+--- /dev/null
++++ b/web/e2e/prepare-release-fixtures.cjs
+@@ -0,0 +1,50 @@
++// Runner-only setup: keep historical SQL intact, then explicitly associate the
++// newly loaded policies through the same public catalog contract as Web.
++const assert = require('node:assert/strict');
++const {execFileSync} = require('node:child_process');
++const {readFileSync} = require('node:fs');
++const {resolve} = require('node:path');
++const {request} = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
++const {registerFixtureAccount, authenticatedRequest} = require('./local-account.cjs');
++const {configureFixtureReleaseTemplates} = require('./release-template-fixture.cjs');
++
++(async () => {
++  assert.equal(process.env.RCC_E2E_ISOLATED, '1');
++  const container = process.env.RCC_E2E_MYSQL_CONTAINER;
++  assert.match(container, /^rcc-browser-[0-9]+-[0-9]+-mysql$/);
++  const origin = process.env.RCC_WEB_URL;
++  assert.ok(['127.0.0.1', 'localhost'].includes(new URL(origin).hostname));
++  const client = await request.newContext();
++  const context = {request: client};
++  const api = async (path, options = {}) => {
++    const response = await authenticatedRequest(context, origin, path, options);
++    assert.equal(response.status(), 200, `${path}: ${await response.text()}`);
++    return response.json();
++  };
++  try {
++    // grant-admin performs its own full readiness check before any late SQL.
++    await registerFixtureAccount(context, origin);
++    const before = (await api('/api/v1/table-policies')).policies;
++    const files = [
++      'docs/verification/fixtures/stage1_acceptance.sql',
++      'web/e2e/fixtures/stage1-policies.sql',
++      'admin/cmd/admin/testdata/014-batch-browser.sql',
++      'admin/cmd/admin/testdata/015-draft-targets-browser.sql',
++      'admin/cmd/admin/testdata/016-multitable-browser.sql',
++      'web/e2e/fixtures/release-rollbacks.sql',
++      'web/e2e/fixtures/field-display.sql',
++    ];
++    for (const file of files) {
++      execFileSync('docker', ['exec', '--interactive', container, 'sh', '-c',
++        'MYSQL_PWD="$MYSQL_PASSWORD" mysql -u"$MYSQL_USER" "$MYSQL_DATABASE"'],
++      {input: readFileSync(resolve(__dirname, '../..', file)), timeout: 60000, stdio: ['pipe', 'pipe', 'pipe']});
++    }
++    const policies = (await api('/api/v1/table-policies')).policies;
++    const added = policies.filter(policy => !before.some(previous => previous.table_name === policy.table_name));
++    assert.ok(added.length > 0, 'late historical fixtures must load their real policies');
++    const associations = await configureFixtureReleaseTemplates(context, origin, added.map(policy => policy.table_name));
++    console.log(JSON.stringify({files, added:added.map(policy => policy.table_name), associations}));
++  } finally {
++    await client.dispose();
++  }
++})().catch(error => {console.error(error);process.exitCode = 1;});
+diff --git a/web/e2e/release-template-fixture.cjs b/web/e2e/release-template-fixture.cjs
+new file mode 100644
+index 0000000..0782da6
+--- /dev/null
++++ b/web/e2e/release-template-fixture.cjs
+@@ -0,0 +1,33 @@
++const assert = require('node:assert/strict');
++const {randomUUID} = require('node:crypto');
++const {authenticatedRequest} = require('./local-account.cjs');
++
++// Explicit opt-in for named disposable fixtures, never part of application reads.
++async function configureFixtureReleaseTemplates(context, origin, tables) {
++  const api = async (path, options = {}) => {
++    const response = await authenticatedRequest(context, origin, path, options);
++    assert.equal(response.status(), 200, `${path}: ${await response.text()}`);
++    return response.json();
++  };
++  const templates = (await api('/api/v1/release-templates')).templates;
++  const defaults = ['STANDARD', 'EMERGENCY'].map(type => {
++    const template = templates.find(item => item.code === `default_${type.toLowerCase()}_v1`);
++    assert.ok(template && template.type === type && template.enabled);
++    return template;
++  });
++  const policies = (await api('/api/v1/table-policies')).policies.filter(policy => tables.includes(policy.table_name));
++  const saved = [];
++  for (const policy of policies) {
++    const path = `/api/v1/table-policies/${encodeURIComponent(policy.table_name)}/release-templates`;
++    const existing = (await api(path)).associations;
++    for (const template of defaults) {
++      if (existing.some(item => item.type === template.type)) continue;
++      saved.push(await api(`${path}/${template.type}`, {method:'PUT',
++        headers:{'Idempotency-Key':randomUUID()},
++        data:{template_code:template.code,enabled:true,expected_version:'0'}}));
++    }
++  }
++  return saved;
++}
++
++module.exports = {configureFixtureReleaseTemplates};

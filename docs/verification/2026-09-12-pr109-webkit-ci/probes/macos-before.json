@@ -1,0 +1,3117 @@
+{
+  "ready": false,
+  "iterations": 20,
+  "completed": 20,
+  "browserVersion": "26.5",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "pageErrorCount": 8,
+  "nativeErrorCount": 0,
+  "errors": [
+    {
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    }
+  ],
+  "timeline": [
+    {
+      "at": 1789170243126,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243155,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170243184,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170243186,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170243225,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170243225,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170243225,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170243225,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170243226,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170243247,
+      "event": "reload.start",
+      "iteration": 0
+    },
+    {
+      "at": 1789170243250,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243253,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243253,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170243284,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170243284,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170243285,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243290,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243292,
+      "event": "pageerror",
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "at": 1789170243294,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243295,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170243332,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243335,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170243351,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170243352,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170243362,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170243368,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243375,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243375,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170243412,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243431,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170243440,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170243440,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170243447,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170243447,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170243447,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170243447,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170243447,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170243456,
+      "event": "reload.start",
+      "iteration": 1
+    },
+    {
+      "at": 1789170243462,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243464,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243464,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170243499,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170243499,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170243500,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243504,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243506,
+      "event": "pageerror",
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "at": 1789170243508,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243508,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170243545,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243549,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170243566,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170243567,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170243586,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170243588,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243590,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243590,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170243624,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243627,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170243641,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170243642,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170243653,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170243653,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170243653,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170243653,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170243653,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170243673,
+      "event": "reload.start",
+      "iteration": 2
+    },
+    {
+      "at": 1789170243674,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243676,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243676,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170243707,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170243707,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170243709,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243717,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243717,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170243718,
+      "event": "requestfailed",
+      "url": "http://127.0.0.1:56449/api/v1/auth/session",
+      "failure": {
+        "errorText": "cancelled"
+      }
+    },
+    {
+      "at": 1789170243720,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243721,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170243763,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243782,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170243798,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170243799,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170243819,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170243821,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243823,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243823,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170243862,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243873,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170243882,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170243883,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170243893,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170243893,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170243893,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170243893,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170243893,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170243902,
+      "event": "reload.start",
+      "iteration": 3
+    },
+    {
+      "at": 1789170243906,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243909,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243909,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170243949,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170243949,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170243949,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243969,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243972,
+      "event": "pageerror",
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "at": 1789170243972,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170243973,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244010,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244011,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170244019,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170244019,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170244036,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170244042,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244044,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244045,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244078,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244079,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170244088,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170244088,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170244104,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170244104,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170244104,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170244104,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170244104,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170244126,
+      "event": "reload.start",
+      "iteration": 4
+    },
+    {
+      "at": 1789170244128,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244130,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244130,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244159,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170244159,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170244160,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244163,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244163,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170244163,
+      "event": "requestfailed",
+      "url": "http://127.0.0.1:56449/api/v1/auth/session",
+      "failure": {
+        "errorText": "cancelled"
+      }
+    },
+    {
+      "at": 1789170244166,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244166,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244197,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244198,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170244206,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170244206,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170244233,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170244246,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244248,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244248,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244284,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244288,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170244301,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170244301,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170244311,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170244311,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170244311,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170244311,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170244311,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170244327,
+      "event": "reload.start",
+      "iteration": 5
+    },
+    {
+      "at": 1789170244329,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244331,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244331,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244364,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170244364,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170244366,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244371,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244372,
+      "event": "pageerror",
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "at": 1789170244375,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244376,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244414,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244418,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170244432,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170244432,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170244452,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170244454,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244458,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244459,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244492,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244494,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170244502,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170244502,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170244524,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170244524,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170244524,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170244524,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170244525,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170244545,
+      "event": "reload.start",
+      "iteration": 6
+    },
+    {
+      "at": 1789170244550,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244552,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244553,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244585,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170244585,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170244586,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244590,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244592,
+      "event": "pageerror",
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "at": 1789170244593,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244593,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244627,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244628,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170244641,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170244641,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170244651,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170244655,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244661,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244662,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244696,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244698,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170244712,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170244712,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170244723,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170244723,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170244723,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170244723,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170244723,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170244740,
+      "event": "reload.start",
+      "iteration": 7
+    },
+    {
+      "at": 1789170244742,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244744,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244744,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244774,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170244774,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170244774,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244777,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244778,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170244778,
+      "event": "requestfailed",
+      "url": "http://127.0.0.1:56449/api/v1/auth/session",
+      "failure": {
+        "errorText": "cancelled"
+      }
+    },
+    {
+      "at": 1789170244780,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244780,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244813,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244815,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170244823,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170244823,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170244841,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170244842,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244844,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244844,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244876,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244878,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170244892,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170244892,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170244902,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170244902,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170244902,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170244902,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170244903,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170244921,
+      "event": "reload.start",
+      "iteration": 8
+    },
+    {
+      "at": 1789170244923,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244925,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244925,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170244957,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170244957,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170244958,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244979,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244982,
+      "event": "pageerror",
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "at": 1789170244983,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170244983,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170245018,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245021,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170245036,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170245036,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170245055,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170245058,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245060,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245060,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170245095,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245096,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170245104,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170245105,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170245121,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170245122,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170245122,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170245122,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170245122,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170245144,
+      "event": "reload.start",
+      "iteration": 9
+    },
+    {
+      "at": 1789170245145,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245150,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245151,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170245180,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170245180,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170245182,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245189,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245190,
+      "event": "requestfailed",
+      "url": "http://127.0.0.1:56449/api/v1/auth/session",
+      "failure": {
+        "errorText": "cancelled"
+      }
+    },
+    {
+      "at": 1789170245192,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245192,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170245228,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245232,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170245247,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170245247,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170245266,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170245268,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245270,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245270,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170245305,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245328,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170245338,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170245338,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170245346,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170245347,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170245347,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170245347,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170245347,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170245355,
+      "event": "reload.start",
+      "iteration": 10
+    },
+    {
+      "at": 1789170245359,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245361,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245361,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170245396,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170245396,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170245397,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245401,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245403,
+      "event": "pageerror",
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "at": 1789170245404,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245405,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170245439,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245443,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170245459,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170245459,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170245479,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170245480,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245482,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245482,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170245519,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245523,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170245537,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170245537,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170245546,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170245546,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170245546,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170245546,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170245546,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170245559,
+      "event": "reload.start",
+      "iteration": 11
+    },
+    {
+      "at": 1789170245561,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245563,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245563,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170245596,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170245596,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170245597,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245602,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245603,
+      "event": "pageerror",
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:56449/api/v1/auth/session due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:56449/api/v1/auth/session due to access control checks.\n    at K (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:5897)\n    at v (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36072)\n    at unknown (http://127.0.0.1:56449/assets/index-BODSflcK.js:1:36368)\n    at Gc (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:91652)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106752)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106773)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106732)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:107515)\n    at Dl (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106636)\n    at Ol (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:106798)\n    at Uu (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:119526)\n    at unknown (http://127.0.0.1:56449/assets/react-DXf84zf0.js:8:116981)\n    at ie (http://127.0.0.1:56449/assets/react-DXf84zf0.js:1:9462)"
+    },
+    {
+      "at": 1789170245605,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245606,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170245642,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245652,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170245662,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170245662,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170245680,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170245682,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245684,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245684,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170245718,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245730,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170245743,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170245743,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170245750,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170245750,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170245750,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170245750,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170245751,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170245758,
+      "event": "reload.start",
+      "iteration": 12
+    },
+    {
+      "at": 1789170245763,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245765,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245766,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170245799,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170245799,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170245799,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245802,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245803,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170245803,
+      "event": "requestfailed",
+      "url": "http://127.0.0.1:56449/api/v1/auth/session",
+      "failure": {
+        "errorText": "cancelled"
+      }
+    },
+    {
+      "at": 1789170245805,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245806,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170245838,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245840,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170245854,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170245854,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170245864,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170245869,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245884,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245884,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170245935,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245939,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170245952,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170245952,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170245962,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170245962,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170245962,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170245964,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170245964,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170245979,
+      "event": "reload.start",
+      "iteration": 13
+    },
+    {
+      "at": 1789170245986,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245988,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170245988,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246022,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170246022,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170246023,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246027,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170246028,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246028,
+      "event": "requestfailed",
+      "url": "http://127.0.0.1:56449/api/v1/auth/session",
+      "failure": {
+        "errorText": "cancelled"
+      }
+    },
+    {
+      "at": 1789170246033,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246033,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246066,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246068,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170246080,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170246080,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170246090,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170246094,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246096,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246096,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246129,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246131,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170246145,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170246145,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170246154,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170246154,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170246154,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170246154,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170246155,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170246175,
+      "event": "reload.start",
+      "iteration": 14
+    },
+    {
+      "at": 1789170246176,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246178,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246179,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246209,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170246209,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170246209,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246212,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170246212,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246213,
+      "event": "requestfailed",
+      "url": "http://127.0.0.1:56449/api/v1/auth/session",
+      "failure": {
+        "errorText": "cancelled"
+      }
+    },
+    {
+      "at": 1789170246215,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246215,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246246,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246248,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170246255,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170246256,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170246271,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170246274,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246276,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246276,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246337,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246340,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170246353,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170246353,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170246364,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170246364,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170246364,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170246364,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170246365,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170246383,
+      "event": "reload.start",
+      "iteration": 15
+    },
+    {
+      "at": 1789170246387,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246389,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246389,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246422,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170246422,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170246423,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246426,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170246426,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246426,
+      "event": "requestfailed",
+      "url": "http://127.0.0.1:56449/api/v1/auth/session",
+      "failure": {
+        "errorText": "cancelled"
+      }
+    },
+    {
+      "at": 1789170246428,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246429,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246461,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246471,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170246481,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170246481,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170246498,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170246502,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246504,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246504,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246538,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246540,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170246548,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170246548,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170246564,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170246564,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170246564,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170246564,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170246565,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170246588,
+      "event": "reload.start",
+      "iteration": 16
+    },
+    {
+      "at": 1789170246592,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246595,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246595,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246628,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170246628,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170246629,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246632,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246632,
+      "event": "requestfailed",
+      "url": "http://127.0.0.1:56449/api/v1/auth/session",
+      "failure": {
+        "errorText": "cancelled"
+      }
+    },
+    {
+      "at": 1789170246635,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246635,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246667,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246669,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170246683,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170246683,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170246694,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170246696,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246708,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246708,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246752,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246754,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170246768,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170246768,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170246779,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170246779,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170246779,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170246779,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170246779,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170246800,
+      "event": "reload.start",
+      "iteration": 17
+    },
+    {
+      "at": 1789170246801,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246803,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246804,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246837,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170246837,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170246838,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246841,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246842,
+      "event": "requestfailed",
+      "url": "http://127.0.0.1:56449/api/v1/auth/session",
+      "failure": {
+        "errorText": "cancelled"
+      }
+    },
+    {
+      "at": 1789170246844,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246844,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246875,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246877,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170246885,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170246885,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170246903,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170246905,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246907,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246907,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170246940,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246942,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170246950,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170246950,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170246966,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170246966,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170246966,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170246966,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170246967,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170246988,
+      "event": "reload.start",
+      "iteration": 18
+    },
+    {
+      "at": 1789170246989,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246992,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170246992,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170247022,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170247022,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170247022,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170247025,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170247026,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170247026,
+      "event": "requestfailed",
+      "url": "http://127.0.0.1:56449/api/v1/auth/session",
+      "failure": {
+        "errorText": "cancelled"
+      }
+    },
+    {
+      "at": 1789170247028,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170247028,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170247060,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170247062,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170247076,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170247076,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170247085,
+      "event": "second-navigation.ready"
+    },
+    {
+      "at": 1789170247091,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170247094,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170247094,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170247127,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170247129,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170247142,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170247142,
+      "event": "api.request",
+      "path": "/api/v1/table-policies"
+    },
+    {
+      "at": 1789170247153,
+      "event": "api.request",
+      "path": "/api/v1/tables/probe_items/query"
+    },
+    {
+      "at": 1789170247153,
+      "event": "api.request",
+      "path": "/api/v1/query-policies/probe_query"
+    },
+    {
+      "at": 1789170247154,
+      "event": "api.request",
+      "path": "/api/v1/query-policy-types"
+    },
+    {
+      "at": 1789170247154,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policies/probe_mutation"
+    },
+    {
+      "at": 1789170247154,
+      "event": "api.request",
+      "path": "/api/v1/mutation-policy-types"
+    },
+    {
+      "at": 1789170247175,
+      "event": "reload.start",
+      "iteration": 19
+    },
+    {
+      "at": 1789170247177,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170247179,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170247179,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170247211,
+      "event": "reload.end"
+    },
+    {
+      "at": 1789170247211,
+      "event": "second-navigation.start"
+    },
+    {
+      "at": 1789170247211,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170247215,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170247215,
+      "event": "window",
+      "type": "beforeunload",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170247215,
+      "event": "requestfailed",
+      "url": "http://127.0.0.1:56449/api/v1/auth/session",
+      "failure": {
+        "errorText": "cancelled"
+      }
+    },
+    {
+      "at": 1789170247217,
+      "event": "window",
+      "type": "pagehide",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170247218,
+      "event": "window",
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "at": 1789170247252,
+      "event": "window",
+      "type": "pageshow",
+      "visibility": "visible"
+    },
+    {
+      "at": 1789170247283,
+      "event": "api.request",
+      "path": "/api/v1/auth/session"
+    },
+    {
+      "at": 1789170247299,
+      "event": "api.request",
+      "path": "/api/v1/approval-notifications"
+    },
+    {
+      "at": 1789170247299,
+      "event": "api.request",
+      "path": "/api/v1/release-orders"
+    },
+    {
+      "at": 1789170247309,
+      "event": "second-navigation.ready"
+    }
+  ],
+  "failure": {
+    "name": "AssertionError",
+    "message": "No page errors during the restored workspace -> draft catalog transition\n\n8 !== 0\n"
+  }
+}

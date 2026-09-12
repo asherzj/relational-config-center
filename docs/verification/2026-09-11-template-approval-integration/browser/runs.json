@@ -1,0 +1,66 @@
+[
+  {
+    "test": "TestApprovalRoleBrowserSystemPath",
+    "log": "01-roles.log",
+    "exit": 0,
+    "output_directory": "/private/tmp/rcc-release-template-approval-integration/docs/verification/2026-09-11-template-approval-integration/browser/roles",
+    "checks": [
+      "empty state, searchable real member selection, keyboard form order, unsaved close protection and real save",
+      "role directory read failure retains the last successful list and offers a working retry",
+      "390px role catalog scrolls with arrow keys while its edit action remains visible",
+      "personnel read failure retains cached search results and selected identities, then retries successfully",
+      "reload preserves role identity and members; removing one member saves through public API",
+      "real database rollback returns definite failure, preserves editable inputs and allows a corrected save",
+      "stale version rejects overwrite, preserves input, exposes current content and requires explicit save",
+      "lost committed response preserves exact original key/body; explicit retry returns original result at 390px",
+      "an undelivered uncertain request that later conflicts can return to latest-content review without losing input",
+      "real missing-cookie interruption hides protected inputs, same-account login preserves input and members, mobile keyboard can disable and save",
+      "enable restoration and unreferenced deletion with cancel-first keyboard confirmation",
+      "revocation preserves draft and disables save; switching real accounts discards private draft"
+    ],
+    "check_count": 12,
+    "test_seconds": 48.08,
+    "package_seconds": 50.287,
+    "container_terminated": true
+  },
+  {
+    "test": "TestTableApprovalBrowserSystemPath",
+    "log": "02-table-approvals.log",
+    "exit": 0,
+    "output_directory": "/private/tmp/rcc-release-template-approval-integration/docs/verification/2026-09-11-template-approval-integration/browser/table-approvals",
+    "checks": [
+      "无独立审批人显示问题表，提交422保留草稿；在途成员离开保留进度，取消释放目标",
+      "管理员从正式表目录以键盘配置两个表的独立审批角色",
+      "390px 表分配冲突保留空选择，查看最新后明确重选保存",
+      "VIEWER 成员只批准商品表，页面显示真实部分进度，ADMIN 无通用越权",
+      "两个独立角色都通过后，申请人执行真实多表发布",
+      "成员变化返回真实范围冲突，刷新保留意见和原范围，390px 键盘明确批准最新两表",
+      "空快照不受后来改绑影响，独立 ADMIN 默认接手并保留真实资格来源"
+    ],
+    "check_count": 7,
+    "test_seconds": 36.22,
+    "package_seconds": 37.379,
+    "container_terminated": true
+  },
+  {
+    "test": "TestTableReleaseTemplateBrowserSystemPath",
+    "log": "03-table-templates.log",
+    "exit": 0,
+    "output_directory": "/private/tmp/rcc-release-template-approval-integration/docs/verification/2026-09-11-template-approval-integration/browser/table-templates",
+    "checks": [
+      "create table and emergency association atomically; committed response loss manually replays original create",
+      "merged admin navigation and all four table management entry points coexist",
+      "same-account reauthentication preserves unknown original association request without automatic write retry",
+      "formal table settings select same-type templates and safely replay lost association response",
+      "concurrent editor conflict retains selected template and observed version",
+      "standard association disabled while emergency remains enabled",
+      "390px long template name, reachable controls, keyboard focus and no page/drawer overflow",
+      "Escape preserves pending choice through shared unsaved confirmation",
+      "entire table can still be disabled"
+    ],
+    "check_count": 9,
+    "test_seconds": 21.98,
+    "package_seconds": 22.898,
+    "container_terminated": true
+  }
+]

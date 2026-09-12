@@ -1,0 +1,68 @@
+=== RUN   TestNotificationCenterBrowserSystemPath
+2026/09/11 07:03:57 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: b0ba0a349848677e5432e91062593baadd419b86f271f7cb51cfc61c04aeecee
+  Test ProcessID: d630c67a-7953-403e-8cc3-ef055fc6a9eb
+2026/09/11 07:03:57 🐳 Creating container for image mysql:8.4
+2026/09/11 07:03:57 ✅ Container created: 3420e6d8d8e1
+2026/09/11 07:03:57 🐳 Starting container: 3420e6d8d8e1
+2026/09/11 07:03:58 ✅ Container started: 3420e6d8d8e1
+2026/09/11 07:03:58 ⏳ Waiting for container id 3420e6d8d8e1 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:04:05 🔔 Container is ready: 3420e6d8d8e1
+    notification_center_browser_integration_test.go:76: browser system path: exit status 1 PASS 正式导航默认待我审批；多角色、多表一单一行，首屏20项并展示真实22项未读和待审批
+        PASS 第二页键盘进入正式详情并真实批准两表，返回保留视图/筛选/游标且已处理单退出待办
+        PASS 四视图归属与真实处理一致；ADMIN可查看全单仍无角色审批权，未提交取消草稿不混入
+        PASS 390px长标题/多表无页面溢出，固定详情入口与列表返回可键盘操作
+        AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+        + actual - expected
+        
+        + '09 通知中心长标题：商品配置与价格配置由同一人员按两张表完整审阅，详情返回保留筛选和当前分页位置\n' +
+        - '未读09 通知中心长标题：商品配置与价格配置由同一人员按两张表完整审阅，详情返回保留筛选和当前分页位置\n' +
+            '\n' +
+            '07ba235d454b21a7c769a8694b38ba7a\n' +
+            '\n' +
+            'multitable_browser_a、multitable_browser_b\n' +
+            '\n' +
+        
+            at /private/tmp/rcc-issue-96-approval-notifications/web/e2e/notification-center.cjs:141:12 {
+          generatedMessage: true,
+          code: 'ERR_ASSERTION',
+          actual: '09 通知中心长标题：商品配置与价格配置由同一人员按两张表完整审阅，详情返回保留筛选和当前分页位置\n' +
+            '\n' +
+            '07ba235d454b21a7c769a8694b38ba7a\n' +
+            '\n' +
+            'multitable_browser_a、multitable_browser_b\n' +
+            '\n' +
+            '\tec0fc76a-51ea-441e-a9fa-7e0f10a14d60\t待审批\n' +
+            '\n' +
+            '已通过 0 / 2 表\n' +
+            '\n' +
+            '...',
+          expected: '未读09 通知中心长标题：商品配置与价格配置由同一人员按两张表完整审阅，详情返回保留筛选和当前分页位置\n' +
+            '\n' +
+            '07ba235d454b21a7c769a8694b38ba7a\n' +
+            '\n' +
+            'multitable_browser_a、multitable_browser_b\n' +
+            '\n' +
+            '\tec0fc76a-51ea-441e-a9fa-7e0f10a14d60\t待审批\n' +
+            '\n' +
+            '已通过 0 / 2 表\n' +
+            '\n' +
+            '...',
+          operator: 'strictEqual',
+          diff: 'simple'
+        }
+2026/09/11 07:04:27 🐳 Stopping container: 3420e6d8d8e1
+2026/09/11 07:04:29 ✅ Container stopped: 3420e6d8d8e1
+2026/09/11 07:04:29 🐳 Terminating container: 3420e6d8d8e1
+2026/09/11 07:04:29 🚫 Container terminated: 3420e6d8d8e1
+--- FAIL: TestNotificationCenterBrowserSystemPath (31.52s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	32.942s
+FAIL

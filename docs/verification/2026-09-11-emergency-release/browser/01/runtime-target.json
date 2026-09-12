@@ -1,0 +1,1 @@
+{"admin_origin":"http://127.0.0.1:53625","admin_pid":30567,"isolated":true,"mysql_address":"localhost:47819","mysql_database":"rcc_test","mysql_image":"mysql:8.4","script":"release-emergency.cjs","started_at":"2026-09-11T06:52:19.506702Z","test":"TestReleaseEmergencyBrowserSystemPath","test_pid":30483,"vite_pid":30587,"web_origin":"http://127.0.0.1:53617"}

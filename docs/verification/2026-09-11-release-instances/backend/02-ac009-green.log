@@ -1,0 +1,47 @@
+=== RUN   TestReleaseFlowAC009PersistsIndependentTablesBeforeFirstRead
+2026/09/11 08:51:43 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 2b78c0ab1091d9f819599d6bc18fa298d10a3f39888d4b6c653e630ef7cf91c4
+  Test ProcessID: efc74bc4-e3aa-4458-abce-09fd1a25219a
+2026/09/11 08:51:43 🐳 Creating container for image mysql:8.4
+2026/09/11 08:51:43 ✅ Container created: 92b18f6068fd
+2026/09/11 08:51:43 🐳 Starting container: 92b18f6068fd
+2026/09/11 08:51:43 ✅ Container started: 92b18f6068fd
+2026/09/11 08:51:43 ⏳ Waiting for container id 92b18f6068fd image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 08:51:49 🔔 Container is ready: 92b18f6068fd
+{"request_id":"rcc-cbf19ef1daebce7056b747b90bfb14bf","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":9}
+{"request_id":"rcc-7454119cf7df09eae0d6d370a2d45ca0","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-ad155eb908d2f3d7aab7bc4a1b601ff1","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":4}
+{"request_id":"rcc-55c4863dbf3e8bf9adb1d5f600a57f1c","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":53}
+{"request_id":"rcc-dd4f536fc2e45802233cb70c3535044a","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-1aba43cae4e89e0d0c4f9951e253ea65","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":6}
+{"request_id":"rcc-19f555e7eefe9c081a7f51b1addc64ba","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":3}
+{"request_id":"rcc-8a85187400ffcc8bbdbfe8d1c52c9a03","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":5}
+{"request_id":"rcc-f3d56f6426930dd3920145d2e15f0bc0","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":15}
+{"request_id":"rcc-c4ba204b13a68d0b6f78671d51b62659","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":13}
+{"request_id":"rcc-e4ebbbccaeeb6de0b8d77083512b10dd","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":14}
+{"request_id":"rcc-7c427767ed23b18ac7d0be5e5a68670c","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":12}
+{"request_id":"rcc-7d6b756ae566037fadaa7e8462702d6e","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":6}
+{"request_id":"rcc-c1383350681ae80e87bf817d3ace46d4","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-1ff56a5803729d98f16c2b0c49327394","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":8}
+{"request_id":"rcc-bcf2875e68b03c2be5efc1b71b87f3db","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-5fd55d9bbcfdca74d317cde7c2f6523e","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":8}
+{"request_id":"rcc-f8bd96cc2c05a2c5c1232846d4cb0e4c","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":33}
+{"request_id":"rcc-a98bd4dea6928c9e673571011bf163df","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":6}
+{"request_id":"rcc-af0c712b02a711594330382accdd6af3","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-d400beb12ae9654a6e57acb7e7630160","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":8}
+{"request_id":"rcc-c52553317249ad6945adc79d2e5e6fcb","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":6}
+{"request_id":"rcc-73bdf0f3d6fc7b45e68a7d182b4163ee","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":5}
+2026/09/11 08:51:51 🐳 Stopping container: 92b18f6068fd
+2026/09/11 08:51:52 ✅ Container stopped: 92b18f6068fd
+2026/09/11 08:51:52 🐳 Terminating container: 92b18f6068fd
+2026/09/11 08:51:52 🚫 Container terminated: 92b18f6068fd
+--- PASS: TestReleaseFlowAC009PersistsIndependentTablesBeforeFirstRead (8.81s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	9.969s

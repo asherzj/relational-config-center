@@ -1,0 +1,13 @@
+run id: rcc-browser-1789180057-22057
+container name: rcc-browser-1789180057-22057-mysql
+volume name: rcc-browser-1789180057-22057-mysql-data
+started at: 2026-09-12T02:27:37Z
+docker client=29.7.2 server=29.5.2
+v24.19.0
+10.28.2
+go version go1.27.0 darwin/arm64
+exit status: 1
+finished at: 2026-09-12T02:28:38Z
+cleanup verified: true
+container name: rcc-browser-1789180057-22057-mysql
+volume name: rcc-browser-1789180057-22057-mysql-data

@@ -1,0 +1,4 @@
+case	selection	exit_status
+unsaved-changes.cjs@chromium	selected	0
+rule-clarity.cjs@chromium	selected	0
+write-recovery.cjs@chromium	selected	1

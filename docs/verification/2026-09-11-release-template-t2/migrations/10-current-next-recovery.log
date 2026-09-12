@@ -1,0 +1,60 @@
+=== RUN   TestSchemaMigrationInitializesEmptyDatabase
+2026/09/11 07:22:29 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 26813f119243652ce36eaa80ea39d0558191286705da800a1c2f870013ea8be0
+  Test ProcessID: 4fe35dba-a396-4fc0-92f8-2f14da1b6d25
+2026/09/11 07:22:29 🐳 Creating container for image mysql:8.4
+2026/09/11 07:22:29 ✅ Container created: 8230130b8d4a
+2026/09/11 07:22:29 🐳 Starting container: 8230130b8d4a
+2026/09/11 07:22:29 ✅ Container started: 8230130b8d4a
+2026/09/11 07:22:29 ⏳ Waiting for container id 8230130b8d4a image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:22:35 🔔 Container is ready: 8230130b8d4a
+2026/09/11 07:22:37 🐳 Stopping container: 8230130b8d4a
+2026/09/11 07:22:39 ✅ Container stopped: 8230130b8d4a
+2026/09/11 07:22:39 🐳 Terminating container: 8230130b8d4a
+2026/09/11 07:22:39 🚫 Container terminated: 8230130b8d4a
+--- PASS: TestSchemaMigrationInitializesEmptyDatabase (10.49s)
+=== RUN   TestSchemaMigrationPartialDDLRequiresExplicitRecovery
+2026/09/11 07:22:39 🐳 Creating container for image mysql:8.4
+2026/09/11 07:22:39 ✅ Container created: 8db6fe4aa24a
+2026/09/11 07:22:39 🐳 Starting container: 8db6fe4aa24a
+2026/09/11 07:22:39 ✅ Container started: 8db6fe4aa24a
+2026/09/11 07:22:39 ⏳ Waiting for container id 8db6fe4aa24a image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:22:46 🔔 Container is ready: 8db6fe4aa24a
+2026/09/11 07:22:49 🐳 Stopping container: 8db6fe4aa24a
+2026/09/11 07:22:50 ✅ Container stopped: 8db6fe4aa24a
+2026/09/11 07:22:50 🐳 Terminating container: 8db6fe4aa24a
+2026/09/11 07:22:50 🚫 Container terminated: 8db6fe4aa24a
+--- PASS: TestSchemaMigrationPartialDDLRequiresExplicitRecovery (11.39s)
+=== RUN   TestSchemaMigrationUpgradesToNextRelease
+2026/09/11 07:22:51 🐳 Creating container for image mysql:8.4
+2026/09/11 07:22:52 ✅ Container created: 6431e43b99f0
+2026/09/11 07:22:52 🐳 Starting container: 6431e43b99f0
+2026/09/11 07:22:52 ✅ Container started: 6431e43b99f0
+2026/09/11 07:22:52 ⏳ Waiting for container id 6431e43b99f0 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:22:58 🔔 Container is ready: 6431e43b99f0
+2026/09/11 07:23:02 🐳 Stopping container: 6431e43b99f0
+2026/09/11 07:23:02 ✅ Container stopped: 6431e43b99f0
+2026/09/11 07:23:02 🐳 Terminating container: 6431e43b99f0
+2026/09/11 07:23:02 🚫 Container terminated: 6431e43b99f0
+--- PASS: TestSchemaMigrationUpgradesToNextRelease (12.14s)
+=== RUN   TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery
+2026/09/11 07:23:04 🐳 Creating container for image mysql:8.4
+2026/09/11 07:23:04 ✅ Container created: 6a792b4bbe17
+2026/09/11 07:23:04 🐳 Starting container: 6a792b4bbe17
+2026/09/11 07:23:04 ✅ Container started: 6a792b4bbe17
+2026/09/11 07:23:04 ⏳ Waiting for container id 6a792b4bbe17 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:23:10 🔔 Container is ready: 6a792b4bbe17
+2026/09/11 07:23:12 🐳 Stopping container: 6a792b4bbe17
+2026/09/11 07:23:13 ✅ Container stopped: 6a792b4bbe17
+2026/09/11 07:23:13 🐳 Terminating container: 6a792b4bbe17
+2026/09/11 07:23:13 🚫 Container terminated: 6a792b4bbe17
+--- PASS: TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery (11.19s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	46.144s

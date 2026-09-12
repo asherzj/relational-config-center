@@ -1,0 +1,209 @@
+{
+  "iterations": 20,
+  "clicks": 40,
+  "minMs": 556,
+  "medianMs": 583.0,
+  "maxMs": 669,
+  "records": [
+    {
+      "iteration": 0,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 605
+    },
+    {
+      "iteration": 0,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 602
+    },
+    {
+      "iteration": 1,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 585
+    },
+    {
+      "iteration": 1,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 579
+    },
+    {
+      "iteration": 2,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 571
+    },
+    {
+      "iteration": 2,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 589
+    },
+    {
+      "iteration": 3,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 587
+    },
+    {
+      "iteration": 3,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 573
+    },
+    {
+      "iteration": 4,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 588
+    },
+    {
+      "iteration": 4,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 581
+    },
+    {
+      "iteration": 5,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 655
+    },
+    {
+      "iteration": 5,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 641
+    },
+    {
+      "iteration": 6,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 669
+    },
+    {
+      "iteration": 6,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 588
+    },
+    {
+      "iteration": 7,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 588
+    },
+    {
+      "iteration": 7,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 576
+    },
+    {
+      "iteration": 8,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 599
+    },
+    {
+      "iteration": 8,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 572
+    },
+    {
+      "iteration": 9,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 579
+    },
+    {
+      "iteration": 9,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 585
+    },
+    {
+      "iteration": 10,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 568
+    },
+    {
+      "iteration": 10,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 557
+    },
+    {
+      "iteration": 11,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 561
+    },
+    {
+      "iteration": 11,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 600
+    },
+    {
+      "iteration": 12,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 575
+    },
+    {
+      "iteration": 12,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 558
+    },
+    {
+      "iteration": 13,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 588
+    },
+    {
+      "iteration": 13,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 612
+    },
+    {
+      "iteration": 14,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 613
+    },
+    {
+      "iteration": 14,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 556
+    },
+    {
+      "iteration": 15,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 574
+    },
+    {
+      "iteration": 15,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 594
+    },
+    {
+      "iteration": 16,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 622
+    },
+    {
+      "iteration": 16,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 562
+    },
+    {
+      "iteration": 17,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 559
+    },
+    {
+      "iteration": 17,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 573
+    },
+    {
+      "iteration": 18,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 648
+    },
+    {
+      "iteration": 18,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 574
+    },
+    {
+      "iteration": 19,
+      "table": "multitable_browser_a_webkit",
+      "elapsedMs": 578
+    },
+    {
+      "iteration": 19,
+      "table": "multitable_browser_b_webkit",
+      "elapsedMs": 573
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+ok  	github.com/asherzj/relational-config-center/admin/internal/application	0.923s
+ok  	github.com/asherzj/relational-config-center/admin/internal/interfaces/http	1.233s
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	1.883s [no tests to run]

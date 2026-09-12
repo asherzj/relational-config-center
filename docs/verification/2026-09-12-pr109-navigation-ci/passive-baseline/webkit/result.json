@@ -1,0 +1,560 @@
+{
+  "checks": [
+    "管理员在设置页为同一后续多表发布链路配置管控键",
+    "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "同一原单贯通管理员管控键、真实分页多表草稿、独立审批发布、原单恢复和实际执行人原因补填",
+    "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚"
+  ],
+  "click_diagnostics": [
+    {
+      "locator": "getByRole('button', { name: '查看 Change Set', exact: true })",
+      "elapsedMs": 554,
+      "failure": null,
+      "samples": [
+        {
+          "elapsedMs": 0,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1917.0625,
+            "y": 944.5,
+            "width": 134.9375,
+            "height": 36,
+            "top": 944.5,
+            "right": 2052,
+            "bottom": 980.5,
+            "left": 1917.0625
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 640, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 0
+            }
+          ],
+          "frames": 0,
+          "maxFrameGapMs": 0
+        },
+        {
+          "elapsedMs": 102,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1917.0625,
+            "y": 944.5,
+            "width": 134.9375,
+            "height": 36,
+            "top": 944.5,
+            "right": 2052,
+            "bottom": 980.5,
+            "left": 1917.0625
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 640, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 0
+            }
+          ],
+          "frames": 0,
+          "maxFrameGapMs": 0
+        },
+        {
+          "elapsedMs": 203,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1422.325439453125,
+            "y": 944.5,
+            "width": 134.9375,
+            "height": 36,
+            "top": 944.5,
+            "right": 1557.262939453125,
+            "bottom": 980.5,
+            "left": 1422.325439453125
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 145.262939, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 249
+            }
+          ],
+          "frames": 1,
+          "maxFrameGapMs": 110
+        },
+        {
+          "elapsedMs": 304,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1316.58544921875,
+            "y": 944.5,
+            "width": 134.9375,
+            "height": 36,
+            "top": 944.5,
+            "right": 1451.52294921875,
+            "bottom": 980.5,
+            "left": 1316.58544921875
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 39.522888, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 350
+            }
+          ],
+          "frames": 1,
+          "maxFrameGapMs": 110
+        },
+        {
+          "elapsedMs": 404,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1280.676025390625,
+            "y": 944.5,
+            "width": 134.9375,
+            "height": 36,
+            "top": 944.5,
+            "right": 1415.613525390625,
+            "bottom": 980.5,
+            "left": 1280.676025390625
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 3.613486, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 447
+            }
+          ],
+          "frames": 2,
+          "maxFrameGapMs": 291
+        },
+        {
+          "elapsedMs": 504,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1277.0625,
+            "y": 944.5,
+            "width": 134.9375,
+            "height": 36,
+            "top": 944.5,
+            "right": 1412,
+            "bottom": 980.5,
+            "left": 1277.0625
+          },
+          "surfaceTransform": "none",
+          "animations": [],
+          "frames": 6,
+          "maxFrameGapMs": 291
+        },
+        {
+          "elapsedMs": 550,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": false,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "surfaceTransform": "",
+          "animations": [],
+          "frames": 9,
+          "maxFrameGapMs": 291
+        }
+      ],
+      "frames": 9,
+      "maxFrameGapMs": 291,
+      "lastFrameAgeMs": 6
+    },
+    {
+      "locator": "getByRole('button', { name: '查看 Change Set', exact: true })",
+      "elapsedMs": 589,
+      "failure": null,
+      "samples": [
+        {
+          "elapsedMs": 0,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1917.0625,
+            "y": 944.5,
+            "width": 134.9375,
+            "height": 36,
+            "top": 944.5,
+            "right": 2052,
+            "bottom": 980.5,
+            "left": 1917.0625
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 640, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 0
+            }
+          ],
+          "frames": 0,
+          "maxFrameGapMs": 0
+        },
+        {
+          "elapsedMs": 100,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1917.0625,
+            "y": 944.5,
+            "width": 134.9375,
+            "height": 36,
+            "top": 944.5,
+            "right": 2052,
+            "bottom": 980.5,
+            "left": 1917.0625
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 640, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 0
+            }
+          ],
+          "frames": 0,
+          "maxFrameGapMs": 0
+        },
+        {
+          "elapsedMs": 200,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1466.3292236328125,
+            "y": 944.5,
+            "width": 134.9375,
+            "height": 36,
+            "top": 944.5,
+            "right": 1601.2667236328125,
+            "bottom": 980.5,
+            "left": 1466.3292236328125
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 189.266724, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 225
+            }
+          ],
+          "frames": 1,
+          "maxFrameGapMs": 145
+        },
+        {
+          "elapsedMs": 300,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1334.092529296875,
+            "y": 944.5,
+            "width": 134.9375,
+            "height": 36,
+            "top": 944.5,
+            "right": 1469.030029296875,
+            "bottom": 980.5,
+            "left": 1334.092529296875
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 57.030067, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 325
+            }
+          ],
+          "frames": 1,
+          "maxFrameGapMs": 145
+        },
+        {
+          "elapsedMs": 401,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1285.3184814453125,
+            "y": 944.5,
+            "width": 134.9375,
+            "height": 36,
+            "top": 944.5,
+            "right": 1420.2559814453125,
+            "bottom": 980.5,
+            "left": 1285.3184814453125
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 8.256002, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 426
+            }
+          ],
+          "frames": 7,
+          "maxFrameGapMs": 165
+        },
+        {
+          "elapsedMs": 501,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1277.0625,
+            "y": 944.5,
+            "width": 134.9375,
+            "height": 36,
+            "top": 944.5,
+            "right": 1412,
+            "bottom": 980.5,
+            "left": 1277.0625
+          },
+          "surfaceTransform": "none",
+          "animations": [],
+          "frames": 13,
+          "maxFrameGapMs": 165
+        },
+        {
+          "elapsedMs": 585,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": false,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "surfaceTransform": "",
+          "animations": [],
+          "frames": 18,
+          "maxFrameGapMs": 165
+        }
+      ],
+      "frames": 18,
+      "maxFrameGapMs": 165,
+      "lastFrameAgeMs": 5
+    }
+  ],
+  "original_order_journey": {
+    "order_id": "f08db2a36f7c6161363bc89818cfe216",
+    "publication_execution": "f08db2a36f7c6161363bc89818cfe216:PUBLICATION",
+    "rollback_execution": "f08db2a36f7c6161363bc89818cfe216:ROLLBACK",
+    "reason_actor": "83b62266-6b2b-4ba0-ae10-f79003473b02",
+    "configured_keys": {
+      "multitable_browser_a_webkit": [
+        "label"
+      ],
+      "multitable_browser_b_webkit": [
+        "label"
+      ]
+    },
+    "review_pages": [
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "2",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "2",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "4",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "4",
+        "offset": "0",
+        "limit": "100"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "5",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "5",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "5",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "6",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "6",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "6",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "6",
+        "offset": "20",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "7",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "7",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "7",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "8",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "8",
+        "offset": "20",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "9",
+        "offset": "20",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "10",
+        "offset": "20",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+        "version": "10",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "100"
+      }
+    ]
+  },
+  "failure": {
+    "name": "Error",
+    "message": "locator.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: '复制新草稿', exact: true }).getByRole('button', { name: '读取最新配置', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button data-slot=\"button\" data-size=\"default\" data-variant=\"outline\" class=\"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='si…>读取最新配置</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not stable\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not stable\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n",
+    "stack": "locator.click: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: '复制新草稿', exact: true }).getByRole('button', { name: '读取最新配置', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button data-slot=\"button\" data-size=\"default\" data-variant=\"outline\" class=\"inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='si…>读取最新配置</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not stable\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not stable\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\n    at /Users/asher/Projects/relational-config-center/.worktrees/release-template-navigation-ci/web/e2e/release-multitable.cjs:159:142"
+  },
+  "page_errors": [],
+  "failure_pages": [
+    {
+      "index": 0,
+      "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_b_webkit",
+      "visibility": "visible",
+      "hasFocus": true,
+      "screenshot": "failure-0.png"
+    },
+    {
+      "index": 1,
+      "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+      "stateError": "Error: locator.evaluate: Target crashed \nCall log:\n\u001b[2m  - waiting for locator('html')\u001b[22m\n",
+      "screenshotError": "Error: page.screenshot: Target crashed \nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+    },
+    {
+      "index": 2,
+      "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+      "visibility": "visible",
+      "hasFocus": true,
+      "screenshot": "failure-2.png"
+    }
+  ]
+}

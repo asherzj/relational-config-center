@@ -1,0 +1,38 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-103-release-instances/web
+> vitest run src/api/release-orders.test.ts -t '详情保留服务端'
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-103-release-instances/web
+
+ ❯ src/api/release-orders.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/release-orders.test.ts [ src/api/release-orders.test.ts ]
+Error: Failed to resolve import "fake-indexeddb" from "src/test/setup.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /private/tmp/rcc-issue-103-release-instances/web/src/test/setup.ts:3:27
+  1  |  import "@testing-library/jest-dom/vitest";
+  2  |  import { afterEach, beforeEach } from "vitest";
+  3  |  import { IDBFactory } from "fake-indexeddb";
+     |                              ^
+  4  |  import { hydrateReleaseRequests } from "../features/release-orders/release-journal";
+  5  |  beforeEach(async () => {
+ ❯ TransformPluginContext._formatLog node_modules/.pnpm/vite@8.2.2_@types+node@26.3.0_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:31147:39
+ ❯ TransformPluginContext.error node_modules/.pnpm/vite@8.2.2_@types+node@26.3.0_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:31144:14
+ ❯ normalizeUrl node_modules/.pnpm/vite@8.2.2_@types+node@26.3.0_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:28083:18
+ ❯ node_modules/.pnpm/vite@8.2.2_@types+node@26.3.0_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:28153:30
+ ❯ TransformPluginContext.transform node_modules/.pnpm/vite@8.2.2_@types+node@26.3.0_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:28119:4
+ ❯ EnvironmentPluginContainer.transform node_modules/.pnpm/vite@8.2.2_@types+node@26.3.0_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:30932:14
+ ❯ loadAndTransform node_modules/.pnpm/vite@8.2.2_@types+node@26.3.0_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:20671:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  08:50:27
+   Duration  659ms (transform 0ms, setup 0ms, import 0ms, tests 0ms, environment 502ms)
+
+ ELIFECYCLE  Command failed with exit code 1.

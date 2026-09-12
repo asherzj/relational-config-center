@@ -1,0 +1,34 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-tags=integration,browser",
+    "./cmd/admin",
+    "-run",
+    "^TestReleaseNotificationsBrowserSystemPath$",
+    "-count=1",
+    "-v",
+    "-timeout=8m"
+  ],
+  "cwd": "/private/tmp/rcc-template-notification-integration/admin",
+  "output": "/private/tmp/rcc-template-notification-integration/docs/verification/2026-09-11-template-emergency-integration/browser/04-release-notifications",
+  "started_unix": 1789113511.738828,
+  "duration_seconds": 44.30245900154114,
+  "exit_code": 0,
+  "source_changed": [],
+  "created_containers": [
+    "3dc3153a35d5"
+  ],
+  "terminated_containers": [
+    "3dc3153a35d5"
+  ],
+  "cleanup_inspection": [
+    {
+      "id": "3dc3153a35d5",
+      "inspect_exit": 1,
+      "stdout": "\n",
+      "stderr": "error: no such object: 3dc3153a35d5\n"
+    }
+  ],
+  "browser": "chromium / installed Chrome channel (default)"
+}

@@ -1,0 +1,23 @@
+^D[?25l
+ RUN  v4.1.11 /private/tmp/rcc-issue-104-emergency-release/web
+
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx (79 tests | 1 failed | 78 skipped) 10022ms
+   × 应急草稿要求 Unicode 计数内的原因并提交到真实待发布状态 10021ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/release-orders/ReleaseOrdersPage.test.tsx > 应急草稿要求 Unicode 计数内的原因并提交到真实待发布状态
+Error: Test timed out in 10000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/features/release-orders/ReleaseOrdersPage.test.tsx:58:1
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 78 skipped (79)
+   Start at  11:17:41
+   Duration  11.72s (transform 570ms, setup 226ms, import 860ms, tests 10.02s, environment 511ms)
+
+[?25h

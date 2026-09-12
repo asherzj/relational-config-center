@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-94-table-approval/web
+> vitest run src/features/release-orders/ReleaseOrdersPage.test.tsx src/features/table-policies/TablePoliciesPage.test.tsx src/api/release-orders.test.ts src/features/release-orders/release-journal.test.ts src/features/account-roles/AccountRolesPage.test.tsx --maxWorkers=2
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-94-table-approval/web
+
+
+ Test Files  5 passed (5)
+      Tests  108 passed (108)
+   Start at  04:07:26
+   Duration  21.17s (transform 1.06s, setup 888ms, import 2.02s, tests 26.34s, environment 2.22s)
+

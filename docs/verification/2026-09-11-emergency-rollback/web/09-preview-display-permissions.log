@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-105-emergency-rollback/web
+> vitest run src/features/release-orders/ReleaseOrdersPage.test.tsx -t '已保存应急恢复|恢复预览未知结果撤回'
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-105-emergency-rollback/web
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 91 skipped (93)
+   Start at  16:28:55
+   Duration  2.53s (transform 610ms, setup 243ms, import 915ms, tests 716ms, environment 541ms)
+

@@ -1,0 +1,26 @@
+=== RUN   TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory
+2026/09/11 05:46:16 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: e6ae83a86cb6dc7f47088f9e48f8a6b64475d48ac5249dc11f1bf98e302ab16d
+  Test ProcessID: 61da6ed1-a4b7-478a-88cb-ddf1999c9dc0
+2026/09/11 05:46:16 🐳 Creating container for image mysql:8.4
+2026/09/11 05:46:16 ✅ Container created: 1a2e84994f9e
+2026/09/11 05:46:16 🐳 Starting container: 1a2e84994f9e
+2026/09/11 05:46:16 ✅ Container started: 1a2e84994f9e
+2026/09/11 05:46:16 ⏳ Waiting for container id 1a2e84994f9e image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:46:23 🔔 Container is ready: 1a2e84994f9e
+{"request_id":"rcc-70108d07ceba2422c8f7f1644cdbdf99","method":"GET","path":"/api/v1/auth/session","status":200,"duration_ms":1}
+{"request_id":"rcc-8c68fa60837424c5f3496861c398d0a7","method":"GET","path":"/api/v1/release-orders/:id","status":503,"duration_ms":3}
+2026/09/11 05:46:24 🐳 Stopping container: 1a2e84994f9e
+2026/09/11 05:46:25 ✅ Container stopped: 1a2e84994f9e
+2026/09/11 05:46:25 🐳 Terminating container: 1a2e84994f9e
+2026/09/11 05:46:25 🚫 Container terminated: 1a2e84994f9e
+--- PASS: TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory (9.66s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	10.562s

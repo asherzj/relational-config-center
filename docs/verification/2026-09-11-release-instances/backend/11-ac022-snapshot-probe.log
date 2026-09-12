@@ -1,0 +1,57 @@
+=== RUN   TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots
+2026/09/11 09:02:54 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 7cac340c5cf4020c8e1dadcb90d927e2a80b4dcaaabb66235fc8c69c0f2bd2c3
+  Test ProcessID: bde029c0-656d-44b8-b44c-1396c5dd982b
+2026/09/11 09:02:54 🐳 Creating container for image mysql:8.4
+2026/09/11 09:02:54 ✅ Container created: 9d29265612e0
+2026/09/11 09:02:54 🐳 Starting container: 9d29265612e0
+2026/09/11 09:02:55 ✅ Container started: 9d29265612e0
+2026/09/11 09:02:55 ⏳ Waiting for container id 9d29265612e0 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 09:03:02 🔔 Container is ready: 9d29265612e0
+{"request_id":"rcc-a7b27851c3c989a426a782856c2d27e4","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":8}
+{"request_id":"rcc-b93ff3cad2953b6a72ae0d72d3585d5e","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":47}
+{"request_id":"rcc-b43b80c6359dda55e0e87c95c9639e1e","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-c04837e4ac25f0dd1bdfdeb9ff987636","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":55}
+{"request_id":"rcc-f83290e7d3538b665014011065402d71","method":"POST","path":"/api/v1/query-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-68465a831b07786531b59d1b3a2d4ecc","method":"POST","path":"/api/v1/query-policies/:code/activate","status":200,"duration_ms":5}
+{"request_id":"rcc-7e34ccd24103215592c3f1d7706349b1","method":"POST","path":"/api/v1/mutation-policies","status":201,"duration_ms":4}
+{"request_id":"rcc-bc585d8675d0120c9d8fa647152a942a","method":"POST","path":"/api/v1/mutation-policies/:code/activate","status":200,"duration_ms":4}
+{"request_id":"rcc-fe2a6f91c6c727bdbde6c60ecba3fada","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":17}
+{"request_id":"rcc-f61815b645e54a2f5a59e39efdd9ee96","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":14}
+{"request_id":"rcc-9830b1c98135b1c70d151e4a67a2d7ca","method":"POST","path":"/api/v1/table-policies","status":201,"duration_ms":15}
+{"request_id":"rcc-5a164ce78446fcf9dde3fe73506ab9d9","method":"POST","path":"/api/v1/table-policies/:table_name/enable","status":200,"duration_ms":14}
+{"request_id":"rcc-e325ed01d51117eddcf7ced28fc041ca","method":"POST","path":"/api/v1/release-templates","status":201,"duration_ms":7}
+{"request_id":"rcc-ac116507eab94e6922f23ea1f29df4f9","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-84737eb1f21ddeb72bff464f93115241","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":9}
+{"request_id":"rcc-cd87d4c78beea4d09c19dfd70824402d","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-931bd02ed1851ec5e167483bd040ac79","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":9}
+=== RUN   TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots/template_update_commits_while_draft_retains_complete_old_snapshot
+{"request_id":"rcc-92399f5865b9bd7b5bc1e3ca7a747072","method":"PUT","path":"/api/v1/release-templates/:code","status":200,"duration_ms":70}
+{"request_id":"rcc-9f218d74c48039a8512e9f91e3bb9d47","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":65}
+{"request_id":"rcc-dadd21fd051c2b5709591c2b9232fcc9","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":9}
+{"request_id":"rcc-340b3fbdaf5ce97a3aa1f37dc9cc5703","method":"POST","path":"/api/v1/release-orders","status":409,"duration_ms":4}
+{"request_id":"rcc-08660958608cda4dab28ec21cbcd6ead","method":"GET","path":"/api/v1/release-orders/:id","status":200,"duration_ms":9}
+{"request_id":"rcc-a8f792242773d0930be551591dca3055","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":39}
+=== RUN   TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots/association_switch_precedes_waiting_draft_as_one_snapshot
+{"request_id":"rcc-4e54e1d3ce02a2b4088e087c2e140884","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":32}
+{"request_id":"rcc-921e579bad7e1db1a986a03cfc66dadb","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":50}
+{"request_id":"rcc-d65ed4d6c762f02b6b23f04d83be1099","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-4fa5b620a8be901cbabf093f224ac7d5","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":8}
+{"request_id":"rcc-fdf7c82196c9005dd8f669971cb9ba40","method":"POST","path":"/api/v1/release-orders","status":201,"duration_ms":9}
+    release_flow_concurrency_integration_test.go:168: complete snapshot retained with alpha default_standard_v1@1 / association 2
+2026/09/11 09:03:03 🐳 Stopping container: 9d29265612e0
+2026/09/11 09:03:04 ✅ Container stopped: 9d29265612e0
+2026/09/11 09:03:04 🐳 Terminating container: 9d29265612e0
+2026/09/11 09:03:04 🚫 Container terminated: 9d29265612e0
+--- PASS: TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots (9.73s)
+    --- PASS: TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots/template_update_commits_while_draft_retains_complete_old_snapshot (0.16s)
+    --- PASS: TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots/association_switch_precedes_waiting_draft_as_one_snapshot (0.09s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	10.815s

@@ -8,27 +8,67 @@ import (
 	"github.com/asherzj/relational-config-center/admin/internal/domain"
 )
 
-// QuickRollbackPreview is a whole-order restoration review, not a saved order
-// or approval. The digest binds its current intent and execution semantics.
-type QuickRollbackPreview struct {
-	OrderID         string        `json:"order_id"`
-	ExpectedVersion string        `json:"expected_version"`
-	PreviewDigest   string        `json:"preview_digest"`
-	Items           []ReleaseItem `json:"items"`
-}
+type QuickRollbackPreview = domain.QuickRollbackPreview
 
-func (r *ReleaseOrders) PreviewQuickRollback(ctx context.Context, id string, input SubmitReleaseInput) (QuickRollbackPreview, error) {
-	if _, err := requireRole(ctx, RolePublisher); err != nil {
+func (r *ReleaseOrders) PreviewQuickRollback(ctx context.Context, id string, input SubmitReleaseInput, key string) (QuickRollbackPreview, error) {
+	actor, err := requireRole(ctx, RolePublisher)
+	if err != nil {
 		return QuickRollbackPreview{}, err
 	}
+	if !roleRequestKey.MatchString(key) {
+		return QuickRollbackPreview{}, ErrReleaseInvalid
+	}
 	var result QuickRollbackPreview
-	err := r.store.ExecutePublication(ctx, func(s PublicationSession) error {
+	err = r.store.ExecutePublication(ctx, func(s PublicationSession) error {
+		if err := requireCurrentRollbackPublisher(ctx, s, actor); err != nil {
+			return err
+		}
+		operation := "quick-rollback-preview:" + id
+		previous, err := s.BeginRollbackPreviewRequest(ctx, actor, operation, key, releaseDigest(input))
+		if err != nil {
+			return err
+		}
+		if previous != nil {
+			result = *previous
+			return nil
+		}
 		original, err := s.GetReleaseOrder(ctx, id)
 		if err != nil {
 			return err
 		}
-		result, _, err = r.prepareQuickRollback(ctx, s, original, input.ExpectedVersion)
-		return err
+		// Validate current data before creating the first visible workflow. Actual
+		// restoration repeats this check; a saved node never freezes current data.
+		if _, _, err = r.prepareQuickRollback(ctx, s, original, input.ExpectedVersion); err != nil {
+			return err
+		}
+		if len(original.RollbackTableFlows) == 0 {
+			now, err := s.DatabaseTime(ctx)
+			if err != nil {
+				return err
+			}
+			if err = appendRelatedReleaseEvent(&original, actor, now.UTC().Format(time.RFC3339Nano), "PREVIEW_QUICK_ROLLBACK", "", ""); err != nil {
+				return err
+			}
+			recovery := ReleaseOrder{ReleaseType: domain.ReleaseTypeEmergency, TableNames: original.TableNames, UpdatedAt: original.UpdatedAt}
+			if err = saveDraftFlows(ctx, s, &recovery); err != nil {
+				return err
+			}
+			if !recovery.HasCompleteFlows() {
+				return ErrReleaseFlowIncomplete
+			}
+			original.RollbackTableFlows = recovery.TableFlows
+			for i := range original.RollbackTableFlows {
+				original.RollbackTableFlows[i].Nodes[0].State = "ACTIVE"
+			}
+			if err = s.SaveReleaseOrder(ctx, original, false); err != nil {
+				return err
+			}
+		}
+		result, _, err = r.prepareQuickRollback(ctx, s, original, original.Version)
+		if err != nil {
+			return err
+		}
+		return s.CompleteRollbackPreviewRequest(ctx, actor, operation, key, result)
 	})
 	return result, err
 }
@@ -63,7 +103,7 @@ func (r *ReleaseOrders) prepareQuickRollback(ctx context.Context, s PublicationS
 	if err != nil {
 		return fail(err)
 	}
-	result := QuickRollbackPreview{OrderID: original.ID, ExpectedVersion: version, Items: items}
+	result := QuickRollbackPreview{OrderID: original.ID, ExpectedVersion: version, ReleaseType: domain.ReleaseTypeEmergency, TableFlows: original.RollbackTableFlows, Items: items}
 	result.PreviewDigest = hex.EncodeToString(releaseDigest(struct {
 		Preview   QuickRollbackPreview
 		Execution map[string]domain.ReleaseExecutionSnapshot
@@ -89,6 +129,9 @@ func (r *ReleaseOrders) QuickRollback(ctx context.Context, id string, input Quic
 	}
 	var result ReleaseOrder
 	err = r.store.ExecutePublication(ctx, func(s PublicationSession) error {
+		if err := requireCurrentRollbackPublisher(ctx, s, actor); err != nil {
+			return err
+		}
 		operation := "quick-rollback:" + id
 		previous, err := s.BeginReleaseRequest(ctx, actor, operation, key, releaseDigest(input))
 		if err != nil {
@@ -137,6 +180,7 @@ func (r *ReleaseOrders) QuickRollback(ctx context.Context, id string, input Quic
 			return err
 		}
 		original.History[len(original.History)-1].ExecutionID = publication.ExecutionID
+		advanceReleaseFlows(&original)
 		if err = s.SaveReleaseOrder(ctx, original, false); err != nil {
 			return err
 		}
@@ -150,4 +194,15 @@ func (r *ReleaseOrders) QuickRollback(ctx context.Context, id string, input Quic
 		return s.CompleteReleaseRequest(ctx, actor, operation, key, result)
 	})
 	return result, r.recordExecutionFailure(ctx, releaseExecutionAttempt{OrderID: id, ActorID: actor, Operation: "quick-rollback", Key: key, ExpectedVersion: input.ExpectedVersion, Input: input}, err)
+}
+
+// The transaction acquires the shared authorization lock before this read.
+// Authentication may have finished before a concurrent revocation committed.
+func requireCurrentRollbackPublisher(ctx context.Context, s ReleaseOrderSession, actor string) error {
+	current, err := s.CurrentReleaseAccount(ctx, actor)
+	if err != nil {
+		return err
+	}
+	_, err = requireRole((AuthenticatedOperator{accountID: actor, roles: current.Roles}).Bind(ctx), RolePublisher)
+	return err
 }

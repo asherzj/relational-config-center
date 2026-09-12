@@ -1,0 +1,32 @@
+case	selection	exit_status
+unsaved-changes.cjs@chromium	not-selected	
+rule-clarity.cjs@chromium	not-selected	
+write-recovery.cjs@chromium	not-selected	
+operation-coverage.cjs@chromium	not-selected	
+complex-fields.cjs@chromium	not-selected	
+browser-accessibility.cjs@chromium	not-selected	
+browser-accessibility.cjs@firefox	not-selected	
+browser-accessibility.cjs@webkit	not-selected	
+release-drafts.cjs@chromium	not-selected	
+release-approvals.cjs@chromium	not-selected	
+release-batches.cjs@chromium	not-selected	
+release-rollbacks.cjs@chromium	not-selected	
+accounts.mjs@chromium	not-selected	
+release-rollbacks.cjs@firefox	not-selected	
+accounts.mjs@firefox	not-selected	
+release-rollbacks.cjs@webkit	not-selected	
+accounts.mjs@webkit	not-selected	
+draft-targets.cjs@chromium	selected	0
+release-multitable.cjs@chromium	selected	0
+release-rollback-reason.cjs@chromium	selected	0
+draft-targets.cjs@firefox	selected	0
+release-multitable.cjs@firefox	selected	0
+release-rollback-reason.cjs@firefox	selected	0
+draft-targets.cjs@webkit	selected	0
+release-multitable.cjs@webkit	selected	0
+release-rollback-reason.cjs@webkit	selected	0
+field-policies.cjs@chromium	selected	0
+field-inputs.cjs@chromium	selected	0
+combined-query.cjs@chromium	selected	0
+field-recovery.cjs@chromium	selected	0
+field-display.cjs@chromium	selected	1

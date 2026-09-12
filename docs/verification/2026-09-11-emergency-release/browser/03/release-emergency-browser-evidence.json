@@ -1,0 +1,323 @@
+{
+  "order_id": "cc6d57178d3e34a7574caa89484bc69b",
+  "next_order_id": "70f6df817c27f88adb9192e7ab86ba52",
+  "checks": [
+    "AC-012/023: explicit whole-order type switches rebuild persisted instances; failed response retains the selected STANDARD request and exact key/body for manual replay",
+    "AC-015/016: UI rejects blank and 2,001-codepoint reasons; committed submit persists the exact reason, enters PENDING_PUBLICATION, records no approval, and changes no business row",
+    "AC-023: same-account session recovery restores the unresolved reason; 390px has no overflow, no approval UI, visible long flow names, and keyboard-reachable PUBLISHER action",
+    "AC-016/017/023: the current applicant/PUBLISHER executes both tables in another same-account profile, remains pending manual completion, and manual replay of the original submit never replaces the current SUCCEEDED detail",
+    "AC-018: manual completion closes the order and releases both persisted targets for a later draft without changing the published values"
+  ],
+  "snapshots": {
+    "initial_flows": [
+      {
+        "instance_id": "84e69f4cf2b70770fa6eda40aa5e38d9",
+        "table_name": "policy_alpha",
+        "release_type": "EMERGENCY",
+        "template_code": "emergency_browser_emergency_v1",
+        "template_name": "跨区域资金与渠道配置应急发布及发布成功后人工完结流程",
+        "template_version": "1",
+        "association_version": "2",
+        "instantiated_at": "2026-09-11T07:07:12.462203Z",
+        "node_list": [
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "应急当前发布人员手工发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "应急发布成功后人工完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      },
+      {
+        "instance_id": "82418ca493587248b994ac56b5bda8ce",
+        "table_name": "policy_beta",
+        "release_type": "EMERGENCY",
+        "template_code": "emergency_browser_emergency_v1",
+        "template_name": "跨区域资金与渠道配置应急发布及发布成功后人工完结流程",
+        "template_version": "1",
+        "association_version": "2",
+        "instantiated_at": "2026-09-11T07:07:12.462203Z",
+        "node_list": [
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "应急当前发布人员手工发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "应急发布成功后人工完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      }
+    ],
+    "standard_flows": [
+      {
+        "instance_id": "e7f81a55a9da8029de95f6dbd39392ac",
+        "table_name": "policy_alpha",
+        "release_type": "STANDARD",
+        "template_code": "emergency_browser_standard_v1",
+        "template_name": "常规发布流程",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-11T07:07:13.804476Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "常规逐表审批",
+            "required_role": "TABLE_APPROVER",
+            "state": "PENDING"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "常规当前发布人员手工发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "常规发布成功后人工完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      },
+      {
+        "instance_id": "2721e8c38e2977089b495aa1d7d09b8d",
+        "table_name": "policy_beta",
+        "release_type": "STANDARD",
+        "template_code": "emergency_browser_standard_v1",
+        "template_name": "常规发布流程",
+        "template_version": "1",
+        "association_version": "1",
+        "instantiated_at": "2026-09-11T07:07:13.804476Z",
+        "node_list": [
+          {
+            "code": "review",
+            "type": "APPROVAL",
+            "name": "常规逐表审批",
+            "required_role": "TABLE_APPROVER",
+            "state": "PENDING"
+          },
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "常规当前发布人员手工发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "常规发布成功后人工完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      }
+    ],
+    "emergency_flows": [
+      {
+        "instance_id": "cf842f71dae7e4e30d461e27447284d3",
+        "table_name": "policy_alpha",
+        "release_type": "EMERGENCY",
+        "template_code": "emergency_browser_emergency_v1",
+        "template_name": "跨区域资金与渠道配置应急发布及发布成功后人工完结流程",
+        "template_version": "1",
+        "association_version": "2",
+        "instantiated_at": "2026-09-11T07:07:16.302132Z",
+        "node_list": [
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "应急当前发布人员手工发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "应急发布成功后人工完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      },
+      {
+        "instance_id": "7e05415807a3ae8a650791f5b6fe6f01",
+        "table_name": "policy_beta",
+        "release_type": "EMERGENCY",
+        "template_code": "emergency_browser_emergency_v1",
+        "template_name": "跨区域资金与渠道配置应急发布及发布成功后人工完结流程",
+        "template_version": "1",
+        "association_version": "2",
+        "instantiated_at": "2026-09-11T07:07:16.302132Z",
+        "node_list": [
+          {
+            "code": "publish",
+            "type": "PUBLICATION",
+            "name": "应急当前发布人员手工发布",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          },
+          {
+            "code": "finish",
+            "type": "COMPLETION",
+            "name": "应急发布成功后人工完结",
+            "required_role": "PUBLISHER",
+            "state": "PENDING"
+          }
+        ]
+      }
+    ],
+    "final_order": {
+      "id": "cc6d57178d3e34a7574caa89484bc69b",
+      "state": "COMPLETED",
+      "release_type": "EMERGENCY",
+      "emergency_reason": "生产支付路由异常，需立即统一修正资金与渠道配置 🚨",
+      "history": [
+        {
+          "action": "CREATE",
+          "actor_id": "7a0e1cfb-2c81-48bd-bad4-e21bf6da82d1",
+          "at": "2026-09-11T07:07:12.462203Z",
+          "version": "1",
+          "reason": ""
+        },
+        {
+          "action": "EDIT",
+          "actor_id": "7a0e1cfb-2c81-48bd-bad4-e21bf6da82d1",
+          "at": "2026-09-11T07:07:13.804476Z",
+          "version": "2",
+          "reason": ""
+        },
+        {
+          "action": "EDIT",
+          "actor_id": "7a0e1cfb-2c81-48bd-bad4-e21bf6da82d1",
+          "at": "2026-09-11T07:07:16.302132Z",
+          "version": "3",
+          "reason": ""
+        },
+        {
+          "action": "SUBMIT",
+          "actor_id": "7a0e1cfb-2c81-48bd-bad4-e21bf6da82d1",
+          "at": "2026-09-11T07:07:20.874483Z",
+          "version": "4",
+          "reason": "生产支付路由异常，需立即统一修正资金与渠道配置 🚨"
+        },
+        {
+          "action": "EXECUTE",
+          "actor_id": "7a0e1cfb-2c81-48bd-bad4-e21bf6da82d1",
+          "at": "2026-09-11T07:07:23.551806Z",
+          "version": "5",
+          "reason": ""
+        },
+        {
+          "action": "COMPLETE",
+          "actor_id": "7a0e1cfb-2c81-48bd-bad4-e21bf6da82d1",
+          "at": "2026-09-11T07:07:30.656802Z",
+          "version": "6",
+          "reason": ""
+        }
+      ],
+      "table_flows": [
+        {
+          "instance_id": "cf842f71dae7e4e30d461e27447284d3",
+          "table_name": "policy_alpha",
+          "release_type": "EMERGENCY",
+          "template_code": "emergency_browser_emergency_v1",
+          "template_name": "跨区域资金与渠道配置应急发布及发布成功后人工完结流程",
+          "template_version": "1",
+          "association_version": "2",
+          "instantiated_at": "2026-09-11T07:07:16.302132Z",
+          "node_list": [
+            {
+              "code": "publish",
+              "type": "PUBLICATION",
+              "name": "应急当前发布人员手工发布",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "7a0e1cfb-2c81-48bd-bad4-e21bf6da82d1",
+              "at": "2026-09-11T07:07:23.551806Z"
+            },
+            {
+              "code": "finish",
+              "type": "COMPLETION",
+              "name": "应急发布成功后人工完结",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "7a0e1cfb-2c81-48bd-bad4-e21bf6da82d1",
+              "at": "2026-09-11T07:07:30.656802Z"
+            }
+          ]
+        },
+        {
+          "instance_id": "7e05415807a3ae8a650791f5b6fe6f01",
+          "table_name": "policy_beta",
+          "release_type": "EMERGENCY",
+          "template_code": "emergency_browser_emergency_v1",
+          "template_name": "跨区域资金与渠道配置应急发布及发布成功后人工完结流程",
+          "template_version": "1",
+          "association_version": "2",
+          "instantiated_at": "2026-09-11T07:07:16.302132Z",
+          "node_list": [
+            {
+              "code": "publish",
+              "type": "PUBLICATION",
+              "name": "应急当前发布人员手工发布",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "7a0e1cfb-2c81-48bd-bad4-e21bf6da82d1",
+              "at": "2026-09-11T07:07:23.551806Z"
+            },
+            {
+              "code": "finish",
+              "type": "COMPLETION",
+              "name": "应急发布成功后人工完结",
+              "required_role": "PUBLISHER",
+              "state": "COMPLETED",
+              "actor_id": "7a0e1cfb-2c81-48bd-bad4-e21bf6da82d1",
+              "at": "2026-09-11T07:07:30.656802Z"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "original_requests": {
+    "edit": [
+      {
+        "body": "{\"title\":\"跨区域资金与渠道配置紧急止损发布单（浏览器真实系统路径）\",\"expected_version\":\"1\",\"release_type\":\"STANDARD\",\"changes\":{\"upserts\":[],\"delete_detail_ids\":[]}}",
+        "key": "436ad2df-d83e-4f32-b08f-7741aafb184e"
+      },
+      {
+        "body": "{\"title\":\"跨区域资金与渠道配置紧急止损发布单（浏览器真实系统路径）\",\"expected_version\":\"1\",\"release_type\":\"STANDARD\",\"changes\":{\"upserts\":[],\"delete_detail_ids\":[]}}",
+        "key": "436ad2df-d83e-4f32-b08f-7741aafb184e"
+      }
+    ],
+    "submit": [
+      {
+        "body": "{\"expected_version\":\"3\",\"emergency_reason\":\"生产支付路由异常，需立即统一修正资金与渠道配置 🚨\"}",
+        "key": "5c88de50-96f5-4119-ba9f-8fbcb228e197"
+      },
+      {
+        "body": "{\"expected_version\":\"3\",\"emergency_reason\":\"生产支付路由异常，需立即统一修正资金与渠道配置 🚨\"}",
+        "key": "5c88de50-96f5-4119-ba9f-8fbcb228e197"
+      }
+    ]
+  }
+}

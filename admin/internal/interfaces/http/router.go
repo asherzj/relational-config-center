@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	stdhttp "net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -33,6 +34,9 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 	}
 	if options.ReleaseOrders != nil {
 		registerReleaseOrderRoutes(router, options.ReleaseOrders)
+	}
+	if options.ReleaseTemplates != nil {
+		registerReleaseTemplateRoutes(router, options.ReleaseTemplates)
 	}
 	if options.FieldPolicies != nil {
 		registerFieldPolicyRoutes(router, options.FieldPolicies)
@@ -96,6 +100,9 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 		}
 		c.JSON(200, gin.H{"fields": fields})
 	})
+	if options.TableReleaseTemplates != nil {
+		registerTableReleaseTemplateRoutes(router, options.TableReleaseTemplates)
+	}
 	registerQueryPolicyRoutes(router, queryPolicies)
 	registerMutationPolicyRoutes(router, mutationPolicies)
 
@@ -105,7 +112,7 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 			writeRequestDecodeError(context, decodeErr)
 			return
 		}
-		policy, err := policies.Create(context.Request.Context(), candidate)
+		policy, err := policies.Execute(context.Request.Context(), "create", candidate.TableName, candidate, 0, context.GetHeader("Idempotency-Key"))
 		if writePolicyError(context, err) {
 			return
 		}
@@ -138,7 +145,7 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 			writeRequestDecodeError(context, decodeErr)
 			return
 		}
-		policy, err := policies.Replace(context.Request.Context(), context.Param("table_name"), candidate)
+		policy, err := policies.Execute(context.Request.Context(), "replace", context.Param("table_name"), candidate, candidate.ExpectedVersion, context.GetHeader("Idempotency-Key"))
 		if writePolicyError(context, err) {
 			return
 		}
@@ -146,7 +153,11 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 	})
 
 	router.POST("/api/v1/table-policies/:table_name/enable", func(context *gin.Context) {
-		policy, err := policies.Enable(context.Request.Context(), context.Param("table_name"))
+		version, ok := tablePolicyRequestVersion(context)
+		if !ok {
+			return
+		}
+		policy, err := policies.Execute(context.Request.Context(), "enable", context.Param("table_name"), application.CreateTablePolicy{}, version, context.GetHeader("Idempotency-Key"))
 		if writePolicyError(context, err) {
 			return
 		}
@@ -154,7 +165,11 @@ func NewRouter(discovery *application.DatabaseTableDiscovery, readiness applicat
 	})
 
 	router.POST("/api/v1/table-policies/:table_name/disable", func(context *gin.Context) {
-		policy, err := policies.Disable(context.Request.Context(), context.Param("table_name"))
+		version, ok := tablePolicyRequestVersion(context)
+		if !ok {
+			return
+		}
+		policy, err := policies.Execute(context.Request.Context(), "disable", context.Param("table_name"), application.CreateTablePolicy{}, version, context.GetHeader("Idempotency-Key"))
 		if writePolicyError(context, err) {
 			return
 		}
@@ -364,6 +379,7 @@ func registerMutationPolicyRoutes(router *gin.Engine, policies *application.Muta
 }
 
 type assignTablePolicyRequest struct {
+	ExpectedVersion    string   `json:"expected_version"`
 	ConcurrencyKey     []string `json:"concurrency_key"`
 	TableName          string   `json:"table_name"`
 	QueryPolicyCode    string   `json:"query_policy_code"`
@@ -375,7 +391,15 @@ func decodeTablePolicyCandidate(context *gin.Context) (application.CreateTablePo
 	if err := decodeRequest(context, &request); err != nil {
 		return application.CreateTablePolicy{}, err
 	}
-	return application.CreateTablePolicy{ConcurrencyKey: request.ConcurrencyKey, TableName: request.TableName, QueryPolicyCode: request.QueryPolicyCode, MutationPolicyCode: request.MutationPolicyCode}, nil
+	var version uint64
+	if request.ExpectedVersion != "" {
+		var err error
+		version, err = strconv.ParseUint(request.ExpectedVersion, 10, 64)
+		if err != nil {
+			return application.CreateTablePolicy{}, err
+		}
+	}
+	return application.CreateTablePolicy{ExpectedVersion: version, ConcurrencyKey: request.ConcurrencyKey, TableName: request.TableName, QueryPolicyCode: request.QueryPolicyCode, MutationPolicyCode: request.MutationPolicyCode}, nil
 }
 
 type putQueryPolicyRequest struct {
@@ -496,6 +520,7 @@ func queryPolicyResponseFor(policy application.QueryPolicy) queryPolicyResponse 
 }
 
 type tablePolicyAssignmentResponse struct {
+	Version            string   `json:"version"`
 	ConcurrencyKey     []string `json:"concurrency_key"`
 	TableName          string   `json:"table_name"`
 	QueryPolicyCode    string   `json:"query_policy_code"`
@@ -670,7 +695,7 @@ func queryResponse(result application.QueryResult) tableQueryResponse {
 
 func assignmentPolicyResponse(policy application.TablePolicy) tablePolicyAssignmentResponse {
 	return tablePolicyAssignmentResponse{
-		ConcurrencyKey: append([]string{}, policy.ConcurrencyKey...), TableName: policy.TableName, QueryPolicyCode: policy.QueryPolicyCode, MutationPolicyCode: policy.MutationPolicyCode,
+		Version: strconv.FormatUint(policy.Version, 10), ConcurrencyKey: append([]string{}, policy.ConcurrencyKey...), TableName: policy.TableName, QueryPolicyCode: policy.QueryPolicyCode, MutationPolicyCode: policy.MutationPolicyCode,
 		Enabled: policy.Enabled, Creator: policy.Creator, Modifier: policy.Modifier,
 		CreatedAt: policy.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: policy.UpdatedAt.UTC().Format(time.RFC3339),
 	}
@@ -703,6 +728,14 @@ func writePolicyError(context *gin.Context, err error) bool {
 		return false
 	}
 	switch {
+	case errors.Is(err, application.ErrInvalidTablePolicyRequest):
+		writeError(context, 422, "invalid_table_policy_request", "original request key and observed version are required")
+	case errors.Is(err, application.ErrTablePolicyVersionConflict):
+		writeError(context, 409, "table_policy_conflict", "table policy has changed; review the latest version")
+	case errors.Is(err, application.ErrReleaseTemplateIdempotencyConflict):
+		writeError(context, 409, "idempotency_conflict", "request key was already used for different content")
+	case errors.Is(err, application.ErrEmergencyAssociationProtected):
+		writeError(context, 409, "emergency_association_protected", "emergency association must remain available")
 	case errors.Is(err, application.ErrPermissionDenied):
 		writeError(context, 403, "permission_denied", "the current account cannot manage table policies")
 	case errors.Is(err, application.ErrConcurrencyKeyInUse):
@@ -908,4 +941,20 @@ func writeError(context *gin.Context, status int, code, message string) {
 		detail["table_name"], detail["order_id"], detail["applicant_id"] = conflict.TableName, conflict.OrderID, conflict.ApplicantID
 	}
 	context.JSON(status, gin.H{"error": detail})
+}
+
+func tablePolicyRequestVersion(c *gin.Context) (uint64, bool) {
+	var body struct {
+		ExpectedVersion string `json:"expected_version"`
+	}
+	if err := decodeRequest(c, &body); err != nil {
+		writeRequestDecodeError(c, err)
+		return 0, false
+	}
+	version, err := strconv.ParseUint(body.ExpectedVersion, 10, 64)
+	if err != nil || version == 0 {
+		writePolicyError(c, application.ErrInvalidTablePolicyRequest)
+		return 0, false
+	}
+	return version, true
 }

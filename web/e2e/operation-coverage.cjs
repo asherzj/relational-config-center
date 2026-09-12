@@ -1,3 +1,4 @@
+const { configureFixtureReleaseTemplates } = require('./release-template-fixture.cjs');
 const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
 // Real Chromium -> production Web proxy -> Cookie-authenticated Admin -> isolated MySQL.
 // SQL is used only to arrange disposable fixtures and to verify browser actions.
@@ -128,12 +129,13 @@ function fixtureSQL() {
     await page.getByRole('region', { name: 'Managed Data 查询结果' }).locator('tbody').waitFor();
   }
   try {
-    sql(fixtureSQL());
     browser = await selectedBrowser(playwright).launch(browserOptions());
     context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     account = await registerFixtureAccount(context, base);
     approvalContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     const reviewer = await registerFixtureAccount(approvalContext, base, { roles: ['VIEWER'] });
+    sql(fixtureSQL());
+    await configureFixtureReleaseTemplates(context, base, tables);
     await createFixtureApprovalRole(context, base, `Operation review ${randomUUID()}`, [reviewer.accountID], ['stage3_active_items', 'stage3_denied_items']);
     browserVersion = browser.version();
 
@@ -402,7 +404,8 @@ function fixtureSQL() {
   } finally {
     if (browser) await browser.close().catch(() => {});
     try {
-      sql(`DELETE FROM rcc_table_policies WHERE table_name LIKE 'stage3\\_%';
+      sql(`DELETE a FROM rcc_table_release_templates a JOIN rcc_table_policies p ON p.id=a.table_policy_id WHERE p.table_name LIKE 'stage3\\_%';
+        DELETE FROM rcc_table_policies WHERE table_name LIKE 'stage3\\_%';
         DELETE FROM rcc_query_policies WHERE code LIKE 'stage3\\_%';
         DELETE FROM rcc_mutation_policies WHERE code LIKE 'stage3\\_%';
         ${tables.map((name) => `DROP TABLE IF EXISTS ${name};`).join('\n')}`);

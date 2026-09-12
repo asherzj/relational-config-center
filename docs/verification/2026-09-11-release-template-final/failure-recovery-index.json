@@ -1,0 +1,632 @@
+{
+  "mysql_original_failures_and_interruption": [
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAccountMaintenanceIndependentConnectionAndAtomicFailures",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "10.15s"
+      },
+      "effective": {
+        "log": "raw/foreign-key-fault-recheck.log",
+        "status": "PASS",
+        "duration": "11.83s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "8.98s"
+      },
+      "effective": {
+        "log": "raw/business-flow-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "10.07s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestConcurrentAccountsOwnTheirBusinessChanges",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "9.56s"
+      },
+      "effective": {
+        "log": "raw/business-flow-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "8.76s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "9.17s"
+      },
+      "effective": {
+        "log": "raw/business-flow-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "10.93s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestStartupRequiresTheProtectedPolicyCatalog",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "8.74s"
+      },
+      "effective": {
+        "log": "raw/foreign-key-fault-recheck.log",
+        "status": "PASS",
+        "duration": "8.34s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOneSnapshot",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "9.39s"
+      },
+      "effective": {
+        "log": "raw/mutation-catalog-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "9.94s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRelationalMutationPolicyIsSoleAuthorizationSourceAndDeprecatedExecutes",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "8.72s"
+      },
+      "effective": {
+        "log": "raw/mutation-catalog-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "9.55s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "8.87s"
+      },
+      "effective": {
+        "log": "raw/mutation-catalog-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "9.68s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "9.63s"
+      },
+      "effective": {
+        "log": "raw/mutation-catalog-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "9.94s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyPatchFailsClosedForCurrentPolicyAndSchema",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "8.74s"
+      },
+      "effective": {
+        "log": "raw/mutation-catalog-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "9.89s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationPolicyDeleteFailsClosedBeforeExecution",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "9.48s"
+      },
+      "effective": {
+        "log": "raw/mutation-catalog-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "8.81s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationAddFailsClosedAndUsesTheLatestPolicySnapshot",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "8.79s"
+      },
+      "effective": {
+        "log": "raw/mutation-catalog-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "8.68s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestMutationAddFailsClosedWhenPolicyCatalogIsUnavailable",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "9.06s"
+      },
+      "effective": {
+        "log": "raw/foreign-key-fault-recheck.log",
+        "status": "PASS",
+        "duration": "8.69s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestPolicyCatalogMigrationsPromoteLegacySchemaWithoutDualWrite",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "10.06s"
+      },
+      "effective": {
+        "log": "raw/mutation-catalog-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "11.04s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestQueryFailsClosedWhenPolicyCatalogIsUnavailable",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "8.43s"
+      },
+      "effective": {
+        "log": "raw/foreign-key-fault-recheck.log",
+        "status": "PASS",
+        "duration": "8.94s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseFreezeMetadataCaseInsensitiveNames",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "11.77s"
+      },
+      "effective": {
+        "log": "raw/mutation-catalog-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "11.81s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseMixedBatchPublication",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "8.66s"
+      },
+      "effective": {
+        "log": "raw/mixed-batch-summary-recheck.log",
+        "status": "PASS",
+        "duration": "10.50s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestSchemaReadinessRejectsKnownOldRelease",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "STARTED_WITHOUT_COMPLETION"
+      },
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "18.61s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestPublicationJSONIdentityDoesNotUseURLPathSegments",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "8.49s"
+      },
+      "effective": {
+        "log": "raw/identity-flow-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "9.57s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityReturnedAutoIDMustRemainSchemaAddressable",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "8.57s"
+      },
+      "effective": {
+        "log": "raw/identity-flow-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "8.47s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityKeepsEngineStableUntilInsertTransactionEnds",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "8.55s"
+      },
+      "effective": {
+        "log": "raw/identity-flow-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "8.51s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityReadPermissionFailureAfterInsertRollsBack",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "7.49s"
+      },
+      "effective": {
+        "log": "raw/identity-flow-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "8.45s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityNeverReturnsExistingRowAfterTriggerChangesKey",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "10.08s"
+      },
+      "effective": {
+        "log": "raw/identity-flow-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "9.33s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestPublicationRejectsIdentityCreatedAfterApproval",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "8.68s"
+      },
+      "effective": {
+        "log": "raw/identity-flow-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "8.90s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/infrastructure/mysql",
+      "test": "TestExplicitIdentityAutoResultBelongsToThisInsert",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "7.71s"
+      },
+      "effective": {
+        "log": "raw/identity-flow-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "10.77s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/internal/interfaces/http",
+      "test": "TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely",
+      "original": {
+        "log": "raw/mysql-full.log",
+        "status": "FAIL",
+        "duration": "24.52s"
+      },
+      "effective": {
+        "log": "raw/http-error-fixture-recheck.log",
+        "status": "PASS",
+        "duration": "27.10s"
+      }
+    }
+  ],
+  "mysql_never_started_after_timeout": [
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "13.21s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableApprovalAssignmentRetainsReferenceAndOtherPolicy",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "8.56s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestReleaseSubmitRequiresIndependentApprover",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "8.85s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableApprovalPartialProgressAndFinalApproval",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "8.52s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableApprovalSnapshotMembershipFallbackAndHistory",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "9.59s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableApprovalFallbackMatrixAndEmptySnapshot",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "9.70s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableApprovalScopeConcurrencyAndRejection",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "8.45s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableApprovalAccountAvailabilityAndDurableHistory",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "11.47s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "8.65s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableApprovalConcurrentFirstReferenceAndDelete",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "8.95s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableApprovalQualificationChangesSerializeWithDecisions",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "9.97s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "19.65s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "12.91s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "12.48s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "12.81s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableReleaseSchemaRecoveryKeepsExistingSelections",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "11.98s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "7.64s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "8.57s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "8.84s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "8.73s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTableReleaseTemplateHTTPCurrentAuthorizationAndRequiredRequestIdentity",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "8.56s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "8.52s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "18.74s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestTemplateApprovalSchemaRecoversCatalogSeedFromFormalNine",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "14.03s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAdminProcessRejectsInvalidConfiguration",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "2.08s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAdminProcessRejectsUnavailableRequiredDatabase",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "1.45s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAdminProcessRejectsRemovedAuthenticationConfiguration",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "1.95s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestAdminHTTPCompositionCannotRunSchemaMaintenance",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "0.00s"
+      }
+    },
+    {
+      "package": "github.com/asherzj/relational-config-center/admin/cmd/admin",
+      "test": "TestCurrentSchemaEntryPointsDoNotRestoreRetiredInitialization",
+      "effective": {
+        "log": "raw/mysql-unfinished-admin-02.log",
+        "status": "PASS",
+        "duration": "0.00s"
+      }
+    }
+  ],
+  "other_original_failures": "runs.json and browser/go-browser matrices retain original failures and exact effective sources; raw logs are immutable",
+  "tdd": "Expected red and initial green assertion correction retained in raw/terminal-phase-*.log"
+}

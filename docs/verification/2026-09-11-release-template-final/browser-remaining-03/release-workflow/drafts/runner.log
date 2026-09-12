@@ -1,0 +1,7 @@
+PASS EDITOR saves from data page; lost response survives refresh and original-key retry
+PASS durable detail reload retains server diff; business row and version remain unchanged
+PASS two real windows retain input on CAS conflict and require explicit reconstruction
+PASS unknown edit rejected after concurrent change survives two refreshes and explicitly rebuilds original intent
+PASS cancelled drafts remain searchable with permanent applicant and history on narrow screens
+PASS current VIEWER can read release history without edit/cancel actions
+{"checks":["EDITOR saves from data page; lost response survives refresh and original-key retry","durable detail reload retains server diff; business row and version remain unchanged","two real windows retain input on CAS conflict and require explicit reconstruction","unknown edit rejected after concurrent change survives two refreshes and explicitly rebuilds original intent","cancelled drafts remain searchable with permanent applicant and history on narrow screens","current VIEWER can read release history without edit/cancel actions"]}

@@ -1,0 +1,28 @@
+{
+  "method": "PUT",
+  "path": "/api/v1/release-orders/61ad511364fba172aeae1900dd52e233",
+  "request": {
+    "title": "batch_browser_items 配置变更",
+    "expected_version": "2",
+    "changes": {
+      "upserts": [
+        {
+          "detail_id": "77888f371fa0a4c45d2d5b734f0ef4a5",
+          "table_name": "batch_browser_items",
+          "operation": "MODIFY",
+          "id": "1",
+          "expected_record_version": "0",
+          "content": {
+            "code": "seed-one",
+            "label": "published mixed label"
+          }
+        }
+      ],
+      "delete_detail_ids": [
+        "31093cc8f8b200a6ee46830b987b57bd"
+      ]
+    }
+  },
+  "status": 200,
+  "response": "{\"approvals\":[{\"table_name\":\"batch_browser_items\",\"roles\":[{\"id\":\"10bc0735-05e1-40e2-95bb-4bad239858b4\",\"name\":\"Batch review ea6ef58d-5b3d-40b4-8436-05b0f368dd75\"}],\"state\":\"PENDING\"}],\"approval_context\":{\"revision\":\"10ac012b9ad8c69db3fe935351623160b581b7294826245ffb6c0ee4c5b09a79\",\"tables\":[{\"table_name\":\"batch_browser_items\",\"mode\":\"ROLE\",\"reason\":\"由提交时审批角色的当前合格成员处理\",\"can_approve\":false}],\"approvable_tables\":[]},\"table_names\":[\"batch_browser_items\"],\"title\":\"batch_browser_items 配置变更\",\"executions\":[],\"id\":\"61ad511364fba172aeae1900dd52e233\",\"applicant_id\":\"7214d9b8-18f1-46bf-bcc8-5034a1f9b992\",\"state\":\"DRAFT\",\"version\":\"3\",\"items\":[{\"table_name\":\"batch_browser_items\",\"detail_id\":\"77888f371fa0a4c45d2d5b734f0ef4a5\",\"operation\":\"MODIFY\",\"id\":\"1\",\"expected_record_version\":\"0\",\"content\":{\"code\":\"seed-one\",\"label\":\"published mixed label\"},\"before\":{\"code\":\"seed-one\",\"id\":\"1\",\"label\":\"original one\"},\"fields\":[{\"nullable\":false,\"editable\":false,\"name\":\"id\",\"type\":\"uint64\",\"before_state\":\"value\",\"before\":\"1\",\"proposed_state\":\"omitted\",\"proposed\":null},{\"nullable\":false,\"editable\":true,\"name\":\"code\",\"type\":\"string\",\"before_state\":\"value\",\"before\":\"seed-one\",\"proposed_state\":\"value\",\"proposed\":\"seed-one\"},{\"nullable\":false,\"editable\":true,\"name\":\"label\",\"type\":\"string\",\"before_state\":\"value\",\"before\":\"original one\",\"proposed_state\":\"value\",\"proposed\":\"published mixed label\"}]},{\"table_name\":\"batch_browser_items\",\"detail_id\":\"217fc1c7800246e58a24d4482fabdab0\",\"operation\":\"DELETE\",\"id\":\"2\",\"expected_record_version\":\"0\",\"content\":{},\"before\":{\"code\":\"seed-two\",\"id\":\"2\",\"label\":\"original two\"},\"fields\":[{\"nullable\":false,\"editable\":false,\"name\":\"id\",\"type\":\"uint64\",\"before_state\":\"value\",\"before\":\"2\",\"proposed_state\":\"absent\",\"proposed\":null},{\"nullable\":false,\"editable\":false,\"name\":\"code\",\"type\":\"string\",\"before_state\":\"value\",\"before\":\"seed-two\",\"proposed_state\":\"absent\",\"proposed\":null},{\"nullable\":false,\"editable\":false,\"name\":\"label\",\"type\":\"string\",\"before_state\":\"value\",\"before\":\"original two\",\"proposed_state\":\"absent\",\"proposed\":null}]}],\"history\":[{\"action\":\"CREATE\",\"actor_id\":\"7214d9b8-18f1-46bf-bcc8-5034a1f9b992\",\"at\":\"2026-09-10T20:48:34.406755Z\",\"version\":\"1\",\"reason\":\"\"},{\"action\":\"EDIT\",\"actor_id\":\"7214d9b8-18f1-46bf-bcc8-5034a1f9b992\",\"at\":\"2026-09-10T20:48:34.800109Z\",\"version\":\"2\",\"reason\":\"\"},{\"action\":\"EDIT\",\"actor_id\":\"7214d9b8-18f1-46bf-bcc8-5034a1f9b992\",\"at\":\"2026-09-10T20:48:35.735897Z\",\"version\":\"3\",\"reason\":\"\"}],\"created_at\":\"2026-09-10T20:48:34.406755Z\",\"updated_at\":\"2026-09-10T20:48:35.735897Z\",\"item_count\":2,\"operation_counts\":{\"DELETE\":1,\"MODIFY\":1},\"allowed_actions\":[\"edit\",\"submit\",\"cancel\"]}"
+}

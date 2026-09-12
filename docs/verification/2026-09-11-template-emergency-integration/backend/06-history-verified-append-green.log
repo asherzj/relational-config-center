@@ -1,0 +1,31 @@
+=== RUN   TestReleaseHistorySurvivesExecutableRestartAndExternalChanges
+2026/09/11 15:52:57 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: ca2d8becfd6583053ee656f35338d69cdac8edbe20e9dc942ec5f598cba8ee37
+  Test ProcessID: 92c5e2b3-714c-45bb-8467-432dc582b981
+2026/09/11 15:52:57 🐳 Creating container for image mysql:8.4
+2026/09/11 15:52:57 ✅ Container created: 646a824b4281
+2026/09/11 15:52:57 🐳 Starting container: 646a824b4281
+2026/09/11 15:52:58 ✅ Container started: 646a824b4281
+2026/09/11 15:52:58 ⏳ Waiting for container id 646a824b4281 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:53:04 🔔 Container is ready: 646a824b4281
+{"request_id":"rcc-e7041183901b852a3ad0aa6c0acd683d","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-5a26a21bc2eed7a8c2e986eb1ec57a19","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":45}
+{"request_id":"rcc-942200f574f9efa30f3980945b6ab949","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-52e2c8ecddeb3d1927aad8492ceac452","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":59}
+{"request_id":"rcc-664d593471c641a5e0286bfae31f3a92","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-b31b6c5a3e38e2ec0b60fa4d2e19106c","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":8}
+    release_history_delivery_integration_test.go:227: catalog request SQL delta: original_rows_unchanged=true actor=cf0e1110-2d5a-4478-8784-285b773a287a operation=table-policy:disable key=history-table-disable digest=81D8C9F21AA7A756BBD0CB654ADB6C9C9A1052BB56F303E959757956517D36BA stored_result={"Creator": "integration-test", "Enabled": false, "Version": 3, "Modifier": "cf0e1110-2d5a-4478-8784-285b773a287a", "CreatedAt": "2026-09-11T07:53:07Z", "TableName": "history_items", "UpdatedAt": "2026-09-11T07:53:12Z", "ConcurrencyKey": [], "QueryPolicyCode": "fixture_history_items_query_v1", "MutationPolicyCode": "fixture_history_items_mutation_v1"} HTTP_response={"version":"3","concurrency_key":[],"table_name":"history_items","query_policy_code":"fixture_history_items_query_v1","mutation_policy_code":"fixture_history_items_mutation_v1","enabled":false,"creator":"integration-test","modifier":"cf0e1110-2d5a-4478-8784-285b773a287a","created_at":"2026-09-11T07:53:07Z","updated_at":"2026-09-11T07:53:12Z"}
+2026/09/11 15:53:12 🐳 Stopping container: 646a824b4281
+2026/09/11 15:53:13 ✅ Container stopped: 646a824b4281
+2026/09/11 15:53:13 🐳 Terminating container: 646a824b4281
+2026/09/11 15:53:13 🚫 Container terminated: 646a824b4281
+--- PASS: TestReleaseHistorySurvivesExecutableRestartAndExternalChanges (15.46s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	16.775s

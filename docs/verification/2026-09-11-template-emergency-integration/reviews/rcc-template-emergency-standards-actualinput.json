@@ -1,0 +1,412 @@
+{
+  "review_axis": "Standards only; bounded #104 merge increment; no tests executed or Spec reports read",
+  "worktree": "/private/tmp/rcc-template-notification-integration",
+  "ours": "e7e19b022fc606c137fdf8df1899caf9a5702bb1",
+  "theirs": "f545adf24aadd34ee39afb2643a4819aee54c986",
+  "recorded_utc": "2026-09-11T08:06:43.181674+00:00",
+  "reviewed_sources_and_norms_sha256": {
+    "AGENTS.md": "6ae41a2ec8d8c6dc43f4ca4c1408fd0ece92aaf9e3017ff47ef2489fa50fd852",
+    "CONTEXT-MAP.md": "cf69b1890306fc93d956e2073d453ea54272b22510fd162c036857497345c67c",
+    "admin/CONTEXT.md": "b1554f99077db3c8be2d1af4ab4460b6c2cc0e488c8300556497290865cb414d",
+    "admin/cmd/admin/release_failure_retry_integration_test.go": "1c9b725a86d1672aec1c6caf3bd92e4e4d0beb47a258abdcaec14bc34d6d9a2d",
+    "admin/cmd/admin/release_history_delivery_integration_test.go": "4e36a698fb90fc6b0f57df5c4fa43ca4e7792f973ad58bb50262548381767973",
+    "admin/cmd/admin/release_original_execution_integration_test.go": "19dc850c17821a65a7e7f80652c16f67c4f68cf7a10f544651c7f9838e6b7ced",
+    "admin/internal/application/notification_center.go": "256ddc1733379eabd96a8222fc9018ba6b178a395c5669f5fcb6ebe5ede81a28",
+    "admin/internal/application/release_orders.go": "39291367ece9e705206dacb6d6c92da8d72167d924a196c5da131506243c6ac5",
+    "admin/internal/domain/release_order.go": "5a6e7c026b6c724c828dea6291a69166de3551607221b8b8ed07703f6f5590bd",
+    "admin/internal/domain/release_read.go": "ffec41e468a04abe8f3f020119b0f63a9d4068d1ca5b9e92e2b067cd1adabd60",
+    "admin/internal/interfaces/http/release_orders.go": "176b81483b9cefa45cbca3dfa34bef45d812d8d2d304fe74769ffacdf3dc4a5c",
+    "docs/admin-release-approvals.md": "df3768880f439d01250a0297d5530232db25b2bfb61a4efcc9a5becd016ea594",
+    "docs/admin-release-drafts.md": "4a1fe99826d2e1c566b5e2e7855b9337d9d95970941e0357ed911a141d5c1631",
+    "docs/adr/0013-use-per-request-strategies-and-deep-execution-ports.md": "809159e1c31964c06f4f9b0e036309e0721ab6908e38fac8763f2866c8abb5f7",
+    "docs/adr/0026-authorize-approval-by-table-roles.md": "b77ebb5286090c25431d5be1332c400c4ab8e482a0a09f8f8168e03ebbf1efcc",
+    "docs/adr/0027-configure-release-workflows-with-stable-templates.md": "1cdbdb28a7223b0356db88ed95d429c2ef607b0a7739a0b234dcb8ae124d1088",
+    "docs/agents/design.md": "433e00355212a714460056db4fcbf6571b5c5e2c77f74ed7d6b1b8f7920fb3a2",
+    "docs/agents/domain.md": "90b7264b693c6c3da26e8bc38da39f484a0fb838ec1aa1feefc7aa417d47c0d5",
+    "docs/architecture.md": "7c1ef6c7af250fe4e947982c79df40818d2f5aaaea9a507f26e6c3079b03f401",
+    "docs/design-notes/publication-contract.md": "a4601dc7a19de2e7867c80203f3b27152f74c43ea02ad6f943196162b7c5e56c",
+    "docs/design-notes/release-detail-compact.md": "36acc67eb42dcb6eb3ee9f2dd174a53f43aab0033c6cae11777a7b580b40f865",
+    "docs/schema-migrations.md": "4ef6a458c632464aa31c9cbdcab34a871a4c1dfa0ebb3b2c5802d64fdd490372",
+    "web/DESIGN.md": "df43e179333e9164005aaa10ecc20a41a123a6154175a7dc0e2fda4d1305e4d9",
+    "web/e2e/approval-notifications.cjs": "2ca3a266e236af3b7ad642feb0ec30024ce787ec1a0616786a60da74a5f8fbc1",
+    "web/e2e/notification-center.cjs": "92c494844e8c5612a30e688630a4c59d520879c9e2d58d93a626ba81701ba44c",
+    "web/e2e/release-approvals.cjs": "60febad7da4524c991896799d2e144f9e01e29784e25846afb40ad3fe7b2cfae",
+    "web/e2e/release-emergency.cjs": "98bca46689c74aa4024e19c89149d9cebb9a31549e30513e4a39497067376c55",
+    "web/e2e/release-instances.cjs": "a4763ae8b04baf9f03d6faa15b024feb60e137f50ea7c8e5624a7703d623dc10",
+    "web/e2e/release-notifications.cjs": "1287ca2df640711b76f2b0834364772a3d347122f758363d84614b5872f59d10",
+    "web/src/api/error-messages.ts": "f2ef6bce00219eb8bb7c3dc205e2faa509899e9ff009b85576b13c4cbafea939",
+    "web/src/api/release-orders.test.ts": "84f55827a4b065957f8837f732e6439f98a1ab2366ab6e60cb5c820a68260895",
+    "web/src/api/release-orders.ts": "2160c8c54e13067a2c490e8b53af46730d092f4227530923665fe90aa2867857",
+    "web/src/features/managed-data/ManagedDataMutationPage.test.tsx": "c9458b91e52c3960176fa88ebe49f2e700a8cf1ae70689e3353f8bed46c36e6e",
+    "web/src/features/managed-data/ManagedDataPage.test.tsx": "929e81e2cf7383aaa3479855604180a1c83c981b777cb9ed67a7cff777b296b2",
+    "web/src/features/notifications/ApprovalNotifications.test.tsx": "76c54f7d0399af0c6a030ef6e19432a1a13db904048928a54875f0db3962e4d0",
+    "web/src/features/notifications/NotificationsPage.test.tsx": "3c5a397d74f55a67376c740c76b699af0ab994e6565dd6be220cd114db89cdd0",
+    "web/src/features/release-orders/NewDraftDialog.tsx": "597885f9c65a7bf10666674dacb60155f4b03080f7ea72c7102c4139ea18ba5a",
+    "web/src/features/release-orders/ReleaseActionDialog.tsx": "6a11cf510c723bca5e49642c63d583f425ed3550ff7116b8e1270bace777abf9",
+    "web/src/features/release-orders/ReleaseDraftEditor.tsx": "7a9be973c83665a999a7e565c3a6a604ef317a0c7c324f2eaad3b44de5acf656",
+    "web/src/features/release-orders/ReleaseFlows.tsx": "a7507e2156f25f6e626b4c3283d25960e4b92699ca6890e1c6d3378a46863598",
+    "web/src/features/release-orders/ReleaseHistory.tsx": "ae7abe4d52e52f7364afed980e73ac15571143b6d25510efbe2ab72292f4904a",
+    "web/src/features/release-orders/ReleaseOrdersPage.test.tsx": "c5e3cbd1ef5c7bd8aeed757e2ea98e163f38765e7a3a83d40375d611a8e7191e",
+    "web/src/features/release-orders/ReleaseOrdersPage.tsx": "4af49cf7a80d34345b9af20fc630ea276a7e6c33792c0294611ecda89a9b4a68",
+    "web/src/features/release-orders/ReleaseProgress.tsx": "341e517512c16861a1735b8311bfc55ac72692040a34a28bca3cecbbd841c042",
+    "web/src/features/release-orders/ReleaseRequestReview.tsx": "971dc41594fb2d81e344244a2599d6963c6f57303fa1a63521a8f6c447dc48d0",
+    "web/src/features/release-orders/useDraftDestination.tsx": "b0e53224e939c0eac6e254ea018fcf8e44fce0337f4a27008aedefe444a85ea0",
+    "web/src/test/release-fixture.ts": "2e0723731cadd91bbf742cc932bcbfa69b6e4e91d176820092ab900ba73b351b",
+    "admin/cmd/admin/account_browser_integration_test.go": "769258acbf5d0344bdc09e1a9936632e46b71774a4b20f95862b637f8850a8db",
+    "web/e2e/fixtures/release-rollbacks.sql": "a9aa073ab77a9fb68c6a1340bd8b17af4dfbcd14ec9d7380b260a8dd578bea0f",
+    "web/e2e/fixtures/field-display.sql": "f9a48c0d5b97f62240f0af13e1177e429f129722d42f6e07a9a97b5418902eeb"
+  },
+  "incoming_reused_fixes": {
+    "web/src/features/release-orders/ReleaseRequestReview.tsx": {
+      "sha256": "971dc41594fb2d81e344244a2599d6963c6f57303fa1a63521a8f6c447dc48d0",
+      "matches_incoming": true
+    },
+    "web/src/features/release-orders/ReleaseActionDialog.tsx": {
+      "sha256": "6a11cf510c723bca5e49642c63d583f425ed3550ff7116b8e1270bace777abf9",
+      "matches_incoming": true
+    },
+    "web/src/features/release-orders/NewDraftDialog.tsx": {
+      "sha256": "597885f9c65a7bf10666674dacb60155f4b03080f7ea72c7102c4139ea18ba5a",
+      "matches_incoming": true
+    },
+    "web/src/features/release-orders/ReleaseFlows.tsx": {
+      "sha256": "a7507e2156f25f6e626b4c3283d25960e4b92699ca6890e1c6d3378a46863598",
+      "matches_incoming": true
+    }
+  },
+  "schema_unchanged_from_ours": {
+    "admin/internal/infrastructure/mysql/migrations/00001_control_baseline.sql": {
+      "sha256": "df9794a5f3836aab8452d090e8b88c69be619154bc20aca10e55d2f9252a8730",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00001_schema.json": {
+      "sha256": "5c36a92035b9382ec3e43de18090f2008e5256c7e238b7a88f976bf23bd85cb4",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00002_policy_audit_timestamps.sql": {
+      "sha256": "3a5516b279c2ffbd795998d5641f74e6f07c7810bf4a6b615c0e7ba3490d2476",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00002_schema.json": {
+      "sha256": "5472c8a95d62e301b5639b00442d96628194e6103b14b8b687fb55c3c0f53ae8",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00003_schema.json": {
+      "sha256": "f0382433976866f5a842703835635da87f42a0b8bde3d31caf0cad07085cc082",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00003_table_field_policies.sql": {
+      "sha256": "a9a5c7808ac262ab170a506d88ae5ecb05e7278ddd009cff687005ed770645c2",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00004_release_details_and_targets.sql": {
+      "sha256": "3b19f19aa1ff2a6d3a47f4e83fce595e43b7096a59cce1b4bb1d7ee14b31f53e",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00004_schema.json": {
+      "sha256": "a5c3f0cc404ef2906e368367d9d2e100b5662524a7815ad73fe086f7122bff35",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00005_release_execution_ownership.sql": {
+      "sha256": "eff792fa684428ce89b12184798042ab22258e956688d3037c8409c8074ec02a",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00005_schema.json": {
+      "sha256": "a80e24458f579d72abdcfa917417a3e5a8e0199e61545ef8f8e4dad90dd12a1f",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00006_approval_roles.sql": {
+      "sha256": "c0fe587dbe2a4ae910058bf021439f0583a80dd7f46fd04de4d1bc516412d230",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00006_schema.json": {
+      "sha256": "f2083662b3191bed12e2a613413011218c55e72df30d821ad0f7c8b753c1faa7",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00007_schema.json": {
+      "sha256": "b2f169647d6369ed29f0388a5dca1506d42f3281b4a4368e5e34cf77d954505a",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00007_table_approvals.sql": {
+      "sha256": "43ccf0aade2b9c2d0b0aef5613a6dab0191c391272edcdb248ffceb250abb395",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00008_approval_notifications.sql": {
+      "sha256": "223c2a53b56212d150d6bdb335cee36956db26de16f2a09d3c3ef1e6222729bd",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00008_schema.json": {
+      "sha256": "79a5d895a411c02c98d3a7a8fc238fbde6dcd149a2f7368dc1e1876ed677f252",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00009_retire_global_approver.sql": {
+      "sha256": "aefd688ad4c9a2530d98be99172f5b95c743bec90407ac3670af03cacc8de826",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00009_schema.json": {
+      "sha256": "79a5d895a411c02c98d3a7a8fc238fbde6dcd149a2f7368dc1e1876ed677f252",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00010_release_templates.sql": {
+      "sha256": "93baf3f8dc7b37cfa10ebbad260db49e24da8b386ff6efe64a702c9ce1366223",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00010_schema.json": {
+      "sha256": "8a8a3a8c53a24828e30579bdce35929fb56094043b51358d0bd85833fb97b778",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00011_schema.json": {
+      "sha256": "1238bd8d96105282700f92c933db6640e84b53181b465f0b9025e2ba3492d608",
+      "matches": true
+    },
+    "admin/internal/infrastructure/mysql/migrations/00011_table_release_templates.sql": {
+      "sha256": "4fc1bf17d62efb25f62146dbc3cd0559b65dd077541dee1744f17c915b99e137",
+      "matches": true
+    }
+  },
+  "raw_original_104_evidence": {
+    "count": 68,
+    "changed": []
+  },
+  "closed_finding": {
+    "priority": "P2",
+    "path": "web/DESIGN.md",
+    "current_lines": [
+      143,
+      145,
+      147
+    ],
+    "rule": "docs/agents/design.md:19,22",
+    "description": "Three accepted emergency workflow interaction paragraphs were lost in the merge; restored verbatim from incoming."
+  },
+  "backend": {
+    "effective_top_level_passes": 52,
+    "original_batch_passes": 51,
+    "original_batch_failures": 1,
+    "final_replacement": "06-history-verified-append-green",
+    "final_source_count": 254,
+    "original_input_changed_paths": [
+      "admin/cmd/admin/release_history_delivery_integration_test.go"
+    ],
+    "final_source_current_mismatches": [
+      "admin/cmd/admin/account_browser_integration_test.go"
+    ],
+    "final_sources_all_match_at_first_review": true,
+    "reuse_after_browser_fix": "Only account_browser_integration_test.go changed after HTTP 06; its body is not called by any selected HTTP test. Final browser 07 compiled and executed that fixture."
+  },
+  "browser": {
+    "effective_unique_paths": 6,
+    "counting": "01–05 plus 07; 06 FAIL and 06a diagnostic preserved. Account parent/subtest is one path, not two.",
+    "runs": {
+      "01-instances": {
+        "exit_code": 0,
+        "source_changed_during_run": [],
+        "source_count": 480,
+        "current_mismatches": [
+          "admin/cmd/admin/account_browser_integration_test.go"
+        ],
+        "top_level_results": [
+          [
+            "PASS",
+            "TestReleaseFlowBrowserSystemPath"
+          ]
+        ],
+        "terminated_containers": [
+          "a052d0e40526"
+        ],
+        "source_input_sha256": "1a3eba3326ae47787ffd6b4f03b73ba0b3090b62e7e754eeb52107667e80d0dc"
+      },
+      "02-emergency": {
+        "exit_code": 0,
+        "source_changed_during_run": [],
+        "source_count": 480,
+        "current_mismatches": [
+          "admin/cmd/admin/account_browser_integration_test.go"
+        ],
+        "top_level_results": [
+          [
+            "PASS",
+            "TestReleaseEmergencyBrowserSystemPath"
+          ]
+        ],
+        "terminated_containers": [
+          "ec9937f9072f"
+        ],
+        "source_input_sha256": "1a3eba3326ae47787ffd6b4f03b73ba0b3090b62e7e754eeb52107667e80d0dc"
+      },
+      "03-notification-center": {
+        "exit_code": 0,
+        "source_changed_during_run": [],
+        "source_count": 480,
+        "current_mismatches": [
+          "admin/cmd/admin/account_browser_integration_test.go"
+        ],
+        "top_level_results": [
+          [
+            "PASS",
+            "TestNotificationCenterBrowserSystemPath"
+          ]
+        ],
+        "terminated_containers": [
+          "fcfb6a429df1"
+        ],
+        "source_input_sha256": "1a3eba3326ae47787ffd6b4f03b73ba0b3090b62e7e754eeb52107667e80d0dc"
+      },
+      "04-release-notifications": {
+        "exit_code": 0,
+        "source_changed_during_run": [],
+        "source_count": 480,
+        "current_mismatches": [
+          "admin/cmd/admin/account_browser_integration_test.go"
+        ],
+        "top_level_results": [
+          [
+            "PASS",
+            "TestReleaseNotificationsBrowserSystemPath"
+          ]
+        ],
+        "terminated_containers": [
+          "3dc3153a35d5"
+        ],
+        "source_input_sha256": "1a3eba3326ae47787ffd6b4f03b73ba0b3090b62e7e754eeb52107667e80d0dc"
+      },
+      "05-approval-notifications": {
+        "exit_code": 0,
+        "source_changed_during_run": [],
+        "source_count": 480,
+        "current_mismatches": [
+          "admin/cmd/admin/account_browser_integration_test.go"
+        ],
+        "top_level_results": [
+          [
+            "PASS",
+            "TestApprovalNotificationsBrowserSystemPath"
+          ]
+        ],
+        "terminated_containers": [
+          "c4fcc25698fa"
+        ],
+        "source_input_sha256": "1a3eba3326ae47787ffd6b4f03b73ba0b3090b62e7e754eeb52107667e80d0dc"
+      },
+      "06-release-approvals": {
+        "exit_code": 1,
+        "source_changed_during_run": [],
+        "source_count": 480,
+        "current_mismatches": [
+          "admin/cmd/admin/account_browser_integration_test.go"
+        ],
+        "top_level_results": [
+          [
+            "FAIL",
+            "TestAccountBrowserSystemPath"
+          ]
+        ],
+        "terminated_containers": [
+          "2184d8ddefe6"
+        ],
+        "source_input_sha256": "1a3eba3326ae47787ffd6b4f03b73ba0b3090b62e7e754eeb52107667e80d0dc"
+      },
+      "07-release-approvals": {
+        "exit_code": 0,
+        "source_changed_during_run": [],
+        "source_count": 480,
+        "current_mismatches": [],
+        "top_level_results": [
+          [
+            "PASS",
+            "TestAccountBrowserSystemPath"
+          ]
+        ],
+        "terminated_containers": [
+          "88894c069f9c"
+        ],
+        "source_input_sha256": "65bc5cf814d937d35c18eb670a300a5b5fc36e18bcc4fe82edfccc9042b4fa74"
+      }
+    },
+    "reuse": "The only input change after 01–05 is the account browser test fixture, outside those five selected browser paths. 07 compiles and executes its final version.",
+    "effective_index_verified": true
+  },
+  "visually_inspected_screenshots_sha256": {
+    "01-instances/completed-flows-mobile.png": "5c5c0fb4dede1f61935981689c2823a8f1539f9ac02a0fb61b1fe3f8a33be291",
+    "01-instances/missing-flow-mobile.png": "7cc5013f7dd783dcee1a978de1aea59a36b97e00e9998145271614b4ad683148",
+    "02-emergency/emergency-published-mobile.png": "e827afc05e4637cae63ad70d4019a8ae03afd81309d615ce95bafe87c67d26b9",
+    "02-emergency/emergency-completed-mobile.png": "b348937083b2806b5c659a0818f3cb2a2ac86bf82b6daa77c2c9dbd8c5c8d01d",
+    "02-emergency/emergency-pending-publication-mobile.png": "6a2b41710f877ed61c877b1c4db03818b77c9e2295a92bb1177e74bdc8015c0d",
+    "02-emergency/emergency-reason-mobile.png": "8dec3a487af0c9a17492cf3d02f4de1ed0886204a7687d792bce8e103450b910",
+    "03-notification-center/center-desktop.png": "85df5c9a3370a6f3d74503663b527e89a7ee74a12ef6d42729e00aebe17b9180",
+    "03-notification-center/read-failure-mobile.png": "c8d09c92693b9ac8219de1e10fa71041100e640c4faa54ee19be325419af96d1",
+    "07-release-approvals/release-approvals.cjs/release-detail-approved-390.png": "ed6090c5de0b48ad529bfad1df251d3e4e6e1e6026180489140554f082df013f",
+    "07-release-approvals/release-approvals.cjs/release-reprepare-result-mobile.png": "ca5816141897bc69064520330021c2f77dd0cceaca44ed3a5b2e620bc5410c1e"
+  },
+  "inspected_evidence_sha256": {
+    "backend/01-http-matrix-input.json": "97407687ab36d8b3c10d705e030fe4af65e10f25cc9cd3d927c0fafd5aae8b71",
+    "backend/01-http-matrix.json": "9e244f1a2c827850a0ed20ee302abc4281b85877c4cb5e37362ac56ea720952c",
+    "backend/01-http-matrix.log": "1f9b9a3fd11ae31a22f1fe15742b6cb94cdd303680f188ba47b9337e5a924af4",
+    "backend/02-go-contracts-input.json": "97407687ab36d8b3c10d705e030fe4af65e10f25cc9cd3d927c0fafd5aae8b71",
+    "backend/02-go-contracts.json": "1f0295dc5635425d3cfb73bfbd88c5cdde3c4c55d86f87708df4f4ea709a5cf8",
+    "backend/02-go-contracts.log": "60e32b28b4206d6c043921f1455365c55396ee87186f6c5feeb068806cc63ed1",
+    "backend/03-admin-compile-input.json": "97407687ab36d8b3c10d705e030fe4af65e10f25cc9cd3d927c0fafd5aae8b71",
+    "backend/03-admin-compile.json": "51927682c0c9f18a5c46d4fa667c0e28637f433d25606d9b7a885c8bcba07b44",
+    "backend/03-admin-compile.log": "c221f871a8acacee7280b955be033e25dc560574402915f5512a866df31cb3b9",
+    "backend/04-history-isolated-red-input.json": "97407687ab36d8b3c10d705e030fe4af65e10f25cc9cd3d927c0fafd5aae8b71",
+    "backend/04-history-isolated-red.json": "3576f9c67839aacc9a0e635b25cd1471feccdfeba75451fa71965b2391f6d5b4",
+    "backend/04-history-isolated-red.log": "1b4e1607250c526722e160e4a2f1c437d1db6019d7ae6cfa0091fa4cb93e9109",
+    "backend/05-history-sql-delta-red-input.json": "31938e857738ef140327f333ac161d7e85f296c53df5a366379d5748bda0481d",
+    "backend/05-history-sql-delta-red.json": "c290bd2b5a3c671c21c0e2c28ce44f5fe1a91ea53305c9a743afa092d04e6509",
+    "backend/05-history-sql-delta-red.log": "4e02bbce521c9f821409f2ce8dca7cdce0017b435357ae9293396376a8a69771",
+    "backend/06-history-verified-append-green-input.json": "73beb7c25ac0348306d1a6b74db638f7649857772f908bb7dc2409deed9bf4be",
+    "backend/06-history-verified-append-green.json": "3e298c2e7a497320f1d04646c0eec99c21a5408bc071f5d350b26c952cd0da05",
+    "backend/06-history-verified-append-green.log": "a77a85bf9350878cb0804ff03e62bef8e5beb94f38ff17a5e252832e1f281aed",
+    "backend/README.md": "b9d04216793c4c1b8804902922c370b673b90fc9bbff2c38398d3e7d721f5c03",
+    "backend/cleanup.txt": "9d20b127567745b5841a11eed594a6bfe92101db6700b9553ce8c251a7fb2ef9",
+    "backend/delivery-hashes.json": "fc6b00186931af66eaad1de350d5acebb787f6193e884ea44915007621d72f54",
+    "backend/effective-results.json": "5704a96d89a93a62cc2c73292d48038ec99e7bb8cd822c1f29292785f498b08c",
+    "backend/final-source-applicability.json": "a6a88af986f5104fff9aae5d2004aca643b3e479eb78833bda2c883e25c1f02b",
+    "backend/fixture-change.patch": "f4444cf936ba89f71a39cd0034c2367849451fc822c84b912bf473c819e18d6c",
+    "browser/01-instances/release-instances-browser-evidence.json": "ed53c5417845ac4b78c322424497cb9fe4024d6a003dff4708e6f3103ad9192e",
+    "browser/01-instances/source-input.json": "1a3eba3326ae47787ffd6b4f03b73ba0b3090b62e7e754eeb52107667e80d0dc",
+    "browser/01-instances.json": "ac2e6b5b46041ba6476d9cede791f16291a08bceac1d55797b72e8a22b7b5f49",
+    "browser/01-instances.log": "76de089cdf90375df7b3b18edeb2f2d2d8cb7089edb498c53c9f0b802c22a39a",
+    "browser/02-emergency/release-emergency-browser-evidence.json": "0de355c9791252da303bec0873f4a7299034374970c25ec7256aa4c94ef6ba3a",
+    "browser/02-emergency/source-input.json": "1a3eba3326ae47787ffd6b4f03b73ba0b3090b62e7e754eeb52107667e80d0dc",
+    "browser/02-emergency.json": "5c3deca6b8f2ec2bce00f74ade7ee75560039e18e0992a8bc890c3fb7cc06b60",
+    "browser/02-emergency.log": "c74eeef4ff787318442e9ad505dce87b097e439cda73cf82fc5dc4ed8c45518c",
+    "browser/03-notification-center/result.json": "3b58fa0a8fe7f654868f53492bf0ce035189afe5b836acb22cb27dffc63549b1",
+    "browser/03-notification-center/source-input.json": "1a3eba3326ae47787ffd6b4f03b73ba0b3090b62e7e754eeb52107667e80d0dc",
+    "browser/03-notification-center.json": "ff24ae72f1a34da8186b835f3e27d71c7db6accedba8aaa1c7c52221253d012f",
+    "browser/03-notification-center.log": "b649f2230fbe177221421215aad41c889ebffde31af0eaaefefa27ead8de048d",
+    "browser/04-release-notifications/result.json": "03d60b42eb9085c7ad51e2af687f176ff580d97fddffab0734a1f6a177a140ee",
+    "browser/04-release-notifications/source-input.json": "1a3eba3326ae47787ffd6b4f03b73ba0b3090b62e7e754eeb52107667e80d0dc",
+    "browser/04-release-notifications.json": "38c572d6ad1a63037f61a3d951b7eefceb679ef026841cbddf4b8d081da1239c",
+    "browser/04-release-notifications.log": "3aade8f2eae9ab31bbc405583d0b8aadb00995656f2d4918069f96b31d5f9c7e",
+    "browser/05-approval-notifications/result.json": "6472e93ea26e66128d68bc9e75afb0f0f48e2020c9980b9e43d2b36021290d8d",
+    "browser/05-approval-notifications/source-input.json": "1a3eba3326ae47787ffd6b4f03b73ba0b3090b62e7e754eeb52107667e80d0dc",
+    "browser/05-approval-notifications.json": "dd4f6e4bb3e9368706b062ddc6bf322b0368bc206cd13591e4b5403de88d75b3",
+    "browser/05-approval-notifications.log": "5d5123fa2215d7fa58f8f2491b47886643a6a5c4e9c91fd57defd76d3b6e90be",
+    "browser/06-release-approvals/source-input.json": "1a3eba3326ae47787ffd6b4f03b73ba0b3090b62e7e754eeb52107667e80d0dc",
+    "browser/06-release-approvals.json": "a3ea6ab3c8bd5d8cc06d751c147d4ca3c577ba55a409b53adc1213644fea4f13",
+    "browser/06-release-approvals.log": "3d408607c774efe41d9401b1039f991e359556d13473ae929ecb6c79dea328d5",
+    "browser/06a-fixture-diagnosis.log": "d4dd7af7fb0466a5fd9261d736eb71bc9e6c1cc3bc55de6a5f7357b66b0f6bba",
+    "browser/07-release-approvals/source-input.json": "65bc5cf814d937d35c18eb670a300a5b5fc36e18bcc4fe82edfccc9042b4fa74",
+    "browser/07-release-approvals.json": "3e08b57268794e0cddc0fdc5e4e6e76de520bffc421bad7140487b158e0f96b7",
+    "browser/07-release-approvals.log": "2a1e260bf74445cadff2f9d602de4ef99340db7139b2225c9e96adf848c6ea1e",
+    "web/00-pre-resolution-conflicts.log": "0f07ba1483dcacde42e6e84317c4b7f09772f33a8e80c7544eb1521e936b20a9",
+    "web/01-affected-tests-first.log": "009bcbb51de81600ceeae2f42fd1f927a44de9d1ba5eae637483bac9f2ed4141",
+    "web/02-affected-tests-green.log": "c30e282fc794188b91228ed4f613330cd406384b4bd55d4bdf28bd986456fca7",
+    "web/02-typecheck-first.log": "982c4c073b47f111886231b1608de66a7915c5d36095dd851ee0a1f8729d2268",
+    "web/03-build.log": "997598be08527669e2b3a782d3bc71efbfadc6f578c9e84c0589a8fca2a18f4c",
+    "web/04-e2e-syntax.log": "7dd6e21094e33173dadc759b57fc9f54df3e04ff3a314705cb0b9f55f7fbaa00",
+    "web/05-source-sha256-before-script-adapters.txt": "d2b2c5bc69ee54bd03eaf569fd57b7f21b5570f6c507a4acf488e8ac5f523656",
+    "web/06-log-sha256.txt": "32a873f534983713fd493930df4a1eda6d58dcdf413681595b805b3b1d337b64",
+    "web/07-e2e-syntax-after-fixture-adapters.log": "15bfb524f81b64166909288629a2033d531d917ffa10ffad85bef9414d9f82d4",
+    "web/08-source-sha256.txt": "0c6dac6eb0313576c1303d89c2a7afd16d9a6e828f5c14d29c8d27928c464730",
+    "web/README.md": "14ca6d108c9e829350a12068ffcb07905a650ac80e8471bcf5f01a9e71e3666a",
+    "browser/effective-results.json": "c26ef6fcbb75dd221af867c7ea2e5097100da555218c5d4ce500964372cd298c"
+  },
+  "remaining_artifact_boundary": "Final top-level README/source/evidence index is to be sealed by root; all six browser raw outcomes and current final input were directly verified.",
+  "conclusion": {
+    "written_standards_findings": 0,
+    "subjective_smell_findings": 0,
+    "bounded_merge_review": "PASS"
+  }
+}

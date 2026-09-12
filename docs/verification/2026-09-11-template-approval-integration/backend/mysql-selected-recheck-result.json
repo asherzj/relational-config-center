@@ -1,0 +1,73 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-tags",
+    "integration",
+    "-run",
+    "^(TestApprovalRoleMembershipPersistsWithoutGrantingAccountRoles|TestReleaseSubmitRequiresIndependentApprover|TestTableApprovalPartialProgressAndFinalApproval|TestTableApprovalSnapshotMembershipFallbackAndHistory|TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit|TestTableApprovalQualificationChangesSerializeWithDecisions|TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable|TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay|TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure|TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin|TestTableReleaseTemplateHTTPCurrentAuthorizationAndRequiredRequestIdentity|TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency|TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost|TestBusinessAPIsRequireSessionAndCSRF|TestConcurrentAccountsOwnTheirBusinessChanges|TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory|TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish|TestAccountControlTablesCannotBeDiscoveredOrManaged|TestReleaseHistorySurvivesExecutableRestartAndExternalChanges)$",
+    "-count=1",
+    "-parallel=1",
+    "-p=1",
+    "-timeout=20m",
+    "-json",
+    "./cmd/admin"
+  ],
+  "environment": {
+    "GOCACHE": "/private/tmp/rcc-go-cache",
+    "DOCKER_HOST": "unix:///Users/asher/.colima/default/docker.sock",
+    "TESTCONTAINERS_RYUK_DISABLED": "true"
+  },
+  "started_at": "2026-09-11T00:21:58.052301+00:00",
+  "elapsed_seconds": 186.99,
+  "exit_code": 1,
+  "expected_tests": [
+    "TestApprovalRoleMembershipPersistsWithoutGrantingAccountRoles",
+    "TestReleaseSubmitRequiresIndependentApprover",
+    "TestTableApprovalPartialProgressAndFinalApproval",
+    "TestTableApprovalSnapshotMembershipFallbackAndHistory",
+    "TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit",
+    "TestTableApprovalQualificationChangesSerializeWithDecisions",
+    "TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable",
+    "TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay",
+    "TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure",
+    "TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin",
+    "TestTableReleaseTemplateHTTPCurrentAuthorizationAndRequiredRequestIdentity",
+    "TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency",
+    "TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost",
+    "TestBusinessAPIsRequireSessionAndCSRF",
+    "TestConcurrentAccountsOwnTheirBusinessChanges",
+    "TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory",
+    "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish",
+    "TestAccountControlTablesCannotBeDiscoveredOrManaged",
+    "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges"
+  ],
+  "passed_top_level": [
+    "TestApprovalRoleMembershipPersistsWithoutGrantingAccountRoles",
+    "TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost",
+    "TestBusinessAPIsRequireSessionAndCSRF",
+    "TestConcurrentAccountsOwnTheirBusinessChanges",
+    "TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory",
+    "TestAccountControlTablesCannotBeDiscoveredOrManaged",
+    "TestReleaseSubmitRequiresIndependentApprover",
+    "TestTableApprovalPartialProgressAndFinalApproval",
+    "TestTableApprovalSnapshotMembershipFallbackAndHistory",
+    "TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit",
+    "TestTableApprovalQualificationChangesSerializeWithDecisions",
+    "TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable",
+    "TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay",
+    "TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure",
+    "TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin",
+    "TestTableReleaseTemplateHTTPCurrentAuthorizationAndRequiredRequestIdentity",
+    "TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency"
+  ],
+  "missing_expected": [
+    "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges",
+    "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish"
+  ],
+  "failed_events": [
+    "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish",
+    "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges",
+    "github.com/asherzj/relational-config-center/admin/cmd/admin"
+  ]
+}

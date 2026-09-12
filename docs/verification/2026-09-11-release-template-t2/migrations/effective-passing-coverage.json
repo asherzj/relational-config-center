@@ -1,0 +1,13 @@
+{
+  "TestTableReleaseSchemaMigratesExistingTablesAndPreservesSelections": "07-association-schema-full.log",
+  "TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly": "07-association-schema-full.log",
+  "TestTableReleaseSchemaDoesNotRestoreDisabledOrDeletedStandardDefaults": "07-association-schema-full.log",
+  "TestTableReleaseSchemaRecoveryKeepsExistingSelections": "07-association-schema-full.log",
+  "TestAccountUpgradeFromLegacyMatchesFreshSchema": "09-prior-callers-green.log",
+  "TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory": "09-prior-callers-green.log",
+  "TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly": "09-prior-callers-green.log",
+  "TestSchemaMigrationInitializesEmptyDatabase": "10-current-next-recovery.log",
+  "TestSchemaMigrationPartialDDLRequiresExplicitRecovery": "10-current-next-recovery.log",
+  "TestSchemaMigrationUpgradesToNextRelease": "10-current-next-recovery.log",
+  "TestSchemaMigrationCommittedVersionNeedsConfirmedRecovery": "10-current-next-recovery.log"
+}

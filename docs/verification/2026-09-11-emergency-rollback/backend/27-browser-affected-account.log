@@ -1,0 +1,57 @@
+=== RUN   TestAccountBrowserSystemPath
+2026/09/11 17:02:23 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 5ec061c4cb661cd57f74447e6268d29bfa2b14ac7fd0d95d94a2d5ef1633373b
+  Test ProcessID: a4aa732b-80fd-4ece-bb21-9f2a423b118b
+2026/09/11 17:02:23 🐳 Creating container for image mysql:8.4
+2026/09/11 17:02:23 ✅ Container created: f57500d2f777
+2026/09/11 17:02:23 🐳 Starting container: f57500d2f777
+2026/09/11 17:02:23 ✅ Container started: f57500d2f777
+2026/09/11 17:02:23 ⏳ Waiting for container id f57500d2f777 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 17:02:30 🔔 Container is ready: f57500d2f777
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:03:01.866Z","creator":"1eff2fab-e4f9-493f-b025-d08cce2307ed","enabled":true,"modifier":"1eff2fab-e4f9-493f-b025-d08cce2307ed","table_name":"stage1_rollback_chromium_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:03:01.866Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:03:01.876Z","creator":"1eff2fab-e4f9-493f-b025-d08cce2307ed","enabled":true,"modifier":"1eff2fab-e4f9-493f-b025-d08cce2307ed","table_name":"stage1_rollback_chromium_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:03:01.876Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:03:01.886Z","creator":"1eff2fab-e4f9-493f-b025-d08cce2307ed","enabled":true,"modifier":"1eff2fab-e4f9-493f-b025-d08cce2307ed","table_name":"stage1_rollback_firefox_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:03:01.886Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:03:01.894Z","creator":"1eff2fab-e4f9-493f-b025-d08cce2307ed","enabled":true,"modifier":"1eff2fab-e4f9-493f-b025-d08cce2307ed","table_name":"stage1_rollback_firefox_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:03:01.894Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:03:01.903Z","creator":"1eff2fab-e4f9-493f-b025-d08cce2307ed","enabled":true,"modifier":"1eff2fab-e4f9-493f-b025-d08cce2307ed","table_name":"stage1_rollback_webkit_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:03:01.903Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:03:01.912Z","creator":"1eff2fab-e4f9-493f-b025-d08cce2307ed","enabled":true,"modifier":"1eff2fab-e4f9-493f-b025-d08cce2307ed","table_name":"stage1_rollback_webkit_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:03:01.912Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:03:01.922Z","creator":"1eff2fab-e4f9-493f-b025-d08cce2307ed","enabled":true,"modifier":"1eff2fab-e4f9-493f-b025-d08cce2307ed","table_name":"field_display_browser_items","template_code":"default_emergency_v1","template_enabled":true,"template_name":"默认应急发布","type":"EMERGENCY","updated_at":"2026-09-11T09:03:01.922Z","version":"1"}
+    account_browser_integration_test.go:119: history fixture association: {"created_at":"2026-09-11T09:03:01.932Z","creator":"1eff2fab-e4f9-493f-b025-d08cce2307ed","enabled":true,"modifier":"1eff2fab-e4f9-493f-b025-d08cce2307ed","table_name":"field_display_browser_items","template_code":"default_standard_v1","template_enabled":true,"template_name":"默认常规发布","type":"STANDARD","updated_at":"2026-09-11T09:03:01.932Z","version":"1"}
+    account_browser_integration_test.go:129: late browser fixture readiness: status=200 missing emergency associations= response={"status":"ready"}
+=== RUN   TestAccountBrowserSystemPath/release-rollbacks.cjs
+    account_browser_integration_test.go:147: authenticated management acceptance release-rollbacks.cjs: exit status 1 AssertionError [ERR_ASSERTION]: PUT /api/v1/table-policies/stage1_rollback_chromium_items/release-templates/STANDARD: {"error":{"code":"table_release_template_conflict","message":"association has changed; review the latest version","request_id":"rcc-c4e971fe634f48c3b7fbcc479a93ef16"}}
+        
+        409 !== 200
+        
+            at api (/private/tmp/rcc-issue-105-emergency-rollback/web/e2e/release-rollbacks.cjs:30:12)
+            at async /private/tmp/rcc-issue-105-emergency-rollback/web/e2e/release-rollbacks.cjs:68:5 {
+          generatedMessage: false,
+          code: 'ERR_ASSERTION',
+          actual: 409,
+          expected: 200,
+          operator: 'strictEqual',
+          diff: 'simple'
+        }
+=== RUN   TestAccountBrowserSystemPath/release-rollback-reason.cjs
+    account_browser_integration_test.go:149: release-rollback-reason.cjs: PASS applicant, forward publisher and unrelated viewer have no rollback reason edit entry
+        PASS recorded rollback executor keeps the optional editor as VIEWER and saves through the keyboard at 390px
+        PASS administrator correction preserves input after a lost response and manually replays the same key and body with two actor-bound revisions
+        {"checks":["applicant, forward publisher and unrelated viewer have no rollback reason edit entry","recorded rollback executor keeps the optional editor as VIEWER and saves through the keyboard at 390px","administrator correction preserves input after a lost response and manually replays the same key and body with two actor-bound revisions"]}
+=== NAME  TestAccountBrowserSystemPath
+    account_browser_integration_test.go:165: browser → Vite same-origin proxy → Admin → MySQL: record version conflict preserves input, explicit latest read and baseline rebuild, registration defaults VIEWER, maintenance ADMIN bootstrap, UI combination grant, 390px role catalog and drawer, role history with permanent actor, original member session refresh, refresh, reopen, dirty navigation protection, same-account Change Set recovery after session loss, hidden drawer keyboard isolation, draft submit independent approval and publisher execution, unknown execute result reload and original-key recovery, final row defaults and permanent actor fields, refresh notification remains NOT_CONNECTED, no direct record write request, HTTP Cookie, storage/URL secrecy, logout rejection; creator/modifier match current Account ID
+2026/09/11 17:03:09 🐳 Stopping container: f57500d2f777
+2026/09/11 17:03:10 ✅ Container stopped: f57500d2f777
+2026/09/11 17:03:10 🐳 Terminating container: f57500d2f777
+2026/09/11 17:03:10 🚫 Container terminated: f57500d2f777
+--- FAIL: TestAccountBrowserSystemPath (46.62s)
+    --- FAIL: TestAccountBrowserSystemPath/release-rollbacks.cjs (1.17s)
+    --- PASS: TestAccountBrowserSystemPath/release-rollback-reason.cjs (6.00s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	48.020s
+FAIL

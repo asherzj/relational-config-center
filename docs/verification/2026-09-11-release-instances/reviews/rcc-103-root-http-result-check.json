@@ -1,0 +1,43 @@
+{
+  "15": {
+    "pass": [
+      "TestMultitableDerivedDraftRequiresExactDetailIdentity",
+      "TestMultitableCopyCompetesForEveryTargetAndLinksBothOrders",
+      "TestDraftIncrementalEditsReplaceTargetsAtomically",
+      "TestDraftTargetReplacementRollsBackOnPersistenceFailure",
+      "TestDraftSubmitRejectsChangedTargetIdentity",
+      "TestConfirmedReleaseFailureHistoryPreservesOriginalRetry",
+      "TestReleaseFlowCurrentAuthorizationAfterWaitingForMaintenance",
+      "TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots",
+      "TestReleaseFlowStorageFailuresKeepDraftAndOriginalResultAtomic",
+      "TestReleaseFlowAC009PersistsIndependentTablesBeforeFirstRead",
+      "TestReleaseFlowAC010MissingConfigurationRequiresExplicitSave",
+      "TestReleaseFlowAC013DerivedDraftUsesCurrentConfiguration",
+      "TestReleaseFlowAC014SeparatesInstancesFromSubmissionApprovals",
+      "TestReleaseFlowAC011DraftEditsPreserveAndReplaceOnlyParticipatingTables",
+      "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges",
+      "TestMultitablePublicationPreservesGlobalOrderAndOriginalResults",
+      "TestReleaseHeaderAndDetailPagesRequireOneWholeOrderVersion",
+      "TestPagedExecutionResultsStayOnOriginalDetailsAndCurrentOrder",
+      "TestReleaseSubmitRequiresIndependentApprover",
+      "TestTableApprovalPartialProgressAndFinalApproval",
+      "TestTableApprovalSnapshotMembershipFallbackAndHistory",
+      "TestTableApprovalScopeConcurrencyAndRejection",
+      "TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit",
+      "TestTableApprovalQualificationChangesSerializeWithDecisions"
+    ],
+    "fail": [
+      "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish",
+      "TestMultitableReprepareTransfersChangedTargetsAtomically"
+    ],
+    "exit": "1"
+  },
+  "18": {
+    "pass": [
+      "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish",
+      "TestMultitableReprepareTransfersChangedTargetsAtomically"
+    ],
+    "fail": [],
+    "exit": "0"
+  }
+}

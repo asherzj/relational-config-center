@@ -1,6 +1,5 @@
 const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
 const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
-const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
 // Real browser -> production Web proxy -> Cookie-authenticated Admin -> disposable MySQL 8.4.
 // RCC_E2E_ENGINE chooses one Playwright engine; the runner records each separately.
 const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
@@ -89,8 +88,12 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await page.goto(`${base}${pathname}`);
   }
   async function managed(viewport) {
-    await open('/configuration/managed-data', viewport);
-    await page.getByRole('combobox', { name: 'Managed Table', exact: true }).selectOption(table);
+    // Start on this suite's fixture instead of briefly loading the first table.
+    // The supported deep link gives the initial editor and reads one table identity.
+    await open(`/configuration/managed-data?table_name=${encodeURIComponent(table)}`, viewport);
+    const selectedTable = page.getByRole('combobox', { name: 'Managed Table', exact: true });
+    await selectedTable.waitFor();
+    assert.equal(await selectedTable.inputValue(), table);
     await button('新增记录').waitFor();
   }
   async function include(field, value) {
@@ -206,6 +209,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     // Narrow drawer, raw CR boundary and a real MySQL validation failure.
     await managed({ width: 320, height: 568 });
     await button('新增记录').click();
+    await page.getByRole('dialog', { name: `新增 ${table} 记录`, exact: true }).waitFor();
     await include('name', `stage5_${engineName}_invalid`);
     await include('state', 'invalid-state');
     await include('note');
@@ -314,10 +318,13 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     const created = await draftResponse;
     assert.equal(created.status(), 201);
     const failureBody = created.request().postDataJSON();
+    assert.equal(failureBody.items[0].table_name, table);
     assert.equal(failureBody.items[0].content.note, rawCR);
     await page.waitForURL('**/configuration/release-orders/*');
     let invalidOrder = await (await authenticatedRequest(context, base, new URL(page.url()).pathname.replace('/configuration', '/api/v1'))).json();
     invalidOrder = await releaseWrite(context, `/api/v1/release-orders/${invalidOrder.id}/submit`, { expected_version: invalidOrder.version });
+    assert.deepEqual(invalidOrder.table_names, [table]);
+    assert.equal(invalidOrder.applicant_id, account.accountID);
     invalidOrder = await releaseWrite(approvalContext, `/api/v1/release-orders/${invalidOrder.id}/approve`, await fixtureApprovalInput(approvalContext, base, invalidOrder.id, { expected_version: invalidOrder.version, reason: 'Independent accessibility validation review' }));
     assert.equal(invalidOrder.history.find((event) => event.action === 'APPROVE')?.actor_id, approverAccount.accountID);
     const rejected = await releaseWrite(context, `/api/v1/release-orders/${invalidOrder.id}/execute`, { expected_version: invalidOrder.version }, 422);
@@ -364,6 +371,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     // API fault injection happens after the release draft is durably created.
     await managed({ width: 390, height: 640 });
     await button('新增记录').click();
+    await page.getByRole('dialog', { name: `新增 ${table} 记录`, exact: true }).waitFor();
     const unknownName = `stage5_${engineName}_unknown`;
     cleanupNames.add(unknownName);
     await include('name', unknownName);
@@ -388,13 +396,23 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await page.unroute(`**${writePath}`);
     page.once('dialog', dialog => dialog.accept());
     await page.reload();
-    await repeatDraftSave(page);
+    // Continue through the restored mobile workspace without a second document
+    // navigation interrupting its initial session and field-configuration reads.
+    await page.getByRole('combobox', { name: 'Managed Table', exact: true }).waitFor();
+    await button('打开导航').click();
+    await page.getByRole('link', { name: '发布单', exact: true }).click();
+    await page.getByRole('alertdialog', { name: '放弃未保存的修改？', exact: true }).waitFor();
+    await button('放弃修改并离开').click();
+    await button('新建草稿').click();
+    await button('确认并保存草稿').click();
     await page.waitForURL('**/configuration/release-orders/*');
     const draftWrites = requests.slice(unknownRequestStart).filter((entry) => entry.method === 'POST' && entry.path === writePath);
     assert.equal(draftWrites.length, 2);
     assert.deepEqual(draftWrites[0], draftWrites[1], 'recovery must replay the original release body and idempotency key');
     const orderID = new URL(page.url()).pathname.split('/').pop();
     const recoveredDraft = await (await authenticatedRequest(context, base, `/api/v1/release-orders/${orderID}`)).json();
+    assert.deepEqual(recoveredDraft.table_names, [table]);
+    assert.equal(recoveredDraft.applicant_id, account.accountID);
     const published = await publishRelease(recoveredDraft);
     assert.equal(published.state, 'SUCCEEDED');
     assert.equal(sql(`SELECT COUNT(*) FROM ${table} WHERE name=${literal(unknownName)};`), '1');

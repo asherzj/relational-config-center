@@ -64,6 +64,7 @@ it("从后续页进入详情，加载与失败期间均能返回原视图和筛�
 });
 
 const summary = {
+  release_type: "STANDARD", emergency_reason: "", table_flows: [], missing_flow_tables: [],
   notification: { sequence: "0", unread: false, pending: false },
   id: "a".repeat(32), title: "运营与财务共同核对的多表申请", table_names: ["items", "prices"],
   applicant_id: "applicant-permanent-id", state: "PENDING_APPROVAL", version: "2",

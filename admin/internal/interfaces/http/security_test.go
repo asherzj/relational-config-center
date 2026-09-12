@@ -161,13 +161,12 @@ func TestAPIMapsTimeoutUnavailableAndUnclassifiedErrorsSafely(t *testing.T) {
 		{name: "unclassified internal", err: errors.New("driver detail secret"), status: http.StatusInternalServerError, code: "internal_error"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			handler := newPolicyHTTPHandlerWithExecutors(t, httpinterface.RouterOptions{AccessLog: io.Discard}, errorQueryExecutor{err: test.err})
-			if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies", validPolicyPayload("managed_alpha")); response.Code != http.StatusCreated {
-				t.Fatalf("create Policy: HTTP %d %s", response.Code, response.Body.String())
-			}
-			if response := performRequest(handler, http.MethodPost, "/api/v1/table-policies/managed_alpha/enable", ""); response.Code != http.StatusOK {
-				t.Fatalf("enable Policy: HTTP %d %s", response.Code, response.Body.String())
-			}
+			// This in-memory query adapter does not implement management transactions.
+			// Supply its explicit read fixture; the authenticated HTTP query still
+			// exercises each error mapping and the infrastructure-detail redaction.
+			handler := newPolicyHTTPHandlerWithExecutors(t, httpinterface.RouterOptions{AccessLog: io.Discard}, errorQueryExecutor{err: test.err}, domain.TablePolicy{
+				TableName: "managed_alpha", QueryPolicyCode: "test_page_query_v1", MutationPolicyCode: "test_mutation_v1", Enabled: true, Version: 1,
+			})
 
 			response := performRequest(handler, http.MethodPost, "/api/v1/tables/managed_alpha/query", `{}`)
 			assertSafeErrorEnvelope(t, response, test.status, test.code)

@@ -55,3 +55,13 @@ INSERT INTO `rcc_table_policies` (
   'managed_alpha', 'discovery_query_v1', 'discovery_mutation_v1', 1,
   'integration-test', 'integration-test'
 );
+
+-- Explicit fixture associations; reruns preserve administrator choices.
+INSERT INTO rcc_table_release_templates(table_policy_id,release_type,template_id,enabled,version,creator,modifier)
+SELECT p.id,t.release_type,t.id,1,1,'integration-test','integration-test'
+FROM rcc_table_policies p JOIN rcc_release_templates t
+  ON (t.code='default_standard_v1' AND t.release_type='STANDARD')
+  OR (t.code='default_emergency_v1' AND t.release_type='EMERGENCY')
+WHERE p.table_name='managed_alpha' AND t.enabled=1 AND NOT EXISTS (
+  SELECT 1 FROM rcc_table_release_templates a WHERE a.table_policy_id=p.id AND a.release_type=t.release_type
+);

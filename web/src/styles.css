@@ -160,6 +160,14 @@
 .policy-table td > small { display: block; max-width: 260px; color: var(--muted-foreground); font-size: 12px; line-height: 1.5; }
 .policy-table .unsupported-copy { margin-top: 4px; color: var(--warning); }
 .mutation-policy-table { min-width: 940px; }
+.release-template-table { min-width: 900px; }
+.template-node-summary { display: flex; flex-wrap: wrap; gap: 6px; }
+.template-node-summary span { padding: 3px 8px; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); font-size: 12px; }
+.template-node-list { display: grid; gap: 12px; }
+.template-node { padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); }
+.template-node header { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.template-node-index { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); font-size: 12px; }
+.template-node header .badge { margin-left: auto; }
 .table-policy-table { min-width: 840px; }
 .capability { display: inline-flex; min-width: 36px; justify-content: center; padding: 2px 6px; border-radius: 5px; font-size: 12px; font-weight: 500; white-space: nowrap; }
 .capability-allowed { color: #276c53; background: #eaf4ed; }
@@ -629,18 +637,9 @@ input::placeholder, textarea::placeholder { color: var(--muted-foreground); opac
 .release-info > div { min-width: 0; }
 .release-info dt { margin-bottom: 8px; color: var(--muted-foreground); font-size: 12px; }
 .release-info dd { min-width: 0; margin: 0; }
-.release-progress { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; list-style: none; padding: 14px 20px; }
-.release-progress li { min-width: 0; }
-.release-step-heading { display: flex; align-items: center; gap: 8px; }
-.release-progress li:not(:last-child) .release-step-heading::after { content: ""; height: 1px; flex: 1; margin-left: 4px; background: var(--border); }
 .release-step-icon { display: flex; flex: 0 0 24px; align-items: center; justify-content: center; width: 24px; height: 24px; border: 1px solid var(--border); border-radius: 50%; color: var(--muted-foreground); font-size: 12px; }
-.release-step-detail { margin-left: 32px; overflow-wrap: anywhere; }
-.release-progress p { color: var(--muted-foreground); font-size: 12px; margin-top: 3px; }
-.release-step-meta { margin-top: 6px; font-size: 12px; }
-.release-progress .is-current .release-step-icon { color: var(--primary-foreground); background: var(--primary); border-color: var(--primary); }
-.release-progress .is-complete .release-step-icon { color: var(--success); background: var(--success-soft); border-color: var(--success); }
 .release-diff-item summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 8px; }
-@media (max-width: 620px) { .release-panel { padding: 16px; } .release-info { grid-template-columns: minmax(0,1fr); } .release-progress { grid-template-columns: repeat(2,minmax(0,1fr)); padding: 12px; gap: 12px; } .release-step-heading { flex-wrap: wrap; gap: 4px; } .release-step-heading strong { font-size: 13px; } .release-progress li:not(:last-child) .release-step-heading::after { margin-left: 0; } .release-progress li:nth-child(2) .release-step-heading::after { display: none; } .release-step-detail { margin-left: 0; } }
+@media (max-width: 620px) { .release-panel { padding: 16px; } .release-info { grid-template-columns: minmax(0,1fr); } }
 
 .release-diff-before { background: var(--danger-soft); }
 .release-diff-after { background: var(--success-soft); }

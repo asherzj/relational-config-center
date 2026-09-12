@@ -1,7 +1,8 @@
 import {useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {ApiError} from "../../api/client";
-import {loadReleaseForEdit,type ReleaseHeader,draftFromOrder,releaseDetailTables,incrementalDraft,rebaseDraftInput,releaseOrders,releaseRequests,releaseTitleError,type ReleaseOrder} from "../../api/release-orders";
+import {loadReleaseForEdit,type ReleaseHeader,draftFromOrder,releaseDetailTables,incrementalDraft,rebaseDraftInput,releaseOrders,releaseRequests,releaseTitleError,decodeReleaseRequest,type ReleaseOrder,type ReleaseType} from "../../api/release-orders";
+import {useToast} from "../../components/ui/Toast";
 import {Drawer} from "../../components/ui/Drawer";
 import {Button} from "../../components/ui/Button";
 import {Input} from "../../components/shadcn/input";
@@ -24,13 +25,16 @@ export function ReleaseDraftEditor({order,onClose}:{order:ReleaseHeader;onClose:
  return <LoadedReleaseDraftEditor order={input.data} current={order} onClose={onClose}/>;
 }
 function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;current:ReleaseHeader;onClose:()=>void}){
+ const {showToast}=useToast();
+ const write=useReleaseWrite(`edit:${order.id}`);
+ const retainedType=(()=>{try{const intent=write.storedRequest?decodeReleaseRequest(write.storedRequest):undefined;return intent&&(intent.action==="edit"||intent.action==="edit-details")?intent.input.release_type:undefined}catch{return undefined}})();
  const [baseline,setBaseline]=useState(order);
  const [title,setTitle]=useState(order.title);
+ const [releaseType,setReleaseType]=useState<ReleaseType>(retainedType??order.release_type);
  const [items,setItems]=useState(order.items);
  const [selected,setSelected]=useState(0);
  const [latest,setLatest]=useState<ReleaseOrder>();const [readError,setReadError]=useState<unknown>();const [reading,setReading]=useState(false);
  const [recordLatest,setRecordLatest]=useState<Awaited<ReturnType<typeof releaseOrders.preview>>>();
- const write=useReleaseWrite(`edit:${order.id}`);
  const [originalKey]=useState(write.storedRequest?.key);
  const hasRole=useAccountRole("EDITOR");
  const allowed=hasRole&&current.allowed_actions.includes("edit")&&current.state==="DRAFT";
@@ -45,7 +49,7 @@ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;cu
   const supplied=Object.hasOwn(item.content,field.name),value=item.content[field.name];
   return [field.name,{state:supplied?(value===null?"sql_null":"value"):"omitted",value:value??""}];
  }));
- const currentInput=()=>({...draftFromOrder({...baseline,items}),title});
+ const currentInput=()=>({...draftFromOrder({...baseline,items,release_type:releaseType}),title});
  const updateField=(name:string,value:FieldInput)=>{
   setItems(current=>current.map((entry,index)=>{
    if(index!==selected)return entry;
@@ -54,8 +58,8 @@ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;cu
   }));setRecordLatest(undefined);
  };
  const save=async()=>{
-  const saved=originalKey&&write.unresolved&&originalKey===write.storedRequest?.key?await write.retry():await write.send({...releaseRequests.edit(order.id,incrementalDraft(baseline,{...baseline,title,items})),label:`修改 ${order.id}`});
-  if(saved){protection.afterSave(onClose)}
+  const saved=originalKey&&write.unresolved&&originalKey===write.storedRequest?.key?await write.retry():await write.send({...releaseRequests.edit(order.id,incrementalDraft(baseline,{...baseline,title,items,release_type:releaseType})),label:`修改 ${order.id}`});
+  if(saved){showToast("草稿已保存");protection.afterSave(onClose)}
  };
  const inspect=async()=>{
   if(reading)return;setReading(true);setReadError(undefined);
@@ -68,7 +72,9 @@ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;cu
  return <Drawer open eyebrow="发布草稿" title="编辑多表草稿" onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>关闭</Button><Button variant="primary" disabled={write.blocked||(!allowed&&!canRepeat)||Boolean(titleError)||write.pending||reading||conflict||recordConflict} onClick={()=>void save()}>{write.pending?"正在保存…":"保存草稿修改"}</Button></>}>
  {!allowed&&<p role="alert">当前身份或发布单状态不允许编辑，已输入内容保留。</p>}
  <p>保存草稿即占用目标，直到移除最后一条引用或发布单结束。只提交本次明细变更，全部分页共用整单版本。</p>
+ {baseline.missing_flow_tables.length>0&&<p className="mt-3 text-warning">缺失常规流程：{baseline.missing_flow_tables.join("、")}。管理员修复配置后，可直接保存，无需修改内容；保存仅补齐缺失流程，已有实例保持不变。</p>}
  <div className="grid gap-2 my-5"><label htmlFor="release-order-title">发布单标题</label><Input id="release-order-title" value={title} required aria-invalid={Boolean(titleError)} aria-describedby={`release-order-title-count${titleError?" release-order-title-error":""}`} disabled={write.blocked||!allowed||write.pending||write.unresolved} onChange={event=>setTitle(event.target.value)}/><span id="release-order-title-count" className="text-xs text-muted-foreground">{Array.from(title).length} / 100 字符</span>{titleError&&<small id="release-order-title-error" className="field-error">{titleError}</small>}</div>
+ <div className="grid gap-2 my-5"><label htmlFor="release-order-type">发布方式</label><NativeSelect id="release-order-type" aria-label="发布方式" value={releaseType} disabled={write.blocked||!allowed||write.pending||write.unresolved} onChange={event=>setReleaseType(event.target.value as ReleaseType)}><option value="STANDARD">常规发布</option><option value="EMERGENCY">应急发布</option></NativeSelect><p className="text-xs text-muted-foreground">切换发布方式会为全部参与表重新保存对应流程实例。</p></div>
  <fieldset disabled={write.pending||write.unresolved}><ReleaseItemPager count={items.length} page={page} onPage={page=>setSelected(page*releasePageSize)} onLocate={setSelected} label="编辑明细"/></fieldset>
  <div className="flex flex-wrap items-end gap-3 my-5"><label>编辑明细<NativeSelect aria-label="编辑明细" value={selected} disabled={write.pending||write.unresolved} onChange={event=>setSelected(Number(event.target.value))}>{items.slice(page*releasePageSize,(page+1)*releasePageSize).map((entry,offset)=>{const index=page*releasePageSize+offset;return <option key={index} value={index}>明细 {index+1} · {entry.table_name} · {entry.operation} · {entry.id??"待生成 id"}</option>})}</NativeSelect></label><Button disabled={write.blocked||!allowed||items.length===0||write.pending||write.unresolved} onClick={()=>{setItems(current=>current.filter((_,index)=>index!==selected));setSelected(Math.max(0,selected-1));setRecordLatest(undefined)}}>移除此明细</Button><p>共 {items.length} 项。保存只提交本次修改、删除和排序。</p></div>
  <div className="flex gap-2"><Button disabled={!allowed||write.pending||write.unresolved||selected===0} onClick={()=>{setItems(current=>{const next=[...current];[next[selected-1],next[selected]]=[next[selected]!,next[selected-1]!];return next});setSelected(selected-1)}}>上移明细</Button><Button disabled={!allowed||write.pending||write.unresolved||selected>=items.length-1} onClick={()=>{setItems(current=>{const next=[...current];[next[selected],next[selected+1]]=[next[selected+1]!,next[selected]!];return next});setSelected(selected+1)}}>下移明细</Button></div>
@@ -81,7 +87,7 @@ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;cu
  {Boolean(write.error)&&<ErrorState error={write.error}/>}
  {write.error instanceof ApiError&&write.error.itemIndex!==undefined&&write.error.itemIndex<items.length&&<Button onClick={()=>setSelected((write.error as ApiError).itemIndex!)}>定位错误明细</Button>}
  {write.unresolved&&<p role="alert">原请求与全部输入已保留；再次保存将提交原请求。</p>}
- {conflict&&<section className="inline-alert"><p>{write.error instanceof ApiError&&write.error.code==="release_target_conflict"?"目标被另一张发布单占用。修改后的输入已保留，请核对当前草稿再重建保存。":"发布单已被其他窗口修改。你的输入已保留，请先查看最新发布单。"}</p><Button disabled={reading} onClick={()=>void inspect()}>查看最新发布单</Button>{latest&&<><p>最新发布单版本：{latest.version}，状态：{latest.state}</p><CurrentFieldDisplayProvider tableNames={releaseDetailTables(latest)}><ReleaseDiff order={latest}/></CurrentFieldDisplayProvider><Button disabled={!latest.allowed_actions.includes("edit")||latest.state!=="DRAFT"} onClick={()=>{const rebuilt=rebaseDraftInput(baseline,{...baseline,title,items},latest);setItems(rebuilt.items);setSelected(current=>Math.min(current,Math.max(0,rebuilt.items.length-1)));setTitle(rebuilt.title);setBaseline(latest);setLatest(undefined);write.confirmRebuild();write.clearError()}}>基于最新发布单重建</Button></>}</section>}
+ {conflict&&<section className="inline-alert"><p>{write.error instanceof ApiError&&write.error.code==="release_target_conflict"?"目标被另一张发布单占用。修改后的输入已保留，请核对当前草稿再重建保存。":"发布单已被其他窗口修改。你的输入已保留，请先查看最新发布单。"}</p><Button disabled={reading} onClick={()=>void inspect()}>查看最新发布单</Button>{latest&&<><p>最新发布单版本：{latest.version}，状态：{latest.state}</p><CurrentFieldDisplayProvider tableNames={releaseDetailTables(latest)}><ReleaseDiff order={latest}/></CurrentFieldDisplayProvider><Button disabled={!latest.allowed_actions.includes("edit")||latest.state!=="DRAFT"} onClick={()=>{const rebuilt=rebaseDraftInput(baseline,{...baseline,title,items,release_type:releaseType},latest);setItems(rebuilt.items);setSelected(current=>Math.min(current,Math.max(0,rebuilt.items.length-1)));setTitle(rebuilt.title);setReleaseType(rebuilt.release_type);setBaseline(latest);setLatest(undefined);write.confirmRebuild();write.clearError()}}>基于最新发布单重建</Button></>}</section>}
 
  {(recordConflict||item?.operation==="ADD")&&<section className="inline-alert"><p>{recordConflict?"配置记录基线已变化，输入保留。请核对最新配置后明确重建。":"更换新增 id 或记录基线变化时，先查看该目标的最新基线。"}</p><Button disabled={reading||write.pending||write.unresolved} onClick={()=>void inspectRecord()}>查看最新配置</Button>{recordLatest&&<><p>已读取服务器最新记录基线；此预览没有保存或执行任何变更。</p><CurrentFieldDisplayProvider tableNames={releaseDetailTables(recordLatest)}><ReleaseDiff order={{...baseline,items:recordLatest.items}}/></CurrentFieldDisplayProvider><Button disabled={write.pending||write.unresolved} onClick={()=>{
   setItems(recordLatest.items);setRecordLatest(undefined);write.confirmRebuild();write.clearError();

@@ -1,0 +1,6 @@
+
+> @relational-config-center/web@0.0.0 typecheck /private/tmp/rcc-issue-105-emergency-rollback/web
+> tsc --noEmit
+
+src/features/release-orders/ReleaseRequestReview.tsx(94,110): error TS2741: Property 'notification' is missing in type '{ id: string; title: string; table_names: string[]; release_type: "EMERGENCY" | "STANDARD"; emergency_reason: string; table_flows: { instance_id: string; table_name: string; release_type: "EMERGENCY" | "STANDARD"; ... 5 more ...; node_list: { ...; }[]; }[]; ... 16 more ...; items: { ...; }[]; }' but required in type '{ notification: { sequence: string; unread: boolean; pending: boolean; }; id: string; title: string; table_names: string[]; release_type: "EMERGENCY" | "STANDARD"; emergency_reason: string; table_flows: { ...; }[]; ... 15 more ...; history: { ...; }[]; }'.
+ ELIFECYCLE  Command failed with exit code 1.

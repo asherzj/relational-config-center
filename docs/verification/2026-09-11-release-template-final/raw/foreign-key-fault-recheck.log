@@ -1,0 +1,79 @@
+=== RUN   TestAccountMaintenanceIndependentConnectionAndAtomicFailures
+2026/09/11 17:45:19 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: e7f0f4ec64e7d615d1fb94df87ee7b317493a0031ee31ee86d27f41ddca3b5d4
+  Test ProcessID: dfc52902-21cc-4913-ad96-0cfd4b9507a9
+2026/09/11 17:45:19 🐳 Creating container for image mysql:8.4
+2026/09/11 17:45:20 ✅ Container created: 1b91b4ce07ad
+2026/09/11 17:45:20 🐳 Starting container: 1b91b4ce07ad
+2026/09/11 17:45:20 ✅ Container started: 1b91b4ce07ad
+2026/09/11 17:45:20 ⏳ Waiting for container id 1b91b4ce07ad image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 17:45:27 🔔 Container is ready: 1b91b4ce07ad
+{"request_id":"rcc-c12fee81b416ec2f76a7d8d6349c38f1","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-e5576b62a7ffd88b390782f131be2e07","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":46}
+{"request_id":"rcc-2b4066bdf39178270bae7ab32f83bb0f","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-b56683aeae69b5ffe7df8f764bff53aa","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":54}
+{"request_id":"rcc-c299ea191337f1c5cb4f9c4522e87d3d","method":"GET","path":"/api/v1/auth/session","status":200,"duration_ms":1}
+{"request_id":"rcc-f896a49fca8cc49b43a516d3069cf68c","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-a4c42fd6496e442e7ea50e339eb01a43","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":53}
+{"request_id":"rcc-b86112ac95585648b89699d3f9a56a2a","method":"GET","path":"/api/v1/auth/session","status":200,"duration_ms":1}
+{"request_id":"rcc-b627cf03f517ab37f66e140dba424367","method":"GET","path":"/api/v1/auth/session","status":200,"duration_ms":1}
+2026/09/11 17:45:30 🐳 Stopping container: 1b91b4ce07ad
+2026/09/11 17:45:31 ✅ Container stopped: 1b91b4ce07ad
+2026/09/11 17:45:31 🐳 Terminating container: 1b91b4ce07ad
+2026/09/11 17:45:31 🚫 Container terminated: 1b91b4ce07ad
+--- PASS: TestAccountMaintenanceIndependentConnectionAndAtomicFailures (11.83s)
+=== RUN   TestStartupRequiresTheProtectedPolicyCatalog
+2026/09/11 17:45:31 🐳 Creating container for image mysql:8.4
+2026/09/11 17:45:31 ✅ Container created: d0c3e61037bc
+2026/09/11 17:45:31 🐳 Starting container: d0c3e61037bc
+2026/09/11 17:45:31 ✅ Container started: d0c3e61037bc
+2026/09/11 17:45:31 ⏳ Waiting for container id d0c3e61037bc image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 17:45:37 🔔 Container is ready: d0c3e61037bc
+2026/09/11 17:45:39 🐳 Stopping container: d0c3e61037bc
+2026/09/11 17:45:40 ✅ Container stopped: d0c3e61037bc
+2026/09/11 17:45:40 🐳 Terminating container: d0c3e61037bc
+2026/09/11 17:45:40 🚫 Container terminated: d0c3e61037bc
+--- PASS: TestStartupRequiresTheProtectedPolicyCatalog (8.34s)
+=== RUN   TestMutationAddFailsClosedWhenPolicyCatalogIsUnavailable
+2026/09/11 17:45:40 🐳 Creating container for image mysql:8.4
+2026/09/11 17:45:40 ✅ Container created: 2babe02ea4bd
+2026/09/11 17:45:40 🐳 Starting container: 2babe02ea4bd
+2026/09/11 17:45:40 ✅ Container started: 2babe02ea4bd
+2026/09/11 17:45:40 ⏳ Waiting for container id 2babe02ea4bd image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 17:45:46 🔔 Container is ready: 2babe02ea4bd
+{"request_id":"rcc-75b90d34966b8b74c212b761a4c6b5a6","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":6}
+{"request_id":"rcc-5c4ca5fdbde28abf637c2f5ee5d1c2a8","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":49}
+{"request_id":"rcc-84cf4c80e97d25bb0b83fbf48c13894b","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-2f1275769ab4419106b69157913e93a2","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":54}
+{"request_id":"rcc-78cabd9afb91a008c5e2c9cabb5696c0","method":"POST","path":"/api/v1/release-orders","status":503,"duration_ms":12}
+2026/09/11 17:45:47 🐳 Stopping container: 2babe02ea4bd
+2026/09/11 17:45:48 ✅ Container stopped: 2babe02ea4bd
+2026/09/11 17:45:48 🐳 Terminating container: 2babe02ea4bd
+2026/09/11 17:45:48 🚫 Container terminated: 2babe02ea4bd
+--- PASS: TestMutationAddFailsClosedWhenPolicyCatalogIsUnavailable (8.69s)
+=== RUN   TestQueryFailsClosedWhenPolicyCatalogIsUnavailable
+2026/09/11 17:45:48 🐳 Creating container for image mysql:8.4
+2026/09/11 17:45:48 ✅ Container created: f05d81d50339
+2026/09/11 17:45:48 🐳 Starting container: f05d81d50339
+2026/09/11 17:45:48 ✅ Container started: f05d81d50339
+2026/09/11 17:45:48 ⏳ Waiting for container id f05d81d50339 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 17:45:55 🔔 Container is ready: f05d81d50339
+{"request_id":"rcc-314f5e77936f24f80f87cb1ce13e2d97","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-177e520e8710e7642cbdebb52b326d57","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":39}
+{"request_id":"rcc-6e75aaf9c366afe086de14e73ff9a7de","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":4}
+{"request_id":"rcc-dee09fb5b47fdd935592b72705541ebc","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":49}
+{"request_id":"rcc-c6908b78e036c5a9afc84f65c24b1fcc","method":"POST","path":"/api/v1/tables/:table_name/query","status":503,"duration_ms":2}
+2026/09/11 17:45:56 🐳 Stopping container: f05d81d50339
+2026/09/11 17:45:57 ✅ Container stopped: f05d81d50339
+2026/09/11 17:45:57 🐳 Terminating container: f05d81d50339
+2026/09/11 17:45:57 🚫 Container terminated: f05d81d50339
+--- PASS: TestQueryFailsClosedWhenPolicyCatalogIsUnavailable (8.94s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	38.542s

@@ -1,0 +1,34 @@
+{
+  "engine": "firefox",
+  "control": {
+    "tag": "TEXTAREA",
+    "type": "textarea",
+    "maxLength": -1
+  },
+  "effective_ui_type": "textarea",
+  "expected": {
+    "characters": 3145728,
+    "bytes": 9437184,
+    "sha256": "64a3eb3c8ae9994b9148f5e367cd1f1819f2fc532c61a9500f1d7a408ac561c2"
+  },
+  "input": {
+    "characters": 3145728,
+    "bytes": 9437184,
+    "sha256": "64a3eb3c8ae9994b9148f5e367cd1f1819f2fc532c61a9500f1d7a408ac561c2"
+  },
+  "captured_body": {
+    "characters": 3145859,
+    "bytes": 9437329,
+    "sha256": "39e9b92c6cf6938b9468b7b9f0a42be972213d58db4b9b084c5b07df23144e9c"
+  },
+  "captured_payload": {
+    "characters": 3145728,
+    "bytes": 9437184,
+    "sha256": "64a3eb3c8ae9994b9148f5e367cd1f1819f2fc532c61a9500f1d7a408ac561c2"
+  },
+  "saved_payload": {
+    "characters": 3145728,
+    "bytes": 9437184,
+    "sha256": "64a3eb3c8ae9994b9148f5e367cd1f1819f2fc532c61a9500f1d7a408ac561c2"
+  }
+}

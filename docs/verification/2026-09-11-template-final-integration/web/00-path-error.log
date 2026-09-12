@@ -1,0 +1,7 @@
+command: script -q docs/verification/2026-09-11-template-final-integration/web/02-affected-tests.log /opt/homebrew/bin/pnpm exec vitest run src/api/release-orders.test.ts src/features/release-orders/ReleaseOrdersPage.test.tsx src/features/release-orders/ReleaseDiff.test.tsx src/features/release-orders/ReleasePerson.test.tsx src/features/release-orders/release-journal.test.ts src/features/notifications/ApprovalNotifications.test.tsx src/features/notifications/NotificationsPage.test.tsx src/test/UnsavedChanges.test.tsx
+working_directory: /private/tmp/rcc-template-notification-integration/web
+exit_code: 1
+output:
+script: docs/verification/2026-09-11-template-final-integration/web/02-affected-tests.log: No such file or directory
+
+The log path was mistakenly relative to web/. No test process started. The command was rerun with ../docs/verification/2026-09-11-template-final-integration/web/02-affected-tests.log.

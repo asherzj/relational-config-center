@@ -1,0 +1,43 @@
+diff --git a/admin/cmd/admin/release_history_delivery_integration_test.go b/admin/cmd/admin/release_history_delivery_integration_test.go
+index 7b9ce55..0a797e2 100644
+--- a/admin/cmd/admin/release_history_delivery_integration_test.go
++++ b/admin/cmd/admin/release_history_delivery_integration_test.go
+@@ -217,7 +217,37 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
+ 	if err := json.Unmarshal(request(admin, "GET", "/api/v1/table-policies/history_items", "", "", 200), &currentPolicy); err != nil {
+ 		t.Fatal(err)
+ 	}
+-	request(admin, "POST", "/api/v1/table-policies/history_items/disable", `{"expected_version":"`+currentPolicy.Version+`"}`, "history-table-disable", 200)
++	disabledPolicy := request(admin, "POST", "/api/v1/table-policies/history_items/disable", `{"expected_version":"`+currentPolicy.Version+`"}`, "history-table-disable", 200)
++	var requestActor, requestOperation, requestKey, requestDigest string
++	var requestResult []byte
++	if err := f.databaseOwner.QueryRow(`SELECT actor_id,operation,request_key,HEX(digest),result FROM rcc_release_requests WHERE actor_id=? AND operation='table-policy:disable' AND request_key='history-table-disable'`, admin.id).Scan(&requestActor, &requestOperation, &requestKey, &requestDigest, &requestResult); err != nil {
++		t.Fatal(err)
++	}
++	priorRequestRows := baselineRows(t, f.databaseOwner, fmt.Sprintf(`SELECT * FROM rcc_release_requests WHERE NOT(actor_id=0x%x AND operation='table-policy:disable' AND request_key='history-table-disable')`, []byte(admin.id)))
++	t.Logf("catalog request SQL delta: original_rows_unchanged=%t actor=%s operation=%s key=%s digest=%s stored_result=%s HTTP_response=%s", priorRequestRows == savedFacts["rcc_release_requests"], requestActor, requestOperation, requestKey, requestDigest, requestResult, disabledPolicy)
++	if priorRequestRows != savedFacts["rcc_release_requests"] {
++		t.Fatal("table-policy disable changed an existing request row or added another request")
++	}
++	var persistedPolicy domain.TablePolicy
++	var disableResponse struct {
++		TableName string `json:"table_name"`
++		Version   string `json:"version"`
++		Enabled   bool   `json:"enabled"`
++		Modifier  string `json:"modifier"`
++	}
++	if err := json.Unmarshal(requestResult, &persistedPolicy); err != nil {
++		t.Fatal(err)
++	}
++	if err := json.Unmarshal(disabledPolicy, &disableResponse); err != nil {
++		t.Fatal(err)
++	}
++	if requestActor != admin.id || requestOperation != "table-policy:disable" || requestKey != "history-table-disable" || persistedPolicy.TableName != "history_items" || persistedPolicy.Enabled || persistedPolicy.Version == 0 || persistedPolicy.Modifier != admin.id || disableResponse.TableName != persistedPolicy.TableName || disableResponse.Enabled != persistedPolicy.Enabled || disableResponse.Version != fmt.Sprint(persistedPolicy.Version) || disableResponse.Modifier != persistedPolicy.Modifier {
++		t.Fatal("the new catalog request does not belong to the successful disable response")
++	}
++	// This explicit catalog write appends its durable result to the shared request
++	// table. Every pre-existing row was compared above; restarts and reads must
++	// now preserve the complete set, including this one verified new result.
++	savedFacts["rcc_release_requests"] = baselineRows(t, f.databaseOwner, "SELECT * FROM rcc_release_requests")
+ 	deliveryExec(t, f.databaseOwner, `UPDATE rcc_mutation_policies SET name='维护后规则名称' WHERE code=?`, mutationCode)
+ 	deliveryExec(t, f.databaseOwner, `DROP TABLE history_items`)
+ 	// Explicit account maintenance may legitimately reconcile pending recipients.

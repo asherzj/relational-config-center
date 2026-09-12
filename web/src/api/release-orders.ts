@@ -5,10 +5,12 @@ import {ApiError,request} from "./client";
 
 const version=z.string().regex(/^(0|[1-9][0-9]*)$/);
 const content=z.record(z.string(),z.string().nullable());
+export const releaseTypeSchema=z.enum(["STANDARD","EMERGENCY"]);
+export type ReleaseType=z.infer<typeof releaseTypeSchema>;
 export const draftItemSchema=z.object({detail_id:z.string().optional(),table_name:z.string().min(1),operation:z.enum(["ADD","MODIFY","DELETE"]),id:z.string().nullable().optional(),expected_record_version:z.string().optional(),content});
 export type DraftItem=z.infer<typeof draftItemSchema>;
 export type DraftContentInput={items:DraftItem[]};
-export type DraftInput=DraftContentInput&{title:string;expected_version?:string};
+export type DraftInput=DraftContentInput&{title:string;expected_version?:string;release_type?:ReleaseType};
 export const defaultReleaseTitle=(table:string)=>Array.from(`${table} 配置变更`).slice(0,100).join("");
 export const releaseTitleError=(title:string)=>{
  if(!title.trim())return "发布单标题必填。";
@@ -27,18 +29,25 @@ const approvalSourceSchema=z.object({source:z.enum(["ROLE","ADMIN"]),roles:z.arr
 const tableApprovalSchema=z.object({table_name:z.string(),roles:z.array(approvalRoleIdentitySchema),state:z.enum(["PENDING","APPROVED","REJECTED"]),decision:approvalSourceSchema.extend({actor_id:z.string(),at:z.string(),reason:z.string()}).optional()});
 const approvalContextSchema=z.object({revision:z.string(),tables:z.array(z.object({table_name:z.string(),mode:z.enum(["ROLE","ADMIN","UNAVAILABLE","COMPLETED"]),reason:z.string(),can_approve:z.boolean()})),approvable_tables:z.array(z.string())});
 export type ApprovalContext=z.infer<typeof approvalContextSchema>;
-export const releaseSummarySchema=z.object({notification:approvalNotificationSchema,id:z.string(),title:z.string(),table_names:z.array(z.string()),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","APPROVED","SUCCEEDED","COMPLETED","REJECTED","CANCELLED","ROLLED_BACK"]),version,created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),approvals:z.array(tableApprovalSchema),approval_context:approvalContextSchema,item_count:z.number().int().min(0).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
-export const releaseHeaderSchema=releaseSummarySchema.extend({copied_from_id:z.string().optional(),frozen_digest:z.string().optional(),executions:z.array(executionSchema),history:z.array(z.object({action:z.string(),actor_id:z.string(),at:z.string(),version,reason:z.string(),related_order_id:z.string().optional(),execution_id:z.string().optional(),table_names:z.array(z.string()).optional(),approval_sources:z.array(approvalSourceSchema.extend({table_name:z.string()})).optional()}))});
+const releaseFlowNodeSchema=z.object({code:z.string(),type:z.enum(["APPROVAL","PUBLICATION","COMPLETION"]),name:z.string(),required_role:z.enum(["TABLE_APPROVER","PUBLISHER"]),state:z.enum(["PENDING","ACTIVE","COMPLETED","REJECTED","STOPPED"]),actor_id:z.string().optional(),at:z.string().optional()});
+const tableReleaseFlowSchema=z.object({instance_id:z.string(),table_name:z.string(),release_type:releaseTypeSchema,template_code:z.string(),template_name:z.string(),template_version:version,association_version:version,instantiated_at:z.string(),node_list:z.array(releaseFlowNodeSchema)});
+export type TableReleaseFlow=z.infer<typeof tableReleaseFlowSchema>;
+export const releaseSummarySchema=z.object({notification:approvalNotificationSchema,id:z.string(),title:z.string(),table_names:z.array(z.string()),release_type:releaseTypeSchema,emergency_reason:z.string(),table_flows:z.array(tableReleaseFlowSchema),missing_flow_tables:z.array(z.string()),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","PENDING_PUBLICATION","APPROVED","SUCCEEDED","COMPLETED","REJECTED","CANCELLED","ROLLED_BACK"]),version,created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),approvals:z.array(tableApprovalSchema),approval_context:approvalContextSchema,item_count:z.number().int().min(0).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
+export const releaseHeaderSchema=releaseSummarySchema.extend({rollback_table_flows:z.array(tableReleaseFlowSchema),copied_from_id:z.string().optional(),frozen_digest:z.string().optional(),executions:z.array(executionSchema),history:z.array(z.object({action:z.string(),actor_id:z.string(),at:z.string(),version,reason:z.string(),related_order_id:z.string().optional(),execution_id:z.string().optional(),table_names:z.array(z.string()).optional(),approval_sources:z.array(approvalSourceSchema.extend({table_name:z.string()})).optional()}))});
 export const releaseItemSchema=draftItemSchema.extend({detail_id:z.string(),id:z.string().nullable(),expected_record_version:z.string(),before:content.nullable(),fields:z.array(releaseFieldSchema),publication:publicationCommandSchema.optional(),rollback:publicationCommandSchema.optional()});
 export const releaseOrderSchema=releaseHeaderSchema.omit({notification:true}).extend({items:z.array(releaseItemSchema)});
 export type ReleaseHeader=z.infer<typeof releaseHeaderSchema>;
 export type ReleaseOrder=z.infer<typeof releaseOrderSchema>;
 export const releaseDetailPageSchema=z.object({order_id:z.string(),version,item_count:z.number().int().min(0).max(1000),offset:z.number().int().nonnegative(),next_offset:z.number().int().nonnegative().nullable(),items:z.array(releaseItemSchema).max(100)});
-export const quickRollbackPreviewSchema=z.object({order_id:z.string(),expected_version:version,preview_digest:z.string().regex(/^[a-f0-9]{64}$/),items:z.array(releaseItemSchema)});
+export const quickRollbackPreviewSchema=z.object({order_id:z.string(),expected_version:version,release_type:z.literal("EMERGENCY"),table_flows:z.array(tableReleaseFlowSchema),preview_digest:z.string().regex(/^[a-f0-9]{64}$/),items:z.array(releaseItemSchema)});
 export type QuickRollbackPreview=z.infer<typeof quickRollbackPreviewSchema>;
 export type ReleaseField=z.infer<typeof releaseFieldSchema>;
 export const releaseOrders={
- quickRollbackPreview:(id:string,expectedVersion:string)=>request(`/api/v1/release-orders/${encodeURIComponent(id)}/quick-rollback/preview`,{method:"POST",body:JSON.stringify({expected_version:expectedVersion}),schema:quickRollbackPreviewSchema}),
+ writeQuickRollbackPreview:async(path:string,method:string,body:string,key:string)=>{
+  const result=await request(path,{method,body,headers:{"Idempotency-Key":key},schema:quickRollbackPreviewSchema});
+  if(result.order_id!==decodeURIComponent(path.split("/")[4]??""))throw new ApiError("contract_mismatch","恢复预览与原发布单不一致。",200);
+  return result;
+ },
  list:(filters:Record<string,string>)=>request(`/api/v1/release-orders?${new URLSearchParams(filters)}`,{schema:z.object({orders:z.array(releaseSummarySchema),next_cursor:z.string()})}),
  preview:(input:DraftContentInput)=>request("/api/v1/release-orders/preview",{method:"POST",body:JSON.stringify(input),schema:z.object({items:releaseOrderSchema.shape.items})}),
  get:(id:string)=>request(`/api/v1/release-orders/${encodeURIComponent(id)}`,{schema:releaseHeaderSchema}),
@@ -58,32 +67,33 @@ export const releaseOrders={
  write:(path:string,method:string,body:string,key:string)=>request(path,{method,body,headers:{"Idempotency-Key":key},schema:releaseOrderSchema}),
 };
 export function draftFromOrder(order:ReleaseOrder):DraftInput{
- return {title:order.title,expected_version:order.version,items:order.items.map(item=>({detail_id:item.detail_id,table_name:item.table_name,operation:item.operation,...(item.operation!=="ADD"?{id:item.id}:{}),expected_record_version:item.expected_record_version,content:{...item.content}}))};
+ return {title:order.title,expected_version:order.version,release_type:order.release_type,items:order.items.map(item=>({detail_id:item.detail_id,table_name:item.table_name,operation:item.operation,...(item.operation!=="ADD"?{id:item.id}:{}),expected_record_version:item.expected_record_version,content:{...item.content}}))};
 }
 
 // Transport envelopes are serialized here once and retained unchanged for retries.
 export type ReleaseRequestEnvelope={path:string;method:"POST"|"PUT";body:string};
 const draftChangesSchema=z.object({upserts:z.array(draftItemSchema).optional(),delete_detail_ids:z.array(z.string()).optional(),detail_order:z.array(z.string()).optional()});
 export type DraftChanges=z.infer<typeof draftChangesSchema>;
-const incrementalDraftSchema=z.object({title:z.string(),expected_version:z.string(),changes:draftChangesSchema});
+const incrementalDraftSchema=z.object({title:z.string(),expected_version:z.string(),release_type:releaseTypeSchema.optional(),changes:draftChangesSchema});
 export type IncrementalDraftInput=z.infer<typeof incrementalDraftSchema>;
-const draftInputSchema=z.object({title:z.string(),items:z.array(draftItemSchema),expected_version:z.string().optional()});
+const draftInputSchema=z.object({title:z.string(),items:z.array(draftItemSchema),expected_version:z.string().optional(),release_type:releaseTypeSchema.optional()});
 const approvalInputSchema=z.object({expected_version:z.string(),reason:z.string(),confirmed_tables:z.array(z.string()),expected_approval_revision:z.string()});
 const cancelInputSchema=z.object({expected_version:z.string(),reason:z.string()});
 const quickRollbackInputSchema=z.object({expected_version:version,preview_digest:z.string().regex(/^[a-f0-9]{64}$/),reason:z.string()});
 const rollbackReasonInputSchema=z.object({reason:z.string()});
-const submitInputSchema=z.object({expected_version:z.string()});
+const submitInputSchema=z.object({expected_version:z.string(),emergency_reason:z.string().optional()});
 const copyInputSchema=z.object({expected_version:z.string(),confirmed:z.literal(true),items:z.array(draftItemSchema)});
 export type ReleaseStateAction="submit"|"approve"|"reject"|"cancel"|"execute"|"complete";
-export const releaseActionLabels={"quick-rollback":"快速回滚","edit-rollback-reason":"修改回滚原因","edit-details":"保存草稿修改",complete:"完结发布单",execute:"执行发布",submit:"提交审批",approve:"批准发布单",reject:"拒绝发布单",cancel:"取消发布单",copy:"复制新草稿",reprepare:"重新准备"};
-export const releaseActionRole=(action:string)=>action==="edit-rollback-reason"?"VIEWER" as const:action==="execute"||action==="complete"||action==="quick-rollback"?"PUBLISHER" as const:action==="approve"||action==="reject"?"VIEWER" as const:"EDITOR" as const;
+export const releaseActionLabels={"quick-rollback-preview":"保存恢复预览","quick-rollback":"快速回滚","edit-rollback-reason":"修改回滚原因","edit-details":"保存草稿修改",complete:"完结发布单",execute:"执行发布",submit:"提交审批",approve:"批准发布单",reject:"拒绝发布单",cancel:"取消发布单",copy:"复制新草稿",reprepare:"重新准备"};
+export const releaseActionRole=(action:string)=>action==="edit-rollback-reason"?"VIEWER" as const:action==="execute"||action==="complete"||(action==="quick-rollback"||action==="quick-rollback-preview")?"PUBLISHER" as const:action==="approve"||action==="reject"?"VIEWER" as const:"EDITOR" as const;
 
 export const releaseActionRequiresReason=(action:ReleaseStateAction)=>action!=="submit"&&action!=="execute"&&action!=="complete";
 
 export const releaseRequests={
+ quickRollbackPreview:(id:string,expectedVersion:string):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/quick-rollback/preview`,method:"POST",body:JSON.stringify({expected_version:expectedVersion})}),
  quickRollback:(id:string,expectedVersion:string,previewDigest:string,reason:string):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/quick-rollback`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,preview_digest:previewDigest,reason})}),
  rollbackReason:(id:string,reason:string):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/rollback-reason`,method:"POST",body:JSON.stringify({reason})}),
- action:(action:ReleaseStateAction,id:string,expectedVersion:string,reason="",approval?:ApprovalContext):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/${action}`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,...(releaseActionRequiresReason(action)?{reason}:{}),...((action==="approve"||action==="reject")?{confirmed_tables:approval?.approvable_tables??[],expected_approval_revision:approval?.revision??""}:{})})}),
+ action:(action:ReleaseStateAction,id:string,expectedVersion:string,reason="",approval?:ApprovalContext):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/${action}`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,...(action==="submit"&&reason?{emergency_reason:reason}:releaseActionRequiresReason(action)?{reason}:{}),...((action==="approve"||action==="reject")?{confirmed_tables:approval?.approvable_tables??[],expected_approval_revision:approval?.revision??""}:{})})}),
  copy:(id:string,expectedVersion:string,items:DraftItem[]):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/copy`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,confirmed:true,items})}),
  reprepare:(id:string,expectedVersion:string,items:DraftItem[]):ReleaseRequestEnvelope=>({path:`/api/v1/release-orders/${encodeURIComponent(id)}/reprepare`,method:"POST",body:JSON.stringify({expected_version:expectedVersion,confirmed:true,items})}),
  create:(input:DraftInput):ReleaseRequestEnvelope=>({path:"/api/v1/release-orders",method:"POST",body:JSON.stringify(input)}),
@@ -94,6 +104,7 @@ export function decodeReleaseRequest(value:ReleaseRequestEnvelope){
  const id=value.path.split("/")[4];
  const body:unknown=JSON.parse(value.body);
  const action=value.path.split("/")[5];
+ if(id&&action==="quick-rollback"&&value.path.endsWith("/preview"))return {action:"quick-rollback-preview" as const,id,input:submitInputSchema.parse(body)};
  if(id&&action==="quick-rollback")return {action:"quick-rollback" as const,id,input:quickRollbackInputSchema.parse(body)};
  if(id&&action==="rollback-reason")return {action:"edit-rollback-reason" as const,id,input:rollbackReasonInputSchema.parse(body)};
  if(id&&action==="complete")return {action:"complete" as const,id,input:submitInputSchema.parse(body)};
@@ -118,7 +129,7 @@ export function incrementalDraft(baseline:ReleaseOrder,edited:ReleaseOrder):Incr
  const changes:DraftChanges={upserts:next.filter(item=>JSON.stringify(item)!==JSON.stringify(old.get(item.detail_id))),delete_detail_ids:previous.filter(item=>!ids.has(item.detail_id)).map(item=>item.detail_id!)};
  const expectedOrder=previous.filter(item=>ids.has(item.detail_id)).map(item=>item.detail_id);
  if(JSON.stringify(expectedOrder)!==JSON.stringify(next.map(item=>item.detail_id)))changes.detail_order=next.map(item=>item.detail_id!);
- return {title:edited.title,expected_version:baseline.version,changes};
+ return {title:edited.title,expected_version:baseline.version,...(edited.release_type!==baseline.release_type?{release_type:edited.release_type}:{}),changes};
 }
 export function rebaseDraftInput(baseline:ReleaseOrder,edited:ReleaseOrder,latest:ReleaseOrder):ReleaseOrder {
  const changes=incrementalDraft(baseline,edited).changes,local=new Map(edited.items.map(item=>[item.detail_id,item]));
@@ -128,7 +139,7 @@ export function rebaseDraftInput(baseline:ReleaseOrder,edited:ReleaseOrder,lates
  // be rejected on save instead of silently dropping the user's input.
  for(const item of edited.items)if(changed.has(item.detail_id)&&!items.some(current=>current.detail_id===item.detail_id))items.push(item);
  if(changes.detail_order){const rank=new Map(changes.detail_order.map((id,index)=>[id,index]));items=[...items].sort((a,b)=>(rank.get(a.detail_id!)??Infinity)-(rank.get(b.detail_id!)??Infinity))}
- return {...latest,title:edited.title===baseline.title?latest.title:edited.title,items};
+ return {...latest,title:edited.title===baseline.title?latest.title:edited.title,release_type:edited.release_type===baseline.release_type?latest.release_type:edited.release_type,items};
 }
 
 // Only an explicit editing/copy action assembles all application details. Every

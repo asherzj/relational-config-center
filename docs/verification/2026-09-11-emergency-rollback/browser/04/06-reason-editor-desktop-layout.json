@@ -1,0 +1,183 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "document": 1440,
+  "dialogs": [
+    {
+      "label": "_r_1c_",
+      "left": 400,
+      "right": 1040,
+      "top": 339,
+      "bottom": 661
+    }
+  ],
+  "controls": [
+    {
+      "label": "刷新通知",
+      "left": 25,
+      "right": 73
+    },
+    {
+      "label": "本地账号入口",
+      "left": 12,
+      "right": 211
+    },
+    {
+      "label": "查看应急恢复验收applicant的账号信息",
+      "left": 300,
+      "right": 516.921875
+    },
+    {
+      "label": "复制发布单号",
+      "left": 529.71875,
+      "right": 563.71875
+    },
+    {
+      "label": "查看template.browser.admin的账号信息",
+      "left": 256,
+      "right": 487.734375
+    },
+    {
+      "label": "查看应急恢复验收publisher的账号信息",
+      "left": 844,
+      "right": 1061.578125
+    },
+    {
+      "label": "查看应急恢复验收applicant的账号信息",
+      "left": 309,
+      "right": 525.921875
+    },
+    {
+      "label": "查看template.browser.admin的账号信息",
+      "left": 589.5,
+      "right": 821.234375
+    },
+    {
+      "label": "查看应急恢复验收publisher的账号信息",
+      "left": 870,
+      "right": 1087.578125
+    },
+    {
+      "label": "查看应急恢复验收publisher的账号信息",
+      "left": 1150.5,
+      "right": 1368.078125
+    },
+    {
+      "label": "查看template.browser.admin的账号信息",
+      "left": 317,
+      "right": 548.734375
+    },
+    {
+      "label": "查看应急恢复验收publisher的账号信息",
+      "left": 691,
+      "right": 908.578125
+    },
+    {
+      "label": "查看template.browser.admin的账号信息",
+      "left": 317,
+      "right": 548.734375
+    },
+    {
+      "label": "查看应急恢复验收publisher的账号信息",
+      "left": 691,
+      "right": 908.578125
+    },
+    {
+      "label": "查看应急恢复验收publisher的账号信息",
+      "left": 317,
+      "right": 534.578125
+    },
+    {
+      "label": "查看应急恢复验收publisher的账号信息",
+      "left": 317,
+      "right": 534.578125
+    },
+    {
+      "label": "查看template.browser.admin的账号信息",
+      "left": 281,
+      "right": 512.734375
+    },
+    {
+      "label": "查看template.browser.admin的账号信息",
+      "left": 281,
+      "right": 512.734375
+    },
+    {
+      "label": "申请内容",
+      "left": 1083,
+      "right": 1171
+    },
+    {
+      "label": "实际发布结果",
+      "left": 1175,
+      "right": 1291
+    },
+    {
+      "label": "恢复结果",
+      "left": 1295,
+      "right": 1383
+    },
+    {
+      "label": "查看应急恢复验收publisher的账号信息",
+      "left": 345,
+      "right": 562.578125
+    },
+    {
+      "label": "补填回滚原因",
+      "left": 1265,
+      "right": 1383
+    },
+    {
+      "label": "关闭回滚原因编辑",
+      "left": 0,
+      "right": 1440
+    },
+    {
+      "label": "先恢复服务，再补充资金与渠道配置应急恢复原因；不追加人工完结。",
+      "left": 424,
+      "right": 1016
+    },
+    {
+      "label": "取消",
+      "left": 826,
+      "right": 888
+    },
+    {
+      "label": "保存回滚原因",
+      "left": 900,
+      "right": 1016
+    },
+    {
+      "label": "查看全部 6 条记录",
+      "left": 1236.65625,
+      "right": 1383
+    },
+    {
+      "label": "查看应急恢复验收publisher的账号信息",
+      "left": 281,
+      "right": 498.578125
+    },
+    {
+      "label": "查看应急恢复验收publisher的账号信息",
+      "left": 281,
+      "right": 498.578125
+    },
+    {
+      "label": "查看应急恢复验收publisher的账号信息",
+      "left": 281,
+      "right": 498.578125
+    },
+    {
+      "label": "查看template.browser.admin的账号信息",
+      "left": 281,
+      "right": 512.734375
+    },
+    {
+      "label": "查看应急恢复验收applicant的账号信息",
+      "left": 281,
+      "right": 497.921875
+    }
+  ]
+}

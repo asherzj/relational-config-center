@@ -1,0 +1,35 @@
+{
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "commands": {
+    "git rev-parse HEAD": {
+      "exit": 0,
+      "stdout": "0edb62afde567242e7c734d37d20b834aa0df983\n",
+      "stderr": ""
+    },
+    "go version": {
+      "exit": 0,
+      "stdout": "go version go1.27.0 darwin/arm64\n",
+      "stderr": ""
+    },
+    "node --version": {
+      "exit": 0,
+      "stdout": "v24.19.0\n",
+      "stderr": ""
+    },
+    "pnpm --version": {
+      "exit": 0,
+      "stdout": "10.28.2\n",
+      "stderr": ""
+    },
+    "git status --short": {
+      "exit": 0,
+      "stdout": " M README.md\n M admin/cmd/admin/account_maintenance_integration_test.go\n M admin/cmd/admin/business_auth_integration_test.go\n M admin/cmd/admin/discovery_integration_test.go\n M admin/cmd/admin/mutation_integration_test.go\n M admin/cmd/admin/policy_integration_test.go\n M admin/cmd/admin/query_integration_test.go\n M docs/admin-release-approvals.md\n M docs/admin-release-upgrade.md\n M docs/admin-table-release-templates.md\n M docs/adr/0019-require-release-orders-for-managed-record-changes.md\n M docs/adr/0020-reapprove-rollback-and-reject-stale-publications.md\n M docs/adr/0027-configure-release-workflows-with-stable-templates.md\n M docs/design-notes/release-detail-compact.md\n M docs/design-notes/release-template-ticket-plan.md\n M docs/schema-migrations.md\n M scripts/browser-acceptance.sh\n M web/DESIGN.md\n M web/e2e/accounts.mjs\n M web/e2e/complex-fields.cjs\n M web/e2e/operation-coverage.cjs\n M web/e2e/release-instances.cjs\n M web/e2e/release-rollback-flows.cjs\n M web/e2e/table-approvals.cjs\n M web/e2e/write-recovery.cjs\n M web/src/features/release-orders/ReleaseOrdersPage.test.tsx\n M web/src/features/release-orders/ReleaseOrdersPage.tsx\n D web/src/features/release-orders/ReleaseProgress.tsx\n M web/src/styles.css\n?? docs/verification/2026-09-11-release-template-final/\n?? web/e2e/prepare-release-fixtures.cjs\n?? web/e2e/release-template-fixture.cjs\n",
+      "stderr": ""
+    },
+    "git branch --show-current": {
+      "exit": 0,
+      "stdout": "codex/issue-106-release-template-final\n",
+      "stderr": ""
+    }
+  }
+}

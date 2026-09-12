@@ -1,0 +1,19 @@
+{
+  "checks": [
+    "data-page MODIFY creates a draft; detail link preselects its table and destination; two explicit row selections append DELETEs without touching data",
+    "detail editor removes a selected later item and edits a retained item; a new ADD appends to the same mixed draft",
+    "independent VIEWER table-role member approves all mixed items; EDITOR/PUBLISHER recovers a genuinely committed lost execute response after refresh with the original key and no duplicate rows/history",
+    "1000-item detail shows the complete count and paging reaches the actual final item on desktop and 390px mobile",
+    "UI submission, independent approval and execution publish all 1000 items; all actual IDs match real queried rows and result paging reaches item 1000 on desktop/mobile"
+  ],
+  "mixed_order_id": "61ad511364fba172aeae1900dd52e233",
+  "large_order_id": "b8b21cdee00a19fcc68d432e44a382c3",
+  "mixed_items": 3,
+  "published_items": 1000,
+  "unique_actual_ids": 1000,
+  "first_id": "5",
+  "last_id": "1004",
+  "actual_table_rows": 1003,
+  "original_key_recovery_equal": true,
+  "browser_errors": []
+}

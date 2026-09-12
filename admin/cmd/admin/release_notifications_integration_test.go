@@ -90,7 +90,7 @@ func TestReleaseNotificationsTerminalResultsPreserveOwnUnread(t *testing.T) {
 			body := `{"expected_version":"4"}`
 			if action == "quick-rollback" {
 				preview := readQuickPreview(t, app, reviewer, path, "4")
-				body = quickRollbackBody("4", preview.Digest, "还原真实配置")
+				body = quickRollbackBody(preview.ExpectedVersion, preview.Digest, "还原真实配置")
 			}
 			response := releaseActorRequest(t, app, reviewer, "POST", path+"/"+action, body, "terminal-"+action)
 			terminal := rollbackOrderResponse(t, response, 200)
@@ -109,7 +109,11 @@ func TestReleaseNotificationsTerminalResultsPreserveOwnUnread(t *testing.T) {
 				expectedState = "ROLLED_BACK"
 				expectedRows = 0
 			}
-			if terminal.Version != "5" || terminal.State != expectedState || len(terminal.Executions) != expectedExecutions {
+			expectedVersion := "5"
+			if action == "quick-rollback" {
+				expectedVersion = "6"
+			}
+			if terminal.Version != expectedVersion || terminal.State != expectedState || len(terminal.Executions) != expectedExecutions {
 				t.Fatalf("terminal result: %+v", terminal)
 			}
 			for table, notice := range original.Executions[0].Notifications {

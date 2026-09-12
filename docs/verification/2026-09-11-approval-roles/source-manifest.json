@@ -1,0 +1,33 @@
+{
+  "base": "bd3e5d16389d7e82dca54ea022dafcb99b993778",
+  "files": {
+    "admin/cmd/admin/application.go": "2363992f19d2c04105e271914d51c8d20091ef71f2a5fc1801dd517d7521a8e3",
+    "admin/cmd/admin/approval_roles_browser_integration_test.go": "6683278a405bae111d05f80908add93ff41f60ac4394c6fec1715dd1fd744f63",
+    "admin/cmd/admin/approval_roles_integration_test.go": "485b92448e1b953a9636351b0f88cb7fb0e70ebded02a45f7cf9a0f46f48fd4d",
+    "admin/cmd/admin/approval_roles_schema_integration_test.go": "42b3c3512697d7c4034a3fde0b00de996ac3a7fc3888e4cd4114a002548ed022",
+    "admin/cmd/admin/business_auth_integration_test.go": "c920864deddeabbf018a0a0bb353af1cd2e32d1e385600bffa74007d12e3728e",
+    "admin/cmd/admin/schema_baseline_integration_test.go": "90835198c0268620cf32d4215a6be62a454fb3ad63b605312e8cb140810a307d",
+    "admin/cmd/admin/schema_migration_integration_test.go": "c3fe483858fb35fdd08d88734411b3a11c15e36ba9555e4b20bd70c49aca65ad",
+    "admin/cmd/admin/schema_readiness_integration_test.go": "12ddd7dae6c0eb761649c1e6655c302040fd350757ef024bb96dba26b41e5419",
+    "admin/cmd/admin/schema_release_details_integration_test.go": "37584ff1b3414a084df38c4050b23df9c7c824d763f9ac481d1154879b20cb4e",
+    "admin/internal/application/approval_roles.go": "ff596af57fb773657b3e3eee00fd78a1ade1bf7f21fd81e4034abbf2beefcf4c",
+    "admin/internal/domain/approval_role.go": "039c4efaa491afd2b69afa4dea2ca8643bb29a46a65bbb537734bc8326c15234",
+    "admin/internal/infrastructure/mysql/accounts.go": "bb30d491d8e51c602a25196433a20d349c9f82fc08424791f56ddce227b4a379",
+    "admin/internal/infrastructure/mysql/approval_roles.go": "c093094a43c0b9cbc06390ef4569b144fb2fd85466e703bc9c6e217f67b82d01",
+    "admin/internal/infrastructure/mysql/migrations/00006_approval_roles.sql": "c0fe587dbe2a4ae910058bf021439f0583a80dd7f46fd04de4d1bc516412d230",
+    "admin/internal/infrastructure/mysql/migrations/00006_schema.json": "f2083662b3191bed12e2a613413011218c55e72df30d821ad0f7c8b753c1faa7",
+    "admin/internal/infrastructure/mysql/schema_baseline.go": "1688314a6837d6c68214df6ef5f50c524136fa0e4b54a40ee384406b28d45554",
+    "admin/internal/interfaces/http/approval_roles.go": "4cfd02dbbabf8a1dba28e0ef36325469fd9cde77ba5e7707250f607a053c3290",
+    "admin/internal/interfaces/http/dependencies_test.go": "266076cccf3bfcdcc10224c59301fe3f33de9c9d318653fe15ebf31e0a34fc45",
+    "admin/internal/interfaces/http/router.go": "7cc09976d28cd47a36e2c96b75670cabcc7b41e0679bdae9996f6c2ec557af26",
+    "admin/internal/interfaces/http/security.go": "7647326bb63de2f0b3fb488d3b30fb9627c72e8b4746a1de686fe3b56879ab01",
+    "scripts/compose-migration-acceptance.py": "9240bbf5a143cc0afa79fcd8d7ab8b076de3a30e7043e8b3c9596a189b294e1d",
+    "web/DESIGN.md": "0c97caf9e1b34ceffa0ce7ee04be5b58762c2873fefcfa21967b71b8b1bcd6db",
+    "web/e2e/approval-roles.cjs": "f7db683efee45e922ba9263d38058d6724ad1ddd8431e6399928a33b4d388fc1",
+    "web/src/api/approval-roles.ts": "ad276b6e853e1b232ee473333726976e8bd3f1b1e0d9bb4d1ed2af7d53dd1438",
+    "web/src/api/error-messages.ts": "291c0d1a8a680800b4e08f0871251db527275d0b10c034ed6a63bbd24e0bed9a",
+    "web/src/app.tsx": "0479f27bf18c9dceb1d33ea29c5a2f29fe05eb7dbcd3871f28b2322f6bd31702",
+    "web/src/components/AppShell.tsx": "d2088236a48234a02bdb681e7561e499b1a68ff764811b20c1f4e234c4233330",
+    "web/src/features/approval-roles/ApprovalRolesPage.tsx": "d989e2c8978a49355a65e2bf761e9e0795f109217e716e83aa1913d68ab7defe"
+  }
+}

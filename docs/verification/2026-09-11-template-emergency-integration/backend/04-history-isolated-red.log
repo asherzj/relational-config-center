@@ -1,0 +1,32 @@
+=== RUN   TestReleaseHistorySurvivesExecutableRestartAndExternalChanges
+2026/09/11 15:49:26 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: b758f0929577a01ac14a85c238a8c80e83f98ce3defb6b80f19bf53e21c8eb8c
+  Test ProcessID: 5842dd2a-9420-40ce-84e5-08275f7c14aa
+2026/09/11 15:49:26 🐳 Creating container for image mysql:8.4
+2026/09/11 15:49:26 ✅ Container created: 3e036fe6fca9
+2026/09/11 15:49:26 🐳 Starting container: 3e036fe6fca9
+2026/09/11 15:49:26 ✅ Container started: 3e036fe6fca9
+2026/09/11 15:49:26 ⏳ Waiting for container id 3e036fe6fca9 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 15:49:32 🔔 Container is ready: 3e036fe6fca9
+{"request_id":"rcc-164fbbcb3d5529c43062434f66f2fde8","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-a7efd9792e9a2d224f541b791822a3b5","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":45}
+{"request_id":"rcc-a90afaae82cef645475842754fa9d8d0","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-73a3f263ea503078b24c7a5198478868","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":53}
+{"request_id":"rcc-f93aefdca1fdb2742be20d965c014731","method":"GET","path":"/api/v1/table-policies/:table_name/release-templates","status":200,"duration_ms":2}
+{"request_id":"rcc-cff587fe873c30089d5a2ecb0ddf82a6","method":"PUT","path":"/api/v1/table-policies/:table_name/release-templates/:release_type","status":200,"duration_ms":9}
+    release_history_delivery_integration_test.go:241: immutable stored facts changed in rcc_release_requests
+2026/09/11 15:49:39 🐳 Stopping container: 3e036fe6fca9
+2026/09/11 15:49:40 ✅ Container stopped: 3e036fe6fca9
+2026/09/11 15:49:40 🐳 Terminating container: 3e036fe6fca9
+2026/09/11 15:49:40 🚫 Container terminated: 3e036fe6fca9
+--- FAIL: TestReleaseHistorySurvivesExecutableRestartAndExternalChanges (13.73s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	14.828s
+FAIL

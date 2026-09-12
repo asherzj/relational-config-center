@@ -1,0 +1,14 @@
+{
+  "code": "browser_standard_v1",
+  "checks": [
+    "desktop catalog and two defaults",
+    "constrained create and multiple STANDARD templates",
+    "unknown result manually replays exact committed request",
+    "stale version rejected with input retained",
+    "emergency lifecycle protected",
+    "keyboard-safe destructive confirmation",
+    "unknown lifecycle remains bound to original action and target",
+    "390px catalog and drawer",
+    "viewer denied without disturbing admin session"
+  ]
+}

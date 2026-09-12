@@ -1,0 +1,10 @@
+^D[?25l
+ RUN  v4.1.11 /private/tmp/rcc-issue-104-emergency-release/web
+
+
+ Test Files  2 passed (2)
+      Tests  93 passed (93)
+   Start at  15:01:00
+   Duration  24.07s (transform 706ms, setup 605ms, import 945ms, tests 22.15s, environment 1.21s)
+
+[?25h

@@ -1,0 +1,15 @@
+{
+  "command": [
+    "docker",
+    "ps",
+    "-a",
+    "--filter",
+    "label=org.testcontainers=true",
+    "--format",
+    "{{.ID}} {{.Names}} {{.Status}}"
+  ],
+  "DOCKER_HOST": "unix:///Users/asher/.colima/default/docker.sock",
+  "exit_code": 0,
+  "stdout": "67e5b54b417d friendly_bardeen Created\n6c438898d17c reverent_gagarin Created\nc004dd82ce81 peaceful_brahmagupta Exited (255) 2 days ago\ncbe798ef0f66 tender_curran Exited (255) 3 days ago\n",
+  "stderr": ""
+}

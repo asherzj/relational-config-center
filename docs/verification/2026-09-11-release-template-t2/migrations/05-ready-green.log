@@ -1,0 +1,24 @@
+=== RUN   TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly
+2026/09/11 07:00:40 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: cac51cbe385bd2a0b65588f1efc9cda1d2861786523ad4c3242a175c4bb59aeb
+  Test ProcessID: 82454bc1-09cb-47ca-9198-83e0f5bb1871
+2026/09/11 07:00:40 🐳 Creating container for image mysql:8.4
+2026/09/11 07:00:41 ✅ Container created: 7c1165522399
+2026/09/11 07:00:41 🐳 Starting container: 7c1165522399
+2026/09/11 07:00:41 ✅ Container started: 7c1165522399
+2026/09/11 07:00:41 ⏳ Waiting for container id 7c1165522399 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 07:00:47 🔔 Container is ready: 7c1165522399
+2026/09/11 07:00:50 🐳 Stopping container: 7c1165522399
+2026/09/11 07:00:50 ✅ Container stopped: 7c1165522399
+2026/09/11 07:00:50 🐳 Terminating container: 7c1165522399
+2026/09/11 07:00:50 🚫 Container terminated: 7c1165522399
+--- PASS: TestTableReleaseSchemaReadinessRejectsMissingEmergencyAssociationReadOnly (9.85s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	11.065s

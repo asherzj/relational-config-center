@@ -1,0 +1,1141 @@
+{
+  "ok": true,
+  "engine": "webkit",
+  "browserVersion": "26.5",
+  "checks": [
+    {
+      "name": "drawer background is inert and actual Shift+Tab/Tab loops inside the drawer",
+      "evidence": {
+        "inert": true,
+        "focusStayedInTopModal": true,
+        "bodyClasses": [
+          "modal-open"
+        ],
+        "rootLocked": true,
+        "focusProbe": "programmatic HTMLElement.focus used only for native inert",
+        "keyboardPath": [
+          "Shift+Tab skips appended hidden/disabled fixtures -> 取消",
+          "Tab -> 关闭",
+          "focus-loss fixture then real Tab -> 关闭"
+        ]
+      }
+    },
+    {
+      "name": "native back cancel/confirm and forward preserve the intended history entry",
+      "evidence": {
+        "unloadProbe": {
+          "defaultPrevented": true,
+          "dispatchReturned": false,
+          "fixture": "cancelable browser event; no user-agent prompt"
+        },
+        "lowerDrawerInertWhilePromptOpen": true,
+        "focusRestoredToDrawer": true
+      }
+    },
+    {
+      "name": "320px long drawer scroll keeps the action footer reachable",
+      "evidence": {
+        "viewport": "320x568 CSS pixels",
+        "documentOverflow": 0,
+        "optionalIdIncluded": false,
+        "actualMouseWheel": {
+          "before": 668,
+          "after": 703
+        },
+        "surfaces": [
+          {
+            "selector": ".drawer",
+            "metrics": {
+              "left": 0,
+              "right": 320,
+              "width": 320,
+              "clientWidth": 320,
+              "scrollWidth": 320,
+              "innerWidth": 320
+            }
+          },
+          {
+            "selector": ".drawer-header",
+            "metrics": {
+              "left": 0,
+              "right": 320,
+              "width": 320,
+              "clientWidth": 320,
+              "scrollWidth": 320,
+              "innerWidth": 320
+            }
+          },
+          {
+            "selector": ".drawer-body",
+            "metrics": {
+              "left": 0,
+              "right": 320,
+              "width": 320,
+              "clientWidth": 320,
+              "scrollWidth": 320,
+              "innerWidth": 320
+            }
+          },
+          {
+            "selector": ".drawer-footer",
+            "metrics": {
+              "left": 0,
+              "right": 320,
+              "width": 320,
+              "clientWidth": 320,
+              "scrollWidth": 320,
+              "innerWidth": 320
+            }
+          }
+        ],
+        "noteRect": {
+          "left": 20,
+          "right": 300,
+          "top": 158.3125,
+          "bottom": 248.3125,
+          "width": 280,
+          "height": 90,
+          "innerWidth": 320,
+          "innerHeight": 568
+        },
+        "footerActions": [
+          {
+            "action": "取消",
+            "rect": {
+              "left": 20,
+              "right": 156,
+              "top": 512.5,
+              "bottom": 548.5,
+              "width": 136,
+              "height": 36,
+              "innerWidth": 320,
+              "innerHeight": 568
+            }
+          },
+          {
+            "action": "查看 Change Set",
+            "rect": {
+              "left": 164,
+              "right": 300,
+              "top": 512.5,
+              "bottom": 548.5,
+              "width": 136,
+              "height": 36,
+              "innerWidth": 320,
+              "innerHeight": 568
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "320px Change Set owns horizontal/vertical overflow and keeps actions reachable",
+      "evidence": {
+        "keyboardPath": [
+          "Shift+Tab -> 确认并保存草稿",
+          "Tab -> 变更字段对比，可横向滚动",
+          "Tab -> 发布单标题",
+          "Tab -> 选择已有草稿"
+        ],
+        "documentOverflow": 0,
+        "scrolling": {
+          "horizontal": {
+            "client": 288,
+            "total": 600,
+            "offset": 312
+          },
+          "vertical": {
+            "client": 87,
+            "total": 700,
+            "offset": 613
+          }
+        },
+        "footerActions": [
+          {
+            "action": "放弃本次编辑",
+            "rect": {
+              "left": 32,
+              "right": 155.5,
+              "top": 455,
+              "bottom": 491,
+              "width": 123.5,
+              "height": 36,
+              "innerWidth": 320,
+              "innerHeight": 568
+            }
+          },
+          {
+            "action": "返回修改",
+            "rect": {
+              "left": 164.5,
+              "right": 288,
+              "top": 455,
+              "bottom": 491,
+              "width": 123.5,
+              "height": 36,
+              "innerWidth": 320,
+              "innerHeight": 568
+            }
+          },
+          {
+            "action": "确认并保存草稿",
+            "rect": {
+              "left": 32,
+              "right": 288,
+              "top": 500,
+              "bottom": 536,
+              "width": 256,
+              "height": 36,
+              "innerWidth": 320,
+              "innerHeight": 568
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "only the top nested leave dialog handles Tab/Escape and focus returns to Change Set",
+      "evidence": {
+        "lowerChangeSetInert": true,
+        "bodyRemainedLocked": true
+      }
+    },
+    {
+      "name": "real MySQL rejection freezes raw CR; a copied draft requires explicit LF conversion before editing",
+      "evidence": {
+        "status": 422,
+        "rejectedOrder": "716d9e372c32457ab18840efcaffb816",
+        "rawHex": "7072656669782d7765626b69740d0a7365636f6e640d7461696c",
+        "submittedHex": "7072656669782d7765626b69740d0a7365636f6e640d7461696c",
+        "clipboardBoundary": "synthetic paste Event with injected DataTransfer; no OS clipboard access"
+      }
+    },
+    {
+      "name": "390px unknown release-draft recovery replays one intent and then publishes it",
+      "evidence": {
+        "faultEvidence": {
+          "actualStatus": 201,
+          "requestId": "rcc-05bf635f8eee1bfb774b71980383636d",
+          "injectedStatus": 503
+        },
+        "releaseDraftRequests": 2,
+        "replayedOriginalBodyAndKey": true,
+        "releaseOrder": "ff7d5b2aeb102450fcf7cd190ba5ae44",
+        "sqlRows": 1,
+        "faultBoundary": "Playwright API response fault injection after route.fetch durably created the release draft",
+        "documentOverflow": 0
+      }
+    }
+  ],
+  "pageErrors": [],
+  "http": [
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-policies",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies/notification_page_query_v1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/field_display_browser_items/query",
+      "status": 200,
+      "body": {
+        "conditions": [],
+        "page_number": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/field_display_browser_items",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/stage1_acceptance_items/query",
+      "status": 200,
+      "body": {
+        "conditions": [],
+        "page_number": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders",
+      "status": 201,
+      "body": {
+        "items": [
+          {
+            "table_name": "stage1_acceptance_items",
+            "operation": "ADD",
+            "content": {
+              "name": "stage5_webkit_invalid",
+              "note": "prefix-webkit\r\nsecond\rtail",
+              "state": "invalid-state"
+            }
+          }
+        ],
+        "title": "stage1_acceptance_items 配置变更"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/details",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/details",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/notification-read",
+      "status": 200,
+      "body": {
+        "sequence": "1"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/details",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/cancel",
+      "status": 200,
+      "body": {
+        "expected_version": "3",
+        "reason": "Correct the rejected value without changing the frozen intent"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/details",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/details",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/preview",
+      "status": 200,
+      "body": {
+        "title": "stage1_acceptance_items 配置变更",
+        "expected_version": "4",
+        "release_type": "STANDARD",
+        "items": [
+          {
+            "detail_id": "cd8297c66fa50c0fdb225ad46c76e1bb",
+            "table_name": "stage1_acceptance_items",
+            "operation": "ADD",
+            "expected_record_version": "",
+            "content": {
+              "name": "stage5_webkit_invalid",
+              "note": "prefix-webkit\r\nsecond\rtail",
+              "state": "invalid-state"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/copy",
+      "status": 201,
+      "body": {
+        "expected_version": "4",
+        "confirmed": true,
+        "items": [
+          {
+            "detail_id": "cd8297c66fa50c0fdb225ad46c76e1bb",
+            "table_name": "stage1_acceptance_items",
+            "operation": "ADD",
+            "expected_record_version": "",
+            "content": {
+              "name": "stage5_webkit_invalid",
+              "note": "prefix-webkit\r\nsecond\rtail",
+              "state": "invalid-state"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/6432749066a85fad6030eeefeebeb5c8",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/6432749066a85fad6030eeefeebeb5c8/details",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/6432749066a85fad6030eeefeebeb5c8/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/6432749066a85fad6030eeefeebeb5c8/details",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-policies",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies/notification_page_query_v1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/field_display_browser_items/query",
+      "status": 200,
+      "body": {
+        "conditions": [],
+        "page_number": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policy-types",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/field_display_browser_items",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/stage1_acceptance_items/query",
+      "status": 200,
+      "body": {
+        "conditions": [],
+        "page_number": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders",
+      "status": 503,
+      "body": {
+        "items": [
+          {
+            "table_name": "stage1_acceptance_items",
+            "operation": "ADD",
+            "content": {
+              "name": "stage5_webkit_unknown"
+            }
+          }
+        ],
+        "title": "stage1_acceptance_items 配置变更"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-policies",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies/notification_page_query_v1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders",
+      "status": 201,
+      "body": {
+        "items": [
+          {
+            "table_name": "stage1_acceptance_items",
+            "operation": "ADD",
+            "content": {
+              "name": "stage5_webkit_unknown"
+            }
+          }
+        ],
+        "title": "stage1_acceptance_items 配置变更"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/ff7d5b2aeb102450fcf7cd190ba5ae44",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/ff7d5b2aeb102450fcf7cd190ba5ae44/details",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/ff7d5b2aeb102450fcf7cd190ba5ae44/people",
+      "status": 200
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-policies",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/field_display_browser_items/query",
+      "body": "{\"conditions\":[],\"page_number\":1}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies/notification_page_query_v1",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/field_display_browser_items",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/stage1_acceptance_items/query",
+      "body": "{\"conditions\":[],\"page_number\":1}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders",
+      "body": "{\"items\":[{\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"content\":{\"name\":\"stage5_webkit_invalid\",\"note\":\"prefix-webkit\\r\\nsecond\\rtail\",\"state\":\"invalid-state\"}}],\"title\":\"stage1_acceptance_items 配置变更\"}",
+      "key": "31fb8c70-57ff-466e-8581-ac7b54663f4f"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/details",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/people",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/notification-read",
+      "body": "{\"sequence\":\"1\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/details",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/people",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/details",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/cancel",
+      "body": "{\"expected_version\":\"3\",\"reason\":\"Correct the rejected value without changing the frozen intent\"}",
+      "key": "9d5b38e1-cb5e-4db2-b2f9-cebc59abbb5f"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/people",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/details",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/details",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/preview",
+      "body": "{\"title\":\"stage1_acceptance_items 配置变更\",\"expected_version\":\"4\",\"release_type\":\"STANDARD\",\"items\":[{\"detail_id\":\"cd8297c66fa50c0fdb225ad46c76e1bb\",\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"expected_record_version\":\"\",\"content\":{\"name\":\"stage5_webkit_invalid\",\"note\":\"prefix-webkit\\r\\nsecond\\rtail\",\"state\":\"invalid-state\"}}]}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/copy",
+      "body": "{\"expected_version\":\"4\",\"confirmed\":true,\"items\":[{\"detail_id\":\"cd8297c66fa50c0fdb225ad46c76e1bb\",\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"expected_record_version\":\"\",\"content\":{\"name\":\"stage5_webkit_invalid\",\"note\":\"prefix-webkit\\r\\nsecond\\rtail\",\"state\":\"invalid-state\"}}]}",
+      "key": "c6f8cf84-1305-43ea-9b22-b799c54bcdfb"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/716d9e372c32457ab18840efcaffb816/people",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/6432749066a85fad6030eeefeebeb5c8",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/6432749066a85fad6030eeefeebeb5c8/details",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/6432749066a85fad6030eeefeebeb5c8/people",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/6432749066a85fad6030eeefeebeb5c8/details",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-policies",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/field_display_browser_items/query",
+      "body": "{\"conditions\":[],\"page_number\":1}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies/notification_page_query_v1",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/field_display_browser_items",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/stage1_acceptance_items/query",
+      "body": "{\"conditions\":[],\"page_number\":1}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders",
+      "body": "{\"items\":[{\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"content\":{\"name\":\"stage5_webkit_unknown\"}}],\"title\":\"stage1_acceptance_items 配置变更\"}",
+      "key": "b48fba4c-931b-4252-81ee-b3ed5575b508"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-policies",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tables/field_display_browser_items/query",
+      "body": "{\"conditions\":[],\"page_number\":1}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policies/notification_page_query_v1",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/query-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policies/stage1_mutation_v1",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mutation-policy-types",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/release-orders",
+      "body": "{\"items\":[{\"table_name\":\"stage1_acceptance_items\",\"operation\":\"ADD\",\"content\":{\"name\":\"stage5_webkit_unknown\"}}],\"title\":\"stage1_acceptance_items 配置变更\"}",
+      "key": "b48fba4c-931b-4252-81ee-b3ed5575b508"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/approval-notifications",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/ff7d5b2aeb102450fcf7cd190ba5ae44",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/ff7d5b2aeb102450fcf7cd190ba5ae44/details",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/table-field-policies/stage1_acceptance_items",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/release-orders/ff7d5b2aeb102450fcf7cd190ba5ae44/people",
+      "body": null
+    }
+  ],
+  "faultEvidence": {
+    "actualStatus": 201,
+    "requestId": "rcc-05bf635f8eee1bfb774b71980383636d",
+    "injectedStatus": 503
+  },
+  "cleanup": {
+    "remainingRows": 0
+  },
+  "coverageBoundaries": {
+    "safari": "Playwright WebKit engine; not an installed Safari release",
+    "clipboard": "synthetic paste Event with injected DataTransfer; not the OS clipboard",
+    "unknownWrite": "Playwright API response fault injection after a real MySQL commit",
+    "beforeUnload": "Cancelable browser event only; Playwright did not claim native user-agent prompt coverage for this engine."
+  },
+  "failure": null
+}

@@ -1,0 +1,13 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-105-emergency-rollback/web
+> vitest run src/api/release-orders.test.ts -t '恢复预览拒绝'
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-105-emergency-rollback/web
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 11 skipped (12)
+   Start at  16:27:25
+   Duration  871ms (transform 69ms, setup 236ms, import 7ms, tests 8ms, environment 515ms)
+

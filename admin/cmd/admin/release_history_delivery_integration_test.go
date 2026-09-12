@@ -134,12 +134,12 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 	forward = action(editor, forward, "submit", "")
 	forward = action(reviewer, forward, "approve", "正向批准意见")
 	forward = action(publisher, forward, "execute", "")
-	previewBytes := request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback/preview", `{"expected_version":"4"}`, "", 200)
+	previewBytes := request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback/preview", `{"expected_version":"4"}`, "history-preview", 200)
 	var preview quickPreviewResponse
 	if json.Unmarshal(previewBytes, &preview) != nil {
 		t.Fatal("preview decode")
 	}
-	forward = decode(request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback", quickRollbackBody("4", preview.Digest, "事后可选原因"), "history-restore", 200))
+	forward = decode(request(publisher, "POST", "/api/v1/release-orders/"+forward.ID+"/quick-rollback", quickRollbackBody(preview.ExpectedVersion, preview.Digest, "事后可选原因"), "history-restore", 200))
 	if forward.State != "ROLLED_BACK" || len(forward.Executions) < 2 || len(forward.Executions) != 2 {
 		t.Fatal("original rollback history missing")
 	}
@@ -162,7 +162,7 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 			if event.Action == "APPROVE" || event.Action == "REJECT" {
 				want = reviewer.id
 			}
-			if event.Action == "EXECUTE" || event.Action == "COMPLETE" || event.Action == "ROLLED_BACK" || event.Action == "QUICK_ROLLBACK" {
+			if event.Action == "EXECUTE" || event.Action == "COMPLETE" || event.Action == "ROLLED_BACK" || event.Action == "QUICK_ROLLBACK" || event.Action == "PREVIEW_QUICK_ROLLBACK" {
 				want = publisher.id
 			}
 			if event.ActorID != want {
@@ -211,7 +211,43 @@ func TestReleaseHistorySurvivesExecutableRestartAndExternalChanges(t *testing.T)
 		t.Fatal(err)
 	}
 	request(admin, "POST", "/api/v1/mutation-policies/"+mutationCode+"/deprecate", "", "", 200)
-	request(admin, "POST", "/api/v1/table-policies/history_items/disable", "", "", 200)
+	var currentPolicy struct {
+		Version string `json:"version"`
+	}
+	if err := json.Unmarshal(request(admin, "GET", "/api/v1/table-policies/history_items", "", "", 200), &currentPolicy); err != nil {
+		t.Fatal(err)
+	}
+	disabledPolicy := request(admin, "POST", "/api/v1/table-policies/history_items/disable", `{"expected_version":"`+currentPolicy.Version+`"}`, "history-table-disable", 200)
+	var requestActor, requestOperation, requestKey, requestDigest string
+	var requestResult []byte
+	if err := f.databaseOwner.QueryRow(`SELECT actor_id,operation,request_key,HEX(digest),result FROM rcc_release_requests WHERE actor_id=? AND operation='table-policy:disable' AND request_key='history-table-disable'`, admin.id).Scan(&requestActor, &requestOperation, &requestKey, &requestDigest, &requestResult); err != nil {
+		t.Fatal(err)
+	}
+	priorRequestRows := baselineRows(t, f.databaseOwner, fmt.Sprintf(`SELECT * FROM rcc_release_requests WHERE NOT(actor_id=0x%x AND operation='table-policy:disable' AND request_key='history-table-disable')`, []byte(admin.id)))
+	t.Logf("catalog request SQL delta: original_rows_unchanged=%t actor=%s operation=%s key=%s digest=%s stored_result=%s HTTP_response=%s", priorRequestRows == savedFacts["rcc_release_requests"], requestActor, requestOperation, requestKey, requestDigest, requestResult, disabledPolicy)
+	if priorRequestRows != savedFacts["rcc_release_requests"] {
+		t.Fatal("table-policy disable changed an existing request row or added another request")
+	}
+	var persistedPolicy domain.TablePolicy
+	var disableResponse struct {
+		TableName string `json:"table_name"`
+		Version   string `json:"version"`
+		Enabled   bool   `json:"enabled"`
+		Modifier  string `json:"modifier"`
+	}
+	if err := json.Unmarshal(requestResult, &persistedPolicy); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(disabledPolicy, &disableResponse); err != nil {
+		t.Fatal(err)
+	}
+	if requestActor != admin.id || requestOperation != "table-policy:disable" || requestKey != "history-table-disable" || persistedPolicy.TableName != "history_items" || persistedPolicy.Enabled || persistedPolicy.Version == 0 || persistedPolicy.Modifier != admin.id || disableResponse.TableName != persistedPolicy.TableName || disableResponse.Enabled != persistedPolicy.Enabled || disableResponse.Version != fmt.Sprint(persistedPolicy.Version) || disableResponse.Modifier != persistedPolicy.Modifier {
+		t.Fatal("the new catalog request does not belong to the successful disable response")
+	}
+	// This explicit catalog write appends its durable result to the shared request
+	// table. Every pre-existing row was compared above; restarts and reads must
+	// now preserve the complete set, including this one verified new result.
+	savedFacts["rcc_release_requests"] = baselineRows(t, f.databaseOwner, "SELECT * FROM rcc_release_requests")
 	deliveryExec(t, f.databaseOwner, `UPDATE rcc_mutation_policies SET name='维护后规则名称' WHERE code=?`, mutationCode)
 	deliveryExec(t, f.databaseOwner, `DROP TABLE history_items`)
 	// Explicit account maintenance may legitimately reconcile pending recipients.

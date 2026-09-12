@@ -1,0 +1,8 @@
+{
+  "source": "source-14.json",
+  "source_manifest_sha256": "f3f4e3d0fe5a750951e7f1a09d1f83061a9f1a8e296265718f1a95ff013dc7dc",
+  "complete_diff_sha256": "654e7b1ea435c8207e08a756099e6e1fb95dd34bf4a768e2e2007a6bb5bb86be",
+  "checked_files": 666,
+  "mismatches": [],
+  "note": "source13/14 change only test fixture files; product Go/Compose remains source12-identical; latest affected test scope was narrowly rerun."
+}

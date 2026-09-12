@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-102-table-release-templates/web
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  07:21:06
+   Duration  2.70s (transform 583ms, setup 385ms, import 819ms, tests 676ms, environment 701ms)
+

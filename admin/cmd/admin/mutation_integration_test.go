@@ -24,6 +24,7 @@ func TestRelationalMutationPolicyExecutesAuthorizationAutoFillAndOperationsInOne
 	}
 	t.Cleanup(func() { _ = app.Close() })
 	assignRelationalMutationPolicy(t, app, "snapshot_full_mutation_v1", true, true, true, true)
+	bindFlowTemplate(t, app, "mutation_snapshot_items", "default_standard_v1", true)
 
 	database, err := sql.Open("mysql", driverConfig.FormatDSN())
 	if err != nil {
@@ -80,6 +81,7 @@ func TestRelationalMutationPolicyIsSoleAuthorizationSourceAndDeprecatedExecutes(
 	}
 	t.Cleanup(func() { _ = app.Close() })
 	assignRelationalMutationPolicy(t, app, "snapshot_read_only_mutation_v1", false, false, false, false)
+	bindFlowTemplate(t, app, "mutation_snapshot_items", "default_standard_v1", true)
 
 	denied := publicationFixtureRequest(t, app, "ADD", "mutation_snapshot_items", "", `{"content":{"code":"read-only","label":"must-deny"}}`)
 	assertIntegrationErrorCode(t, denied, http.StatusForbidden, "mutation_not_allowed")
@@ -102,6 +104,7 @@ func TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically(t *testing.T)
 	}
 	t.Cleanup(func() { _ = app.Close() })
 	assignRelationalMutationPolicy(t, app, "snapshot_rollback_mutation_v1", true, true, true, true)
+	bindFlowTemplate(t, app, "mutation_snapshot_items", "default_standard_v1", true)
 	database, err := sql.Open("mysql", driverConfig.FormatDSN())
 	if err != nil {
 		t.Fatalf("open verification database: %v", err)
@@ -139,6 +142,7 @@ func TestRelationalMutationPolicyFailsClosedAndRollsBackAtomically(t *testing.T)
 func TestApprovedPublicationRechecksPolicyAndNextDraftUsesReplacement(t *testing.T) {
 	app := startIntegrationApplication(t, "testdata/008-mutation-policy-snapshot-fixture.sql")
 	assignRelationalMutationPolicy(t, app, "snapshot_allowed_mutation_v1", true, false, false, true)
+	bindFlowTemplate(t, app, "mutation_snapshot_items", "default_standard_v1", true)
 	reviewer := publicationFixtureReviewer(t, app)
 	path := approvePublication(t, app, reviewer, `{"items":[{"content":{"code":"in-flight","label":"old-snapshot"},"operation":"ADD","table_name":"mutation_snapshot_items"}],"title":"集成测试发布单"}`, "policy-approved")
 	replaceRelationalMutationPolicy(t, app, "snapshot_denied_mutation_v2", false, false, false, false)
@@ -644,6 +648,7 @@ func TestMutationPolicyPatchFailsClosedForCurrentPolicyAndSchema(t *testing.T) {
 	disabled := versionedPublicationFixture(t, app, "MODIFY", "mutation_add_items", "1", `{"content":{"label":"disabled"}}`)
 	assertIntegrationErrorCode(t, disabled, http.StatusForbidden, "table_policy_disabled")
 	setPolicyAssignmentEnabled(t, app, "mutation_add_items", true)
+	bindFlowTemplate(t, app, "mutation_add_items", "default_standard_v1", true)
 	id := addMutationPatchFixtureRow(t, app, "patch-fail-closed", "original")
 
 	protected := versionedPublicationFixture(t, app, "MODIFY", "rcc_table_policies", "1", `{"content":{"modifier":"x"}}`)
@@ -700,6 +705,7 @@ func TestMutationPolicyDeleteFailsClosedBeforeExecution(t *testing.T) {
 	disabled := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", "1", "")
 	assertIntegrationErrorCode(t, disabled, http.StatusForbidden, "table_policy_disabled")
 	setPolicyAssignmentEnabled(t, app, "mutation_add_items", true)
+	bindFlowTemplate(t, app, "mutation_add_items", "default_standard_v1", true)
 	id := addMutationPatchFixtureRow(t, app, "delete-invalid-id", "must remain")
 
 	invalidID := versionedPublicationFixture(t, app, "DELETE", "mutation_add_items", "not-an-integer", "")
@@ -858,6 +864,7 @@ func TestMutationAddFailsClosedAndUsesTheLatestPolicySnapshot(t *testing.T) {
 	assertIntegrationErrorCode(t, forbidden, http.StatusForbidden, "mutation_not_allowed")
 
 	replacePolicyAssignment(t, app, "mutation_add_items", queryPolicyFixture{}, mutationPolicyFixture{AllowAdd: true})
+	bindFlowTemplate(t, app, "mutation_add_items", "default_standard_v1", true)
 	added := publicationFixtureRequest(t, app, "ADD", "mutation_add_items", "", `{"content":{"code":"current","label":"latest Policy"}}`)
 	if added.Code != http.StatusOK {
 		t.Fatalf("latest Policy Snapshot did not permit ADD: HTTP %d %s", added.Code, added.Body.String())
@@ -914,7 +921,7 @@ func TestMutationAddFailsClosedWhenPolicyCatalogIsUnavailable(t *testing.T) {
 		t.Fatalf("open fixture database: %v", err)
 	}
 	t.Cleanup(func() { _ = database.Close() })
-	if _, err := database.ExecContext(context.Background(), "DROP TABLE `rcc_table_policies`"); err != nil {
+	if _, err := database.ExecContext(context.Background(), "RENAME TABLE `rcc_table_policies` TO `unavailable_table_policies`"); err != nil {
 		t.Fatalf("make Policy Catalog unavailable: %v", err)
 	}
 
@@ -1025,4 +1032,7 @@ func assertDirectMutationRowCount(t *testing.T, ctx context.Context, database *s
 func enableMutationPolicy(t *testing.T, app *adminApplication, tableName string, mutation mutationPolicyFixture) {
 	t.Helper()
 	enablePolicyAssignment(t, app, tableName, queryPolicyFixture{}, mutation)
+	// Publication fixtures explicitly opt new tables into the standard workflow.
+	// Runtime table creation continues to establish only the emergency association.
+	bindFlowTemplate(t, app, tableName, "default_standard_v1", true)
 }

@@ -1,0 +1,62 @@
+Linux WebKit transport: official playwright:v1.62.1-noble; loopback forwarded
+PASS 管理员在设置页为同一后续多表发布链路配置管控键
+[DEBUG-multi] click 0 multitable_browser_a_webkit 605
+[DEBUG-multi] click 0 multitable_browser_b_webkit 602
+[DEBUG-multi] completed 0
+[DEBUG-multi] click 1 multitable_browser_a_webkit 585
+[DEBUG-multi] click 1 multitable_browser_b_webkit 579
+[DEBUG-multi] completed 1
+[DEBUG-multi] click 2 multitable_browser_a_webkit 571
+[DEBUG-multi] click 2 multitable_browser_b_webkit 589
+[DEBUG-multi] completed 2
+[DEBUG-multi] click 3 multitable_browser_a_webkit 587
+[DEBUG-multi] click 3 multitable_browser_b_webkit 573
+[DEBUG-multi] completed 3
+[DEBUG-multi] click 4 multitable_browser_a_webkit 588
+[DEBUG-multi] click 4 multitable_browser_b_webkit 581
+[DEBUG-multi] completed 4
+[DEBUG-multi] click 5 multitable_browser_a_webkit 655
+[DEBUG-multi] click 5 multitable_browser_b_webkit 641
+[DEBUG-multi] completed 5
+[DEBUG-multi] click 6 multitable_browser_a_webkit 669
+[DEBUG-multi] click 6 multitable_browser_b_webkit 588
+[DEBUG-multi] completed 6
+[DEBUG-multi] click 7 multitable_browser_a_webkit 588
+[DEBUG-multi] click 7 multitable_browser_b_webkit 576
+[DEBUG-multi] completed 7
+[DEBUG-multi] click 8 multitable_browser_a_webkit 599
+[DEBUG-multi] click 8 multitable_browser_b_webkit 572
+[DEBUG-multi] completed 8
+[DEBUG-multi] click 9 multitable_browser_a_webkit 579
+[DEBUG-multi] click 9 multitable_browser_b_webkit 585
+[DEBUG-multi] completed 9
+[DEBUG-multi] click 10 multitable_browser_a_webkit 568
+[DEBUG-multi] click 10 multitable_browser_b_webkit 557
+[DEBUG-multi] completed 10
+[DEBUG-multi] click 11 multitable_browser_a_webkit 561
+[DEBUG-multi] click 11 multitable_browser_b_webkit 600
+[DEBUG-multi] completed 11
+[DEBUG-multi] click 12 multitable_browser_a_webkit 575
+[DEBUG-multi] click 12 multitable_browser_b_webkit 558
+[DEBUG-multi] completed 12
+[DEBUG-multi] click 13 multitable_browser_a_webkit 588
+[DEBUG-multi] click 13 multitable_browser_b_webkit 612
+[DEBUG-multi] completed 13
+[DEBUG-multi] click 14 multitable_browser_a_webkit 613
+[DEBUG-multi] click 14 multitable_browser_b_webkit 556
+[DEBUG-multi] completed 14
+[DEBUG-multi] click 15 multitable_browser_a_webkit 574
+[DEBUG-multi] click 15 multitable_browser_b_webkit 594
+[DEBUG-multi] completed 15
+[DEBUG-multi] click 16 multitable_browser_a_webkit 622
+[DEBUG-multi] click 16 multitable_browser_b_webkit 562
+[DEBUG-multi] completed 16
+[DEBUG-multi] click 17 multitable_browser_a_webkit 559
+[DEBUG-multi] click 17 multitable_browser_b_webkit 573
+[DEBUG-multi] completed 17
+[DEBUG-multi] click 18 multitable_browser_a_webkit 648
+[DEBUG-multi] click 18 multitable_browser_b_webkit 574
+[DEBUG-multi] completed 18
+[DEBUG-multi] click 19 multitable_browser_a_webkit 578
+[DEBUG-multi] click 19 multitable_browser_b_webkit 573
+[DEBUG-multi] completed 19

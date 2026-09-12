@@ -1,0 +1,41 @@
+
+> @relational-config-center/web@0.0.0 test:run /private/tmp/rcc-issue-105-emergency-rollback/web
+> vitest run src/api/release-orders.test.ts -t '恢复预览拒绝'
+
+
+ RUN  v4.1.11 /private/tmp/rcc-issue-105-emergency-rollback/web
+
+ ❯ src/api/release-orders.test.ts (12 tests | 1 failed | 11 skipped) 13ms
+   × 恢复预览拒绝其他原单的成功响应，不能把错配摘要用于当前回滚 12ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/api/release-orders.test.ts > 恢复预览拒绝其他原单的成功响应，不能把错配摘要用于当前回滚
+AssertionError: promise resolved "{ order_id: 'another-order', …(5) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "expected_version": "4",
++   "items": [],
++   "order_id": "another-order",
++   "preview_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "release_type": "EMERGENCY",
++   "table_flows": [],
+  }
+
+ ❯ src/api/release-orders.test.ts:50:162
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 11 skipped (12)
+   Start at  16:27:08
+   Duration  1.23s (transform 164ms, setup 493ms, import 9ms, tests 13ms, environment 606ms)
+
+ ELIFECYCLE  Command failed with exit code 1.

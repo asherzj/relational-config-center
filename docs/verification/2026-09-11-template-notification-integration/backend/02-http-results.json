@@ -1,0 +1,149 @@
+{
+  "tests": [
+    {
+      "test": "TestNotificationCenterSubmittedViewsExcludeUnsubmittedDrafts",
+      "status": "pass",
+      "elapsed": 11.37
+    },
+    {
+      "test": "TestNotificationCenterCurrentEligibilityAndDurableHandledHistory",
+      "status": "pass",
+      "elapsed": 9.8
+    },
+    {
+      "test": "TestNotificationCenterFiltersBeforePaginationAndProtectsIdentity",
+      "status": "pass",
+      "elapsed": 11.53
+    },
+    {
+      "test": "TestNotificationCenterRejectsIncompatibleHistoryAndDirectoryFailure",
+      "status": "pass",
+      "elapsed": 9.02
+    },
+    {
+      "test": "TestReleaseFlowCurrentAuthorizationAfterWaitingForMaintenance",
+      "status": "pass",
+      "elapsed": 11.91
+    },
+    {
+      "test": "TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots",
+      "status": "pass",
+      "elapsed": 9.8
+    },
+    {
+      "test": "TestReleaseFlowStorageFailuresKeepDraftAndOriginalResultAtomic",
+      "status": "pass",
+      "elapsed": 8.74
+    },
+    {
+      "test": "TestReleaseFlowAC009PersistsIndependentTablesBeforeFirstRead",
+      "status": "pass",
+      "elapsed": 8.81
+    },
+    {
+      "test": "TestReleaseFlowAC010MissingConfigurationRequiresExplicitSave",
+      "status": "pass",
+      "elapsed": 10.38
+    },
+    {
+      "test": "TestReleaseFlowAC013DerivedDraftUsesCurrentConfiguration",
+      "status": "pass",
+      "elapsed": 9.83
+    },
+    {
+      "test": "TestReleaseFlowAC014SeparatesInstancesFromSubmissionApprovals",
+      "status": "pass",
+      "elapsed": 9.82
+    },
+    {
+      "test": "TestReleaseFlowAC011DraftEditsPreserveAndReplaceOnlyParticipatingTables",
+      "status": "pass",
+      "elapsed": 9.74
+    },
+    {
+      "test": "TestReleaseNotificationsPersistenceFailuresPreserveAllFacts",
+      "status": "pass",
+      "elapsed": 10.7
+    },
+    {
+      "test": "TestReleaseNotificationsLostResponsesRecoverOriginalFacts",
+      "status": "pass",
+      "elapsed": 10.77
+    },
+    {
+      "test": "TestReleaseNotificationsCommitUnknownRecoversEveryLifecycle",
+      "status": "pass",
+      "elapsed": 10.94
+    },
+    {
+      "test": "TestReleaseNotificationsTerminalCompetitionHasOneResult",
+      "status": "pass",
+      "elapsed": 11.88
+    },
+    {
+      "test": "TestReleaseNotificationsDisabledParticipantsRetainOutcomes",
+      "status": "pass",
+      "elapsed": 12.26
+    },
+    {
+      "test": "TestReleaseNotificationsPublicationUsesActualParticipants",
+      "status": "pass",
+      "elapsed": 10.09
+    },
+    {
+      "test": "TestReleaseNotificationsTerminalResultsPreserveOwnUnread",
+      "status": "pass",
+      "elapsed": 11.08
+    },
+    {
+      "test": "TestReleaseNotificationsReprepareCancelsSourceAtomically",
+      "status": "pass",
+      "elapsed": 9.97
+    }
+  ],
+  "unique_top_level_pass": 20,
+  "created_test_containers": [
+    "0773486895a2",
+    "17a86c23a5bb",
+    "2872e19db916",
+    "34c2704b641c",
+    "4c81219a934d",
+    "4cbe6408fab1",
+    "67b0aaa0ce7a",
+    "79a7f827f5f1",
+    "822718c06621",
+    "9f19ba1af174",
+    "9ff51e09b296",
+    "a0cfc36c08b8",
+    "a6157d664fa8",
+    "a934d9bcd80b",
+    "c211b139ca72",
+    "c39f87c2ac21",
+    "d5a43b41477a",
+    "dd598dce64e6",
+    "fa254a104cc3",
+    "ff6eabd0df18"
+  ],
+  "terminated_test_containers": [
+    "0773486895a2",
+    "17a86c23a5bb",
+    "2872e19db916",
+    "34c2704b641c",
+    "4c81219a934d",
+    "4cbe6408fab1",
+    "67b0aaa0ce7a",
+    "79a7f827f5f1",
+    "822718c06621",
+    "9f19ba1af174",
+    "9ff51e09b296",
+    "a0cfc36c08b8",
+    "a6157d664fa8",
+    "a934d9bcd80b",
+    "c211b139ca72",
+    "c39f87c2ac21",
+    "d5a43b41477a",
+    "dd598dce64e6",
+    "fa254a104cc3",
+    "ff6eabd0df18"
+  ]
+}

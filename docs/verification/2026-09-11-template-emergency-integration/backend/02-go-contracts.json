@@ -1,0 +1,22 @@
+{
+  "command": [
+    "go",
+    "test",
+    "./admin/internal/application",
+    "./admin/internal/domain",
+    "./admin/internal/interfaces/http",
+    "./admin/internal/infrastructure/mysql"
+  ],
+  "cwd": "/private/tmp/rcc-template-notification-integration",
+  "started_unix": 1789112448.024365,
+  "duration_seconds": 6.0424652099609375,
+  "exit_code": 0,
+  "environment": {
+    "TESTCONTAINERS_RYUK_DISABLED": "true",
+    "DOCKER_HOST": "unix:///Users/asher/.colima/default/docker.sock",
+    "GOCACHE": "/private/tmp/rcc-go-cache"
+  },
+  "source_input": "02-go-contracts-input.json",
+  "source_changed_during_run": [],
+  "expected_unique_tests": []
+}

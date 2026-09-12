@@ -1,0 +1,39 @@
+{
+  "status": "complete_by_affected_rechecks",
+  "tests": [
+    "TestApprovalRoleMembershipPersistsWithoutGrantingAccountRoles",
+    "TestReleaseSubmitRequiresIndependentApprover",
+    "TestTableApprovalPartialProgressAndFinalApproval",
+    "TestTableApprovalSnapshotMembershipFallbackAndHistory",
+    "TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit",
+    "TestTableApprovalQualificationChangesSerializeWithDecisions",
+    "TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable",
+    "TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay",
+    "TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure",
+    "TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin",
+    "TestTableReleaseTemplateHTTPCurrentAuthorizationAndRequiredRequestIdentity",
+    "TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency",
+    "TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost",
+    "TestBusinessAPIsRequireSessionAndCSRF",
+    "TestConcurrentAccountsOwnTheirBusinessChanges",
+    "TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory",
+    "TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish",
+    "TestAccountControlTablesCannotBeDiscoveredOrManaged",
+    "TestReleaseHistorySurvivesExecutableRestartAndExternalChanges"
+  ],
+  "command": [
+    "go",
+    "test",
+    "-tags",
+    "integration",
+    "-run",
+    "^(TestApprovalRoleMembershipPersistsWithoutGrantingAccountRoles|TestReleaseSubmitRequiresIndependentApprover|TestTableApprovalPartialProgressAndFinalApproval|TestTableApprovalSnapshotMembershipFallbackAndHistory|TestTableApprovalReadAndResultFailuresDoNotGrantOrCommit|TestTableApprovalQualificationChangesSerializeWithDecisions|TestTableReleaseTemplateHTTPAC006AndAC008SelectShareProtectAndDisable|TestTableReleaseTemplateHTTPConcurrentSwitchAndOriginalReplay|TestTableReleaseTemplateHTTPAC007AtomicCreateEnableAndRequestResultFailure|TestTableReleaseTemplateHTTPRejectsMissingTableAndNonAdmin|TestTableReleaseTemplateHTTPCurrentAuthorizationAndRequiredRequestIdentity|TestTablePolicyHTTPConcurrentCreateAndEnablePreserveEmergency|TestCommittedWritesRemainSingleWhenHTTPResponsesAreLost|TestBusinessAPIsRequireSessionAndCSRF|TestConcurrentAccountsOwnTheirBusinessChanges|TestOperatorColumnsRejectIncompatibleWritesAndPreserveHistory|TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish|TestAccountControlTablesCannotBeDiscoveredOrManaged|TestReleaseHistorySurvivesExecutableRestartAndExternalChanges)$",
+    "-count=1",
+    "-parallel=1",
+    "-p=1",
+    "-timeout=20m",
+    "-json",
+    "./cmd/admin"
+  ],
+  "coverage": "mysql-effective-coverage.json"
+}

@@ -68,8 +68,17 @@ func TestReleaseMixedBatchPublication(t *testing.T) {
 		t.Fatalf("rows %d targets %d notifications %d", count, targets, notifications)
 	}
 	list := releaseReadAllDetails(t, app, "GET", "/api/v1/release-orders?limit=100", "", "")
-	if list.Code != 200 || strings.Contains(list.Body.String(), `"items"`) || strings.Contains(list.Body.String(), `"publication"`) || !strings.Contains(list.Body.String(), `"item_count":3`) {
-		t.Fatalf("list must provide bounded summaries: %d, bytes %d", list.Code, list.Body.Len())
+	var summaries struct {
+		Orders []map[string]json.RawMessage `json:"orders"`
+	}
+	if list.Code != 200 || json.Unmarshal(list.Body.Bytes(), &summaries) != nil || len(summaries.Orders) != 1 {
+		t.Fatalf("list must provide bounded summaries: %d %s", list.Code, list.Body)
+	}
+	// Node codes may legitimately be "publication". Inspect response fields,
+	// not matching string values, to reject full intent/publication payloads.
+	summary := summaries.Orders[0]
+	if summary["items"] != nil || summary["publication"] != nil || string(summary["item_count"]) != "3" {
+		t.Fatalf("list leaked full details or lost item count: %s", list.Body)
 	}
 
 }
@@ -217,7 +226,7 @@ func TestReleaseThousandItemsThroughExecutable(t *testing.T) {
 	if json.Unmarshal(previewBytes, &preview) != nil || len(preview.Items) != 1000 {
 		t.Fatal("incomplete restoration preview")
 	}
-	body := quickRollbackBody("4", preview.Digest, "")
+	body := quickRollbackBody(preview.ExpectedVersion, preview.Digest, "")
 	restored := request(path+"/quick-rollback", body, "thousand-restore", cookies, csrf)
 	var reverse domain.ReleaseOrder
 	if json.Unmarshal(restored, &reverse) != nil || reverse.State != "ROLLED_BACK" || reverse.ID != order.ID || singleExecutionTableVersion(reverse.Executions[1]) != "2" || len(executionCommands(reverse, "ROLLBACK")) != 1000 {

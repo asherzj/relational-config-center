@@ -1,0 +1,2118 @@
+diff --git a/admin/CONTEXT.md b/admin/CONTEXT.md
+index 7cf8626..7f90aa4 100644
+--- a/admin/CONTEXT.md
++++ b/admin/CONTEXT.md
+@@ -100,8 +100,16 @@ _Avoid_: Release Node Definition, Release Order instance, per-node configuration
+ One named step within a Release Template, using a predefined workflow capability and its allowed authority parameters. Its code is unique within that template, and its position follows the sequence allowed by the template's Release Type.
+ _Avoid_: Release Execution, workflow progress, arbitrary script, database row change
+ 
++**Release Table Flow（逐表流程实例）**:
++The workflow acknowledged for one involved Managed Table when a Release Order draft is saved, retaining its selected Release Type and ordered node definitions. Later template changes or table reassignment do not replace that saved workflow.
++_Avoid_: Release Template, Approval Assignment Snapshot, whole-order template
++
++**Release Node Instance（发布节点实例）**:
++One step in a Release Table Flow, retaining the acknowledged definition and the progress recorded through actual table decisions or whole-order publication and completion. Any attributed person and time belong to the action that produced that progress.
++_Avoid_: Release Node Definition, current approval eligibility, inferred completion
++
+ **Release Order（发布单）**:
+-The authoritative record of an ordered collection of proposed changes across Managed Tables in one Managed Data Source and its progression through approval, publication, completion, cancellation, or rollback. It associates the frozen application with its applicant, change details, execution results, and operation history.
++The authoritative record of an ordered collection of proposed changes across Managed Tables in one Managed Data Source and its progression through approval, publication, completion, cancellation, or rollback. It associates the frozen application with its applicant, per-table flows, change details, execution results, and operation history.
+ _Avoid_: Change Set, deployment, notification task
+ 
+ **Release Change Detail（发布单变更明细）**:
+@@ -126,7 +134,7 @@ _Avoid_: Approval of an individual record, publication, approval of another tabl
+ 
+ **Approval Assignment Snapshot（审批分配快照）**:
+ The role identities and names assigned to review each involved Managed Table when a Release Order is submitted, including an explicitly empty assignment. Membership and eligibility remain current, while later table reassignment does not replace the snapshot or invalidate decisions already completed lawfully.
+-_Avoid_: Policy Snapshot, frozen membership, current table assignment
++_Avoid_: Policy Snapshot, Release Table Flow, frozen membership, current table assignment
+ 
+ **Record Version（记录并发版本）**:
+ The monotonically advancing concurrency identity of one configuration record, used to reject changes based on an older record state, including after deletion and recreation of the same record identity.
+diff --git a/admin/cmd/admin/account_browser_integration_test.go b/admin/cmd/admin/account_browser_integration_test.go
+index 09bdb78..9239b88 100644
+--- a/admin/cmd/admin/account_browser_integration_test.go
++++ b/admin/cmd/admin/account_browser_integration_test.go
+@@ -175,4 +175,10 @@ func prepareManagementBrowserPolicies(t *testing.T, admin *accountProcess, maint
+ 			t.Fatalf("prepare management acceptance %s: status=%d want=%d", request.path, status, request.want)
+ 		}
+ 	}
++	// Publication fixtures explicitly opt into a standard flow; new table rules
++	// otherwise receive only the mandatory emergency association.
++	status, _, body := admin.requestWithKey(t, http.MethodPut, "/api/v1/table-policies/stage1_acceptance_items/release-templates/STANDARD", `{"template_code":"default_standard_v1","enabled":true,"expected_version":"0"}`, cookies, csrf, "browser-setup-standard-flow")
++	if status != http.StatusOK {
++		t.Fatalf("prepare standard publication flow: %d %s", status, body)
++	}
+ }
+diff --git a/admin/cmd/admin/business_auth_integration_test.go b/admin/cmd/admin/business_auth_integration_test.go
+index 21e2f75..da5dd11 100644
+--- a/admin/cmd/admin/business_auth_integration_test.go
++++ b/admin/cmd/admin/business_auth_integration_test.go
+@@ -500,6 +500,7 @@ func TestRevocationRejectsNewRequestsButAllowsAuthenticatedWriteToFinish(t *test
+ 	}
+ 	t.Cleanup(func() { _ = owner.Close() })
+ 	assignRelationalMutationPolicy(t, app, "inflight_mutation_v1", true, true, true, true)
++	bindFlowTemplate(t, app, "mutation_snapshot_items", "default_standard_v1", true)
+ 	session := registerAccount(t, app, "inflight.user", "inflight@example.com", "correct horse battery staple")
+ 	grantTestAdministrator(t, app, session)
+ 	actor := accountID(t, session)
+diff --git a/admin/cmd/admin/mutation_integration_test.go b/admin/cmd/admin/mutation_integration_test.go
+index 083d1ab..2cbc327 100644
+--- a/admin/cmd/admin/mutation_integration_test.go
++++ b/admin/cmd/admin/mutation_integration_test.go
+@@ -1025,4 +1025,7 @@ func assertDirectMutationRowCount(t *testing.T, ctx context.Context, database *s
+ func enableMutationPolicy(t *testing.T, app *adminApplication, tableName string, mutation mutationPolicyFixture) {
+ 	t.Helper()
+ 	enablePolicyAssignment(t, app, tableName, queryPolicyFixture{}, mutation)
++	// Publication fixtures explicitly opt new tables into the standard workflow.
++	// Runtime table creation continues to establish only the emergency association.
++	bindFlowTemplate(t, app, tableName, "default_standard_v1", true)
+ }
+diff --git a/admin/cmd/admin/release_copy_reprepare_multitable_integration_test.go b/admin/cmd/admin/release_copy_reprepare_multitable_integration_test.go
+index a5e2273..539d0ea 100644
+--- a/admin/cmd/admin/release_copy_reprepare_multitable_integration_test.go
++++ b/admin/cmd/admin/release_copy_reprepare_multitable_integration_test.go
+@@ -267,9 +267,11 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
+ 		contenderResponses <- accountRequestFrom(app, "POST", "/api/v1/release-orders", contenderBody, applicantCookies, applicantCSRF, "192.0.2.1:1234", map[string]string{"Idempotency-Key": "reprepare-multi-contender"})
+ 	}()
+ 	deadline = time.Now().Add(3 * time.Second)
++	// Release writes serialize current authorization before reading targets. The
++	// contender must wait there until the transfer transaction publishes its new owner.
+ 	for {
+ 		var waiting int
+-		if err := ownerDB.QueryRowContext(ctx, `SELECT COUNT(*) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks requested ON requested.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID JOIN performance_schema.data_locks blocking ON blocking.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID WHERE requested.OBJECT_SCHEMA=DATABASE() AND requested.OBJECT_NAME='rcc_release_targets' AND requested.INDEX_NAME='PRIMARY' AND blocking.OBJECT_SCHEMA=requested.OBJECT_SCHEMA AND blocking.OBJECT_NAME=requested.OBJECT_NAME`).Scan(&waiting); err != nil {
++		if err := ownerDB.QueryRowContext(ctx, `SELECT COUNT(*) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks requested ON requested.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID JOIN performance_schema.data_locks blocking ON blocking.ENGINE_LOCK_ID=w.BLOCKING_ENGINE_LOCK_ID WHERE requested.OBJECT_SCHEMA=DATABASE() AND requested.OBJECT_NAME='rcc_auth_control_lock' AND requested.INDEX_NAME='PRIMARY' AND blocking.OBJECT_SCHEMA=requested.OBJECT_SCHEMA AND blocking.OBJECT_NAME=requested.OBJECT_NAME`).Scan(&waiting); err != nil {
+ 			t.Fatal(err)
+ 		}
+ 		if waiting > 0 {
+@@ -281,7 +283,7 @@ func TestMultitableReprepareTransfersChangedTargetsAtomically(t *testing.T) {
+ 		default:
+ 		}
+ 		if time.Now().After(deadline) {
+-			t.Fatal("contender did not reach the retained release-target lock")
++			t.Fatal("contender did not reach the release authorization lock")
+ 		}
+ 		time.Sleep(10 * time.Millisecond)
+ 	}
+diff --git a/admin/cmd/admin/release_quick_rollback_integration_test.go b/admin/cmd/admin/release_quick_rollback_integration_test.go
+index cce0875..48363a6 100644
+--- a/admin/cmd/admin/release_quick_rollback_integration_test.go
++++ b/admin/cmd/admin/release_quick_rollback_integration_test.go
+@@ -74,7 +74,17 @@ func TestQuickRollbackRestoresMixedPublicationAndReplaysActualResult(t *testing.
+ 	if reverse.State != "ROLLED_BACK" || reverse.ID != original.ID || len(reverse.Executions) < 2 || reverse.Executions[1].ActorID != accountID(t, publisher) || reverse.ApplicantID != original.ApplicantID || singleExecutionTableVersion(reverse.Executions[1]) != "2" {
+ 		t.Fatal("missing original rollback result", reverse)
+ 	}
++	if len(original.TableFlows) != 1 || original.TableFlows[0].Nodes[2].State != "ACTIVE" || len(reverse.TableFlows) != 1 {
++		t.Fatal("rollback fixture lacks a saved unfinished forward flow")
++	}
++	beforeFlow, afterFlow := original.TableFlows[0], reverse.TableFlows[0]
++	if afterFlow.InstanceID != beforeFlow.InstanceID || !reflect.DeepEqual(afterFlow.Nodes[:2], beforeFlow.Nodes[:2]) || afterFlow.Nodes[2].State != "STOPPED" || afterFlow.Nodes[2].ActorID != "" || afterFlow.Nodes[2].At != "" {
++		t.Fatalf("rollback must preserve completed facts and stop unfinished forward completion: %+v", afterFlow)
++	}
+ 	current := rollbackOrderResponse(t, releaseReadAllDetails(t, app, "GET", path, "", ""), 200)
++	if !reflect.DeepEqual(current.TableFlows, reverse.TableFlows) {
++		t.Fatal("stopped forward nodes were not persisted")
++	}
+ 	if !reflect.DeepEqual(applicationItems(current), applicationItems(original)) || !reflect.DeepEqual(executionCommands(current, "PUBLICATION"), executionCommands(original, "PUBLICATION")) || len(current.History) != len(original.History)+1 {
+ 		t.Fatal("original application overwritten")
+ 	}
+diff --git a/admin/internal/application/quick_rollback.go b/admin/internal/application/quick_rollback.go
+index c593311..2eb1f26 100644
+--- a/admin/internal/application/quick_rollback.go
++++ b/admin/internal/application/quick_rollback.go
+@@ -137,6 +137,7 @@ func (r *ReleaseOrders) QuickRollback(ctx context.Context, id string, input Quic
+ 			return err
+ 		}
+ 		original.History[len(original.History)-1].ExecutionID = publication.ExecutionID
++		advanceReleaseFlows(&original)
+ 		if err = s.SaveReleaseOrder(ctx, original, false); err != nil {
+ 			return err
+ 		}
+diff --git a/admin/internal/application/release_orders.go b/admin/internal/application/release_orders.go
+index 5c446ec..cc35d76 100644
+--- a/admin/internal/application/release_orders.go
++++ b/admin/internal/application/release_orders.go
+@@ -19,6 +19,7 @@ import (
+ )
+ 
+ var (
++	ErrReleaseFlowIncomplete      = errors.New("save valid flow instances for every table before submission")
+ 	ErrReleaseTitle               = errors.New("release title must contain 1 to 100 characters")
+ 	ErrReleaseCrossTable          = errors.New("release item belongs to another table")
+ 	ErrReleaseItemLimit           = errors.New("release must contain 1 to 1000 items")
+@@ -72,6 +73,7 @@ type DraftInput struct {
+ // ReleaseOrderSession exposes only control-data writes and consistent baseline
+ // reads. Preparing a draft cannot call business-row mutation methods.
+ type ReleaseOrderSession interface {
++	ReadReleaseFlowConfigurations(context.Context, []string, domain.ReleaseType) ([]domain.ReleaseFlowConfiguration, error)
+ 	releaseApprovalReader
+ 	ReferenceReleaseApprovalRoles(context.Context, string, []domain.ReleaseTableApproval) error
+ 	CurrentReleaseAccount(context.Context, string) (domain.ApprovalAccount, error)
+@@ -123,6 +125,14 @@ func (r *ReleaseOrders) Create(ctx context.Context, input DraftInput, key string
+ 	}
+ 	var result ReleaseOrder
+ 	err = r.store.ExecuteReleaseOrder(ctx, func(s ReleaseOrderSession) error {
++		currentActor, err := s.CurrentReleaseAccount(ctx, actor)
++		if err != nil {
++			return err
++		}
++		ctx = (AuthenticatedOperator{accountID: actor, roles: currentActor.Roles}).Bind(ctx)
++		if _, err = requireRole(ctx, RoleEditor); err != nil {
++			return err
++		}
+ 		digest := releaseDigest(input)
+ 		previous, err := s.BeginReleaseRequest(ctx, actor, "create", key, digest)
+ 		if err != nil {
+@@ -153,6 +163,10 @@ func (r *ReleaseOrders) Create(ctx context.Context, input DraftInput, key string
+ 		stamp := now.UTC().Format(time.RFC3339Nano)
+ 		result = ReleaseOrder{Title: input.Title, ID: hex.EncodeToString(idBytes), ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "CREATE", ActorID: actor, At: stamp, Version: "1"}}}
+ 		result.TableNames = releaseTableNames(result.Items)
++		result.ReleaseType = domain.ReleaseTypeStandard
++		if err = saveDraftFlows(ctx, s, &result); err != nil {
++			return err
++		}
+ 		if err = s.SaveReleaseOrder(ctx, result, true); err != nil {
+ 			return err
+ 		}
+@@ -230,6 +244,9 @@ func (r *ReleaseOrders) People(ctx context.Context, id string) (map[string]strin
+ func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) []string {
+ 	actions := []string{}
+ 	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute", "complete", "quick-rollback", "edit-rollback-reason", "reprepare"} {
++		if action == "submit" && !order.HasCompleteFlows() {
++			continue
++		}
+ 		if releaseOrderActionState(order, action) && authorizeReleaseAction(ctx, order, action) == nil {
+ 			actions = append(actions, action)
+ 		}
+@@ -280,7 +297,7 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
+ 	return ErrPermissionDenied
+ }
+ func releaseOrderActionState(order ReleaseOrder, action string) bool {
+-	if action == "execute" && !order.HasCompleteApproval() {
++	if action == "execute" && (!order.HasCompleteApproval() || !order.HasCompleteFlows()) {
+ 		return false
+ 	}
+ 	return releaseActionState(order.State, action)
+@@ -618,6 +635,9 @@ func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitRelea
+ 		if len(order.Items) == 0 {
+ 			return ErrReleaseItemLimit
+ 		}
++		if order.ReleaseType != domain.ReleaseTypeStandard || !order.HasCompleteFlows() {
++			return ErrReleaseFlowIncomplete
++		}
+ 		tables, err := r.resolveReleaseTables(ctx, s, order.Items, false)
+ 		if err != nil {
+ 			return err
+@@ -783,7 +803,13 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
+ 			}
+ 		}
+ 		order.History = append(order.History, event)
++		advanceReleaseFlows(&order)
+ 		order.TableNames = releaseTableNames(order.Items)
++		if action == "edit" {
++			if err = saveDraftFlows(ctx, s, &order); err != nil {
++				return err
++			}
++		}
+ 		if err = s.SaveReleaseOrder(ctx, order, false); err != nil {
+ 			return err
+ 		}
+@@ -863,6 +889,14 @@ func (r *ReleaseOrders) copyOrder(ctx context.Context, id string, input CopyRele
+ 	}
+ 	var result ReleaseOrder
+ 	err = r.store.ExecuteReleaseOrder(ctx, func(s ReleaseOrderSession) error {
++		currentActor, err := s.CurrentReleaseAccount(ctx, actor)
++		if err != nil {
++			return err
++		}
++		ctx = (AuthenticatedOperator{accountID: actor, roles: currentActor.Roles}).Bind(ctx)
++		if _, err = requireRole(ctx, RoleEditor); err != nil {
++			return err
++		}
+ 		action := "copy"
+ 		if reprepare {
+ 			action = "reprepare"
+@@ -950,6 +984,7 @@ func (r *ReleaseOrders) copyOrder(ctx context.Context, id string, input CopyRele
+ 		if err := appendRelatedReleaseEvent(&source, actor, stamp, historyAction, historyReason, result.ID); err != nil {
+ 			return err
+ 		}
++		advanceReleaseFlows(&source)
+ 		if err := s.SaveReleaseOrder(ctx, source, false); err != nil {
+ 			return err
+ 		}
+@@ -959,6 +994,10 @@ func (r *ReleaseOrders) copyOrder(ctx context.Context, id string, input CopyRele
+ 			}
+ 		}
+ 		result.TableNames = releaseTableNames(result.Items)
++		result.ReleaseType = source.ReleaseType
++		if err := saveDraftFlows(ctx, s, &result); err != nil {
++			return err
++		}
+ 		if err := s.SaveReleaseOrder(ctx, result, true); err != nil {
+ 			return err
+ 		}
+diff --git a/admin/internal/domain/release_order.go b/admin/internal/domain/release_order.go
+index 232a581..6bf621d 100644
+--- a/admin/internal/domain/release_order.go
++++ b/admin/internal/domain/release_order.go
+@@ -43,22 +43,25 @@ type ReleaseEvent struct {
+ }
+ 
+ type ReleaseOrder struct {
+-	Approvals       []ReleaseTableApproval              `json:"approvals"`
+-	ApprovalContext ReleaseApprovalContext              `json:"approval_context"`
+-	FrozenTables    map[string]ReleaseExecutionSnapshot `json:"frozen_tables,omitempty"`
+-	TableNames      []string                            `json:"table_names"`
+-	Title           string                              `json:"title"`
+-	Executions      []ReleaseExecution                  `json:"executions"`
+-	CopiedFromID    string                              `json:"copied_from_id,omitempty"`
+-	FrozenDigest    string                              `json:"frozen_digest,omitempty"`
+-	ID              string                              `json:"id"`
+-	ApplicantID     string                              `json:"applicant_id"`
+-	State           string                              `json:"state"`
+-	Version         string                              `json:"version"`
+-	Items           []ReleaseItem                       `json:"items"`
+-	History         []ReleaseEvent                      `json:"history"`
+-	CreatedAt       string                              `json:"created_at"`
+-	UpdatedAt       string                              `json:"updated_at"`
++	ReleaseType       ReleaseType                         `json:"release_type"`
++	TableFlows        []ReleaseTableFlow                  `json:"table_flows"`
++	MissingFlowTables []string                            `json:"missing_flow_tables"`
++	Approvals         []ReleaseTableApproval              `json:"approvals"`
++	ApprovalContext   ReleaseApprovalContext              `json:"approval_context"`
++	FrozenTables      map[string]ReleaseExecutionSnapshot `json:"frozen_tables,omitempty"`
++	TableNames        []string                            `json:"table_names"`
++	Title             string                              `json:"title"`
++	Executions        []ReleaseExecution                  `json:"executions"`
++	CopiedFromID      string                              `json:"copied_from_id,omitempty"`
++	FrozenDigest      string                              `json:"frozen_digest,omitempty"`
++	ID                string                              `json:"id"`
++	ApplicantID       string                              `json:"applicant_id"`
++	State             string                              `json:"state"`
++	Version           string                              `json:"version"`
++	Items             []ReleaseItem                       `json:"items"`
++	History           []ReleaseEvent                      `json:"history"`
++	CreatedAt         string                              `json:"created_at"`
++	UpdatedAt         string                              `json:"updated_at"`
+ }
+ 
+ type RecordBaseline struct {
+@@ -140,22 +143,25 @@ func NewReleaseMutationSemantics(policy MutationPolicy) ReleaseMutationSemantics
+ // ReleaseOrderSummary carries bounded catalog information; complete intent and
+ // verified publication history are available through the order detail.
+ type ReleaseOrderSummary struct {
+-	Approvals       []ReleaseTableApproval `json:"approvals"`
+-	ApprovalContext ReleaseApprovalContext `json:"approval_context"`
+-	TableNames      []string               `json:"table_names"`
+-	Title           string                 `json:"title"`
+-	ID              string                 `json:"id"`
+-	ApplicantID     string                 `json:"applicant_id"`
+-	State           string                 `json:"state"`
+-	Version         string                 `json:"version"`
+-	CreatedAt       string                 `json:"created_at"`
+-	UpdatedAt       string                 `json:"updated_at"`
+-	ItemCount       int                    `json:"item_count"`
+-	OperationCounts map[string]int         `json:"operation_counts"`
++	ReleaseType       ReleaseType            `json:"release_type"`
++	TableFlows        []ReleaseTableFlow     `json:"table_flows"`
++	MissingFlowTables []string               `json:"missing_flow_tables"`
++	Approvals         []ReleaseTableApproval `json:"approvals"`
++	ApprovalContext   ReleaseApprovalContext `json:"approval_context"`
++	TableNames        []string               `json:"table_names"`
++	Title             string                 `json:"title"`
++	ID                string                 `json:"id"`
++	ApplicantID       string                 `json:"applicant_id"`
++	State             string                 `json:"state"`
++	Version           string                 `json:"version"`
++	CreatedAt         string                 `json:"created_at"`
++	UpdatedAt         string                 `json:"updated_at"`
++	ItemCount         int                    `json:"item_count"`
++	OperationCounts   map[string]int         `json:"operation_counts"`
+ }
+ 
+ func (order ReleaseOrder) Summary() ReleaseOrderSummary {
+-	result := ReleaseOrderSummary{Approvals: order.Approvals, ApprovalContext: order.ApprovalContext, TableNames: order.TableNames, Title: order.Title, ID: order.ID, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
++	result := ReleaseOrderSummary{ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext, TableNames: order.TableNames, Title: order.Title, ID: order.ID, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
+ 	for _, item := range order.Items {
+ 		result.OperationCounts[item.Operation]++
+ 	}
+diff --git a/admin/internal/domain/release_read.go b/admin/internal/domain/release_read.go
+index 33964f5..af4d492 100644
+--- a/admin/internal/domain/release_read.go
++++ b/admin/internal/domain/release_read.go
+@@ -12,7 +12,7 @@ type ReleaseHeader struct {
+ }
+ 
+ func (header ReleaseHeader) Workflow() ReleaseOrder {
+-	return ReleaseOrder{Approvals: header.Approvals, ApprovalContext: header.ApprovalContext, ID: header.ID, Title: header.Title, TableNames: header.TableNames, ApplicantID: header.ApplicantID, State: header.State, Version: header.Version, CreatedAt: header.CreatedAt, UpdatedAt: header.UpdatedAt, CopiedFromID: header.CopiedFromID, FrozenDigest: header.FrozenDigest, FrozenTables: header.FrozenTables, History: header.History, Executions: header.Executions}
++	return ReleaseOrder{ReleaseType: header.ReleaseType, TableFlows: header.TableFlows, MissingFlowTables: header.MissingFlowTables, Approvals: header.Approvals, ApprovalContext: header.ApprovalContext, ID: header.ID, Title: header.Title, TableNames: header.TableNames, ApplicantID: header.ApplicantID, State: header.State, Version: header.Version, CreatedAt: header.CreatedAt, UpdatedAt: header.UpdatedAt, CopiedFromID: header.CopiedFromID, FrozenDigest: header.FrozenDigest, FrozenTables: header.FrozenTables, History: header.History, Executions: header.Executions}
+ }
+ 
+ // Offset and NextOffset are zero-based original detail positions. Results stay
+diff --git a/admin/internal/interfaces/http/release_orders.go b/admin/internal/interfaces/http/release_orders.go
+index 9dbff13..92493c8 100644
+--- a/admin/internal/interfaces/http/release_orders.go
++++ b/admin/internal/interfaces/http/release_orders.go
+@@ -65,7 +65,7 @@ func registerReleaseOrderRoutes(router *gin.Engine, orders *application.ReleaseO
+ 			summary := struct {
+ 				application.ReleaseOrderSummary
+ 				AllowedActions []string `json:"allowed_actions"`
+-			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{ID: order.ID, State: order.State, ApplicantID: order.ApplicantID, TableNames: order.TableNames, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext})}
++			}{order, orders.AllowedActions(c.Request.Context(), application.ReleaseOrder{ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, ID: order.ID, State: order.State, ApplicantID: order.ApplicantID, TableNames: order.TableNames, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext})}
+ 			response = append(response, summary)
+ 		}
+ 		next := ""
+@@ -283,6 +283,8 @@ func writeReleaseError(c *gin.Context, err error) bool {
+ 	}
+ 	status, code, message := 503, "release_unavailable", "release order storage is unavailable"
+ 	switch {
++	case errors.Is(err, application.ErrReleaseFlowIncomplete):
++		status, code, message = 409, "release_flow_incomplete", "save valid flow instances for every table before submission"
+ 	case errors.Is(err, application.ErrReleaseApproverUnavailable):
+ 		status, code, message = 422, "release_approver_unavailable", err.Error()
+ 	case errors.Is(err, application.ErrReleaseApprovalConflict):
+diff --git a/docs/admin-release-approvals.md b/docs/admin-release-approvals.md
+index 2d878b4..305569e 100644
+--- a/docs/admin-release-approvals.md
++++ b/docs/admin-release-approvals.md
+@@ -4,13 +4,27 @@
+ 
+ 草稿组织和容量限制见[发布草稿](admin-release-drafts.md)，最终结果及数据库权限见[发布结果契约](design-notes/publication-contract.md)，原单恢复规则见[原单回滚](admin-release-rollbacks.md)。提交与审批的交付证据见 [T4 #51](https://github.com/asherzj/relational-config-center/issues/51)。
+ 
++## 流程实例与审批分配
++
++常规提交要求每张参与表已有完整的已保存流程。提交保留节点实例和来源版本；它仍冻结业务申请、执行语义及各表审批角色身份，角色成员与账号资格继续实时检查。节点保存时点与审批分配冻结时点不同，草稿上的审批安排仍是提交前安排。模板节点中的 `TABLE_APPROVER` 不提供旧全局 APPROVER 旁路，全部表获得合法批准后才能整单发布。
++
++| 拒绝条件 | 公开错误 | 后续操作 |
++| --- | --- | --- |
++| 非空草稿的逐表流程不完整 | `409 release_flow_incomplete` | 查看主单 `missing_flow_tables`；修复常规配置后显式保存草稿，再提交 |
++| 流程完整但缺少独立审批人 | `422 release_approver_unavailable` | 查看问题表及当前审批安排，补充合格人员后提交 |
++| 流程配置或审批目录无法可靠读取 | `503 release_unavailable` | 保留内容与原请求，恢复依赖后按原操作处理；不改用默认流程或默认授权 |
++
++缺少流程时，`allowed_actions` 不提供 `submit`，直接提交也由服务器拒绝；空草稿继续返回既有明细数量错误。上述失败不会把草稿推进到待审批，也不会修改业务配置。当前发布接口同时要求完整流程与真实逐表批准事实，沿用现有发布权限、数据基线、规则及结构校验。
++
++逐表节点的状态随真实业务写入持久保存，详情直接展示这些事实：`PENDING` 为待开始，`ACTIVE` 为进行中，`COMPLETED` 为已完成，`REJECTED` 为实际拒绝，`STOPPED` 为整单终止后未完成的节点。某表批准后只完成该表审批节点，其他表可继续待审；整单发布成功完成各表发布节点并等待人工完结，人工完结后完成完结节点。取消、拒绝或快速回滚保留已经完成的节点，未完成节点终止；没有实际操作的节点不填造人员或时间。
++
+ ## HTTP 操作
+ 
+ 所有请求沿用当前登录会话、同源与 CSRF 检查。写操作要求 `Idempotency-Key`，版本为十进制 JSON 字符串。
+ 
+ | 操作 | 请求体 | 当前授权与状态 |
+ |---|---|---|
+-| `POST /api/v1/release-orders/:id/submit` | `expected_version` | 本单申请人且当前 EDITOR/ADMIN，DRAFT |
++| `POST /api/v1/release-orders/:id/submit` | `expected_version` | 本单申请人且当前 EDITOR/ADMIN，DRAFT；各表已保存常规流程完整 |
+ | `POST /api/v1/release-orders/:id/approve` | `expected_version`, 必填 `reason`, `confirmed_tables`, `expected_approval_revision` | 当前仍有待审批表资格的非申请人，PENDING_APPROVAL |
+ | `POST /api/v1/release-orders/:id/reject` | 同批准 | 同批准；释放目标 |
+ | `POST /api/v1/release-orders/:id/cancel` | `expected_version`, 必填 `reason` | 当前仍有编辑权限的申请人或 ADMIN，DRAFT/PENDING_APPROVAL/APPROVED；释放目标 |
+@@ -55,7 +69,7 @@
+ 
+ ## 升级与恢复
+ 
+-尚未接管且已有 007 本地账号结构的部署，在停写维护窗口完成适用历史迁移 008～017 及 Policy 收缩后，显式运行 `schema-migrate baseline` 并确认 current。015 建立原单明细/执行，016 增加管控键和表引用，017 删除主单默认表；这些步骤不转换旧发布单业务数据。已经纳入 Goose 的库使用 `schema-migrate up` 至当前 00005；新库同样只使用嵌入式 `up` 初始化。未确认操作按手册显式 `recover`，不能混用历史人工链和 Goose。Ready 只读核对完整版本前缀及每张控制表的完整定义。具体命令和历史边界见[迁移说明](../deploy/mysql/migrations/README.md)及[接管手册](schema-migrations.md)。
++尚未接管且已有 007 本地账号结构的部署，在停写维护窗口完成适用历史迁移 008～017 及 Policy 收缩后，显式运行 `schema-migrate baseline` 并确认 current。015 建立原单明细/执行，016 增加管控键和表引用，017 删除主单默认表；这些步骤不转换旧发布单业务数据。已经纳入 Goose 的库使用 `schema-migrate up` 至当前构建包含的最新版本；新库同样只使用嵌入式 `up` 初始化。历史接管边界保持 00005，常规流程实例使用现有主单文档，不新增 Schema 迁移。未确认操作按手册显式 `recover`，不能混用历史人工链和 Goose。Ready 只读核对完整版本前缀及每张控制表的完整定义。具体命令和历史边界见[迁移说明](../deploy/mysql/migrations/README.md)及[接管手册](schema-migrations.md)。
+ 
+ Web 将草稿和发布动作（含提交、批准、拒绝、取消、复制、重新准备、执行、完结、快速回滚）的原请求内容、键及账号在发送前通过单一 IndexedDB 事务持久保存。事务完成前不发送，同账号窗口同步存储状态而不自动重推；存储失败保留输入并只阻止发布写入。未知结果保持原键和完整正文；重新准备未知时同一账号恢复同一请求，只在服务端返回明确失败后才重新核对并生成新键。仅持有 VIEWER 全局权限的表角色成员也能恢复自己的审批请求，账号切换不会重放别人的请求。明确状态/记录/目标冲突后仍保留原意，读取最新状态与差异、显式确认后才生成新请求。普通草稿提交基线陈旧时须先明确更新草稿基线；回滚恢复基线不能更新。
+ 
+@@ -65,7 +79,7 @@ Web 将草稿和发布动作（含提交、批准、拒绝、取消、复制、
+ 
+ ## 详情审阅与原操作重推
+ 
+-发布单详情按准备、审批、发布、完结组织进度，节点人员与时间来自真实事件；准备完成取 SUBMIT。取消、拒绝和回滚明确显示终止，快速回滚结果不产生虚构审批。普通成功仍为 SUCCEEDED 待人工完结。历史默认倒序最近 5 条，可展开全部，姓名解析失败保持永久身份兜底。
++常规发布单详情分别展示整单阶段和已保存逐表流程。准备完成取真实 SUBMIT；各表节点使用自身实例的名称、状态、人员和时间，来源模板及版本可展开核对。部分表批准时整单仍待审批，普通发布成功仍为 SUCCEEDED 待人工完结。回滚结果继续按原单真实执行展示，当前不新增回滚模板实例；已有快速回滚在同一事务停止尚未完成的正向节点，`ROLLED_BACK` 页面暂保留旧总览。#105 负责接入原单回滚模板及其节点进度，#106 负责移除临时总览。历史默认倒序最近 5 条，可展开全部，姓名解析失败保持永久身份兜底。
+ 
+ 申请差异每页 20 项，初次仅展开首项，定位展开选中项。默认仅看变更过滤 MODIFY 中未提交（申请未写入）及状态和值均确定相同的字段，自动填写和数据库生成说明仍可见；完整视图分别表达 SQL NULL、JSON null、空字符串、未提交、不存在和发布时生成。申请筛选不承诺触发器执行后的实际值，最终结果仍取数据库发布结果。ADD/DELETE 保留完整字段。所有操作仍针对整单。成功初次默认可信实际发布结果，可切换申请差异；已回滚原单可分页读取原明细 `rollback` 的真实恢复结果，不从申请内容生成实际值。
+ 
+@@ -89,7 +103,7 @@ Web 将草稿和发布动作（含提交、批准、拒绝、取消、复制、
+ 
+ 提交时缺少独立审批人返回 `422 release_approver_unavailable` 并指出问题表，草稿和目标保留。已提交单据后来无人可审时保持当前状态和已通过进度，详情提示补充人员。角色目录读取失败返回不可用，绝不推导默认 ADMIN 授权。
+ 
+-角色维护、表分配、账号启停／授权和发布单写操作共用授权控制锁。发布单按授权锁 → 原请求身份 → 主单 → 明细取得锁，并在锁内重新读取操作者与审批资格；操作者读取使用当前锁定读，避免提前建立业务规则的旧快照。当前实现串行化这些写事务，延续单部署的取舍；高频会话访问也使用该锁，未来调整锁粒度须保持资格竞争和业务冻结保护。逐表决定、真实历史、状态和幂等结果一起提交；审批分配不进入冻结的业务执行规则摘要。
++角色维护、表分配、账号启停／授权和发布单写操作共用授权控制锁。创建、复制与重新准备也在取得该锁后重读当前操作者并复核编辑权限，成功原请求重推同样不能绕过当前授权。发布单按授权锁 → 原请求身份 → 主单 → 明细取得锁，并在锁内重新读取操作者与审批资格；操作者读取使用当前锁定读，避免提前建立业务规则的旧快照。当前实现串行化这些写事务，延续单部署的取舍；高频会话访问也使用该锁，未来调整锁粒度须保持资格竞争和业务冻结保护。逐表决定、真实历史、状态和幂等结果一起提交；审批分配不进入冻结的业务执行规则摘要。
+ 
+ 表审批历史记录操作者、数据库时间、意见、表范围、`ROLE` 或 `ADMIN` 来源和当时角色名称。已完成审批不再次按实时成员资格重算；发布仍要求所有实际涉及表都有批准事实，并继续校验原有数据、业务规则和结构。
+ 
+diff --git a/docs/admin-release-drafts.md b/docs/admin-release-drafts.md
+index e0854aa..a1415da 100644
+--- a/docs/admin-release-drafts.md
++++ b/docs/admin-release-drafts.md
+@@ -2,6 +2,38 @@
+ 
+ T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供草稿创建、编辑、查询和取消。T5 已把数据页 Change Set 唯一确认改为“确认并保存草稿”，不会写业务记录或推进记录版本；#83 起保存草稿明细即原子占用目标。提交、独立审批后由 PUBLISHER [正式执行](design-notes/publication-contract.md)；旧记录写路由已删除，分发仍未接入。#84 将同一路径扩展为同一数据源多表合计 0～1,000 项草稿（提交至少 1 项） ADD/MODIFY/DELETE；单项是集合长度为 1 的情况。
+ 
++## 已保存的逐表流程
++
++当前正向草稿使用 `STANDARD` 常规发布。保存草稿时，每张参与表按其有效常规关联取得自己的流程实例；不同表可使用不同模板或共享模板。实例名称、来源与节点在展示前已经保存，之后修改或停用模板、切换表关联不会替换旧实例。空草稿没有参与表和流程，仍可保存但不可提交。
++
++- 编辑标题、同表明细或调整顺序时保留已有实例。
++- 加入新表时仅为该表实例化；移除某表最后一条明细并保存后，该表退出当前流程，再次加入时取得新的实例。
++- 复制或重新准备产生的新草稿按当时配置重新实例化，不继承源单的实例身份、节点进度或审批决定；源单身份、历史和目标流转仍遵循既有契约。
++
++新参与表没有有效常规配置时，草稿保存其内容并返回 `missing_flow_tables`，已有实例保持不变。管理员补齐模板或关联后，申请人需再次显式保存；刷新、读取详情和直接提交均不会自动补建。页面可从「保存草稿以补齐流程」进入原草稿编辑器，不必修改标题或明细即可保存。公开接口仍使用 `PUT /api/v1/release-orders/:id`、当前版本和 `Idempotency-Key`，例如保留原内容的增量保存：
++
++```json
++{"title":"原有标题","expected_version":"3","changes":{}}
++```
++
++这也是一次草稿写入：成功推进发布单版本、记录编辑历史，并仅补齐缺失实例；当前权限、所有权、目标保护和原请求重推规则继续适用。配置读取失败或定义无效返回 `503 release_unavailable`，不会被记录成配置缺失或默认流程。已成功请求重推返回原实例，不因模板更新再次实例化。
++
++### 流程响应字段
++
++创建、修改等发布单写响应、主单详情和列表摘要新增下列只读字段；明细分页仍保持现有格式。草稿请求不接受客户端提供的实例、节点状态或模板选择，本阶段也不接受切换发布方式。
++
++| 字段 | 含义 |
++| --- | --- |
++| `release_type` | 当前为 `STANDARD` |
++| `table_flows` | 本单已保存的逐表流程数组；按参与表分别展示 |
++| `missing_flow_tables` | 当前缺少已保存流程的表名数组；以显式保存结果为准 |
++| `table_flows[].instance_id`、`table_name`、`release_type` | 实例身份、所属表及发布方式 |
++| `template_code`、`template_name`、`template_version`、`association_version` | 该实例采用的来源信息；版本为十进制字符串 |
++| `instantiated_at` | 实例保存时间 |
++| `node_list[]` | 有序节点：`code`、`type`、`name`、`required_role`、`state`，以及有真实记录时的 `actor_id`、`at` |
++
++节点 `type` 为 `APPROVAL`、`PUBLICATION`、`COMPLETION`；`required_role` 为 `TABLE_APPROVER` 或 `PUBLISHER`，不能作为当前账号授权凭证。节点状态语义见[提交与审批](admin-release-approvals.md#流程实例与审批分配)。`table_flows` 与 `missing_flow_tables` 沿用现有主单文档存储，不增加第三张配置表，也不新增 Schema 迁移或自动补造存量发布单实例。
++
+ ## HTTP
+ 
+ 所有接口沿用当前 Cookie、CSRF、同源检查、`Cache-Control: no-store` 和 `request_id`。VIEWER 可查看全部发布历史；创建、预览、修改需当前 EDITOR（ADMIN 包含该能力），修改仅限申请人。取消限当前有编辑能力的申请人或 ADMIN，原因必填。PUBLISHER 不包含 EDITOR。
+diff --git a/docs/admin-table-release-templates.md b/docs/admin-table-release-templates.md
+index 4be9b24..4eb4bae 100644
+--- a/docs/admin-table-release-templates.md
++++ b/docs/admin-table-release-templates.md
+@@ -1,6 +1,6 @@
+ # 表发布流程设置
+ 
+-管理员在表规则目录选择「发布流程」，为每种发布方式选择一个模板。不同表可以共享模板。此处维护后续实例的配置；#102 尚未接通流程实例、应急执行或原单回滚。
++管理员在表规则目录选择「发布流程」，为每种发布方式选择一个模板。不同表可以共享模板。此处维护后续实例的配置；常规草稿在显式保存时采用各表当前有效关联。修改配置不替换已有实例，缺失流程在配置修复后由申请人再次保存补齐，详见[发布草稿](admin-release-drafts.md#已保存的逐表流程)。应急执行与原单回滚模板尚未接入。
+ 
+ `GET /api/v1/table-policies/{table_name}/release-templates` 返回 `associations`，每项包含 `table_name`、`type`、`template_code`、`template_name`、`template_enabled`、关联自身的 `enabled`、十进制字符串 `version` 以及 `creator/modifier/created_at/updated_at`。身份审计采用永久 Account ID。读取失败返回依赖错误，不当作空配置。
+ 
+@@ -18,6 +18,6 @@
+ 
+ 原请求重放成功只确认该次操作，界面随后读取当前配置，避免把历史结果显示为当前状态。干净关联表单同步最新读取；编辑中的选择与原版本保持不变。若原请求重推收到确定版本冲突，该次请求没有提交，界面允许显式核对最新版本后以新请求保存；会话失效或权限不足不会解除未知原请求。恢复读取与写入互斥，读取失败即使存在缓存，也保留输入、原版本和错误。
+ 
+-数据库只增加 `rcc_table_release_templates` 这一张关联配置表，连同 #101 的模板定义表共两张。每表规则每类型唯一，模板身份及类型由复合外键保护；完整节点仍只保存在模板 `node_list`。新建表规则与默认应急关联同事务，启用校验或补齐应急关联；初始化为既有规则补缺失默认值，不覆盖管理员已选关联，也不恢复已停用或已删除的常规模板。
++数据库只增加 `rcc_table_release_templates` 这一张关联配置表，连同 #101 的模板定义表共两张。每表规则每类型唯一，模板身份及类型由复合外键保护；配置节点保存在模板 `node_list`；发布单实例在现有主单文档中保留当时的有序节点，不另建配置表。新建表规则与默认应急关联同事务，启用校验或补齐应急关联；初始化为既有规则补缺失默认值，不覆盖管理员已选关联，也不恢复已停用或已删除的常规模板。
+ 
+-当前迁移为从 #101 固定基点 `8b79faa3b720f7e2a6837aa43ba7952b0ee76028` 顺延的候选 `00009`，仅用于一次性隔离验证。已发行 1–5 与历史接管边界 5 保持不变；外部已交付 6/7 由 T3 接入后统一调整未发行候选并重建真实 MySQL 累计清单。Admin 就绪只读检查完整结构、发行记录及每个受管表的有效应急关联，不隐式修复。
++已集成基线包含外部交付 00006/00007 和本功能候选 00008/00009；候选仍仅用于一次性隔离验证。历史接管边界保持 00005，常规逐表流程实例不增加迁移版本。后续外部依赖接入时，仍按[候选迁移整合约定](design-notes/release-template-ticket-plan.md#并行开发的迁移整合责任)核对前缀、顺排未发行候选并从真实 MySQL 重建累计清单。Admin 就绪只读检查完整结构、发行记录及每个受管表的有效应急关联，不隐式修复。
+diff --git a/docs/adr/0027-configure-release-workflows-with-stable-templates.md b/docs/adr/0027-configure-release-workflows-with-stable-templates.md
+index b199304..6052d9b 100644
+--- a/docs/adr/0027-configure-release-workflows-with-stable-templates.md
++++ b/docs/adr/0027-configure-release-workflows-with-stable-templates.md
+@@ -6,12 +6,16 @@ status: accepted
+ 
+ 管理员需要为同一种发布方式维护多份可复用流程，而后续发布单必须能够引用一个稳定定义。发布方式因此只描述共享流程类别，模板编码才标识具体模板：`STANDARD` 和 `EMERGENCY` 都允许多份模板，模板编码全局唯一且带版本，创建后编码和发布方式不变。模板名称、描述和节点名称可通过记录版本并发保护修改，创建和所有生命周期写入使用持久请求结果支持原请求重推。
+ 
+-模板直接保存有序的发布节点定义 JSON，不拆分第三张配置表。常规模板固定为按表审批、发布、完结，应急模板固定为发布、完结；节点编码在模板内唯一，节点能力、顺序及所需角色由发布方式约束。模板级监控列表当前固定为空，未引入监控节点配置。审批节点只声明后续复用按表审批能力，本切片不改变现有发布单审批或执行路径。
++模板直接保存有序的发布节点定义 JSON，不拆分第三张配置表。常规模板固定为按表审批、发布、完结，应急模板固定为发布、完结；节点编码在模板内唯一，节点能力、顺序及所需角色由发布方式约束。模板级监控列表当前固定为空，未引入监控节点配置。模板目录阶段仅声明按表审批能力；流程实例沿用正式表审批，不引入旧全局 APPROVER 授权。
+ 
+-应急模板始终可用，不能停用或删除，非法修改在写入前拒绝；服务就绪要求稳定编码 `default_emergency_v1` 的默认应急模板保持有效，同类型仍可存在多份模板。常规模板可以停用或删除，不构成就绪故障。所有读取和写入均要求当前 ADMIN，审计保存永久 Account ID。#101 只交付模板目录、管理 API、正式 Web 表单和第一张模板定义表；模板与表规则的关联、发布单实例化及节点执行由后续工单接入。
++应急模板始终可用，不能停用或删除，非法修改在写入前拒绝；服务就绪要求稳定编码 `default_emergency_v1` 的默认应急模板保持有效，同类型仍可存在多份模板。常规模板可以停用或删除，不构成就绪故障。模板管理的读取和写入均要求当前 ADMIN，审计保存永久 Account ID。#101 只交付模板目录、管理 API、正式 Web 表单和第一张模板定义表；模板与表规则的关联、发布单实例化及节点执行由后续工单接入。
+ 
+ 完整范围见[父规格 #100](https://github.com/asherzj/relational-config-center/issues/100)与[T1 #101](https://github.com/asherzj/relational-config-center/issues/101)。
+ 
+ #102 增加第二张配置表，以表规则永久身份、发布方式和模板永久身份保存唯一关联；数据库复合外键保护类型一致与引用完整性，关联通过版本原子替换。既有规则初始化只补缺失关联，不覆盖管理员选择。新建表规则在同一事务创建默认应急关联，启用时确认或补齐有效应急关联；整张表规则仍可停用，常规关联可停用。应急可用性是配置不变量，数据库读取失败不会变成临时默认流程。
+ 
+ 表规则创建、替换、启用和停用也采用持久原请求结果与可观察版本。这取代 ADR-0005 中表规则「不提供乐观锁、最后写入者获胜」的约定；两类规则一起校验替换、实时 Schema 校验与在途并发管控键保护保持原语义。当前 ADMIN 校验先于结果重推，原请求身份及正文与业务变更同事务保存，响应丢失由用户原操作手动重推。#102 只交付配置关联与管理，实例化及常规／应急执行仍由后续工单接入。
++
++常规多表草稿在显式保存时，为新参与或尚缺流程的表持久化独立实例。每份实例保留来源模板、关联版本和完整有序节点；同表普通编辑保留已有实例，移除最后一条明细时移除该表当前实例，再次加入按当前配置生成。复制和重新准备为新单重新实例化。选择在展示前保存，是为了让用户已审阅的流程不随共享模板编辑、停用或关联切换而变化；详情读取及提交都不补建或替换实例。明确缺少常规配置的草稿可以保存，提交要求逐表实例完整；管理员修复配置后，由用户再次保存仅补齐缺失实例。
++
++流程节点与审批分配具有不同的固定时点：前者随草稿保存，后者仍按 ADR-0026 在提交时固定表角色身份，成员资格实时校验。节点进度随真实表决定和整单发布、完结、拒绝、取消或快速回滚事实保存，不因当前人员配置或前端展示重新推断完成。实例位于现有发布单主单文档中，与内容、版本、占用、历史和原请求结果同事务保存；模板及关联通过同一草稿事务的一致读取获取，本阶段不新增配置表或 Schema 迁移。快速回滚只停止尚未完成的正向节点，不据此新增回滚实例或审批。当前正向接口只创建常规流程；应急提交与原单回滚模板分别由后续接入，不能用缺配置兜底替代。
+diff --git a/web/DESIGN.md b/web/DESIGN.md
+index f76062b..48f09fd 100644
+--- a/web/DESIGN.md
++++ b/web/DESIGN.md
+@@ -84,7 +84,7 @@
+ - **表审批角色**：管理员从表规则行内“审批角色”进入独立抽屉，角色可检索并完整分页；已选择项跨页保留，显示名称与永久 ID。空集合明确由已启用且非申请人的 ADMIN 默认审批。保存保护独立版本；冲突保留选择、先展示最新分配再明确保存；未知结果仅重推原请求，撤权禁用写入并保留内容。
+ - **发布单列表**：每行右侧提供固定的“操作”列和“查看详情”入口，窄屏横向滚动时入口保持可见；标题也可进入详情。已提交单据显示真实已通过表数。
+ - **逐表审批**：提交窗口显示各表当前角色和默认原因；提交后显示冻结角色名称与身份、各表待审批／已通过／已拒绝及真实决定来源，部分通过不标记整单审批阶段完成。批准与拒绝窗口明确列出打开时确认的全部可审批表；分页不改变范围，拒绝说明整单终止。成员或状态变化引起冲突时保留原范围、版本、意见与请求，显式读取最新范围后才创建新请求。普通 VIEWER 成员可依服务端资格审批，ADMIN 没有通用审批入口；未知结果恢复保留同账号原业务动作。
+-- **发布单详情**：顶部保留返回列表链接，不显示常驻的重新读取按钮；读取失败时在对应错误提示中提供重试。沿用灰色画布与石墨操作，依次呈现四阶段、基本信息与当前操作、申请/实际结果审阅、回滚原因、最近历史。步骤人员与时间只取对应真实事件（准备完成取提交）；取消、拒绝、回滚不显示为四步正常完成，快速回滚不伪造审批。已回滚原单显示当前可选原因和最近修改人／时间；真实回滚执行人或管理员可打开编辑窗口补填、修正或清空，每次修改继续显示在操作历史。桌面信息与操作并列，窄屏单列；长标题、永久 ID 和人员姓名完整换行。
++- **发布单详情**：顶部保留返回列表链接，不显示常驻的重新读取按钮；读取失败时在对应错误提示中提供重试。沿用灰色画布与石墨操作，依次呈现整单阶段、基本信息与当前操作、逐表发布流程及审批、申请/实际结果审阅、回滚原因、最近历史。常规路径按各表已保存实例展示节点，不从第一张表或当前模板推断整单流程。准备完成单独取真实提交事件，节点名称、状态、人员与时间取对应实例事实；取消、拒绝、回滚不显示为正常全部完成。回滚总览暂保留既有阶段呈现，由 #106 移除，不用于常规配置缺失时兜底。已回滚原单显示当前可选原因和最近修改人／时间；真实回滚执行人或管理员可打开编辑窗口补填、修正或清空，每次修改继续显示在操作历史。桌面信息与操作并列，窄屏单列；长标题、永久 ID 和人员姓名完整换行。
+ - **发布单审阅**：申请差异初次默认仅看变更、第一项展开；MODIFY 隐藏申请未提交及确定同值字段，自动填写和数据库生成说明保持可见；关闭过滤后完整视图仍区分未提交与 NULL，不推断实际发布结果。ADD/DELETE 保留全部字段。申请差异和实际 before/final 均使用每次查看时读取的当前字段名称与静态选项名称，但不按 is_visible 隐藏本次涉及字段；真实字段名与实际值始终可核对。实际结果只读取发布时持久化的 before/final，字段配置变更只改变显示，不改写历史内容，也不从当前业务行反推。字段配置缺失时回退原名原值，读取失败时保留历史并提供独立重试。每页 20 项，定位会展开目标项，分页不改变整单操作范围。字段表实际滚动容器显式提供中文名称、Tab焦点和焦点环，容器自身聚焦时可通过左右方向键查看完整对比；表内输入控件和组合快捷键保持各自行为。成功初次默认实际数据库结果，可切回申请差异或同一原单的实际恢复结果；未完结原单的快速回滚在恢复预览窗口中一次确认，原因选填，不新建回滚单；完结后不再提供回滚。历史默认最近五条倒序，可展开全部。
+ - **角色管理**：审批角色列表显示名称、说明、永久 ID、成员数量和启用状态；角色抽屉维护名称、说明、启停和成员，已选人员与检索结果分别列出用户名、显示名称和永久 ID。成员选择跨检索保留；冲突显示最新内容并保留输入，未知结果只允许原请求重推。删除使用取消优先的危险确认，只有无修改且从未引用的角色可发起删除。
+ - **账号页面**：登录和注册聚焦单列表单；账号设置分为身份信息、资料、密码、会话等区块。桌面可用两列表单，手机回到单列。
+@@ -133,3 +133,7 @@
+ ### 多表发布单
+ 
+ 主单从标题开始保存空草稿；每条明细携带真实表名。配置内容页可将不同表的选择加入同一本人草稿，分页编辑与键盘排序保持稳定明细身份，并提交整单版本。明细摘要、编辑选择和发布/恢复结果同时标明全局位置、表名、操作和记录身份；表内游标不能作为整单顺序。发布与回滚针对最多 1,000 条的全部明细，详情主单只读摘要，申请及实际结果每页从服务器读取 20 项，所有页绑定整单版本；跨页版本变化须刷新，不得混页。编辑、复制、重新准备及冲突重建需要完整申请或全局顺序时明确收集同版本页，任一页失败不采用部分结果。背景主单更新决定当前权限，但不能替换已打开编辑器的本地输入、原基线或请求日志。每表版本及刷新通知分别展示。390px 验收同时检查页面与抽屉内真实输入的边界。
++
++常规发布详情的整单阶段取已保存状态，逐表节点按实例顺序展示，各表使用自己的模板名称与节点；实例身份、来源模板和版本、表关联版本、保存时间可展开核对。桌面节点横向排列，窄屏纵向排列，表名、节点名和人员永久 ID 完整换行。提交前审批安排保持实时读取，提交后显示冻结的表角色；部分表通过时，整单仍为待审批。
++
++常规流程缺失时，详情列出缺失表与阻止提交的原因，并允许通过原草稿编辑器明确保存补齐；无需为触发保存而修改标题或明细。管理员修复配置后的普通读取不会补建流程。保存只补齐缺失实例，已有实例保持不变；保存请求继续使用原正文、版本、键与 IndexedDB 日志保护。
+diff --git a/web/e2e/draft-targets.cjs b/web/e2e/draft-targets.cjs
+index 953d28f..17585ce 100644
+--- a/web/e2e/draft-targets.cjs
++++ b/web/e2e/draft-targets.cjs
+@@ -23,6 +23,7 @@ const base=process.env.RCC_WEB_URL,table='draft_browser_items'+suffix,longField=
+   await api(admin,'POST',`/api/v1/mutation-policies/${mutation}/activate`,{});
+   await api(admin,'POST','/api/v1/table-policies',{table_name:table,query_policy_code:'notification_page_query_v1',mutation_policy_code:mutation},201);
+   await api(admin,'POST',`/api/v1/table-policies/${table}/enable`,{expected_version:'1'});
++  await api(admin,'PUT',`/api/v1/table-policies/${table}/release-templates/STANDARD`,{template_code:'default_standard_v1',enabled:true,expected_version:'0'});
+   const settings=await admin.newPage();settings.setDefaultTimeout(12000);settings.on("dialog",dialog=>dialog.accept());settings.on('pageerror',error=>errors.push(error.message));
+   await settings.goto(`${base}/platform/table-policies/${table}?mode=replace`);
+   let fieldReads=0;await settings.route('**/concurrency-key-fields?*',async route=>{if(++fieldReads===1)await route.abort();else await route.continue()});
+@@ -37,7 +38,7 @@ const base=process.env.RCC_WEB_URL,table='draft_browser_items'+suffix,longField=
+   const editor=await browser.newContext({viewport:{width:1440,height:1000}});const person=await registerFixtureAccount(editor,base,{roles:['EDITOR']});
+   const page=await editor.newPage();page.setDefaultTimeout(12000);page.on('pageerror',error=>errors.push(error.message));
+   await page.goto(`${base}/configuration/release-orders`);await button(page,'新建草稿').click();assert.equal(await page.getByLabel('起始表（可选）',{exact:true}).count(),0);await page.getByLabel('发布单标题',{exact:true}).fill('   ');assert.equal(await page.getByLabel('发布单标题',{exact:true}).getAttribute('aria-invalid'),'true');assert.equal(await button(page,'创建空草稿').isDisabled(),true);await page.getByLabel('发布单标题',{exact:true}).fill('T2 分页草稿');await button(page,'创建空草稿').click();await page.getByRole('heading',{name:'T2 分页草稿',exact:true}).waitFor();
+-  const id=new URL(page.url()).pathname.split('/').at(-1);let draft=await read(editor,`/api/v1/release-orders/${id}`);assert.deepEqual(draft.items,[]);assert.equal(await button(page,'提交审批').isDisabled(),true);
++  const id=new URL(page.url()).pathname.split('/').at(-1);let draft=await read(editor,`/api/v1/release-orders/${id}`);assert.deepEqual(draft.items,[]);assert.equal(await button(page,'提交审批').count(),0);
+   draft=await api(editor,'PUT',`/api/v1/release-orders/${id}`,{title:draft.title,expected_version:draft.version,changes:{upserts:Array.from({length:25},(_,index)=>({table_name:table,operation:'MODIFY',id:String(index+1),expected_record_version:'0',content:{label:`proposal-${index+1}`}}))}});
+   check('编辑者创建空草稿，增量添加25项后使用同一整单版本');
+   const blocker=await api(admin,'POST','/api/v1/release-orders',{title:'T2 冲突负责人',items:[{table_name:table,operation:'ADD',content:{id:'500',code:'occupied',label:'owner'}}]},201);
+diff --git a/web/e2e/field-display.cjs b/web/e2e/field-display.cjs
+index e1d5afc..1dcc6c1 100644
+--- a/web/e2e/field-display.cjs
++++ b/web/e2e/field-display.cjs
+@@ -51,6 +51,7 @@ const table = 'field_display_browser_items';
+     const applicant = await account(['EDITOR', 'PUBLISHER']);
+     const reviewer = await account(['VIEWER']);
+     const administrator = await account(['ADMIN']);
++    await api(administrator, 'PUT', `/api/v1/table-policies/${table}/release-templates/STANDARD`, {template_code:'default_standard_v1',enabled:true,expected_version:'0'});
+     const reviewerIdentity = await (await reviewer.request.get(`${base}/api/v1/auth/session`)).json();
+     await createFixtureApprovalRole(administrator, base, `Field display review ${randomUUID()}`, [reviewerIdentity.account.id], [table]);
+     page = await applicant.newPage();
+diff --git a/web/e2e/release-approvals.cjs b/web/e2e/release-approvals.cjs
+index 787ed4b..79ce5d2 100644
+--- a/web/e2e/release-approvals.cjs
++++ b/web/e2e/release-approvals.cjs
+@@ -39,7 +39,8 @@ const longValue='approved-field-value-'.repeat(3);
+   review.once('dialog',d=>d.accept());await review.reload();const approvalReplay=review.waitForResponse(response=>response.request().method()==='POST'&&response.url().endsWith(`/${copyID}/approve`));await repeatReleaseAction(review,'批准发布单','确认批准');assert.equal((await approvalReplay).status(),200);await review.getByText('stage1_acceptance_items · 已批准',{exact:true}).waitFor();await review.getByText('Verified independently',{exact:true}).first().waitFor();assert.equal(writes.length,2);assert.deepEqual(writes[0],writes[1]);
+   check('Approval-role member recovers a committed lost approval response after refresh using original key and state version');
+   await page.reload();await page.getByText('stage1_acceptance_items · 已批准',{exact:true}).waitFor();
+-  assert.equal(await page.getByRole('list',{name:'发布阶段',exact:true}).getByRole('listitem').count(),4);
++  await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'待执行发布',exact:true}).waitFor();
++  await page.getByRole('region',{name:'逐表发布流程',exact:true}).waitFor();
+   assert.equal(await page.getByRole('checkbox',{name:'仅看变更',exact:true}).isChecked(),true);
+   await applicant.grantPermissions(['clipboard-read','clipboard-write'],{origin:base});
+   await page.getByRole('button',{name:'复制发布单号',exact:true}).click();await page.getByText('已复制发布单号',{exact:true}).waitFor();
+@@ -62,7 +63,7 @@ const longValue='approved-field-value-'.repeat(3);
+   await page.keyboard.press('Space');assert.equal(await detail.locator('details[open]').count(),1);
+   await page.evaluate(()=>scrollTo(0,0));if(process.env.RCC_E2E_OUTPUT)await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'release-detail-approved-desktop.png'),fullPage:true,animations:'disabled'});
+   await page.setViewportSize({width:390,height:844});await page.getByLabel('主导航',{exact:true}).waitFor({state:'hidden'});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.evaluate(()=>scrollTo(0,0));if(process.env.RCC_E2E_OUTPUT)await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'release-detail-approved-390.png'),fullPage:true,animations:'disabled'});await page.setViewportSize({width:1440,height:1000});
+-  check('detail presents four actual stages, long title/value/IDs, copy feedback and keyboard folding on desktop and 390px');
++  check('detail presents saved table flows and whole-order phase, long title/value/IDs, copy feedback and keyboard folding on desktop and 390px');
+   const reprepareWrites=[];applicant.on('request',r=>{if(r.method()==='POST'&&r.url().endsWith(`/${copyID}/reprepare`))reprepareWrites.push({body:r.postData(),key:r.headers()['idempotency-key']})});
+   await page.reload();await page.getByRole('button',{name:'重新准备',exact:true}).click();assert.equal(await page.getByRole('button',{name:'继续重新准备',exact:true}).isEnabled(),false);await page.getByRole('button',{name:'读取最新配置',exact:true}).click();await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(button=>button.textContent==='继续重新准备'&&!button.disabled));await page.getByRole('button',{name:'继续重新准备',exact:true}).click();await page.getByRole('alertdialog',{name:'取消旧单并创建新草稿？',exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'取消',exact:true}).evaluate(button=>button===document.activeElement),true);assert.equal(await page.getByRole('button',{name:'取消旧单并创建新草稿',exact:true}).getAttribute('data-variant'),'destructive');await page.evaluate(()=>scrollTo(0,0));if(process.env.RCC_E2E_OUTPUT)await page.screenshot({path:join(process.env.RCC_E2E_OUTPUT,'release-reprepare-confirm-desktop.png'),fullPage:true,animations:'disabled'});await page.getByRole('button',{name:'取消',exact:true}).click();await page.getByRole('alertdialog',{name:'取消旧单并创建新草稿？',exact:true}).waitFor({state:'detached'});assert.equal(reprepareWrites.length,0);
+   await page.route(`**/api/v1/release-orders/${copyID}/reprepare`,route=>route.abort('failed'));await page.getByRole('button',{name:'继续重新准备',exact:true}).click();await page.getByRole('button',{name:'取消旧单并创建新草稿',exact:true}).click();await page.getByRole('alertdialog',{name:'取消旧单并创建新草稿？',exact:true}).getByText('Admin 连接或响应传输中断。',{exact:true}).waitFor();await page.unroute(`**/api/v1/release-orders/${copyID}/reprepare`);
+diff --git a/web/e2e/release-batches.cjs b/web/e2e/release-batches.cjs
+index 8ed6848..2060f7b 100644
+--- a/web/e2e/release-batches.cjs
++++ b/web/e2e/release-batches.cjs
+@@ -95,6 +95,7 @@ const output = process.env.RCC_E2E_OUTPUT;
+       table_name: table, query_policy_code: 'batch_browser_query_v1', mutation_policy_code: 'batch_browser_mutation_v1',
+     }, 201);
+     await api(applicant, 'POST', `/api/v1/table-policies/${table}/enable`,{expected_version:'1'});
++    await api(applicant, 'PUT', `/api/v1/table-policies/${table}/release-templates/STANDARD`, {template_code:'default_standard_v1',enabled:true,expected_version:'0'});
+     const reviewerFixture = await registerFixtureAccount(reviewer, base, { roles: ['VIEWER'] });
+     await createFixtureApprovalRole(applicant, base, `Batch review ${randomUUID()}`, [reviewerFixture.accountID], [table]);
+     await setFixtureRoles(applicant, base, (await identity(applicant)).account.id, ['EDITOR', 'PUBLISHER']);
+diff --git a/web/e2e/release-multitable.cjs b/web/e2e/release-multitable.cjs
+index 7cc4831..a1f4a92 100644
+--- a/web/e2e/release-multitable.cjs
++++ b/web/e2e/release-multitable.cjs
+@@ -45,6 +45,7 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
+   for(const table of [...tables,largeTable]){
+    await api(admin,'POST','/api/v1/table-policies',{table_name:table,query_policy_code:'notification_page_query_v1',mutation_policy_code:mutation},201);
+    await api(admin,'POST',`/api/v1/table-policies/${table}/enable`,{expected_version:'1'});
++   await api(admin,'PUT',`/api/v1/table-policies/${table}/release-templates/STANDARD`,{template_code:'default_standard_v1',enabled:true,expected_version:'0'});
+   }
+   const settings=await pageFor(admin);
+   for(const table of tables){
+diff --git a/web/e2e/release-rollbacks.cjs b/web/e2e/release-rollbacks.cjs
+index 864f106..4f60d92 100644
+--- a/web/e2e/release-rollbacks.cjs
++++ b/web/e2e/release-rollbacks.cjs
+@@ -65,6 +65,7 @@ const output = process.env.RCC_E2E_OUTPUT;
+     const applicant = await account(['EDITOR']);
+     const reviewer = await account(['VIEWER']);
+     const administrator = await account(['ADMIN']);
++    await api(administrator, 'PUT', `/api/v1/table-policies/${table}/release-templates/STANDARD`, {template_code:'default_standard_v1',enabled:true,expected_version:'0'});
+     await createFixtureApprovalRole(administrator, base, `Rollback review ${randomUUID()}`, [(await identity(reviewer)).account.id], [table]);
+     const publisher = await account(['PUBLISHER']);
+     applicantPage = await applicant.newPage();
+@@ -259,6 +260,11 @@ const output = process.env.RCC_E2E_OUTPUT;
+     assert.equal(quickOriginal.id, committedQuick.id);
+     assert.equal(quickOriginal.id, quickDraft.id);
+     assert.equal(quickOriginal.state, 'ROLLED_BACK');
++    assert.deepEqual(quickOriginal.table_flows.map(flow => flow.node_list.map(node => node.state)), [['COMPLETED', 'COMPLETED', 'STOPPED']]);
++    const forwardFlows = publishPage.getByRole('region', {name:'逐表发布流程',exact:true});
++    await forwardFlows.getByText('已终止', {exact:true}).waitFor();
++    assert.equal(await forwardFlows.getByText('进行中', {exact:true}).count(), 0);
++    assert.equal(await forwardFlows.locator('[aria-current="step"]').count(), 0);
+     assert.equal(quickOriginal.executions[1].actor_id, actualPublisher);
+     assert.equal(quickOriginal.applicant_id, (await identity(applicant)).account.id);
+     assert.equal(quickOriginal.history.length, 5);
+diff --git a/web/e2e/table-approvals.cjs b/web/e2e/table-approvals.cjs
+index 3de4511..39f81f0 100644
+--- a/web/e2e/table-approvals.cjs
++++ b/web/e2e/table-approvals.cjs
+@@ -37,6 +37,7 @@ const button = (page, name) => page.getByRole('button', { name, exact: true });
+     for (const table of tables) {
+       await api(admin.context, base, 'POST', '/api/v1/table-policies', { table_name: table, query_policy_code: 'notification_page_query_v1', mutation_policy_code: mutation }, 201);
+       await api(admin.context, base, 'POST', `/api/v1/table-policies/${table}/enable`, { expected_version: "1" });
++      await api(admin.context, base, 'PUT', `/api/v1/table-policies/${table}/release-templates/STANDARD`, {template_code:'default_standard_v1',enabled:true,expected_version:'0'});
+     }
+     const opsRole = await createRole(admin.context, base, '商品运营审批角色 · 长名称验证多人分工', [ops.identity.accountID]);
+     const priceRole = await createRole(admin.context, base, '财务价格审批', [finance.identity.accountID]);
+diff --git a/web/src/api/error-messages.ts b/web/src/api/error-messages.ts
+index 0835727..8867bef 100644
+--- a/web/src/api/error-messages.ts
++++ b/web/src/api/error-messages.ts
+@@ -6,6 +6,7 @@ const errorMessages: Record<string, string> = {
+   release_item_limit:"每张发布单必须包含 1～1,000 项明细。",
+   table_approval_conflict: "表审批角色已变化，请读取最新分配后重新确认。",
+   release_approval_conflict: "审批资格或确认表范围已变化，原意见保留，请重新审阅最新范围。",
++  release_flow_incomplete: "常规流程尚未补齐，请管理员修复配置后再次保存草稿，再提交审批。",
+   release_approver_unavailable: "有表缺少独立审批人，请查看各表审批安排并补充合格人员后重新提交。",
+   approval_role_not_saved: "本次尝试未保存，输入已保留。可修正后重新保存；若之前仍有待确认请求，请继续使用原请求重试。",
+   invalid_approval_role: "请检查角色名称、成员、版本和请求信息。",
+diff --git a/web/src/api/release-orders.test.ts b/web/src/api/release-orders.test.ts
+index cfb4c2d..6230746 100644
+--- a/web/src/api/release-orders.test.ts
++++ b/web/src/api/release-orders.test.ts
+@@ -1,8 +1,13 @@
+ import {afterEach,expect,it,vi} from "vitest";
+ import {loadReleaseForEdit,releaseOrders,type ReleaseHeader} from "./release-orders";
+-const header:ReleaseHeader={id:"original",title:"多表草稿",table_names:["items"],applicant_id:"author",state:"DRAFT",version:"3",created_at:"now",updated_at:"now",allowed_actions:["edit"],item_count:101,operation_counts:{ADD:101},executions:[],history:[],approvals:[],approval_context:{revision:"test",tables:[],approvable_tables:[]}};
++const header:ReleaseHeader={id:"original",title:"多表草稿",table_names:["items"],release_type:"STANDARD",table_flows:[],missing_flow_tables:[],applicant_id:"author",state:"DRAFT",version:"3",created_at:"now",updated_at:"now",allowed_actions:["edit"],item_count:101,operation_counts:{ADD:101},executions:[],history:[],approvals:[],approval_context:{revision:"test",tables:[],approvable_tables:[]}};
+ const detail=(index:number)=>({detail_id:String(index),table_name:"items",operation:"ADD",id:null,expected_record_version:"",content:{label:`value ${index}`},before:null,fields:[]});
+ afterEach(()=>vi.unstubAllGlobals());
++it("详情保留服务端已经保存的逐表流程身份、模板版本和真实节点事实",async()=>{
++ const saved={...header,release_type:"STANDARD",missing_flow_tables:["unconfigured"],table_flows:[{instance_id:"saved-instance-a",table_name:"items",release_type:"STANDARD",template_code:"careful_review",template_name:"资金配置核对",template_version:"7",association_version:"3",instantiated_at:"2026-09-11T01:00:00Z",node_list:[{code:"review_funds",type:"APPROVAL",name:"资金负责人确认",required_role:"TABLE_APPROVER",state:"COMPLETED",actor_id:"reviewer-a",at:"2026-09-11T02:00:00Z"},{code:"publish_funds",type:"PUBLICATION",name:"整单生效",required_role:"PUBLISHER",state:"ACTIVE"},{code:"finish_funds",type:"COMPLETION",name:"确认资金配置",required_role:"PUBLISHER",state:"PENDING"}]}]};
++ vi.stubGlobal("fetch",vi.fn(async()=>Response.json(saved)));
++ expect(await releaseOrders.get(header.id)).toEqual(saved);
++});
+ it("普通 get 只读取 header，显式编辑按固定整单版本收集每页",async()=>{
+  const reads:string[]=[];
+  vi.stubGlobal("fetch",vi.fn(async(input)=>{
+diff --git a/web/src/api/release-orders.ts b/web/src/api/release-orders.ts
+index bcdc18e..7a740ae 100644
+--- a/web/src/api/release-orders.ts
++++ b/web/src/api/release-orders.ts
+@@ -26,7 +26,10 @@ const approvalSourceSchema=z.object({source:z.enum(["ROLE","ADMIN"]),roles:z.arr
+ const tableApprovalSchema=z.object({table_name:z.string(),roles:z.array(approvalRoleIdentitySchema),state:z.enum(["PENDING","APPROVED","REJECTED"]),decision:approvalSourceSchema.extend({actor_id:z.string(),at:z.string(),reason:z.string()}).optional()});
+ const approvalContextSchema=z.object({revision:z.string(),tables:z.array(z.object({table_name:z.string(),mode:z.enum(["ROLE","ADMIN","UNAVAILABLE","COMPLETED"]),reason:z.string(),can_approve:z.boolean()})),approvable_tables:z.array(z.string())});
+ export type ApprovalContext=z.infer<typeof approvalContextSchema>;
+-export const releaseSummarySchema=z.object({id:z.string(),title:z.string(),table_names:z.array(z.string()),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","APPROVED","SUCCEEDED","COMPLETED","REJECTED","CANCELLED","ROLLED_BACK"]),version,created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),approvals:z.array(tableApprovalSchema),approval_context:approvalContextSchema,item_count:z.number().int().min(0).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
++const releaseFlowNodeSchema=z.object({code:z.string(),type:z.enum(["APPROVAL","PUBLICATION","COMPLETION"]),name:z.string(),required_role:z.enum(["TABLE_APPROVER","PUBLISHER"]),state:z.enum(["PENDING","ACTIVE","COMPLETED","REJECTED","STOPPED"]),actor_id:z.string().optional(),at:z.string().optional()});
++const tableReleaseFlowSchema=z.object({instance_id:z.string(),table_name:z.string(),release_type:z.literal("STANDARD"),template_code:z.string(),template_name:z.string(),template_version:version,association_version:version,instantiated_at:z.string(),node_list:z.array(releaseFlowNodeSchema)});
++export type TableReleaseFlow=z.infer<typeof tableReleaseFlowSchema>;
++export const releaseSummarySchema=z.object({id:z.string(),title:z.string(),table_names:z.array(z.string()),release_type:z.literal("STANDARD"),table_flows:z.array(tableReleaseFlowSchema),missing_flow_tables:z.array(z.string()),applicant_id:z.string(),state:z.enum(["DRAFT","PENDING_APPROVAL","APPROVED","SUCCEEDED","COMPLETED","REJECTED","CANCELLED","ROLLED_BACK"]),version,created_at:z.string(),updated_at:z.string(),allowed_actions:z.array(z.string()),approvals:z.array(tableApprovalSchema),approval_context:approvalContextSchema,item_count:z.number().int().min(0).max(1000),operation_counts:z.record(z.string(),z.number().int().nonnegative())});
+ export const releaseHeaderSchema=releaseSummarySchema.extend({copied_from_id:z.string().optional(),frozen_digest:z.string().optional(),executions:z.array(executionSchema),history:z.array(z.object({action:z.string(),actor_id:z.string(),at:z.string(),version,reason:z.string(),related_order_id:z.string().optional(),execution_id:z.string().optional(),table_names:z.array(z.string()).optional(),approval_sources:z.array(approvalSourceSchema.extend({table_name:z.string()})).optional()}))});
+ export const releaseItemSchema=draftItemSchema.extend({detail_id:z.string(),id:z.string().nullable(),expected_record_version:z.string(),before:content.nullable(),fields:z.array(releaseFieldSchema),publication:publicationCommandSchema.optional(),rollback:publicationCommandSchema.optional()});
+ export const releaseOrderSchema=releaseHeaderSchema.extend({items:z.array(releaseItemSchema)});
+diff --git a/web/src/features/managed-data/ManagedDataMutationPage.test.tsx b/web/src/features/managed-data/ManagedDataMutationPage.test.tsx
+index d9b1866..bf2b202 100644
+--- a/web/src/features/managed-data/ManagedDataMutationPage.test.tsx
++++ b/web/src/features/managed-data/ManagedDataMutationPage.test.tsx
+@@ -13,6 +13,7 @@ import { ToastProvider } from "../../components/ui/Toast";
+ import { businessSessionInvalid } from "../../api/business-session";
+ 
+ const tablePolicy = {
++  version: "1",
+   table_name: "notification_templates",
+   query_policy_code: "notification_page_query_v1",
+   mutation_policy_code: "notification_full_mutation_v1",
+@@ -559,7 +560,7 @@ it("明确勾选两行后加入本人跨表已有草稿，保留原明细和各
+ 
+ it("已有草稿去向只列出当前可编辑的草稿",async()=>{
+  const editableID="11111111222222223333333344444444",readonlyID="55555555666666667777777788888888";
+- const summary=(id:string,extra:object={})=>({id,title:"消息模板草稿",table_names:["notification_templates"],applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",allowed_actions:["edit"],item_count:1,operation_counts:{MODIFY:1},approvals:[],approval_context:{revision:"draft",tables:[],approvable_tables:[]},...extra});
++ const summary=(id:string,extra:object={})=>({id,release_type:"STANDARD",table_flows:[],missing_flow_tables:[],title:"消息模板草稿",table_names:["notification_templates"],applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",allowed_actions:["edit"],item_count:1,operation_counts:{MODIFY:1},approvals:[],approval_context:{revision:"draft",tables:[],approvable_tables:[]},...extra});
+  vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
+   if(String(input).startsWith("/api/v1/release-orders?"))return json({orders:[summary(editableID),summary(readonlyID,{allowed_actions:["submit","cancel"]})],next_cursor:""});
+   return readFetch(input,init,{...mutationPolicy,allow_modify:true});
+diff --git a/web/src/features/release-orders/ReleaseDraftEditor.tsx b/web/src/features/release-orders/ReleaseDraftEditor.tsx
+index 0631336..d0d9a49 100644
+--- a/web/src/features/release-orders/ReleaseDraftEditor.tsx
++++ b/web/src/features/release-orders/ReleaseDraftEditor.tsx
+@@ -2,6 +2,7 @@ import {useState} from "react";
+ import {useQuery} from "@tanstack/react-query";
+ import {ApiError} from "../../api/client";
+ import {loadReleaseForEdit,type ReleaseHeader,draftFromOrder,releaseDetailTables,incrementalDraft,rebaseDraftInput,releaseOrders,releaseRequests,releaseTitleError,type ReleaseOrder} from "../../api/release-orders";
++import {useToast} from "../../components/ui/Toast";
+ import {Drawer} from "../../components/ui/Drawer";
+ import {Button} from "../../components/ui/Button";
+ import {Input} from "../../components/shadcn/input";
+@@ -24,6 +25,7 @@ export function ReleaseDraftEditor({order,onClose}:{order:ReleaseHeader;onClose:
+  return <LoadedReleaseDraftEditor order={input.data} current={order} onClose={onClose}/>;
+ }
+ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;current:ReleaseHeader;onClose:()=>void}){
++ const {showToast}=useToast();
+  const [baseline,setBaseline]=useState(order);
+  const [title,setTitle]=useState(order.title);
+  const [items,setItems]=useState(order.items);
+@@ -55,7 +57,7 @@ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;cu
+  };
+  const save=async()=>{
+   const saved=originalKey&&write.unresolved&&originalKey===write.storedRequest?.key?await write.retry():await write.send({...releaseRequests.edit(order.id,incrementalDraft(baseline,{...baseline,title,items})),label:`修改 ${order.id}`});
+-  if(saved){protection.afterSave(onClose)}
++  if(saved){showToast("草稿已保存");protection.afterSave(onClose)}
+  };
+  const inspect=async()=>{
+   if(reading)return;setReading(true);setReadError(undefined);
+@@ -68,6 +70,7 @@ function LoadedReleaseDraftEditor({order,current,onClose}:{order:ReleaseOrder;cu
+  return <Drawer open eyebrow="发布草稿" title="编辑多表草稿" onClose={()=>protection.requestLeave(onClose)} footer={<><Button disabled={write.pending} onClick={()=>protection.requestLeave(onClose)}>关闭</Button><Button variant="primary" disabled={write.blocked||(!allowed&&!canRepeat)||Boolean(titleError)||write.pending||reading||conflict||recordConflict} onClick={()=>void save()}>{write.pending?"正在保存…":"保存草稿修改"}</Button></>}>
+  {!allowed&&<p role="alert">当前身份或发布单状态不允许编辑，已输入内容保留。</p>}
+  <p>保存草稿即占用目标，直到移除最后一条引用或发布单结束。只提交本次明细变更，全部分页共用整单版本。</p>
++ {baseline.missing_flow_tables.length>0&&<p className="mt-3 text-warning">缺失常规流程：{baseline.missing_flow_tables.join("、")}。管理员修复配置后，可直接保存，无需修改内容；保存仅补齐缺失流程，已有实例保持不变。</p>}
+  <div className="grid gap-2 my-5"><label htmlFor="release-order-title">发布单标题</label><Input id="release-order-title" value={title} required aria-invalid={Boolean(titleError)} aria-describedby={`release-order-title-count${titleError?" release-order-title-error":""}`} disabled={write.blocked||!allowed||write.pending||write.unresolved} onChange={event=>setTitle(event.target.value)}/><span id="release-order-title-count" className="text-xs text-muted-foreground">{Array.from(title).length} / 100 字符</span>{titleError&&<small id="release-order-title-error" className="field-error">{titleError}</small>}</div>
+  <fieldset disabled={write.pending||write.unresolved}><ReleaseItemPager count={items.length} page={page} onPage={page=>setSelected(page*releasePageSize)} onLocate={setSelected} label="编辑明细"/></fieldset>
+  <div className="flex flex-wrap items-end gap-3 my-5"><label>编辑明细<NativeSelect aria-label="编辑明细" value={selected} disabled={write.pending||write.unresolved} onChange={event=>setSelected(Number(event.target.value))}>{items.slice(page*releasePageSize,(page+1)*releasePageSize).map((entry,offset)=>{const index=page*releasePageSize+offset;return <option key={index} value={index}>明细 {index+1} · {entry.table_name} · {entry.operation} · {entry.id??"待生成 id"}</option>})}</NativeSelect></label><Button disabled={write.blocked||!allowed||items.length===0||write.pending||write.unresolved} onClick={()=>{setItems(current=>current.filter((_,index)=>index!==selected));setSelected(Math.max(0,selected-1));setRecordLatest(undefined)}}>移除此明细</Button><p>共 {items.length} 项。保存只提交本次修改、删除和排序。</p></div>
+diff --git a/web/src/features/release-orders/ReleaseOrdersPage.test.tsx b/web/src/features/release-orders/ReleaseOrdersPage.test.tsx
+index 203b161..e5ac5ec 100644
+--- a/web/src/features/release-orders/ReleaseOrdersPage.test.tsx
++++ b/web/src/features/release-orders/ReleaseOrdersPage.test.tsx
+@@ -36,6 +36,55 @@ async function repeatOriginal(user:ReturnType<typeof userEvent.setup>,action:str
+  await user.click(await originalButton(confirm));
+ }
+ afterEach(()=>{vi.unstubAllGlobals();sessionStorage.clear();fieldPolicyResponse=()=>json(defaultFieldPolicies("items",[{name:"id",type:"uint64",nullable:false},{name:"label",type:"string",nullable:true}]))});
++it("多表详情按各自已保存实例展示节点和来源，重读不改用当前模板",async()=>{
++ const first={instance_id:"flow-items-1",table_name:"items",release_type:"STANDARD",template_code:"finance_v1",template_name:"资金配置核对",template_version:"7",association_version:"3",instantiated_at:"2026-09-11T01:00:00Z",node_list:[{code:"review_funds",type:"APPROVAL",name:"资金负责人确认",required_role:"TABLE_APPROVER",state:"PENDING"},{code:"publish_funds",type:"PUBLICATION",name:"整单资金生效",required_role:"PUBLISHER",state:"PENDING"},{code:"finish_funds",type:"COMPLETION",name:"资金结果确认",required_role:"PUBLISHER",state:"PENDING"}]};
++ const second={...first,instance_id:"flow-channels-1",table_name:"channels",template_code:"channels_v3",template_name:"渠道配置复核",template_version:"2",node_list:first.node_list.map((node,index)=>({...node,code:`channel-${index}`,name:["渠道负责人复核","整单渠道发布","渠道结果核实"][index]}))};
++ const current={...order,items:[...order.items,{...order.items[0],detail_id:"2".repeat(32),table_name:"channels"}],table_flows:[first,second]};
++ const writes:RequestInit[]=[];
++ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{if(init?.method&&init.method!=="GET")writes.push(init);return String(input).endsWith("/people")?json({people:{}}):json(current)})));
++ const user=userEvent.setup(),{client}=mount(`/configuration/release-orders/${id}`);
++ const flows=await screen.findByRole("region",{name:"逐表发布流程"});
++ expect(within(flows).getByText("资金配置核对")).toBeVisible();expect(within(flows).getByText("渠道配置复核")).toBeVisible();
++ expect(within(flows).getByRole("list",{name:"items 流程节点"})).toHaveTextContent("资金负责人确认");
++ expect(within(flows).getByRole("list",{name:"channels 流程节点"})).toHaveTextContent("渠道负责人复核");
++ await user.click(within(flows).getAllByText("查看实例来源与版本")[0]!);
++ expect(within(flows).getByText("flow-items-1")).toBeVisible();expect(within(flows).getByText("finance_v1 · 版本 7")).toBeVisible();
++ await act(async()=>{await client.refetchQueries({queryKey:["release-order",id]})});
++ expect(within(flows).getByText("资金负责人确认")).toBeVisible();expect(writes).toHaveLength(0);
++ expect(screen.getByRole("region",{name:"提交审批安排"})).toBeVisible();
++});
++it("缺失流程阻止提交，配置修复后无需改动内容也可明确保存补齐",async()=>{
++ let current={...order,missing_flow_tables:["items"],table_flows:[] as unknown[],allowed_actions:["edit","cancel"]};const writes:RequestInit[]=[];
++ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
++  if(init?.method==="PUT"){writes.push(init);current={...current,version:"2",missing_flow_tables:[],allowed_actions:["edit","submit","cancel"],table_flows:[{instance_id:"repaired-items",table_name:"items",release_type:"STANDARD",template_code:"repaired_standard",template_name:"恢复的常规流程",template_version:"1",association_version:"2",instantiated_at:"2026-09-11T03:00:00Z",node_list:[{code:"review",type:"APPROVAL",name:"恢复后的表审批",required_role:"TABLE_APPROVER",state:"PENDING"},{code:"publish",type:"PUBLICATION",name:"恢复后的发布",required_role:"PUBLISHER",state:"PENDING"},{code:"finish",type:"COMPLETION",name:"恢复后的完结",required_role:"PUBLISHER",state:"PENDING"}]}]};return json(current)}
++  return String(input).endsWith("/people")?json({people:{}}):json(current);
++ })));
++ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
++ const missing=await screen.findByRole("region",{name:"流程配置未完成"});
++ expect(within(missing).getByText("items")).toBeVisible();expect(screen.queryByRole("button",{name:"提交审批"})).not.toBeInTheDocument();
++ expect(within(screen.getByRole("region",{name:"逐表发布流程"})).queryByRole("list")).not.toBeInTheDocument();expect(writes).toHaveLength(0);
++ await user.click(within(missing).getByRole("button",{name:"保存草稿以补齐流程"}));
++ await user.click(await originalButton("保存草稿修改"));
++ expect(await screen.findByText("恢复后的表审批")).toBeVisible();expect(screen.queryByRole("region",{name:"流程配置未完成"})).not.toBeInTheDocument();
++ await waitFor(()=>expect(screen.getByRole("button",{name:"提交审批"})).toBeEnabled());
++ expect(writes).toHaveLength(1);expect(JSON.parse(String(writes[0]!.body))).toEqual({title:order.title,expected_version:"1",changes:{upserts:[],delete_detail_ids:[]}});
++ expect(new Headers(writes[0]!.headers).get("Idempotency-Key")).toBeTruthy();
++});
++it("补齐流程保存已确认时，后续详情读取失败仍明确反馈保存成功",async()=>{
++ const current={...order,missing_flow_tables:["items"],table_flows:[],allowed_actions:["edit","cancel"]};let saved=false;
++ vi.stubGlobal("fetch",withAdminSession(vi.fn(async(input,init)=>{
++  if(init?.method==="PUT"){saved=true;return json({...current,version:"2"})}
++  if(String(input).endsWith("/people"))return json({people:{}});
++  if(saved)return json({error:{code:"release_unavailable",message:"详情暂时不可读取",request_id:"flow-read-after-save"}},503);
++  return json(current);
++ })));
++ const user=userEvent.setup();mount(`/configuration/release-orders/${id}`);
++ await user.click(await screen.findByRole("button",{name:"保存草稿以补齐流程"}));
++ await user.click(await originalButton("保存草稿修改"));
++ expect(await screen.findByText("草稿已保存")).toBeVisible();
++ expect(await screen.findByText(/flow-read-after-save/)).toBeVisible();
++ expect(screen.queryByRole("dialog",{name:"编辑多表草稿"})).not.toBeInTheDocument();
++});
+ it("原申请人或管理员核对最新配置后原子化重新准备已批准普通单",async()=>{
+  const approved={...order,applicant_id:"original-applicant",state:"APPROVED",version:"3",allowed_actions:["execute","reprepare"],frozen_digest:"a".repeat(64)};
+  const freshItems=approved.items.map(item=>({...item,expected_record_version:"2",before:{id:"1",label:"latest database value"},fields:item.fields.map(field=>field.name==="label"?{...field,before:"latest database value"}:field)}));
+@@ -946,36 +995,39 @@ it("同一表的不同发布单在每次查看详情时重读当前显示规则"
+  expect(reads).toBe(2);
+ });
+ 
+-it("详情四阶段与最近五条历史可展开，并复制真实单号",async()=>{
++it("详情真实阶段与最近五条历史可展开，并复制真实单号",async()=>{
+  const events=Array.from({length:8},(_,index)=>({action:index===7?"REJECT":"EDIT",actor_id:order.applicant_id,version:String(index+1),at:order.created_at,reason:`审阅记录 ${index+1}`}));
+  vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json({...order,state:"REJECTED",allowed_actions:["copy"],history:events}))));
+  const user=userEvent.setup();const copy=vi.spyOn(navigator.clipboard,"writeText").mockResolvedValue();mount(`/configuration/release-orders/${id}`);
+- const progress=await screen.findByRole("list",{name:"发布阶段"});expect(within(progress).getAllByRole("listitem")).toHaveLength(4);
+- expect(within(progress).getByText("已拒绝")).toBeVisible();expect(within(progress).getByText("未发布")).toBeVisible();expect(within(progress).queryByText("已完结")).not.toBeInTheDocument();
++ const progress=await screen.findByRole("region",{name:"发布阶段"});
++ expect(within(progress).getByText("已拒绝，整单终止")).toBeVisible();expect(within(progress).queryByText("已完结")).not.toBeInTheDocument();
+  const history=screen.getByRole("region",{name:"操作历史"});expect(within(history).getAllByRole("listitem")).toHaveLength(5);expect(within(history).queryByText("审阅记录 3")).not.toBeInTheDocument();expect(within(history).getAllByRole("listitem")[0]).toHaveTextContent("审阅记录 8");
+  await user.click(within(history).getByRole("button",{name:"查看全部 8 条记录"}));expect(within(history).getAllByRole("listitem")).toHaveLength(8);
+  await user.click(screen.getByRole("button",{name:"复制发布单号"}));expect(copy).toHaveBeenCalledWith(id);expect(await screen.findByText("已复制发布单号")).toBeVisible();
+ });
+ 
+ it.each([
+- ["DRAFT","准备中","待发布后完结"],["PENDING_APPROVAL","待审批","待发布后完结"],["APPROVED","待执行","待发布后完结"],["SUCCEEDED","数据库已发布","待人工完结"],["COMPLETED","数据库已发布","已完结"],["REJECTED","未发布","已终止"],["CANCELLED","未发布","已终止"],["ROLLED_BACK","数据库已发布","已回滚"],
+-])("%s 详情使用真实阶段",async(state,progress,ending)=>{
++ ["DRAFT","准备中"],["PENDING_APPROVAL","待审批"],["APPROVED","待执行发布"],["SUCCEEDED","数据库已发布，待人工完结"],["COMPLETED","已完结"],["REJECTED","已拒绝，整单终止"],["CANCELLED","已取消"],
++])("%s 详情使用已保存整单阶段",async(state,phase)=>{
+  vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json({...order,state,allowed_actions:[]}))));
+- mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("list",{name:"发布阶段"}));
+- expect(stages.getByText(progress)).toBeVisible();expect(stages.getAllByRole("listitem")[3]).toHaveTextContent(ending);
+- if(["REJECTED","CANCELLED","ROLLED_BACK"].includes(state))expect(stages.getAllByRole("listitem")[3]).not.toHaveClass("is-complete");
++ mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("region",{name:"发布阶段"}));
++ expect(stages.getByRole("heading",{name:phase})).toBeVisible();
++ expect(stages.queryByRole("list")).not.toBeInTheDocument();
+ });
+ it("原单快速回滚保留原批准阶段且不创建新的审批阶段",async()=>{
+  const current={...order,state:"ROLLED_BACK",allowed_actions:[],history:[...order.history,{...order.history[0]!,action:"APPROVE",actor_id:"original-approver"},{...order.history[0]!,action:"QUICK_ROLLBACK",actor_id:"actual-rollback"}]};
+  vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{}}):json(current))));
+  mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("list",{name:"发布阶段"}));expect(stages.getByText("已批准")).toBeVisible();expect(stages.getAllByRole("listitem")[1]).toHaveClass("is-complete");expect(stages.getByText("已回滚")).toBeVisible();
+ });
+-it("步骤人员时间来自提交而非创建，完结显示真实完结操作者",async()=>{
+- const events=[{action:"CREATE",actor_id:"creator",at:"2026-09-01T01:00:00Z"},{action:"SUBMIT",actor_id:"submitter",at:"2026-09-02T02:00:00Z"},{action:"APPROVE",actor_id:"approver",at:"2026-09-03T03:00:00Z"},{action:"EXECUTE",actor_id:"publisher",at:"2026-09-04T04:00:00Z"},{action:"COMPLETE",actor_id:"closer",at:"2026-09-05T05:00:00Z"}].map((event,index)=>({...event,version:String(index+1),reason:""}));
+- vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{submitter:"提交人",approver:"审批人",publisher:"发布人",closer:"完结人"}}):json({...order,state:"COMPLETED",history:events,allowed_actions:[]}))));
+- mount(`/configuration/release-orders/${id}`);const stages=within(await screen.findByRole("list",{name:"发布阶段"}));
+- const steps=stages.getAllByRole("listitem");expect(await within(steps[0]!).findByText("提交人")).toBeVisible();expect(steps[0]!.querySelector("time")).toHaveAttribute("datetime",events[1]!.at);expect(within(steps[0]!).queryByText("creator")).not.toBeInTheDocument();
+- expect(within(steps[3]!).getByText("完结人")).toBeVisible();expect(steps[3]!.querySelector("time")).toHaveAttribute("datetime",events[4]!.at);
++it("准备人员时间来自提交，节点显示服务端实例中的真实操作者",async()=>{
++ const events=[{action:"CREATE",actor_id:"creator",at:"2026-09-01T01:00:00Z"},{action:"SUBMIT",actor_id:"submitter",at:"2026-09-02T02:00:00Z"},{action:"COMPLETE",actor_id:"closer",at:"2026-09-05T05:00:00Z"}].map((event,index)=>({...event,version:String(index+1),reason:""}));
++ const table_flows=[{instance_id:"completed-items",table_name:"items",release_type:"STANDARD",template_code:"saved_flow",template_name:"已保存的核对流程",template_version:"1",association_version:"1",instantiated_at:order.created_at,node_list:[{code:"review",type:"APPROVAL",name:"已保存审批",required_role:"TABLE_APPROVER",state:"COMPLETED",actor_id:"instance-reviewer",at:"2026-09-03T03:00:00Z"},{code:"publish",type:"PUBLICATION",name:"已保存发布",required_role:"PUBLISHER",state:"COMPLETED",actor_id:"instance-publisher",at:"2026-09-04T04:00:00Z"},{code:"finish",type:"COMPLETION",name:"已保存完结",required_role:"PUBLISHER",state:"COMPLETED",actor_id:"closer",at:"2026-09-05T05:00:00Z"}]}];
++ vi.stubGlobal("fetch",withAdminSession(vi.fn(async input=>String(input).endsWith("/people")?json({people:{submitter:"提交人","instance-reviewer":"实例审批人","instance-publisher":"实例发布人",closer:"完结人"}}):json({...order,state:"COMPLETED",table_flows,history:events,allowed_actions:[]}))));
++ mount(`/configuration/release-orders/${id}`);const stage=await screen.findByRole("region",{name:"发布阶段"});
++ expect(await within(stage).findByText("提交人")).toBeVisible();expect(stage.querySelector("time")).toHaveAttribute("datetime",events[1]!.at);expect(within(stage).queryByText("creator")).not.toBeInTheDocument();
++ const nodes=screen.getByRole("list",{name:"items 流程节点"});
++ expect(within(nodes).getByText("实例审批人")).toBeVisible();expect(within(nodes).getByText("实例发布人")).toBeVisible();
++ const last=within(nodes).getAllByRole("listitem")[2]!;expect(within(last).getByText("完结人")).toBeVisible();expect(last.querySelector("time")).toHaveAttribute("datetime",events[2]!.at);
+  expect(within(screen.getByRole("region",{name:"操作历史"})).getByText("完结了发布单")).toBeVisible();
+ });
+ 
+@@ -1193,7 +1245,7 @@ it("VIEWER 成员按服务端资格确认表范围，部分批准不能显示整
+  await waitFor(()=>expect(writes).toHaveLength(1));
+  expect(JSON.parse(String(writes[0]!.body))).toEqual({expected_version:"2",reason:"只确认负责表",confirmed_tables:["items"],expected_approval_revision:"scope-1"});
+  await waitFor(()=>expect(screen.getByRole("region",{name:"逐表审批进度"})).toHaveTextContent("已通过 1 / 2 表"));
+- expect(within(screen.getByRole("list",{name:"发布阶段"})).queryByText("已批准")).not.toBeInTheDocument();
++ expect(within(screen.getByRole("region",{name:"发布阶段"})).getByRole("heading",{name:"待审批"})).toBeVisible();
+ });
+ 
+ it("审批资格改变而单据版本不变时保留原范围，明确审阅后才扩展范围", async () => {
+diff --git a/web/src/features/release-orders/ReleaseOrdersPage.tsx b/web/src/features/release-orders/ReleaseOrdersPage.tsx
+index 3b4b1b0..313b432 100644
+--- a/web/src/features/release-orders/ReleaseOrdersPage.tsx
++++ b/web/src/features/release-orders/ReleaseOrdersPage.tsx
+@@ -19,6 +19,7 @@ import {useAccountRole} from "../accounts/roles";
+ import {useToast} from "../../components/ui/Toast";
+ import {ReleaseTime} from "./ReleaseTime";
+ import {ReleaseProgress} from "./ReleaseProgress";
++import {ReleaseFlows,ReleasePhase} from "./ReleaseFlows";
+ import {ReleaseApprovals} from "./ReleaseApprovals";
+ import {ReleaseHistory} from "./ReleaseHistory";
+ import {RollbackReason} from "./RollbackReason";
+@@ -78,7 +79,8 @@ function ReleaseDetail({id}:{id:string}){
+  const approver=[...order.history].reverse().find(event=>event.action==="APPROVE");
+  return <CurrentFieldDisplayProvider tableNames={releaseTables(order)}><div className="release-detail min-w-0"><nav aria-label="发布单位置" className="text-xs text-muted-foreground">配置管理 / 发布单 / <span aria-current="page">详情</span></nav><div><Link className="underline underline-offset-4" to="/configuration/release-orders">返回发布单列表</Link></div>
+  {query.isError&&<ErrorState error={query.error} onRetry={()=>void query.refetch()}/>}
+- <ReleaseProgress order={order} people={names}/>
++ {order.state==="ROLLED_BACK"?<ReleaseProgress order={order} people={names}/>:<ReleasePhase order={order} people={names}/>}
++ {order.missing_flow_tables.length>0&&<section aria-label="流程配置未完成" className="release-panel min-w-0"><h2 className="text-lg font-semibold text-warning">流程配置未完成，暂不能提交审批</h2><p className="mt-2">以下表尚未保存常规流程。请管理员检查常规模板与表关联；配置修复后，再保存草稿补齐缺失流程。已有表流程保持不变。</p><ul className="my-3 grid gap-1 break-all font-mono">{order.missing_flow_tables.map(table=><li key={table}>{table}</li>)}</ul>{canEdit&&(order.allowed_actions.includes("edit")||retained("edit"))&&<Button disabled={requestPending} onClick={()=>setEditing(true)}>保存草稿以补齐流程</Button>}</section>}
+  <div className="release-detail-overview">
+   <section className="release-panel min-w-0" aria-label="基本信息"><h2 className="text-xl font-semibold break-all">{order.title}</h2><p className="mt-2 mb-6 text-muted-foreground break-all">{releaseTables(order).join("、")||"暂无明细表"} · {releaseStateLabels[order.state]}</p>
+    <dl className="release-info"><div><dt>发布单号</dt><dd className="font-mono break-all">{order.id}<Button variant="ghost" className="ml-1" onClick={async()=>{try{await navigator.clipboard.writeText(order.id);setCopyError(false);showToast("已复制发布单号")}catch{setCopyError(true)}}}>复制发布单号</Button>{copyError&&<p role="alert">复制失败，请选择单号手动复制。</p>}</dd></div><div><dt>申请人</dt><dd><ReleasePerson id={order.applicant_id} name={names[order.applicant_id]}/></dd></div><div><dt>创建时间</dt><dd><ReleaseTime value={order.created_at}/></dd></div><div><dt>最近审批人</dt><dd>{approver?<ReleasePerson id={approver.actor_id} name={names[approver.actor_id]}/>:"尚无批准记录"}</dd></div><div><dt>发布单版本</dt><dd>{order.version}</dd></div>{publication&&<div><dt>发布人</dt><dd><ReleasePerson id={publication.actor_id} name={names[publication.actor_id]}/></dd></div>}</dl>
+@@ -88,7 +90,7 @@ function ReleaseDetail({id}:{id:string}){
+  {peopleFailure&&<section className="inline-alert mb-4 min-w-0 flex-wrap" role="alert"><div><strong>人员姓名读取失败，当前仅显示永久账号 ID。</strong><span>{peopleFailure.message}</span><span>错误代码：{peopleCode}</span>{peopleFailure.requestId&&<span>请求编号：{peopleFailure.requestId}</span>}</div><Button variant="secondary" disabled={people.isFetching} onClick={()=>void people.refetch()}>{people.isFetching?"正在读取人员姓名…":"重新读取人员姓名"}</Button></section>}
+  {order.frozen_digest&&<p className="mb-4">提交内容已冻结，审批和发布以这份差异为准。</p>}{order.copied_from_id&&<p className="mb-4">{order.history[0]?.action==="REPREPARE"?"重新准备自":"复制自"} <Link to={`/configuration/release-orders/${order.copied_from_id}`}>{order.copied_from_id}</Link></p>}
+ 
+- <ReleaseApprovals order={order} people={names}/><ReleaseReview order={order} people={names}/>{order.state==="ROLLED_BACK"&&<RollbackReason order={order} people={names}/>}<ReleaseHistory order={order} people={names}/>
++ <ReleaseFlows order={order} people={names}/><ReleaseApprovals order={order} people={names}/><ReleaseReview order={order} people={names}/>{order.state==="ROLLED_BACK"&&<RollbackReason order={order} people={names}/>}<ReleaseHistory order={order} people={names}/>
+  {editing&&<ReleaseDraftEditor order={order} onClose={()=>setEditing(false)}/>}
+  {action&&<ReleaseActionDialog order={order} action={action} onClose={()=>setAction(undefined)}/>}
+  {quickRollback&&<QuickRollbackDialog order={order} onClose={()=>setQuickRollback(false)}/>}
+diff --git a/web/src/features/release-orders/ReleaseProgress.tsx b/web/src/features/release-orders/ReleaseProgress.tsx
+index 92282bd..6be8418 100644
+--- a/web/src/features/release-orders/ReleaseProgress.tsx
++++ b/web/src/features/release-orders/ReleaseProgress.tsx
+@@ -3,6 +3,8 @@ import {ReleaseTime} from "./ReleaseTime";
+ import {Check,Minus} from "lucide-react";
+ import type {ReleaseHeader} from "../../api/release-orders";
+ 
++// Temporary rollback-only presentation until #106. Forward releases display
++// persisted per-table instances; this must never serve missing configuration.
+ export function ReleaseProgress({order,people={}}:{order:ReleaseHeader;people?:Record<string,string>}){
+  const cancelled=order.state==="CANCELLED",rejected=order.state==="REJECTED",rolledBack=order.state==="ROLLED_BACK";
+  const terminated=cancelled||rejected||rolledBack;
+diff --git a/web/src/test/UnsavedChanges.test.tsx b/web/src/test/UnsavedChanges.test.tsx
+index f88972f..7529cc1 100644
+--- a/web/src/test/UnsavedChanges.test.tsx
++++ b/web/src/test/UnsavedChanges.test.tsx
+@@ -13,7 +13,7 @@ import { testAdminIdentity, withAdminSession } from "./account-session";
+ const audit = { creator: "fixture", modifier: "fixture", created_at: "2026-09-07T00:00:00Z", updated_at: "2026-09-07T00:00:00Z" };
+ const query = { ...audit, code: "query_v1", name: "查询基线", description: "说明", type_code: "page_query", default_order_field: "id", default_order_direction: "DESC", default_page_size: 20, max_page_size: 200, status: "DRAFT" };
+ const mutation = { ...audit, code: "mutation_v1", name: "变更基线", description: "说明", type_code: "single_table_mutation", allow_add: true, allow_modify: true, allow_delete: true, create_operator_field: null, create_time_field: null, modify_operator_field: null, modify_time_field: null, status: "DRAFT" };
+-const assignment = { ...audit, table_name: "items", query_policy_code: "query_v1", mutation_policy_code: "mutation_v1", enabled: true };
++const assignment = { ...audit, version: "1", table_name: "items", query_policy_code: "query_v1", mutation_policy_code: "mutation_v1", enabled: true };
+ const columns = [{ name: "id", type: "uint64", nullable: false }, { name: "name", type: "string", nullable: false }, { name: "note", type: "string", nullable: true }] as const;
+ const row = { id: "1", name: "original", note: null };
+ const savedDraft={id:"12345678123456781234567812345678",title:"items 配置变更",applicant_id:testAdminIdentity.account.id,state:"DRAFT",version:"1",created_at:"2026-09-08T00:00:00Z",updated_at:"2026-09-08T00:00:00Z",history:[],allowed_actions:["edit"],items:[{table_name:"items",operation:"MODIFY",id:"1",expected_record_version:"0",content:{name:"originalchanged"},before:row,fields:[]}]};
+diff --git a/web/src/test/release-fixture.ts b/web/src/test/release-fixture.ts
+index 2e7ab9b..79ffb56 100644
+--- a/web/src/test/release-fixture.ts
++++ b/web/src/test/release-fixture.ts
+@@ -10,7 +10,7 @@ export function releaseFixture(value:unknown):unknown {
+  const tables=[...new Set(items.map(item=>item.table_name))];
+  const context="approval_context" in value?value.approval_context:{revision:"fixture-approval-1",tables:tables.map(table_name=>({table_name,mode:"ROLE",reason:"审批角色成员",can_approve:true})),approvable_tables:tables};
+  const approvals="approvals" in value?value.approvals:tables.map(table_name=>({table_name,roles:[],state:"state" in value&&["APPROVED","SUCCEEDED","COMPLETED","ROLLED_BACK"].includes(String(value.state))?"APPROVED":"PENDING"}));
+- return {...value,approvals,approval_context:context,items,table_names:[...new Set(items.map(item=>item.table_name))],item_count:items.length,operation_counts,executions};
++ return {release_type:"STANDARD",table_flows:[],missing_flow_tables:[],...value,approvals,approval_context:context,items,table_names:[...new Set(items.map(item=>item.table_name))],item_count:items.length,operation_counts,executions};
+ }
+ 
+ // In-memory HTTP fixture router: a normal GET serves only its header. Detail
+diff --git a/admin/cmd/admin/release_flow_authorization_integration_test.go b/admin/cmd/admin/release_flow_authorization_integration_test.go
+new file mode 100644
+index 0000000..c02568e
+--- /dev/null
++++ b/admin/cmd/admin/release_flow_authorization_integration_test.go
+@@ -0,0 +1,91 @@
++//go:build integration
++
++package main
++
++import (
++	"context"
++	"fmt"
++	"net/http/httptest"
++	"strings"
++	"testing"
++)
++
++// Current HTTP authentication can finish while a maintenance change has yet to
++// commit. The existing release authorization lock must order the business write
++// after that change, including a replay of an earlier successful original key.
++func TestReleaseFlowCurrentAuthorizationAfterWaitingForMaintenance(t *testing.T) {
++	f := newMaintenanceFixture(t)
++	app := f.app
++	db := f.databaseOwner
++	deliveryExec(t, db, `CREATE TABLE policy_alpha(id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,value VARCHAR(64) NOT NULL)`)
++	deliveryExec(t, db, `CREATE TABLE policy_beta(id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,value VARCHAR(64))`)
++	flowFixture(t, app)
++	bindFlowTemplate(t, app, "policy_alpha", "ordinary_release_v1", true)
++	bindFlowTemplate(t, app, "policy_beta", "default_standard_v1", true)
++	source := rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", flowDraftBody, "flow-auth-source"), 201)
++	source = rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+source.ID+"/cancel", `{"expected_version":"1","reason":"copy source"}`, "flow-auth-cancel"), 200)
++	for _, mode := range []string{"create", "copy", "replay"} {
++		t.Run(mode, func(t *testing.T) {
++			actor := registerAccount(t, app, "flow.auth."+mode, "flow.auth."+mode+"@example.com", "correct horse battery staple")
++			actorID := accountID(t, actor)
++			grantReleaseRole(t, app, actor, `["EDITOR"]`, "1", "flow-auth-role-"+mode)
++			path, body, key := "/api/v1/release-orders", flowDraftBody, "flow-auth-"+mode
++			if mode == "copy" {
++				path += "/" + source.ID + "/copy"
++				body = derivedDraftBody(t, source)
++			}
++			if mode == "replay" {
++				flowResponse(t, releaseActorRequest(t, app, actor, "POST", path, body, key), 201)
++			}
++			cookies, csrf := actor.Result().Cookies(), sessionCSRF(t, actor)
++			gate, err := db.Conn(context.Background())
++			if err != nil {
++				t.Fatal(err)
++			}
++			defer gate.Close()
++			var held int
++			if err = gate.QueryRowContext(context.Background(), `SELECT GET_LOCK('flow_auth_gate',5)`).Scan(&held); err != nil || held != 1 {
++				t.Fatal("authorization gate", err)
++			}
++			defer gate.ExecContext(context.Background(), `SELECT RELEASE_LOCK('flow_auth_gate')`)
++			deliveryExec(t, db, fmt.Sprintf(`CREATE TRIGGER pause_flow_account_disable BEFORE UPDATE ON rcc_accounts FOR EACH ROW BEGIN IF OLD.id='%s' AND OLD.enabled=1 AND NEW.enabled=0 THEN SET @flow_auth_entered=GET_LOCK('flow_auth_entered',0); SET @flow_auth_wait=GET_LOCK('flow_auth_gate',12); SET @flow_auth_done=RELEASE_LOCK('flow_auth_entered'); SET @flow_auth_open=RELEASE_LOCK('flow_auth_gate'); END IF; END`, actorID))
++			defer deliveryExec(t, db, `DROP TRIGGER IF EXISTS pause_flow_account_disable`)
++			disabled := make(chan error, 1)
++			go func() {
++				output, err := f.command("", "disable", "--id", actorID).CombinedOutput()
++				if err != nil {
++					disabled <- fmt.Errorf("maintenance: %v %s", err, output)
++				} else {
++					disabled <- nil
++				}
++			}()
++			awaitFlowDatabaseCondition(t, db, `SELECT IF(IS_USED_LOCK('flow_auth_entered') IS NULL,0,1)`)
++			response := make(chan *httptest.ResponseRecorder, 1)
++			go func() {
++				response <- accountRequestFrom(app, "POST", path, body, cookies, csrf, "192.0.2.1:1234", map[string]string{"Idempotency-Key": key})
++			}()
++			awaitFlowDatabaseCondition(t, db, flowLockWaitSQL, "rcc_auth_control_lock")
++			if err = gate.QueryRowContext(context.Background(), `SELECT RELEASE_LOCK('flow_auth_gate')`).Scan(&held); err != nil || held != 1 {
++				t.Fatal("open authorization gate", err)
++			}
++			if err = <-disabled; err != nil {
++				t.Fatal(err)
++			}
++			assertIntegrationErrorCode(t, receiveFlowResponse(t, response), 403, "permission_denied")
++			next := releaseActorRequest(t, app, actor, "POST", path, body, key)
++			if next.Code != 401 {
++				t.Fatalf("new disabled-account request was accepted: %d %s", next.Code, next.Body)
++			}
++			orders := releaseRequest(t, app, "GET", "/api/v1/release-orders?applicant_id="+actorID, "", "")
++			var expected string
++			if mode == "replay" {
++				expected = `"orders":[{`
++			} else {
++				expected = `"orders":[]`
++			}
++			if orders.Code != 200 || !strings.Contains(orders.Body.String(), expected) {
++				t.Fatalf("authorization failure created or lost an order: %d %s", orders.Code, orders.Body)
++			}
++		})
++	}
++}
+diff --git a/admin/cmd/admin/release_flow_browser_integration_test.go b/admin/cmd/admin/release_flow_browser_integration_test.go
+new file mode 100644
+index 0000000..00f47d8
+--- /dev/null
++++ b/admin/cmd/admin/release_flow_browser_integration_test.go
+@@ -0,0 +1,102 @@
++//go:build integration && browser
++
++package main
++
++import (
++	"encoding/json"
++	"net"
++	"net/http"
++	"os"
++	"os/exec"
++	"path/filepath"
++	"testing"
++	"time"
++)
++
++// TestReleaseFlowBrowserSystemPath exercises per-table saved instances through
++// a real Chromium session, same-origin Vite proxy, Admin process, and MySQL.
++func TestReleaseFlowBrowserSystemPath(t *testing.T) {
++	_, driver := startCurrentIntegrationMySQL(t, "testdata/003-policy-fixture.sql")
++	listener, err := net.Listen("tcp", "127.0.0.1:0")
++	if err != nil {
++		t.Fatal(err)
++	}
++	address := listener.Addr().String()
++	listener.Close()
++	_, port, _ := net.SplitHostPort(address)
++	origin := "http://" + address
++	admin := accountProcessCommand(t, buildIntegrationAdmin(t), driver, "ADMIN_PUBLIC_ORIGIN="+origin, "ADMIN_REGISTER_LIMIT=20")
++	admin.ready(t)
++
++	_, _, identity := processCredentials(t, admin, "/api/v1/auth/register", `{"username":"template.browser.admin","email":"template.browser.admin@example.invalid","password":"template browser password long enough"}`)
++	var registered struct {
++		Account struct {
++			ID string `json:"id"`
++		} `json:"account"`
++	}
++	if err := json.Unmarshal(identity, &registered); err != nil {
++		t.Fatal(err)
++	}
++	maintenance := filepath.Join(t.TempDir(), "account-maintain")
++	build := exec.Command("go", "build", "-o", maintenance, "../account-maintain")
++	if output, err := build.CombinedOutput(); err != nil {
++		t.Fatalf("build maintenance: %v %s", err, output)
++	}
++	grant := exec.Command(maintenance, "grant-admin", "--id", registered.Account.ID)
++	grant.Env = append(os.Environ(), integrationEnvironment(driver, "invalid-http-address")...)
++	if output, err := grant.CombinedOutput(); err != nil {
++		t.Fatalf("grant browser administrator: %v %s", err, output)
++	}
++
++	web, err := filepath.Abs("../../../web")
++	if err != nil {
++		t.Fatal(err)
++	}
++	proxy := exec.Command("node", filepath.Join(web, "node_modules/vite/bin/vite.js"), "--host", "127.0.0.1", "--port", port, "--strictPort")
++	proxy.Dir = web
++	proxy.Env = append(os.Environ(), "RCC_ADMIN_URL="+admin.origin)
++	proxyOutput := &synchronizedBuffer{}
++	proxy.Stdout, proxy.Stderr = proxyOutput, proxyOutput
++	if err := proxy.Start(); err != nil {
++		t.Fatal(err)
++	}
++	t.Cleanup(func() { _ = proxy.Process.Kill(); _, _ = proxy.Process.Wait() })
++	deadline := time.Now().Add(15 * time.Second)
++	for {
++		response, requestErr := (&http.Client{Timeout: time.Second}).Get(origin)
++		if requestErr == nil {
++			response.Body.Close()
++			if response.StatusCode == http.StatusOK {
++				break
++			}
++		}
++		if time.Now().After(deadline) {
++			t.Fatalf("same-origin Vite proxy unavailable: %s", proxyOutput.String())
++		}
++		time.Sleep(50 * time.Millisecond)
++	}
++
++	outputDir := t.TempDir()
++	if configured := os.Getenv("RCC_E2E_OUTPUT"); configured != "" {
++		outputDir = configured
++		if err := os.MkdirAll(outputDir, 0755); err != nil {
++			t.Fatal(err)
++		}
++	}
++	browser := exec.Command("node", filepath.Join(web, "e2e/release-instances.cjs"))
++	browser.Dir = web
++	browser.Env = append(os.Environ(), "RCC_WEB_URL="+origin, "RCC_E2E_OUTPUT="+outputDir)
++	result, err := browser.CombinedOutput()
++	if err != nil {
++		t.Fatalf("release flow browser path: %v %s", err, result)
++	}
++	var evidence struct {
++		Code   string   `json:"code"`
++		Checks []string `json:"checks"`
++	}
++	if err := json.Unmarshal(result, &evidence); err != nil {
++		t.Fatalf("browser evidence: %v %s", err, result)
++	}
++
++	t.Logf("browser → Vite proxy → Admin → MySQL: %v", evidence.Checks)
++}
+diff --git a/admin/cmd/admin/release_flow_concurrency_integration_test.go b/admin/cmd/admin/release_flow_concurrency_integration_test.go
+new file mode 100644
+index 0000000..dc13594
+--- /dev/null
++++ b/admin/cmd/admin/release_flow_concurrency_integration_test.go
+@@ -0,0 +1,170 @@
++//go:build integration
++
++package main
++
++import (
++	"database/sql"
++	"net/http/httptest"
++	"reflect"
++	"strings"
++	"testing"
++	"time"
++)
++
++func awaitFlowDatabaseCondition(t *testing.T, db *sql.DB, query string, args ...any) {
++	t.Helper()
++	deadline := time.Now().Add(4 * time.Second)
++	for {
++		var ready int
++		if err := db.QueryRow(query, args...).Scan(&ready); err != nil {
++			t.Fatal(err)
++		}
++		if ready > 0 {
++			return
++		}
++		if time.Now().After(deadline) {
++			t.Fatalf("database boundary not reached: %s", query)
++		}
++		time.Sleep(10 * time.Millisecond)
++	}
++}
++func receiveFlowResponse(t *testing.T, responses <-chan *httptest.ResponseRecorder) *httptest.ResponseRecorder {
++	t.Helper()
++	select {
++	case r := <-responses:
++		return r
++	case <-time.After(5 * time.Second):
++		t.Fatal("HTTP request did not finish after database gate opened")
++	}
++	return nil
++}
++
++const flowLockWaitSQL = `SELECT COUNT(*) FROM performance_schema.data_lock_waits w JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID WHERE l.OBJECT_SCHEMA=DATABASE() AND l.OBJECT_NAME=?`
++
++// #100 AC-022: real database gates arrange overlap, rather than assuming that
++// simultaneous goroutines reached the configuration read at the same time.
++func TestReleaseFlowAC022ConcurrentTemplateAndAssociationSnapshots(t *testing.T) {
++	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/003-policy-fixture.sql")
++	app, err := newApplication(ctx, integrationConfig(driver))
++	if err != nil {
++		t.Fatal(err)
++	}
++	t.Cleanup(func() { _ = app.Close() })
++	root := *driver
++	root.User = "root"
++	db := deliveryDB(t, &root)
++	flowFixture(t, app)
++	bindFlowTemplate(t, app, "policy_alpha", "ordinary_release_v1", true)
++	bindFlowTemplate(t, app, "policy_beta", "ordinary_release_v1", true)
++	admin := integrationAdminSession(t, app)
++	cookies, csrf := admin.Result().Cookies(), sessionCSRF(t, admin)
++	request := func(method, path, body, key string) *httptest.ResponseRecorder {
++		return accountRequestFrom(app, method, path, body, cookies, csrf, "192.0.2.1:1234", map[string]string{"Idempotency-Key": key})
++	}
++
++	t.Run("template_update_commits_while_draft_retains_complete_old_snapshot", func(t *testing.T) {
++		gate, err := db.Conn(ctx)
++		if err != nil {
++			t.Fatal(err)
++		}
++		defer gate.Close()
++		var acquired int
++		if err = gate.QueryRowContext(ctx, `SELECT GET_LOCK('flow_snapshot_gate',5)`).Scan(&acquired); err != nil || acquired != 1 {
++			t.Fatal("gate lock", err)
++		}
++		defer gate.ExecContext(ctx, `SELECT RELEASE_LOCK('flow_snapshot_gate')`)
++		deliveryExec(t, db, `CREATE TRIGGER pause_flow_insert BEFORE INSERT ON rcc_release_orders FOR EACH ROW BEGIN SET @flow_entered=GET_LOCK('flow_snapshot_entered',0); SET @flow_wait=GET_LOCK('flow_snapshot_gate',12); SET @flow_done=RELEASE_LOCK('flow_snapshot_entered'); SET @flow_open=RELEASE_LOCK('flow_snapshot_gate'); END`)
++		defer deliveryExec(t, db, `DROP TRIGGER IF EXISTS pause_flow_insert`)
++		held, err := db.BeginTx(ctx, nil)
++		if err != nil {
++			t.Fatal(err)
++		}
++		defer held.Rollback()
++		var id uint64
++		if err = held.QueryRowContext(ctx, `SELECT id FROM rcc_release_templates WHERE code='ordinary_release_v1' FOR UPDATE`).Scan(&id); err != nil {
++			t.Fatal(err)
++		}
++		updateBody := strings.TrimSuffix(strings.ReplaceAll(standardReleaseTemplateBody, "按表审批", "并发新版审批"), "}") + `,"expected_version":"1"}`
++		changed := make(chan *httptest.ResponseRecorder, 1)
++		go func() {
++			changed <- request("PUT", "/api/v1/release-templates/ordinary_release_v1", updateBody, "flow-concurrent-template")
++		}()
++		awaitFlowDatabaseCondition(t, db, flowLockWaitSQL, "rcc_release_templates")
++		created := make(chan *httptest.ResponseRecorder, 1)
++		go func() { created <- request("POST", "/api/v1/release-orders", flowDraftBody, "flow-concurrent-create") }()
++		awaitFlowDatabaseCondition(t, db, `SELECT IF(IS_USED_LOCK('flow_snapshot_entered') IS NULL,0,1)`)
++		if err = held.Commit(); err != nil {
++			t.Fatal(err)
++		}
++		if r := receiveFlowResponse(t, changed); r.Code != 200 {
++			t.Fatalf("concurrent template edit: %d %s", r.Code, r.Body)
++		}
++		if err = gate.QueryRowContext(ctx, `SELECT RELEASE_LOCK('flow_snapshot_gate')`).Scan(&acquired); err != nil || acquired != 1 {
++			t.Fatal("release gate", err)
++		}
++		saved := flowResponse(t, receiveFlowResponse(t, created), 201)
++		if len(saved.TableFlows) != 2 {
++			t.Fatal("missing old snapshot", saved)
++		}
++		for _, flow := range saved.TableFlows {
++			if flow.TemplateVersion != "1" || flow.Nodes[0].Name != "按表审批" || flow.AssociationVersion != "1" {
++				t.Fatal("mixed old/new template snapshot", flow)
++			}
++		}
++		replay := flowResponse(t, request("POST", "/api/v1/release-orders", flowDraftBody, "flow-concurrent-create"), 201)
++		if replay.ID != saved.ID || !reflect.DeepEqual(replay.TableFlows, saved.TableFlows) {
++			t.Fatal("retry regenerated changed template", replay)
++		}
++		assertIntegrationErrorCode(t, request("POST", "/api/v1/release-orders", strings.Replace(flowDraftBody, "各表保存流程", "different intent", 1), "flow-concurrent-create"), 409, "idempotency_conflict")
++		current := flowResponse(t, request("GET", "/api/v1/release-orders/"+saved.ID, "", ""), 200)
++		if !reflect.DeepEqual(current.TableFlows, saved.TableFlows) {
++			t.Fatal("read replaced acknowledged snapshot", current)
++		}
++		fresh := flowResponse(t, request("POST", "/api/v1/release-orders", flowDraftBody, "flow-current-template-create"), 201)
++		for _, flow := range fresh.TableFlows {
++			if flow.TemplateVersion != "2" || flow.Nodes[0].Name != "并发新版审批" {
++				t.Fatal("new instance ignored committed template", flow)
++			}
++		}
++	})
++
++	t.Run("association_switch_precedes_waiting_draft_as_one_snapshot", func(t *testing.T) {
++		held, err := db.BeginTx(ctx, nil)
++		if err != nil {
++			t.Fatal(err)
++		}
++		defer held.Rollback()
++		var id uint64
++		if err = held.QueryRowContext(ctx, `SELECT id FROM rcc_release_templates WHERE code='default_standard_v1' FOR UPDATE`).Scan(&id); err != nil {
++			t.Fatal(err)
++		}
++		changed := make(chan *httptest.ResponseRecorder, 1)
++		go func() {
++			changed <- request("PUT", "/api/v1/table-policies/policy_alpha/release-templates/STANDARD", associationBody("default_standard_v1", "1", true), "flow-concurrent-association")
++		}()
++		awaitFlowDatabaseCondition(t, db, flowLockWaitSQL, "rcc_release_templates")
++		created := make(chan *httptest.ResponseRecorder, 1)
++		go func() { created <- request("POST", "/api/v1/release-orders", flowDraftBody, "flow-association-create") }()
++		awaitFlowDatabaseCondition(t, db, flowLockWaitSQL, "rcc_table_policies")
++		if err = held.Commit(); err != nil {
++			t.Fatal(err)
++		}
++		if r := receiveFlowResponse(t, changed); r.Code != 200 {
++			t.Fatalf("association switch: %d %s", r.Code, r.Body)
++		}
++		saved := flowResponse(t, receiveFlowResponse(t, created), 201)
++		if len(saved.TableFlows) != 2 {
++			t.Fatal("missing switched flow", saved)
++		}
++		alpha, beta := saved.TableFlows[0], saved.TableFlows[1]
++		if alpha.TemplateCode != "default_standard_v1" || alpha.TemplateVersion != "1" || alpha.AssociationVersion != "2" || alpha.Nodes[0].Name != "按表审批" || beta.TemplateCode != "ordinary_release_v1" || beta.TemplateVersion != "2" || beta.Nodes[0].Name != "并发新版审批" {
++			t.Fatalf("mixed association/template snapshot: %+v", saved.TableFlows)
++		}
++		bindFlowTemplate(t, app, "policy_alpha", "ordinary_release_v1", true)
++		replay := flowResponse(t, request("POST", "/api/v1/release-orders", flowDraftBody, "flow-association-create"), 201)
++		if !reflect.DeepEqual(replay.TableFlows, saved.TableFlows) {
++			t.Fatal("association replay generated another instance", replay)
++		}
++		t.Logf("complete snapshot retained with alpha %s@%s / association %s", alpha.TemplateCode, alpha.TemplateVersion, alpha.AssociationVersion)
++	})
++}
+diff --git a/admin/cmd/admin/release_flow_failure_integration_test.go b/admin/cmd/admin/release_flow_failure_integration_test.go
+new file mode 100644
+index 0000000..eabc0f1
+--- /dev/null
++++ b/admin/cmd/admin/release_flow_failure_integration_test.go
+@@ -0,0 +1,64 @@
++//go:build integration
++
++package main
++
++import (
++	"reflect"
++	"testing"
++)
++
++// Save owns definitions, order revision, intent and original request result in
++// one transaction. Read failures never mean missing configuration or a default.
++func TestReleaseFlowStorageFailuresKeepDraftAndOriginalResultAtomic(t *testing.T) {
++	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/003-policy-fixture.sql")
++	app, err := newApplication(ctx, integrationConfig(driver))
++	if err != nil {
++		t.Fatal(err)
++	}
++	t.Cleanup(func() { _ = app.Close() })
++	owner := *driver
++	owner.User = "root"
++	db := deliveryDB(t, &owner)
++	flowFixture(t, app)
++	bindFlowTemplate(t, app, "policy_alpha", "ordinary_release_v1", true)
++	saved := flowResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", flowDraftBody, "flow-failure-create"), 201)
++	path := "/api/v1/release-orders/" + saved.ID
++	bindFlowTemplate(t, app, "policy_beta", "default_standard_v1", true)
++	body := `{"title":"显式补齐流程","expected_version":"1","changes":{"upserts":[],"delete_detail_ids":[]}}`
++	deliveryExec(t, db, `RENAME TABLE rcc_release_templates TO unavailable_release_templates`)
++	failed := releaseRequest(t, app, "PUT", path, body, "flow-storage-repair")
++	assertIntegrationErrorCode(t, failed, 503, "release_unavailable")
++	read := flowResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
++	if !reflect.DeepEqual(read.TableFlows, saved.TableFlows) || !reflect.DeepEqual(read.MissingFlowTables, saved.MissingFlowTables) || read.Version != "1" || read.Title != saved.Title {
++		t.Fatal("failed read changed acknowledged draft", read)
++	}
++	deliveryExec(t, db, `RENAME TABLE unavailable_release_templates TO rcc_release_templates`)
++	deliveryExec(t, db, `CREATE TRIGGER reject_flow_save BEFORE UPDATE ON rcc_release_orders FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='injected instance storage failure'`)
++	failed = releaseRequest(t, app, "PUT", path, body, "flow-storage-repair")
++	assertIntegrationErrorCode(t, failed, 503, "release_unavailable")
++	deliveryExec(t, db, `DROP TRIGGER reject_flow_save`)
++	deliveryExec(t, db, `CREATE TRIGGER reject_flow_result BEFORE UPDATE ON rcc_release_requests FOR EACH ROW BEGIN IF NEW.operation LIKE 'edit:%' AND NEW.result IS NOT NULL THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='injected original result failure'; END IF; END`)
++	failed = releaseRequest(t, app, "PUT", path, body, "flow-storage-repair")
++	assertIntegrationErrorCode(t, failed, 503, "release_unavailable")
++	read = flowResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
++	if !reflect.DeepEqual(read.TableFlows, saved.TableFlows) || !reflect.DeepEqual(read.MissingFlowTables, saved.MissingFlowTables) || read.Version != "1" || read.Title != saved.Title {
++		t.Fatal("failed original result committed partial draft", read)
++	}
++	deliveryExec(t, db, `DROP TRIGGER reject_flow_result`)
++	repaired := flowResponse(t, releaseRequest(t, app, "PUT", path, body, "flow-storage-repair"), 200)
++	if len(repaired.TableFlows) != 2 || len(repaired.MissingFlowTables) != 0 || repaired.Version != "2" || !reflect.DeepEqual(repaired.TableFlows[0], saved.TableFlows[0]) {
++		t.Fatal("manual original save did not commit exactly once", repaired)
++	}
++	// GET must stay read-only even when the dependency rejects every order write.
++	deliveryExec(t, db, `CREATE TRIGGER reject_flow_read_write BEFORE UPDATE ON rcc_release_orders FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='detail reads must not save'`)
++	reread := flowResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
++	if !reflect.DeepEqual(reread.TableFlows, repaired.TableFlows) {
++		t.Fatal("read changed stored nodes", reread)
++	}
++	replay := flowResponse(t, releaseRequest(t, app, "PUT", path, body, "flow-storage-repair"), 200)
++	if !reflect.DeepEqual(replay.TableFlows, repaired.TableFlows) || replay.Version != "2" {
++		t.Fatal("original request reran instance writes", replay)
++	}
++	deliveryExec(t, db, `DROP TRIGGER reject_flow_read_write`)
++	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", path, `{"title":"different","expected_version":"2","changes":{"upserts":[],"delete_detail_ids":[]}}`, "flow-storage-repair"), 409, "idempotency_conflict")
++}
+diff --git a/admin/cmd/admin/release_flow_integration_test.go b/admin/cmd/admin/release_flow_integration_test.go
+new file mode 100644
+index 0000000..0ef4943
+--- /dev/null
++++ b/admin/cmd/admin/release_flow_integration_test.go
+@@ -0,0 +1,289 @@
++//go:build integration
++
++package main
++
++import (
++	"encoding/json"
++	"fmt"
++	"net/http/httptest"
++	"reflect"
++	"strings"
++	"testing"
++)
++
++type flowAcceptanceNode struct {
++	Code, Type, Name, State string
++	RequiredRole            string `json:"required_role"`
++	ActorID                 string `json:"actor_id"`
++	At                      string
++}
++type flowAcceptanceInstance struct {
++	InstanceID         string               `json:"instance_id"`
++	TableName          string               `json:"table_name"`
++	ReleaseType        string               `json:"release_type"`
++	TemplateCode       string               `json:"template_code"`
++	TemplateName       string               `json:"template_name"`
++	TemplateVersion    string               `json:"template_version"`
++	AssociationVersion string               `json:"association_version"`
++	InstantiatedAt     string               `json:"instantiated_at"`
++	Nodes              []flowAcceptanceNode `json:"node_list"`
++}
++type flowAcceptanceOrder struct {
++	ID, Title, State, Version string
++	ReleaseType               string                   `json:"release_type"`
++	TableFlows                []flowAcceptanceInstance `json:"table_flows"`
++	MissingFlowTables         []string                 `json:"missing_flow_tables"`
++	AllowedActions            []string                 `json:"allowed_actions"`
++}
++
++func flowResponse(t *testing.T, r *httptest.ResponseRecorder, status int) flowAcceptanceOrder {
++	t.Helper()
++	var order flowAcceptanceOrder
++	if r.Code != status || json.Unmarshal(r.Body.Bytes(), &order) != nil {
++		t.Fatalf("flow response: %d %s", r.Code, r.Body)
++	}
++	return order
++}
++func bindFlowTemplate(t *testing.T, app *adminApplication, table, code string, enabled bool) {
++	t.Helper()
++	version := "0"
++	for _, row := range associationCatalog(t, app, table) {
++		if row["type"] == "STANDARD" {
++			version = row["version"].(string)
++		}
++	}
++	r := templateRequest(t, app, "PUT", "/api/v1/table-policies/"+table+"/release-templates/STANDARD", associationBody(code, version, enabled), fmt.Sprintf("flow-bind-%d", publicationFixtureSequence.Add(1)))
++	if r.Code != 200 {
++		t.Fatalf("bind flow template: %d %s", r.Code, r.Body)
++	}
++}
++func flowFixture(t *testing.T, app *adminApplication) {
++	t.Helper()
++	createAndActivateQueryDefinition(t, app, "association_query_v1", "id")
++	createAndActivateMutationDefinition(t, app, "association_mutation_v1", nil)
++	for _, table := range []string{"policy_alpha", "policy_beta"} {
++		createAssociationTable(t, app, table)
++		r := templateRequest(t, app, "POST", "/api/v1/table-policies/"+table+"/enable", `{"expected_version":"1"}`, "flow-enable-"+table)
++		if r.Code != 200 {
++			t.Fatalf("enable flow table: %d %s", r.Code, r.Body)
++		}
++	}
++	r := templateRequest(t, app, "POST", "/api/v1/release-templates", standardReleaseTemplateBody, "flow-template-create")
++	if r.Code != 201 {
++		t.Fatalf("create flow template: %d %s", r.Code, r.Body)
++	}
++}
++
++const flowDraftBody = `{"title":"各表保存流程","items":[{"table_name":"policy_alpha","operation":"ADD","content":{"value":"alpha"}},{"table_name":"policy_beta","operation":"ADD","content":{"value":"beta"}}]}`
++
++// #100 AC-009: the first visible response already acknowledges two persistent,
++// independent instances. The first detail read occurs after the source changes.
++func TestReleaseFlowAC009PersistsIndependentTablesBeforeFirstRead(t *testing.T) {
++	app := startIntegrationApplication(t, "testdata/003-policy-fixture.sql")
++	flowFixture(t, app)
++	bindFlowTemplate(t, app, "policy_alpha", "ordinary_release_v1", true)
++	bindFlowTemplate(t, app, "policy_beta", "default_standard_v1", true)
++	saved := flowResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", flowDraftBody, "flow-two-create"), 201)
++	if saved.ReleaseType != "STANDARD" || len(saved.TableFlows) != 2 || len(saved.MissingFlowTables) != 0 {
++		t.Fatalf("first response lacks saved per-table STANDARD flows: %+v", saved)
++	}
++	alpha, beta := saved.TableFlows[0], saved.TableFlows[1]
++	if alpha.TableName != "policy_alpha" || alpha.TemplateCode != "ordinary_release_v1" || alpha.TemplateName != "常规发布" || beta.TableName != "policy_beta" || beta.TemplateCode != "default_standard_v1" || alpha.InstanceID == "" || alpha.InstanceID == beta.InstanceID || alpha.InstantiatedAt == "" || alpha.TemplateVersion != "1" || alpha.AssociationVersion != "1" || len(alpha.Nodes) != 3 || alpha.Nodes[0].Name != "按表审批" || alpha.Nodes[0].State != "PENDING" {
++		t.Fatalf("wrong independent flow definition: %+v", saved.TableFlows)
++	}
++	updated := strings.TrimSuffix(strings.ReplaceAll(standardReleaseTemplateBody, "按表审批", "新版审批"), "}") + `,"expected_version":"1"}`
++	if r := templateRequest(t, app, "PUT", "/api/v1/release-templates/ordinary_release_v1", updated, "flow-template-before-first-read"); r.Code != 200 {
++		t.Fatal(r.Body)
++	}
++	bindFlowTemplate(t, app, "policy_beta", "ordinary_release_v1", true)
++	for range 2 {
++		read := flowResponse(t, releaseRequest(t, app, "GET", "/api/v1/release-orders/"+saved.ID, "", ""), 200)
++		if !reflect.DeepEqual(read.TableFlows, saved.TableFlows) || read.Version != "1" {
++			t.Fatalf("detail read replaced persisted instances: %+v", read)
++		}
++	}
++}
++
++// #100 AC-010: unavailable standard config permits content but blocks submission.
++// Repair is an explicit save, and never refreshes the other acknowledged table.
++func TestReleaseFlowAC010MissingConfigurationRequiresExplicitSave(t *testing.T) {
++	app := startIntegrationApplication(t, "testdata/003-policy-fixture.sql")
++	flowFixture(t, app)
++	bindFlowTemplate(t, app, "policy_alpha", "ordinary_release_v1", true)
++	reviewer := publicationFixtureReviewer(t, app)
++	configurePublicationReviewer(t, app, reviewer, "policy_alpha", "policy_beta")
++	saved := flowResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", flowDraftBody, "flow-missing-create"), 201)
++	path := "/api/v1/release-orders/" + saved.ID
++	if len(saved.TableFlows) != 1 || !reflect.DeepEqual(saved.MissingFlowTables, []string{"policy_beta"}) {
++		t.Fatalf("missing standard is not explicit: %+v", saved)
++	}
++	blocked := releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"1"}`, "flow-missing-submit")
++	assertIntegrationErrorCode(t, blocked, 409, "release_flow_incomplete")
++	if strings.Contains(strings.Join(saved.AllowedActions, ","), "submit") {
++		t.Fatal("incomplete workflow offered submission")
++	}
++	bindFlowTemplate(t, app, "policy_beta", "default_standard_v1", true)
++	reread := flowResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
++	if !reflect.DeepEqual(reread.TableFlows, saved.TableFlows) || !reflect.DeepEqual(reread.MissingFlowTables, saved.MissingFlowTables) || reread.Version != "1" {
++		t.Fatal("GET instantiated newly available config", reread)
++	}
++	repaired := flowResponse(t, releaseRequest(t, app, "PUT", path, `{"title":"各表保存流程","expected_version":"1","changes":{"upserts":[],"delete_detail_ids":[]}}`, "flow-repair-save"), 200)
++	if repaired.Version != "2" || len(repaired.TableFlows) != 2 || len(repaired.MissingFlowTables) != 0 || !reflect.DeepEqual(repaired.TableFlows[0], saved.TableFlows[0]) {
++		t.Fatalf("explicit save failed to fill only missing table: %+v", repaired)
++	}
++	if r := templateRequest(t, app, "POST", "/api/v1/release-templates/ordinary_release_v1/disable", `{"expected_version":"1"}`, "flow-disable-old-template"); r.Code != 200 {
++		t.Fatal(r.Body)
++	}
++	bindFlowTemplate(t, app, "policy_beta", "default_standard_v1", false)
++	submitted := flowResponse(t, releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"2"}`, "flow-submit-old-instances"), 200)
++	if submitted.State != "PENDING_APPROVAL" || submitted.TableFlows[0].InstanceID != repaired.TableFlows[0].InstanceID || submitted.TableFlows[1].InstanceID != repaired.TableFlows[1].InstanceID {
++		t.Fatalf("old instances did not submit after configuration stopped: %+v", submitted)
++	}
++	fresh := flowResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", flowDraftBody, "flow-fresh-disabled"), 201)
++	if len(fresh.TableFlows) != 0 || !reflect.DeepEqual(fresh.MissingFlowTables, []string{"policy_alpha", "policy_beta"}) {
++		t.Fatalf("new draft silently reused disabled config: %+v", fresh)
++	}
++}
++
++// #100 AC-013: a derived draft reads the current associations; copying saved
++// content never carries workflow identity or approval across orders.
++func TestReleaseFlowAC013DerivedDraftUsesCurrentConfiguration(t *testing.T) {
++	app := startIntegrationApplication(t, "testdata/003-policy-fixture.sql")
++	flowFixture(t, app)
++	bindFlowTemplate(t, app, "policy_alpha", "ordinary_release_v1", true)
++	bindFlowTemplate(t, app, "policy_beta", "default_standard_v1", true)
++	reviewer := publicationFixtureReviewer(t, app)
++	configurePublicationReviewer(t, app, reviewer, "policy_alpha", "policy_beta")
++	created := rollbackOrderResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", flowDraftBody, "flow-derived-create"), 201)
++	path := "/api/v1/release-orders/" + created.ID
++	original := flowResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
++	source := rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/cancel", `{"expected_version":"1","reason":"copy current templates"}`, "flow-derived-cancel"), 200)
++	bindFlowTemplate(t, app, "policy_alpha", "default_standard_v1", true)
++	bindFlowTemplate(t, app, "policy_beta", "ordinary_release_v1", true)
++	copiedResponse := releaseRequest(t, app, "POST", path+"/copy", derivedDraftBody(t, source), "flow-derived-copy")
++	copied := flowResponse(t, copiedResponse, 201)
++	if copied.ReleaseType != "STANDARD" || len(copied.TableFlows) != 2 || copied.TableFlows[0].TemplateCode != "default_standard_v1" || copied.TableFlows[1].TemplateCode != "ordinary_release_v1" || copied.TableFlows[0].InstanceID == original.TableFlows[0].InstanceID || copied.TableFlows[1].InstanceID == original.TableFlows[1].InstanceID {
++		t.Fatalf("copy did not create current independent flow instances: %+v", copied)
++	}
++	copyPath := "/api/v1/release-orders/" + copied.ID
++	rollbackOrderResponse(t, releaseRequest(t, app, "POST", copyPath+"/submit", `{"expected_version":"1"}`, "flow-derived-submit"), 200)
++	approved := rollbackOrderResponse(t, releaseActorRequest(t, app, reviewer, "POST", copyPath+"/approve", confirmedApprovalBody(t, app, reviewer, copyPath, "new approval"), "flow-derived-approve"), 200)
++	bindFlowTemplate(t, app, "policy_alpha", "ordinary_release_v1", true)
++	preparedResponse := releaseRequest(t, app, "POST", copyPath+"/reprepare", derivedDraftBody(t, approved), "flow-derived-reprepare")
++	prepared := flowResponse(t, preparedResponse, 201)
++	domainPrepared := rollbackOrderResponse(t, preparedResponse, 201)
++	if prepared.ReleaseType != "STANDARD" || len(prepared.TableFlows) != 2 || prepared.TableFlows[0].TemplateCode != "ordinary_release_v1" || prepared.TableFlows[0].InstanceID == copied.TableFlows[0].InstanceID || prepared.TableFlows[1].InstanceID == copied.TableFlows[1].InstanceID || domainPrepared.ApplicantID != integrationAccountID(t, app) || domainPrepared.State != "DRAFT" {
++		t.Fatalf("reprepare inherited workflow or approval: %+v", prepared)
++	}
++	for _, approval := range domainPrepared.Approvals {
++		if approval.Decision != nil || approval.State != "PENDING" {
++			t.Fatal("reprepare inherited a completed approval", approval)
++		}
++	}
++	retired := flowResponse(t, releaseRequest(t, app, "GET", copyPath, "", ""), 200)
++	if retired.State != "CANCELLED" || retired.TableFlows[0].InstanceID != copied.TableFlows[0].InstanceID {
++		t.Fatal("reprepare rewrote source instance", retired)
++	}
++	replay := releaseRequest(t, app, "POST", copyPath+"/reprepare", derivedDraftBody(t, approved), "flow-derived-reprepare")
++	if replay.Code != 201 || !reflect.DeepEqual(flowResponse(t, replay, 201).TableFlows, prepared.TableFlows) {
++		t.Fatal("derived replay instantiated again", replay.Body)
++	}
++}
++
++// #100 AC-014 / B-004: node definitions belong to the saved draft; role
++// responsibility belongs to submission and member eligibility remains current.
++func TestReleaseFlowAC014SeparatesInstancesFromSubmissionApprovals(t *testing.T) {
++	app := startIntegrationApplication(t, "testdata/003-policy-fixture.sql")
++	flowFixture(t, app)
++	bindFlowTemplate(t, app, "policy_alpha", "ordinary_release_v1", true)
++	bindFlowTemplate(t, app, "policy_beta", "default_standard_v1", true)
++	oldReviewer := registerAccount(t, app, "flow.old", "flow.old@example.com", "correct horse battery staple")
++	alphaReviewer := registerAccount(t, app, "flow.alpha", "flow.alpha@example.com", "correct horse battery staple")
++	betaReviewer := registerAccount(t, app, "flow.beta", "flow.beta@example.com", "correct horse battery staple")
++	oldRole := tableApprovalRole(t, app, "草稿时角色", oldReviewer)
++	alphaRole := tableApprovalRole(t, app, "提交时甲角色", alphaReviewer)
++	betaRole := tableApprovalRole(t, app, "提交时乙角色", betaReviewer)
++	assignTableApproval(t, app, "policy_alpha", oldRole)
++	assignTableApproval(t, app, "policy_beta", betaRole)
++	saved := flowResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", flowDraftBody, "flow-approval-create"), 201)
++	path := "/api/v1/release-orders/" + saved.ID
++	assignTableApproval(t, app, "policy_alpha", alphaRole)
++	updated := strings.TrimSuffix(strings.ReplaceAll(standardReleaseTemplateBody, "按表审批", "后续新审批节点"), "}") + `,"expected_version":"1"}`
++	if r := templateRequest(t, app, "PUT", "/api/v1/release-templates/ordinary_release_v1", updated, "flow-approval-template-edit"); r.Code != 200 {
++		t.Fatal(r.Body)
++	}
++	submittedResponse := releaseRequest(t, app, "POST", path+"/submit", `{"expected_version":"1"}`, "flow-approval-submit")
++	submitted := flowResponse(t, submittedResponse, 200)
++	domainSubmitted := rollbackOrderResponse(t, submittedResponse, 200)
++	if submitted.TableFlows[0].Nodes[0].Name != "按表审批" || submitted.TableFlows[0].Nodes[0].State != "ACTIVE" || submitted.TableFlows[1].Nodes[0].State != "ACTIVE" || submitted.TableFlows[0].InstanceID != saved.TableFlows[0].InstanceID || domainSubmitted.Approvals[0].Roles[0].ID != alphaRole.ID {
++		t.Fatalf("submission changed nodes or failed to activate saved instances: %+v", submitted)
++	}
++	assignTableApproval(t, app, "policy_alpha", oldRole)
++	denied := releaseActorRequest(t, app, oldReviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, oldReviewer, path, "old assignment"), "flow-old-reviewer")
++	assertIntegrationErrorCode(t, denied, 403, "permission_denied")
++	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/approve", confirmedApprovalBody(t, app, integrationAdminSession(t, app), path, "no self review"), "flow-self-reviewer"), 403, "permission_denied")
++	partial := flowResponse(t, releaseActorRequest(t, app, alphaReviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, alphaReviewer, path, "甲表独立批准"), "flow-alpha-approve"), 200)
++	if partial.State != "PENDING_APPROVAL" || partial.TableFlows[0].Nodes[0].State != "COMPLETED" || partial.TableFlows[0].Nodes[0].ActorID != accountID(t, alphaReviewer) || partial.TableFlows[0].Nodes[0].At == "" || partial.TableFlows[0].Nodes[1].State != "PENDING" || partial.TableFlows[1].Nodes[0].State != "ACTIVE" {
++		t.Fatal("partial table approval did not advance only its real node", partial)
++	}
++	approved := flowResponse(t, releaseActorRequest(t, app, betaReviewer, "POST", path+"/approve", confirmedApprovalBody(t, app, betaReviewer, path, "乙表独立批准"), "flow-beta-approve"), 200)
++	if approved.State != "APPROVED" || approved.TableFlows[0].Nodes[1].State != "ACTIVE" || approved.TableFlows[1].Nodes[1].State != "ACTIVE" {
++		t.Fatal("all-table gate did not activate publication", approved)
++	}
++	published := flowResponse(t, releaseRequest(t, app, "POST", path+"/execute", fmt.Sprintf(`{"expected_version":%q}`, approved.Version), "flow-publication"), 200)
++	for _, flow := range published.TableFlows {
++		if flow.Nodes[1].State != "COMPLETED" || flow.Nodes[1].ActorID != integrationAccountID(t, app) || flow.Nodes[1].At == "" || flow.Nodes[2].State != "ACTIVE" {
++			t.Fatal("publication node lacks actual execution", flow)
++		}
++	}
++	completed := flowResponse(t, releaseRequest(t, app, "POST", path+"/complete", fmt.Sprintf(`{"expected_version":%q}`, published.Version), "flow-complete"), 200)
++	for _, flow := range completed.TableFlows {
++		if flow.Nodes[2].State != "COMPLETED" || flow.Nodes[2].ActorID != integrationAccountID(t, app) || flow.Nodes[2].At == "" {
++			t.Fatal("completion node lacks real event", flow)
++		}
++	}
++	reread := flowResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
++	if !reflect.DeepEqual(reread.TableFlows, completed.TableFlows) {
++		t.Fatal("node progress was not persisted", reread)
++	}
++}
++
++// #100 AC-011: normal edits retain unaffected flow identity. Removing the last
++// detail removes its flow and target; adding the table again reads current config.
++func TestReleaseFlowAC011DraftEditsPreserveAndReplaceOnlyParticipatingTables(t *testing.T) {
++	app := startIntegrationApplication(t, "testdata/003-policy-fixture.sql")
++	flowFixture(t, app)
++	bindFlowTemplate(t, app, "policy_alpha", "ordinary_release_v1", true)
++	bindFlowTemplate(t, app, "policy_beta", "default_standard_v1", true)
++	body := `{"title":"草稿增删表","items":[{"table_name":"policy_alpha","operation":"ADD","content":{"id":"91","value":"alpha"}}]}`
++	createdResponse := releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "flow-edit-create")
++	created := flowResponse(t, createdResponse, 201)
++	detail := rollbackOrderResponse(t, createdResponse, 201).Items[0]
++	path := "/api/v1/release-orders/" + created.ID
++	bindFlowTemplate(t, app, "policy_alpha", "default_standard_v1", true)
++	editBody := fmt.Sprintf(`{"title":"草稿增删表","expected_version":"1","changes":{"upserts":[{"detail_id":%q,"table_name":"policy_alpha","operation":"ADD","expected_record_version":"0","content":{"id":"91","value":"edited-alpha"}},{"table_name":"policy_beta","operation":"ADD","content":{"id":"92","value":"beta"}}],"delete_detail_ids":[]}}`, detail.DetailID)
++	editedResponse := releaseRequest(t, app, "PUT", path, editBody, "flow-edit-append-beta")
++	edited := flowResponse(t, editedResponse, 200)
++	if edited.Version != "2" || len(edited.TableFlows) != 2 || !reflect.DeepEqual(edited.TableFlows[0], created.TableFlows[0]) || edited.TableFlows[1].TemplateCode != "default_standard_v1" {
++		t.Fatalf("edit replaced unaffected flow: %+v", edited)
++	}
++	stale := releaseRequest(t, app, "PUT", path, editBody, "flow-edit-stale")
++	assertIntegrationErrorCode(t, stale, 409, "release_version_conflict")
++	removal := fmt.Sprintf(`{"title":"草稿增删表","expected_version":"2","changes":{"upserts":[],"delete_detail_ids":[%q]}}`, detail.DetailID)
++	removed := flowResponse(t, releaseRequest(t, app, "PUT", path, removal, "flow-edit-remove-alpha"), 200)
++	if removed.Version != "3" || len(removed.TableFlows) != 1 || !reflect.DeepEqual(removed.TableFlows[0], edited.TableFlows[1]) {
++		t.Fatal("removed table remained in flow", removed)
++	}
++	contender := flowResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders", body, "flow-edit-target-released"), 201)
++	readd := `{"title":"草稿增删表","expected_version":"3","changes":{"upserts":[{"table_name":"policy_alpha","operation":"ADD","content":{"id":"91","value":"readded"}}],"delete_detail_ids":[]}}`
++	assertIntegrationErrorCode(t, releaseRequest(t, app, "PUT", path, readd, "flow-edit-readd"), 409, "release_target_conflict")
++	afterFailure := flowResponse(t, releaseRequest(t, app, "GET", path, "", ""), 200)
++	if !reflect.DeepEqual(afterFailure.TableFlows, removed.TableFlows) || afterFailure.Version != "3" {
++		t.Fatal("target failure partially instantiated table", afterFailure)
++	}
++	flowResponse(t, releaseRequest(t, app, "POST", "/api/v1/release-orders/"+contender.ID+"/cancel", `{"expected_version":"1","reason":"释放目标"}`, "flow-edit-free-contender"), 200)
++	readded := flowResponse(t, releaseRequest(t, app, "PUT", path, readd, "flow-edit-readd"), 200)
++	if readded.Version != "4" || len(readded.TableFlows) != 2 || readded.TableFlows[0].TemplateCode != "default_standard_v1" || readded.TableFlows[0].InstanceID == created.TableFlows[0].InstanceID || !reflect.DeepEqual(readded.TableFlows[1], edited.TableFlows[1]) {
++		t.Fatal("readded table did not get current independent flow", readded)
++	}
++}
+diff --git a/admin/internal/application/release_flow.go b/admin/internal/application/release_flow.go
+new file mode 100644
+index 0000000..89086c1
+--- /dev/null
++++ b/admin/internal/application/release_flow.go
+@@ -0,0 +1,98 @@
++package application
++
++import (
++	"context"
++	"strconv"
++
++	"github.com/asherzj/relational-config-center/admin/internal/domain"
++)
++
++// Only explicit draft writes instantiate. Existing instances remain unchanged;
++// removed tables leave the workflow, and unavailable config remains visible.
++func saveDraftFlows(ctx context.Context, session ReleaseOrderSession, order *ReleaseOrder) error {
++	existing := map[string]domain.ReleaseTableFlow{}
++	for _, flow := range order.TableFlows {
++		existing[flow.TableName] = flow
++	}
++	missing := []string{}
++	for _, table := range order.TableNames {
++		if _, found := existing[table]; !found {
++			missing = append(missing, table)
++		}
++	}
++	configurations, err := session.ReadReleaseFlowConfigurations(ctx, missing, order.ReleaseType)
++	if err != nil {
++		return err
++	}
++	for _, configuration := range configurations {
++		id, err := newDetailID()
++		if err != nil {
++			return err
++		}
++		template := configuration.Template
++		flow := domain.ReleaseTableFlow{InstanceID: id, TableName: configuration.TableName, ReleaseType: template.Type, TemplateCode: template.Code, TemplateName: template.Name, TemplateVersion: strconv.FormatUint(template.Version, 10), AssociationVersion: strconv.FormatUint(configuration.AssociationVersion, 10), InstantiatedAt: order.UpdatedAt, Nodes: []domain.ReleaseNodeInstance{}}
++		for _, node := range template.Nodes {
++			flow.Nodes = append(flow.Nodes, domain.ReleaseNodeInstance{ReleaseTemplateNode: node, State: "PENDING"})
++		}
++		existing[configuration.TableName] = flow
++	}
++	order.TableFlows = []domain.ReleaseTableFlow{}
++	order.MissingFlowTables = []string{}
++	for _, table := range order.TableNames {
++		if flow, found := existing[table]; found {
++			order.TableFlows = append(order.TableFlows, flow)
++		} else {
++			order.MissingFlowTables = append(order.MissingFlowTables, table)
++		}
++	}
++	return nil
++}
++
++// Persist progress from real table decisions and order events in the same write
++// as those facts. A stopped workflow never fabricates completion or an actor.
++func advanceReleaseFlows(order *ReleaseOrder) {
++	approvals := map[string]domain.ReleaseTableApproval{}
++	for _, approval := range order.Approvals {
++		approvals[approval.TableName] = approval
++	}
++	events := map[string]domain.ReleaseEvent{}
++	for _, event := range order.History {
++		events[event.Action] = event
++	}
++	for fi := range order.TableFlows {
++		flow := &order.TableFlows[fi]
++		for ni := range flow.Nodes {
++			node := &flow.Nodes[ni]
++			node.State, node.ActorID, node.At = "PENDING", "", ""
++			switch node.Type {
++			case "APPROVAL":
++				approval := approvals[flow.TableName]
++				if approval.Decision != nil {
++					node.ActorID, node.At = approval.Decision.ActorID, approval.Decision.At
++					if approval.State == "APPROVED" {
++						node.State = "COMPLETED"
++					} else if approval.State == "REJECTED" {
++						node.State = "REJECTED"
++					}
++				} else if order.State == "PENDING_APPROVAL" {
++					node.State = "ACTIVE"
++				}
++			case "PUBLICATION":
++				if event, found := events["EXECUTE"]; found {
++					node.State, node.ActorID, node.At = "COMPLETED", event.ActorID, event.At
++				} else if order.State == "APPROVED" {
++					node.State = "ACTIVE"
++				}
++			case "COMPLETION":
++				if event, found := events["COMPLETE"]; found {
++					node.State, node.ActorID, node.At = "COMPLETED", event.ActorID, event.At
++				} else if order.State == "SUCCEEDED" {
++					node.State = "ACTIVE"
++				}
++			}
++			if (order.State == "CANCELLED" || order.State == "REJECTED" || order.State == "ROLLED_BACK") && (node.State == "PENDING" || node.State == "ACTIVE") {
++				node.State = "STOPPED"
++			}
++		}
++	}
++}
+diff --git a/admin/internal/domain/release_flow.go b/admin/internal/domain/release_flow.go
+new file mode 100644
+index 0000000..7a24440
+--- /dev/null
++++ b/admin/internal/domain/release_flow.go
+@@ -0,0 +1,58 @@
++package domain
++
++// ReleaseTableFlow is the workflow definition acknowledged for one table by a
++// saved draft. Template edits and later approval assignments cannot replace it.
++type ReleaseTableFlow struct {
++	InstanceID         string                `json:"instance_id"`
++	TableName          string                `json:"table_name"`
++	ReleaseType        ReleaseType           `json:"release_type"`
++	TemplateCode       string                `json:"template_code"`
++	TemplateName       string                `json:"template_name"`
++	TemplateVersion    string                `json:"template_version"`
++	AssociationVersion string                `json:"association_version"`
++	InstantiatedAt     string                `json:"instantiated_at"`
++	Nodes              []ReleaseNodeInstance `json:"node_list"`
++}
++
++type ReleaseNodeInstance struct {
++	ReleaseTemplateNode
++	State   string `json:"state"`
++	ActorID string `json:"actor_id,omitempty"`
++	At      string `json:"at,omitempty"`
++}
++
++// ReleaseFlowConfiguration is a complete source definition read consistently
++// with the other draft inputs. Its absence means explicitly unavailable config.
++type ReleaseFlowConfiguration struct {
++	TableName          string
++	Template           ReleaseTemplate
++	AssociationVersion uint64
++}
++
++// HasCompleteFlows checks every participating table; an empty draft or one
++// missing configuration can never acquire submission or publication authority.
++func (order ReleaseOrder) HasCompleteFlows() bool {
++	if len(order.TableNames) == 0 || len(order.MissingFlowTables) != 0 || len(order.TableFlows) != len(order.TableNames) {
++		return false
++	}
++	flows := map[string]bool{}
++	for _, flow := range order.TableFlows {
++		if flows[flow.TableName] || flow.ReleaseType != order.ReleaseType || flow.InstanceID == "" || flow.TemplateCode == "" || flow.TemplateName == "" || flow.TemplateVersion == "" || flow.AssociationVersion == "" || flow.InstantiatedAt == "" {
++			return false
++		}
++		nodes := make([]ReleaseTemplateNode, len(flow.Nodes))
++		for index, node := range flow.Nodes {
++			nodes[index] = node.ReleaseTemplateNode
++		}
++		if ValidateReleaseTemplateNodes(flow.ReleaseType, nodes) != nil {
++			return false
++		}
++		flows[flow.TableName] = true
++	}
++	for _, table := range order.TableNames {
++		if !flows[table] {
++			return false
++		}
++	}
++	return true
++}
+diff --git a/admin/internal/infrastructure/mysql/release_flows.go b/admin/internal/infrastructure/mysql/release_flows.go
+new file mode 100644
+index 0000000..582f87f
+--- /dev/null
++++ b/admin/internal/infrastructure/mysql/release_flows.go
+@@ -0,0 +1,43 @@
++package mysql
++
++import (
++	"context"
++	"encoding/json"
++
++	"github.com/asherzj/relational-config-center/admin/internal/application"
++	"github.com/asherzj/relational-config-center/admin/internal/domain"
++)
++
++// A joined consistent read shares the draft transaction's REPEATABLE READ
++// snapshot. Concurrent configuration writes cannot mix association and template
++// versions, nor can later tables observe a different database snapshot.
++func (session *releaseOrderSession) ReadReleaseFlowConfigurations(ctx context.Context, tables []string, kind domain.ReleaseType) ([]domain.ReleaseFlowConfiguration, error) {
++	if err := session.available(); err != nil {
++		return nil, err
++	}
++	result := []domain.ReleaseFlowConfiguration{}
++	if len(tables) == 0 {
++		return result, nil
++	}
++	var rows []struct {
++		TableName, Code, Name       string
++		Type                        domain.ReleaseType
++		Version, AssociationVersion uint64
++		Nodes, Monitors             []byte
++	}
++	err := session.database.WithContext(ctx).Raw(`SELECT p.table_name,t.code,t.name,t.release_type AS type,t.version,a.version AS association_version,t.node_list AS nodes,t.monitor_list AS monitors
++		FROM rcc_table_policies p JOIN rcc_table_release_templates a ON a.table_policy_id=p.id
++		JOIN rcc_release_templates t ON t.id=a.template_id AND t.release_type=a.release_type
++		WHERE p.table_name IN ? AND a.release_type=? AND p.enabled=1 AND a.enabled=1 AND t.enabled=1 ORDER BY p.table_name`, tables, kind).Scan(&rows).Error
++	if err != nil {
++		return nil, application.ErrReleaseUnavailable
++	}
++	for _, row := range rows {
++		template := domain.ReleaseTemplate{Code: row.Code, Name: row.Name, Type: row.Type, Version: row.Version, Enabled: true}
++		if json.Unmarshal(row.Nodes, &template.Nodes) != nil || json.Unmarshal(row.Monitors, &template.MonitorList) != nil || len(template.MonitorList) != 0 || domain.ValidateReleaseTemplateNodes(template.Type, template.Nodes) != nil || row.Version == 0 || row.AssociationVersion == 0 {
++			return nil, application.ErrReleaseUnavailable
++		}
++		result = append(result, domain.ReleaseFlowConfiguration{TableName: row.TableName, Template: template, AssociationVersion: row.AssociationVersion})
++	}
++	return result, nil
++}
+diff --git a/web/e2e/release-instances.cjs b/web/e2e/release-instances.cjs
+new file mode 100644
+index 0000000..1d43878
+--- /dev/null
++++ b/web/e2e/release-instances.cjs
+@@ -0,0 +1,156 @@
++// Real browser -> same-origin Web/Admin -> isolated policy_alpha/policy_beta MySQL fixture.
++const assert = require('node:assert/strict');
++const {randomUUID} = require('node:crypto');
++const {writeFile, access} = require('node:fs/promises');
++const {join} = require('node:path');
++const {chromium} = require('playwright');
++const {authenticatedRequest} = require('./local-account.cjs');
++const {createFixtureApprovalRole, bindFixtureApprovalRoles} = require('./table-approval-fixture.cjs');
++const origin = process.env.RCC_WEB_URL, output = process.env.RCC_E2E_OUTPUT;
++assert.ok(origin && output, 'RCC_WEB_URL and a fresh RCC_E2E_OUTPUT directory are required');
++const tables = ['policy_alpha', 'policy_beta'];
++const checks = [], snapshots = {}, errors = [];
++const button = (page, name) => page.getByRole('button', {name, exact:true});
++const api = async (context, method, path, data, status=200) => {
++ const response = await authenticatedRequest(context, origin, path, {method, data, headers:{'Idempotency-Key':randomUUID()}});
++ assert.equal(response.status(), status, `${method} ${path}: ${await response.text()}`);
++ return response.json();
++};
++const shot = async (page, name) => {
++ const path=join(output,name);
++ await assert.rejects(access(path), 'browser evidence must not overwrite an earlier run');
++ await page.evaluate(()=>window.scrollTo(0,0));
++ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
++ await page.screenshot({path, fullPage:true, animations:'disabled'});
++};
++const standard = (code, name, prefix) => ({code, name, description:'实例隔离浏览器验收', type:'STANDARD', node_list:[
++ {code:'review',type:'APPROVAL',name:`${prefix}负责人核对`,required_role:'TABLE_APPROVER'},
++ {code:'publish',type:'PUBLICATION',name:`${prefix}整单发布`,required_role:'PUBLISHER'},
++ {code:'finish',type:'COMPLETION',name:`${prefix}结果完结`,required_role:'PUBLISHER'},
++]});
++
++(async()=>{
++ const browser=await chromium.launch(process.env.RCC_BROWSER_EXECUTABLE?{executablePath:process.env.RCC_BROWSER_EXECUTABLE,headless:true}:{channel:'chrome',headless:true});
++ let page;
++ try {
++  const admin=await browser.newContext({viewport:{width:1440,height:1000}});
++  page=await admin.newPage();page.setDefaultTimeout(20000);page.on('pageerror',error=>errors.push(error.message));
++  await page.goto(origin+'/login');await page.getByLabel('用户名').fill('template.browser.admin');await page.getByLabel('密码',{exact:true}).fill('template browser password long enough');await button(page,'登录').click();await page.waitForURL(url=>!url.pathname.endsWith('/login'));
++  await api(admin,'POST','/api/v1/query-policies',{code:'flow_browser_query_v1',name:'流程实例查询',description:'',type_code:'page_query',default_order_field:'id',default_order_direction:'ASC',default_page_size:20,max_page_size:200},201);
++  await api(admin,'POST','/api/v1/query-policies/flow_browser_query_v1/activate');
++  await api(admin,'POST','/api/v1/mutation-policies',{code:'flow_browser_mutation_v1',name:'流程实例变更',description:'',type_code:'single_table_mutation',allow_add:true,allow_modify:true,allow_delete:true},201);
++  await api(admin,'POST','/api/v1/mutation-policies/flow_browser_mutation_v1/activate');
++  for(const table of tables){await api(admin,'POST','/api/v1/table-policies',{table_name:table,query_policy_code:'flow_browser_query_v1',mutation_policy_code:'flow_browser_mutation_v1'},201);await api(admin,'POST',`/api/v1/table-policies/${table}/enable`,{expected_version:'1'});}
++  const definitions=[standard('flow_alpha_v1','资金配置负责人核对及整单结果确认流程','资金'),standard('flow_beta_v1','渠道负责人独立复核与整单发布流程','渠道'),standard('flow_replacement_v1','新的关联流程','新配置')];
++  const templates=[];for(const definition of definitions)templates.push(await api(admin,'POST','/api/v1/release-templates',definition,201));
++  const associate=async(table,code,enabled=true)=>{
++   const associations=(await api(admin,'GET',`/api/v1/table-policies/${table}/release-templates`)).associations;
++   const current=associations.find(item=>item.type==='STANDARD');
++   return api(admin,'PUT',`/api/v1/table-policies/${table}/release-templates/STANDARD`,{template_code:code,enabled,expected_version:current?.version??'0'});
++  };
++  for(const [index,table] of tables.entries())await associate(table,definitions[index].code);
++  const reviewers=[];
++  for(let index=0;index<2;index++){
++   const context=await browser.newContext({viewport:{width:1440,height:1000}});
++   const csrf=(await(await context.request.get(origin+'/api/v1/auth/csrf')).json()).csrf_token;
++   const response=await context.request.post(origin+'/api/v1/auth/register',{headers:{Origin:origin,'X-CSRF-Token':csrf},data:{username:`flow.reviewer.${index}`,email:`flow.reviewer.${index}@example.invalid`,password:'flow browser reviewer password long enough',display_name:index?'渠道复核人':'资金复核人'}});
++   assert.equal(response.status(),201);const identity=await response.json();
++   const role=await createFixtureApprovalRole(admin,origin,index?'渠道审核角色':'资金审核角色',[identity.account.id],[tables[index]]);
++   const surface=await context.newPage();surface.setDefaultTimeout(20000);surface.on('pageerror',error=>errors.push(error.message));
++   reviewers.push({context,page:surface,identity,role});
++  }
++  await page.goto(origin+'/configuration/release-orders');await button(page,'新建草稿').click();await page.getByLabel('发布单标题',{exact:true}).fill('两张表保留各自流程与审批事实');await button(page,'创建空草稿').click();await page.getByRole('heading',{name:'两张表保留各自流程与审批事实',exact:true}).waitFor();
++  const id=new URL(page.url()).pathname.split('/').at(-1), path=`/api/v1/release-orders/${id}`;
++  for(const table of tables){
++   await page.getByRole('link',{name:'添加明细',exact:true}).click();await page.getByLabel('Managed Table',{exact:true}).selectOption(table);await button(page,'新增记录').click();
++   for(const field of ['id','value']){await page.getByLabel(`包含 ${field}`,{exact:true}).check();await page.getByLabel(`${field} 值`,{exact:true}).fill(field==='id'?'11':`${table} saved value`);}
++   await button(page,'查看 Change Set').click();assert.equal(await page.getByLabel('保存到草稿',{exact:true}).inputValue(),id);await button(page,'确认并保存草稿').click();await page.getByRole('heading',{name:'两张表保留各自流程与审批事实',exact:true}).waitFor();
++  }
++  const saved=await api(admin,'GET',path);snapshots.saved=saved.table_flows;
++  assert.equal(saved.release_type,'STANDARD');assert.deepEqual(saved.missing_flow_tables,[]);assert.equal(saved.table_flows.length,2);
++  for(const [index,table] of tables.entries()){
++   assert.equal(saved.table_flows.find(flow=>flow.table_name===table).template_code,definitions[index].code);
++   await page.getByRole('list',{name:`${table} 流程节点`,exact:true}).getByText(definitions[index].node_list[0].name,{exact:true}).waitFor();
++  }
++  const readOnlyWrites=[];
++  const observeRead=request=>{if(new URL(request.url()).pathname===path&&request.method()!=='GET')readOnlyWrites.push(request.method());};
++  page.on('request',observeRead);await page.reload();await page.getByRole('region',{name:'逐表发布流程',exact:true}).waitFor();
++  assert.deepEqual((await api(admin,'GET',path)).table_flows,saved.table_flows);assert.deepEqual(readOnlyWrites,[]);page.off('request',observeRead);
++  const alphaFlow=page.getByRole('region',{name:`${tables[0]} 发布流程`,exact:true});
++  await alphaFlow.getByText('查看实例来源与版本',{exact:true}).focus();await page.keyboard.press('Enter');
++  await alphaFlow.getByText(`${definitions[0].code} · 版本 1`,{exact:true}).waitFor();
++  await shot(page,'flow-source-keyboard-desktop.png');
++  await page.keyboard.press('Enter');await alphaFlow.getByText(`${definitions[0].code} · 版本 1`,{exact:true}).waitFor({state:'hidden'});
++  await shot(page,'different-table-flows-desktop.png');
++  checks.push('AC-009: real Web creates a two-table draft; distinct persisted templates render, source disclosure opens/closes by keyboard, and refresh performs no write');
++
++  await api(admin,'PUT',`/api/v1/release-templates/${definitions[0].code}`,{...definitions[0],name:'源模板已经更新',node_list:definitions[0].node_list.map(node=>({...node,name:`新定义${node.name}`})),expected_version:templates[0].version});
++  await api(admin,'POST',`/api/v1/release-templates/${definitions[0].code}/disable`,{expected_version:'2'});
++  await associate(tables[0],definitions[2].code);
++  await page.reload();await page.getByRole('list',{name:`${tables[0]} 流程节点`,exact:true}).getByText('资金负责人核对',{exact:true}).waitFor();
++  assert.deepEqual((await api(admin,'GET',path)).table_flows,saved.table_flows);
++  checks.push('AC-010: editing/disabling source template and switching association leave the saved draft instance intact');
++
++  await associate(tables[1],definitions[1].code,false);
++  const incomplete=await api(admin,'POST','/api/v1/release-orders',{title:'配置补齐后明确保存的双表草稿',items:tables.map(table_name=>({table_name,operation:'ADD',content:{id:'12',value:'explicit repair'}}))},201);
++  const repairPath=`/api/v1/release-orders/${incomplete.id}`;assert.deepEqual(incomplete.missing_flow_tables,[tables[1]]);assert.equal(incomplete.table_flows.length,1);assert.equal(incomplete.table_flows[0].template_code,definitions[2].code);
++  const blocked=await api(admin,'POST',repairPath+'/submit',{expected_version:incomplete.version},409);assert.equal(blocked.error.code,'release_flow_incomplete');
++  await page.setViewportSize({width:390,height:844});await page.goto(origin+'/configuration/release-orders/'+incomplete.id);
++  await page.getByRole('region',{name:'流程配置未完成',exact:true}).waitFor();assert.equal(await button(page,'提交审批').count(),0);assert.equal(await page.getByRole('list',{name:`${tables[1]} 流程节点`,exact:true}).count(),0);
++  await shot(page,'missing-flow-mobile.png');
++  await associate(tables[1],definitions[1].code,true);await page.reload();await page.getByRole('region',{name:'流程配置未完成',exact:true}).waitFor();
++  assert.deepEqual((await api(admin,'GET',repairPath)).missing_flow_tables,[tables[1]],'reading silently filled missing instance');
++  await button(page,'保存草稿以补齐流程').focus();await page.keyboard.press('Enter');await page.getByRole('heading',{name:'编辑多表草稿',exact:true}).waitFor();
++  const originalWrites=[];let loseOnce=true;
++  await page.route(`**${repairPath}`,async route=>{
++   if(route.request().method()!=='PUT')return route.continue();
++   originalWrites.push({body:route.request().postData(),key:route.request().headers()['idempotency-key']});
++   if(!loseOnce)return route.continue();loseOnce=false;
++   const response=await route.fetch();assert.equal(response.status(),200);await route.abort('connectionreset');
++  });
++  await button(page,'保存草稿修改').click();await page.getByText('Admin 连接或响应传输中断。',{exact:true}).waitFor();assert.equal(originalWrites.length,1);
++  assert.deepEqual(JSON.parse(originalWrites[0].body),{title:incomplete.title,expected_version:incomplete.version,changes:{upserts:[],delete_detail_ids:[]}});
++  page.once('dialog',dialog=>dialog.accept());await page.reload();await page.getByRole('heading',{name:incomplete.title,exact:true}).waitFor();
++  await button(page,'编辑草稿').click();await button(page,'保存草稿修改').click();await page.getByRole('heading',{name:'编辑多表草稿',exact:true}).waitFor({state:'hidden'});
++  assert.equal(originalWrites.length,2);assert.deepEqual(originalWrites[0],originalWrites[1]);await page.unroute(`**${repairPath}`);
++  const repaired=await api(admin,'GET',repairPath);snapshots.repaired=repaired.table_flows;
++  assert.deepEqual(repaired.missing_flow_tables,[]);assert.deepEqual(repaired.table_flows.find(flow=>flow.table_name===tables[0]),incomplete.table_flows[0]);assert.equal(repaired.table_flows.length,2);
++  await page.getByRole('list',{name:`${tables[1]} 流程节点`,exact:true}).getByText('渠道负责人核对',{exact:true}).waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
++  await shot(page,'repaired-flows-mobile.png');
++  snapshots.manual_replay={same_key:true,same_body:true,original_version:incomplete.version,stored_version:repaired.version};
++  checks.push('AC-010/023/025: 390px missing-flow block; GET stays read-only after repair; explicit unchanged save fills only missing instance; committed lost response survives refresh and exact manual replay');
++
++  await page.setViewportSize({width:1440,height:1000});await page.goto(origin+'/configuration/release-orders/'+id);
++  await page.getByRole('region',{name:'提交审批安排',exact:true}).getByText('当前分配：资金审核角色',{exact:true}).waitFor();
++  await button(page,'提交审批').click();await button(page,'确认提交审批').click();await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'待审批',exact:true}).waitFor();
++  let submitted=await api(admin,'GET',path);snapshots.submitted=submitted.table_flows;
++  assert.deepEqual(submitted.table_flows.map(flow=>flow.instance_id),saved.table_flows.map(flow=>flow.instance_id));
++  assert.deepEqual(submitted.table_flows.map(flow=>flow.node_list.map(node=>node.state)),[['ACTIVE','PENDING','PENDING'],['ACTIVE','PENDING','PENDING']]);
++  await bindFixtureApprovalRoles(admin,origin,tables[0],[reviewers[1].role.id]);await page.reload();
++  await page.getByRole('region',{name:'逐表审批进度',exact:true}).getByText('提交时分配：资金审核角色',{exact:true}).waitFor();
++  for(const [index,reviewer] of reviewers.entries()){
++   const review=reviewer.page;await review.goto(origin+'/configuration/release-orders/'+id);await button(review,'批准发布单').click();
++   const scope=review.getByRole('region',{name:'本次审批范围',exact:true});await scope.getByText(tables[index],{exact:true}).waitFor();assert.equal(await scope.getByText(tables[1-index],{exact:true}).count(),0);
++   await review.getByLabel('审批意见',{exact:true}).fill(index?'渠道独立核对完成':'资金独立核对完成');await button(review,'确认批准').click();await review.getByRole('dialog',{name:'批准发布单',exact:true}).waitFor({state:'hidden'});await page.reload();
++   await page.getByRole('region',{name:'逐表审批进度',exact:true}).getByRole('heading',{name:`已通过 ${index+1} / 2 表`,exact:true}).waitFor();
++   const current=await api(admin,'GET',path);
++   if(index===0){
++    assert.equal(current.state,'PENDING_APPROVAL');assert.deepEqual(current.table_flows.map(flow=>flow.node_list.map(node=>node.state)),[['COMPLETED','PENDING','PENDING'],['ACTIVE','PENDING','PENDING']]);
++    await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'待审批',exact:true}).waitFor();assert.equal(await button(page,'执行发布').count(),0);snapshots.partial_approval=current.table_flows;
++    await shot(page,'partial-approval-desktop.png');
++   }else{
++    assert.equal(current.state,'APPROVED');assert.deepEqual(current.table_flows.map(flow=>flow.node_list.map(node=>node.state)),[['COMPLETED','ACTIVE','PENDING'],['COMPLETED','ACTIVE','PENDING']]);
++    await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'待执行发布',exact:true}).waitFor();snapshots.all_approved=current.table_flows;
++   }
++  }
++  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await shot(page,'all-approved-mobile.png');
++  await button(page,'执行发布').click();await button(page,'确认发布到数据库').click();await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'数据库已发布，待人工完结',exact:true}).waitFor();
++  const published=await api(admin,'GET',path);assert.deepEqual(published.table_flows.map(flow=>flow.node_list.map(node=>node.state)),[['COMPLETED','COMPLETED','ACTIVE'],['COMPLETED','COMPLETED','ACTIVE']]);
++  await button(page,'完结发布单').click();await button(page,'确认完结').click();await page.getByRole('region',{name:'发布阶段',exact:true}).getByRole('heading',{name:'已完结',exact:true}).waitFor();
++  const completed=await api(admin,'GET',path);snapshots.completed=completed.table_flows;assert.ok(completed.table_flows.every(flow=>flow.node_list.every(node=>node.state==='COMPLETED'&&node.actor_id&&node.at)));
++  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await shot(page,'completed-flows-mobile.png');
++  checks.push('AC-014: frozen table roles survive later assignment change; independent partial/all approvals drive real nodes; whole-order publication and completion retain actual actors');
++  assert.deepEqual(errors,[]);
++  const evidence={order_id:id,repair_order_id:incomplete.id,checks,snapshots};await writeFile(join(output,'release-instances-browser-evidence.json'),JSON.stringify(evidence,null,2),{flag:'wx'});process.stdout.write(JSON.stringify({checks,order_id:id,repair_order_id:incomplete.id}));
++ }catch(error){if(page){await shot(page,'failure.png');await writeFile(join(output,'failure.txt'),String(error),{flag:'wx'});}throw error;}finally{await browser.close();}
++})().catch(error=>{console.error(error);process.exitCode=1;});
+diff --git a/web/src/features/release-orders/ReleaseFlows.tsx b/web/src/features/release-orders/ReleaseFlows.tsx
+new file mode 100644
+index 0000000..75ed771
+--- /dev/null
++++ b/web/src/features/release-orders/ReleaseFlows.tsx
+@@ -0,0 +1,32 @@
++import type {ReleaseHeader} from "../../api/release-orders";
++import {ReleasePerson} from "./ReleasePerson";
++import {ReleaseTime} from "./ReleaseTime";
++
++const phases={DRAFT:"准备中",PENDING_APPROVAL:"待审批",APPROVED:"待执行发布",SUCCEEDED:"数据库已发布，待人工完结",COMPLETED:"已完结",REJECTED:"已拒绝，整单终止",CANCELLED:"已取消",ROLLED_BACK:"已回滚"};
++const nodeStates={PENDING:"待开始",ACTIVE:"进行中",COMPLETED:"已完成",REJECTED:"已拒绝",STOPPED:"已终止"};
++const nodeTypes={APPROVAL:"审批",PUBLICATION:"发布",COMPLETION:"完结"};
++
++export function ReleasePhase({order,people={}}:{order:ReleaseHeader;people?:Record<string,string>}){
++ const submitted=order.history.find(event=>event.action==="SUBMIT");
++ return <section className="release-panel min-w-0" aria-label="发布阶段">
++  <p className="text-xs text-muted-foreground">常规发布 · 整单阶段</p>
++  <h2 className="mt-2 text-lg font-semibold">{phases[order.state]}</h2>
++  {submitted&&<div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs"><span>准备完成于提交</span><ReleasePerson id={submitted.actor_id} name={people[submitted.actor_id]}/><ReleaseTime value={submitted.at}/></div>}
++ </section>;
++}
++
++export function ReleaseFlows({order,people={}}:{order:ReleaseHeader;people?:Record<string,string>}){
++ return <section className="release-panel min-w-0" aria-label="逐表发布流程">
++  <h2 className="text-lg font-semibold">逐表发布流程</h2>
++  <p className="mt-2 text-muted-foreground">各表使用保存时的流程。全部表审批通过后，整单统一发布。</p>
++  {order.table_flows.length===0&&order.missing_flow_tables.length===0&&<p className="mt-4">添加明细并保存草稿后显示各表流程。</p>}
++  <div className="divide-y">{order.table_flows.map(flow=><section key={flow.instance_id} aria-label={`${flow.table_name} 发布流程`} className="min-w-0 py-5 last:pb-0">
++   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2"><h3 className="font-semibold font-mono break-all">{flow.table_name}</h3><p className="break-all">{flow.template_name}</p></div>
++   <ol aria-label={`${flow.table_name} 流程节点`} className="mt-4 grid gap-5 min-[760px]:grid-cols-3">{flow.node_list.map((node,index)=><li key={node.code} aria-current={node.state==="ACTIVE"?"step":undefined} className="flex min-w-0 items-start gap-3">
++    <span aria-hidden="true" className={`release-step-icon ${node.state==="COMPLETED"?"bg-success-soft text-success":node.state==="ACTIVE"?"bg-primary text-primary-foreground":""}`}>{index+1}</span>
++    <div className="min-w-0 break-all"><h4 className="font-medium">{node.name}</h4><p className="mt-1 text-xs text-muted-foreground">{nodeTypes[node.type]} · {node.required_role==="TABLE_APPROVER"?"按表审批资格":"发布权限"}</p><p className={`mt-2 ${node.state==="COMPLETED"?"text-success":node.state==="REJECTED"?"text-destructive":"text-muted-foreground"}`}>{nodeStates[node.state]}</p>{node.actor_id&&<div className="mt-2 text-xs"><ReleasePerson id={node.actor_id} name={people[node.actor_id]}/></div>}{node.at&&<div className="mt-1 text-xs"><ReleaseTime value={node.at}/></div>}</div>
++   </li>)}</ol>
++   <details className="mt-4 min-w-0 text-xs text-muted-foreground"><summary className="w-fit cursor-pointer rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">查看实例来源与版本</summary><dl className="mt-3 grid gap-2 break-all"><div><dt>流程实例</dt><dd className="font-mono">{flow.instance_id}</dd></div><div><dt>来源模板</dt><dd className="font-mono">{flow.template_code} · 版本 {flow.template_version}</dd></div><div><dt>表关联版本</dt><dd>{flow.association_version}</dd></div><div><dt>实例保存时间</dt><dd><ReleaseTime value={flow.instantiated_at}/></dd></div></dl></details>
++  </section>)}</div>
++ </section>;
++}

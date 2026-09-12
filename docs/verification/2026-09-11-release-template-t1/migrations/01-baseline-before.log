@@ -1,0 +1,7 @@
+=== RUN   TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory
+    discovery_integration_test.go:262: required Docker provider unavailable: check host "unix:///Users/asher/.colima/default/docker.sock": docker info: permission denied while trying to connect to the docker API at unix:///Users/asher/.colima/default/docker.sock
+        rootless Docker not found, failed to create Docker provider
+--- FAIL: TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory (0.49s)
+FAIL
+FAIL	github.com/asherzj/relational-config-center/admin/cmd/admin	3.944s
+FAIL

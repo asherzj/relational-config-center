@@ -1,0 +1,35 @@
+{
+  "scope": "426 unique Web tests, effective combined results; not one all-green full-suite run",
+  "original_full_suite": {
+    "log": "helper/19-web-full-suite.log",
+    "exit_code": 1,
+    "files": 39,
+    "passed": 414,
+    "failed": 12,
+    "unhandled_errors": 1
+  },
+  "replacement_runs": [
+    {
+      "log": "helper/23-managed-data-page-fixture-green.log",
+      "passed": 11,
+      "failed": 0,
+      "reason": "Required table policy version missing from shared fixture; only enabledPolicy version field added."
+    },
+    {
+      "log": "24-client-stream.log",
+      "metadata": "24-client-stream.json",
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "reason": "Original sandbox EPERM on loopback listen; unchanged transport test repeated with approved local TCP permission, no Admin or database."
+    }
+  ],
+  "effective_passed": 426,
+  "effective_failed": 0,
+  "not_counted_again": [
+    "helper/16-release-orders-suite-green.log (90)",
+    "helper/18-managed-data-regression-green.log (30)"
+  ],
+  "input_applicability": "Only ManagedDataPage.test.tsx fixture version changed after full suite 19. Its complete 11-test file passed in 23. Client transport source was unchanged; 24 supersedes its permission failure. Release/API and mutation suites are already included in 19.",
+  "mandatory_real_browser": "Pending explicit authorization; script not created or executed."
+}

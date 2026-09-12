@@ -1,0 +1,15 @@
+^D
+> @relational-config-center/web@0.0.0 build /private/tmp/rcc-template-notification-integration/web
+> tsc --noEmit && vite build
+
+vite v8.2.2 building client environment for production...
+[2Ktransforming (919) ../../rcc-issue-103-release-instances/web/node_modules/.pnpm/lucide-react@1.34.0_react@19.2.8/node_modules/lucide-react/dist/esm/icons/bookmark-plus.mjs[2Ktransforming (920) ../../rcc-issue-103-release-instances/web/node_modules/.pnpm/lucide-react@1.34.0_react@19.2.8/node_modules/lucide-react/dist/esm/icons/bookmark-check.mjs[2Ktransforming (921) ../../rcc-issue-103-release-instances/web/node_modules/.pnpm/lucide-react@1.34.0_react@19.2.8/node_modules/lucide-react/dist/esm/icons/bookmark-x.mjs[2K✓ 2158 modules transformed.
+[2Krendering chunks (1)...[2Krendering chunks (2)...[2Krendering chunks (3)...[2Krendering chunks (4)...[2Kcomputing gzip size...
+[2Kdist/index.html                             0.74 kB │ gzip:   0.40 kB
+dist/assets/index-B_VHuArb.css             86.98 kB │ gzip:  16.80 kB
+dist/assets/rolldown-runtime-CbXtAM7H.js    0.58 kB │ gzip:   0.36 kB
+dist/assets/react-DXf84zf0.js             189.60 kB │ gzip:  59.62 kB
+dist/assets/index-D2Ig7FRY.js             356.10 kB │ gzip:  97.63 kB
+dist/assets/vendor-B5DI7EYn.js            359.58 kB │ gzip: 112.44 kB
+
+✓ built in 268ms

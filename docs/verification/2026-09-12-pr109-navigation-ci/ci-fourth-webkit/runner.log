@@ -1,0 +1,27 @@
+PASS 管理员在设置页为同一后续多表发布链路配置管控键
+PASS 无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序
+PASS 同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final
+PASS 独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果
+PASS 同一原单贯通管理员管控键、真实分页多表草稿、独立审批发布、原单恢复和实际执行人原因补填
+PASS 两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚
+PASS 复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联
+PASS 重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批
+PASS 真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿
+PASS 持久化失败前零业务发送且保留输入，日志读取失败不阻断账号或无关只读页面
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
++ [
++   '/127.0.0.1:38901/api/v1/approval-notifications due to access control checks.',
++   '/127.0.0.1:38901/api/v1/release-orders/736b1ab66513215ac9e1c6dac2894f0e due to access control checks.'
++ ]
+- []
+
+    at /home/runner/work/relational-config-center/relational-config-center/web/e2e/release-multitable.cjs:217:38 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [Array],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}

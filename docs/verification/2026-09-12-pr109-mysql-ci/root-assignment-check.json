@@ -1,0 +1,13 @@
+{
+  "status": "pass",
+  "scope": "inventory only, no integration tests executed",
+  "identities": 431,
+  "counts": [
+    108,
+    108,
+    108,
+    107
+  ],
+  "matches_independent_assignment": true,
+  "reviewed_snapshot_unchanged": true
+}

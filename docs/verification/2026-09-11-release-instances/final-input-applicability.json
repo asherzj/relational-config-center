@@ -1,0 +1,59 @@
+{
+  "backend/15-final-http-source-sha256.json": {
+    "inputs": 236,
+    "changed_since_run": [
+      "admin/CONTEXT.md",
+      "admin/cmd/admin/account_browser_integration_test.go",
+      "admin/cmd/admin/business_auth_integration_test.go",
+      "admin/cmd/admin/release_copy_reprepare_multitable_integration_test.go",
+      "admin/cmd/admin/release_quick_rollback_integration_test.go",
+      "admin/internal/application/quick_rollback.go"
+    ]
+  },
+  "backend/18-regression-recheck-source-sha256.json": {
+    "inputs": 236,
+    "changed_since_run": [
+      "admin/CONTEXT.md",
+      "admin/cmd/admin/account_browser_integration_test.go",
+      "admin/cmd/admin/release_quick_rollback_integration_test.go",
+      "admin/internal/application/quick_rollback.go"
+    ]
+  },
+  "backend/20-rollback-flow-source-sha256.json": {
+    "inputs": 236,
+    "changed_since_run": []
+  },
+  "browser/20-final-system-path-source-sha256.json": {
+    "inputs": 432,
+    "changed_since_run": [
+      "admin/cmd/admin/account_browser_integration_test.go",
+      "admin/cmd/admin/release_quick_rollback_integration_test.go",
+      "admin/internal/application/quick_rollback.go",
+      "web/e2e/draft-targets.cjs",
+      "web/e2e/field-display.cjs",
+      "web/e2e/release-approvals.cjs",
+      "web/e2e/release-batches.cjs",
+      "web/e2e/release-multitable.cjs",
+      "web/e2e/release-rollbacks.cjs",
+      "web/e2e/table-approvals.cjs"
+    ]
+  },
+  "browser/22-regression-source-sha256.json": {
+    "inputs": 432,
+    "changed_since_run": [
+      "web/e2e/draft-targets.cjs",
+      "web/e2e/release-approvals.cjs"
+    ]
+  },
+  "browser/23-regression-recheck-source-sha256.json": {
+    "inputs": 432,
+    "changed_since_run": []
+  },
+  "applicability_notes": [
+    "backend/20 snapshot also applies to backend/21; no input changed between those runs.",
+    "browser/23 snapshot also applies to browser/24; no input changed between those runs.",
+    "QuickRollback production change revalidated by backend/20 and /21 and browser/22 release-rollbacks/release-multitable; remaining forward-only paths are unaffected.",
+    "browser/22 draft-targets changed assertion and is replaced by /23; release-approvals changed only human check label, no action or assertion; its PASS remains applicable.",
+    "Web Editor production change revalidated Page and UnsavedChanges 101 tests; API/journal/ManagedData/ReleaseDiff other 47 retain same production/test paths."
+  ]
+}

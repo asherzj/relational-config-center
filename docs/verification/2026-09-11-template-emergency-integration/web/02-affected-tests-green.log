@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/rcc-template-notification-integration/web
+
+
+ Test Files  6 passed (6)
+      Tests  154 passed (154)
+   Start at  15:43:35
+   Duration  32.90s (transform 3.69s, setup 2.43s, import 5.95s, tests 55.74s, environment 5.11s)
+

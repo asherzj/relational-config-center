@@ -40,10 +40,10 @@ func TestReleaseCompletionPermanentlyClosesRollbackWindow(t *testing.T) {
 	rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/execute", `{"expected_version":"3"}`, "closed-publish"), 200)
 	actor := integrationAdminSession(t, app)
 	preview := readQuickPreview(t, app, actor, path, "4")
-	completePublicationFixture(t, app, path, "closed-complete")
-	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"5"}`, ""), 422, "release_state_invalid")
-	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody("5", preview.Digest, ""), "closed-rollback"), 422, "release_state_invalid")
-	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/rollback", `{"expected_version":"5","reason":"old path"}`, "closed-legacy"), 404, "route_not_found")
+	rollbackOrderResponse(t, releaseRequest(t, app, "POST", path+"/complete", fmt.Sprintf(`{"expected_version":%q}`, preview.ExpectedVersion), "closed-complete"), 200)
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback/preview", `{"expected_version":"6"}`, fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1))), 422, "release_state_invalid")
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback", quickRollbackBody("6", preview.Digest, ""), "closed-rollback"), 422, "release_state_invalid")
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/rollback", `{"expected_version":"6","reason":"old path"}`, "closed-legacy"), 404, "route_not_found")
 	row, version := recordVersionRow(t, app, "mutation_add_items", "100")
 	if *row["label"] != "published" || version != "1" {
 		t.Fatal("closed window altered configuration")
@@ -273,5 +273,5 @@ func TestReleaseCompletionAtPublicationCapacityClosesRollbackWindow(t *testing.T
 	if replay.Code != 200 || replay.Body.String() != response.Body.String() {
 		t.Fatal("capacity completion lost original result")
 	}
-	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback/preview", fmt.Sprintf(`{"expected_version":%q}`, completed.Version), ""), 422, "release_state_invalid")
+	assertIntegrationErrorCode(t, releaseRequest(t, app, "POST", path+"/quick-rollback/preview", fmt.Sprintf(`{"expected_version":%q}`, completed.Version), fmt.Sprintf("preview-%d", publicationFixtureSequence.Add(1))), 422, "release_state_invalid")
 }

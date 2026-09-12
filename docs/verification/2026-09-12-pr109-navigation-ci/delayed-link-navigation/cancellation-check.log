@@ -1,0 +1,23 @@
+{
+  "copies": 3,
+  "results": [
+    {
+      "copied": "588882d88a0458e6177112bd8e3ac478",
+      "source": "93faf19a26d2d63c18885fe703fdf898",
+      "phase": "copy-loop-0",
+      "cancelled": []
+    },
+    {
+      "copied": "343eea567c3b68a96bab7dab673904ff",
+      "source": "93faf19a26d2d63c18885fe703fdf898",
+      "phase": "copy-loop-1",
+      "cancelled": []
+    },
+    {
+      "copied": "5c026de7f1caabda50f294a31bcf0c50",
+      "source": "93faf19a26d2d63c18885fe703fdf898",
+      "phase": "copy-loop-2",
+      "cancelled": []
+    }
+  ]
+}

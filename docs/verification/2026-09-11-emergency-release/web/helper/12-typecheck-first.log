@@ -1,0 +1,6 @@
+^D
+> @relational-config-center/web@0.0.0 typecheck /private/tmp/rcc-issue-104-emergency-release/web
+> tsc --noEmit
+
+src/api/release-orders.test.ts(3,7): error TS2741: Property 'emergency_reason' is missing in type '{ id: string; title: string; table_names: string[]; release_type: "STANDARD"; table_flows: never[]; missing_flow_tables: never[]; applicant_id: string; state: "DRAFT"; version: string; created_at: string; updated_at: string; allowed_actions: string[]; ... 5 more ...; approval_context: { ...; }; }' but required in type '{ id: string; title: string; table_names: string[]; release_type: "EMERGENCY" | "STANDARD"; emergency_reason: string; table_flows: { instance_id: string; table_name: string; release_type: "EMERGENCY" | "STANDARD"; ... 5 more ...; node_list: { ...; }[]; }[]; ... 14 more ...; history: { ...; }[]; }'.
+ ELIFECYCLE  Command failed with exit code 1.

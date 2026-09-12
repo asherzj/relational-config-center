@@ -1,0 +1,17 @@
+
+> @relational-config-center/web@0.0.0 build /private/tmp/rcc-issue-102-table-release-templates/web
+> tsc --noEmit && vite build
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 2147 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                             0.74 kB │ gzip:   0.40 kB
+dist/assets/index-CKBt-LNT.css             82.68 kB │ gzip:  16.10 kB
+dist/assets/rolldown-runtime-CbXtAM7H.js    0.58 kB │ gzip:   0.36 kB
+dist/assets/react-DXf84zf0.js             189.60 kB │ gzip:  59.62 kB
+dist/assets/index-BYmV5TmN.js             308.10 kB │ gzip:  85.37 kB
+dist/assets/vendor-BXojGK_Y.js            358.89 kB │ gzip: 112.14 kB
+
+✓ built in 332ms

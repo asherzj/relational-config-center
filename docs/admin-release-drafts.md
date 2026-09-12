@@ -1,6 +1,40 @@
 # 发布草稿
 
-T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供草稿创建、编辑、查询和取消。T5 已把数据页 Change Set 唯一确认改为“确认并保存草稿”，不会写业务记录或推进记录版本；#83 起保存草稿明细即原子占用目标。提交、独立审批后由 PUBLISHER [正式执行](design-notes/publication-contract.md)；旧记录写路由已删除，分发仍未接入。#84 将同一路径扩展为同一数据源多表合计 0～1,000 项草稿（提交至少 1 项） ADD/MODIFY/DELETE；单项是集合长度为 1 的情况。
+T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供草稿创建、编辑、查询和取消。T5 已把数据页 Change Set 唯一确认改为“确认并保存草稿”，不会写业务记录或推进记录版本；#83 起保存草稿明细即原子占用目标。常规提交经独立审批、应急提交记录原因后，由 PUBLISHER [正式执行](design-notes/publication-contract.md)；旧记录写路由已删除，分发仍未接入。#84 将同一路径扩展为同一数据源多表合计 0～1,000 项草稿（提交至少 1 项） ADD/MODIFY/DELETE；单项是集合长度为 1 的情况。
+
+## 已保存的逐表流程
+
+正向草稿整单选择 `STANDARD` 常规或 `EMERGENCY` 应急发布。创建省略 `release_type` 时默认常规；更新省略时保留当前方式。保存草稿时，每张参与表按所选方式的有效关联取得自己的流程实例；不同表可使用不同模板或共享模板。实例名称、来源与节点在展示前已经保存，之后修改或停用模板、切换表关联不会替换旧实例。空草稿没有参与表和流程，仍可保存但不可提交。
+
+- 编辑标题、同表明细或调整顺序时保留已有实例。
+- 草稿明确切换 `release_type` 时，所有参与表按当前关联整体重新实例化；方式、实例、内容、版本和原请求结果同事务保存。失败保留原已保存内容，过时版本拒绝，提交后不可切换。重复提交相同方式不刷新实例。
+- 加入新表时仅为该表实例化；移除某表最后一条明细并保存后，该表退出当前流程，再次加入时取得新的实例。
+- 复制或重新准备产生的新草稿按当时配置重新实例化，不继承源单的实例身份、节点进度或审批决定；源单身份、历史和目标流转仍遵循既有契约。
+
+新参与表没有有效常规配置时，草稿保存其内容并返回 `missing_flow_tables`，已有实例保持不变。管理员补齐模板或关联后，申请人需再次显式保存；刷新、读取详情和直接提交均不会自动补建。页面可从「保存草稿以补齐流程」进入原草稿编辑器，不必修改标题或明细即可保存。公开接口仍使用 `PUT /api/v1/release-orders/:id`、当前版本和 `Idempotency-Key`，例如保留原内容的增量保存：
+
+```json
+{"title":"原有标题","expected_version":"3","changes":{}}
+```
+
+这也是一次草稿写入：成功推进发布单版本、记录编辑历史，并仅补齐缺失实例；当前权限、所有权、目标保护和原请求重推规则继续适用。配置读取失败或定义无效返回 `503 release_unavailable`，不会被记录成配置缺失或默认流程。已成功请求重推返回原实例，不因模板更新再次实例化。
+
+### 流程响应字段
+
+创建、修改等发布单写响应、主单详情和列表摘要提供下列流程字段；明细分页仍保持现有格式。草稿请求不接受客户端提供的实例、节点状态或模板选择，可通过草稿的 `release_type` 明确选择整单方式。
+
+| 字段 | 含义 |
+| --- | --- |
+| `release_type` | 整单 `STANDARD` 或 `EMERGENCY` |
+| `emergency_reason` | 应急提交保存的原因；未提交或常规单为空字符串 |
+| `table_flows` | 本单已保存的逐表流程数组；按参与表分别展示 |
+| `missing_flow_tables` | 当前缺少已保存流程的表名数组；以显式保存结果为准 |
+| `table_flows[].instance_id`、`table_name`、`release_type` | 实例身份、所属表及发布方式 |
+| `template_code`、`template_name`、`template_version`、`association_version` | 该实例采用的来源信息；版本为十进制字符串 |
+| `instantiated_at` | 实例保存时间 |
+| `node_list[]` | 有序节点：`code`、`type`、`name`、`required_role`、`state`，以及有真实记录时的 `actor_id`、`at` |
+
+节点 `type` 为 `APPROVAL`、`PUBLICATION`、`COMPLETION`；`required_role` 为 `TABLE_APPROVER` 或 `PUBLISHER`，不能作为当前账号授权凭证。节点状态语义见[提交与审批](admin-release-approvals.md#流程实例与审批分配)。`table_flows` 与 `missing_flow_tables` 沿用现有主单文档存储，不增加第三张配置表，也不新增 Schema 迁移或自动补造存量发布单实例。
 
 ## HTTP
 
@@ -22,6 +56,7 @@ T3 [#50](https://github.com/asherzj/relational-config-center/issues/50) 提供�
 ```json
 {
   "title": "更新通知模板文案",
+  "release_type": "STANDARD",
   "items": [{
     "table_name": "notification_templates",
     "operation": "MODIFY",
@@ -119,6 +154,7 @@ Web 在请求发送前将原键、路径和完整申请内容在一个 IndexedDB
 ```json
 {
   "title": "更新通知模板文案",
+  "release_type": "STANDARD",
   "expected_version": "4",
   "changes": {
     "upserts": [{"table_name": "notification_templates", "detail_id": "0123456789abcdef0123456789abcdef", "operation": "MODIFY", "id": "7", "expected_record_version": "3", "content": {"body": "新文案"}}],

@@ -96,13 +96,20 @@ func TestTableApprovalSchemaRecoversUpgradeWithoutChangingExistingFacts(t *testi
 
 	// The table approval migration remains pinned to 7; current processes require later increments.
 	preservedBeforeCutover := cutoverPreservedSnapshot(t, db)
-	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), driver, "current", "up")
+	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 9), driver, "current", "up")
 	if strings.Replace(cutoverPreservedSnapshot(t, db), "rcc_approval_notifications:\n", "", 1) != preservedBeforeCutover {
 		t.Fatal("current cutover changed facts outside current account roles")
 	}
 	var currentRoles, currentRoleVersion int
 	if err := db.QueryRow(`SELECT roles,role_version FROM rcc_accounts WHERE username='schema.owner'`).Scan(&currentRoles, &currentRoleVersion); err != nil || currentRoles != 27 || currentRoleVersion != 4 {
 		t.Fatalf("current cutover role mapping: roles=%d version=%d error=%v", currentRoles, currentRoleVersion, err)
+	}
+	// Preserve the published cutover independently, then verify only the new
+	// template configuration and policy version fields are added by 10/11.
+	beforeTemplates := preTemplateDataSnapshot(t, db)
+	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), driver, "current", "up")
+	if preTemplateDataSnapshot(t, db) != beforeTemplates {
+		t.Fatal("template upgrade changed cutover account or approval facts")
 	}
 	currentData := baselineDataSnapshot(t, db)
 	process := accountProcessCommand(t, binary, driver)

@@ -1,0 +1,44 @@
+2026-09-11 10:00:15+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.4.11-1.el9 started.
+2026-09-11 10:00:16+00:00 [Note] [Entrypoint]: Switching to dedicated user 'mysql'
+2026-09-11 10:00:16+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.4.11-1.el9 started.
+2026-09-11 10:00:16+00:00 [Note] [Entrypoint]: Initializing database files
+2026-09-11T10:00:16.194513Z 0 [System] [MY-015017] [Server] MySQL Server Initialization - start.
+2026-09-11T10:00:16.195264Z 0 [System] [MY-013169] [Server] /usr/sbin/mysqld (mysqld 8.4.11) initializing of server in progress as process 85
+2026-09-11T10:00:16.198481Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-09-11T10:00:16.306898Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-09-11T10:00:16.761310Z 6 [Warning] [MY-010453] [Server] root@localhost is created with an empty password ! Please consider switching off the --initialize-insecure option.
+2026-09-11T10:00:18.122619Z 0 [System] [MY-015018] [Server] MySQL Server Initialization - end.
+2026-09-11 10:00:18+00:00 [Note] [Entrypoint]: Database files initialized
+2026-09-11 10:00:18+00:00 [Note] [Entrypoint]: Starting temporary server
+2026-09-11T10:00:18.154316Z 0 [System] [MY-015015] [Server] MySQL Server - start.
+2026-09-11T10:00:18.343416Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.4.11) starting as process 131
+2026-09-11T10:00:18.352937Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-09-11T10:00:18.477193Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-09-11T10:00:18.631278Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-09-11T10:00:18.631407Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-09-11T10:00:18.633126Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+2026-09-11T10:00:18.645303Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Socket: /var/run/mysqld/mysqlx.sock
+2026-09-11T10:00:18.645318Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.4.11'  socket: '/var/run/mysqld/mysqld.sock'  port: 0  MySQL Community Server - GPL.
+2026-09-11 10:00:18+00:00 [Note] [Entrypoint]: Temporary server started.
+'/var/lib/mysql/mysql.sock' -> '/var/run/mysqld/mysqld.sock'
+2026-09-11 10:00:19+00:00 [Note] [Entrypoint]: Creating database rcc
+2026-09-11 10:00:19+00:00 [Note] [Entrypoint]: Creating user rcc_admin
+2026-09-11 10:00:19+00:00 [Note] [Entrypoint]: Giving user rcc_admin access to schema rcc
+
+2026-09-11 10:00:19+00:00 [Note] [Entrypoint]: Stopping temporary server
+2026-09-11T10:00:19.638469Z 13 [System] [MY-013172] [Server] Received SHUTDOWN from user root. Shutting down mysqld (Version: 8.4.11).
+2026-09-11T10:00:21.101602Z 0 [System] [MY-010910] [Server] /usr/sbin/mysqld: Shutdown complete (mysqld 8.4.11)  MySQL Community Server - GPL.
+2026-09-11T10:00:21.101618Z 0 [System] [MY-015016] [Server] MySQL Server - end.
+2026-09-11 10:00:21+00:00 [Note] [Entrypoint]: Temporary server stopped
+
+2026-09-11 10:00:21+00:00 [Note] [Entrypoint]: MySQL init process done. Ready for start up.
+
+2026-09-11T10:00:21.663462Z 0 [System] [MY-015015] [Server] MySQL Server - start.
+2026-09-11T10:00:21.825804Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.4.11) starting as process 1
+2026-09-11T10:00:21.828952Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-09-11T10:00:21.915082Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-09-11T10:00:21.994746Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-09-11T10:00:21.994776Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-09-11T10:00:21.996746Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+2026-09-11T10:00:22.005389Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Bind-address: '::' port: 33060, socket: /var/run/mysqld/mysqlx.sock
+2026-09-11T10:00:22.005470Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.4.11'  socket: '/var/run/mysqld/mysqld.sock'  port: 3306  MySQL Community Server - GPL.

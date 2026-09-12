@@ -19,6 +19,8 @@ import (
 )
 
 var (
+	ErrReleaseEmergencyReason     = errors.New("emergency reason must contain 1 to 2000 characters")
+	ErrReleaseFlowIncomplete      = errors.New("save valid flow instances for every table before submission")
 	ErrReleaseTitle               = errors.New("release title must contain 1 to 100 characters")
 	ErrReleaseCrossTable          = errors.New("release item belongs to another table")
 	ErrReleaseItemLimit           = errors.New("release must contain 1 to 1000 items")
@@ -45,6 +47,7 @@ type ReleaseItemError struct {
 func (e *ReleaseItemError) Error() string { return e.Cause.Error() }
 func (e *ReleaseItemError) Unwrap() error { return e.Cause }
 
+type ReleaseTableFlow = domain.ReleaseTableFlow
 type ReleaseHeader = domain.ReleaseHeader
 type ReleaseExecution = domain.ReleaseExecution
 type ReleaseOrderSummary = domain.ReleaseOrderSummary
@@ -63,15 +66,17 @@ type DraftItemInput struct {
 }
 
 type DraftInput struct {
-	Changes         *DraftChanges    `json:"changes,omitempty"`
-	Title           string           `json:"title"`
-	Items           []DraftItemInput `json:"items"`
-	ExpectedVersion string           `json:"expected_version"`
+	ReleaseType     domain.ReleaseType `json:"release_type,omitempty"`
+	Changes         *DraftChanges      `json:"changes,omitempty"`
+	Title           string             `json:"title"`
+	Items           []DraftItemInput   `json:"items"`
+	ExpectedVersion string             `json:"expected_version"`
 }
 
 // ReleaseOrderSession exposes only control-data writes and consistent baseline
 // reads. Preparing a draft cannot call business-row mutation methods.
 type ReleaseOrderSession interface {
+	ReadReleaseFlowConfigurations(context.Context, []string, domain.ReleaseType) ([]domain.ReleaseFlowConfiguration, error)
 	releaseApprovalReader
 	ReferenceReleaseApprovalRoles(context.Context, string, []domain.ReleaseTableApproval) error
 	RecordApprovalNotifications(context.Context, domain.ReleaseOrder, string, []string) error
@@ -92,6 +97,8 @@ type ReleaseOrderSession interface {
 	SaveReleaseOrder(context.Context, domain.ReleaseOrder, bool) error
 	BeginReleaseRequest(context.Context, string, string, string, []byte) (*domain.ReleaseOrder, error)
 	CompleteReleaseRequest(context.Context, string, string, string, domain.ReleaseOrder) error
+	BeginRollbackPreviewRequest(context.Context, string, string, string, []byte) (*domain.QuickRollbackPreview, error)
+	CompleteRollbackPreviewRequest(context.Context, string, string, string, domain.QuickRollbackPreview) error
 	DatabaseTime(context.Context) (time.Time, error)
 }
 
@@ -126,6 +133,14 @@ func (r *ReleaseOrders) Create(ctx context.Context, input DraftInput, key string
 	}
 	var result ReleaseOrder
 	err = r.store.ExecuteReleaseOrder(ctx, func(s ReleaseOrderSession) error {
+		currentActor, err := s.CurrentReleaseAccount(ctx, actor)
+		if err != nil {
+			return err
+		}
+		ctx = (AuthenticatedOperator{accountID: actor, roles: currentActor.Roles}).Bind(ctx)
+		if _, err = requireRole(ctx, RoleEditor); err != nil {
+			return err
+		}
 		digest := releaseDigest(input)
 		previous, err := s.BeginReleaseRequest(ctx, actor, "create", key, digest)
 		if err != nil {
@@ -156,6 +171,16 @@ func (r *ReleaseOrders) Create(ctx context.Context, input DraftInput, key string
 		stamp := now.UTC().Format(time.RFC3339Nano)
 		result = ReleaseOrder{Title: input.Title, ID: hex.EncodeToString(idBytes), ApplicantID: actor, State: "DRAFT", Version: "1", Items: items, CreatedAt: stamp, UpdatedAt: stamp, History: []domain.ReleaseEvent{{Action: "CREATE", ActorID: actor, At: stamp, Version: "1"}}}
 		result.TableNames = releaseTableNames(result.Items)
+		result.ReleaseType = input.ReleaseType
+		if result.ReleaseType == "" {
+			result.ReleaseType = domain.ReleaseTypeStandard
+		}
+		if result.ReleaseType != domain.ReleaseTypeStandard && result.ReleaseType != domain.ReleaseTypeEmergency {
+			return ErrReleaseInvalid
+		}
+		if err = saveDraftFlows(ctx, s, &result); err != nil {
+			return err
+		}
 		if err = s.SaveReleaseOrder(ctx, result, true); err != nil {
 			return err
 		}
@@ -241,6 +266,9 @@ func (r *ReleaseOrders) People(ctx context.Context, id string) (map[string]strin
 func (r *ReleaseOrders) AllowedActions(ctx context.Context, order ReleaseOrder) []string {
 	actions := []string{}
 	for _, action := range []string{"edit", "submit", "approve", "reject", "cancel", "copy", "execute", "complete", "quick-rollback", "edit-rollback-reason", "reprepare"} {
+		if action == "submit" && !order.HasCompleteFlows() {
+			continue
+		}
 		if releaseOrderActionState(order, action) && authorizeReleaseAction(ctx, order, action) == nil {
 			actions = append(actions, action)
 		}
@@ -291,8 +319,18 @@ func authorizeReleaseAction(ctx context.Context, order ReleaseOrder, action stri
 	return ErrPermissionDenied
 }
 func releaseOrderActionState(order ReleaseOrder, action string) bool {
-	if action == "execute" && !order.HasCompleteApproval() {
-		return false
+	if action == "execute" {
+		if !order.HasCompleteFlows() {
+			return false
+		}
+		switch order.ReleaseType {
+		case domain.ReleaseTypeStandard:
+			return order.State == "APPROVED" && order.HasCompleteApproval()
+		case domain.ReleaseTypeEmergency:
+			return order.State == "PENDING_PUBLICATION" && len(order.Approvals) == 0 && strings.TrimSpace(order.EmergencyReason) != ""
+		default:
+			return false
+		}
 	}
 	return releaseActionState(order.State, action)
 }
@@ -300,13 +338,13 @@ func releaseOrderActionState(order ReleaseOrder, action string) bool {
 func releaseActionState(state, action string) bool {
 	switch action {
 	case "reprepare":
-		return state == "APPROVED"
+		return state == "APPROVED" || state == "PENDING_PUBLICATION"
 	case "complete", "quick-rollback":
 		return state == "SUCCEEDED"
 	case "edit-rollback-reason":
 		return state == "ROLLED_BACK"
 	case "execute":
-		return state == "APPROVED"
+		return state == "APPROVED" || state == "PENDING_PUBLICATION"
 	case "copy":
 		return state == "REJECTED" || state == "CANCELLED"
 	case "edit", "submit":
@@ -314,7 +352,7 @@ func releaseActionState(state, action string) bool {
 	case "approve", "reject":
 		return state == "PENDING_APPROVAL"
 	case "cancel":
-		return state == "DRAFT" || state == "PENDING_APPROVAL" || state == "APPROVED"
+		return state == "DRAFT" || state == "PENDING_APPROVAL" || state == "APPROVED" || state == "PENDING_PUBLICATION"
 	}
 	return false
 }
@@ -590,6 +628,14 @@ func (r *ReleaseOrders) Update(ctx context.Context, id string, input DraftInput,
 		if err := validateReleaseTitle(input.Title); err != nil {
 			return err
 		}
+		if input.ReleaseType != "" && input.ReleaseType != order.ReleaseType {
+			if input.ReleaseType != domain.ReleaseTypeStandard && input.ReleaseType != domain.ReleaseTypeEmergency {
+				return ErrReleaseInvalid
+			}
+			order.ReleaseType = input.ReleaseType
+			order.TableFlows = nil
+			order.MissingFlowTables = nil
+		}
 		if input.Changes != nil {
 			if input.Items != nil {
 				return ErrReleaseInvalid
@@ -624,10 +670,18 @@ type SubmitReleaseInput struct {
 	ExpectedVersion string `json:"expected_version"`
 }
 
-func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitReleaseInput, key string) (ReleaseOrder, error) {
+type SubmitReleaseOrderInput struct {
+	ExpectedVersion string `json:"expected_version"`
+	EmergencyReason string `json:"emergency_reason,omitempty"`
+}
+
+func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitReleaseOrderInput, key string) (ReleaseOrder, error) {
 	return r.changeOrder(ctx, id, input.ExpectedVersion, "submit", key, input, func(s ReleaseOrderSession, order *ReleaseOrder) error {
 		if len(order.Items) == 0 {
 			return ErrReleaseItemLimit
+		}
+		if !order.HasCompleteFlows() {
+			return ErrReleaseFlowIncomplete
 		}
 		tables, err := r.resolveReleaseTables(ctx, s, order.Items, false)
 		if err != nil {
@@ -660,6 +714,19 @@ func (r *ReleaseOrders) Submit(ctx context.Context, id string, input SubmitRelea
 		}
 		if err := s.ReserveReleaseTargets(ctx, order.ID, targets); err != nil {
 			return err
+		}
+		if order.ReleaseType == domain.ReleaseTypeEmergency {
+			if !utf8.ValidString(input.EmergencyReason) || strings.TrimSpace(input.EmergencyReason) == "" || utf8.RuneCountInString(input.EmergencyReason) > 2000 {
+				return ErrReleaseEmergencyReason
+			}
+			order.EmergencyReason = input.EmergencyReason
+			order.Approvals = []domain.ReleaseTableApproval{}
+			order.ApprovalContext = domain.ReleaseApprovalContext{Tables: []domain.ReleaseApprovalTableStatus{}, ApprovableTables: []string{}}
+			order.State = "PENDING_PUBLICATION"
+			return nil
+		}
+		if input.EmergencyReason != "" {
+			return ErrReleaseInvalid
 		}
 		if err := freezeReleaseApprovals(ctx, s, order); err != nil {
 			return err
@@ -780,6 +847,9 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 		order.Version = strconv.FormatUint(next+1, 10)
 		order.UpdatedAt = now.UTC().Format(time.RFC3339Nano)
 		reason := ""
+		if submit, ok := input.(SubmitReleaseOrderInput); ok && action == "submit" {
+			reason = submit.EmergencyReason
+		}
 		if cancel, ok := input.(CancelReleaseInput); ok {
 			reason = cancel.Reason
 		}
@@ -794,11 +864,17 @@ func (r *ReleaseOrders) changeOrderUsing(ctx context.Context, id, version, actio
 			}
 		}
 		order.History = append(order.History, event)
+		advanceReleaseFlows(&order)
 		order.TableNames = releaseTableNames(order.Items)
+		if action == "edit" {
+			if err = saveDraftFlows(ctx, s, &order); err != nil {
+				return err
+			}
+		}
 		if err = s.SaveReleaseOrder(ctx, order, false); err != nil {
 			return err
 		}
-		if action == "submit" || action == "approve" || action == "reject" || action == "execute" || action == "complete" || (action == "cancel" && len(order.Approvals) > 0) {
+		if action == "submit" || action == "approve" || action == "reject" || action == "execute" || action == "complete" || (action == "cancel" && slices.ContainsFunc(order.History, func(event domain.ReleaseEvent) bool { return event.Action == "SUBMIT" })) {
 			recipients := []string{}
 			if action == "execute" || action == "complete" {
 				recipients = releaseResultRecipients(order)
@@ -831,7 +907,7 @@ func (r *ReleaseOrders) List(ctx context.Context, filter ReleaseFilter) ([]domai
 		}
 		for i := range orders {
 			summary := &orders[i]
-			order := ReleaseOrder{ID: summary.ID, Version: summary.Version, State: summary.State, ApplicantID: summary.ApplicantID, TableNames: summary.TableNames, Approvals: summary.Approvals}
+			order := ReleaseOrder{RollbackTableFlows: summary.RollbackTableFlows, EmergencyReason: summary.EmergencyReason, ReleaseType: summary.ReleaseType, TableFlows: summary.TableFlows, MissingFlowTables: summary.MissingFlowTables, ID: summary.ID, Version: summary.Version, State: summary.State, ApplicantID: summary.ApplicantID, TableNames: summary.TableNames, Approvals: summary.Approvals}
 			environment, err := reader.ReadApprovalEnvironment(ctx, order)
 			if err != nil {
 				return err
@@ -892,6 +968,14 @@ func (r *ReleaseOrders) copyOrder(ctx context.Context, id string, input CopyRele
 	}
 	var result ReleaseOrder
 	err = r.store.ExecuteReleaseOrder(ctx, func(s ReleaseOrderSession) error {
+		currentActor, err := s.CurrentReleaseAccount(ctx, actor)
+		if err != nil {
+			return err
+		}
+		ctx = (AuthenticatedOperator{accountID: actor, roles: currentActor.Roles}).Bind(ctx)
+		if _, err = requireRole(ctx, RoleEditor); err != nil {
+			return err
+		}
 		action := "copy"
 		if reprepare {
 			action = "reprepare"
@@ -979,6 +1063,7 @@ func (r *ReleaseOrders) copyOrder(ctx context.Context, id string, input CopyRele
 		if err := appendRelatedReleaseEvent(&source, actor, stamp, historyAction, historyReason, result.ID); err != nil {
 			return err
 		}
+		advanceReleaseFlows(&source)
 		if err := s.SaveReleaseOrder(ctx, source, false); err != nil {
 			return err
 		}
@@ -988,6 +1073,10 @@ func (r *ReleaseOrders) copyOrder(ctx context.Context, id string, input CopyRele
 			}
 		}
 		result.TableNames = releaseTableNames(result.Items)
+		result.ReleaseType = source.ReleaseType
+		if err := saveDraftFlows(ctx, s, &result); err != nil {
+			return err
+		}
 		if err := s.SaveReleaseOrder(ctx, result, true); err != nil {
 			return err
 		}

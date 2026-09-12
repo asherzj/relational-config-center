@@ -1,0 +1,134 @@
+=== RUN   TestApprovalRoleMembershipPersistsWithoutGrantingAccountRoles
+2026/09/11 00:54:08 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: cf4098679f023ef4be70a421453afe26bdf5daa3dcaddf520ba7416fd7a7dfa4
+  Test ProcessID: 6b8c840e-85d0-46e3-a689-250162b80ed8
+2026/09/11 00:54:08 🐳 Creating container for image mysql:8.4
+2026/09/11 00:54:08 ✅ Container created: 54da8647dd59
+2026/09/11 00:54:08 🐳 Starting container: 54da8647dd59
+2026/09/11 00:54:08 ✅ Container started: 54da8647dd59
+2026/09/11 00:54:08 ⏳ Waiting for container id 54da8647dd59 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 00:54:15 🔔 Container is ready: 54da8647dd59
+{"request_id":"rcc-453885389921e02f6d42693f60377f07","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":8}
+{"request_id":"rcc-5853c96e1bbda3bd78af3d55c9dd9e7b","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":46}
+{"request_id":"rcc-5f041a958edeeba53155fe45485fad22","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-3d6f2e7ea7158e325e935c888e4500e4","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-7d31aa7182f9d1e4845d61b1f4c5983b","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-120192313a706588a3d518721686d8bb","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":50}
+{"request_id":"rcc-72ebf4a4142a7de12e33336f7a15816b","method":"GET","path":"/api/v1/account-roles","status":200,"duration_ms":2}
+{"request_id":"rcc-249f1e7326ad69845154293fd2c2e378","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":24}
+{"request_id":"rcc-394878c73ec8b916c0d845a56f31f5ce","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":20}
+{"request_id":"rcc-a162137ea61e80f9f324ce2d79836ff4","method":"PUT","path":"/api/v1/approval-roles/:id","status":200,"duration_ms":28}
+{"request_id":"rcc-aaf2326e28e47fc26de93407e87d6488","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":9}
+{"request_id":"rcc-ca9786518959f6c10c84a50dbaa874ef","method":"POST","path":"/api/v1/auth/login","status":200,"duration_ms":62}
+{"request_id":"rcc-79c81ecb8eb0544dfe96752d3cc378df","method":"GET","path":"/api/v1/approval-roles/:id","status":200,"duration_ms":4}
+{"request_id":"rcc-7e86975dcfe80669e5e146b1c7724c3f","method":"GET","path":"/api/v1/approval-roles","status":200,"duration_ms":9}
+{"request_id":"rcc-038695095746032d9e99557eaf8937b1","method":"GET","path":"/api/v1/auth/session","status":200,"duration_ms":1}
+2026/09/11 00:54:17 🐳 Stopping container: 54da8647dd59
+2026/09/11 00:54:18 ✅ Container stopped: 54da8647dd59
+2026/09/11 00:54:18 🐳 Terminating container: 54da8647dd59
+2026/09/11 00:54:18 🚫 Container terminated: 54da8647dd59
+--- PASS: TestApprovalRoleMembershipPersistsWithoutGrantingAccountRoles (10.53s)
+=== RUN   TestApprovalRoleRetriesKeepOriginalResultAndRejectChangedIntent
+2026/09/11 00:54:18 🐳 Creating container for image mysql:8.4
+2026/09/11 00:54:18 ✅ Container created: 5d9b86e2eaf3
+2026/09/11 00:54:18 🐳 Starting container: 5d9b86e2eaf3
+2026/09/11 00:54:18 ✅ Container started: 5d9b86e2eaf3
+2026/09/11 00:54:18 ⏳ Waiting for container id 5d9b86e2eaf3 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 00:54:26 🔔 Container is ready: 5d9b86e2eaf3
+{"request_id":"rcc-9b643919f5c43046363767dd06fd083c","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":13}
+{"request_id":"rcc-8bf8422078d4fcdd856cb9fc7704586a","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":51}
+{"request_id":"rcc-c00bc5f9535ba75e9b9e6d66335d10bf","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":16}
+{"request_id":"rcc-eeeff5b36d8da67025b67486a678e6af","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":7}
+{"request_id":"rcc-b02593974e6930732a7b3dd3f938b0ff","method":"PUT","path":"/api/v1/approval-roles/:id","status":200,"duration_ms":22}
+{"request_id":"rcc-aad15b182b7fb1f6ff3dbb61d9bbd5fd","method":"PUT","path":"/api/v1/approval-roles/:id","status":200,"duration_ms":7}
+{"request_id":"rcc-3ca1e949c3de4e56a67b4044b3b8200b","method":"PUT","path":"/api/v1/approval-roles/:id","status":409,"duration_ms":6}
+{"request_id":"rcc-9891a0afa61e91f1d57b794f202c2357","method":"GET","path":"/api/v1/approval-roles/:id","status":200,"duration_ms":7}
+2026/09/11 00:54:28 🐳 Stopping container: 5d9b86e2eaf3
+2026/09/11 00:54:29 ✅ Container stopped: 5d9b86e2eaf3
+2026/09/11 00:54:29 🐳 Terminating container: 5d9b86e2eaf3
+2026/09/11 00:54:29 🚫 Container terminated: 5d9b86e2eaf3
+--- PASS: TestApprovalRoleRetriesKeepOriginalResultAndRejectChangedIntent (10.78s)
+=== RUN   TestApprovalRoleUnreferencedLifecycle
+2026/09/11 00:54:29 🐳 Creating container for image mysql:8.4
+2026/09/11 00:54:29 ✅ Container created: 1c458b792657
+2026/09/11 00:54:29 🐳 Starting container: 1c458b792657
+2026/09/11 00:54:29 ✅ Container started: 1c458b792657
+2026/09/11 00:54:29 ⏳ Waiting for container id 1c458b792657 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 00:54:37 🔔 Container is ready: 1c458b792657
+{"request_id":"rcc-90aeade16384ae45480629d351a8e1d0","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":11}
+{"request_id":"rcc-294479930a5ad9587060a38e4c4c8bee","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":57}
+{"request_id":"rcc-b8ec5dbf724549b52e57596aca019668","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":18}
+{"request_id":"rcc-9bb52aee647a61dd66e148d7c65265ed","method":"PUT","path":"/api/v1/approval-roles/:id","status":200,"duration_ms":16}
+{"request_id":"rcc-844df8cd47971a8fac418f0ad476f59b","method":"PUT","path":"/api/v1/approval-roles/:id","status":200,"duration_ms":17}
+{"request_id":"rcc-0b43d9cd6c580ab96c27df41f2e18fb6","method":"DELETE","path":"/api/v1/approval-roles/:id","status":200,"duration_ms":14}
+{"request_id":"rcc-1389f26728a2ad1cd110de5084d2cad4","method":"DELETE","path":"/api/v1/approval-roles/:id","status":200,"duration_ms":7}
+{"request_id":"rcc-2b3eeb6606b7299acf82aa8912a7f28c","method":"GET","path":"/api/v1/approval-roles/:id","status":404,"duration_ms":3}
+2026/09/11 00:54:39 🐳 Stopping container: 1c458b792657
+2026/09/11 00:54:40 ✅ Container stopped: 1c458b792657
+2026/09/11 00:54:40 🐳 Terminating container: 1c458b792657
+2026/09/11 00:54:40 🚫 Container terminated: 1c458b792657
+--- PASS: TestApprovalRoleUnreferencedLifecycle (11.08s)
+=== RUN   TestApprovalRoleAuthorizationValidationAndConcurrentEdits
+2026/09/11 00:54:40 🐳 Creating container for image mysql:8.4
+2026/09/11 00:54:40 ✅ Container created: ed5328129f70
+2026/09/11 00:54:40 🐳 Starting container: ed5328129f70
+2026/09/11 00:54:40 ✅ Container started: ed5328129f70
+2026/09/11 00:54:40 ⏳ Waiting for container id ed5328129f70 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 00:54:47 🔔 Container is ready: ed5328129f70
+{"request_id":"rcc-334359ed32dde2c3fbcc03dca2102bac","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":8}
+{"request_id":"rcc-934d2416f20f00431e6e07e9bccaeddc","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":51}
+{"request_id":"rcc-35e1853e351954fd2ead28d41b4fac79","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":7}
+{"request_id":"rcc-6386c269343ada6722cc95a4cfdb9a38","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":43}
+{"request_id":"rcc-c86f0a94c3a15c3b23eee3567b6763f1","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":5}
+{"request_id":"rcc-c104f16a61123fe66876c9ce94523bc4","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":45}
+{"request_id":"rcc-57581bc1d42e031941153054419b66a8","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":16}
+{"request_id":"rcc-f319cdaddaeee1b323c65456e87b488f","method":"GET","path":"/api/v1/approval-roles/:id","status":403,"duration_ms":1}
+{"request_id":"rcc-cc86cb766292be0c27e4143a368164f8","method":"POST","path":"/api/v1/approval-roles","status":403,"duration_ms":1}
+{"request_id":"rcc-a71322db999d52ba4d1286413b256691","method":"PUT","path":"/api/v1/approval-roles/:id","status":403,"duration_ms":1}
+{"request_id":"rcc-7163c360b4ea28367e30cedc906fba2a","method":"DELETE","path":"/api/v1/approval-roles/:id","status":403,"duration_ms":0}
+{"request_id":"rcc-d8a177631ab64c9c0a5e269aa9f01b8e","method":"GET","path":"/api/v1/approval-roles/:id","status":401,"duration_ms":0}
+{"request_id":"rcc-ded45d21ef5821b781ef1ce08c356e75","method":"DELETE","path":"/api/v1/approval-roles/:id","status":403,"duration_ms":0}
+{"request_id":"rcc-faa56733808daa67c403898acc5e7371","method":"POST","path":"/api/v1/approval-roles","status":403,"duration_ms":0}
+{"request_id":"rcc-1a7ae80de6dc4a35fb1e97673eb18a5e","method":"POST","path":"/api/v1/approval-roles","status":422,"duration_ms":0}
+{"request_id":"rcc-e2bd51e626af444c4e862445069f1ec8","method":"POST","path":"/api/v1/approval-roles","status":422,"duration_ms":0}
+{"request_id":"rcc-49d3e9b4df371aabe9f4f5b37fbaf928","method":"POST","path":"/api/v1/approval-roles","status":422,"duration_ms":0}
+{"request_id":"rcc-425509fa519ba940c54277dfd2c64064","method":"POST","path":"/api/v1/approval-roles","status":422,"duration_ms":0}
+{"request_id":"rcc-b7bf3c507e14841e837705d9662093f2","method":"POST","path":"/api/v1/approval-roles","status":422,"duration_ms":1}
+{"request_id":"rcc-687025d6faf05e112a6a3c9596c080c1","method":"POST","path":"/api/v1/approval-roles","status":404,"duration_ms":9}
+{"request_id":"rcc-b7d6e19b3f60bbc9e3d5a9290cf2e26e","method":"PUT","path":"/api/v1/approval-roles/:id","status":200,"duration_ms":20}
+{"request_id":"rcc-607b1f2d4c5b1c137c5bb223ed0fe00c","method":"PUT","path":"/api/v1/approval-roles/:id","status":409,"duration_ms":35}
+{"request_id":"rcc-ab4b0b8382d6dff5047b6e11f7dfaad9","method":"GET","path":"/api/v1/approval-roles/:id","status":200,"duration_ms":7}
+{"request_id":"rcc-7b0b5fd8e20722404dcbfa1379ede3b9","method":"PUT","path":"/api/v1/account-roles/:id","status":200,"duration_ms":19}
+{"request_id":"rcc-6fe8b89c1d27c09e955ac3e153149e4b","method":"POST","path":"/api/v1/approval-roles","status":403,"duration_ms":1}
+2026/09/11 00:54:49 🐳 Stopping container: ed5328129f70
+2026/09/11 00:54:50 ✅ Container stopped: ed5328129f70
+2026/09/11 00:54:50 🐳 Terminating container: ed5328129f70
+2026/09/11 00:54:50 🚫 Container terminated: ed5328129f70
+--- PASS: TestApprovalRoleAuthorizationValidationAndConcurrentEdits (10.17s)
+=== RUN   TestApprovalRoleFailedRequestRecordRollsBackMembersAndVersion
+2026/09/11 00:54:50 🐳 Creating container for image mysql:8.4
+2026/09/11 00:54:50 ✅ Container created: 68dc0b0de20a
+2026/09/11 00:54:50 🐳 Starting container: 68dc0b0de20a
+2026/09/11 00:54:51 ✅ Container started: 68dc0b0de20a
+2026/09/11 00:54:51 ⏳ Waiting for container id 68dc0b0de20a image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 00:54:58 🔔 Container is ready: 68dc0b0de20a
+{"request_id":"rcc-10eeadfcbfc95e10603b2af014340a59","method":"GET","path":"/api/v1/auth/csrf","status":200,"duration_ms":8}
+{"request_id":"rcc-a3c191f2fe4f63860a4aacf09b28c143","method":"POST","path":"/api/v1/auth/register","status":201,"duration_ms":47}
+{"request_id":"rcc-67e556efe234a08c50d1cc6a4b9b1eae","method":"POST","path":"/api/v1/approval-roles","status":201,"duration_ms":16}
+{"request_id":"rcc-f4922b9c1c353cb7dbfe7a7eb539d1e2","method":"PUT","path":"/api/v1/approval-roles/:id","status":503,"duration_ms":19}
+{"request_id":"rcc-8b3810941f8d258e6d114db8dabd3f23","method":"GET","path":"/api/v1/approval-roles/:id","status":200,"duration_ms":7}
+{"request_id":"rcc-aca138a1a449cdc6eaae3f331d371270","method":"PUT","path":"/api/v1/approval-roles/:id","status":200,"duration_ms":25}
+2026/09/11 00:55:00 🐳 Stopping container: 68dc0b0de20a
+2026/09/11 00:55:01 ✅ Container stopped: 68dc0b0de20a
+2026/09/11 00:55:01 🐳 Terminating container: 68dc0b0de20a
+2026/09/11 00:55:01 🚫 Container terminated: 68dc0b0de20a
+--- PASS: TestApprovalRoleFailedRequestRecordRollsBackMembersAndVersion (11.03s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	54.736s

@@ -43,22 +43,27 @@ type ReleaseEvent struct {
 }
 
 type ReleaseOrder struct {
-	Approvals       []ReleaseTableApproval              `json:"approvals"`
-	ApprovalContext ReleaseApprovalContext              `json:"approval_context"`
-	FrozenTables    map[string]ReleaseExecutionSnapshot `json:"frozen_tables,omitempty"`
-	TableNames      []string                            `json:"table_names"`
-	Title           string                              `json:"title"`
-	Executions      []ReleaseExecution                  `json:"executions"`
-	CopiedFromID    string                              `json:"copied_from_id,omitempty"`
-	FrozenDigest    string                              `json:"frozen_digest,omitempty"`
-	ID              string                              `json:"id"`
-	ApplicantID     string                              `json:"applicant_id"`
-	State           string                              `json:"state"`
-	Version         string                              `json:"version"`
-	Items           []ReleaseItem                       `json:"items"`
-	History         []ReleaseEvent                      `json:"history"`
-	CreatedAt       string                              `json:"created_at"`
-	UpdatedAt       string                              `json:"updated_at"`
+	EmergencyReason    string                              `json:"emergency_reason"`
+	ReleaseType        ReleaseType                         `json:"release_type"`
+	RollbackTableFlows []ReleaseTableFlow                  `json:"rollback_table_flows"`
+	TableFlows         []ReleaseTableFlow                  `json:"table_flows"`
+	MissingFlowTables  []string                            `json:"missing_flow_tables"`
+	Approvals          []ReleaseTableApproval              `json:"approvals"`
+	ApprovalContext    ReleaseApprovalContext              `json:"approval_context"`
+	FrozenTables       map[string]ReleaseExecutionSnapshot `json:"frozen_tables,omitempty"`
+	TableNames         []string                            `json:"table_names"`
+	Title              string                              `json:"title"`
+	Executions         []ReleaseExecution                  `json:"executions"`
+	CopiedFromID       string                              `json:"copied_from_id,omitempty"`
+	FrozenDigest       string                              `json:"frozen_digest,omitempty"`
+	ID                 string                              `json:"id"`
+	ApplicantID        string                              `json:"applicant_id"`
+	State              string                              `json:"state"`
+	Version            string                              `json:"version"`
+	Items              []ReleaseItem                       `json:"items"`
+	History            []ReleaseEvent                      `json:"history"`
+	CreatedAt          string                              `json:"created_at"`
+	UpdatedAt          string                              `json:"updated_at"`
 }
 
 type RecordBaseline struct {
@@ -143,23 +148,28 @@ func NewReleaseMutationSemantics(policy MutationPolicy) ReleaseMutationSemantics
 // ReleaseOrderSummary carries bounded catalog information; complete intent and
 // verified publication history are available through the order detail.
 type ReleaseOrderSummary struct {
-	Notification    ApprovalNotification   `json:"notification"`
-	Approvals       []ReleaseTableApproval `json:"approvals"`
-	ApprovalContext ReleaseApprovalContext `json:"approval_context"`
-	TableNames      []string               `json:"table_names"`
-	Title           string                 `json:"title"`
-	ID              string                 `json:"id"`
-	ApplicantID     string                 `json:"applicant_id"`
-	State           string                 `json:"state"`
-	Version         string                 `json:"version"`
-	CreatedAt       string                 `json:"created_at"`
-	UpdatedAt       string                 `json:"updated_at"`
-	ItemCount       int                    `json:"item_count"`
-	OperationCounts map[string]int         `json:"operation_counts"`
+	Notification       ApprovalNotification   `json:"notification"`
+	EmergencyReason    string                 `json:"emergency_reason"`
+	ReleaseType        ReleaseType            `json:"release_type"`
+	RollbackTableFlows []ReleaseTableFlow     `json:"rollback_table_flows"`
+	TableFlows         []ReleaseTableFlow     `json:"table_flows"`
+	MissingFlowTables  []string               `json:"missing_flow_tables"`
+	Approvals          []ReleaseTableApproval `json:"approvals"`
+	ApprovalContext    ReleaseApprovalContext `json:"approval_context"`
+	TableNames         []string               `json:"table_names"`
+	Title              string                 `json:"title"`
+	ID                 string                 `json:"id"`
+	ApplicantID        string                 `json:"applicant_id"`
+	State              string                 `json:"state"`
+	Version            string                 `json:"version"`
+	CreatedAt          string                 `json:"created_at"`
+	UpdatedAt          string                 `json:"updated_at"`
+	ItemCount          int                    `json:"item_count"`
+	OperationCounts    map[string]int         `json:"operation_counts"`
 }
 
 func (order ReleaseOrder) Summary() ReleaseOrderSummary {
-	result := ReleaseOrderSummary{Approvals: order.Approvals, ApprovalContext: order.ApprovalContext, TableNames: order.TableNames, Title: order.Title, ID: order.ID, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
+	result := ReleaseOrderSummary{RollbackTableFlows: order.RollbackTableFlows, EmergencyReason: order.EmergencyReason, ReleaseType: order.ReleaseType, TableFlows: order.TableFlows, MissingFlowTables: order.MissingFlowTables, Approvals: order.Approvals, ApprovalContext: order.ApprovalContext, TableNames: order.TableNames, Title: order.Title, ID: order.ID, ApplicantID: order.ApplicantID, State: order.State, Version: order.Version, CreatedAt: order.CreatedAt, UpdatedAt: order.UpdatedAt, ItemCount: len(order.Items), OperationCounts: map[string]int{}}
 	for _, item := range order.Items {
 		result.OperationCounts[item.Operation]++
 	}

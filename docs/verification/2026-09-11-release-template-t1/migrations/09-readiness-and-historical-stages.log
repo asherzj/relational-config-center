@@ -1,0 +1,120 @@
+=== RUN   TestSchemaMigrationAddsFieldPoliciesWithoutChangingPublishedState
+2026/09/11 05:57:26 github.com/testcontainers/testcontainers-go - Connected to docker: 
+  Server Version: 29.5.2
+  API Version: 1.54
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 3904 MB
+  Testcontainers for Go Version: v0.44.0
+  Resolved Docker Host: unix:///Users/asher/.colima/default/docker.sock
+  Resolved Docker Socket Path: /Users/asher/.colima/default/docker.sock
+  Test SessionID: 40f56e1c7c17a213b73378b3c52518257feee307ff82c51e86e44d9060e46bb8
+  Test ProcessID: f33c9d10-4fdf-49df-a21d-1129bbb54273
+2026/09/11 05:57:26 🐳 Creating container for image mysql:8.4
+2026/09/11 05:57:26 ✅ Container created: 7ec4bf25d293
+2026/09/11 05:57:26 🐳 Starting container: 7ec4bf25d293
+2026/09/11 05:57:26 ✅ Container started: 7ec4bf25d293
+2026/09/11 05:57:26 ⏳ Waiting for container id 7ec4bf25d293 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:57:33 🔔 Container is ready: 7ec4bf25d293
+2026/09/11 05:57:39 🐳 Stopping container: 7ec4bf25d293
+2026/09/11 05:57:41 ✅ Container stopped: 7ec4bf25d293
+2026/09/11 05:57:41 🐳 Terminating container: 7ec4bf25d293
+2026/09/11 05:57:41 🚫 Container terminated: 7ec4bf25d293
+--- PASS: TestSchemaMigrationAddsFieldPoliciesWithoutChangingPublishedState (16.30s)
+=== RUN   TestSchemaReadinessRejectsUnmanagedStartup
+2026/09/11 05:57:41 🐳 Creating container for image mysql:8.4
+2026/09/11 05:57:41 ✅ Container created: a49012af7023
+2026/09/11 05:57:41 🐳 Starting container: a49012af7023
+2026/09/11 05:57:41 ✅ Container started: a49012af7023
+2026/09/11 05:57:41 ⏳ Waiting for container id a49012af7023 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:57:47 🔔 Container is ready: a49012af7023
+2026/09/11 05:57:48 🐳 Stopping container: a49012af7023
+2026/09/11 05:57:50 ✅ Container stopped: a49012af7023
+2026/09/11 05:57:50 🐳 Terminating container: a49012af7023
+2026/09/11 05:57:50 🚫 Container terminated: a49012af7023
+--- PASS: TestSchemaReadinessRejectsUnmanagedStartup (8.98s)
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly
+2026/09/11 05:57:50 🐳 Creating container for image mysql:8.4
+2026/09/11 05:57:50 ✅ Container created: 09d05f2a3afc
+2026/09/11 05:57:50 🐳 Starting container: 09d05f2a3afc
+2026/09/11 05:57:50 ✅ Container started: 09d05f2a3afc
+2026/09/11 05:57:50 ⏳ Waiting for container id 09d05f2a3afc image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:57:56 🔔 Container is ready: 09d05f2a3afc
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_release_templates
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_check
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_default_emergency_template
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_unique_key
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_check
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unenforced_check
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_engine
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/empty_roles
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown_role
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/zero_role_version
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_engine
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_column
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/older_unconfirmed_attempt
+=== RUN   TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_required_metadata
+2026/09/11 05:58:03 🐳 Stopping container: 09d05f2a3afc
+2026/09/11 05:58:05 ✅ Container stopped: 09d05f2a3afc
+2026/09/11 05:58:05 🐳 Terminating container: 09d05f2a3afc
+2026/09/11 05:58:05 🚫 Container terminated: 09d05f2a3afc
+--- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly (14.98s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unmanaged (0.13s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/ahead (0.11s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown (0.12s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_digest (0.13s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_column (0.17s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_default (0.15s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_index (0.17s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_field_policy (0.20s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_release_templates (0.21s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_unique_key (0.22s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/release_template_check (0.23s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_default_emergency_template (0.21s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_unique_key (0.20s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/field_policy_check (0.21s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unenforced_check (0.18s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/wrong_engine (0.16s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/empty_roles (0.21s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/unknown_role (0.25s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/zero_role_version (0.22s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_engine (0.15s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/journal_column (0.13s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/older_unconfirmed_attempt (0.13s)
+    --- PASS: TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly/missing_required_metadata (0.20s)
+=== RUN   TestSchemaReadinessRejectsKnownOldRelease
+2026/09/11 05:58:05 🐳 Creating container for image mysql:8.4
+2026/09/11 05:58:05 ✅ Container created: 6728d85316a8
+2026/09/11 05:58:05 🐳 Starting container: 6728d85316a8
+2026/09/11 05:58:05 ✅ Container started: 6728d85316a8
+2026/09/11 05:58:05 ⏳ Waiting for container id 6728d85316a8 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:58:11 🔔 Container is ready: 6728d85316a8
+2026/09/11 05:58:17 🐳 Stopping container: 6728d85316a8
+2026/09/11 05:58:18 ✅ Container stopped: 6728d85316a8
+2026/09/11 05:58:18 🐳 Terminating container: 6728d85316a8
+2026/09/11 05:58:18 🚫 Container terminated: 6728d85316a8
+--- PASS: TestSchemaReadinessRejectsKnownOldRelease (13.82s)
+=== RUN   TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts
+2026/09/11 05:58:21 🐳 Creating container for image mysql:8.4
+2026/09/11 05:58:21 ✅ Container created: 32b36cf9c1c2
+2026/09/11 05:58:21 🐳 Starting container: 32b36cf9c1c2
+2026/09/11 05:58:21 ✅ Container started: 32b36cf9c1c2
+2026/09/11 05:58:21 ⏳ Waiting for container id 32b36cf9c1c2 image: mysql:8.4. Waiting for: all of: [log message "port: 3306  MySQL Community Server"]
+2026/09/11 05:58:27 🔔 Container is ready: 32b36cf9c1c2
+    schema_release_details_integration_test.go:38: additive interruption: migration_failed: inspect actual schema before retrying; DDL may have committed
+    schema_release_details_integration_test.go:59: ownership interruption: migration_failed: inspect actual schema before retrying; DDL may have committed
+2026/09/11 05:58:30 🐳 Stopping container: 32b36cf9c1c2
+2026/09/11 05:58:32 ✅ Container stopped: 32b36cf9c1c2
+2026/09/11 05:58:32 🐳 Terminating container: 32b36cf9c1c2
+2026/09/11 05:58:32 🚫 Container terminated: 32b36cf9c1c2
+--- PASS: TestReleaseSchemaStagesRecoverWithoutRewritingLegacyBusinessFacts (13.44s)
+PASS
+ok  	github.com/asherzj/relational-config-center/admin/cmd/admin	67.947s

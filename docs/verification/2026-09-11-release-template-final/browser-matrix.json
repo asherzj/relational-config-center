@@ -1,0 +1,542 @@
+{
+  "required_count": 34,
+  "effective_passed": 34,
+  "rows": [
+    {
+      "case": "accounts.mjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-03",
+          "source": "source-05.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-03",
+        "source": "source-05.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "accounts.mjs@firefox",
+      "attempts": [
+        {
+          "directory": "browser-remaining-03",
+          "source": "source-05.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-03",
+        "source": "source-05.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "accounts.mjs@webkit",
+      "attempts": [
+        {
+          "directory": "browser-remaining-03",
+          "source": "source-05.json",
+          "exit_code": 1
+        },
+        {
+          "directory": "browser-account-webkit-recheck-04",
+          "source": "source-06.json",
+          "exit_code": 1
+        },
+        {
+          "directory": "browser-account-webkit-recheck-05",
+          "source": "source-07.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-account-webkit-recheck-05",
+        "source": "source-07.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "browser-accessibility.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-03",
+          "source": "source-05.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-03",
+        "source": "source-05.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "browser-accessibility.cjs@firefox",
+      "attempts": [
+        {
+          "directory": "browser-remaining-03",
+          "source": "source-05.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-03",
+        "source": "source-05.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "browser-accessibility.cjs@webkit",
+      "attempts": [
+        {
+          "directory": "browser-remaining-03",
+          "source": "source-05.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-03",
+        "source": "source-05.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "combined-query.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-06",
+          "source": "source-07.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-06",
+        "source": "source-07.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "complex-fields.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-03",
+          "source": "source-05.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-03",
+        "source": "source-05.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "draft-targets.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-06",
+          "source": "source-07.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-06",
+        "source": "source-07.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "draft-targets.cjs@firefox",
+      "attempts": [
+        {
+          "directory": "browser-remaining-06",
+          "source": "source-07.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-06",
+        "source": "source-07.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "draft-targets.cjs@webkit",
+      "attempts": [
+        {
+          "directory": "browser-remaining-06",
+          "source": "source-07.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-06",
+        "source": "source-07.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "field-display.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-06",
+          "source": "source-07.json",
+          "exit_code": 1
+        },
+        {
+          "directory": "browser-remaining-07",
+          "source": "source-11.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-07",
+        "source": "source-11.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "field-inputs.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-06",
+          "source": "source-07.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-06",
+        "source": "source-07.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "field-interactions.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-07",
+          "source": "source-11.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-07",
+        "source": "source-11.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "field-interactions.cjs@firefox",
+      "attempts": [
+        {
+          "directory": "browser-remaining-07",
+          "source": "source-11.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-07",
+        "source": "source-11.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "field-interactions.cjs@webkit",
+      "attempts": [
+        {
+          "directory": "browser-remaining-07",
+          "source": "source-11.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-07",
+        "source": "source-11.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "field-policies.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-06",
+          "source": "source-07.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-06",
+        "source": "source-07.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "field-recovery.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-06",
+          "source": "source-07.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-06",
+        "source": "source-07.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "operation-coverage.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-02",
+          "source": "source-04.json",
+          "exit_code": 1
+        },
+        {
+          "directory": "browser-remaining-03",
+          "source": "source-05.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-03",
+        "source": "source-05.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "release-approvals.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-03",
+          "source": "source-05.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-03",
+        "source": "source-05.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "release-batches.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-03",
+          "source": "source-05.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-03",
+        "source": "source-05.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "release-drafts.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-03",
+          "source": "source-05.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-03",
+        "source": "source-05.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "release-multitable.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-06",
+          "source": "source-07.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-06",
+        "source": "source-07.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "release-multitable.cjs@firefox",
+      "attempts": [
+        {
+          "directory": "browser-remaining-06",
+          "source": "source-07.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-06",
+        "source": "source-07.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "release-multitable.cjs@webkit",
+      "attempts": [
+        {
+          "directory": "browser-remaining-06",
+          "source": "source-07.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-06",
+        "source": "source-07.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "release-rollback-reason.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-06",
+          "source": "source-07.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-06",
+        "source": "source-07.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "release-rollback-reason.cjs@firefox",
+      "attempts": [
+        {
+          "directory": "browser-remaining-06",
+          "source": "source-07.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-06",
+        "source": "source-07.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "release-rollback-reason.cjs@webkit",
+      "attempts": [
+        {
+          "directory": "browser-remaining-06",
+          "source": "source-07.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-06",
+        "source": "source-07.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "release-rollbacks.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-remaining-03",
+          "source": "source-05.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-03",
+        "source": "source-05.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "release-rollbacks.cjs@firefox",
+      "attempts": [
+        {
+          "directory": "browser-remaining-03",
+          "source": "source-05.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-03",
+        "source": "source-05.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "release-rollbacks.cjs@webkit",
+      "attempts": [
+        {
+          "directory": "browser-remaining-03",
+          "source": "source-05.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-03",
+        "source": "source-05.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "rule-clarity.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-full-01",
+          "source": "source-02.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-full-01",
+        "source": "source-02.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "unsaved-changes.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-full-01",
+          "source": "source-02.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-full-01",
+        "source": "source-02.json",
+        "exit_code": 0
+      }
+    },
+    {
+      "case": "write-recovery.cjs@chromium",
+      "attempts": [
+        {
+          "directory": "browser-full-01",
+          "source": "source-02.json",
+          "exit_code": 1
+        },
+        {
+          "directory": "browser-remaining-02",
+          "source": "source-04.json",
+          "exit_code": 0
+        }
+      ],
+      "effective": {
+        "directory": "browser-remaining-02",
+        "source": "source-04.json",
+        "exit_code": 0
+      }
+    }
+  ],
+  "applicability": "Production Web unchanged since source01; browser fixture/deterministic-wait corrections apply only to listed cases. Later accounts helper extraction preserves selected-table conditions and is additionally covered by independent Account path."
+}

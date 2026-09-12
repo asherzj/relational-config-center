@@ -1,0 +1,545 @@
+diff --git a/admin/cmd/admin/legacy_approver_cutover_integration_test.go b/admin/cmd/admin/legacy_approver_cutover_integration_test.go
+index 636e0ea..fa9689d 100644
+--- a/admin/cmd/admin/legacy_approver_cutover_integration_test.go
++++ b/admin/cmd/admin/legacy_approver_cutover_integration_test.go
+@@ -17,7 +17,7 @@ import (
+ 
+ // AC-021: the formal upgrade contracts current grants, never historical facts.
+ func TestLegacyApproverFormalCutover(t *testing.T) {
+-	previous, current := buildSchemaMigrationReleaseAt(t, 8), buildSchemaMigrationCommand(t)
++	previous, current := buildSchemaMigrationReleaseAt(t, 8), buildSchemaMigrationReleaseAt(t, 9)
+ 	_, driver := startIntegrationMySQL(t)
+ 	requireSchemaMigrationState(t, previous, driver, "current", "up")
+ 	owner := *driver
+@@ -81,6 +81,11 @@ func TestLegacyApproverFormalCutover(t *testing.T) {
+ 	if baselineDataSnapshot(t, db) != before {
+ 		t.Fatal("repeated upgrade changed account or unrelated facts")
+ 	}
++	beforeTemplates := preTemplateDataSnapshot(t, db)
++	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), driver, "current", "up")
++	if preTemplateDataSnapshot(t, db) != beforeTemplates {
++		t.Fatal("template upgrade changed contracted roles or historical facts")
++	}
+ 	process := accountProcessCommand(t, buildIntegrationAdmin(t), driver)
+ 	process.ready(t)
+ 	for _, sample := range []struct {
+@@ -167,7 +172,7 @@ func cutoverPreservedSnapshot(t *testing.T, db *sql.DB) string {
+ // AC-022: data failure and both durable bookkeeping boundaries require explicit
+ // recovery; repeated execution never advances a contracted account twice.
+ func TestLegacyApproverCutoverRecovery(t *testing.T) {
+-	previous, current := buildSchemaMigrationReleaseAt(t, 8), buildSchemaMigrationCommand(t)
++	previous, current := buildSchemaMigrationReleaseAt(t, 8), buildSchemaMigrationReleaseAt(t, 9)
+ 	_, driver := startIntegrationMySQL(t)
+ 	owner := *driver
+ 	owner.User = "root"
+@@ -228,6 +233,11 @@ func TestLegacyApproverCutoverRecovery(t *testing.T) {
+ 			if fault.applied && baselineDataSnapshot(t, target) != after {
+ 				t.Fatal("recovery rewrote already-committed data")
+ 			}
++			beforeTemplates := preTemplateDataSnapshot(t, target)
++			requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), &isolated, "current", "up")
++			if preTemplateDataSnapshot(t, target) != beforeTemplates {
++				t.Fatal("template upgrade rewrote recovered cutover facts")
++			}
+ 		})
+ 	}
+ }
+@@ -286,7 +296,12 @@ func TestLegacyApproverInvalidDataAndMaintenanceBoundary(t *testing.T) {
+ 	// Explicit fixture repair establishes a recoverable positive version; recovery
+ 	// itself does not invent or reset an overflowed version.
+ 	deliveryExec(t, db, `UPDATE rcc_accounts SET role_version=7`)
+-	requireSchemaMigrationState(t, current, driver, "current", "recover")
++	requireSchemaMigrationState(t, current, driver, "pending", "recover")
++	beforeTemplates := preTemplateDataSnapshot(t, db)
++	requireSchemaMigrationState(t, current, driver, "current", "up")
++	if preTemplateDataSnapshot(t, db) != beforeTemplates {
++		t.Fatal("template upgrade changed recovered role facts")
++	}
+ 	if output, err := command("grant-admin").CombinedOutput(); err != nil {
+ 		t.Fatalf("current maintenance cannot grant: %v %s", err, output)
+ 	}
+@@ -295,7 +310,7 @@ func TestLegacyApproverInvalidDataAndMaintenanceBoundary(t *testing.T) {
+ 		t.Fatalf("current grant lost viewer or duplicated cutover: %d %d %v", roles, version, err)
+ 	}
+ 	next := buildNextSchemaMigrationRelease(t)
+-	deliveryExec(t, db, `CREATE TRIGGER future_cutover_fault BEFORE INSERT ON rcc_goose_db_version FOR EACH ROW BEGIN IF NEW.version_id=10 THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='future ledger failure'; END IF; END`)
++	deliveryExec(t, db, fmt.Sprintf(`CREATE TRIGGER future_cutover_fault BEFORE INSERT ON rcc_goose_db_version FOR EACH ROW BEGIN IF NEW.version_id=%d THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='future ledger failure'; END IF; END`, currentTestSchemaVersion(t)+1))
+ 	if _, err := schemaMigrationCommand(next, driver, "up").CombinedOutput(); err == nil {
+ 		t.Fatal("future fault did not fire")
+ 	}
+@@ -313,10 +328,10 @@ func TestLegacyApproverInvalidDataAndMaintenanceBoundary(t *testing.T) {
+ 
+ }
+ 
+-// v8 and v9 have identical business/control structures. Build valid approval
+-// facts via public HTTP, copy that fixture into an explicitly installed v8
+-// database, then set its historical current grant. The copied database has its
+-// own authentic v8 migration ledger; no current ledger is downgraded or edited.
++// Build valid approval facts via public HTTP and copy only the tables and
++// columns present in an explicitly installed v8 database. Its authentic ledger
++// is never downgraded or edited. Verify the fixed 8→9 role cutover independently;
++// formal 10/11 subsequently create the template structures needed by current HTTP.
+ func TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval(t *testing.T) {
+ 	ctx, driver := startCurrentIntegrationMySQL(t, "testdata/006-mutation-fixture.sql")
+ 	app, err := newApplication(ctx, integrationConfig(driver))
+@@ -346,7 +361,7 @@ func TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval(t
+ 	previous.DBName = "cutover_live_v8"
+ 	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 8), &previous, "current", "up")
+ 	target := deliveryDB(t, &previous)
+-	rows, err := db.Query(`SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE' AND table_name NOT IN ('rcc_goose_db_version','rcc_schema_migration_attempts') ORDER BY table_name`)
++	rows, err := db.Query(`SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE' AND table_name NOT IN ('rcc_goose_db_version','rcc_schema_migration_attempts','rcc_release_templates','rcc_table_release_templates') ORDER BY table_name`)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -381,7 +396,7 @@ func TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval(t
+ 		}
+ 		// Generated business columns recompute from the copied real inputs; MySQL
+ 		// rejects even an empty INSERT SELECT that explicitly assigns them.
+-		columns, err := db.Query(`SELECT column_name FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND generation_expression='' ORDER BY ordinal_position`, table)
++		columns, err := target.Query(`SELECT column_name FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND generation_expression='' ORDER BY ordinal_position`, table)
+ 		if err != nil {
+ 			t.Fatal(err)
+ 		}
+@@ -409,10 +424,15 @@ func TestLegacyApproverCutoverPreservesLiveResponsibilityAndCompletedApproval(t
+ 	deliveryExec(t, target, `UPDATE rcc_accounts SET roles=4 WHERE id=?`, accountID(t, member))
+ 	deliveryExec(t, target, `UPDATE rcc_accounts SET roles=20 WHERE id=?`, accountID(t, admin))
+ 	preserved := cutoverPreservedSnapshot(t, target)
+-	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), &previous, "current", "up")
++	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 9), &previous, "current", "up")
+ 	if cutoverPreservedSnapshot(t, target) != preserved {
+ 		t.Fatal("cutover rewrote actual approval/request/notification facts")
+ 	}
++	beforeTemplates := preTemplateDataSnapshot(t, target)
++	requireSchemaMigrationState(t, buildSchemaMigrationCommand(t), &previous, "current", "up")
++	if preTemplateDataSnapshot(t, target) != beforeTemplates {
++		t.Fatal("template upgrade changed live responsibility, completed approval or notification facts")
++	}
+ 	upgraded, err := newApplication(ctx, integrationConfig(&previous))
+ 	if err != nil {
+ 		t.Fatal(err)
+diff --git a/admin/cmd/admin/schema_baseline_integration_test.go b/admin/cmd/admin/schema_baseline_integration_test.go
+index ce5930e..f0ac412 100644
+--- a/admin/cmd/admin/schema_baseline_integration_test.go
++++ b/admin/cmd/admin/schema_baseline_integration_test.go
+@@ -13,6 +13,7 @@ import (
+ 	"os"
+ 	"path/filepath"
+ 	"regexp"
++	"slices"
+ 	"sort"
+ 	"strings"
+ 	"testing"
+@@ -21,6 +22,24 @@ import (
+ 	mysqldriver "github.com/go-sql-driver/mysql"
+ )
+ 
++// The released historical 014–017 adoption contract is fixed at versions 1–5.
++const historicalTestSchemaVersion int64 = 5
++const historicalTestMigrationCount int64 = 5
++
++// Compare every pre-template column while later migrations add their own tables
++// and the table-policy control version. Historical business bytes stay exact.
++func preTemplateDataSnapshot(t *testing.T, db *sql.DB) string {
++	t.Helper()
++	snapshot := baselineDataSnapshot(t, db, "rcc_release_templates", "rcc_table_release_templates", "rcc_table_policies") +
++		baselineRows(t, db, `SELECT id,table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier,created_at,updated_at,concurrency_key FROM rcc_table_policies ORDER BY id`)
++	// Approval migrations add empty tables to historical version 5. Remove only
++	// their headers: any unexpected seeded rows still fail the data comparison.
++	for _, table := range []string{"rcc_approval_roles", "rcc_approval_role_members", "rcc_approval_role_requests", "rcc_approval_role_references", "rcc_table_approval_assignments", "rcc_table_approval_requests", "rcc_approval_notifications"} {
++		snapshot = strings.Replace(snapshot, table+":\n", "", 1)
++	}
++	return snapshot
++}
++
+ // MySQL image init scripts use the client's default charset. Apply historical
+ // 014 through an explicit UTF-8 connection so its Chinese comments stay exact.
+ func startHistoricalBaselineMySQL(t *testing.T, scripts ...string) (context.Context, *mysqldriver.Config) {
+@@ -92,7 +111,43 @@ func TestSchemaBaselineAdoptsCurrentDatabaseWithoutReplayingHistory(t *testing.T
+ 	if err := db.QueryRow(`SELECT COUNT(*) FROM business_marker WHERE id=17 AND note='preserved business data'`).Scan(&retained); err != nil || retained != 1 {
+ 		t.Fatalf("business data changed: %d %v", retained, err)
+ 	}
++	var versions string
++	if err := db.QueryRow(`SELECT GROUP_CONCAT(version_id ORDER BY id) FROM rcc_goose_db_version`).Scan(&versions); err != nil || versions != "0,1,2,3,4,5" {
++		t.Fatalf("historical baseline must register only the released prefix: %s %v", versions, err)
++	}
++	var templateTables int
++	if err := db.QueryRow(`SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='rcc_release_templates'`).Scan(&templateTables); err != nil || templateTables != 0 {
++		t.Fatalf("baseline executed a later migration: %d %v", templateTables, err)
++	}
++	requireSchemaMigrationState(t, binary, driver, "pending", "status")
++	beforeUpgrade := preTemplateDataSnapshot(t, db)
++	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 8), driver, "current", "up")
++	if got := preTemplateDataSnapshot(t, db); got != beforeUpgrade {
++		t.Fatal("approval and notification increments changed historical control or business data")
++	}
++	beforeCutover := cutoverPreservedSnapshot(t, db)
++	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 9), driver, "current", "up")
++	if cutoverPreservedSnapshot(t, db) != beforeCutover {
++		t.Fatal("role cutover changed historical facts outside current grants")
++	}
++	// These three role/version pairs are fixed by the frozen public-workflow
++	// fixture: 17/2 stays unchanged, 12/2 becomes 8/3, and 31/4 becomes 27/5.
++	var mapped int
++	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_accounts WHERE (roles=17 AND role_version=2) OR (roles=8 AND role_version=3) OR (roles=27 AND role_version=5)`).Scan(&mapped); err != nil || mapped != 3 {
++		t.Fatalf("frozen account grants were not contracted exactly once: %d %v", mapped, err)
++	}
++	beforeTemplates := preTemplateDataSnapshot(t, db)
+ 	requireSchemaMigrationState(t, binary, driver, "current", "up")
++	if preTemplateDataSnapshot(t, db) != beforeTemplates {
++		t.Fatal("template increments changed contracted accounts or historical business data")
++	}
++	expectedVersions := []string{"0"}
++	for version := int64(1); version <= currentTestSchemaVersion(t); version++ {
++		expectedVersions = append(expectedVersions, fmt.Sprint(version))
++	}
++	if err := db.QueryRow(`SELECT GROUP_CONCAT(version_id ORDER BY id) FROM rcc_goose_db_version`).Scan(&versions); err != nil || versions != strings.Join(expectedVersions, ",") {
++		t.Fatalf("explicit upgrade must append each subsequent migration once: %s %v", versions, err)
++	}
+ 	app, err := newApplication(ctx, integrationConfig(driver))
+ 	if err != nil {
+ 		t.Fatal(err)
+@@ -198,7 +253,7 @@ func baselineRows(t *testing.T, db *sql.DB, query string) string {
+ 	return strings.Join(result, "\n")
+ }
+ 
+-func baselineDataSnapshot(t *testing.T, db *sql.DB) string {
++func baselineDataSnapshot(t *testing.T, db *sql.DB, excludedTables ...string) string {
+ 	t.Helper()
+ 	rows, err := db.Query(`SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE' AND table_name NOT IN ('rcc_schema_migration_attempts','rcc_goose_db_version') ORDER BY table_name`)
+ 	if err != nil {
+@@ -218,6 +273,9 @@ func baselineDataSnapshot(t *testing.T, db *sql.DB) string {
+ 	rows.Close()
+ 	var snapshot strings.Builder
+ 	for _, table := range tables {
++		if slices.Contains(excludedTables, table) {
++			continue
++		}
+ 		fmt.Fprintf(&snapshot, "%s:%s\n", table, baselineRows(t, db, "SELECT * FROM `"+strings.ReplaceAll(table, "`", "``")+"`"))
+ 	}
+ 	return snapshot.String()
+@@ -298,7 +356,7 @@ func TestSchemaBaselineRecoversUnconfirmedRegistration(t *testing.T) {
+ 	}
+ 	requireSchemaMigrationState(t, binary, driver, "recovery_required", "status")
+ 	var count int
+-	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version`).Scan(&count); err != nil || int64(count) != 5+1 {
++	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version`).Scan(&count); err != nil || int64(count) != historicalTestMigrationCount+1 {
+ 		t.Fatalf("adopted version prefix: %d %v", count, err)
+ 	}
+ 	deliveryExec(t, db, `DROP TRIGGER block_baseline_confirmation`)
+@@ -340,7 +398,7 @@ func TestSchemaBaselineRecoversUnconfirmedRegistration(t *testing.T) {
+ }
+ 
+ func TestSchemaBaselineReleaseUpgradesT1AndRecoversPartialAuditRename(t *testing.T) {
+-	previous, current := buildPreviousSchemaMigrationRelease(t), buildSchemaMigrationCommand(t)
++	previous, current := buildPreviousSchemaMigrationRelease(t), buildSchemaMigrationReleaseAt(t, historicalTestSchemaVersion)
+ 	_, driver := startIntegrationMySQL(t)
+ 	requireSchemaMigrationState(t, previous, driver, "current", "up")
+ 	root := *driver
+@@ -365,8 +423,15 @@ func TestSchemaBaselineReleaseUpgradesT1AndRecoversPartialAuditRename(t *testing
+ 	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_query_policies WHERE code='retained_v1' AND creator='owner' AND modifier='editor' AND created_at='2025-01-02' AND updated_at='2025-03-04'`).Scan(&retained); err != nil || retained != 1 {
+ 		t.Fatalf("rename changed audit data: %d %v", retained, err)
+ 	}
+-	_, freshDriver := startHistoricalBaselineMySQL(t)
++	freshDriver := createSchemaComparisonDatabase(t, driver)
++	freshDriver.MultiStatements = true
+ 	fresh := deliveryDB(t, freshDriver)
++	snapshot, err := os.ReadFile("testdata/pre-goose-8b5cd859.sql")
++	if err != nil {
++		t.Fatal(err)
++	}
++	deliveryExec(t, fresh, string(snapshot))
++	applyUnmanagedCurrentMigrations(t, fresh)
+ 	assertBaselinePhysicalSchemaEqual(t, db, fresh)
+ }
+ 
+@@ -456,7 +521,7 @@ func TestSchemaBaselineConcurrentAdoptionUsesOneVersionPrefix(t *testing.T) {
+ 		}
+ 	}
+ 	var versions, attempts int
+-	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version`).Scan(&versions); err != nil || int64(versions) != 5+1 {
++	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_goose_db_version`).Scan(&versions); err != nil || int64(versions) != historicalTestMigrationCount+1 {
+ 		t.Fatalf("concurrent adoption duplicated prefix: %d %v", versions, err)
+ 	}
+ 	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_schema_migration_attempts`).Scan(&attempts); err != nil || attempts != 1 {
+@@ -568,9 +633,9 @@ func TestSchemaBaselineRefusesToRecreateLostConfirmedHistory(t *testing.T) {
+ 	}
+ }
+ 
+-func TestFrozenGooseInstallationMatchesFrozenAdoptionStructure(t *testing.T) {
++func TestBaselineGooseInstallationMatchesFrozenAdoptionStructure(t *testing.T) {
+ 	_, driver := startIntegrationMySQL(t)
+-	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 5), driver, "current", "up")
++	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, historicalTestSchemaVersion), driver, "current", "up")
+ 	installed := deliveryDB(t, driver)
+ 	owner := *driver
+ 	owner.User = "root"
+diff --git a/admin/cmd/admin/schema_readiness_integration_test.go b/admin/cmd/admin/schema_readiness_integration_test.go
+index 6047b59..c6c8a8b 100644
+--- a/admin/cmd/admin/schema_readiness_integration_test.go
++++ b/admin/cmd/admin/schema_readiness_integration_test.go
+@@ -50,7 +50,7 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
+ 	snapshot := func() string {
+ 		return baselineDataSnapshot(t, db) + baselineRows(t, db, `SELECT * FROM rcc_goose_db_version ORDER BY id`) + baselineRows(t, db, `SELECT * FROM rcc_schema_migration_attempts ORDER BY id`)
+ 	}
+-	assertReadiness := func(want int) {
++	assertReadiness := func(t *testing.T, want int) {
+ 		t.Helper()
+ 		before := snapshot()
+ 		status, _, body := p.request(t, "GET", "/health/ready", "", nil, "")
+@@ -61,7 +61,7 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
+ 			t.Fatal("readiness wrote control or business data")
+ 		}
+ 	}
+-	assertReadiness(200)
++	assertReadiness(t, 200)
+ 	for _, fault := range []struct{ name, apply, restore string }{
+ 		{"unmanaged", `RENAME TABLE rcc_goose_db_version TO held_versions, rcc_schema_migration_attempts TO held_attempts`, `RENAME TABLE held_versions TO rcc_goose_db_version, held_attempts TO rcc_schema_migration_attempts`},
+ 		{"ahead", fmt.Sprintf(`UPDATE rcc_goose_db_version SET version_id=99 WHERE version_id=%d`, currentVersion), fmt.Sprintf(`UPDATE rcc_goose_db_version SET version_id=%d WHERE version_id=99`, currentVersion)},
+@@ -71,6 +71,11 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
+ 		{"wrong_default", `ALTER TABLE rcc_accounts ALTER COLUMN enabled SET DEFAULT 0`, `ALTER TABLE rcc_accounts ALTER COLUMN enabled SET DEFAULT 1`},
+ 		{"missing_index", `ALTER TABLE rcc_query_policies DROP INDEX idx_query_policy_status_type`, `ALTER TABLE rcc_query_policies ADD KEY idx_query_policy_status_type(status,type_code)`},
+ 		{"missing_field_policy", `RENAME TABLE rcc_table_field_policies TO held_field_policies`, `RENAME TABLE held_field_policies TO rcc_table_field_policies`},
++		{"missing_approval_notifications", `RENAME TABLE rcc_approval_notifications TO held_approval_notifications`, `RENAME TABLE held_approval_notifications TO rcc_approval_notifications`},
++		{"missing_release_templates", `RENAME TABLE rcc_release_templates TO held_release_templates`, `RENAME TABLE held_release_templates TO rcc_release_templates`},
++		{"release_template_unique_key", `ALTER TABLE rcc_release_templates DROP INDEX uk_release_template_code`, `ALTER TABLE rcc_release_templates DROP INDEX uk_release_template_id_type, DROP INDEX idx_release_template_type_enabled, ADD UNIQUE KEY uk_release_template_code(code), ADD UNIQUE KEY uk_release_template_id_type(id,release_type), ADD KEY idx_release_template_type_enabled(release_type,enabled)`},
++		{"release_template_check", `ALTER TABLE rcc_release_templates ALTER CHECK chk_release_template_monitors NOT ENFORCED`, `ALTER TABLE rcc_release_templates ALTER CHECK chk_release_template_monitors ENFORCED`},
++		{"missing_default_emergency_template", `UPDATE rcc_release_templates SET code='held_emergency' WHERE code='default_emergency_v1'`, `UPDATE rcc_release_templates SET code='default_emergency_v1' WHERE code='held_emergency'`},
+ 		{"field_policy_unique_key", `ALTER TABLE rcc_table_field_policies DROP INDEX uk_table_field`, `ALTER TABLE rcc_table_field_policies ADD UNIQUE KEY uk_table_field(table_name,field_name)`},
+ 		{"field_policy_check", `ALTER TABLE rcc_table_field_policies ALTER CHECK chk_field_policy_flags NOT ENFORCED`, `ALTER TABLE rcc_table_field_policies ALTER CHECK chk_field_policy_flags ENFORCED`},
+ 		{"unenforced_check", `ALTER TABLE rcc_query_policies ALTER CHECK chk_query_policy_max_page_size NOT ENFORCED`, `ALTER TABLE rcc_query_policies ALTER CHECK chk_query_policy_max_page_size ENFORCED`},
+@@ -94,6 +99,12 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
+ 					t.Fatal(err)
+ 				}
+ 			}
++			var templateTable, templateDefinition string
++			if fault.name == "release_template_unique_key" {
++				if err := db.QueryRow("SHOW CREATE TABLE rcc_release_templates").Scan(&templateTable, &templateDefinition); err != nil {
++					t.Fatal(err)
++				}
++			}
+ 			deliveryExec(t, db, fault.apply)
+ 			before := baselineDataSnapshot(t, db)
+ 			rejected := accountProcessCommand(t, binary, &reader)
+@@ -105,22 +116,43 @@ func TestSchemaReadinessContinuouslyChecksStateAndCompleteStructureReadOnly(t *t
+ 			if before != baselineDataSnapshot(t, db) {
+ 				t.Fatal("rejected startup/readiness changed rows")
+ 			}
++			if fault.name == "release_template_unique_key" {
++				// Keep the referenced composite identity indexed throughout restoration.
++				deliveryExec(t, db, `ALTER TABLE rcc_release_templates ADD UNIQUE KEY restore_template_identity(id,release_type)`)
++			}
+ 			if fault.restore != "" {
+ 				deliveryExec(t, db, fault.restore)
+ 			} else {
+ 				deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET release_digest=? WHERE target_version=?`, digest, currentVersion)
+ 			}
+-			assertReadiness(200)
++			if fault.name == "release_template_unique_key" {
++				deliveryExec(t, db, `ALTER TABLE rcc_release_templates DROP INDEX restore_template_identity`)
++			}
++			// Candidate 11 stores ASCII-column CHECK literals as ASCII after its
++			// identity-index ALTER. Restore the same current-release definition.
++			if fault.name == "release_template_unique_key" || fault.name == "release_template_check" {
++				deliveryExec(t, db, `ALTER TABLE rcc_release_templates DROP CHECK chk_emergency_template_enabled, DROP CHECK chk_release_template_type, ADD CONSTRAINT chk_emergency_template_enabled CHECK (release_type <> _ascii'EMERGENCY' OR enabled=1), ADD CONSTRAINT chk_release_template_type CHECK (release_type IN (_ascii'STANDARD',_ascii'EMERGENCY'))`)
++			}
++			if fault.name == "release_template_unique_key" {
++				var restoredDefinition string
++				if err := db.QueryRow("SHOW CREATE TABLE rcc_release_templates").Scan(&templateTable, &restoredDefinition); err != nil {
++					t.Fatal(err)
++				}
++				if restoredDefinition != templateDefinition {
++					t.Fatalf("fault restoration changed template structure:\nbefore:\n%s\nafter:\n%s", templateDefinition, restoredDefinition)
++				}
++			}
++			assertReadiness(t, 200)
+ 		})
+ 	}
+ 	deliveryExec(t, db, `UPDATE rcc_schema_migration_attempts SET state='RUNNING',finished_at=NULL WHERE target_version=?`, currentVersion)
+-	assertReadiness(503)
++	assertReadiness(t, 503)
+ 	requireSchemaStartupRejected(t, accountProcessCommand(t, binary, &reader))
+ 	if output, err := schemaMigrationCommand(migration, driver, "up").CombinedOutput(); err == nil {
+ 		t.Fatalf("deployment retried unconfirmed migration: %s", output)
+ 	}
+ 	requireSchemaMigrationState(t, migration, driver, "current", "recover")
+-	assertReadiness(200)
++	assertReadiness(t, 200)
+ 	p.stop(t)
+ }
+ 
+@@ -145,22 +177,19 @@ func TestSchemaReadinessRejectsKnownOldRelease(t *testing.T) {
+ 	p := accountProcessCommand(t, binary, driver)
+ 	p.ready(t)
+ 
+-	// Restore the known old test state while this process is still running.
+-	db := deliveryDB(t, driver)
+-	deliveryExec(t, db, `DROP TABLE rcc_table_field_policies,rcc_release_details,rcc_release_executions,rcc_release_table_references`)
+-	deliveryExec(t, db, `ALTER TABLE rcc_table_policies DROP COLUMN concurrency_key`)
+-	deliveryExec(t, db, "DROP TABLE rcc_publication_commands")
+-	deliveryExec(t, db, "CREATE TABLE `rcc_publication_commands` (\n  `table_name` varbinary(256) NOT NULL,\n  `sequence` bigint unsigned NOT NULL,\n  `order_id` varbinary(32) NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`table_name`,`sequence`),\n  KEY `publication_order` (`order_id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci")
+-	deliveryExec(t, db, "DROP TABLE rcc_refresh_notifications")
+-	deliveryExec(t, db, "CREATE TABLE `rcc_refresh_notifications` (\n  `order_id` varbinary(32) NOT NULL,\n  `table_name` varbinary(256) NOT NULL,\n  `table_version` bigint unsigned NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`order_id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci")
+-	deliveryExec(t, db, "DROP TABLE rcc_release_orders")
+-	deliveryExec(t, db, "CREATE TABLE `rcc_release_orders` (\n  `id` varbinary(32) NOT NULL,\n  `table_name` varbinary(256) NOT NULL,\n  `applicant_id` varbinary(36) NOT NULL,\n  `state` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,\n  `version` bigint unsigned NOT NULL,\n  `document` json NOT NULL,\n  PRIMARY KEY (`id`),\n  KEY `release_table` (`table_name`,`id`),\n  KEY `release_applicant` (`applicant_id`,`id`),\n  KEY `release_state` (`state`,`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci")
+-
+-	for _, table := range []string{"rcc_query_policies", "rcc_mutation_policies", "rcc_table_policies"} {
+-		deliveryExec(t, db, "ALTER TABLE "+table+" RENAME COLUMN created_at TO gmt_created, RENAME COLUMN updated_at TO gmt_modified")
++	// This empty database belongs exclusively to the Testcontainer created at
++	// the start of this test. Reinstall the real published v1 while Admin stays
++	// alive, rather than manufacturing old ledger rows or old table definitions.
++	if driver.DBName != "rcc_test" {
++		t.Fatal("refusing to rebuild a database outside this test fixture")
+ 	}
+-	deliveryExec(t, db, `DELETE FROM rcc_goose_db_version WHERE version_id>1`)
+-	deliveryExec(t, db, `DELETE FROM rcc_schema_migration_attempts WHERE target_version>1`)
++	owner := *driver
++	owner.User, owner.DBName = "root", ""
++	db := deliveryDB(t, &owner)
++	t.Log("reinstalling empty Testcontainers database rcc_test through formal v1 schema-migrate")
++	deliveryExec(t, db, `DROP DATABASE rcc_test`)
++	deliveryExec(t, db, `CREATE DATABASE rcc_test CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci`)
++	requireSchemaMigrationState(t, buildPreviousSchemaMigrationRelease(t), driver, "current", "up")
+ 	status, _, body := p.request(t, "GET", "/health/ready", "", nil, "")
+ 	if status != 503 {
+ 		t.Fatalf("running process accepted old release: %d %s", status, body)
+diff --git a/admin/cmd/admin/template_approval_schema_integration_test.go b/admin/cmd/admin/template_approval_schema_integration_test.go
+new file mode 100644
+index 0000000..f88c14f
+--- /dev/null
++++ b/admin/cmd/admin/template_approval_schema_integration_test.go
+@@ -0,0 +1,135 @@
++//go:build integration
++
++package main
++
++import (
++	"strings"
++	"testing"
++)
++
++func TestTemplateApprovalSchemaPreservesPublishedRolesAndChecksCompleteReadiness(t *testing.T) {
++	_, driver := startIntegrationMySQL(t)
++	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 7), driver, "current", "up")
++	owner := *driver
++	owner.User = "root"
++	db := deliveryDB(t, &owner)
++	for _, statement := range []string{
++		`CREATE TABLE integration_business_marker(id INT PRIMARY KEY,note TEXT)`,
++		`INSERT INTO integration_business_marker VALUES(1,'preserve published role facts')`,
++		`INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,roles,role_version,created_at) VALUES('00000000-0000-0000-0000-000000000071','integration.owner','integration@example.test','Retained owner','opaque-password-hash',31,3,'2026-01-01')`,
++		`INSERT INTO rcc_approval_roles(id,name,description,enabled,version,creator,modifier,created_at,updated_at) VALUES('00000000-0000-0000-0000-000000000072','Retained reviewers','Preserved description',1,4,'00000000-0000-0000-0000-000000000071','00000000-0000-0000-0000-000000000071','2026-01-01','2026-01-02')`,
++		`INSERT INTO rcc_approval_role_members(role_id,account_id) VALUES('00000000-0000-0000-0000-000000000072','00000000-0000-0000-0000-000000000071')`,
++		`INSERT INTO rcc_approval_role_requests(actor_id,request_key,request_digest,result,created_at) VALUES('00000000-0000-0000-0000-000000000071','retained-role-request',REPEAT('a',64),JSON_OBJECT('retained',true),'2026-01-02')`,
++		`INSERT INTO rcc_approval_role_references(role_id,reference_kind,reference_key,role_name,created_at) VALUES('00000000-0000-0000-0000-000000000072','table','integration_business_marker','Original reviewers','2026-01-02')`,
++		`INSERT INTO rcc_table_approval_assignments(table_name,version,role_ids) VALUES('integration_business_marker',7,JSON_ARRAY('00000000-0000-0000-0000-000000000072'))`,
++		`INSERT INTO rcc_table_approval_requests(actor_id,request_key,digest,result) VALUES('00000000-0000-0000-0000-000000000071','retained-table-request',UNHEX(REPEAT('b',64)),JSON_OBJECT('retained',true))`,
++		`INSERT INTO rcc_table_policies(table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier) VALUES('integration_business_marker','query','mutation',1,'original-admin','original-admin')`,
++	} {
++		deliveryExec(t, db, statement)
++	}
++	beforeCutover := cutoverPreservedSnapshot(t, db)
++	requireSchemaMigrationState(t, buildSchemaMigrationReleaseAt(t, 9), driver, "current", "up")
++	if strings.Replace(cutoverPreservedSnapshot(t, db), "rcc_approval_notifications:\n", "", 1) != beforeCutover {
++		t.Fatal("published cutover changed retained role, membership, assignment, request or business facts")
++	}
++	var roles, roleVersion int
++	if err := db.QueryRow(`SELECT roles,role_version FROM rcc_accounts WHERE username='integration.owner'`).Scan(&roles, &roleVersion); err != nil || roles != 27 || roleVersion != 4 {
++		t.Fatalf("published role cutover was not preserved: %d/%d %v", roles, roleVersion, err)
++	}
++	before := preTemplateDataSnapshot(t, db)
++	current := buildSchemaMigrationCommand(t)
++	requireSchemaMigrationState(t, current, driver, "current", "up")
++	if after := preTemplateDataSnapshot(t, db); after != before {
++		t.Fatal("template upgrade changed published role, membership, assignment, request, audit or business facts")
++	}
++	fresh := createSchemaComparisonDatabase(t, &owner)
++	requireSchemaMigrationState(t, current, fresh, "current", "up")
++	assertBaselinePhysicalSchemaEqual(t, db, deliveryDB(t, fresh))
++
++	deliveryExec(t, db, `CREATE USER 'integration_reader'@'%' IDENTIFIED BY 'rcc_password'`)
++	deliveryExec(t, db, `GRANT SELECT ON rcc_test.* TO 'integration_reader'@'%'`)
++	reader := *driver
++	reader.User = "integration_reader"
++	binary := buildIntegrationAdmin(t)
++	process := accountProcessCommand(t, binary, &reader)
++	process.ready(t)
++	for _, table := range []string{"rcc_approval_roles", "rcc_approval_role_members", "rcc_approval_role_requests", "rcc_approval_role_references", "rcc_table_approval_assignments", "rcc_table_approval_requests"} {
++		t.Run(table, func(t *testing.T) {
++			deliveryExec(t, db, "RENAME TABLE "+table+" TO held_integration_control")
++			defer deliveryExec(t, db, "RENAME TABLE held_integration_control TO "+table)
++			snapshot := baselineDataSnapshot(t, db)
++			if status, _, body := process.request(t, "GET", "/health/ready", "", nil, ""); status != 503 {
++				t.Fatalf("current cumulative manifest omitted published %s: %d %s", table, status, body)
++			}
++			requireSchemaStartupRejected(t, accountProcessCommand(t, binary, &reader))
++			if baselineDataSnapshot(t, db) != snapshot {
++				t.Fatal("read-only readiness or rejected startup changed data")
++			}
++		})
++		if status, _, body := process.request(t, "GET", "/health/ready", "", nil, ""); status != 200 {
++			t.Fatalf("restored published control structure remains unready: %d %s", status, body)
++		}
++	}
++	process.stop(t)
++}
++
++// Formal v9 is the deployed prefix. Fail the candidate catalog after its CREATE
++// commits, then recover only v10 before explicitly applying the association v11.
++func TestTemplateApprovalSchemaRecoversCatalogSeedFromFormalNine(t *testing.T) {
++	previous, current := buildSchemaMigrationReleaseAt(t, 9), buildSchemaMigrationCommand(t)
++	_, driver := startIntegrationMySQL(t)
++	requireSchemaMigrationState(t, previous, driver, "current", "up")
++	owner := *driver
++	owner.User = "root"
++	db := deliveryDB(t, &owner)
++	deliveryExec(t, db, `CREATE TABLE catalog_business_marker(id INT PRIMARY KEY,note TEXT)`)
++	deliveryExec(t, db, `INSERT INTO catalog_business_marker VALUES(1,'formal nine business fact')`)
++	deliveryExec(t, db, `INSERT INTO rcc_accounts(id,username,email,display_name,password_hash,roles,role_version,created_at) VALUES('catalog-owner','catalog.owner','catalog@example.test','Retained owner','opaque',17,4,'2026-01-01')`)
++	deliveryExec(t, db, `INSERT INTO rcc_table_policies(table_name,query_policy_code,mutation_policy_code,enabled,creator,modifier) VALUES('catalog_business_marker','query','mutation',1,'original-admin','original-admin')`)
++	deliveryExec(t, db, `INSERT INTO rcc_approval_notifications(account_id,order_id,sequence,pending,pending_sequence,result_sequence,read_sequence) VALUES('catalog-owner','retained-notification',11,1,9,11,7)`)
++	before := preTemplateDataSnapshot(t, db)
++	ledger := baselineRows(t, db, `SELECT * FROM rcc_goose_db_version ORDER BY id`)
++	deliveryExec(t, db, `CREATE USER 'catalog_migrator'@'%' IDENTIFIED BY 'rcc_password'`)
++	deliveryExec(t, db, `GRANT SELECT,CREATE,ALTER,INDEX,REFERENCES ON rcc_test.* TO 'catalog_migrator'@'%'`)
++	deliveryExec(t, db, `GRANT INSERT,UPDATE ON rcc_test.rcc_goose_db_version TO 'catalog_migrator'@'%'`)
++	deliveryExec(t, db, `GRANT INSERT,UPDATE ON rcc_test.rcc_schema_migration_attempts TO 'catalog_migrator'@'%'`)
++	limited := *driver
++	limited.User = "catalog_migrator"
++	if output, err := schemaMigrationCommand(current, &limited, "up").CombinedOutput(); err == nil || !strings.Contains(string(output), "migration_failed") {
++		t.Fatalf("catalog seed without INSERT must fail after DDL: %v %s", err, output)
++	}
++	var templates, version int
++	if err := db.QueryRow(`SELECT COUNT(*) FROM rcc_release_templates`).Scan(&templates); err != nil || templates != 0 {
++		t.Fatalf("catalog CREATE must commit before failed seed: %d %v", templates, err)
++	}
++	if err := db.QueryRow(`SELECT MAX(version_id) FROM rcc_goose_db_version`).Scan(&version); err != nil || version != 9 {
++		t.Fatalf("failed catalog advanced formal version: %d %v", version, err)
++	}
++	if preTemplateDataSnapshot(t, db) != before || baselineRows(t, db, `SELECT * FROM rcc_goose_db_version ORDER BY id`) != ledger {
++		t.Fatal("partial catalog migration changed formal account, policy, notification or business facts")
++	}
++	requireSchemaMigrationState(t, current, &limited, "recovery_required", "status")
++	if _, err := schemaMigrationCommand(current, &limited, "up").CombinedOutput(); err == nil {
++		t.Fatal("ordinary up bypassed explicit catalog recovery")
++	}
++	deliveryExec(t, db, `GRANT INSERT ON rcc_test.rcc_release_templates TO 'catalog_migrator'@'%'`)
++	requireSchemaMigrationState(t, current, &limited, "pending", "recover")
++	if err := db.QueryRow(`SELECT MAX(version_id) FROM rcc_goose_db_version`).Scan(&version); err != nil || version != 10 {
++		t.Fatalf("recovery must confirm only catalog v10: %d %v", version, err)
++	}
++	if preTemplateDataSnapshot(t, db) != before {
++		t.Fatal("catalog recovery changed formal account, policy, notification or business facts")
++	}
++	requireSchemaMigrationState(t, current, driver, "current", "up")
++	if preTemplateDataSnapshot(t, db) != before || baselineRows(t, db, `SELECT * FROM rcc_goose_db_version WHERE version_id<=9 ORDER BY id`) != ledger {
++		t.Fatal("association increment changed formal facts or published version prefix")
++	}
++	fresh := createSchemaComparisonDatabase(t, &owner)
++	requireSchemaMigrationState(t, current, fresh, "current", "up")
++	assertBaselinePhysicalSchemaEqual(t, db, deliveryDB(t, fresh))
++	final := baselineDataSnapshot(t, db)
++	requireSchemaMigrationState(t, current, driver, "current", "up")
++	if baselineDataSnapshot(t, db) != final {
++		t.Fatal("repeated current upgrade changed recovered catalog or association choices")
++	}
++}
