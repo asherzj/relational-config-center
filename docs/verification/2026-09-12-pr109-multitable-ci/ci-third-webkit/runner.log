@@ -1,0 +1,31 @@
+PASS 管理员在设置页为同一后续多表发布链路配置管控键
+locator.click: Timeout 20000ms exceeded.
+Call log:
+  - waiting for getByRole('button', { name: '查看 Change Set', exact: true })
+    - locator resolved to <button data-slot="button" data-size="default" data-variant="default" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='si…>查看 Change Set</button>
+  - attempting click action
+    2 × waiting for element to be visible, enabled and stable
+      - element is not stable
+    - retrying click action
+    - waiting 20ms
+    2 × waiting for element to be visible, enabled and stable
+      - element is not stable
+    - retrying click action
+      - waiting 100ms
+
+    at /home/runner/work/relational-config-center/relational-config-center/web/e2e/release-multitable.cjs:68:39 {
+  log: [
+    "  - waiting for getByRole('button', { name: '查看 Change Set', exact: true })",
+    `    - locator resolved to <button data-slot="button" data-size="default" data-variant="default" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='si…>查看 Change Set</button>`,
+    '  - attempting click action',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not stable',
+    '    - retrying click action',
+    '    - waiting 20ms',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not stable',
+    '    - retrying click action',
+    '      - waiting 100ms'
+  ],
+  name: 'TimeoutError'
+}

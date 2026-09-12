@@ -1,0 +1,2 @@
+50ea46a0c56563d497c037ebdcea291efdc4b2d1853424867038fc2a3b99a962  web/e2e/click-diagnostics.cjs
+240d768b491875b5af4b7a2ff6c22cccb434a05f3510215a69e8f74c77a8c1d3  web/e2e/release-multitable.cjs

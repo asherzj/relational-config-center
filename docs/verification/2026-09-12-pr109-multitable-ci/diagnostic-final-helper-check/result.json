@@ -1,0 +1,403 @@
+{
+  "ok": true,
+  "auxiliaryChecks": [
+    {
+      "mode": "setup-rejected",
+      "originalErrorPreserved": true,
+      "elapsedMs": 0,
+      "stopped": false,
+      "disposed": false,
+      "record": {
+        "locator": "setup-rejected",
+        "elapsedMs": 0,
+        "failure": {
+          "name": "Error",
+          "message": "original click failure"
+        },
+        "setupError": "Error: setup unavailable"
+      }
+    },
+    {
+      "mode": "stop-rejected",
+      "originalErrorPreserved": true,
+      "elapsedMs": 0,
+      "stopped": true,
+      "disposed": true,
+      "record": {
+        "locator": "stop-rejected",
+        "elapsedMs": 0,
+        "failure": {
+          "name": "Error",
+          "message": "original click failure"
+        },
+        "samplingError": "Error: sampling unavailable"
+      }
+    },
+    {
+      "mode": "stop-timeout",
+      "originalErrorPreserved": true,
+      "elapsedMs": 2002,
+      "stopped": true,
+      "disposed": true,
+      "record": {
+        "locator": "stop-timeout",
+        "elapsedMs": 2002,
+        "failure": {
+          "name": "Error",
+          "message": "original click failure"
+        },
+        "samplingError": "Error: diagnostic operation exceeded 2000 ms"
+      }
+    },
+    {
+      "mode": "setup-late",
+      "originalErrorPreserved": true,
+      "elapsedMs": 2256,
+      "stopped": true,
+      "disposed": true,
+      "record": {
+        "locator": "setup-late",
+        "elapsedMs": 0,
+        "failure": {
+          "name": "Error",
+          "message": "original click failure"
+        },
+        "setupError": "Error: diagnostic operation exceeded 2000 ms"
+      }
+    }
+  ],
+  "scope": "Synthetic moving button tests diagnostic capture/error propagation/cleanup only; NOT reproduction of the intermittent application failure",
+  "afterFailure": {
+    "intervals": 0,
+    "frames": 0
+  },
+  "afterSuccess": {
+    "intervals": 0,
+    "frames": 0
+  },
+  "observations": [
+    {
+      "locator": "getByRole('button', { name: '查看 Change Set', exact: true })",
+      "elapsedMs": 914,
+      "failure": {
+        "name": "TimeoutError",
+        "message": "locator.click: Timeout 900ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: '查看 Change Set', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button onclick=\"document.body.dataset.clicked=1\">查看 Change Set</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not stable\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not stable\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is not stable\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n"
+      },
+      "samples": [
+        {
+          "elapsedMs": 0,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 76,
+            "y": 28,
+            "width": 133.640625,
+            "height": 30,
+            "top": 28,
+            "right": 209.640625,
+            "bottom": 58,
+            "left": 76
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 48, 0)",
+          "animations": [
+            {
+              "name": "move",
+              "state": "running",
+              "time": 33
+            }
+          ],
+          "frames": 0,
+          "maxFrameGapMs": 0
+        },
+        {
+          "elapsedMs": 104,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 232,
+            "y": 28,
+            "width": 133.640625,
+            "height": 30,
+            "top": 28,
+            "right": 365.640625,
+            "bottom": 58,
+            "left": 232
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 204, 0)",
+          "animations": [
+            {
+              "name": "move",
+              "state": "running",
+              "time": 122
+            }
+          ],
+          "frames": 6,
+          "maxFrameGapMs": 19
+        },
+        {
+          "elapsedMs": 204,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 274,
+            "y": 28,
+            "width": 133.640625,
+            "height": 30,
+            "top": 28,
+            "right": 407.640625,
+            "bottom": 58,
+            "left": 274
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 246, 0)",
+          "animations": [
+            {
+              "name": "move",
+              "state": "running",
+              "time": 226
+            }
+          ],
+          "frames": 12,
+          "maxFrameGapMs": 20
+        },
+        {
+          "elapsedMs": 304,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 124,
+            "y": 28,
+            "width": 133.640625,
+            "height": 30,
+            "top": 28,
+            "right": 257.640625,
+            "bottom": 58,
+            "left": 124
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 96, 0)",
+          "animations": [
+            {
+              "name": "move",
+              "state": "running",
+              "time": 332
+            }
+          ],
+          "frames": 18,
+          "maxFrameGapMs": 20
+        },
+        {
+          "elapsedMs": 405,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 83.5,
+            "y": 28,
+            "width": 133.640625,
+            "height": 30,
+            "top": 28,
+            "right": 217.140625,
+            "bottom": 58,
+            "left": 83.5
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 55.5, 0)",
+          "animations": [
+            {
+              "name": "move",
+              "state": "running",
+              "time": 435
+            }
+          ],
+          "frames": 24,
+          "maxFrameGapMs": 20
+        },
+        {
+          "elapsedMs": 506,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 235,
+            "y": 28,
+            "width": 133.640625,
+            "height": 30,
+            "top": 28,
+            "right": 368.640625,
+            "bottom": 58,
+            "left": 235
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 207, 0)",
+          "animations": [
+            {
+              "name": "move",
+              "state": "running",
+              "time": 526
+            }
+          ],
+          "frames": 29,
+          "maxFrameGapMs": 22
+        },
+        {
+          "elapsedMs": 608,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 268,
+            "y": 28,
+            "width": 133.640625,
+            "height": 30,
+            "top": 28,
+            "right": 401.640625,
+            "bottom": 58,
+            "left": 268
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 240, 0)",
+          "animations": [
+            {
+              "name": "move",
+              "state": "running",
+              "time": 627
+            }
+          ],
+          "frames": 35,
+          "maxFrameGapMs": 22
+        },
+        {
+          "elapsedMs": 714,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 109,
+            "y": 28,
+            "width": 133.640625,
+            "height": 30,
+            "top": 28,
+            "right": 242.640625,
+            "bottom": 58,
+            "left": 109
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 81, 0)",
+          "animations": [
+            {
+              "name": "move",
+              "state": "running",
+              "time": 729
+            }
+          ],
+          "frames": 41,
+          "maxFrameGapMs": 22
+        },
+        {
+          "elapsedMs": 818,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 103,
+            "y": 28,
+            "width": 133.640625,
+            "height": 30,
+            "top": 28,
+            "right": 236.640625,
+            "bottom": 58,
+            "left": 103
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 75, 0)",
+          "animations": [
+            {
+              "name": "move",
+              "state": "running",
+              "time": 835
+            }
+          ],
+          "frames": 47,
+          "maxFrameGapMs": 22
+        },
+        {
+          "elapsedMs": 909,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 239.5,
+            "y": 28,
+            "width": 133.640625,
+            "height": 30,
+            "top": 28,
+            "right": 373.140625,
+            "bottom": 58,
+            "left": 239.5
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 211.5, 0)",
+          "animations": [
+            {
+              "name": "move",
+              "state": "running",
+              "time": 937
+            }
+          ],
+          "frames": 53,
+          "maxFrameGapMs": 22
+        }
+      ],
+      "frames": 53,
+      "maxFrameGapMs": 22,
+      "lastFrameAgeMs": 4
+    },
+    {
+      "locator": "getByRole('button', { name: '查看 Change Set', exact: true })",
+      "elapsedMs": 44,
+      "failure": null,
+      "samples": [
+        {
+          "elapsedMs": 0,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 28,
+            "y": 28,
+            "width": 133.640625,
+            "height": 30,
+            "top": 28,
+            "right": 161.640625,
+            "bottom": 58,
+            "left": 28
+          },
+          "surfaceTransform": "none",
+          "animations": [],
+          "frames": 0,
+          "maxFrameGapMs": 0
+        },
+        {
+          "elapsedMs": 45,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 28,
+            "y": 28,
+            "width": 133.640625,
+            "height": 30,
+            "top": 28,
+            "right": 161.640625,
+            "bottom": 58,
+            "left": 28
+          },
+          "surfaceTransform": "none",
+          "animations": [],
+          "frames": 4,
+          "maxFrameGapMs": 22
+        }
+      ],
+      "frames": 4,
+      "maxFrameGapMs": 22,
+      "lastFrameAgeMs": 7
+    }
+  ]
+}

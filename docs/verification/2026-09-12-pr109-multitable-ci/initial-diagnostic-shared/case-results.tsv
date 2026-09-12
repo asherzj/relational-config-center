@@ -1,0 +1,4 @@
+case	selection	exit_status
+release-multitable.cjs@chromium	selected	0
+release-multitable.cjs@firefox	selected	0
+release-multitable.cjs@webkit	selected	0

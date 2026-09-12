@@ -1,4 +1,3 @@
-const { clickWithDiagnostics, diagnosticDeadline } = require('./click-diagnostics.cjs');
 const { createFixtureApprovalRole, fixtureApprovalInput } = require('./table-approval-fixture.cjs');
 const {readAllReleaseDetailPages,executionCommands,applicationItems}=require('./release-detail-pages.cjs');
 const {repeatReleaseAction,reopenDraftSave,repeatDraftSave}=require('./release-original-action.cjs');
@@ -17,7 +16,7 @@ const digest=value=>createHash('sha256').update(value).digest('hex');
 const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_name:item.table_name,operation:item.operation,...(item.operation==='ADD'?{}:{id:item.id}),expected_record_version:item.expected_record_version,content:item.content}));
 (async()=>{
  const browser=await selectedBrowser(playwright).launch(browserOptions());
- const checks=[],errors=[],evidence={checks,click_diagnostics:[]};
+ const checks=[],errors=[],evidence={checks};
  const check=name=>{checks.push(name);console.log('PASS',name)};
  const api=async(context,method,path,data,status=200)=>{
   const response=await authenticatedRequest(context,base,path,{method,data,headers:{'Idempotency-Key':randomUUID()}});
@@ -66,7 +65,7 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
   for(const table of tables){
    await page.getByRole('link',{name:'添加变更',exact:true}).click();await page.getByLabel('Managed Table',{exact:true}).selectOption(table);
    await button(page,'修改记录 1').click();await page.getByLabel('label 值',{exact:true}).fill(`${table} proposal`);assert.equal(await page.getByLabel('包含 label',{exact:true}).count(),0);
-   await clickWithDiagnostics(button(page,'查看 Change Set'),evidence.click_diagnostics);assert.equal(await page.getByLabel('保存到草稿',{exact:true}).inputValue(),id);await button(page,'确认并保存草稿').click();await page.getByRole('heading',{name:'多表整单浏览器验收',exact:true}).waitFor();
+   await button(page,'查看 Change Set').click();assert.equal(await page.getByLabel('保存到草稿',{exact:true}).inputValue(),id);await button(page,'确认并保存草稿').click();await page.getByRole('heading',{name:'多表整单浏览器验收',exact:true}).waitFor();
   }
   let draft=await read(editor,path);assert.deepEqual(draft.items.map(item=>item.table_name),tables);assert.deepEqual(draft.items.map(item=>item.id),['1','1']);
   const additional=Array.from({length:23},(_,index)=>({table_name:tables[index%2],operation:'MODIFY',id:String(2+Math.floor(index/2)),expected_record_version:'0',content:{label:`page-detail-${index+3}`}}));
@@ -214,22 +213,15 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
   await largePage.goto(base+'/configuration/release-orders');try{await largePage.waitForFunction(()=>window.__rccIDBOpenCalls>0);await largePage.getByText(/浏览器无法读取原发布请求/).waitFor()}catch(error){if(output)writeFileSync(join(output,'storage-unavailable-diagnostic.json'),JSON.stringify(await largePage.evaluate(()=>({url:location.href,openCalls:window.__rccIDBOpenCalls,openFunction:String(indexedDB.open),body:document.body.innerText})),null,2));throw error};await largePage.getByRole('heading',{name:'发布单',exact:true}).waitFor();assert.equal(editWrites,0);
   evidence.storage_unavailable=await largePage.evaluate(()=>({calls:window.__rccIDBOpenCalls,injected:indexedDB.open===IDBFactory.prototype.open&&indexedDB.open.name==='injectedUnavailableOpen'}));assert.ok(evidence.storage_unavailable.calls>0);assert.equal(evidence.storage_unavailable.injected,true);
   check('持久化失败前零业务发送且保留输入，日志读取失败不阻断账号或无关只读页面');
-  evidence.page_errors=errors;assert.deepEqual(errors,[]);if(output)writeFileSync(join(output,'result.json'),JSON.stringify(evidence,null,2));console.log(JSON.stringify(evidence));
+  assert.deepEqual(errors,[]);if(output)writeFileSync(join(output,'result.json'),JSON.stringify(evidence,null,2));console.log(JSON.stringify(evidence));
  }catch(error){
-  evidence.failure={name:error.name,message:error.message,stack:error.stack};
-  evidence.page_errors=errors;
-  evidence.failure_pages=[];
-  if(output){try{
-   // Persist the original failure before best-effort renderer diagnostics.
-   writeFileSync(join(output,'result.json'),JSON.stringify(evidence,null,2));
+  if(output){
+   const snapshots=[];
    for(const [index,surface] of browser.contexts().flatMap(context=>context.pages()).entries()){
-    const snapshot={index,url:surface.url()};
-    try{Object.assign(snapshot,await diagnosticDeadline(surface.locator('html').evaluate(()=>({visibility:document.visibilityState,hasFocus:document.hasFocus()}),undefined,{timeout:2000})));}catch(error){snapshot.stateError=String(error);}
-    try{await surface.screenshot({path:join(output,`failure-${index}.png`),timeout:5000});snapshot.screenshot=`failure-${index}.png`;}catch(error){snapshot.screenshotError=String(error);}
-    evidence.failure_pages.push(snapshot);
-    writeFileSync(join(output,'result.json'),JSON.stringify(evidence,null,2));
+    try{snapshots.push(await surface.evaluate(()=>({url:location.href,visibility:document.visibilityState,body:document.body.innerText,animations:document.getAnimations().map(a=>({state:a.playState,time:a.currentTime,timing:a.effect?.getComputedTiming()})),buttons:[...document.querySelectorAll('button')].filter(e=>e.textContent==='查看 Change Set').map(e=>({rect:e.getBoundingClientRect().toJSON(),style:getComputedStyle(e).cssText}))})));await surface.screenshot({path:join(output,`failure-${index}.png`),timeout:5000});}catch(snapshotError){snapshots.push({snapshotError:String(snapshotError)});}
    }
-  }catch(diagnosticError){console.error('Failed to save multitable diagnostics:',String(diagnosticError));}}
+   writeFileSync(join(output,'failure-diagnostic.json'),JSON.stringify({error:String(error),snapshots},null,2));
+  }
   throw error;
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});
