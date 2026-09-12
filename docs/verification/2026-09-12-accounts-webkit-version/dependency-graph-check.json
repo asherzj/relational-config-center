@@ -1,0 +1,10 @@
+{
+  "only_direct_dependency_changed": "playwright 1.62.1 -> 1.63.0",
+  "changed_family": [
+    "playwright",
+    "playwright-core"
+  ],
+  "removed_orphan_optional_dependency": "fsevents@2.3.2; Darwin-only, formerly referenced exclusively by playwright@1.62.1",
+  "other_dependency_graph_equal": true,
+  "package_other_fields_equal": true
+}

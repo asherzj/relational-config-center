@@ -163,10 +163,10 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  # Temporary #110 OS signal evidence; remove this job and both probe scripts
-  # after this bounded investigation and before delivery.
+  # Temporary #110 engine-version comparison; remove this job and all probe
+  # scripts after this bounded investigation and before delivery.
   accounts-webkit-signal-diagnostic:
-    name: Accounts WebKit signal diagnostic
+    name: Accounts WebKit 1.63 comparison
     if: github.event_name == 'pull_request' && github.event.pull_request.number == 111
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -190,13 +190,11 @@ jobs:
           cache-dependency-path: |
             go.work.sum
             admin/go.sum
-      - name: Install the pinned browser and signal tracer
+      - name: Install the signal tracer
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y strace
-          pnpm --dir web install --frozen-lockfile
-          pnpm --dir web exec playwright install --with-deps webkit
-      - name: Trace browser process exits during at most twelve original cases
+      - name: Compare WebKit 2359 during at most twelve original cases
         env:
           DEBUG: pw:browser
           RCC_E2E_ARTIFACTS: ${{ runner.temp }}/rcc-accounts-webkit-browser
@@ -208,7 +206,7 @@ jobs:
           diagnostic_runner=$(mktemp "$PWD/scripts/.accounts-webkit-repeat.XXXXXX")
           trap 'rm -f -- "$diagnostic_runner" || true' EXIT
           node scripts/diagnose-accounts-webkit-repeat.cjs "$diagnostic_runner"
-          bash scripts/diagnose-accounts-webkit-signals.sh "$diagnostic_runner"
+          bash scripts/diagnose-accounts-webkit-version.sh "$diagnostic_runner"
       - name: Upload signal diagnostic evidence
         if: always()
         uses: actions/upload-artifact@v6

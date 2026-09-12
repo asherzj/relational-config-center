@@ -1,0 +1,103 @@
+2026-09-12T08:43:23.251Z pw:browser <launching> /home/runner/.cache/ms-playwright/webkit-2336/pw_run.sh --inspector-pipe --headless --user-data-dir=/home/runner/work/_temp/rcc-accounts-webkit-browser/release-workflow/recovery-webkit/iteration-1/account-browser-profile-EoUNlF about:blank
+2026-09-12T08:43:23.255Z pw:browser <launched> pid=7683
+2026-09-12T08:43:28.253Z pw:browser [pid=7683][err] libEGL warning: failed to get driver name for fd -1
+2026-09-12T08:43:28.253Z pw:browser [pid=7683][err] 
+2026-09-12T08:43:28.254Z pw:browser [pid=7683][err] libEGL warning: MESA-LOADER: failed to retrieve device information
+2026-09-12T08:43:28.254Z pw:browser [pid=7683][err] 
+2026-09-12T08:43:28.254Z pw:browser [pid=7683][err] libEGL warning: failed to get driver name for fd -1
+2026-09-12T08:43:28.254Z pw:browser [pid=7683][err] 
+2026-09-12T08:43:28.401Z pw:browser [pid=7683][err] MESA: error: ZINK: vkCreateInstance failed (VK_ERROR_INCOMPATIBLE_DRIVER)
+2026-09-12T08:43:28.456Z pw:browser [pid=7683][err] libEGL warning: egl: failed to create dri2 screen
+2026-09-12T08:43:30.408Z pw:browser [pid=7683][err] 
+2026-09-12T08:43:30.409Z pw:browser [pid=7683][err] ** (MiniBrowser:7692): CRITICAL **: 08:43:30.408: WebKitWebView is-controlled-by-automation set but automation is not allowed in the context, falling back to default session.
+2026-09-12T08:43:30.600Z pw:browser [pid=7683][err] libEGL warning: failed to get driver name for fd -1
+2026-09-12T08:43:30.600Z pw:browser [pid=7683][err] 
+2026-09-12T08:43:30.602Z pw:browser [pid=7683][err] libEGL warning: MESA-LOADER: failed to retrieve device information
+2026-09-12T08:43:30.602Z pw:browser [pid=7683][err] 
+2026-09-12T08:43:30.602Z pw:browser [pid=7683][err] libEGL warning: failed to get driver name for fd -1
+2026-09-12T08:43:30.602Z pw:browser [pid=7683][err] 
+2026-09-12T08:43:30.618Z pw:browser [pid=7683][err] MESA: error: ZINK: vkCreateInstance failed (VK_ERROR_INCOMPATIBLE_DRIVER)
+2026-09-12T08:43:30.618Z pw:browser [pid=7683][err] libEGL warning: egl: failed to create dri2 screen
+2026-09-12T08:43:37.148Z pw:browser <launching> /home/runner/.cache/ms-playwright/webkit-2336/pw_run.sh --inspector-pipe --headless --no-startup-window
+2026-09-12T08:43:37.150Z pw:browser <launched> pid=7806
+2026-09-12T08:43:37.583Z pw:browser [pid=7806][err] 
+2026-09-12T08:43:37.583Z pw:browser [pid=7806][err] ** (MiniBrowser:7815): CRITICAL **: 08:43:37.582: WebKitWebView is-controlled-by-automation set but automation is not allowed in the context, falling back to default session.
+2026-09-12T08:43:37.765Z pw:browser [pid=7806][err] libEGL warning: failed to get driver name for fd -1
+2026-09-12T08:43:37.766Z pw:browser [pid=7806][err] 
+2026-09-12T08:43:37.767Z pw:browser [pid=7806][err] libEGL warning: MESA-LOADER: failed to retrieve device information
+2026-09-12T08:43:37.767Z pw:browser [pid=7806][err] 
+2026-09-12T08:43:37.768Z pw:browser [pid=7806][err] libEGL warning: failed to get driver name for fd -1
+2026-09-12T08:43:37.768Z pw:browser [pid=7806][err] 
+2026-09-12T08:43:37.789Z pw:browser [pid=7806][err] MESA: error: ZINK: vkCreateInstance failed (VK_ERROR_INCOMPATIBLE_DRIVER)
+2026-09-12T08:43:37.789Z pw:browser [pid=7806][err] libEGL warning: egl: failed to create dri2 screen
+2026-09-12T08:43:38.242Z pw:browser [pid=7683][err] RENDERER: Fetch API cannot load http://127.0.0.1:43531/api/v1/auth/session due to access control checks.
+2026-09-12T08:43:38.436Z pw:browser [pid=7683] <gracefully close start>
+2026-09-12T08:43:38.701Z pw:browser [pid=7683] <process did exit: exitCode=0, signal=null>
+2026-09-12T08:43:38.701Z pw:browser [pid=7683] starting temporary directories cleanup
+2026-09-12T08:43:38.703Z pw:browser [pid=7683] finished temporary directories cleanup
+2026-09-12T08:43:38.703Z pw:browser [pid=7683] <gracefully close end>
+2026-09-12T08:43:38.704Z pw:browser <launching> /home/runner/.cache/ms-playwright/webkit-2336/pw_run.sh --inspector-pipe --headless --user-data-dir=/home/runner/work/_temp/rcc-accounts-webkit-browser/release-workflow/recovery-webkit/iteration-1/account-browser-profile-EoUNlF about:blank
+2026-09-12T08:43:38.706Z pw:browser <launched> pid=7874
+2026-09-12T08:43:39.156Z pw:browser [pid=7874][err] libEGL warning: failed to get driver name for fd -1
+2026-09-12T08:43:39.156Z pw:browser [pid=7874][err] 
+2026-09-12T08:43:39.158Z pw:browser [pid=7874][err] libEGL warning: MESA-LOADER: failed to retrieve device information
+2026-09-12T08:43:39.158Z pw:browser [pid=7874][err] 
+2026-09-12T08:43:39.158Z pw:browser [pid=7874][err] libEGL warning: failed to get driver name for fd -1
+2026-09-12T08:43:39.158Z pw:browser [pid=7874][err] 
+2026-09-12T08:43:39.179Z pw:browser [pid=7874][err] MESA: error: ZINK: vkCreateInstance failed (VK_ERROR_INCOMPATIBLE_DRIVER)
+2026-09-12T08:43:39.180Z pw:browser [pid=7874][err] libEGL warning: egl: failed to create dri2 screen
+2026-09-12T08:43:39.484Z pw:browser [pid=7874][err] 
+2026-09-12T08:43:39.484Z pw:browser [pid=7874][err] ** (MiniBrowser:7883): CRITICAL **: 08:43:39.483: WebKitWebView is-controlled-by-automation set but automation is not allowed in the context, falling back to default session.
+2026-09-12T08:43:39.668Z pw:browser [pid=7874][err] libEGL warning: failed to get driver name for fd -1
+2026-09-12T08:43:39.668Z pw:browser [pid=7874][err] 
+2026-09-12T08:43:39.670Z pw:browser [pid=7874][err] libEGL warning: MESA-LOADER: failed to retrieve device information
+2026-09-12T08:43:39.670Z pw:browser [pid=7874][err] 
+2026-09-12T08:43:39.670Z pw:browser [pid=7874][err] libEGL warning: failed to get driver name for fd -1
+2026-09-12T08:43:39.670Z pw:browser [pid=7874][err] 
+2026-09-12T08:43:39.689Z pw:browser [pid=7874][err] MESA: error: ZINK: vkCreateInstance failed (VK_ERROR_INCOMPATIBLE_DRIVER)
+2026-09-12T08:43:39.689Z pw:browser [pid=7874][err] libEGL warning: egl: failed to create dri2 screen
+2026-09-12T08:44:15.595Z pw:browser [pid=7806] <gracefully close start>
+2026-09-12T08:44:15.609Z pw:browser [pid=7806] <process did exit: exitCode=0, signal=null>
+2026-09-12T08:44:15.609Z pw:browser [pid=7806] starting temporary directories cleanup
+2026-09-12T08:44:15.610Z pw:browser [pid=7806] finished temporary directories cleanup
+2026-09-12T08:44:15.610Z pw:browser [pid=7806] <gracefully close end>
+2026-09-12T08:44:15.611Z pw:browser [pid=7874] <gracefully close start>
+2026-09-12T08:44:15.694Z pw:browser [pid=7874] <process did exit: exitCode=0, signal=null>
+2026-09-12T08:44:15.694Z pw:browser [pid=7874] starting temporary directories cleanup
+2026-09-12T08:44:15.694Z pw:browser [pid=7874] finished temporary directories cleanup
+2026-09-12T08:44:15.694Z pw:browser [pid=7874] <gracefully close end>
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.click: Target page, context or browser has been closed
+Call log:
+  - waiting for getByRole('button', { name: '确认批准', exact: true })
+    - locator resolved to <button data-slot="button" data-size="default" data-variant="default" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='si…>确认批准</button>
+  - attempting click action
+    2 × waiting for element to be visible, enabled and stable
+      - element is not stable
+    - retrying click action
+    - waiting 20ms
+    2 × waiting for element to be visible, enabled and stable
+      - element is not stable
+    - retrying click action
+      - waiting 100ms
+
+    at /home/runner/work/relational-config-center/relational-config-center/web/e2e/accounts.mjs:435:73 {
+  log: [
+    "  - waiting for getByRole('button', { name: '确认批准', exact: true })",
+    `    - locator resolved to <button data-slot="button" data-size="default" data-variant="default" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='si…>确认批准</button>`,
+    '  - attempting click action',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not stable',
+    '    - retrying click action',
+    '    - waiting 20ms',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not stable',
+    '    - retrying click action',
+    '      - waiting 100ms'
+  ]
+}
+
+Node.js v24.19.0

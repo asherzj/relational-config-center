@@ -1,0 +1,50 @@
+{
+  "cases": [
+    {
+      "runner_exit": 0,
+      "missing_backup": false,
+      "invalid_candidate_hash": false,
+      "supervisor_exit": 0,
+      "expected": 0,
+      "backup_removed": true,
+      "passed": true
+    },
+    {
+      "runner_exit": 42,
+      "missing_backup": false,
+      "invalid_candidate_hash": false,
+      "supervisor_exit": 42,
+      "expected": 42,
+      "backup_removed": true,
+      "passed": true
+    },
+    {
+      "runner_exit": 0,
+      "missing_backup": true,
+      "invalid_candidate_hash": false,
+      "supervisor_exit": 1,
+      "expected": 1,
+      "backup_removed": true,
+      "passed": true
+    },
+    {
+      "runner_exit": 42,
+      "missing_backup": true,
+      "invalid_candidate_hash": false,
+      "supervisor_exit": 42,
+      "expected": 42,
+      "backup_removed": true,
+      "passed": true
+    },
+    {
+      "runner_exit": 0,
+      "missing_backup": false,
+      "invalid_candidate_hash": true,
+      "supervisor_exit": 1,
+      "expected": 1,
+      "backup_removed": true,
+      "passed": true
+    }
+  ],
+  "scope": "actual patch/hash/restore supervisor; pnpm and browser execution skipped; identity reads real locally installed candidate package"
+}

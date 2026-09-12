@@ -1,0 +1,16 @@
+{
+  "playwright": "1.63.0",
+  "core": "1.63.0",
+  "webkit": {
+    "name": "webkit",
+    "revision": "2359",
+    "installByDefault": true,
+    "revisionOverrides": {
+      "mac14": "2251",
+      "mac14-arm64": "2251"
+    },
+    "browserVersion": "26.6",
+    "title": "WebKit"
+  },
+  "scope": "Installed Node packages only; no 2359 browser binary installed or run locally"
+}

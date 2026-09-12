@@ -1,0 +1,9 @@
+{
+  "base": "a221562036136942ff5cbbeace95a44d13532900",
+  "reviewed_tree": "70579231454628eb5dacdd3c1ffb3a752d297e01",
+  "gate": "bounded native version comparison only; required CI and cleanup remain before delivery",
+  "reports": {
+    "docs/verification/2026-09-12-accounts-webkit-version/reviews/spec.md": "23d2117b286ddb7d21b27f78ecbf4147609e3334180c7e89f05023a1fe2c00cf",
+    "docs/verification/2026-09-12-accounts-webkit-version/reviews/standards.md": "79456fe93a4c1c854e4dd3a75906bee74bd382a062cdc2d174bec790e6f6799d"
+  }
+}
