@@ -1,0 +1,3775 @@
+[
+  {
+    "atMs": 770,
+    "phase": "setup",
+    "kind": "goto-start",
+    "page": 0,
+    "from": "about:blank",
+    "to": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_a_webkit?mode=replace"
+  },
+  {
+    "atMs": 805,
+    "phase": "setup",
+    "kind": "navigated",
+    "page": 0,
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_a_webkit?mode=replace"
+  },
+  {
+    "atMs": 920,
+    "phase": "setup",
+    "kind": "navigated",
+    "page": 0,
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_a_webkit?mode=replace"
+  },
+  {
+    "atMs": 935,
+    "phase": "setup",
+    "kind": "goto-end",
+    "page": 0,
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_a_webkit?mode=replace"
+  },
+  {
+    "atMs": 1083,
+    "phase": "setup",
+    "kind": "request",
+    "page": 0,
+    "request": 0,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_a_webkit?mode=replace",
+    "method": "GET"
+  },
+  {
+    "atMs": 1121,
+    "phase": "setup",
+    "kind": "response",
+    "page": 0,
+    "request": 0,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_a_webkit?mode=replace",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 1121,
+    "phase": "setup",
+    "kind": "finished",
+    "page": 0,
+    "request": 0,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_a_webkit?mode=replace",
+    "method": "GET"
+  },
+  {
+    "atMs": 4774,
+    "phase": "setup",
+    "kind": "navigated",
+    "page": 0,
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_a_webkit"
+  },
+  {
+    "atMs": 4835,
+    "phase": "setup",
+    "kind": "request",
+    "page": 0,
+    "request": 1,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_a_webkit",
+    "method": "GET"
+  },
+  {
+    "atMs": 4865,
+    "phase": "setup",
+    "kind": "response",
+    "page": 0,
+    "request": 1,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_a_webkit",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 4865,
+    "phase": "setup",
+    "kind": "finished",
+    "page": 0,
+    "request": 1,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_a_webkit",
+    "method": "GET"
+  },
+  {
+    "atMs": 4890,
+    "phase": "setup",
+    "kind": "goto-start",
+    "page": 0,
+    "from": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_a_webkit",
+    "to": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_b_webkit?mode=replace"
+  },
+  {
+    "atMs": 4903,
+    "phase": "setup",
+    "kind": "navigated",
+    "page": 0,
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_b_webkit?mode=replace"
+  },
+  {
+    "atMs": 4939,
+    "phase": "setup",
+    "kind": "navigated",
+    "page": 0,
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_b_webkit?mode=replace"
+  },
+  {
+    "atMs": 4941,
+    "phase": "setup",
+    "kind": "goto-end",
+    "page": 0,
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_b_webkit?mode=replace"
+  },
+  {
+    "atMs": 4992,
+    "phase": "setup",
+    "kind": "request",
+    "page": 0,
+    "request": 2,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_b_webkit?mode=replace",
+    "method": "GET"
+  },
+  {
+    "atMs": 5042,
+    "phase": "setup",
+    "kind": "response",
+    "page": 0,
+    "request": 2,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_b_webkit?mode=replace",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 5043,
+    "phase": "setup",
+    "kind": "finished",
+    "page": 0,
+    "request": 2,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_b_webkit?mode=replace",
+    "method": "GET"
+  },
+  {
+    "atMs": 6046,
+    "phase": "setup",
+    "kind": "navigated",
+    "page": 0,
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_b_webkit"
+  },
+  {
+    "atMs": 6106,
+    "phase": "setup",
+    "kind": "request",
+    "page": 0,
+    "request": 3,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_b_webkit",
+    "method": "GET"
+  },
+  {
+    "atMs": 6132,
+    "phase": "setup",
+    "kind": "response",
+    "page": 0,
+    "request": 3,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_b_webkit",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 6133,
+    "phase": "setup",
+    "kind": "finished",
+    "page": 0,
+    "request": 3,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/platform/table-policies/multitable_browser_b_webkit",
+    "method": "GET"
+  },
+  {
+    "atMs": 7159,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "goto-start",
+    "page": 1,
+    "from": "about:blank",
+    "to": "http://127.0.0.1:51414/configuration/release-orders"
+  },
+  {
+    "atMs": 7181,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders"
+  },
+  {
+    "atMs": 7294,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders"
+  },
+  {
+    "atMs": 7311,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "goto-end",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders"
+  },
+  {
+    "atMs": 7353,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 4,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders",
+    "method": "GET"
+  },
+  {
+    "atMs": 7354,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 5,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/release-orders",
+    "method": "GET"
+  },
+  {
+    "atMs": 7414,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 4,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 7416,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 4,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders",
+    "method": "GET"
+  },
+  {
+    "atMs": 7418,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 5,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/release-orders",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 7419,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 5,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/release-orders",
+    "method": "GET"
+  },
+  {
+    "atMs": 8326,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 6,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/release-orders",
+    "method": "POST"
+  },
+  {
+    "atMs": 8359,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 6,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/release-orders",
+    "method": "POST",
+    "status": 201
+  },
+  {
+    "atMs": 8359,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 6,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/release-orders",
+    "method": "POST"
+  },
+  {
+    "atMs": 8367,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 7,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/release-orders",
+    "method": "GET"
+  },
+  {
+    "atMs": 8369,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 8,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders",
+    "method": "GET"
+  },
+  {
+    "atMs": 8375,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 8376,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 7,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8377,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 7,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8377,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 8,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8377,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 8,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8428,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 9,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8428,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 10,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8444,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 9,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8445,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 9,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8449,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 10,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8450,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 10,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8460,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 11,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8460,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 12,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8504,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 11,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8504,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 11,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8504,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 12,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8504,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 12,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8609,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 8615,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 13,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8630,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 13,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8630,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 13,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8645,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 14,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8669,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 14,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8670,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 14,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8737,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 15,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 8761,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 15,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8763,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 15,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10503,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 16,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10527,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 16,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 10527,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 16,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10544,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 17,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "PUT"
+  },
+  {
+    "atMs": 10607,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 17,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "PUT",
+    "status": 200
+  },
+  {
+    "atMs": 10607,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 17,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "PUT"
+  },
+  {
+    "atMs": 10611,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 18,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10611,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 19,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10615,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 10630,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 19,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 10630,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 19,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10638,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 18,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 10638,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 18,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10648,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 20,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10649,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 21,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10649,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 22,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10651,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 23,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10664,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 20,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 10667,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 20,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10667,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 21,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 409
+  },
+  {
+    "atMs": 10670,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 21,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10681,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 22,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 10681,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 22,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10687,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 24,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10688,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 23,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 10689,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 23,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10703,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 24,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 10705,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 24,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10821,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 10828,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 25,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10832,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 26,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10866,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 25,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 10866,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 25,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10873,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 26,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 10873,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 26,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10914,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 27,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 10940,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 27,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 10940,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 27,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12093,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 28,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12121,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 28,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12121,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 28,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12138,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 29,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "PUT"
+  },
+  {
+    "atMs": 12215,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 29,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "PUT",
+    "status": 200
+  },
+  {
+    "atMs": 12215,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 29,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "PUT"
+  },
+  {
+    "atMs": 12216,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 30,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12216,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 31,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/managed-data?table_name=multitable_browser_a_webkit&draft=f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12226,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 12236,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 31,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12237,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 31,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12252,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 32,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12252,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 33,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12254,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 34,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12257,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 35,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12259,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 30,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12259,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 30,
+    "path": "/api/v1/release-orders",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12266,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 32,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12267,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 32,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12274,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 33,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 409
+  },
+  {
+    "atMs": 12275,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 33,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12301,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 34,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12301,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 34,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12301,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 35,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12302,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 35,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12314,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 36,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12333,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 36,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12333,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 36,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12558,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "reload-start",
+    "page": 1,
+    "from": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 12568,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 12610,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "reload-end",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 12654,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 37,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12655,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 38,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12667,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 37,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12667,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 37,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12685,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 38,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12687,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 38,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12706,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 39,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12709,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 40,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12736,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 39,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12739,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 39,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12755,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 40,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12755,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 40,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12867,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 41,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 12883,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 41,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12883,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 41,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 13739,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 42,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "PUT"
+  },
+  {
+    "atMs": 13932,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 42,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "PUT",
+    "status": 200
+  },
+  {
+    "atMs": 13934,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 42,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "PUT"
+  },
+  {
+    "atMs": 13936,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 43,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 13940,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 44,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 13940,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 45,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 13955,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 43,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 13956,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 43,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 13991,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 44,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 13991,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 44,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 13991,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 45,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 13996,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 45,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 14006,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "request",
+    "page": 1,
+    "request": 46,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 14028,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "response",
+    "page": 1,
+    "request": 46,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 14028,
+    "phase": "管理员在设置页为同一后续多表发布链路配置管控键",
+    "kind": "finished",
+    "page": 1,
+    "request": 46,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 14182,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "reload-start",
+    "page": 1,
+    "from": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 14193,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 14235,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "reload-end",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 14274,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 47,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 14275,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 48,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 14289,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 47,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 14289,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 47,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 14308,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 48,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 14309,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 48,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 14316,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 49,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 14317,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 50,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 14339,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 49,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 14341,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 49,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 14366,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 50,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 14366,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 50,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 14422,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 51,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 14440,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 51,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 14441,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 51,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 15477,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 52,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/submit",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 15683,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 52,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/submit",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST",
+    "status": 200
+  },
+  {
+    "atMs": 15683,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 52,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/submit",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 15684,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 53,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 15692,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 54,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 15692,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 55,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 15708,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 53,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 15709,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 53,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 15718,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 54,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 15718,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 54,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 15718,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 55,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 15718,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 55,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 15736,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 56,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 15752,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 56,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 15753,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 56,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 15796,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "goto-start",
+    "page": 2,
+    "from": "about:blank",
+    "to": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 15826,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "navigated",
+    "page": 2,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 15926,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "navigated",
+    "page": 2,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 15944,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "goto-end",
+    "page": 2,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 16018,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 2,
+    "request": 57,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 16020,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 2,
+    "request": 58,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 16075,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 2,
+    "request": 57,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 16075,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 2,
+    "request": 57,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 16075,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 2,
+    "request": 58,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 16075,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 2,
+    "request": 58,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 16092,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 2,
+    "request": 59,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/notification-read",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 16100,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 2,
+    "request": 60,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 16108,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 2,
+    "request": 61,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 16151,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 2,
+    "request": 60,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 16152,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 2,
+    "request": 59,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/notification-read",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST",
+    "status": 200
+  },
+  {
+    "atMs": 16152,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 2,
+    "request": 59,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/notification-read",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 16152,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 2,
+    "request": 60,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 16157,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 2,
+    "request": 61,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 16157,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 2,
+    "request": 61,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 16187,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 2,
+    "request": 62,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 16264,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 2,
+    "request": 62,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 16264,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 2,
+    "request": 62,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 16381,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 2,
+    "request": 63,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 16402,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 2,
+    "request": 63,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 16402,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 2,
+    "request": 63,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 16448,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 2,
+    "request": 64,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 16466,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 2,
+    "request": 64,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 16466,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 2,
+    "request": 64,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17038,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 2,
+    "request": 65,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/approve",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 17087,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 2,
+    "request": 65,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/approve",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST",
+    "status": 200
+  },
+  {
+    "atMs": 17090,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 2,
+    "request": 65,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/approve",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 17091,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 2,
+    "request": 66,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17093,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 2,
+    "request": 67,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17094,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 2,
+    "request": 68,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17116,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 2,
+    "request": 66,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 17119,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 2,
+    "request": 66,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17140,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 2,
+    "request": 67,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 17142,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 2,
+    "request": 67,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17142,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 2,
+    "request": 68,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 17142,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 2,
+    "request": 68,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17157,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 2,
+    "request": 69,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17171,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 2,
+    "request": 69,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 17171,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 2,
+    "request": 69,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17242,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "reload-start",
+    "page": 1,
+    "from": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 17263,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 17315,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "reload-end",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 17358,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 70,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17359,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 71,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17375,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 70,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 17380,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 70,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17381,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 71,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 17381,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 71,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17392,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 72,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/notification-read",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 17397,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 73,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17399,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 74,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17432,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 72,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/notification-read",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST",
+    "status": 200
+  },
+  {
+    "atMs": 17435,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 73,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 17435,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 72,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/notification-read",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 17435,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 73,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17442,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 75,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17449,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 74,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 17449,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 74,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17482,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 75,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 17483,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 75,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17572,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 76,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 17589,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 76,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 17589,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 76,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 18595,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 77,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/execute",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 18792,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 77,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/execute",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST",
+    "status": 200
+  },
+  {
+    "atMs": 18794,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 77,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/execute",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 18802,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 78,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 18802,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 79,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 18803,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 80,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 18824,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 78,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 18824,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 78,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 18829,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 79,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 18829,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 79,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 18838,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "request",
+    "page": 1,
+    "request": 81,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 18838,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 80,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 18838,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 80,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 18854,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "response",
+    "page": 1,
+    "request": 81,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 18854,
+    "phase": "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "kind": "finished",
+    "page": 1,
+    "request": 81,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19015,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 82,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19027,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 82,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 19029,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 82,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19184,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 83,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19200,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 83,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 19202,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 83,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19224,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 84,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/quick-rollback/preview",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 19454,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 84,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/quick-rollback/preview",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST",
+    "status": 200
+  },
+  {
+    "atMs": 19455,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 84,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/quick-rollback/preview",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 19459,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 85,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19459,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 86,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19463,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 87,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19479,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 85,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 19481,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 85,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19483,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 86,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 19483,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 86,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19485,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 87,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 19485,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 87,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19491,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 88,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19500,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 89,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19511,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 88,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 19512,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 88,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19535,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 89,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 19535,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 89,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 19902,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 90,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/quick-rollback",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 20195,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 90,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/quick-rollback",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST",
+    "status": 200
+  },
+  {
+    "atMs": 20198,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 90,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/quick-rollback",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 20203,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 91,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 20203,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 92,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 20206,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 93,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 20221,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 91,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 20221,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 91,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 20226,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 92,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 20226,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 92,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 20238,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 94,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 20239,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 93,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 20239,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 93,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 20240,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216"
+  },
+  {
+    "atMs": 20256,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 94,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 20257,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 94,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 20277,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 95,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 20292,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 95,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 20292,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 95,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 21260,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "request",
+    "page": 1,
+    "request": 96,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 21280,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "response",
+    "page": 1,
+    "request": 96,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 21283,
+    "phase": "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "kind": "finished",
+    "page": 1,
+    "request": 96,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 21819,
+    "phase": "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "kind": "request",
+    "page": 1,
+    "request": 97,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/rollback-reason",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 21865,
+    "phase": "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "kind": "response",
+    "page": 1,
+    "request": 97,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/rollback-reason",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST",
+    "status": 200
+  },
+  {
+    "atMs": 21865,
+    "phase": "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "kind": "finished",
+    "page": 1,
+    "request": 97,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/rollback-reason",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "POST"
+  },
+  {
+    "atMs": 21866,
+    "phase": "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "kind": "request",
+    "page": 1,
+    "request": 98,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 21866,
+    "phase": "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "kind": "request",
+    "page": 1,
+    "request": 99,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 21867,
+    "phase": "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "kind": "request",
+    "page": 1,
+    "request": 100,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 21883,
+    "phase": "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "kind": "response",
+    "page": 1,
+    "request": 98,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 21884,
+    "phase": "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "kind": "finished",
+    "page": 1,
+    "request": 98,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 21900,
+    "phase": "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "kind": "response",
+    "page": 1,
+    "request": 99,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 21900,
+    "phase": "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "kind": "finished",
+    "page": 1,
+    "request": 99,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 21900,
+    "phase": "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "kind": "response",
+    "page": 1,
+    "request": 100,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 21900,
+    "phase": "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "kind": "finished",
+    "page": 1,
+    "request": 100,
+    "path": "/api/v1/release-orders/f08db2a36f7c6161363bc89818cfe216/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "method": "GET"
+  },
+  {
+    "atMs": 23364,
+    "phase": "copy",
+    "kind": "copy-source",
+    "id": "3cf48e12912c0d7fcf6110f7f23733f2"
+  },
+  {
+    "atMs": 24110,
+    "phase": "copy",
+    "kind": "goto-start",
+    "page": 1,
+    "from": "http://127.0.0.1:51414/configuration/release-orders/f08db2a36f7c6161363bc89818cfe216",
+    "to": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2"
+  },
+  {
+    "atMs": 24120,
+    "phase": "copy",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2"
+  },
+  {
+    "atMs": 24158,
+    "phase": "copy",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2"
+  },
+  {
+    "atMs": 24158,
+    "phase": "copy",
+    "kind": "goto-end",
+    "page": 1,
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2"
+  },
+  {
+    "atMs": 24182,
+    "phase": "copy",
+    "kind": "request",
+    "page": 1,
+    "request": 101,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 24183,
+    "phase": "copy",
+    "kind": "request",
+    "page": 1,
+    "request": 102,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 24200,
+    "phase": "copy",
+    "kind": "response",
+    "page": 1,
+    "request": 101,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 24200,
+    "phase": "copy",
+    "kind": "finished",
+    "page": 1,
+    "request": 101,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 24203,
+    "phase": "copy",
+    "kind": "response",
+    "page": 1,
+    "request": 102,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 24205,
+    "phase": "copy",
+    "kind": "finished",
+    "page": 1,
+    "request": 102,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 24228,
+    "phase": "copy",
+    "kind": "request",
+    "page": 1,
+    "request": 103,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/notification-read",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "POST"
+  },
+  {
+    "atMs": 24228,
+    "phase": "copy",
+    "kind": "request",
+    "page": 1,
+    "request": 104,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 24229,
+    "phase": "copy",
+    "kind": "request",
+    "page": 1,
+    "request": 105,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 24268,
+    "phase": "copy",
+    "kind": "response",
+    "page": 1,
+    "request": 104,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 24268,
+    "phase": "copy",
+    "kind": "finished",
+    "page": 1,
+    "request": 104,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 24271,
+    "phase": "copy",
+    "kind": "response",
+    "page": 1,
+    "request": 103,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/notification-read",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "POST",
+    "status": 200
+  },
+  {
+    "atMs": 24271,
+    "phase": "copy",
+    "kind": "finished",
+    "page": 1,
+    "request": 103,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/notification-read",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "POST"
+  },
+  {
+    "atMs": 24277,
+    "phase": "copy",
+    "kind": "request",
+    "page": 1,
+    "request": 106,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 24285,
+    "phase": "copy",
+    "kind": "response",
+    "page": 1,
+    "request": 105,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 24288,
+    "phase": "copy",
+    "kind": "finished",
+    "page": 1,
+    "request": 105,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 24288,
+    "phase": "copy",
+    "kind": "response",
+    "page": 1,
+    "request": 106,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 24288,
+    "phase": "copy",
+    "kind": "finished",
+    "page": 1,
+    "request": 106,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 24912,
+    "phase": "copy",
+    "kind": "request",
+    "page": 1,
+    "request": 107,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 24935,
+    "phase": "copy",
+    "kind": "response",
+    "page": 1,
+    "request": 107,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 24936,
+    "phase": "copy",
+    "kind": "finished",
+    "page": 1,
+    "request": 107,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/details",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 24936,
+    "phase": "copy",
+    "kind": "request",
+    "page": 1,
+    "request": 108,
+    "path": "/api/v1/release-orders/preview",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "POST"
+  },
+  {
+    "atMs": 24988,
+    "phase": "copy",
+    "kind": "response",
+    "page": 1,
+    "request": 108,
+    "path": "/api/v1/release-orders/preview",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "POST",
+    "status": 200
+  },
+  {
+    "atMs": 24988,
+    "phase": "copy",
+    "kind": "finished",
+    "page": 1,
+    "request": 108,
+    "path": "/api/v1/release-orders/preview",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "POST"
+  },
+  {
+    "atMs": 25133,
+    "phase": "copy",
+    "kind": "request",
+    "page": 1,
+    "request": 109,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/copy",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "POST"
+  },
+  {
+    "atMs": 25208,
+    "phase": "copy",
+    "kind": "response",
+    "page": 1,
+    "request": 109,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/copy",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "POST",
+    "status": 409
+  },
+  {
+    "atMs": 25208,
+    "phase": "copy",
+    "kind": "finished",
+    "page": 1,
+    "request": 109,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2/copy",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "POST"
+  },
+  {
+    "atMs": 25213,
+    "phase": "copy",
+    "kind": "request",
+    "page": 1,
+    "request": 110,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 25215,
+    "phase": "copy",
+    "kind": "request",
+    "page": 1,
+    "request": 111,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 25232,
+    "phase": "copy",
+    "kind": "request",
+    "page": 1,
+    "request": 112,
+    "path": "/api/v1/release-orders/d2a49dd73eee0fb7c587c25053d07338/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 25235,
+    "phase": "copy",
+    "kind": "response",
+    "page": 1,
+    "request": 110,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 25235,
+    "phase": "copy",
+    "kind": "finished",
+    "page": 1,
+    "request": 110,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 25236,
+    "phase": "copy",
+    "kind": "response",
+    "page": 1,
+    "request": 111,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 25238,
+    "phase": "copy",
+    "kind": "finished",
+    "page": 1,
+    "request": 111,
+    "path": "/api/v1/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  },
+  {
+    "atMs": 25262,
+    "phase": "copy",
+    "kind": "response",
+    "page": 1,
+    "request": 112,
+    "path": "/api/v1/release-orders/d2a49dd73eee0fb7c587c25053d07338/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 25262,
+    "phase": "copy",
+    "kind": "finished",
+    "page": 1,
+    "request": 112,
+    "path": "/api/v1/release-orders/d2a49dd73eee0fb7c587c25053d07338/people",
+    "url": "http://127.0.0.1:51414/configuration/release-orders/3cf48e12912c0d7fcf6110f7f23733f2",
+    "method": "GET"
+  }
+]

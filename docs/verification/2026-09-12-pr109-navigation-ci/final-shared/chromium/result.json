@@ -1,0 +1,788 @@
+{
+  "checks": [
+    "管理员在设置页为同一后续多表发布链路配置管控键",
+    "无起始表空单从明细加入两表同ID，25项分页编辑和390px键盘全局排序",
+    "同名字段按实际所属表展示当前标签，列表隐藏规则不隐藏实际 before/final",
+    "独立审批后25项整单发布，原单倒序恢复并切换申请/原发布/恢复三类结果",
+    "同一原单贯通管理员管控键、真实分页多表草稿、独立审批发布、原单恢复和实际执行人原因补填",
+    "两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚",
+    "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "重新准备从确认页原子生成实际操作者草稿，新旧双向关联且新草稿重新独立审批",
+    "真实应用9MiB正文保存丢响应，刷新/撤权/账号切换后原key与全文恢复同一草稿",
+    "持久化失败前零业务发送且保留输入，日志读取失败不阻断账号或无关只读页面"
+  ],
+  "click_diagnostics": [
+    {
+      "locator": "getByRole('button', { name: '查看 Change Set', exact: true })",
+      "elapsedMs": 834,
+      "failure": null,
+      "samples": [
+        {
+          "elapsedMs": 0.09999999962747097,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1908.536865234375,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 2048.786865234375,
+            "bottom": 980.5,
+            "left": 1908.536865234375
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 636.787, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 23.399999999999864
+            }
+          ],
+          "frames": 0,
+          "maxFrameGapMs": 0
+        },
+        {
+          "elapsedMs": 101.79999999888241,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1735.2205810546875,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1875.4705810546875,
+            "bottom": 980.5,
+            "left": 1735.2205810546875
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 463.471, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 132.9
+            }
+          ],
+          "frames": 13,
+          "maxFrameGapMs": 10.100000000000136
+        },
+        {
+          "elapsedMs": 201.19999999925494,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1445.393798828125,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1585.643798828125,
+            "bottom": 980.5,
+            "left": 1445.393798828125
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 173.644, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 232.8999999999999
+            }
+          ],
+          "frames": 25,
+          "maxFrameGapMs": 10.100000000000136
+        },
+        {
+          "elapsedMs": 302.09999999962747,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1322.769775390625,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1463.019775390625,
+            "bottom": 980.5,
+            "left": 1322.769775390625
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 51.0198, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 332.9
+            }
+          ],
+          "frames": 37,
+          "maxFrameGapMs": 10.100000000000136
+        },
+        {
+          "elapsedMs": 401.19999999925494,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1278.45458984375,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1418.70458984375,
+            "bottom": 980.5,
+            "left": 1278.45458984375
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 6.70461, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 432.89999999999986
+            }
+          ],
+          "frames": 49,
+          "maxFrameGapMs": 10.100000000000136
+        },
+        {
+          "elapsedMs": 501,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1271.75,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1412,
+            "bottom": 980.5,
+            "left": 1271.75
+          },
+          "surfaceTransform": "none",
+          "animations": [],
+          "frames": 61,
+          "maxFrameGapMs": 10.199999999999818
+        },
+        {
+          "elapsedMs": 602.1999999992549,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1271.75,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1412,
+            "bottom": 980.5,
+            "left": 1271.75
+          },
+          "surfaceTransform": "none",
+          "animations": [],
+          "frames": 73,
+          "maxFrameGapMs": 10.199999999999818
+        },
+        {
+          "elapsedMs": 702.2999999988824,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1271.75,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1412,
+            "bottom": 980.5,
+            "left": 1271.75
+          },
+          "surfaceTransform": "none",
+          "animations": [],
+          "frames": 85,
+          "maxFrameGapMs": 10.199999999999818
+        },
+        {
+          "elapsedMs": 801.0999999996275,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1271.75,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1412,
+            "bottom": 980.5,
+            "left": 1271.75
+          },
+          "surfaceTransform": "none",
+          "animations": [],
+          "frames": 97,
+          "maxFrameGapMs": 10.199999999999818
+        },
+        {
+          "elapsedMs": 833.1999999992549,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": false,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "surfaceTransform": "",
+          "animations": [],
+          "frames": 100,
+          "maxFrameGapMs": 10.300000000000182
+        }
+      ],
+      "frames": 100,
+      "maxFrameGapMs": 10.300000000000182,
+      "lastFrameAgeMs": 8.600000000372347
+    },
+    {
+      "locator": "getByRole('button', { name: '查看 Change Set', exact: true })",
+      "elapsedMs": 848,
+      "failure": null,
+      "samples": [
+        {
+          "elapsedMs": 0,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1910.1982421875,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 2050.4482421875,
+            "bottom": 980.5,
+            "left": 1910.1982421875
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 638.448, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 16.499999999999737
+            }
+          ],
+          "frames": 0,
+          "maxFrameGapMs": 0
+        },
+        {
+          "elapsedMs": 102.20000000111759,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1785.1978759765625,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1925.4478759765625,
+            "bottom": 980.5,
+            "left": 1785.1978759765625
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 513.448, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 116.49999999999983
+            }
+          ],
+          "frames": 12,
+          "maxFrameGapMs": 10.200000000000273
+        },
+        {
+          "elapsedMs": 202.40000000037253,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1478.544677734375,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1618.794677734375,
+            "bottom": 980.5,
+            "left": 1478.544677734375
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 206.795, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 216.8000000000001
+            }
+          ],
+          "frames": 24,
+          "maxFrameGapMs": 10.300000000000182
+        },
+        {
+          "elapsedMs": 301.90000000037253,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1336.043212890625,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1476.293212890625,
+            "bottom": 980.5,
+            "left": 1336.043212890625
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 64.2933, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 316.1999999999998
+            }
+          ],
+          "frames": 36,
+          "maxFrameGapMs": 10.300000000000182
+        },
+        {
+          "elapsedMs": 402.09999999962747,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1282.4464111328125,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1422.6964111328125,
+            "bottom": 980.5,
+            "left": 1282.4464111328125
+          },
+          "surfaceTransform": "matrix(1, 0, 0, 1, 10.6964, 0)",
+          "animations": [
+            {
+              "name": "enter",
+              "state": "running",
+              "time": 416.5000000000001
+            }
+          ],
+          "frames": 48,
+          "maxFrameGapMs": 10.300000000000182
+        },
+        {
+          "elapsedMs": 500.2000000011176,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1271.75,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1412,
+            "bottom": 980.5,
+            "left": 1271.75
+          },
+          "surfaceTransform": "none",
+          "animations": [],
+          "frames": 60,
+          "maxFrameGapMs": 10.300000000000182
+        },
+        {
+          "elapsedMs": 601.8000000007451,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1271.75,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1412,
+            "bottom": 980.5,
+            "left": 1271.75
+          },
+          "surfaceTransform": "none",
+          "animations": [],
+          "frames": 72,
+          "maxFrameGapMs": 10.300000000000182
+        },
+        {
+          "elapsedMs": 701.3000000007451,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1271.75,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1412,
+            "bottom": 980.5,
+            "left": 1271.75
+          },
+          "surfaceTransform": "none",
+          "animations": [],
+          "frames": 84,
+          "maxFrameGapMs": 10.300000000000182
+        },
+        {
+          "elapsedMs": 801.8000000007451,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": true,
+          "rect": {
+            "x": 1271.75,
+            "y": 944.5,
+            "width": 140.25,
+            "height": 36,
+            "top": 944.5,
+            "right": 1412,
+            "bottom": 980.5,
+            "left": 1271.75
+          },
+          "surfaceTransform": "none",
+          "animations": [],
+          "frames": 96,
+          "maxFrameGapMs": 10.300000000000182
+        },
+        {
+          "elapsedMs": 845.4000000003725,
+          "visibility": "visible",
+          "hasFocus": true,
+          "connected": false,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "surfaceTransform": "",
+          "animations": [],
+          "frames": 100,
+          "maxFrameGapMs": 16.5
+        }
+      ],
+      "frames": 100,
+      "maxFrameGapMs": 16.5,
+      "lastFrameAgeMs": 9.100000000372347
+    }
+  ],
+  "original_order_journey": {
+    "order_id": "295ce894f884633a8d7269477404ad23",
+    "publication_execution": "295ce894f884633a8d7269477404ad23:PUBLICATION",
+    "rollback_execution": "295ce894f884633a8d7269477404ad23:ROLLBACK",
+    "reason_actor": "fafe906d-827c-4e02-a8fd-19bff6cf4a0a",
+    "configured_keys": {
+      "multitable_browser_a": [
+        "label"
+      ],
+      "multitable_browser_b": [
+        "label"
+      ]
+    },
+    "review_pages": [
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "2",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "2",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "4",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "4",
+        "offset": "0",
+        "limit": "100"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "5",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "5",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "5",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "6",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "6",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "6",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "6",
+        "offset": "20",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "7",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "7",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "7",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "8",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "8",
+        "offset": "20",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "9",
+        "offset": "20",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "10",
+        "offset": "20",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/295ce894f884633a8d7269477404ad23/details",
+        "version": "10",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/8bb3c24bd85a04cb7ea6a34042e6b646/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/8bb3c24bd85a04cb7ea6a34042e6b646/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "100"
+      },
+      {
+        "path": "/api/v1/release-orders/8bb3c24bd85a04cb7ea6a34042e6b646/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "100"
+      },
+      {
+        "path": "/api/v1/release-orders/b9b3d169ce98d5099a54ac0c8d821fd4/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/8bb3c24bd85a04cb7ea6a34042e6b646/details",
+        "version": "4",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/b9b3d169ce98d5099a54ac0c8d821fd4/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/1df9f239a25c6c9632f168ce3831d1a5/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/1df9f239a25c6c9632f168ce3831d1a5/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "100"
+      },
+      {
+        "path": "/api/v1/release-orders/867b3b35a78369e194ae91a1df0382de/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/1df9f239a25c6c9632f168ce3831d1a5/details",
+        "version": "4",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/867b3b35a78369e194ae91a1df0382de/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/867b3b35a78369e194ae91a1df0382de/details",
+        "version": "1",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/867b3b35a78369e194ae91a1df0382de/details",
+        "version": "2",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/867b3b35a78369e194ae91a1df0382de/details",
+        "version": "2",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/867b3b35a78369e194ae91a1df0382de/details",
+        "version": "2",
+        "offset": "0",
+        "limit": "20"
+      },
+      {
+        "path": "/api/v1/release-orders/867b3b35a78369e194ae91a1df0382de/details",
+        "version": "3",
+        "offset": "0",
+        "limit": "20"
+      }
+    ]
+  },
+  "session_checks": [
+    {
+      "account_id": "fafe906d-827c-4e02-a8fd-19bff6cf4a0a",
+      "roles": [
+        "EDITOR",
+        "PUBLISHER"
+      ],
+      "username": "e2e.fc3ba13df33362cbd2d2",
+      "workspace_ready": true
+    },
+    {
+      "account_id": "fafe906d-827c-4e02-a8fd-19bff6cf4a0a",
+      "roles": [
+        "VIEWER"
+      ],
+      "username": "e2e.fc3ba13df33362cbd2d2",
+      "workspace_ready": true
+    },
+    {
+      "account_id": "73ff382a-0c0f-4b35-87ec-e9b366ec8e2d",
+      "roles": [
+        "VIEWER"
+      ],
+      "username": "e2e.49b07f438c445410fa3f",
+      "workspace_ready": true
+    },
+    {
+      "account_id": "fafe906d-827c-4e02-a8fd-19bff6cf4a0a",
+      "roles": [
+        "EDITOR",
+        "PUBLISHER"
+      ],
+      "username": "e2e.fc3ba13df33362cbd2d2",
+      "workspace_ready": true
+    }
+  ],
+  "large_request": {
+    "bytes": 9437321,
+    "sha256": "6098606ac814f10f3d22bd183bb731c053f66e16b29418200766bbc76e798606",
+    "same_key": true,
+    "same_order": true,
+    "account_isolation": true
+  },
+  "storage_unavailable": {
+    "calls": 1,
+    "injected": true
+  },
+  "page_errors": []
+}

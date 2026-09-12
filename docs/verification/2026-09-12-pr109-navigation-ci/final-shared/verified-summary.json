@@ -1,0 +1,65 @@
+[
+  {
+    "engine": "chromium",
+    "checks": 10,
+    "pageErrors": [],
+    "targetClickMs": [
+      834,
+      848
+    ],
+    "copyCheck": "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "largeRequest": {
+      "bytes": 9437321,
+      "sha256": "6098606ac814f10f3d22bd183bb731c053f66e16b29418200766bbc76e798606",
+      "same_key": true,
+      "same_order": true,
+      "account_isolation": true
+    },
+    "storageUnavailable": {
+      "calls": 1,
+      "injected": true
+    }
+  },
+  {
+    "engine": "firefox",
+    "checks": 10,
+    "pageErrors": [],
+    "targetClickMs": [
+      999,
+      1009
+    ],
+    "copyCheck": "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "largeRequest": {
+      "bytes": 9437329,
+      "sha256": "39e9b92c6cf6938b9468b7b9f0a42be972213d58db4b9b084c5b07df23144e9c",
+      "same_key": true,
+      "same_order": true,
+      "account_isolation": true
+    },
+    "storageUnavailable": {
+      "calls": 1,
+      "injected": true
+    }
+  },
+  {
+    "engine": "webkit",
+    "checks": 10,
+    "pageErrors": [],
+    "targetClickMs": [
+      556,
+      601
+    ],
+    "copyCheck": "复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联",
+    "largeRequest": {
+      "bytes": 9437328,
+      "sha256": "e91ba8a934c8a0e775ca2ee557ac00615c7ad9e2a80b3c2a60d3f5f9cfa90a11",
+      "same_key": true,
+      "same_order": true,
+      "account_isolation": true
+    },
+    "storageUnavailable": {
+      "calls": 1,
+      "injected": true
+    }
+  }
+]

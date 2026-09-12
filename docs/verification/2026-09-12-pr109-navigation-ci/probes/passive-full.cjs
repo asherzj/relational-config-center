@@ -18,7 +18,9 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
 (async()=>{
  const browser=await selectedBrowser(playwright).launch(browserOptions());
  const checks=[],errors=[],evidence={checks,click_diagnostics:[]};
- const check=name=>{checks.push(name);console.log('PASS',name)};
+ const timeline=[];let phase='setup',pageNumber=0,requestNumber=0;const started=Date.now();
+ const event=(kind,detail)=>timeline.push({atMs:Date.now()-started,phase,kind,...detail});
+ const check=name=>{checks.push(name);console.log('PASS',name);phase=name};
  const api=async(context,method,path,data,status=200)=>{
   const response=await authenticatedRequest(context,base,path,{method,data,headers:{'Idempotency-Key':randomUUID()}});
   assert.equal(response.status(),status,`${method} ${path}: ${(await response.text()).slice(0,500)}`);return response.json();
@@ -38,7 +40,15 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
  };
 
  const shot=async(page,name)=>{if(output)await page.screenshot({path:join(output,name),fullPage:false,animations:'disabled'})};
- const pageFor=async context=>{const page=await context.newPage();page.setDefaultTimeout(20000);page.on('pageerror',error=>errors.push(error.message));page.on('dialog',dialog=>dialog.accept());return page};
+ const pageFor=async context=>{const page=await context.newPage(),number=pageNumber++;const ids=new WeakMap();page.setDefaultTimeout(20000);page.on('pageerror',error=>{errors.push(error.message);event('pageerror',{page:number,url:page.url(),message:error.message})});page.on('dialog',dialog=>dialog.accept());
+  const detail=request=>({page:number,request:ids.get(request),path:new URL(request.url()).pathname,url:page.url(),method:request.method()});
+  page.on('request',request=>{if(/^\/api\/v1\/(release-orders|approval-notifications)(\/|$)/.test(new URL(request.url()).pathname)){ids.set(request,requestNumber++);event('request',detail(request))}});
+  page.on('response',response=>{if(ids.has(response.request()))event('response',{...detail(response.request()),status:response.status()})});
+  page.on('requestfinished',request=>{if(ids.has(request))event('finished',detail(request))});
+  page.on('requestfailed',request=>{if(ids.has(request))event('failed',{...detail(request),error:request.failure()?.errorText})});
+  page.on('framenavigated',frame=>{if(frame===page.mainFrame())event('navigated',{page:number,url:frame.url()})});
+  for(const method of ['goto','reload']){const original=page[method].bind(page);page[method]=async(...args)=>{event(method+'-start',{page:number,from:page.url(),to:args[0]});try{return await original(...args)}finally{event(method+'-end',{page:number,url:page.url()})}}}
+  return page};
  try{
   const admin=await browser.newContext({viewport:{width:1440,height:1000}}),adminPerson=await registerFixtureAccount(admin,base,{roles:['ADMIN']});
   await api(admin,'POST','/api/v1/mutation-policies',{code:mutation,name:'多表验收',description:'',type_code:'single_table_mutation',allow_add:true,allow_modify:true,allow_delete:true},201);
@@ -126,9 +136,9 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
   check('两表目标在草稿取消、拒绝、已批准管理员取消后可重新占用，整单完结关闭回滚');
 
   await page.setViewportSize({width:1440,height:1000});
-  const copyRecord='13',copyVersions=['2','0'];
+  phase='copy';const copyRecord='13',copyVersions=['2','0'];
   let copySource=await api(editor,'POST','/api/v1/release-orders',{title:'复制核对两表当前基线',items:tables.map((table,index)=>({table_name:table,operation:'MODIFY',id:copyRecord,expected_record_version:copyVersions[index],content:{label:`copy-intent-${index?'b':'a'}`}}))},201);
-  const copySourcePath=`/api/v1/release-orders/${copySource.id}`;
+  event('copy-source',{id:copySource.id});const copySourcePath=`/api/v1/release-orders/${copySource.id}`;
   copySource=await api(editor,'POST',copySourcePath+'/submit',{expected_version:copySource.version});
   copySource=await api(reviewer,'POST',copySourcePath+'/reject',await fixtureApprovalInput(reviewer,base,copySource.id,{expected_version:copySource.version,reason:'核对最新两表配置后复制'}));
   let baseline=await api(editor,'POST','/api/v1/release-orders',{title:'更新复制基线',items:tables.map((table,index)=>({table_name:table,operation:'MODIFY',id:copyRecord,expected_record_version:copyVersions[index],content:{label:`fresh-copy-${index?'b':'a'}`}}))},201);
@@ -150,18 +160,15 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
   await page.getByRole('dialog',{name:'复制新草稿',exact:true}).getByRole('button',{name:'确认最新基线并复制',exact:true}).click();
   await page.waitForURL(url=>url.pathname.startsWith('/configuration/release-orders/')&&!url.pathname.endsWith(copySource.id));
   const copied=await read(editor,'/api/v1/release-orders/'+new URL(page.url()).pathname.split('/').pop());
-  // Follow the copied-from link after the new draft renders; a document goto
-  // here can interrupt its initial order and notification reads.
-  await page.getByText('复制自',{exact:true}).waitFor({state:'attached'});await page.getByText('基本信息',{exact:true}).click();
-  await page.getByLabel('基本信息',{exact:true}).getByRole('link',{name:copySource.id,exact:true}).click();
-  await page.waitForURL(`**/configuration/release-orders/${copySource.id}`);const copyBack=page.getByRole('link',{name:copied.id,exact:true});await copyBack.waitFor();await copyBack.click();
+  event('copied',{id:copied.id,source:copySource.id});
+  await page.goto(`${base}/configuration/release-orders/${copySource.id}`);const copyBack=page.getByRole('link',{name:copied.id,exact:true});await copyBack.waitFor();await copyBack.click();
   await page.getByText('复制自',{exact:true}).waitFor({state:'attached'});await page.getByText('基本信息',{exact:true}).click();const copiedFrom=page.getByLabel('基本信息',{exact:true});await copiedFrom.getByText('复制自',{exact:true}).waitFor();await copiedFrom.getByRole('link',{name:copySource.id,exact:true}).waitFor();
   assert.deepEqual(copied.items.map(item=>item.table_name),tables);assert.deepEqual(copied.items.map(item=>item.detail_id),copySource.items.map(item=>item.detail_id));
   check('复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联');
 
-  const reprepareRecord='12';
+  phase='reprepare';const reprepareRecord='12';
   let reprepareSource=await api(editor,'POST','/api/v1/release-orders',{title:'浏览器多表重新准备',items:tables.map((table,index)=>({table_name:table,operation:'MODIFY',id:reprepareRecord,expected_record_version:'2',content:{label:`reprepare-${index?'b':'a'}`}}))},201);
-  const reprepareSourcePath=`/api/v1/release-orders/${reprepareSource.id}`;
+  event('reprepare-source',{id:reprepareSource.id});const reprepareSourcePath=`/api/v1/release-orders/${reprepareSource.id}`;
   reprepareSource=await api(editor,'POST',reprepareSourcePath+'/submit',{expected_version:reprepareSource.version});
   reprepareSource=await api(reviewer,'POST',reprepareSourcePath+'/approve',await fixtureApprovalInput(reviewer,base,reprepareSource.id,{expected_version:reprepareSource.version,reason:'原审批只属于原单'}));
   await page.goto(`${base}/configuration/release-orders/${reprepareSource.id}`);await button(page,'重新准备').click();const reprepareDrawer=page.getByRole('dialog',{name:'重新准备',exact:true});await reprepareDrawer.getByRole('button',{name:'读取最新配置',exact:true}).click();
@@ -235,5 +242,5 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
    }
   }catch(diagnosticError){console.error('Failed to save multitable diagnostics:',String(diagnosticError));}}
   throw error;
- }finally{await browser.close()}
+ }finally{if(output)writeFileSync(join(output,'navigation-timeline.json'),JSON.stringify(timeline,null,2));await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});

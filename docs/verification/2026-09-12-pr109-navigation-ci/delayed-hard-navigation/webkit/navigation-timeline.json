@@ -1,0 +1,2413 @@
+[
+  {
+    "atMs": 562,
+    "phase": "setup",
+    "kind": "goto-start",
+    "page": 0,
+    "from": "about:blank",
+    "to": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_a_webkit?mode=replace"
+  },
+  {
+    "atMs": 587,
+    "phase": "setup",
+    "kind": "navigated",
+    "page": 0,
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_a_webkit?mode=replace"
+  },
+  {
+    "atMs": 688,
+    "phase": "setup",
+    "kind": "navigated",
+    "page": 0,
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_a_webkit?mode=replace"
+  },
+  {
+    "atMs": 708,
+    "phase": "setup",
+    "kind": "goto-end",
+    "page": 0,
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_a_webkit?mode=replace"
+  },
+  {
+    "atMs": 840,
+    "phase": "setup",
+    "kind": "request",
+    "page": 0,
+    "request": 0,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_a_webkit?mode=replace",
+    "method": "GET"
+  },
+  {
+    "atMs": 867,
+    "phase": "setup",
+    "kind": "response",
+    "page": 0,
+    "request": 0,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_a_webkit?mode=replace",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 867,
+    "phase": "setup",
+    "kind": "finished",
+    "page": 0,
+    "request": 0,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_a_webkit?mode=replace",
+    "method": "GET"
+  },
+  {
+    "atMs": 1906,
+    "phase": "setup",
+    "kind": "navigated",
+    "page": 0,
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_a_webkit"
+  },
+  {
+    "atMs": 1967,
+    "phase": "setup",
+    "kind": "request",
+    "page": 0,
+    "request": 1,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_a_webkit",
+    "method": "GET"
+  },
+  {
+    "atMs": 1995,
+    "phase": "setup",
+    "kind": "response",
+    "page": 0,
+    "request": 1,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_a_webkit",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 1995,
+    "phase": "setup",
+    "kind": "finished",
+    "page": 0,
+    "request": 1,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_a_webkit",
+    "method": "GET"
+  },
+  {
+    "atMs": 2021,
+    "phase": "setup",
+    "kind": "goto-start",
+    "page": 0,
+    "from": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_a_webkit",
+    "to": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_b_webkit?mode=replace"
+  },
+  {
+    "atMs": 2033,
+    "phase": "setup",
+    "kind": "navigated",
+    "page": 0,
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_b_webkit?mode=replace"
+  },
+  {
+    "atMs": 2074,
+    "phase": "setup",
+    "kind": "navigated",
+    "page": 0,
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_b_webkit?mode=replace"
+  },
+  {
+    "atMs": 2076,
+    "phase": "setup",
+    "kind": "goto-end",
+    "page": 0,
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_b_webkit?mode=replace"
+  },
+  {
+    "atMs": 2132,
+    "phase": "setup",
+    "kind": "request",
+    "page": 0,
+    "request": 2,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_b_webkit?mode=replace",
+    "method": "GET"
+  },
+  {
+    "atMs": 2161,
+    "phase": "setup",
+    "kind": "response",
+    "page": 0,
+    "request": 2,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_b_webkit?mode=replace",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 2162,
+    "phase": "setup",
+    "kind": "finished",
+    "page": 0,
+    "request": 2,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_b_webkit?mode=replace",
+    "method": "GET"
+  },
+  {
+    "atMs": 3123,
+    "phase": "setup",
+    "kind": "navigated",
+    "page": 0,
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_b_webkit"
+  },
+  {
+    "atMs": 3171,
+    "phase": "setup",
+    "kind": "request",
+    "page": 0,
+    "request": 3,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_b_webkit",
+    "method": "GET"
+  },
+  {
+    "atMs": 3190,
+    "phase": "setup",
+    "kind": "response",
+    "page": 0,
+    "request": 3,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_b_webkit",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 3190,
+    "phase": "setup",
+    "kind": "finished",
+    "page": 0,
+    "request": 3,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/platform/table-policies/multitable_browser_b_webkit",
+    "method": "GET"
+  },
+  {
+    "atMs": 4382,
+    "phase": "copy-loop",
+    "kind": "copy-source",
+    "id": "388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 4382,
+    "phase": "copy-loop",
+    "kind": "goto-start",
+    "page": 1,
+    "from": "about:blank",
+    "to": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 4400,
+    "phase": "copy-loop",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 4495,
+    "phase": "copy-loop",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 4510,
+    "phase": "copy-loop",
+    "kind": "goto-end",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 4559,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 4,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 4561,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 5,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 4569,
+    "phase": "copy-loop-0",
+    "kind": "delay-response",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 4633,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 5,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 4633,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 5,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 4660,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 6,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/notification-read",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST"
+  },
+  {
+    "atMs": 4660,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 7,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 4664,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 8,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 4751,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 7,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 4751,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 7,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 4756,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 6,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/notification-read",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST",
+    "status": 200
+  },
+  {
+    "atMs": 4756,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 6,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/notification-read",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST"
+  },
+  {
+    "atMs": 4815,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 8,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 4815,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 8,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 5075,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 4,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 5077,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 4,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 5077,
+    "phase": "copy-loop-0",
+    "kind": "delay-delivered",
+    "path": "/api/v1/approval-notifications"
+  },
+  {
+    "atMs": 5525,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 9,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 5548,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 9,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 5548,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 9,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 5551,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 10,
+    "path": "/api/v1/release-orders/preview",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST"
+  },
+  {
+    "atMs": 5597,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 10,
+    "path": "/api/v1/release-orders/preview",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST",
+    "status": 200
+  },
+  {
+    "atMs": 5597,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 10,
+    "path": "/api/v1/release-orders/preview",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST"
+  },
+  {
+    "atMs": 5671,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 11,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/copy",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST"
+  },
+  {
+    "atMs": 5777,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 11,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/copy",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST",
+    "status": 201
+  },
+  {
+    "atMs": 5777,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 11,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/copy",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST"
+  },
+  {
+    "atMs": 5777,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 12,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 5778,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 13,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 5779,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 14,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 5791,
+    "phase": "copy-loop-0",
+    "kind": "delay-response",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 5805,
+    "phase": "copy-loop-0",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977"
+  },
+  {
+    "atMs": 5833,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 13,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 5837,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 13,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET"
+  },
+  {
+    "atMs": 5837,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 14,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 5838,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 14,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET"
+  },
+  {
+    "atMs": 5848,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 15,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET"
+  },
+  {
+    "atMs": 5867,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 16,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET"
+  },
+  {
+    "atMs": 5868,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 17,
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET"
+  },
+  {
+    "atMs": 5868,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 15,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 5870,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 15,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET"
+  },
+  {
+    "atMs": 5880,
+    "phase": "copy-loop-0",
+    "kind": "delay-response",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 5885,
+    "phase": "copy-loop-0",
+    "kind": "copied",
+    "id": "13edb0275d8ff5233825e6058802c977",
+    "source": "388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 5885,
+    "phase": "copy-loop-0",
+    "kind": "goto-start",
+    "page": 1,
+    "from": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "to": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 5891,
+    "phase": "copy-loop-0",
+    "kind": "failed",
+    "page": 1,
+    "request": 12,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET",
+    "error": "Load request cancelled"
+  },
+  {
+    "atMs": 5891,
+    "phase": "copy-loop-0",
+    "kind": "failed",
+    "page": 1,
+    "request": 16,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET",
+    "error": "Load request cancelled"
+  },
+  {
+    "atMs": 5891,
+    "phase": "copy-loop-0",
+    "kind": "failed",
+    "page": 1,
+    "request": 17,
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET",
+    "error": "Load request cancelled"
+  },
+  {
+    "atMs": 5896,
+    "phase": "copy-loop-0",
+    "kind": "delay-response",
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 5903,
+    "phase": "copy-loop-0",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 5952,
+    "phase": "copy-loop-0",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 5971,
+    "phase": "copy-loop-0",
+    "kind": "goto-end",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 5998,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 18,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 6000,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 19,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 6008,
+    "phase": "copy-loop-0",
+    "kind": "delay-response",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 6024,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 19,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 6024,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 19,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 6032,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 20,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 6038,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 21,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 6061,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 20,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 6061,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 20,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 6079,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 21,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 6079,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 21,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 6142,
+    "phase": "copy-loop-0",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977"
+  },
+  {
+    "atMs": 6146,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 22,
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET"
+  },
+  {
+    "atMs": 6172,
+    "phase": "copy-loop-0",
+    "kind": "delay-response",
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 6297,
+    "phase": "copy-loop-0",
+    "kind": "delay-delivered",
+    "path": "/api/v1/approval-notifications"
+  },
+  {
+    "atMs": 6388,
+    "phase": "copy-loop-0",
+    "kind": "delay-delivered",
+    "path": "/api/v1/approval-notifications"
+  },
+  {
+    "atMs": 6404,
+    "phase": "copy-loop-0",
+    "kind": "delay-delivered",
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977"
+  },
+  {
+    "atMs": 6512,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 18,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 6513,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 18,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET"
+  },
+  {
+    "atMs": 6513,
+    "phase": "copy-loop-0",
+    "kind": "delay-delivered",
+    "path": "/api/v1/approval-notifications"
+  },
+  {
+    "atMs": 6676,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 22,
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 6676,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 22,
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET"
+  },
+  {
+    "atMs": 6676,
+    "phase": "copy-loop-0",
+    "kind": "delay-delivered",
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977"
+  },
+  {
+    "atMs": 6689,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 23,
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET"
+  },
+  {
+    "atMs": 6690,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 24,
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET"
+  },
+  {
+    "atMs": 6714,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 23,
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 6715,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 23,
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET"
+  },
+  {
+    "atMs": 6730,
+    "phase": "copy-loop-0",
+    "kind": "response",
+    "page": 1,
+    "request": 24,
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 6730,
+    "phase": "copy-loop-0",
+    "kind": "finished",
+    "page": 1,
+    "request": 24,
+    "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+    "method": "GET"
+  },
+  {
+    "atMs": 7093,
+    "phase": "copy-loop-0",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 7103,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 25,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 7107,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 26,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 7109,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 27,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 7114,
+    "phase": "copy-loop-0",
+    "kind": "request",
+    "page": 1,
+    "request": 28,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 7115,
+    "phase": "copy-loop-0",
+    "kind": "iteration-complete",
+    "iteration": 0
+  },
+  {
+    "atMs": 7127,
+    "phase": "copy-loop-1",
+    "kind": "delay-response",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 7140,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 26,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 7141,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 26,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 7158,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 27,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 7158,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 27,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 7158,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 28,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 7158,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 28,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 7636,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 25,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 7641,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 25,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 7641,
+    "phase": "copy-loop-1",
+    "kind": "delay-delivered",
+    "path": "/api/v1/approval-notifications"
+  },
+  {
+    "atMs": 8274,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 29,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 8296,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 29,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8300,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 29,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 8301,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 30,
+    "path": "/api/v1/release-orders/preview",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST"
+  },
+  {
+    "atMs": 8355,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 30,
+    "path": "/api/v1/release-orders/preview",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST",
+    "status": 200
+  },
+  {
+    "atMs": 8356,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 30,
+    "path": "/api/v1/release-orders/preview",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST"
+  },
+  {
+    "atMs": 8391,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 31,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/copy",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST"
+  },
+  {
+    "atMs": 8479,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 31,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/copy",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST",
+    "status": 201
+  },
+  {
+    "atMs": 8483,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 31,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/copy",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST"
+  },
+  {
+    "atMs": 8484,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 32,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 8485,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 33,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 8486,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 34,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 8496,
+    "phase": "copy-loop-1",
+    "kind": "delay-response",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 8498,
+    "phase": "copy-loop-1",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad"
+  },
+  {
+    "atMs": 8526,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 33,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8527,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 33,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET"
+  },
+  {
+    "atMs": 8527,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 34,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8527,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 34,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET"
+  },
+  {
+    "atMs": 8538,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 35,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET"
+  },
+  {
+    "atMs": 8539,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 36,
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET"
+  },
+  {
+    "atMs": 8548,
+    "phase": "copy-loop-1",
+    "kind": "delay-response",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 8564,
+    "phase": "copy-loop-1",
+    "kind": "delay-response",
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 8571,
+    "phase": "copy-loop-1",
+    "kind": "copied",
+    "id": "bcb4329ab7fbbb714a807a76b80ff1ad",
+    "source": "388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 8571,
+    "phase": "copy-loop-1",
+    "kind": "goto-start",
+    "page": 1,
+    "from": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "to": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 8573,
+    "phase": "copy-loop-1",
+    "kind": "failed",
+    "page": 1,
+    "request": 36,
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET",
+    "error": "Load request cancelled"
+  },
+  {
+    "atMs": 8573,
+    "phase": "copy-loop-1",
+    "kind": "failed",
+    "page": 1,
+    "request": 32,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET",
+    "error": "Load request cancelled"
+  },
+  {
+    "atMs": 8573,
+    "phase": "copy-loop-1",
+    "kind": "failed",
+    "page": 1,
+    "request": 35,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET",
+    "error": "Load request cancelled"
+  },
+  {
+    "atMs": 8582,
+    "phase": "copy-loop-1",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 8679,
+    "phase": "copy-loop-1",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 8679,
+    "phase": "copy-loop-1",
+    "kind": "goto-end",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 8720,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 37,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 8721,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 38,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 8730,
+    "phase": "copy-loop-1",
+    "kind": "delay-response",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 8749,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 38,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8749,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 38,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 8767,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 39,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 8769,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 40,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 8800,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 39,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8802,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 39,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 8810,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 40,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 8813,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 40,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 8869,
+    "phase": "copy-loop-1",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad"
+  },
+  {
+    "atMs": 8875,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 41,
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET"
+  },
+  {
+    "atMs": 8903,
+    "phase": "copy-loop-1",
+    "kind": "delay-response",
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 8999,
+    "phase": "copy-loop-1",
+    "kind": "delay-delivered",
+    "path": "/api/v1/approval-notifications"
+  },
+  {
+    "atMs": 9055,
+    "phase": "copy-loop-1",
+    "kind": "delay-delivered",
+    "path": "/api/v1/approval-notifications"
+  },
+  {
+    "atMs": 9071,
+    "phase": "copy-loop-1",
+    "kind": "delay-delivered",
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad"
+  },
+  {
+    "atMs": 9233,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 37,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 9234,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 37,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET"
+  },
+  {
+    "atMs": 9234,
+    "phase": "copy-loop-1",
+    "kind": "delay-delivered",
+    "path": "/api/v1/approval-notifications"
+  },
+  {
+    "atMs": 9408,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 41,
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 9411,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 41,
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET"
+  },
+  {
+    "atMs": 9411,
+    "phase": "copy-loop-1",
+    "kind": "delay-delivered",
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad"
+  },
+  {
+    "atMs": 9415,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 42,
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET"
+  },
+  {
+    "atMs": 9416,
+    "phase": "copy-loop-1",
+    "kind": "request",
+    "page": 1,
+    "request": 43,
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET"
+  },
+  {
+    "atMs": 9445,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 42,
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 9445,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 42,
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET"
+  },
+  {
+    "atMs": 9461,
+    "phase": "copy-loop-1",
+    "kind": "response",
+    "page": 1,
+    "request": 43,
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 9461,
+    "phase": "copy-loop-1",
+    "kind": "finished",
+    "page": 1,
+    "request": 43,
+    "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+    "method": "GET"
+  },
+  {
+    "atMs": 9820,
+    "phase": "copy-loop-1",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 9821,
+    "phase": "copy-loop-1",
+    "kind": "iteration-complete",
+    "iteration": 1
+  },
+  {
+    "atMs": 9838,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 44,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 9839,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 45,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 9840,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 46,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 9841,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 47,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 9853,
+    "phase": "copy-loop-2",
+    "kind": "delay-response",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 9868,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 45,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 9868,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 45,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 9881,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 46,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 9882,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 46,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 9885,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 47,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 9885,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 47,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 10362,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 44,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 10362,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 44,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 10362,
+    "phase": "copy-loop-2",
+    "kind": "delay-delivered",
+    "path": "/api/v1/approval-notifications"
+  },
+  {
+    "atMs": 11007,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 48,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 11039,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 48,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 11040,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 48,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 11040,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 49,
+    "path": "/api/v1/release-orders/preview",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST"
+  },
+  {
+    "atMs": 11091,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 49,
+    "path": "/api/v1/release-orders/preview",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST",
+    "status": 200
+  },
+  {
+    "atMs": 11091,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 49,
+    "path": "/api/v1/release-orders/preview",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST"
+  },
+  {
+    "atMs": 11160,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 50,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/copy",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST"
+  },
+  {
+    "atMs": 11260,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 50,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/copy",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST",
+    "status": 201
+  },
+  {
+    "atMs": 11260,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 50,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/copy",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "POST"
+  },
+  {
+    "atMs": 11266,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 51,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 11267,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 52,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 11268,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 53,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 11269,
+    "phase": "copy-loop-2",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf"
+  },
+  {
+    "atMs": 11286,
+    "phase": "copy-loop-2",
+    "kind": "delay-response",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 11315,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 54,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET"
+  },
+  {
+    "atMs": 11318,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 55,
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET"
+  },
+  {
+    "atMs": 11320,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 52,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 11320,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 52,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET"
+  },
+  {
+    "atMs": 11321,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 53,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 11322,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 53,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET"
+  },
+  {
+    "atMs": 11329,
+    "phase": "copy-loop-2",
+    "kind": "delay-response",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 11347,
+    "phase": "copy-loop-2",
+    "kind": "delay-response",
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 11355,
+    "phase": "copy-loop-2",
+    "kind": "copied",
+    "id": "58957abbd8f2d324ce8235345b0acbbf",
+    "source": "388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 11355,
+    "phase": "copy-loop-2",
+    "kind": "goto-start",
+    "page": 1,
+    "from": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "to": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 11359,
+    "phase": "copy-loop-2",
+    "kind": "failed",
+    "page": 1,
+    "request": 51,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET",
+    "error": "Load request cancelled"
+  },
+  {
+    "atMs": 11359,
+    "phase": "copy-loop-2",
+    "kind": "failed",
+    "page": 1,
+    "request": 55,
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET",
+    "error": "Load request cancelled"
+  },
+  {
+    "atMs": 11359,
+    "phase": "copy-loop-2",
+    "kind": "failed",
+    "page": 1,
+    "request": 54,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET",
+    "error": "Load request cancelled"
+  },
+  {
+    "atMs": 11375,
+    "phase": "copy-loop-2",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 11423,
+    "phase": "copy-loop-2",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 11435,
+    "phase": "copy-loop-2",
+    "kind": "goto-end",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 11476,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 56,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 11476,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 57,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 11489,
+    "phase": "copy-loop-2",
+    "kind": "delay-response",
+    "path": "/api/v1/approval-notifications",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 11501,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 57,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 11501,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 57,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 11521,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 58,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 11525,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 59,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 11553,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 58,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 11553,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 58,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 11571,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 59,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 11574,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 59,
+    "path": "/api/v1/release-orders/388e80601f11d909ee86fc4e32bac189/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189",
+    "method": "GET"
+  },
+  {
+    "atMs": 11644,
+    "phase": "copy-loop-2",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf"
+  },
+  {
+    "atMs": 11652,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 60,
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET"
+  },
+  {
+    "atMs": 11674,
+    "phase": "copy-loop-2",
+    "kind": "delay-response",
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "status": 200,
+    "delayMs": 500
+  },
+  {
+    "atMs": 11792,
+    "phase": "copy-loop-2",
+    "kind": "delay-delivered",
+    "path": "/api/v1/approval-notifications"
+  },
+  {
+    "atMs": 11832,
+    "phase": "copy-loop-2",
+    "kind": "delay-delivered",
+    "path": "/api/v1/approval-notifications"
+  },
+  {
+    "atMs": 11853,
+    "phase": "copy-loop-2",
+    "kind": "delay-delivered",
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf"
+  },
+  {
+    "atMs": 12000,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 56,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12000,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 56,
+    "path": "/api/v1/approval-notifications",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET"
+  },
+  {
+    "atMs": 12000,
+    "phase": "copy-loop-2",
+    "kind": "delay-delivered",
+    "path": "/api/v1/approval-notifications"
+  },
+  {
+    "atMs": 12178,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 60,
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12178,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 60,
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET"
+  },
+  {
+    "atMs": 12178,
+    "phase": "copy-loop-2",
+    "kind": "delay-delivered",
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf"
+  },
+  {
+    "atMs": 12184,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 61,
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET"
+  },
+  {
+    "atMs": 12188,
+    "phase": "copy-loop-2",
+    "kind": "request",
+    "page": 1,
+    "request": 62,
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET"
+  },
+  {
+    "atMs": 12218,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 61,
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12218,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 61,
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf/details",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET"
+  },
+  {
+    "atMs": 12234,
+    "phase": "copy-loop-2",
+    "kind": "response",
+    "page": 1,
+    "request": 62,
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "atMs": 12234,
+    "phase": "copy-loop-2",
+    "kind": "finished",
+    "page": 1,
+    "request": 62,
+    "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf/people",
+    "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+    "method": "GET"
+  },
+  {
+    "atMs": 12593,
+    "phase": "copy-loop-2",
+    "kind": "navigated",
+    "page": 1,
+    "url": "http://127.0.0.1:54454/configuration/release-orders/388e80601f11d909ee86fc4e32bac189"
+  },
+  {
+    "atMs": 12602,
+    "phase": "copy-loop-2",
+    "kind": "iteration-complete",
+    "iteration": 2
+  }
+]

@@ -1,0 +1,150 @@
+{
+  "copies": 3,
+  "results": [
+    {
+      "copied": "13edb0275d8ff5233825e6058802c977",
+      "source": "388e80601f11d909ee86fc4e32bac189",
+      "phase": "copy-loop-0",
+      "cancelled": [
+        {
+          "atMs": 5891,
+          "phase": "copy-loop-0",
+          "kind": "failed",
+          "page": 1,
+          "request": 12,
+          "path": "/api/v1/approval-notifications",
+          "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+          "method": "GET",
+          "error": "Load request cancelled"
+        },
+        {
+          "atMs": 5891,
+          "phase": "copy-loop-0",
+          "kind": "failed",
+          "page": 1,
+          "request": 16,
+          "path": "/api/v1/approval-notifications",
+          "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+          "method": "GET",
+          "error": "Load request cancelled"
+        },
+        {
+          "atMs": 5891,
+          "phase": "copy-loop-0",
+          "kind": "failed",
+          "page": 1,
+          "request": 17,
+          "path": "/api/v1/release-orders/13edb0275d8ff5233825e6058802c977",
+          "url": "http://127.0.0.1:54454/configuration/release-orders/13edb0275d8ff5233825e6058802c977",
+          "method": "GET",
+          "error": "Load request cancelled"
+        }
+      ]
+    },
+    {
+      "copied": "bcb4329ab7fbbb714a807a76b80ff1ad",
+      "source": "388e80601f11d909ee86fc4e32bac189",
+      "phase": "copy-loop-1",
+      "cancelled": [
+        {
+          "atMs": 8573,
+          "phase": "copy-loop-1",
+          "kind": "failed",
+          "page": 1,
+          "request": 36,
+          "path": "/api/v1/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+          "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+          "method": "GET",
+          "error": "Load request cancelled"
+        },
+        {
+          "atMs": 8573,
+          "phase": "copy-loop-1",
+          "kind": "failed",
+          "page": 1,
+          "request": 32,
+          "path": "/api/v1/approval-notifications",
+          "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+          "method": "GET",
+          "error": "Load request cancelled"
+        },
+        {
+          "atMs": 8573,
+          "phase": "copy-loop-1",
+          "kind": "failed",
+          "page": 1,
+          "request": 35,
+          "path": "/api/v1/approval-notifications",
+          "url": "http://127.0.0.1:54454/configuration/release-orders/bcb4329ab7fbbb714a807a76b80ff1ad",
+          "method": "GET",
+          "error": "Load request cancelled"
+        }
+      ]
+    },
+    {
+      "copied": "58957abbd8f2d324ce8235345b0acbbf",
+      "source": "388e80601f11d909ee86fc4e32bac189",
+      "phase": "copy-loop-2",
+      "cancelled": [
+        {
+          "atMs": 11359,
+          "phase": "copy-loop-2",
+          "kind": "failed",
+          "page": 1,
+          "request": 51,
+          "path": "/api/v1/approval-notifications",
+          "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+          "method": "GET",
+          "error": "Load request cancelled"
+        },
+        {
+          "atMs": 11359,
+          "phase": "copy-loop-2",
+          "kind": "failed",
+          "page": 1,
+          "request": 55,
+          "path": "/api/v1/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+          "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+          "method": "GET",
+          "error": "Load request cancelled"
+        },
+        {
+          "atMs": 11359,
+          "phase": "copy-loop-2",
+          "kind": "failed",
+          "page": 1,
+          "request": 54,
+          "path": "/api/v1/approval-notifications",
+          "url": "http://127.0.0.1:54454/configuration/release-orders/58957abbd8f2d324ce8235345b0acbbf",
+          "method": "GET",
+          "error": "Load request cancelled"
+        }
+      ]
+    }
+  ]
+}
+node:assert:152
+  throw new AssertionError(obj);
+  ^
+
+AssertionError [ERR_ASSERTION]: copy back-navigation must not cancel pending notification/new-order reads
+
+9 !== 0
+
+    at Object.<anonymous> (/private/tmp/rcc-pr109-check-copy-navigation.cjs:8:8)
+    at Module._compile (node:internal/modules/cjs/loader:1872:14)
+    at Object..js (node:internal/modules/cjs/loader:2003:10)
+    at Module.load (node:internal/modules/cjs/loader:1594:32)
+    at Module._load (node:internal/modules/cjs/loader:1396:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 9,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

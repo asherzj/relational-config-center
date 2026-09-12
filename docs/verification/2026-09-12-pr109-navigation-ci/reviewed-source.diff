@@ -1,0 +1,17 @@
+diff --git a/web/e2e/release-multitable.cjs b/web/e2e/release-multitable.cjs
+index 674676c..af55674 100644
+--- a/web/e2e/release-multitable.cjs
++++ b/web/e2e/release-multitable.cjs
+@@ -150,7 +150,11 @@ const draftItems=order=>order.items.map(item=>({detail_id:item.detail_id,table_n
+   await page.getByRole('dialog',{name:'复制新草稿',exact:true}).getByRole('button',{name:'确认最新基线并复制',exact:true}).click();
+   await page.waitForURL(url=>url.pathname.startsWith('/configuration/release-orders/')&&!url.pathname.endsWith(copySource.id));
+   const copied=await read(editor,'/api/v1/release-orders/'+new URL(page.url()).pathname.split('/').pop());
+-  await page.goto(`${base}/configuration/release-orders/${copySource.id}`);const copyBack=page.getByRole('link',{name:copied.id,exact:true});await copyBack.waitFor();await copyBack.click();
++  // Follow the copied-from link after the new draft renders; a document goto
++  // here can interrupt its initial order and notification reads.
++  await page.getByText('复制自',{exact:true}).waitFor({state:'attached'});await page.getByText('基本信息',{exact:true}).click();
++  await page.getByLabel('基本信息',{exact:true}).getByRole('link',{name:copySource.id,exact:true}).click();
++  await page.waitForURL(`**/configuration/release-orders/${copySource.id}`);const copyBack=page.getByRole('link',{name:copied.id,exact:true});await copyBack.waitFor();await copyBack.click();
+   await page.getByText('复制自',{exact:true}).waitFor({state:'attached'});await page.getByText('基本信息',{exact:true}).click();const copiedFrom=page.getByLabel('基本信息',{exact:true});await copiedFrom.getByText('复制自',{exact:true}).waitFor();await copiedFrom.getByRole('link',{name:copySource.id,exact:true}).waitFor();
+   assert.deepEqual(copied.items.map(item=>item.table_name),tables);assert.deepEqual(copied.items.map(item=>item.detail_id),copySource.items.map(item=>item.detail_id));
+   check('复制核对两表当前基线，晚表冲突显示表/占用单/申请人并保留确认内容，成功后双向关联');
