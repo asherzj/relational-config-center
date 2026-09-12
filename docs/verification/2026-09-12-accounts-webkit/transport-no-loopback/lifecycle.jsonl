@@ -1,0 +1,4 @@
+{"elapsedMs":328,"event":"outer-catch","message":"page.goto: Could not connect to 127.0.0.1: Connection refused\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:53932/configuration/managed-data\", waiting until \"load\"\u001b[22m\n"}
+{"elapsedMs":386,"event":"outer-finally"}
+{"elapsedMs":392,"event":"page-close","url":"about:blank"}
+{"elapsedMs":417,"event":"context-close"}

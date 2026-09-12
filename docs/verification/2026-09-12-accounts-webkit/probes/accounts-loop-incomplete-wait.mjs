@@ -1,7 +1,7 @@
 import { createFixtureApprovalRole, fixtureApprovalInput } from './table-approval-fixture.cjs';
 import {readAllReleaseDetailPages,executionCommands,applicationItems} from './release-detail-pages.cjs';
 import { appendFileSync } from 'node:fs';
-import { clickWithDiagnostics, diagnosticDeadline } from './click-diagnostics.cjs';
+import { clickWithDiagnostics } from './click-diagnostics.cjs';
 import originalReleaseActions from "./release-original-action.cjs";
 import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
@@ -114,32 +114,15 @@ async function publishSingle({ applicant, approver, publisher, item, keyPrefix }
   return executed;
 }
 
-// Capture lifecycle before failure cleanup: TargetClosed alone does not identify
-// a page crash, a browser disconnect, or a deliberate context close.
-const diagnosticStarted = Date.now();
-let diagnosticPhase = 'setup';
-function recordLifecycle(event, details = {}) {
-  if (!process.env.RCC_E2E_OUTPUT) return;
-  try {
-    appendFileSync(join(process.env.RCC_E2E_OUTPUT, 'accounts-lifecycle.jsonl'), `${JSON.stringify({
-      elapsedMs: Date.now() - diagnosticStarted, phase: diagnosticPhase, event, ...details,
-    })}\n`);
-  } catch (error) {
-    // Evidence collection must never replace the business failure being observed.
-    process.stderr.write(`Account lifecycle diagnostic unavailable: ${error.code || error.name}\n`);
-  }
-}
-function observeContext(current, label) {
-  const observePage = observed => {
-    observed.on('crash', () => recordLifecycle('page-crash', { context: label, url: observed.url() }));
-    observed.on('close', () => recordLifecycle('page-close', { context: label, url: observed.url() }));
-  };
-  current.pages().forEach(observePage);
-  current.on('page', observePage);
-  current.on('close', () => recordLifecycle('context-close', { context: label }));
-  current.browser()?.on('disconnected', () => recordLifecycle('browser-disconnected', { context: label }));
-}
-
+const probeStarted = Date.now();
+const probeLog = event => {
+  if (process.env.RCC_E2E_OUTPUT) appendFileSync(join(process.env.RCC_E2E_OUTPUT, 'lifecycle.jsonl'), JSON.stringify({elapsedMs:Date.now()-probeStarted,...event})+'\n');
+};
+const observePage = page => {
+  page.on('crash', () => probeLog({event:'page-crash',url:page.url()}));
+  page.on('close', () => probeLog({event:'page-close',url:page.url()}));
+  page.on('pageerror', error => probeLog({event:'page-error',message:error.message}));
+};
 let context;
 let member;
 let adminAPI;
@@ -147,8 +130,8 @@ let reviewerBrowser;
 let page;
 try {
   context = await browserEngine.launchPersistentContext(profile, launchOptions);
-  observeContext(context, 'initial-persistent');
-  page = await context.newPage();
+  page = await context.newPage(); observePage(page);
+  context.on('close', () => probeLog({event:'context-close'}));
   const seenRequests = [];
   const rememberRequest = browserRequest => seenRequests.push({ method: browserRequest.method(), url: browserRequest.url() });
   context.on('request', rememberRequest);
@@ -239,19 +222,16 @@ try {
     storageState: await member.storageState(),
     viewport: { width: 1280, height: 900 },
   });
-  observeContext(reviewerContext, 'reviewer');
   const reviewerPage = await reviewerContext.newPage();
 
   await page.goto(`${origin}/configuration/managed-data`);
   await page.reload();
   await page.getByRole('heading', { name: '统一变更入口' }).waitFor();
-  diagnosticPhase = 'persistent-reopen';
   await context.close();
   context = await browserEngine.launchPersistentContext(profile, launchOptions);
-  observeContext(context, 'reopened-persistent');
-  diagnosticPhase = 'scenario';
   context.on('request', rememberRequest);
-  page = await context.newPage();
+  page = await context.newPage(); observePage(page);
+  context.on('close', () => probeLog({event:'context-close'}));
   await page.goto(`${origin}/configuration/managed-data`);
   await page.getByRole('heading', { name: '统一变更入口' }).waitFor();
   await selectNotificationTable(page);
@@ -315,15 +295,10 @@ try {
     assert.equal((await result.json()).state, 'SUCCEEDED');
     await route.abort('failed');
   });
-  const confirmationObservations = [];
-  diagnosticPhase = 'publication-confirmation';
-  recordLifecycle('confirmation-start');
-  try {
-    await clickWithDiagnostics(page.getByRole('button', { name: '确认发布到数据库', exact: true }), confirmationObservations);
-  } finally {
-    recordLifecycle('confirmation-end', { observations: confirmationObservations });
-  }
-  diagnosticPhase = 'scenario';
+  const observations = [];
+  probeLog({event:'confirm-click-start'});
+  try { await clickWithDiagnostics(page.getByRole('button', { name: '确认发布到数据库', exact: true }), observations); }
+  finally { probeLog({event:'confirm-click-end',observations}); }
   await page.getByText('原请求与意见已保留；再次点击同一操作将提交原请求。', { exact: true }).waitFor();
   await page.getByRole('button', { name: '确认发布到数据库', exact: true }).waitFor();
   if (process.env.RCC_E2E_OUTPUT) await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'publication-unknown.png'), fullPage: true });
@@ -371,6 +346,34 @@ try {
   await page.getByRole('button', { name: '完结发布单', exact: true }).click();
   await page.getByRole('button', { name: '确认完结', exact: true }).click();
   await releaseState(page, '已完结');
+
+  // Bounded diagnostic loop: same actors, persistent browser and 390px confirmation.
+  await page.setViewportSize({width:390,height:844});
+  for (let iteration=1; iteration<=10; iteration++) {
+    const createdResponse=await releaseWrite(adminAPI,'/api/v1/release-orders',{
+      title:'notification_templates 配置变更',
+      items:[{table_name:'notification_templates',operation:'ADD',content:{template_key:`${templateKey}_probe_${iteration}`,channel:'PUSH',body:'bounded confirmation diagnostic'}}],
+    });
+    assert.equal(createdResponse.status(),201);const created=await createdResponse.json();
+    const submittedResponse=await releaseWrite(adminAPI,`/api/v1/release-orders/${created.id}/submit`,{expected_version:created.version});
+    assert.equal(submittedResponse.status(),200);const submitted=await submittedResponse.json();
+    const approval=await fixtureApprovalInput({request:member},origin,created.id,{expected_version:submitted.version,reason:'Independent bounded diagnostic review'});
+    const approved=await releaseWrite(member,`/api/v1/release-orders/${created.id}/approve`,approval);assert.equal(approved.status(),200);
+    await page.goto(`${origin}/configuration/release-orders/${created.id}`);await releaseState(page,'已批准');await page.reload();
+    await page.getByRole('button',{name:'执行发布',exact:true}).click();
+    const path=`/api/v1/release-orders/${created.id}/execute`;const writes=[];
+    const remember=req=>{if(req.method()==='POST'&&new URL(req.url()).pathname===path)writes.push({body:req.postData(),key:req.headers()['idempotency-key']})};page.on('request',remember);
+    await page.route(`**${path}`,async route=>{const result=await route.fetch();assert.equal(result.status(),200);assert.equal((await result.json()).state,'SUCCEEDED');await route.abort('failed')});
+    const observations=[];probeLog({event:'loop-confirm-start',iteration});
+    try{await clickWithDiagnostics(page.getByRole('button',{name:'确认发布到数据库',exact:true}),observations)}finally{probeLog({event:'loop-confirm-end',iteration,observations})}
+    await page.getByText('原请求与意见已保留；再次点击同一操作将提交原请求。',{exact:true}).waitFor();await page.unroute(`**${path}`);
+    page.on('dialog',acceptReload);await page.reload();page.off('dialog',acceptReload);
+    await originalReleaseActions.repeatReleaseAction(page,'执行发布','确认发布到数据库');await releaseState(page,'已发布待完结');
+    assert.equal(writes.length,2);assert.deepEqual(writes[0],writes[1]);page.off('request',remember);
+    await page.getByRole('button',{name:'完结发布单',exact:true}).click();await page.getByRole('button',{name:'确认完结',exact:true}).click();await releaseState(page,'已完结');
+    probeLog({event:'loop-iteration-pass',iteration});
+  }
+  await page.setViewportSize({width:1280,height:900});
 
   await page.goto(`${origin}/configuration/managed-data`);
   await selectNotificationTable(page);
@@ -511,22 +514,19 @@ try {
     ],
   }));
 } catch (error) {
-  recordLifecycle('test-failure', { name: error.name, message: error.message });
-  diagnosticPhase = 'failure-artifacts';
+  probeLog({event:'outer-catch',message:error.message});
   if (process.env.RCC_E2E_OUTPUT && page && !page.isClosed()) {
-    await diagnosticDeadline(page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'accounts-failure.png'), fullPage: true })).catch(() => {});
-    const state = await diagnosticDeadline(page.evaluate(() => ({
+    await page.screenshot({ path: join(process.env.RCC_E2E_OUTPUT, 'accounts-failure.png'), fullPage: true }).catch(() => {});
+    const state = await page.evaluate(() => ({
       url: location.href,
       selectedTable: document.querySelector('select[aria-label="Managed Table"]')?.value,
       dialogTitles: Array.from(document.querySelectorAll('[role="dialog"] h2, [role="alertdialog"] h2')).map(element => element.textContent),
-    }))).catch(() => ({ url: page.url() }));
-    await writeFile(join(process.env.RCC_E2E_OUTPUT, 'accounts-failure-state.json'), JSON.stringify(state, null, 2))
-      .catch(error => recordLifecycle('failure-state-unavailable', { name: error.name, code: error.code }));
+    })).catch(() => ({ url: page.url() }));
+    await writeFile(join(process.env.RCC_E2E_OUTPUT, 'accounts-failure-state.json'), JSON.stringify(state, null, 2));
   }
   throw error;
 } finally {
-  diagnosticPhase = 'cleanup';
-  recordLifecycle('cleanup-start');
+  probeLog({event:'outer-finally'});
   await reviewerBrowser?.close();
   await adminAPI?.dispose();
   await member?.dispose();

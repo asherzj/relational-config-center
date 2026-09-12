@@ -1,0 +1,78 @@
+{
+  "iterations_completed": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "confirmations": [
+    {
+      "iteration": 1,
+      "elapsed_ms": 933,
+      "failure": null,
+      "max_frame_gap_ms": 31
+    },
+    {
+      "iteration": 2,
+      "elapsed_ms": 956,
+      "failure": null,
+      "max_frame_gap_ms": 28
+    },
+    {
+      "iteration": 3,
+      "elapsed_ms": 928,
+      "failure": null,
+      "max_frame_gap_ms": 26
+    },
+    {
+      "iteration": 4,
+      "elapsed_ms": 962,
+      "failure": null,
+      "max_frame_gap_ms": 25
+    },
+    {
+      "iteration": 5,
+      "elapsed_ms": 965,
+      "failure": null,
+      "max_frame_gap_ms": 26
+    },
+    {
+      "iteration": 6,
+      "elapsed_ms": 926,
+      "failure": null,
+      "max_frame_gap_ms": 28
+    },
+    {
+      "iteration": 7,
+      "elapsed_ms": 962,
+      "failure": null,
+      "max_frame_gap_ms": 25
+    },
+    {
+      "iteration": 8,
+      "elapsed_ms": 951,
+      "failure": null,
+      "max_frame_gap_ms": 26
+    },
+    {
+      "iteration": 9,
+      "elapsed_ms": 988,
+      "failure": null,
+      "max_frame_gap_ms": 28
+    },
+    {
+      "iteration": 10,
+      "elapsed_ms": 986,
+      "failure": null,
+      "max_frame_gap_ms": 29
+    }
+  ],
+  "page_errors": [],
+  "test_failures": []
+}

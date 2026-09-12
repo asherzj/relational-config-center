@@ -1,0 +1,9 @@
+/Users/asher/Projects/relational-config-center/.worktrees/ci-accounts-webkit/docs/verification/2026-09-12-accounts-webkit/probes/connect-linux-persistent.cjs:15
+    if (!context) throw new Error('Remote browser did not expose its persistent context');
+                        ^
+
+Error: Remote browser did not expose its persistent context
+    at playwright.webkit.launchPersistentContext (/Users/asher/Projects/relational-config-center/.worktrees/ci-accounts-webkit/docs/verification/2026-09-12-accounts-webkit/probes/connect-linux-persistent.cjs:15:25)
+    at async file:///Users/asher/Projects/relational-config-center/.worktrees/ci-accounts-webkit/web/e2e/accounts.mjs:132:13
+
+Node.js v24.19.0

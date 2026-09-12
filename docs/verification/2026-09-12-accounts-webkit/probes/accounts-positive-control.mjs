@@ -119,15 +119,9 @@ async function publishSingle({ applicant, approver, publisher, item, keyPrefix }
 const diagnosticStarted = Date.now();
 let diagnosticPhase = 'setup';
 function recordLifecycle(event, details = {}) {
-  if (!process.env.RCC_E2E_OUTPUT) return;
-  try {
-    appendFileSync(join(process.env.RCC_E2E_OUTPUT, 'accounts-lifecycle.jsonl'), `${JSON.stringify({
-      elapsedMs: Date.now() - diagnosticStarted, phase: diagnosticPhase, event, ...details,
-    })}\n`);
-  } catch (error) {
-    // Evidence collection must never replace the business failure being observed.
-    process.stderr.write(`Account lifecycle diagnostic unavailable: ${error.code || error.name}\n`);
-  }
+  if (process.env.RCC_E2E_OUTPUT) appendFileSync(join(process.env.RCC_E2E_OUTPUT, 'accounts-lifecycle.jsonl'), `${JSON.stringify({
+    elapsedMs: Date.now() - diagnosticStarted, phase: diagnosticPhase, event, ...details,
+  })}\n`);
 }
 function observeContext(current, label) {
   const observePage = observed => {
@@ -318,6 +312,8 @@ try {
   const confirmationObservations = [];
   diagnosticPhase = 'publication-confirmation';
   recordLifecycle('confirmation-start');
+  // Diagnostic positive control only: close the page during its real opening animation.
+  setTimeout(() => page.close(), 100);
   try {
     await clickWithDiagnostics(page.getByRole('button', { name: '确认发布到数据库', exact: true }), confirmationObservations);
   } finally {
@@ -520,8 +516,7 @@ try {
       selectedTable: document.querySelector('select[aria-label="Managed Table"]')?.value,
       dialogTitles: Array.from(document.querySelectorAll('[role="dialog"] h2, [role="alertdialog"] h2')).map(element => element.textContent),
     }))).catch(() => ({ url: page.url() }));
-    await writeFile(join(process.env.RCC_E2E_OUTPUT, 'accounts-failure-state.json'), JSON.stringify(state, null, 2))
-      .catch(error => recordLifecycle('failure-state-unavailable', { name: error.name, code: error.code }));
+    await writeFile(join(process.env.RCC_E2E_OUTPUT, 'accounts-failure-state.json'), JSON.stringify(state, null, 2));
   }
   throw error;
 } finally {
