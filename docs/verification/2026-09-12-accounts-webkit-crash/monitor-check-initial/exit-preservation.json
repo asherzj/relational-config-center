@@ -1,0 +1,5 @@
+{
+  "expected_case_exit": 42,
+  "observed_step_exit": 42,
+  "monitor_pid_deliberately_unavailable": true
+}

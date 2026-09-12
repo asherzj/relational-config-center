@@ -1,0 +1,7 @@
+{
+  "samples": 3,
+  "real_linux_meminfo": true,
+  "real_cgroup_oom_events": true,
+  "process_rss_observed": true,
+  "argv_canary_absent": true
+}

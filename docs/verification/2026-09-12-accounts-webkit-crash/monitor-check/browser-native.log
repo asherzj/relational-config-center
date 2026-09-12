@@ -1,0 +1,17 @@
+2026-09-12T07:09:40.549Z pw:browser <launching> /ms-playwright/webkit-2336/pw_run.sh --inspector-pipe --headless --no-startup-window
+2026-09-12T07:09:40.550Z pw:browser <launched> pid=358
+2026-09-12T07:09:40.859Z pw:browser [pid=358][err] 
+2026-09-12T07:09:40.859Z pw:browser [pid=358][err] ** (MiniBrowser:364): CRITICAL **: 07:09:40.858: WebKitWebView is-controlled-by-automation set but automation is not allowed in the context, falling back to default session.
+2026-09-12T07:09:40.934Z pw:browser [pid=358][err] libEGL warning: failed to get driver name for fd -1
+2026-09-12T07:09:40.934Z pw:browser [pid=358][err] 
+2026-09-12T07:09:40.934Z pw:browser [pid=358][err] libEGL warning: MESA-LOADER: failed to retrieve device information
+2026-09-12T07:09:40.934Z pw:browser [pid=358][err] 
+2026-09-12T07:09:40.934Z pw:browser [pid=358][err] libEGL warning: failed to get driver name for fd -1
+2026-09-12T07:09:40.934Z pw:browser [pid=358][err] 
+2026-09-12T07:09:40.937Z pw:browser [pid=358][err] MESA: error: ZINK: vkCreateInstance failed (VK_ERROR_INCOMPATIBLE_DRIVER)
+2026-09-12T07:09:40.937Z pw:browser [pid=358][err] libEGL warning: egl: failed to create dri2 screen
+2026-09-12T07:09:41.017Z pw:browser [pid=358] <gracefully close start>
+2026-09-12T07:09:41.124Z pw:browser [pid=358] <process did exit: exitCode=0, signal=null>
+2026-09-12T07:09:41.125Z pw:browser [pid=358] starting temporary directories cleanup
+2026-09-12T07:09:41.126Z pw:browser [pid=358] finished temporary directories cleanup
+2026-09-12T07:09:41.126Z pw:browser [pid=358] <gracefully close end>
