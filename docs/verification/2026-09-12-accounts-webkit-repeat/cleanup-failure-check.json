@@ -1,0 +1,5 @@
+{
+  "case_exit": 42,
+  "step_exit_with_missing_monitor_and_failed_rm": 42,
+  "cleanup_error_visible": true
+}

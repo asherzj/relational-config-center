@@ -1,0 +1,9 @@
+{
+  "base": "2ecfeef3e155a659358bb3a06d212f7f3fe63458",
+  "reviewed_tree": "3e7a2652ea7c13b2f3bfeaae3a61a2f1786f0bee",
+  "gate": "bounded diagnostic execution only; final cleanup and regression required",
+  "reports": {
+    "docs/verification/2026-09-12-accounts-webkit-repeat/reviews/spec.md": "e85944b72eed160c594d51c1f49214e3d81824ed3b45d17a3a7cbbf626a2aca2",
+    "docs/verification/2026-09-12-accounts-webkit-repeat/reviews/standards.md": "5765bb3da19aa5bdca3df18eab698645715febe6deddce4f05db92922999e793"
+  }
+}

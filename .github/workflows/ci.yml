@@ -164,8 +164,8 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  # Temporary #110 native crash evidence; remove this job and its sampler once
-  # the renderer failure has an evidenced resolution. Existing gates stay intact.
+  # Temporary #110 native crash evidence; remove this job, sampler and repeat
+  # generator after the bounded investigation and before #110 delivery.
   accounts-webkit-native-diagnostic:
     name: Accounts WebKit native diagnostic
     if: github.event_name == 'pull_request' && github.event.pull_request.number == 111
@@ -191,7 +191,7 @@ jobs:
           cache-dependency-path: |
             go.work.sum
             admin/go.sum
-      - name: Observe the original isolated accounts case
+      - name: Observe twelve original accounts cases on shared real services
         env:
           DEBUG: pw:browser
           RCC_E2E_ARTIFACTS: ${{ runner.temp }}/rcc-accounts-webkit-browser
@@ -203,12 +203,16 @@ jobs:
           mkdir -p "$RCC_NATIVE_ARTIFACTS"
           node scripts/diagnose-accounts-webkit-native.cjs "$RCC_NATIVE_ARTIFACTS/resources.jsonl" &
           diagnostic_pid=$!
+          diagnostic_runner=''
           stop_diagnostic() {
             kill "$diagnostic_pid" 2>/dev/null || true
             wait "$diagnostic_pid" 2>/dev/null || true
+            if [[ -n "$diagnostic_runner" ]]; then rm -f -- "$diagnostic_runner" || true; fi
           }
           trap stop_diagnostic EXIT
-          make test-browser-acceptance
+          diagnostic_runner=$(mktemp "$PWD/scripts/.accounts-webkit-repeat.XXXXXX")
+          node scripts/diagnose-accounts-webkit-repeat.cjs "$diagnostic_runner"
+          bash "$diagnostic_runner"
       - name: Collect kernel crash and OOM messages
         if: always()
         run: |

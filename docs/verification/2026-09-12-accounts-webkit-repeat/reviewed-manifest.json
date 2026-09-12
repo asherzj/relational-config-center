@@ -1,0 +1,12 @@
+{
+  "docs/verification/2026-09-12-accounts-webkit-repeat/README.md": "7cb265abb693ca4f7107a1ce5824f3d031a3510273f4f5414087797b1c344ad6",
+  "docs/verification/2026-09-12-accounts-webkit-repeat/cleanup-failure-check.json": "151ce7e1367fb4be146cb1a77bf71f84f4758c37223508fa5f69720e48e67659",
+  "docs/verification/2026-09-12-accounts-webkit-repeat/generator-check.json": "155d32d996745ce91febb8042f972d8c8f63523153f3a6f4d1dfc305219971bd",
+  "docs/verification/2026-09-12-accounts-webkit-repeat/probes/check-generator.py": "5fb5f90d807a788f8f8a361fec0ca1c8122a3d9dd73a162ef3f5c85c6687434b",
+  "docs/verification/2026-09-12-accounts-webkit-repeat/unchanged-scope.json": "50e88a5d396dd7fc6637f71d542ec48ee6da538bb5abe66f2503de8bbf7c6aa2",
+  ".github/workflows/ci.yml": "c29567ad961c7f6dfaa0e216b4e0cd13d93cff6ea7def02025fdaf27b35d7d48",
+  "scripts/diagnose-accounts-webkit-repeat.cjs": "0248317ed6c92edfc2054d973afb0bf7d23316eba956d0783e2ef5f58fa794b6",
+  "scripts/browser-acceptance.sh": "cfafd6d6a2a0a5c390a3aca763583819984f18980fb8e58c6410bcd20ee19681",
+  "web/e2e/accounts.mjs": "27596293b5ba49bcfb57fe535c787d0dc6359d10895d8f40e8e134acb65fcd9f",
+  "scripts/diagnose-accounts-webkit-native.cjs": "ee5ad6c5df05865efa4a4f6a918e8ad4286910fbdc5322f72c30e1b0a1e3389c"
+}

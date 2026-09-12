@@ -1,0 +1,20 @@
+{
+  "generated_only_two_accounts_call_sites": true,
+  "generated_runner_bash_syntax": "pass",
+  "twelve-successes": {
+    "rounds": 12,
+    "distinct_node_processes": 12,
+    "distinct_output_directories": 12,
+    "case_timeout_argument": 600,
+    "exit_status": 0
+  },
+  "first-failure-stops": {
+    "rounds": 3,
+    "distinct_node_processes": 3,
+    "distinct_output_directories": 3,
+    "case_timeout_argument": 600,
+    "exit_status": 42
+  },
+  "source_drift_rejected_before_output": true,
+  "wrong_directory_rejected_before_output": true
+}
