@@ -181,9 +181,9 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  # Temporary #113/D05 feedback experiment. Remove before final issue delivery.
+  # Temporary #113/D09 compact application feedback experiment. Remove before final issue delivery.
   a11y-webkit-original-feedback:
-    name: A11y WebKit original-source feedback
+    name: A11y WebKit compact CR/LF feedback
     if: github.event_name == 'pull_request' && github.event.pull_request.number == 114
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -216,19 +216,13 @@ jobs:
       - name: Verify bounded feedback driver
         run: node --test scripts/diagnose-a11y-webkit-repeat.test.cjs
 
-      - name: Verify native process observer
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y strace gcc
-          node --test scripts/diagnose-a11y-native-trace.test.cjs
-
       - name: Require a healthy Docker provider
         run: docker info
 
-      - name: Observe original prefix and at most twelve WebKit cases
+      - name: Observe at most twelve original CR/LF business rounds
         run: node scripts/diagnose-a11y-webkit-repeat.cjs "${{ runner.temp }}/rcc-a11y-original-feedback"
 
-      - name: Upload bounded native feedback evidence
+      - name: Upload bounded application feedback evidence
         if: always()
         uses: actions/upload-artifact@v6
         with:

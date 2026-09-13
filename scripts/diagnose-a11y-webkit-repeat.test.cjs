@@ -1,4 +1,4 @@
-// Driver contract tests only; these controls do not reproduce the #113 bug.
+// Application-driver contracts only. These controls never launch a browser or reproduce #113.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -8,154 +8,115 @@ const { execFileSync, spawnSync } = require('node:child_process');
 const driver = require('./diagnose-a11y-webkit-repeat.cjs');
 const repo = path.resolve(__dirname, '..');
 const original = execFileSync('git', ['show', `${driver.BASE}:scripts/browser-acceptance.sh`], { cwd: repo, encoding: 'utf8' });
+const originalBusiness = execFileSync('git', ['show', `${driver.BASE}:web/e2e/browser-accessibility.cjs`], { cwd: repo, encoding: 'utf8' });
 const generated = driver.generateRunner(original);
-const start = generated.indexOf('if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == unsaved-changes ]]');
-const end = generated.indexOf('if [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == release-workflow ]]', start);
-const caseSection = generated.slice(start, end);
-
+const compact = driver.generate(originalBusiness, 12);
 function fixture(t) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rcc-a11y-driver-test-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   return directory;
 }
 
-function exercise(t, { fail = '', seconds = 0, exhaustAfter = '' } = {}) {
-  const directory = fixture(t);
-  // The generated shell is executed against an external case boundary returning
-  // controlled exit statuses. It never starts a browser, application or Docker.
-  const script = `set -Eeuo pipefail
-artifact_root=$1
-repo_root=/frozen-original
-browser_engine_list=(chromium firefox webkit)
-RCC_E2E_SUITE=all
-SECONDS=${seconds}
-run_browser_suite() {
-  local engine=\${5:-chromium}
-  local id="\${2##*/}@$engine"
-  printf '%s\\t%s\\t%s\\n' "$id" "$3" "\${4:-180}" >> "$artifact_root/calls.tsv"
-  mkdir -p "$3"
-  if [[ $id == '${driver.CASE}' ]]; then
-    [[ $4 == 420 ]] || exit 91
-    [[ \${DEBUG:-} == pw:browser ]] || exit 92
-    if [[ $diagnostic_round == '${exhaustAfter}' ]]; then SECONDS=1921; fi
-    if [[ $diagnostic_round == '${fail}' ]]; then return 7; fi
-  elif [[ $id == '${fail}' ]]; then
-    return 9
-  fi
-}
-${caseSection}
-printf complete > "$artifact_root/complete"
-`;
-  const result = spawnSync('bash', ['-s', '--', directory], { input: script, encoding: 'utf8' });
-  assert.equal(result.error, undefined);
-  const callsFile = path.join(directory, 'calls.tsv');
-  const calls = fs.existsSync(callsFile) ? fs.readFileSync(callsFile, 'utf8').trim().split('\n').map(row => row.split('\t')) : [];
-  return { directory, result, calls };
-}
-
-test('generated runner changes only the bounded loop, pre-service gates and WebKit process observer', t => {
-  const directory = fixture(t);
-  const file = path.join(directory, 'runner.sh');
-  fs.writeFileSync(file, generated);
-  execFileSync('bash', ['-n', file]);
-  const originalA11y = execFileSync('git', ['show', `${driver.BASE}:web/e2e/browser-accessibility.cjs`], { cwd: repo });
-  assert.equal(driver.sha256(originalA11y), driver.HASHES['web/e2e/browser-accessibility.cjs']);
-  assert.match(originalA11y.toString(), /await button\('note 申请值：转换为 LF 再编辑'\).click\(\)/);
-  assert.doesNotMatch(originalA11y.toString(), /clickWithDiagnostics/);
-  const serviceLimits = source => source.split('\n').filter(line => line.includes('run-with-timeout.cjs') && line.includes(' 2400 '));
-  assert.deepEqual(serviceLimits(generated), serviceLimits(original));
-  assert.equal(serviceLimits(generated).length, 2);
-  const originalCall = '  run_browser_suite "browser-accessibility ($browser_engine)" "$repo_root/web/e2e/browser-accessibility.cjs" "$artifact_root/browser-accessibility/$browser_engine" 420 "$browser_engine"';
-  assert.equal(generated.replace(driver.WEBKIT_LOOP, originalCall).replace(`${driver.IDENTITY_CHECK}\n`, '')
-    .replace(`${driver.TRACE_SETUP}\n`, '').replace(driver.TRACE_SELECT, '')
-    .replace(driver.TRACED_COMMAND, driver.ORIGINAL_COMMAND), original);
-  assert.ok(generated.indexOf(driver.TRACE_SETUP) < generated.indexOf("printf 'Starting disposable MySQL"));
-  assert.ok(generated.indexOf("assert.equal(process.arch, 'x64')") < generated.indexOf("printf 'Starting disposable MySQL"));
-  assert.match(generated, /assert.equal\(pkg.version, '1.63.0'\)/);
-  assert.match(generated, /assert.equal\(webkit.revision, '2359'\)/);
-  assert.throws(() => driver.generateRunner(`${original}\n`), /original runner mismatch/);
+test('source-derived compact preserves the original continuous CR/LF segment and deadlines', t => {
+  const directory=fixture(t);
+  fs.writeFileSync(path.join(directory,'compact.cjs'),compact.script);
+  fs.writeFileSync(path.join(directory,'runner.sh'),generated);
+  execFileSync(process.execPath,['--check',path.join(directory,'compact.cjs')]);
+  execFileSync('bash',['-n',path.join(directory,'runner.sh')]);
+  assert.deepEqual(compact.provenance.retainedBusiness,{firstLine:209,lastLine:370,sha256:driver.sha256(originalBusiness.split('\n').slice(208,370).join('\n')+'\n'),byteIdentityExcludingHostPhaseInsertions:true});
+  assert.equal(compact.provenance.targetOriginalLine,355);
+  assert.equal(compact.provenance.leaveOriginalLine,360);
+  assert.deepEqual(compact.provenance.deleted.map(x=>[x.firstLine,x.lastLine]),[[139,208],[371,429]]);
+  assert.match(compact.script,/page.setDefaultTimeout\(15000\)/);
+  assert.match(compact.script,/page.setDefaultNavigationTimeout\(20000\)/);
+  assert.match(compact.script,/await button\('note 申请值：转换为 LF 再编辑'\).click\(\)/);
+  assert.match(compact.script,/await button\('放弃修改并离开'\).click\(\)/);
+  assert.doesNotMatch(compact.script,/page.route\(|clickWithDiagnostics|force:|native-trace|strace|elfFiles/);
+  assert.equal(generated.replace(driver.COMPACT_INVOCATION,driver.ORIGINAL_INVOCATION).replace(`${driver.IDENTITY_CHECK}\n`,''),original);
+  assert.equal(generated.split('\n').filter(x=>x.includes('run-with-timeout.cjs')&&x.includes(' 2400 ')).length,2);
 });
 
-test('all-success boundary runs the exact seven-case prefix and twelve unique WebKit outputs', t => {
-  const { calls, result, directory } = exercise(t);
-  assert.equal(result.status, 0, result.stderr);
-  assert.deepEqual(calls.slice(0, 7).map(row => row[0]), driver.PREFIX);
-  assert.equal(calls.length, 19);
-  assert.ok(calls.slice(7).every(row => row[0] === driver.CASE && row[2] === '420'));
-  assert.equal(new Set(calls.slice(7).map(row => row[1])).size, 12);
-  assert.ok(fs.existsSync(path.join(directory, 'complete')));
+test('changed source and invalid round counts fail before execution', () => {
+  assert.throws(()=>driver.generate(originalBusiness+'\n',12));
+  assert.throws(()=>driver.generateRunner(original+'\n'));
+  for(const count of [0,-1,13,NaN,Infinity,1.5,'12',undefined]) assert.throws(()=>driver.generate(originalBusiness,count));
 });
 
-test('the original supervisor covers the observer only for accessibility WebKit', t => {
-  const directory = fixture(t);
-  const functionSource = generated.slice(generated.indexOf('run_browser_suite() {'), generated.indexOf('\nif [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == unsaved-changes ]]'));
-  const script = `set -Eeuo pipefail
-repo_root=/frozen-original
-artifact_root=$1
-runtime_dir=/owned-runtime
-mysql_container=owned-mysql
-web_url=http://localhost
-mysql_port=3306
-mysql_password=controlled-placeholder
-run_timeout() { printf '%s\\n' "$@"; }
-${functionSource}
-for engine in chromium firefox webkit; do
-  run_browser_suite controlled /frozen-original/web/e2e/browser-accessibility.cjs "$artifact_root/$engine" 420 "$engine"
-done
-`;
-  const result = spawnSync('bash', ['-s', '--', directory], { input: script, encoding: 'utf8' });
-  assert.equal(result.status, 0, result.stderr);
-  for (const engine of ['chromium', 'firefox', 'webkit']) {
-    const args = fs.readFileSync(path.join(directory, engine, 'runner.log'), 'utf8').trim().split('\n');
-    assert.deepEqual(args, engine === 'webkit'
-      ? ['420', 'node', '/frozen-original/scripts/.a11y-native-trace.cjs', path.join(directory, engine), 'node', '/frozen-original/web/e2e/browser-accessibility.cjs']
-      : ['420', 'node', '/frozen-original/web/e2e/browser-accessibility.cjs']);
-  }
+test('artifact paths reject absent, unsafe, occupied and symlink destinations', t => {
+  const directory=fixture(t);
+  for(const value of [undefined,'',' ','/','a\nb','a\0b']) assert.throws(()=>driver.artifactDirectory(value));
+  fs.writeFileSync(path.join(directory,'occupied'),'existing');
+  assert.throws(()=>driver.artifactDirectory(directory));
+  const link=path.join(directory,'link');fs.symlinkSync(directory,link);
+  assert.throws(()=>driver.artifactDirectory(link));
+  assert.equal(driver.artifactDirectory(path.join(directory,'new')),path.join(directory,'new'));
 });
 
-for (const fail of [1, 6, 12]) test(`round ${fail} failure stops with its original status and no later call`, t => {
-  const { calls, result, directory } = exercise(t, { fail: String(fail) });
-  assert.equal(result.status, 7, result.stderr);
-  assert.equal(calls.length, 7 + fail);
-  assert.equal(fs.existsSync(path.join(directory, 'complete')), false);
+test('only the LF phase plus original timeout and not-stable text is the exact symptom', () => {
+  const error={name:'TimeoutError',message:'locator.click: Timeout 15000ms exceeded. element is not stable'};
+  assert.equal(driver.classify(error,'original-LF-355'),'exact-original-LF-notstable-symptom');
+  for(const phase of ['original-leave-360','CR-path','post-LF-assertions']) assert.equal(driver.classify(error,phase),'other-failure');
+  for(const message of ['locator.click: Timeout 15000ms exceeded.','Target closed','locator.click: Timeout 30000ms exceeded. element is not stable']) assert.equal(driver.classify({...error,message},'original-LF-355'),'other-failure');
+  assert.equal(driver.classify(null,'final-assertions'),'not-reproduced-in-bounded-experiment');
+  assert.equal(driver.classify(error,'setup'),'incomplete-setup');
+  for (const phase of ['round-start-observation','round-result-observation']) assert.equal(driver.classify(error,phase),'incomplete-observation');
 });
 
-test('a prefix failure prevents every WebKit round', t => {
-  const { calls, result, directory } = exercise(t, { fail: driver.PREFIX[0] });
-  assert.equal(result.status, 9);
-  assert.equal(calls.length, 1);
-  assert.equal(fs.existsSync(path.join(directory, 'round-events.tsv')), false);
+for(const fail of [0,1,6,12,'pageerror','append']) test(`actual generated orchestration stops at controlled external boundary ${fail}`, async t => {
+  const directory=fixture(t);
+  let loop=compact.script.slice(compact.script.indexOf('    for (let round = 1;'),compact.script.indexOf("    phase = 'final-assertions';"));
+  const a=loop.indexOf('    // Narrow drawer,');
+  const b=loop.indexOf("    currentRound.elapsedMs =",a);
+  // Replace the entire real-browser business boundary for this host-only control.
+  // No browser, product service or simulated browser fault is involved.
+  loop=loop.slice(0,a)+`if(round===${JSON.stringify(fail)}) throw new Error('controlled external boundary failure'); checks.push(1,2,3,4);currentRound.lfPassed=true;if(${JSON.stringify(fail)}==='pageerror')pageErrors.push('controlled page-error record');\n`+loop.slice(b);
+  const fn=new Function('fs','rootOutput','assert',`return (async()=>{let output,phase,currentRound;const roundResults=[],checks=[],pageErrors=[],maxRounds=12;try{${loop}}catch(error){return {error:error.message,roundResults};}return {roundResults};})()`);
+  const recording = { ...fs.promises, appendFile: async (file, data) => {
+    if (fail === 'append' && JSON.parse(data).state === 'passed') throw new Error('controlled event-write failure');
+    return fs.promises.appendFile(file, data);
+  } };
+  const result=await fn(recording,directory,assert);
+  assert.equal(result.roundResults.length,typeof fail==='string'?1:fail||12);
+  assert.equal(result.roundResults.filter(x=>x.state==='passed').length,typeof fail==='string'?0:fail?fail-1:12);
+  assert.equal(Boolean(result.error),Boolean(fail));
 });
 
-test('insufficient complete-case budget starts no WebKit round', t => {
-  const { calls, result, directory } = exercise(t, { seconds: 1921 });
-  assert.equal(result.status, 125);
-  assert.equal(calls.length, 7);
-  assert.match(fs.readFileSync(path.join(directory, 'round-events.tsv'), 'utf8'), /^1\tbudget-exhausted\t/);
+for(const seconds of [0,1921]) test(`original complete-case admission at elapsed ${seconds}s`, t => {
+  const directory=fixture(t);
+  const block=driver.COMPACT_INVOCATION.slice(0,driver.COMPACT_INVOCATION.lastIndexOf('\ndone\nfi'));
+  const script=`set -Eeuo pipefail\nSECONDS=${seconds}\nartifact_root=$1\nrepo_root=/original\nbrowser_engine=webkit\nrun_browser_suite(){ printf '%s\\n' "$4" > "$artifact_root/call"; }\n${block}\n`;
+  const result=spawnSync('bash',['-s','--',directory],{input:script,encoding:'utf8'});
+  assert.equal(result.status,seconds?125:0,result.stderr);
+  assert.equal(fs.existsSync(path.join(directory,'call')),!seconds);
+  if(!seconds)assert.equal(fs.readFileSync(path.join(directory,'call'),'utf8').trim(),'420');
 });
 
-test('budget exhaustion after a completed round does not shorten or start the next round', t => {
-  const { calls, result, directory } = exercise(t, { exhaustAfter: '3' });
-  assert.equal(result.status, 125);
-  assert.equal(calls.length, 10);
-  const events = fs.readFileSync(path.join(directory, 'round-events.tsv'), 'utf8');
-  assert.match(events, /3\tpassed\t/);
-  assert.match(events, /4\tbudget-exhausted\t/);
-  assert.doesNotMatch(events, /4\tstarted\t/);
+test('summary preserves exact, other, incomplete, cleanup and missing-round distinctions', t => {
+  const directory=fixture(t), output=path.join(directory,'browser-accessibility/webkit');fs.mkdirSync(output,{recursive:true});
+  const file=path.join(output,'result.json');
+  const rounds=Array.from({length:12},(_,i)=>({round:i+1,state:'passed',checks:4,lfPassed:true}));
+  const result={ok:true,browserVersion:'26.6',pageErrors:[],cleanup:{remainingRows:0},checks:Array(48).fill({}),compact:{phase:'final-assertions',rounds}};
+  fs.writeFileSync(path.join(directory,'run.txt'),'cleanup verified: true\n');
+  const write=()=>fs.writeFileSync(file,JSON.stringify(result));write();
+  assert.equal(driver.summarize(directory,0).outcome,'not-reproduced-in-bounded-experiment');
+  result.ok=false;result.failure={name:'TimeoutError',message:'locator.click: Timeout 15000ms exceeded. element is not stable'};result.compact.phase='original-LF-355';write();
+  assert.equal(driver.summarize(directory,1).outcome,'exact-original-LF-notstable-symptom');
+  result.compact.phase='original-leave-360';write();assert.equal(driver.summarize(directory,1).outcome,'other-failure');
+  assert.throws(()=>driver.summarize(directory,0),/incomplete experiment/);
+  result.cleanup={error:'cleanup failed'};write();assert.equal(driver.summarize(directory,1).outcome,'incomplete-cleanup');
+  fs.unlinkSync(file);fs.writeFileSync(path.join(output,'round-events.jsonl'),JSON.stringify({round:1,state:'started'})+'\n');
+  const incomplete=driver.summarize(directory,124);assert.equal(incomplete.outcome,'incomplete-experiment');
+  assert.equal(incomplete.rounds[0].state,'interrupted');assert.ok(incomplete.rounds.slice(1).every(x=>x.state==='unexecuted'));
 });
 
-test('summary distinguishes unexecuted rounds and rejects incomplete success', t => {
-  const directory = fixture(t);
-  const prefix = driver.PREFIX.map(id => `${id}\tselected\t0\n`).join('');
-  fs.writeFileSync(path.join(directory, 'case-results.tsv'), `case\tselection\texit_status\n${prefix}${driver.CASE}\tselected\t7\n`);
-  fs.writeFileSync(path.join(directory, 'round-events.tsv'), '1\tstarted\t100\n');
-  const summary = driver.summarize(directory, 7);
-  assert.equal(summary.rounds[0].state, 'failed-or-interrupted');
-  assert.ok(summary.rounds.slice(1).every(round => round.state === 'unexecuted'));
-  assert.equal(summary.originalIssueResolved, false);
-  assert.throws(() => driver.summarize(directory, 0), /incomplete experiment/);
+test('ordinary workflow jobs remain unchanged and the extra job contains no native observer setup', () => {
+  const previous=execFileSync('git',['show','9da16c6d06cba62dbf9773255f83d8c6a30be3ae:.github/workflows/ci.yml'],{cwd:repo,encoding:'utf8'});
+  const current=fs.readFileSync(path.join(repo,'.github/workflows/ci.yml'),'utf8');
+  assert.equal(current.slice(0,current.indexOf('  # Temporary #113/')),previous.slice(0,previous.indexOf('  # Temporary #113/')));
+  assert.doesNotMatch(current,/strace|gcc|native-trace/);
+  assert.equal(fs.existsSync(path.join(repo,'scripts/diagnose-a11y-native-trace.cjs')),false);
+  assert.equal(fs.existsSync(path.join(repo,'scripts/diagnose-a11y-native-trace.test.cjs')),false);
 });
-
 test('source mismatch prevents the external execution boundary and removes only its snapshot', async t => {
   const directory = fixture(t);
   const external = path.join(directory, 'do-not-remove');
@@ -219,11 +180,6 @@ test('identity gate resolves pnpm package symlinks and rejects the wrong install
   fs.mkdirSync(core, { recursive: true });
   fs.mkdirSync(path.dirname(executable));
   fs.writeFileSync(executable, 'external executable fixture; never launched');
-  for (const relative of ['bin/WPEWebProcess', 'lib/libWPEWebKit-2.0.so.1']) {
-    const file = path.join(path.dirname(executable), 'minibrowser-wpe', relative);
-    fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, `external ELF identity fixture: ${relative}; never launched`);
-  }
   fs.writeFileSync(path.join(playwright, 'package.json'), '{"version":"1.63.0","main":"index.js"}');
   fs.writeFileSync(path.join(playwright, 'index.js'), `module.exports={webkit:{executablePath:()=>${JSON.stringify(executable)}}};`);
   const corePackage = path.join(core, 'package.json');
@@ -232,17 +188,14 @@ test('identity gate resolves pnpm package symlinks and rejects the wrong install
   fs.symlinkSync(playwright, path.join(modules, 'playwright'));
   fs.symlinkSync(core, path.join(path.dirname(playwright), 'playwright-core'));
   // Only the host-platform precondition is removed for this portable package
-  // boundary test. The native driver retains both Linux and AMD64 assertions.
-  const identity = driver.IDENTITY_CHECK.split("<<'RCC_D05_IDENTITY'\n")[1].split('\nRCC_D05_IDENTITY')[0]
+  // boundary test. The CI driver retains both Linux and AMD64 assertions.
+  const identity = driver.IDENTITY_CHECK.split("<<'RCC_D09_IDENTITY'\n")[1].split('\nRCC_D09_IDENTITY')[0]
     .replace("assert.equal(process.platform, 'linux');", '').replace("assert.equal(process.arch, 'x64');", '');
   const invoke = () => spawnSync(process.execPath, ['-', directory, directory], { input: identity, encoding: 'utf8' });
   const valid = invoke();
   assert.equal(valid.status, 0, valid.stderr);
-  const identityFile = path.join(directory, 'native-identity.json');
+  const identityFile = path.join(directory, 'browser-identity.json');
   assert.equal(JSON.parse(fs.readFileSync(identityFile)).core, '1.63.0');
-  for (const elf of JSON.parse(fs.readFileSync(identityFile)).elfFiles) {
-    assert.equal(elf.sha256, driver.sha256(fs.readFileSync(elf.file)));
-  }
   fs.unlinkSync(identityFile);
   fs.writeFileSync(corePackage, '{"version":"1.62.1"}');
   const invalid = invoke();
