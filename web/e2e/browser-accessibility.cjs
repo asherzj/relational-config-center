@@ -7,6 +7,8 @@ const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const { browserOptions, registerFixtureAccount, authenticatedRequest } = require('./local-account.cjs');
 const fs = require('node:fs/promises');
+const { appendFileSync } = require('node:fs');
+const { createLifecycleRecorder, captureFailureArtifacts } = require('./accessibility-evidence.cjs');
 const { execFileSync } = require('node:child_process');
 
 const base = process.env.RCC_WEB_URL;
@@ -26,6 +28,13 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
 
 (async () => {
   await fs.mkdir(output, { recursive: true });
+  let phase = 'setup';
+  const started = performance.now();
+  const lifecycle = createLifecycleRecorder(
+    line => appendFileSync(`${output}/lifecycle.jsonl`, line),
+    () => phase, () => Math.round(performance.now() - started),
+  );
+  let failureArtifacts = { status: 'not-requested' };
   const checks = [];
   const pageErrors = [];
   const http = [];
@@ -60,6 +69,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     return { left, right, width, clientWidth: node.clientWidth, scrollWidth: node.scrollWidth, innerWidth };
   });
   async function open(pathname, viewport = { width: 1440, height: 1000 }) {
+    phase = 'open-page';
     if (page) await page.close();
     page = await context.newPage();
     await page.setViewportSize(viewport);
@@ -86,6 +96,7 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
       http.push({ method: request.method(), path: url.pathname, status: response.status(), ...(body === undefined ? {} : { body }) });
     });
     await page.goto(`${base}${pathname}`);
+    phase = 'scenario';
   }
   async function managed(viewport) {
     // Start on this suite's fixture instead of briefly loading the first table.
@@ -129,9 +140,12 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
 
   try {
     browser = await engine.launch(browserOptions());
+    lifecycle.observeBrowser(browser);
     context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    lifecycle.observeContext(context, 'applicant');
     account = await registerFixtureAccount(context, base);
     approvalContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    lifecycle.observeContext(approvalContext, 'approver');
     approverAccount = await registerFixtureAccount(approvalContext, base, { roles: ['VIEWER'] });
     await createFixtureApprovalRole(context, base, `Accessibility review ${randomUUID()}`, [approverAccount.accountID], [table]);
     browserVersion = browser.version();
@@ -343,8 +357,11 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     await page.getByRole('textbox', { name: '取消原因', exact: true }).fill('Correct the rejected value without changing the frozen intent');
     await button('确认取消发布单').click();
     await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: /^已取消$/ }).waitFor();
+    phase = 'open-copy';
     await button('复制新草稿').click();
+    phase = 'read-copy-configuration';
     await button('读取最新配置').click();
+    phase = 'confirm-copy';
     await button('确认最新基线并复制').click();
     await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();
     await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: /^草稿$/ }).waitFor();
@@ -352,7 +369,9 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     const copiedNote = page.getByRole('textbox', { name: 'note 申请值', exact: true });
     assert.equal(await copiedNote.getAttribute('readonly'), '');
     assert.equal(await copiedNote.inputValue(), rawCR.replace(/\r\n?/g, '\n'));
+    phase = 'lf-conversion';
     await button('note 申请值：转换为 LF 再编辑').click();
+    phase = 'converted-draft';
     assert.equal(await copiedNote.getAttribute('readonly'), null);
     assert.equal(await copiedNote.inputValue(), rawCR.replace(/\r\n?/g, '\n'));
     await page.getByRole('dialog', { name: `编辑多表草稿`, exact: true }).locator('.drawer-footer').getByRole('button', { name: '关闭', exact: true }).click();
@@ -431,13 +450,15 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
 
     assert.deepEqual(pageErrors, []);
   } catch (error) {
-    failure = { name: error.name, message: error.message, stack: error.stack };
-    if (page) {
-      await page.screenshot({ path: `${output}/failure.png`, fullPage: true }).catch(() => {});
-      await fs.writeFile(`${output}/failure-body.txt`, await page.locator('body').innerText().catch(() => 'page unavailable')).catch(() => {});
-    }
+    failure = Object.freeze({ name: error.name, message: error.message, stack: error.stack });
+    // Preserve the original error even if a later evidence file cannot be written.
+    console.error(JSON.stringify(failure, null, 2));
+    lifecycle.recordFailure(page);
+    failureArtifacts = await captureFailureArtifacts(page, output);
   } finally {
-    if (browser) await browser.close().catch(() => {});
+    lifecycle.startCleanup(page);
+    if (browser) await browser.close().catch(() => lifecycle.cleanupFailed());
+    const lifecycleEvidence = lifecycle.seal();
     let cleanup = null;
     try {
       if (cleanupNames.size) sql(`DELETE FROM ${table} WHERE name IN (${[...cleanupNames].map(literal).join(',')});`);
@@ -449,7 +470,9 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     }
     await fs.writeFile(`${output}/http-evidence.json`, JSON.stringify(http, null, 2) + '\n');
     await fs.writeFile(`${output}/result.json`, JSON.stringify({
-      ok: failure === null,
+      ok: failure === null && lifecycle.complete,
+      lifecycleEvidence,
+      failureArtifacts,
       engine: engineName,
       browserVersion,
       checks,
@@ -469,8 +492,8 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
       failure,
     }, null, 2) + '\n');
   }
-  if (failure) {
-    console.error(JSON.stringify(failure, null, 2));
+  if (failure || !lifecycle.complete) {
+    if (!failure) console.error('Accessibility lifecycle evidence incomplete');
     process.exitCode = 1;
   }
 })();
