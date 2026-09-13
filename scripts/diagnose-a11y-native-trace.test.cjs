@@ -68,6 +68,67 @@ else:
   assert.equal(metadata(directory).complete, true);
 });
 
+test('the actual tracer unwinds a NULL-fault worker at SIGSEGV with bounded symbol-only frames', linux, t => {
+  const directory = fixture(t);
+  const source = path.join(directory, 'signal-stack.c');
+  const executable = path.join(directory, 'signal-stack');
+  // Actual fault in a disposable pthread child; no browser or application.
+  // No core contents are generated or collected by this observer control.
+  fs.writeFileSync(source, `
+#include <pthread.h>
+#include <signal.h>
+#include <sys/resource.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <stdlib.h>
+__attribute__((noinline)) void d07_fault_site(void) {
+    volatile int *address = (volatile int *)0;
+    *address = 42;
+}
+__attribute__((noinline)) void *d07_worker(void *unused) {
+    (void)unused;
+    d07_fault_site();
+    return NULL;
+}
+int main(void) {
+    struct rlimit limit = {0, 0};
+    setrlimit(RLIMIT_CORE, &limit);
+    pid_t child = fork();
+    if (child < 0) return 2;
+    if (!child) {
+        pthread_t thread;
+        if (pthread_create(&thread, NULL, d07_worker, NULL)) _exit(3);
+        pthread_join(thread, NULL);
+        _exit(4);
+    }
+    int status;
+    if (waitpid(child, &status, 0) != child) return 5;
+    return WIFSIGNALED(status) && WTERMSIG(status) == SIGSEGV ? 0 : 6;
+}
+`);
+  const build = spawnSync('gcc', ['-O0', '-g', '-rdynamic', '-fno-omit-frame-pointer', '-pthread', source, '-o', executable], { encoding: 'utf8', timeout: 10000 });
+  assert.equal(build.status, 0, build.stderr);
+  const result = spawnSync(process.execPath, [helper, directory, executable, 'RCC_D07_ARG_CANARY'], {
+    env: { ...process.env, RCC_D07_SECRET: 'RCC_D07_ENV_CANARY' }, encoding: 'utf8', timeout: 10000,
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const raw = fs.readFileSync(path.join(directory, 'native-signals.log'), 'utf8');
+  const lines = raw.split('\n');
+  const fault = lines.findIndex(line => /--- SIGSEGV.*SEGV_MAPERR.*si_addr=NULL/.test(line));
+  assert.ok(fault >= 0, 'missing actual NULL SIGSEGV');
+  const frames = [];
+  for (const line of lines.slice(fault + 1)) {
+    if (!/^ > /.test(line)) break;
+    frames.push(line);
+  }
+  assert.ok(frames.length > 0 && frames.length <= 12, 'missing or unbounded signal-site stack');
+  assert.match(frames.join('\n'), /d07_fault_site\+0x[0-9a-f]+/);
+  assert.match(frames.join('\n'), /d07_worker\+0x[0-9a-f]+/);
+  assert.doesNotMatch(raw, /RCC_D07_ARG_CANARY|RCC_D07_ENV_CANARY|execve(?:at)?\(|(?:read|write|recv|send)\(/);
+  assert.equal(metadata(directory).complete, true);
+  assert.equal(metadata(directory).rootExitStatus, 0);
+});
+
 for (const mode of ['missing', 'unsupported']) test(`${mode} tracer is an explicit diagnostic failure`, linux, t => {
   const directory = fixture(t);
   const bin = path.join(directory, 'bin');

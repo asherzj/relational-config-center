@@ -1,11 +1,12 @@
-// Temporary #113/D06 process observer. Delete before final issue delivery.
+// Temporary #113/D06–D07 process observer. Delete before final issue delivery.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawn, execFileSync } = require('node:child_process');
 
-// No exec arguments, environment, I/O, network, stacks or core contents.
-const TRACE_ARGS = ['-f', '-ttt', '--decode-pids=comm', '--seccomp-bpf',
+// Stack frames contain only symbols/addresses. No argument values, environment,
+// I/O, network, locals, register/memory dumps or core contents.
+const TRACE_ARGS = ['-f', '-ttt', '--decode-pids=comm', '--seccomp-bpf', '-k', '--stack-trace-frame-limit=12',
   '-e', 'trace=clone,clone3,fork,vfork,exit,exit_group,wait4,waitid,kill,tgkill', '-e', 'signal=all'];
 const writeJSON = (file, value) => fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`);
 

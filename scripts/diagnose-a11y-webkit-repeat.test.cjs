@@ -219,6 +219,11 @@ test('identity gate resolves pnpm package symlinks and rejects the wrong install
   fs.mkdirSync(core, { recursive: true });
   fs.mkdirSync(path.dirname(executable));
   fs.writeFileSync(executable, 'external executable fixture; never launched');
+  for (const relative of ['bin/WPEWebProcess', 'lib/libWPEWebKit-2.0.so.1']) {
+    const file = path.join(path.dirname(executable), 'minibrowser-wpe', relative);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, `external ELF identity fixture: ${relative}; never launched`);
+  }
   fs.writeFileSync(path.join(playwright, 'package.json'), '{"version":"1.63.0","main":"index.js"}');
   fs.writeFileSync(path.join(playwright, 'index.js'), `module.exports={webkit:{executablePath:()=>${JSON.stringify(executable)}}};`);
   const corePackage = path.join(core, 'package.json');
@@ -235,6 +240,9 @@ test('identity gate resolves pnpm package symlinks and rejects the wrong install
   assert.equal(valid.status, 0, valid.stderr);
   const identityFile = path.join(directory, 'native-identity.json');
   assert.equal(JSON.parse(fs.readFileSync(identityFile)).core, '1.63.0');
+  for (const elf of JSON.parse(fs.readFileSync(identityFile)).elfFiles) {
+    assert.equal(elf.sha256, driver.sha256(fs.readFileSync(elf.file)));
+  }
   fs.unlinkSync(identityFile);
   fs.writeFileSync(corePackage, '{"version":"1.62.1"}');
   const invalid = invoke();

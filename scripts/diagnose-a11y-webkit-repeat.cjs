@@ -1,4 +1,4 @@
-// Temporary #113/D05–D06 native feedback driver. Delete before final issue delivery.
+// Temporary #113/D05–D07 native feedback driver. Delete before final issue delivery.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -69,10 +69,14 @@ assert.equal(webkit.browserVersion, '26.6');
 const executable = playwright.webkit.executablePath();
 assert.match(executable, /[/\\\\]webkit-2359[/\\\\]/);
 assert.ok(fs.existsSync(executable));
+const elfFiles = ['bin/WPEWebProcess', 'lib/libWPEWebKit-2.0.so.1'].map(relative => {
+  const file = fs.realpathSync(path.join(path.dirname(executable), 'minibrowser-wpe', relative));
+  return { file, sha256: require('node:crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex') };
+});
 fs.writeFileSync(path.join(output, 'native-identity.json'), JSON.stringify({
   platform: process.platform, arch: process.arch, node: process.version,
   playwright: pkg.version, core: core.version, revision: webkit.revision,
-  advertisedBrowserVersion: webkit.browserVersion, executable,
+  advertisedBrowserVersion: webkit.browserVersion, executable, elfFiles,
 }, null, 2) + '\\n');
 RCC_D05_IDENTITY
 `;

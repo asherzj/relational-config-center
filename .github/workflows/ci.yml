@@ -219,7 +219,7 @@ jobs:
       - name: Verify native process observer
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y strace
+          sudo apt-get install -y strace gcc
           node --test scripts/diagnose-a11y-native-trace.test.cjs
 
       - name: Require a healthy Docker provider
