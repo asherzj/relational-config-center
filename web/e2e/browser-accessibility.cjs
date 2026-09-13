@@ -6,9 +6,9 @@ const playwright = require(process.env.RCC_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const { browserOptions, registerFixtureAccount, authenticatedRequest } = require('./local-account.cjs');
-const { clickWithDiagnostics, diagnosticDeadline } = require('./click-diagnostics.cjs');
 const fs = require('node:fs/promises');
 const { appendFileSync } = require('node:fs');
+const { createLifecycleRecorder, captureFailureArtifacts } = require('./accessibility-evidence.cjs');
 const { execFileSync } = require('node:child_process');
 
 const base = process.env.RCC_WEB_URL;
@@ -28,31 +28,17 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
 
 (async () => {
   await fs.mkdir(output, { recursive: true });
+  let phase = 'setup';
+  const started = performance.now();
+  const lifecycle = createLifecycleRecorder(
+    line => appendFileSync(`${output}/lifecycle.jsonl`, line),
+    () => phase, () => Math.round(performance.now() - started),
+  );
+  let failureArtifacts = { status: 'not-requested' };
   const checks = [];
   const pageErrors = [];
   const http = [];
   const requests = [];
-  const clickObservations = [];
-  const lifecycle = [];
-  const diagnosticStarted = Date.now();
-  let phase = 'setup';
-  function recordLifecycle(event, details = {}) {
-    const entry = { elapsedMs: Date.now() - diagnosticStarted, phase, event, ...details };
-    lifecycle.push(entry);
-    try {
-      appendFileSync(`${output}/lifecycle.jsonl`, `${JSON.stringify(entry)}\n`);
-    } catch (error) {
-      // Diagnostics must not replace the original business or browser failure.
-      process.stderr.write(`Accessibility lifecycle diagnostic unavailable: ${error.code || error.name}\n`);
-    }
-  }
-  function observeContext(current, label) {
-    current.on('page', observed => {
-      observed.on('crash', () => recordLifecycle('page-crash', { context: label, url: observed.url() }));
-      observed.on('close', () => recordLifecycle('page-close', { context: label, url: observed.url() }));
-    });
-    current.on('close', () => recordLifecycle('context-close', { context: label }));
-  }
   const cleanupNames = new Set();
   let browser;
   let context;
@@ -154,12 +140,12 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
 
   try {
     browser = await engine.launch(browserOptions());
-    browser.on('disconnected', () => recordLifecycle('browser-disconnected'));
+    lifecycle.observeBrowser(browser);
     context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
-    observeContext(context, 'applicant');
+    lifecycle.observeContext(context, 'applicant');
     account = await registerFixtureAccount(context, base);
     approvalContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
-    observeContext(approvalContext, 'approver');
+    lifecycle.observeContext(approvalContext, 'approver');
     approverAccount = await registerFixtureAccount(approvalContext, base, { roles: ['VIEWER'] });
     await createFixtureApprovalRole(context, base, `Accessibility review ${randomUUID()}`, [approverAccount.accountID], [table]);
     browserVersion = browser.version();
@@ -374,18 +360,17 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     phase = 'open-copy';
     await button('复制新草稿').click();
     phase = 'read-copy-configuration';
-    await clickWithDiagnostics(button('读取最新配置'), clickObservations);
+    await button('读取最新配置').click();
     phase = 'confirm-copy';
     await button('确认最新基线并复制').click();
     await page.getByRole('heading', { name: `${table} 配置变更`, exact: true }).waitFor();
     await page.getByLabel('发布单状态', { exact: true }).filter({ hasText: /^草稿$/ }).waitFor();
-    phase = 'open-copied-draft';
     await button('编辑草稿').click();
     const copiedNote = page.getByRole('textbox', { name: 'note 申请值', exact: true });
     assert.equal(await copiedNote.getAttribute('readonly'), '');
     assert.equal(await copiedNote.inputValue(), rawCR.replace(/\r\n?/g, '\n'));
     phase = 'lf-conversion';
-    await clickWithDiagnostics(button('note 申请值：转换为 LF 再编辑'), clickObservations);
+    await button('note 申请值：转换为 LF 再编辑').click();
     phase = 'converted-draft';
     assert.equal(await copiedNote.getAttribute('readonly'), null);
     assert.equal(await copiedNote.inputValue(), rawCR.replace(/\r\n?/g, '\n'));
@@ -465,21 +450,15 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
 
     assert.deepEqual(pageErrors, []);
   } catch (error) {
-    failure = { name: error.name, message: error.message, stack: error.stack };
-    recordLifecycle('failure', { name: error.name, message: error.message });
-    phase = 'failure-artifacts';
-    if (page) {
-      await diagnosticDeadline(page.screenshot({ path: `${output}/failure.png`, fullPage: true }))
-        .catch(error => recordLifecycle('artifact-error', { artifact: 'failure.png', message: error.message }));
-      await fs.writeFile(`${output}/failure-body.txt`, await diagnosticDeadline(page.locator('body').innerText()).catch(error => {
-        recordLifecycle('artifact-error', { artifact: 'failure-body.txt', message: error.message });
-        return 'page unavailable';
-      })).catch(error => recordLifecycle('artifact-error', { artifact: 'failure-body.txt', message: error.message }));
-    }
+    failure = Object.freeze({ name: error.name, message: error.message, stack: error.stack });
+    // Preserve the original error even if a later evidence file cannot be written.
+    console.error(JSON.stringify(failure, null, 2));
+    lifecycle.recordFailure(page);
+    failureArtifacts = await captureFailureArtifacts(page, output);
   } finally {
-    phase = 'cleanup';
-    recordLifecycle('cleanup-start');
-    if (browser) await browser.close().catch(() => {});
+    lifecycle.startCleanup(page);
+    if (browser) await browser.close().catch(() => lifecycle.cleanupFailed());
+    const lifecycleEvidence = lifecycle.seal();
     let cleanup = null;
     try {
       if (cleanupNames.size) sql(`DELETE FROM ${table} WHERE name IN (${[...cleanupNames].map(literal).join(',')});`);
@@ -491,7 +470,9 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
     }
     await fs.writeFile(`${output}/http-evidence.json`, JSON.stringify(http, null, 2) + '\n');
     await fs.writeFile(`${output}/result.json`, JSON.stringify({
-      ok: failure === null,
+      ok: failure === null && lifecycle.complete,
+      lifecycleEvidence,
+      failureArtifacts,
       engine: engineName,
       browserVersion,
       checks,
@@ -499,8 +480,6 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
       http,
       requests,
       faultEvidence,
-      clickObservations,
-      lifecycle,
       cleanup,
       coverageBoundaries: {
         safari: 'Playwright WebKit engine; not an installed Safari release',
@@ -513,8 +492,8 @@ const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
       failure,
     }, null, 2) + '\n');
   }
-  if (failure) {
-    console.error(JSON.stringify(failure, null, 2));
+  if (failure || !lifecycle.complete) {
+    if (!failure) console.error('Accessibility lifecycle evidence incomplete');
     process.exitCode = 1;
   }
 })();
