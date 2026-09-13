@@ -1,4 +1,4 @@
-// Temporary #113/D05 native feedback driver. Delete before final issue delivery.
+// Temporary #113/D05–D06 native feedback driver. Delete before final issue delivery.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -77,6 +77,15 @@ fs.writeFileSync(path.join(output, 'native-identity.json'), JSON.stringify({
 RCC_D05_IDENTITY
 `;
 
+const TRACE_SETUP = `run_timeout 30 node "$repo_root/scripts/.a11y-native-trace.cjs" "$artifact_root/native-trace-capability" --check\n`;
+const ORIGINAL_COMMAND = '    run_timeout "${RCC_E2E_TIMEOUT_SECONDS:-$suite_timeout}" node "$script"';
+const TRACED_COMMAND = '    run_timeout "${RCC_E2E_TIMEOUT_SECONDS:-$suite_timeout}" "${diagnostic_command[@]}" "$script"';
+const TRACE_SELECT = `  local diagnostic_command=(node)
+  if [[ $case_id == browser-accessibility.cjs@webkit ]]; then
+    diagnostic_command=(node "$repo_root/scripts/.a11y-native-trace.cjs" "$output" node)
+  fi
+`;
+
 function generateRunner(original) {
   assert.equal(sha256(original), HASHES['scripts/browser-acceptance.sh'], 'original runner mismatch');
   const invocation = '  run_browser_suite "browser-accessibility ($browser_engine)" "$repo_root/web/e2e/browser-accessibility.cjs" "$artifact_root/browser-accessibility/$browser_engine" 420 "$browser_engine"';
@@ -84,7 +93,12 @@ function generateRunner(original) {
   assert.equal(original.split(block).length, 2, 'expected exactly one original accessibility block');
   const build = "printf 'Building the Web preview artifact...\\n'";
   assert.equal(original.split(build).length, 2);
-  return original.replace(block, block.replace(invocation, WEBKIT_LOOP)).replace(build, `${IDENTITY_CHECK}\n${build}`);
+  const commandStart = '  if RCC_PLAYWRIGHT_MODULE="$repo_root/web/node_modules/playwright"';
+  assert.equal(original.split(commandStart).length, 2);
+  assert.equal(original.split(ORIGINAL_COMMAND).length, 2);
+  return original.replace(block, block.replace(invocation, WEBKIT_LOOP))
+    .replace(build, `${IDENTITY_CHECK}\n${TRACE_SETUP}\n${build}`)
+    .replace(commandStart, `${TRACE_SELECT}${commandStart}`).replace(ORIGINAL_COMMAND, TRACED_COMMAND);
 }
 
 function readRows(file) {
@@ -105,11 +119,13 @@ function summarize(output, exitStatus) {
     const started = events.some(row => row[0] === String(number) && row[1] === 'started');
     const file = path.join(output, `browser-accessibility/webkit/iteration-${number}/result.json`);
     const result = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null;
+    const nativeFile = path.join(path.dirname(file), 'native-trace.json');
+    const nativeTrace = fs.existsSync(nativeFile) ? JSON.parse(fs.readFileSync(nativeFile, 'utf8')) : null;
     return { number, state: !started ? 'unexecuted' : cases[index]?.[2] === '0' ? 'passed' : 'failed-or-interrupted',
       exitStatus: cases[index] ? Number(cases[index][2]) : null,
       checks: result?.checks?.length ?? null, browserVersion: result?.browserVersion ?? null,
       resultValid: result?.ok === true && result?.pageErrors?.length === 0 && result?.cleanup?.remainingRows === 0,
-      failure: result?.failure ?? null };
+      failure: result?.failure ?? null, nativeTrace };
   });
   const firstFailed = rounds.findIndex(round => round.state === 'failed-or-interrupted');
   if (firstFailed >= 0) assert.ok(rounds.slice(firstFailed + 1).every(round => round.state === 'unexecuted'), 'ran after failure');
@@ -117,10 +133,16 @@ function summarize(output, exitStatus) {
     assert.equal(prefix.length, PREFIX.length);
     assert.ok(prefix.every(row => row[2] === '0'));
     assert.ok(rounds.every(round => round.state === 'passed' && round.checks === 7 && round.browserVersion === '26.6' && round.resultValid), 'incomplete experiment cannot pass');
+    assert.ok(rounds.every(round => round.nativeTrace?.complete && !round.nativeTrace.diagnosticFailure), 'incomplete process evidence cannot pass');
     assert.equal(events.filter(row => row[1] === 'passed').length, ROUNDS);
   }
+  const capabilityFile = path.join(output, 'native-trace-capability/capability.json');
+  const nativeCapability = fs.existsSync(capabilityFile) ? JSON.parse(fs.readFileSync(capabilityFile, 'utf8')) : null;
+  const incompleteTrace = rounds.some(round => round.state !== 'unexecuted' && !round.nativeTrace?.complete);
   return { exitStatus, outcome: exitStatus === 0 ? 'not-reproduced-in-bounded-experiment'
-    : events.some(row => row[1] === 'budget-exhausted') ? 'incomplete-budget-exhausted' : 'failed-or-interrupted',
+    : events.some(row => row[1] === 'budget-exhausted') ? 'incomplete-budget-exhausted'
+    : nativeCapability?.ok === false || incompleteTrace ? 'diagnostic-tool-failed-or-interrupted' : 'failed-or-interrupted',
+    nativeCapability,
     prefix: prefix.map(([id, , status]) => ({ id, exitStatus: Number(status) })), rounds,
     originalIssueResolved: false };
 }
@@ -200,6 +222,8 @@ async function main(artifacts) {
     await checkpoint();
     fs.unlinkSync(archive);
     verifySource(source);
+    const traceSource = fs.readFileSync(path.join(__dirname, 'diagnose-a11y-native-trace.cjs'));
+    fs.writeFileSync(path.join(source, 'scripts/.a11y-native-trace.cjs'), traceSource);
     const original = fs.readFileSync(path.join(source, 'scripts/browser-acceptance.sh'), 'utf8');
     const generated = generateRunner(original);
     const runner = path.join(source, 'scripts/.a11y-webkit-repeat.sh');
@@ -209,6 +233,7 @@ async function main(artifacts) {
       base: BASE, baseTree: execFileSync('git', ['rev-parse', `${BASE}^{tree}`], { cwd: repo, encoding: 'utf8' }).trim(),
       driverCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim(),
       driverSHA256: sha256(fs.readFileSync(__filename)), originalSHA256: HASHES,
+      nativeTraceSHA256: sha256(traceSource),
       generatedRunnerSHA256: sha256(generated), maxRounds: ROUNDS, prefix: PREFIX,
       caseTimeoutSeconds: 420, serviceLifetimeSeconds: 2400, cleanupReserveSeconds: 60,
     });
@@ -240,7 +265,7 @@ async function main(artifacts) {
   return result.status;
 }
 
-module.exports = { BASE, ROUNDS, PREFIX, CASE, HASHES, WEBKIT_LOOP, IDENTITY_CHECK, sha256, verifySource, generateRunner, summarize, runCommand, withOwnedSnapshot };
+module.exports = { BASE, ROUNDS, PREFIX, CASE, HASHES, WEBKIT_LOOP, IDENTITY_CHECK, TRACE_SETUP, TRACE_SELECT, ORIGINAL_COMMAND, TRACED_COMMAND, sha256, verifySource, generateRunner, summarize, runCommand, withOwnedSnapshot };
 if (require.main === module) {
   if (process.argv.length !== 3) { console.error('usage: node diagnose-a11y-webkit-repeat.cjs <empty-artifact-directory>'); process.exitCode = 2; }
   else main(process.argv[2]).then(status => { process.exitCode = status; }).catch(error => { console.error(error.message); process.exitCode = 1; });

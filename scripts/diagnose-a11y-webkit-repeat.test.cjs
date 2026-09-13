@@ -53,7 +53,7 @@ printf complete > "$artifact_root/complete"
   return { directory, result, calls };
 }
 
-test('generated runner changes only the bounded loop and pre-service identity gate', t => {
+test('generated runner changes only the bounded loop, pre-service gates and WebKit process observer', t => {
   const directory = fixture(t);
   const file = path.join(directory, 'runner.sh');
   fs.writeFileSync(file, generated);
@@ -66,7 +66,10 @@ test('generated runner changes only the bounded loop and pre-service identity ga
   assert.deepEqual(serviceLimits(generated), serviceLimits(original));
   assert.equal(serviceLimits(generated).length, 2);
   const originalCall = '  run_browser_suite "browser-accessibility ($browser_engine)" "$repo_root/web/e2e/browser-accessibility.cjs" "$artifact_root/browser-accessibility/$browser_engine" 420 "$browser_engine"';
-  assert.equal(generated.replace(driver.WEBKIT_LOOP, originalCall).replace(`${driver.IDENTITY_CHECK}\n`, ''), original);
+  assert.equal(generated.replace(driver.WEBKIT_LOOP, originalCall).replace(`${driver.IDENTITY_CHECK}\n`, '')
+    .replace(`${driver.TRACE_SETUP}\n`, '').replace(driver.TRACE_SELECT, '')
+    .replace(driver.TRACED_COMMAND, driver.ORIGINAL_COMMAND), original);
+  assert.ok(generated.indexOf(driver.TRACE_SETUP) < generated.indexOf("printf 'Starting disposable MySQL"));
   assert.ok(generated.indexOf("assert.equal(process.arch, 'x64')") < generated.indexOf("printf 'Starting disposable MySQL"));
   assert.match(generated, /assert.equal\(pkg.version, '1.63.0'\)/);
   assert.match(generated, /assert.equal\(webkit.revision, '2359'\)/);
@@ -81,6 +84,33 @@ test('all-success boundary runs the exact seven-case prefix and twelve unique We
   assert.ok(calls.slice(7).every(row => row[0] === driver.CASE && row[2] === '420'));
   assert.equal(new Set(calls.slice(7).map(row => row[1])).size, 12);
   assert.ok(fs.existsSync(path.join(directory, 'complete')));
+});
+
+test('the original supervisor covers the observer only for accessibility WebKit', t => {
+  const directory = fixture(t);
+  const functionSource = generated.slice(generated.indexOf('run_browser_suite() {'), generated.indexOf('\nif [[ ${RCC_E2E_SUITE:-all} == all || ${RCC_E2E_SUITE:-all} == unsaved-changes ]]'));
+  const script = `set -Eeuo pipefail
+repo_root=/frozen-original
+artifact_root=$1
+runtime_dir=/owned-runtime
+mysql_container=owned-mysql
+web_url=http://localhost
+mysql_port=3306
+mysql_password=controlled-placeholder
+run_timeout() { printf '%s\\n' "$@"; }
+${functionSource}
+for engine in chromium firefox webkit; do
+  run_browser_suite controlled /frozen-original/web/e2e/browser-accessibility.cjs "$artifact_root/$engine" 420 "$engine"
+done
+`;
+  const result = spawnSync('bash', ['-s', '--', directory], { input: script, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  for (const engine of ['chromium', 'firefox', 'webkit']) {
+    const args = fs.readFileSync(path.join(directory, engine, 'runner.log'), 'utf8').trim().split('\n');
+    assert.deepEqual(args, engine === 'webkit'
+      ? ['420', 'node', '/frozen-original/scripts/.a11y-native-trace.cjs', path.join(directory, engine), 'node', '/frozen-original/web/e2e/browser-accessibility.cjs']
+      : ['420', 'node', '/frozen-original/web/e2e/browser-accessibility.cjs']);
+  }
 });
 
 for (const fail of [1, 6, 12]) test(`round ${fail} failure stops with its original status and no later call`, t => {
