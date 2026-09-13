@@ -1,4 +1,4 @@
-// Temporary #113/D10 single-block CR/LF minimization. Delete before final issue delivery.
+// Temporary #113/D11 restored D09 with host lifecycle evidence. Delete before final issue delivery.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -37,6 +37,90 @@ function classify(failure, phase) {
     && /element is not stable/.test(failure.message)
     ? 'exact-original-LF-notstable-symptom' : 'other-failure';
 }
+// Host-only Playwright event boundary. No page evaluation or event payload capture.
+function createLifecycleRecorder(write, readState, clock, maxPages = 12) {
+  assert.ok(Number.isInteger(maxPages) && maxPages >= 1 && maxPages <= 12);
+  const events = [];
+  const writeErrors = [];
+  const pages = new WeakMap();
+  let pageSequence = 0;
+  let cleanupStarted = false;
+  let captureLimited = false;
+  function captureLimit() {
+    if (!captureLimited) writeErrors.push({ kind: 'lifecycle-capture-limit' });
+    captureLimited = true;
+  }
+  function record(event, identity = {}) {
+    if (events.length >= maxPages * 2 + 8) { captureLimit(); return; }
+    const { round, phase } = readState();
+    const entry = { sequence: events.length + 1, elapsedMs: clock(), round, phase, cleanupStarted, event,
+      contextLabel: identity.contextLabel ?? null, pageId: identity.pageId ?? null,
+      pageCreatedRound: identity.pageCreatedRound ?? null };
+    events.push(entry);
+    try { write(JSON.stringify(entry) + '\n'); }
+    catch { writeErrors.push({ sequence: entry.sequence, kind: 'lifecycle-write-failed' }); }
+  }
+  function observeContext(context, contextLabel) {
+    assert.ok(['applicant', 'approver'].includes(contextLabel));
+    const observePage = page => {
+      if (pages.has(page)) return;
+      if (pageSequence >= maxPages) { captureLimit(); return; }
+      const identity = { contextLabel, pageId: ++pageSequence, pageCreatedRound: readState().round };
+      pages.set(page, identity);
+      page.on('crash', () => record('page-crash', identity));
+      page.on('close', () => record('page-close', identity));
+    };
+    context.on('page', observePage);
+    for (const page of context.pages()) observePage(page);
+    context.on('close', () => record('context-close', { contextLabel }));
+  }
+  return {
+    observeContext,
+    observeBrowser(browser) { browser.on('disconnected', () => record('browser-disconnected')); },
+    recordFailure(page) { record('failure', pages.get(page)); },
+    startCleanup(page) { cleanupStarted = true; record('cleanup-start', pages.get(page)); },
+    get complete() { return writeErrors.length === 0; },
+    snapshot() { return { complete: writeErrors.length === 0, events: events.map(entry => ({ ...entry })), writeErrors: [...writeErrors] }; },
+  };
+}
+
+function lifecycleInsertions() {
+  return [
+    ['  const checks = [];', `  const createLifecycleRecorder = ${createLifecycleRecorder.toString()};
+  const lifecycleRecorder = createLifecycleRecorder(
+    line => require('node:fs').appendFileSync(rootOutput + '/lifecycle.jsonl', line),
+    () => ({ round: currentRound?.round ?? null, phase }),
+    () => Date.now() - compactStarted,
+    maxRounds,
+  );
+  const checks = [];`],
+    ['    browser = await engine.launch(browserOptions());', '    browser = await engine.launch(browserOptions());\n    lifecycleRecorder.observeBrowser(browser);'],
+    ['    context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });', '    context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });\n    lifecycleRecorder.observeContext(context, \'applicant\');'],
+    ['    approvalContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });', '    approvalContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });\n    lifecycleRecorder.observeContext(approvalContext, \'approver\');'],
+    ['    failure = { name: error.name, message: error.message, stack: error.stack };', '    failure = { name: error.name, message: error.message, stack: error.stack };\n    lifecycleRecorder.recordFailure(page);'],
+    ['    if (browser) await browser.close().catch(() => {});', '    lifecycleRecorder.startCleanup(page);\n    if (browser) await browser.close().catch(() => {});'],
+    ['      ok: failure === null,', '      ok: failure === null && lifecycleRecorder.complete,'],
+    ['      engine: engineName,', '      lifecycleEvidence: lifecycleRecorder.snapshot(),\n      engine: engineName,'],
+    ['  if (failure) {\n    console.error(JSON.stringify(failure, null, 2));', '  if (failure || !lifecycleRecorder.complete) {\n    if (failure) console.error(JSON.stringify(failure, null, 2));\n    else console.error(\'Lifecycle evidence incomplete\');'],
+  ];
+}
+
+function addLifecycle(source) {
+  for (const [before, after] of lifecycleInsertions()) {
+    unique(source, before);
+    source = source.replace(before, after);
+  }
+  return source;
+}
+
+function removeLifecycle(source) {
+  for (const [before, after] of lifecycleInsertions().reverse()) {
+    unique(source, after);
+    source = source.replace(after, before);
+  }
+  return source;
+}
+
 function generate(original, rounds) {
   assert.equal(sha(original), HASHES['web/e2e/browser-accessibility.cjs']);
   assert.ok(Number.isInteger(rounds) && rounds >= 1 && rounds <= 12);
@@ -45,19 +129,14 @@ function generate(original, rounds) {
   const end = unique(original, '    // API fault injection happens after the release draft is durably created.');
   const after = unique(original, "    assert.equal(requests.some((entry) => /^\\/api\\/v1\\/tables");
   const raw = original.slice(start, end);
-  const removedStart = unique(raw, "    const drawerBody = page.locator('.drawer-body');");
-  const removedEnd = unique(raw, "    await button('查看 Change Set').click();") - 1; // Retain the original blank separator.
-  const removed = raw.slice(removedStart, removedEnd);
-  assert.equal(sha(removed), 'a0abd1efca501e633cd7a9911ea9e7b704b3a5bbd76bbd2084e4ab692672b94c');
-  const reduced = raw.slice(0, removedStart) + raw.slice(removedEnd);
-  let body = reduced;
+  let body = raw;
   const lf = "    await button('note 申请值：转换为 LF 再编辑').click();";
   const leave = "    await button('放弃修改并离开').click();";
   unique(body, lf); unique(body, leave);
   body = body.replace(lf, `    phase = 'original-LF-355';\n    const lfStarted = Date.now();\n${lf}\n    currentRound.lfMs = Date.now() - lfStarted;\n    currentRound.lfPassed = true;\n    phase = 'post-LF-assertions';`)
     .replace(leave, `    phase = 'original-leave-360';\n${leave}\n    phase = 'post-leave-assertions';`);
   const observations = `\n  const compactStarted = Date.now();\n  const roundResults = [];\n  const maxRounds = ${rounds};\n  let phase = 'setup';\n  let currentRound = null;\n  const classify = ${classify.toString()};\n`;
-  let script = original.slice(0, prefix) + `    for (let round = 1; round <= maxRounds; round++) {\n    phase = 'round-start-observation';\n    currentRound = { round, state: 'started', started: Date.now(), checksBefore: checks.length };\n    roundResults.push(currentRound);\n    await fs.appendFile(rootOutput + '/round-events.jsonl', JSON.stringify({ round, state: 'started' }) + '\\n');\n    output = rootOutput + '/round-' + round;\n    await fs.mkdir(output, { recursive: true });\n    phase = 'CR-path';\n` + body + `    currentRound.elapsedMs = Date.now() - currentRound.started;\n    currentRound.checks = checks.length - currentRound.checksBefore;\n    assert.equal(currentRound.checks, 3);\n    assert.deepEqual(pageErrors, []);\n    phase = 'round-result-observation';\n    await fs.appendFile(rootOutput + '/round-events.jsonl', JSON.stringify({ ...currentRound, state: 'passed' }) + '\\n');\n    currentRound.state = 'passed';\n    phase = 'round-complete';\n    console.log('COMPACT_ROUND', JSON.stringify(currentRound));\n    }\n    phase = 'final-assertions';\n` + original.slice(after);
+  let script = original.slice(0, prefix) + `    for (let round = 1; round <= maxRounds; round++) {\n    phase = 'round-start-observation';\n    currentRound = { round, state: 'started', started: Date.now(), checksBefore: checks.length };\n    roundResults.push(currentRound);\n    await fs.appendFile(rootOutput + '/round-events.jsonl', JSON.stringify({ round, state: 'started' }) + '\\n');\n    output = rootOutput + '/round-' + round;\n    await fs.mkdir(output, { recursive: true });\n    phase = 'CR-path';\n` + body + `    currentRound.elapsedMs = Date.now() - currentRound.started;\n    currentRound.checks = checks.length - currentRound.checksBefore;\n    assert.equal(currentRound.checks, 4);\n    assert.deepEqual(pageErrors, []);\n    phase = 'round-result-observation';\n    await fs.appendFile(rootOutput + '/round-events.jsonl', JSON.stringify({ ...currentRound, state: 'passed' }) + '\\n');\n    currentRound.state = 'passed';\n    phase = 'round-complete';\n    console.log('COMPACT_ROUND', JSON.stringify(currentRound));\n    }\n    phase = 'final-assertions';\n` + original.slice(after);
   script = script.replace('const output = process.env.RCC_E2E_OUTPUT;', 'const rootOutput = process.env.RCC_E2E_OUTPUT;\nlet output = rootOutput;')
     .replace('  const checks = [];', observations + '  const checks = [];')
     .replace('  } finally {\n    if (browser)', `  } finally {\n    if (currentRound && currentRound.state === 'started') {\n      currentRound.state = 'failed';\n      currentRound.elapsedMs = Date.now() - currentRound.started;\n      currentRound.checks = checks.length - currentRound.checksBefore;\n    }\n    output = rootOutput;\n    if (browser)`)
@@ -65,7 +144,7 @@ function generate(original, rounds) {
   script = script.replace('    browserVersion = browser.version();', "    browserVersion = browser.version();\n    assert.equal(browserVersion, '26.6');");
   const coverageStart = unique(script, '      coverageBoundaries: {');
   const coverageEnd = script.indexOf('      failure,', coverageStart);
-  script = script.slice(0, coverageStart) + `      coverageBoundaries: {\n        browser: 'Playwright WebKit; actual platform recorded; not installed Safari',\n        clipboard: 'original synthetic paste Event with DataTransfer, not OS clipboard',\n        omitted: 'original checks 1, 2, 3, 7; ordinary suite unchanged; not replacement acceptance',\n      },\n` + script.slice(coverageEnd);
+  script = script.slice(0, coverageStart) + `      coverageBoundaries: {\n        browser: 'Playwright WebKit; actual platform recorded; not installed Safari',\n        clipboard: 'original synthetic paste Event with DataTransfer, not OS clipboard',\n        omitted: 'original checks 1, 2, 7; ordinary suite unchanged; not replacement acceptance',\n      },\n` + script.slice(coverageEnd);
   assert.ok(!script.includes('page.route('));
   assert.ok(!script.includes('force:'));
   assert.ok(script.includes(lf));
@@ -73,13 +152,15 @@ function generate(original, rounds) {
   assert.equal(body.replace(`    phase = 'original-LF-355';\n    const lfStarted = Date.now();\n`, '')
     .replace(`\n    currentRound.lfMs = Date.now() - lfStarted;\n    currentRound.lfPassed = true;\n    phase = 'post-LF-assertions';`, '')
     .replace(`    phase = 'original-leave-360';\n`, '')
-    .replace(`\n    phase = 'post-leave-assertions';`, ''), reduced);
+    .replace(`\n    phase = 'post-leave-assertions';`, ''), raw);
+  const observationBaselineSHA256 = sha(script);
+  const baselineScript = script;
+  script = addLifecycle(script);
+  assert.equal(removeLifecycle(script), baselineScript);
   const line = offset => original.slice(0, offset).split('\n').length;
-  return { script, provenance: { base: BASE, originalHashes: HASHES, generatedSha256: sha(script),
-    retainedBusiness: { spans: [{ firstLine: line(start), lastLine: line(start + removedStart)-1 },
-      { firstLine: line(start + removedEnd), lastLine: line(end)-1 }], sha256: sha(reduced), byteIdentityExcludingHostPhaseInsertions: true },
+  return { script, provenance: { observationBaseline: 'D09 e616f8c7c446da686b67a2d03b813e5e467499c7', observationBaselineSHA256, base: BASE, originalHashes: HASHES, generatedSha256: sha(script),
+    retainedBusiness: { firstLine: line(start), lastLine: line(end)-1, sha256: sha(raw), byteIdentityExcludingHostPhaseInsertions: true },
     deleted: [{ firstLine: line(prefix), lastLine: line(start)-1, sha256: sha(original.slice(prefix,start)) },
-      { firstLine: line(start + removedStart), lastLine: line(start + removedEnd)-1, sha256: sha(removed) },
       { firstLine: line(end), lastLine: line(after)-1, sha256: sha(original.slice(end,after)) }],
     targetOriginalLine: line(unique(original, lf)), leaveOriginalLine: line(original.indexOf(leave,start)), maxRounds: rounds,
   }};
@@ -145,15 +226,18 @@ function summarize(output, exitStatus, rounds = ROUNDS) {
   const serviceLog = path.join(output, 'run.txt');
   const serviceCleanup = fs.existsSync(serviceLog) && /^cleanup verified: true$/m.test(fs.readFileSync(serviceLog, 'utf8'));
   const valid = result?.ok === true && result?.pageErrors?.length === 0 && result?.cleanup?.remainingRows === 0
-    && result?.browserVersion === '26.6' && result?.checks?.length === rounds * 3
-    && progress.every((round, i) => round.round === i + 1 && round.state === 'passed' && round.checks === 3 && round.lfPassed === true)
-    && serviceCleanup;
+    && result?.browserVersion === '26.6' && result?.checks?.length === rounds * 4
+    && progress.every((round, i) => round.round === i + 1 && round.state === 'passed' && round.checks === 4 && round.lfPassed === true)
+    && serviceCleanup && result?.lifecycleEvidence?.complete === true;
   if (exitStatus === 0) assert.ok(valid, 'incomplete experiment cannot pass');
   let outcome = exitStatus === 0 ? 'not-reproduced-in-bounded-experiment'
     : result?.failure ? classify(result.failure, result.compact?.phase) : 'incomplete-experiment';
   if (!serviceCleanup || (result && result.cleanup?.remainingRows !== 0)) outcome = 'incomplete-cleanup';
   if (fs.existsSync(path.join(output, 'compact-budget.txt'))) outcome = 'incomplete-budget-exhausted';
-  return { exitStatus, outcome, rounds: progress, checks: result?.checks?.length ?? 0,
+  const businessOutcome = result?.failure ? classify(result.failure, result.compact?.phase)
+    : progress.every(round => round.state === 'passed' && round.checks === 4) ? 'not-reproduced-in-bounded-experiment' : 'incomplete-business';
+  if (result && result.lifecycleEvidence?.complete !== true && outcome !== 'incomplete-cleanup') outcome = 'incomplete-observation';
+  return { exitStatus, outcome, businessOutcome, lifecycleComplete: result?.lifecycleEvidence?.complete ?? false, rounds: progress, checks: result?.checks?.length ?? 0,
     phase: result?.compact?.phase ?? null, failure: result?.failure ?? null,
     serviceCleanup, originalIssueResolved: false };
 }
@@ -254,8 +338,8 @@ async function main(artifacts) {
       driverCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim(),
       driverSHA256: sha256(fs.readFileSync(__filename)), generatedRunnerSHA256: sha256(generated),
       caseTimeoutSeconds: 420, serviceLifetimeSeconds: 2400, cleanupReserveSeconds: 60,
-      scope: 'D10 removes only the drawer scroll/geometry block from the known-red D09 path; other original CR/LF steps, state reuse and deadlines unchanged. Three retained checks per round; bounded green does not prove the deleted block necessary or irrelevant.',
-      earlierCompactDifference: 'Earlier local compact omitted intermediate scrolling/focus steps and launched fresh browsers. D09 retained the contiguous original segment and reused one browser; D10 changes only its drawer-scroll block and retains browser reuse.',
+      scope: 'D11 restores known-red D09 continuous CR/LF path and adds only host lifecycle callbacks; D10 green did not justify retaining its deletion. Same round/state/deadline envelope; no causal or minimality claim.',
+      earlierCompactDifference: 'Earlier local compact omitted intermediate scrolling/focus steps and launched fresh browsers. This candidate retains the contiguous original segment and reuses one browser.',
     });
     fs.writeFileSync(path.join(output, 'generated-runner.sh'), generated);
     fs.writeFileSync(path.join(output, 'generated-compact.cjs'), compact.script);
@@ -281,7 +365,7 @@ async function main(artifacts) {
   return result.status;
 }
 
-module.exports = { BASE, ROUNDS, HASHES, IDENTITY_CHECK, ORIGINAL_INVOCATION, COMPACT_INVOCATION, sha256, verifySource, generate, classify, generateRunner, summarize, artifactDirectory, runCommand, withOwnedSnapshot };
+module.exports = { createLifecycleRecorder, addLifecycle, removeLifecycle, BASE, ROUNDS, HASHES, IDENTITY_CHECK, ORIGINAL_INVOCATION, COMPACT_INVOCATION, sha256, verifySource, generate, classify, generateRunner, summarize, artifactDirectory, runCommand, withOwnedSnapshot };
 if (require.main === module) {
   if (process.argv.length !== 3) { console.error('usage: node diagnose-a11y-webkit-repeat.cjs <empty-artifact-directory>'); process.exitCode = 2; }
   else main(process.argv[2]).then(status => { process.exitCode = status; }).catch(error => { console.error(error.message); process.exitCode = 1; });
