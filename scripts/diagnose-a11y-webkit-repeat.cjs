@@ -1,4 +1,4 @@
-// Temporary #113/D09 application CR/LF feedback. Delete before final issue delivery.
+// Temporary #113/D10 single-block CR/LF minimization. Delete before final issue delivery.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -45,14 +45,19 @@ function generate(original, rounds) {
   const end = unique(original, '    // API fault injection happens after the release draft is durably created.');
   const after = unique(original, "    assert.equal(requests.some((entry) => /^\\/api\\/v1\\/tables");
   const raw = original.slice(start, end);
-  let body = raw;
+  const removedStart = unique(raw, "    const drawerBody = page.locator('.drawer-body');");
+  const removedEnd = unique(raw, "    await button('查看 Change Set').click();") - 1; // Retain the original blank separator.
+  const removed = raw.slice(removedStart, removedEnd);
+  assert.equal(sha(removed), 'a0abd1efca501e633cd7a9911ea9e7b704b3a5bbd76bbd2084e4ab692672b94c');
+  const reduced = raw.slice(0, removedStart) + raw.slice(removedEnd);
+  let body = reduced;
   const lf = "    await button('note 申请值：转换为 LF 再编辑').click();";
   const leave = "    await button('放弃修改并离开').click();";
   unique(body, lf); unique(body, leave);
   body = body.replace(lf, `    phase = 'original-LF-355';\n    const lfStarted = Date.now();\n${lf}\n    currentRound.lfMs = Date.now() - lfStarted;\n    currentRound.lfPassed = true;\n    phase = 'post-LF-assertions';`)
     .replace(leave, `    phase = 'original-leave-360';\n${leave}\n    phase = 'post-leave-assertions';`);
   const observations = `\n  const compactStarted = Date.now();\n  const roundResults = [];\n  const maxRounds = ${rounds};\n  let phase = 'setup';\n  let currentRound = null;\n  const classify = ${classify.toString()};\n`;
-  let script = original.slice(0, prefix) + `    for (let round = 1; round <= maxRounds; round++) {\n    phase = 'round-start-observation';\n    currentRound = { round, state: 'started', started: Date.now(), checksBefore: checks.length };\n    roundResults.push(currentRound);\n    await fs.appendFile(rootOutput + '/round-events.jsonl', JSON.stringify({ round, state: 'started' }) + '\\n');\n    output = rootOutput + '/round-' + round;\n    await fs.mkdir(output, { recursive: true });\n    phase = 'CR-path';\n` + body + `    currentRound.elapsedMs = Date.now() - currentRound.started;\n    currentRound.checks = checks.length - currentRound.checksBefore;\n    assert.equal(currentRound.checks, 4);\n    assert.deepEqual(pageErrors, []);\n    phase = 'round-result-observation';\n    await fs.appendFile(rootOutput + '/round-events.jsonl', JSON.stringify({ ...currentRound, state: 'passed' }) + '\\n');\n    currentRound.state = 'passed';\n    phase = 'round-complete';\n    console.log('COMPACT_ROUND', JSON.stringify(currentRound));\n    }\n    phase = 'final-assertions';\n` + original.slice(after);
+  let script = original.slice(0, prefix) + `    for (let round = 1; round <= maxRounds; round++) {\n    phase = 'round-start-observation';\n    currentRound = { round, state: 'started', started: Date.now(), checksBefore: checks.length };\n    roundResults.push(currentRound);\n    await fs.appendFile(rootOutput + '/round-events.jsonl', JSON.stringify({ round, state: 'started' }) + '\\n');\n    output = rootOutput + '/round-' + round;\n    await fs.mkdir(output, { recursive: true });\n    phase = 'CR-path';\n` + body + `    currentRound.elapsedMs = Date.now() - currentRound.started;\n    currentRound.checks = checks.length - currentRound.checksBefore;\n    assert.equal(currentRound.checks, 3);\n    assert.deepEqual(pageErrors, []);\n    phase = 'round-result-observation';\n    await fs.appendFile(rootOutput + '/round-events.jsonl', JSON.stringify({ ...currentRound, state: 'passed' }) + '\\n');\n    currentRound.state = 'passed';\n    phase = 'round-complete';\n    console.log('COMPACT_ROUND', JSON.stringify(currentRound));\n    }\n    phase = 'final-assertions';\n` + original.slice(after);
   script = script.replace('const output = process.env.RCC_E2E_OUTPUT;', 'const rootOutput = process.env.RCC_E2E_OUTPUT;\nlet output = rootOutput;')
     .replace('  const checks = [];', observations + '  const checks = [];')
     .replace('  } finally {\n    if (browser)', `  } finally {\n    if (currentRound && currentRound.state === 'started') {\n      currentRound.state = 'failed';\n      currentRound.elapsedMs = Date.now() - currentRound.started;\n      currentRound.checks = checks.length - currentRound.checksBefore;\n    }\n    output = rootOutput;\n    if (browser)`)
@@ -60,7 +65,7 @@ function generate(original, rounds) {
   script = script.replace('    browserVersion = browser.version();', "    browserVersion = browser.version();\n    assert.equal(browserVersion, '26.6');");
   const coverageStart = unique(script, '      coverageBoundaries: {');
   const coverageEnd = script.indexOf('      failure,', coverageStart);
-  script = script.slice(0, coverageStart) + `      coverageBoundaries: {\n        browser: 'Playwright WebKit; actual platform recorded; not installed Safari',\n        clipboard: 'original synthetic paste Event with DataTransfer, not OS clipboard',\n        omitted: 'original checks 1, 2, 7; ordinary suite unchanged; not replacement acceptance',\n      },\n` + script.slice(coverageEnd);
+  script = script.slice(0, coverageStart) + `      coverageBoundaries: {\n        browser: 'Playwright WebKit; actual platform recorded; not installed Safari',\n        clipboard: 'original synthetic paste Event with DataTransfer, not OS clipboard',\n        omitted: 'original checks 1, 2, 3, 7; ordinary suite unchanged; not replacement acceptance',\n      },\n` + script.slice(coverageEnd);
   assert.ok(!script.includes('page.route('));
   assert.ok(!script.includes('force:'));
   assert.ok(script.includes(lf));
@@ -68,11 +73,13 @@ function generate(original, rounds) {
   assert.equal(body.replace(`    phase = 'original-LF-355';\n    const lfStarted = Date.now();\n`, '')
     .replace(`\n    currentRound.lfMs = Date.now() - lfStarted;\n    currentRound.lfPassed = true;\n    phase = 'post-LF-assertions';`, '')
     .replace(`    phase = 'original-leave-360';\n`, '')
-    .replace(`\n    phase = 'post-leave-assertions';`, ''), raw);
+    .replace(`\n    phase = 'post-leave-assertions';`, ''), reduced);
   const line = offset => original.slice(0, offset).split('\n').length;
   return { script, provenance: { base: BASE, originalHashes: HASHES, generatedSha256: sha(script),
-    retainedBusiness: { firstLine: line(start), lastLine: line(end)-1, sha256: sha(raw), byteIdentityExcludingHostPhaseInsertions: true },
+    retainedBusiness: { spans: [{ firstLine: line(start), lastLine: line(start + removedStart)-1 },
+      { firstLine: line(start + removedEnd), lastLine: line(end)-1 }], sha256: sha(reduced), byteIdentityExcludingHostPhaseInsertions: true },
     deleted: [{ firstLine: line(prefix), lastLine: line(start)-1, sha256: sha(original.slice(prefix,start)) },
+      { firstLine: line(start + removedStart), lastLine: line(start + removedEnd)-1, sha256: sha(removed) },
       { firstLine: line(end), lastLine: line(after)-1, sha256: sha(original.slice(end,after)) }],
     targetOriginalLine: line(unique(original, lf)), leaveOriginalLine: line(original.indexOf(leave,start)), maxRounds: rounds,
   }};
@@ -138,8 +145,8 @@ function summarize(output, exitStatus, rounds = ROUNDS) {
   const serviceLog = path.join(output, 'run.txt');
   const serviceCleanup = fs.existsSync(serviceLog) && /^cleanup verified: true$/m.test(fs.readFileSync(serviceLog, 'utf8'));
   const valid = result?.ok === true && result?.pageErrors?.length === 0 && result?.cleanup?.remainingRows === 0
-    && result?.browserVersion === '26.6' && result?.checks?.length === rounds * 4
-    && progress.every((round, i) => round.round === i + 1 && round.state === 'passed' && round.checks === 4 && round.lfPassed === true)
+    && result?.browserVersion === '26.6' && result?.checks?.length === rounds * 3
+    && progress.every((round, i) => round.round === i + 1 && round.state === 'passed' && round.checks === 3 && round.lfPassed === true)
     && serviceCleanup;
   if (exitStatus === 0) assert.ok(valid, 'incomplete experiment cannot pass');
   let outcome = exitStatus === 0 ? 'not-reproduced-in-bounded-experiment'
@@ -247,8 +254,8 @@ async function main(artifacts) {
       driverCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim(),
       driverSHA256: sha256(fs.readFileSync(__filename)), generatedRunnerSHA256: sha256(generated),
       caseTimeoutSeconds: 420, serviceLifetimeSeconds: 2400, cleanupReserveSeconds: 60,
-      scope: 'Original CR/LF segment; earlier rule/history, later unknown-save and seven prefix cases omitted; one browser/account pair and fresh page per round. Multiple scope changes, not a proven minimal reproduction.',
-      earlierCompactDifference: 'Earlier local compact omitted intermediate scrolling/focus steps and launched fresh browsers. This candidate retains the contiguous original segment and reuses one browser.',
+      scope: 'D10 removes only the drawer scroll/geometry block from the known-red D09 path; other original CR/LF steps, state reuse and deadlines unchanged. Three retained checks per round; bounded green does not prove the deleted block necessary or irrelevant.',
+      earlierCompactDifference: 'Earlier local compact omitted intermediate scrolling/focus steps and launched fresh browsers. D09 retained the contiguous original segment and reused one browser; D10 changes only its drawer-scroll block and retains browser reuse.',
     });
     fs.writeFileSync(path.join(output, 'generated-runner.sh'), generated);
     fs.writeFileSync(path.join(output, 'generated-compact.cjs'), compact.script);

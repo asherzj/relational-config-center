@@ -17,16 +17,16 @@ function fixture(t) {
   return directory;
 }
 
-test('source-derived compact preserves the original continuous CR/LF segment and deadlines', t => {
+test('source-derived compact removes exactly one original drawer block and preserves the remaining CR/LF steps and deadlines', t => {
   const directory=fixture(t);
   fs.writeFileSync(path.join(directory,'compact.cjs'),compact.script);
   fs.writeFileSync(path.join(directory,'runner.sh'),generated);
   execFileSync(process.execPath,['--check',path.join(directory,'compact.cjs')]);
   execFileSync('bash',['-n',path.join(directory,'runner.sh')]);
-  assert.deepEqual(compact.provenance.retainedBusiness,{firstLine:209,lastLine:370,sha256:driver.sha256(originalBusiness.split('\n').slice(208,370).join('\n')+'\n'),byteIdentityExcludingHostPhaseInsertions:true});
+  assert.deepEqual(compact.provenance.retainedBusiness,{spans:[{firstLine:209,lastLine:221},{firstLine:250,lastLine:370}],sha256:driver.sha256([...originalBusiness.split('\n').slice(208,221),...originalBusiness.split('\n').slice(249,370)].join('\n')+'\n'),byteIdentityExcludingHostPhaseInsertions:true});
   assert.equal(compact.provenance.targetOriginalLine,355);
   assert.equal(compact.provenance.leaveOriginalLine,360);
-  assert.deepEqual(compact.provenance.deleted.map(x=>[x.firstLine,x.lastLine]),[[139,208],[371,429]]);
+  assert.deepEqual(compact.provenance.deleted.map(x=>[x.firstLine,x.lastLine]),[[139,208],[222,249],[371,429]]);
   assert.match(compact.script,/page.setDefaultTimeout\(15000\)/);
   assert.match(compact.script,/page.setDefaultNavigationTimeout\(20000\)/);
   assert.match(compact.script,/await button\('note 申请值：转换为 LF 再编辑'\).click\(\)/);
@@ -34,6 +34,24 @@ test('source-derived compact preserves the original continuous CR/LF segment and
   assert.doesNotMatch(compact.script,/page.route\(|clickWithDiagnostics|force:|native-trace|strace|elfFiles/);
   assert.equal(generated.replace(driver.COMPACT_INVOCATION,driver.ORIGINAL_INVOCATION).replace(`${driver.IDENTITY_CHECK}\n`,''),original);
   assert.equal(generated.split('\n').filter(x=>x.includes('run-with-timeout.cjs')&&x.includes(' 2400 ')).length,2);
+});
+
+test('restoring only the named block and mechanical check accounting reproduces D09 byte-for-byte', t => {
+  const directory = fixture(t);
+  const previousFile = path.join(directory, 'd09.cjs');
+  fs.writeFileSync(previousFile, execFileSync('git', ['show', 'e616f8c7c446da686b67a2d03b813e5e467499c7:scripts/diagnose-a11y-webkit-repeat.cjs'], { cwd: repo }));
+  const previous = require(previousFile).generate(originalBusiness, 12).script;
+  const removed = originalBusiness.split('\n').slice(221,249).join('\n') + '\n';
+  assert.equal(driver.sha256(removed), 'a0abd1efca501e633cd7a9911ea9e7b704b3a5bbd76bbd2084e4ab692672b94c');
+  assert.equal(compact.provenance.deleted[1].sha256, driver.sha256(removed));
+  const boundary = "    assert.equal(await note.getAttribute('readonly'), '');\n";
+  assert.equal(compact.script.split(boundary).length, 2);
+  const restored = compact.script.replace(boundary, boundary + removed)
+    .replace('assert.equal(currentRound.checks, 3);', 'assert.equal(currentRound.checks, 4);')
+    .replace("omitted: 'original checks 1, 2, 3, 7;", "omitted: 'original checks 1, 2, 7;");
+  assert.equal(restored, previous);
+  const previousWorkflow = execFileSync('git', ['show', 'e616f8c7c446da686b67a2d03b813e5e467499c7:.github/workflows/ci.yml'], { cwd: repo, encoding: 'utf8' });
+  assert.equal(fs.readFileSync(path.join(repo, '.github/workflows/ci.yml'), 'utf8'), previousWorkflow);
 });
 
 test('changed source and invalid round counts fail before execution', () => {
@@ -69,7 +87,7 @@ for(const fail of [0,1,6,12,'pageerror','append']) test(`actual generated orches
   const b=loop.indexOf("    currentRound.elapsedMs =",a);
   // Replace the entire real-browser business boundary for this host-only control.
   // No browser, product service or simulated browser fault is involved.
-  loop=loop.slice(0,a)+`if(round===${JSON.stringify(fail)}) throw new Error('controlled external boundary failure'); checks.push(1,2,3,4);currentRound.lfPassed=true;if(${JSON.stringify(fail)}==='pageerror')pageErrors.push('controlled page-error record');\n`+loop.slice(b);
+  loop=loop.slice(0,a)+`if(round===${JSON.stringify(fail)}) throw new Error('controlled external boundary failure'); checks.push(1,2,3);currentRound.lfPassed=true;if(${JSON.stringify(fail)}==='pageerror')pageErrors.push('controlled page-error record');\n`+loop.slice(b);
   const fn=new Function('fs','rootOutput','assert',`return (async()=>{let output,phase,currentRound;const roundResults=[],checks=[],pageErrors=[],maxRounds=12;try{${loop}}catch(error){return {error:error.message,roundResults};}return {roundResults};})()`);
   const recording = { ...fs.promises, appendFile: async (file, data) => {
     if (fail === 'append' && JSON.parse(data).state === 'passed') throw new Error('controlled event-write failure');
@@ -94,8 +112,8 @@ for(const seconds of [0,1921]) test(`original complete-case admission at elapsed
 test('summary preserves exact, other, incomplete, cleanup and missing-round distinctions', t => {
   const directory=fixture(t), output=path.join(directory,'browser-accessibility/webkit');fs.mkdirSync(output,{recursive:true});
   const file=path.join(output,'result.json');
-  const rounds=Array.from({length:12},(_,i)=>({round:i+1,state:'passed',checks:4,lfPassed:true}));
-  const result={ok:true,browserVersion:'26.6',pageErrors:[],cleanup:{remainingRows:0},checks:Array(48).fill({}),compact:{phase:'final-assertions',rounds}};
+  const rounds=Array.from({length:12},(_,i)=>({round:i+1,state:'passed',checks:3,lfPassed:true}));
+  const result={ok:true,browserVersion:'26.6',pageErrors:[],cleanup:{remainingRows:0},checks:Array(36).fill({}),compact:{phase:'final-assertions',rounds}};
   fs.writeFileSync(path.join(directory,'run.txt'),'cleanup verified: true\n');
   const write=()=>fs.writeFileSync(file,JSON.stringify(result));write();
   assert.equal(driver.summarize(directory,0).outcome,'not-reproduced-in-bounded-experiment');
