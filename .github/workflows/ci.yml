@@ -79,6 +79,26 @@ jobs:
       - name: Build all modules
         run: make build
 
+  go-lint:
+    name: Go lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.work
+          cache-dependency-path: |
+            go.work.sum
+            admin/go.sum
+            tools/lint/go.sum
+
+      - name: Run lint
+        run: make lint
+
   mysql-integration:
     name: MySQL 8.4 integration (${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
