@@ -5,4 +5,5 @@ use (
 	./client
 	./server
 	./shared
+	./tools/lint
 )

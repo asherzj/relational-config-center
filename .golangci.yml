@@ -1,0 +1,165 @@
+version: "2"
+
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+  relative-path-mode: gitroot
+
+# Only the bug-class rules below are enabled. The default linter set is left
+# off so this gate stays about boundaries we can explain, not a style cleanup.
+linters:
+  default: none
+  enable:
+    - depguard
+    - forbidigo
+  settings:
+    depguard:
+      rules:
+        # ADR 0012: Domain does not depend on Gin, GORM, database/sql, HTTP, or MySQL.
+        domain-purity:
+          list-mode: lax
+          files:
+            - "**/admin/internal/domain/*.go"
+            - "**/admin/internal/domain/**/*.go"
+          deny:
+            - pkg: github.com/asherzj/relational-config-center/admin/internal/application
+              desc: domain must not import application
+            - pkg: github.com/asherzj/relational-config-center/admin/internal/infrastructure
+              desc: domain must not import infrastructure
+            - pkg: github.com/asherzj/relational-config-center/admin/internal/interfaces
+              desc: domain must not import interfaces
+            - pkg: github.com/asherzj/relational-config-center/admin/internal/platform
+              desc: domain must not import platform
+            - pkg: github.com/gin-gonic/gin
+              desc: domain must not depend on Gin
+            - pkg: gorm.io
+              desc: domain must not depend on GORM
+            - pkg: github.com/go-sql-driver/mysql
+              desc: domain must not depend on the MySQL driver
+            - pkg: database/sql
+              desc: domain must not depend on database/sql
+            - pkg: net/http
+              desc: domain must not depend on HTTP types
+        # Use cases call ports. Adapters and HTTP stay outside application.
+        application-depends-on-domain:
+          list-mode: lax
+          files:
+            - "**/admin/internal/application/*.go"
+            - "**/admin/internal/application/**/*.go"
+          deny:
+            - pkg: github.com/asherzj/relational-config-center/admin/internal/infrastructure
+              desc: application must not import infrastructure adapters
+            - pkg: github.com/asherzj/relational-config-center/admin/internal/interfaces
+              desc: application must not import interfaces
+            - pkg: github.com/asherzj/relational-config-center/admin/internal/platform
+              desc: application must not import platform configuration
+            - pkg: github.com/gin-gonic/gin
+              desc: application must not depend on Gin
+            - pkg: gorm.io
+              desc: application must not depend on GORM
+            - pkg: github.com/go-sql-driver/mysql
+              desc: application must not depend on the MySQL driver
+            - pkg: database/sql
+              desc: application must not depend on database/sql
+        # ADR 0012: handlers depend on application. cmd is the composition root.
+        # Tests may wire adapters, so *_test.go is outside this rule.
+        interfaces-depend-on-application:
+          list-mode: lax
+          files:
+            - "**/admin/internal/interfaces/*.go"
+            - "**/admin/internal/interfaces/**/*.go"
+            - "!**/*_test.go"
+          deny:
+            - pkg: github.com/asherzj/relational-config-center/admin/internal/infrastructure
+              desc: HTTP handlers must not import infrastructure; wire adapters in cmd
+            - pkg: github.com/asherzj/relational-config-center/admin/internal/domain
+              desc: HTTP handlers depend on application, not domain types directly
+            - pkg: github.com/asherzj/relational-config-center/admin/internal/platform
+              desc: platform configuration is loaded by cmd
+            - pkg: gorm.io
+              desc: HTTP handlers must not use GORM directly
+            - pkg: github.com/go-sql-driver/mysql
+              desc: HTTP handlers must not use the MySQL driver directly
+            - pkg: database/sql
+              desc: HTTP handlers must not use database/sql directly
+        # Deployment settings stay free of use cases, storage, and HTTP frameworks.
+        platform-has-no-service-internals:
+          list-mode: lax
+          files:
+            - "**/admin/internal/platform/*.go"
+            - "**/admin/internal/platform/**/*.go"
+          deny:
+            - pkg: github.com/asherzj/relational-config-center/admin/internal/application
+              desc: platform must not import application
+            - pkg: github.com/asherzj/relational-config-center/admin/internal/domain
+              desc: platform must not import domain
+            - pkg: github.com/asherzj/relational-config-center/admin/internal/infrastructure
+              desc: platform must not import infrastructure
+            - pkg: github.com/asherzj/relational-config-center/admin/internal/interfaces
+              desc: platform must not import interfaces
+            - pkg: github.com/gin-gonic/gin
+              desc: platform must not depend on Gin
+            - pkg: gorm.io
+              desc: platform must not depend on GORM
+            - pkg: github.com/go-sql-driver/mysql
+              desc: platform must not depend on the MySQL driver
+            - pkg: database/sql
+              desc: platform must not depend on database/sql
+        # ADR 0004: services do not import each other's Go packages. shared is contracts only.
+        services-do-not-import-admin:
+          list-mode: lax
+          files:
+            - "**/server/**/*.go"
+            - "**/server/*.go"
+            - "**/client/**/*.go"
+            - "**/client/*.go"
+            - "**/shared/**/*.go"
+            - "**/shared/*.go"
+          deny:
+            - pkg: github.com/asherzj/relational-config-center/admin
+              desc: Server, Client, and Shared must not import Admin
+        shared-is-contracts-only:
+          list-mode: lax
+          files:
+            - "**/shared/**/*.go"
+            - "**/shared/*.go"
+          deny:
+            - pkg: github.com/asherzj/relational-config-center/server
+              desc: shared must not import Server
+            - pkg: github.com/asherzj/relational-config-center/client
+              desc: shared must not import Client
+        client-does-not-import-server:
+          list-mode: lax
+          files:
+            - "**/client/**/*.go"
+            - "**/client/*.go"
+          deny:
+            - pkg: github.com/asherzj/relational-config-center/server
+              desc: Client must not import Server
+        server-does-not-import-client:
+          list-mode: lax
+          files:
+            - "**/server/**/*.go"
+            - "**/server/*.go"
+          deny:
+            - pkg: github.com/asherzj/relational-config-center/client
+              desc: Server must not import Client
+        admin-does-not-import-other-services:
+          list-mode: lax
+          files:
+            - "**/admin/**/*.go"
+          deny:
+            - pkg: github.com/asherzj/relational-config-center/server
+              desc: Admin must not import Server
+            - pkg: github.com/asherzj/relational-config-center/client
+              desc: Admin must not import Client
+    forbidigo:
+      analyze-types: true
+      forbid:
+        - pattern: ^fmt\.Print(f|ln)?$
+          msg: library code must not call fmt.Print, fmt.Printf, or fmt.Println; return the value or write at the cmd process boundary. fmt.Fprintf to an explicit writer is allowed
+  exclusions:
+    rules:
+      - linters:
+          - forbidigo
+        path: (^|/)cmd/

@@ -81,6 +81,7 @@ pnpm build
 cd ..
 make test
 make build
+make lint
 make test-integration
 ```
 
@@ -90,7 +91,7 @@ make test-integration
 
 ## 持续集成
 
-GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行 `Web`、`Go unit and build`、四组 `MySQL 8.4 integration`、`Browser acceptance` 和 `Goose Compose deployment` 检查。四组 MySQL 检查各自运行在独立 runner 上，关闭 matrix fail-fast，并分别保存发现清单、确定性分配、逐包 JSON 事件和最终结果。浏览器检查在 Linux runner 上使用 Playwright 的 Chromium、Firefox 和 WebKit；每个引擎单独写入 artifact 子目录。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
+GitHub Actions 在所有面向 `main` 的 Pull Request 和所有 `main` 推送上并行执行 `Web`、`Go unit and build`、`Go lint`、四组 `MySQL 8.4 integration`、`Browser acceptance` 和 `Goose Compose deployment` 检查。`Go lint` 执行 `make lint`，分层、库代码输出和 panic 违规都会使该作业失败；其余作业的步骤不变。四组 MySQL 检查各自运行在独立 runner 上，关闭 matrix fail-fast，并分别保存发现清单、确定性分配、逐包 JSON 事件和最终结果。浏览器检查在 Linux runner 上使用 Playwright 的 Chromium、Firefox 和 WebKit；每个引擎单独写入 artifact 子目录。工作流使用只读仓库权限，并取消同一 Pull Request 或分支上的过期运行。
 
 不设置分组时，`make test-integration` 依次运行全部四组，某个独立包或分组失败后仍继续收集其余结果，最后返回失败。可以只复现一组：
 
@@ -102,7 +103,7 @@ RCC_INTEGRATION_ARTIFACTS=/tmp/rcc-mysql-integration-shard-2 \
 
 浏览器验收通过公开 Cookie 会话及 CSRF 流程进入管理台；未登录的 Admin 和 Web 代理都拒绝业务请求。临时账号、规则和业务数据只存在于本次创建的独立 MySQL 中，结束后连同数据库一起清理。
 
-工作流当前只在推送到 `main` 和目标为 `main` 的 Pull Request 上运行这五个检查；推送到其他分支不会自动触发这套 CI。是否配置 branch protection、rulesets 或 required checks 由仓库设置决定，不能从本地文档推断为合并保证。
+工作流当前只在推送到 `main` 和目标为 `main` 的 Pull Request 上运行这些检查；推送到其他分支不会自动触发这套 CI。是否配置 branch protection、rulesets 或 required checks 由仓库设置决定，不能从本地文档推断为合并保证。
 
 无障碍套件的失败工件、生命周期记录与解释限制见[浏览器失败证据说明](docs/verification/browser-accessibility-evidence.md)。
 
@@ -132,21 +133,23 @@ TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
 ## 项目结构
 
 ```text
-admin/   第一迭代管理端后端 Go module
-server/  后续运行时读取服务 Go module
-client/  后续配置消费端 Go module
-shared/  跨进程传输契约 Go module，不包含共享领域模型
-web/     前端 module
-docs/    跨模块设计与项目文档
+admin/      第一迭代管理端后端 Go module
+server/     后续运行时读取服务 Go module
+client/     后续配置消费端 Go module
+shared/     跨进程传输契约 Go module，不包含共享领域模型
+tools/lint/ 自定义 go/analysis 检查，由 make lint 调用
+web/        前端 module
+docs/       跨模块设计与项目文档
 ```
 
 ## 开发约定
 
 - 通过小而清晰的提交记录项目演进。
 - 不向仓库提交密钥、令牌或本地环境配置。
-- `admin`、`server`、`client` 和 `shared` 独立声明依赖，根目录通过 `go.work` 提供本地协作体验。
+- `admin`、`server`、`client`、`shared` 和 `tools/lint` 独立声明依赖，根目录通过 `go.work` 提供本地协作体验。
 - 各上下文拥有自己的领域模型，传输契约必须通过 Adapter 转换。
 - Go package 使用简短、清晰的小写名称。
 - 引入新能力时同步补充测试和文档。
+- 修复一类缺陷时，把能拦住该类错误的检查放进同一次变更。本地与 CI 都执行 `make lint`，见[缺陷转检查](docs/agents/lint.md)。
 
 记录并发保护、Admin/Web 请求迁移与数据库维护窗口见 [记录版本契约](docs/admin-record-versions.md)。发布流程模板、逐表关联和持久实例、多表合计 1～1,000 项混合发布已接通；常规按表审批，应急填写原因后待手动发布，两者均在待完结原单上支持免审批整单回滚，见[发布结果契约](docs/design-notes/publication-contract.md)。已纳入 Goose 的数据库通过 `schema-migrate up` 升级至 00011，新库使用同一入口；维护连接还需显式授予 TRIGGER 元数据与 PROCESS 权限；旧记录写路由已删除，分发尚未接入。完整操作与维护步骤见[发布单升级指南](docs/admin-release-upgrade.md)，逐项验收归属见[交付计划](docs/design-notes/release-order-ticket-plan.md)。

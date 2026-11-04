@@ -735,6 +735,7 @@ func (adapter *Adapter) ExecuteQuerySnapshot(ctx context.Context, execute func(a
 		if recovered := recover(); recovered != nil {
 			session.active.Store(false)
 			_ = transaction.Rollback().Error
+			// Rethrow after the snapshot transaction rolls back so HTTP recovery still sees the panic.
 			panic(recovered)
 		}
 	}()
