@@ -3,8 +3,10 @@
 // A panic that takes down Admin hides the failing request behind process
 // death. Library packages must return errors. Two forms are allowed because
 // they do not introduce a new panic: files under cmd (the process boundary),
-// tests, and rethrowing the value returned by recover so an outer recovery
-// middleware still observes it.
+// tests, and rethrowing a value that still holds the result of recover so an
+// outer recovery middleware still observes it. Assigning that variable again
+// replaces the recovered value and ends the exemption. panic(recover()) stays
+// allowed.
 package librarypanic
 
 import (
@@ -19,7 +21,8 @@ import (
 const message = "library code must not call panic; return an error (rethrowing a recover result is allowed)"
 
 // Analyzer reports calls to the builtin panic outside cmd and tests,
-// except a rethrow of a value produced by the builtin recover.
+// except a direct recover rethrow or a variable whose latest write is still
+// the builtin recover.
 var Analyzer = &analysis.Analyzer{
 	Name: "librarypanic",
 	Doc:  "library packages must not introduce panic; rethrowing recover is allowed",
@@ -32,16 +35,20 @@ func run(pass *analysis.Pass) (any, error) {
 		if skipFile(filename) {
 			continue
 		}
-		recovered := recoveredObjects(pass, file)
+		// Source order matters: a recover write grants the exemption, and any
+		// later write to that same variable drops it before the next panic.
+		recovered := map[types.Object]bool{}
 		ast.Inspect(file, func(n ast.Node) bool {
-			call, ok := n.(*ast.CallExpr)
-			if !ok || !isBuiltin(pass, call.Fun, "panic") {
-				return true
+			switch node := n.(type) {
+			case *ast.AssignStmt:
+				noteAssignment(pass, node, recovered)
+			case *ast.ValueSpec:
+				noteValueSpec(pass, node, recovered)
+			case *ast.CallExpr:
+				if isBuiltin(pass, node.Fun, "panic") && !isRecoverRethrow(pass, node, recovered) {
+					pass.Reportf(node.Pos(), "%s", message)
+				}
 			}
-			if len(call.Args) == 1 && isRecoverRethrow(pass, call.Args[0], recovered) {
-				return true
-			}
-			pass.Reportf(call.Pos(), "%s", message)
 			return true
 		})
 	}
@@ -61,31 +68,39 @@ func skipFile(filename string) bool {
 	return false
 }
 
-func recoveredObjects(pass *analysis.Pass, file *ast.File) map[types.Object]bool {
-	found := map[types.Object]bool{}
-	ast.Inspect(file, func(n ast.Node) bool {
-		switch node := n.(type) {
-		case *ast.AssignStmt:
-			if len(node.Lhs) == 1 && len(node.Rhs) == 1 && isBuiltinCall(pass, node.Rhs[0], "recover") {
-				if id, ok := node.Lhs[0].(*ast.Ident); ok {
-					if obj := pass.TypesInfo.Defs[id]; obj != nil {
-						found[obj] = true
-					}
-				}
-			}
-		case *ast.ValueSpec:
-			if len(node.Names) == 1 && len(node.Values) == 1 && isBuiltinCall(pass, node.Values[0], "recover") {
-				if obj := pass.TypesInfo.Defs[node.Names[0]]; obj != nil {
-					found[obj] = true
-				}
+func noteAssignment(pass *analysis.Pass, stmt *ast.AssignStmt, recovered map[types.Object]bool) {
+	if len(stmt.Lhs) == 1 && len(stmt.Rhs) == 1 && isBuiltinCall(pass, stmt.Rhs[0], "recover") {
+		if id, ok := stmt.Lhs[0].(*ast.Ident); ok {
+			if obj := objectOf(pass, id); obj != nil {
+				recovered[obj] = true
 			}
 		}
-		return true
-	})
-	return found
+		return
+	}
+	for _, lhs := range stmt.Lhs {
+		id, ok := lhs.(*ast.Ident)
+		if !ok {
+			continue
+		}
+		if obj := objectOf(pass, id); obj != nil {
+			delete(recovered, obj)
+		}
+	}
 }
 
-func isRecoverRethrow(pass *analysis.Pass, arg ast.Expr, recovered map[types.Object]bool) bool {
+func noteValueSpec(pass *analysis.Pass, spec *ast.ValueSpec, recovered map[types.Object]bool) {
+	if len(spec.Names) == 1 && len(spec.Values) == 1 && isBuiltinCall(pass, spec.Values[0], "recover") {
+		if obj := pass.TypesInfo.Defs[spec.Names[0]]; obj != nil {
+			recovered[obj] = true
+		}
+	}
+}
+
+func isRecoverRethrow(pass *analysis.Pass, call *ast.CallExpr, recovered map[types.Object]bool) bool {
+	if len(call.Args) != 1 {
+		return false
+	}
+	arg := call.Args[0]
 	if isBuiltinCall(pass, arg, "recover") {
 		return true
 	}
@@ -95,6 +110,13 @@ func isRecoverRethrow(pass *analysis.Pass, arg ast.Expr, recovered map[types.Obj
 	}
 	obj := pass.TypesInfo.Uses[id]
 	return obj != nil && recovered[obj]
+}
+
+func objectOf(pass *analysis.Pass, id *ast.Ident) types.Object {
+	if obj := pass.TypesInfo.Defs[id]; obj != nil {
+		return obj
+	}
+	return pass.TypesInfo.Uses[id]
 }
 
 func isBuiltinCall(pass *analysis.Pass, expr ast.Expr, name string) bool {

@@ -48,7 +48,7 @@ HTTP 规则不覆盖 `*_test.go`。测试可以装配 MySQL 适配器；生产�
 Admin 处理配置发布和查询。库代码里新的 `panic` 会让进程退出，请求上的恢复中间件看不到这次失败。`tools/lint/passes/librarypanic` 禁止内建 `panic`，但允许两类既有写法：
 
 - `cmd` 和 `*_test.go`：进程入口和测试可以主动失败。
-- 把 `recover()` 的结果再 `panic` 出去。查询快照在回滚事务之后把原 panic 重新抛出，HTTP 恢复中间件才能把它收成 `internal_error`，同时不把驱动错误写进响应。这不是引入新的 panic。
+- 把仍保存 `recover()` 结果的变量再 `panic` 出去，或直接 `panic(recover())`。这个变量一旦被重新赋值，豁免消失。查询快照在回滚事务之后把原 panic 重新抛出，HTTP 恢复中间件才能把它收成 `internal_error`，同时不把驱动错误写进响应。这不是引入新的 panic。
 
 同包里自定义的、名字也叫 `panic` 的函数不会被误报。
 

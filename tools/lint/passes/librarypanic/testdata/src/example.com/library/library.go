@@ -27,3 +27,13 @@ func NotRecovered() {
 	recovered := "plain"
 	panic(recovered) // want `library code must not call panic`
 }
+
+// Reassigned checks librarypanic: the recover-rethrow exemption must not
+// survive reassignment. panic of the value still produced by recover is
+// allowed; panic after that variable is overwritten is a new panic.
+func Reassigned() {
+	r := recover()
+	panic(r)
+	r = "replacement"
+	panic(r) // want `library code must not call panic`
+}
